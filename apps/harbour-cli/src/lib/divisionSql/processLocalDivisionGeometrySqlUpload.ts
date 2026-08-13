@@ -806,14 +806,23 @@ export function geometryBuildUpsertSql(
 
   for (const row of rows) {
     const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`
+    const rowStatement = `${prefix}${value}${suffix}`
+    const rowStatementBytes = new TextEncoder().encode(rowStatement).byteLength
+
+    if (rowStatementBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
+      if (values.length > 0) {
+        statements.push(`${prefix}${values.join(', ')}${suffix}`)
+        values = []
+      }
+
+      statements.push(
+        geometryBuildChunkedUpsertSql(tableName, columns, row, prefix, suffix),
+      )
+      continue
+    }
+
     const candidate = `${prefix}${[...values, value].join(', ')}${suffix}`
     const candidateBytes = new TextEncoder().encode(candidate).byteLength
-
-    if (candidateBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES && values.length === 0) {
-      throw new Error(
-        `Cannot replay ${tableName} geometry row: its ${candidateBytes}-byte SQL statement exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
-      )
-    }
 
     if (candidateBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
       statements.push(`${prefix}${values.join(', ')}${suffix}`)
@@ -828,6 +837,96 @@ export function geometryBuildUpsertSql(
   }
 
   return statements.join('\n')
+}
+
+function geometryBuildChunkedUpsertSql(
+  tableName: string,
+  columns: string[],
+  row: Record<string, unknown>,
+  prefix: string,
+  suffix: string,
+) {
+  const geometry = row.geometry
+  const keyColumns = geometryReplayKeyColumns(row)
+
+  if (typeof geometry !== 'string' || !keyColumns) {
+    const rowBytes = new TextEncoder().encode(
+      `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
+    ).byteLength
+    throw new Error(
+      `Cannot replay ${tableName} geometry row: its ${rowBytes}-byte SQL statement exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+    )
+  }
+
+  const placeholderValue = `(${columns
+    .map(column => geometrySqlLiteral(column === 'geometry' ? '' : row[column]))
+    .join(', ')})`
+  const upsert = `${prefix}${placeholderValue}${suffix}`
+  const upsertBytes = new TextEncoder().encode(upsert).byteLength
+
+  if (upsertBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
+    throw new Error(
+      `Cannot replay ${tableName} geometry row: its non-geometry SQL is ${upsertBytes} bytes and exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+    )
+  }
+
+  const where = keyColumns
+    .map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`)
+    .join(' AND ')
+  const updatePrefix = `UPDATE "${tableName}" SET "geometry" = "geometry" || `
+  const updateSuffix = ` WHERE ${where};`
+  const chunkByteLimit =
+    MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES -
+    new TextEncoder().encode(`${updatePrefix}${geometrySqlLiteral('')}${updateSuffix}`)
+      .byteLength
+
+  if (chunkByteLimit <= 0) {
+    throw new Error(
+      `Cannot replay ${tableName} geometry row: its key columns leave no space for geometry data within D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+    )
+  }
+
+  return [
+    upsert,
+    ...geometrySplitUtf8(geometry, chunkByteLimit).map(
+      chunk => `${updatePrefix}${geometrySqlLiteral(chunk)}${updateSuffix}`,
+    ),
+  ].join('\n')
+}
+
+function geometryReplayKeyColumns(row: Record<string, unknown>) {
+  if (typeof row.snapshotId === 'string' && typeof row.id === 'string') {
+    return ['snapshotId', 'id']
+  }
+
+  if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
+    return ['id', 'versionHash']
+  }
+
+  return null
+}
+
+function geometrySplitUtf8(value: string, byteLimit: number) {
+  const chunks: string[] = []
+  let chunk = ''
+  let chunkBytes = 0
+
+  for (const character of value) {
+    const characterBytes = new TextEncoder().encode(character).byteLength
+
+    if (chunkBytes + characterBytes > byteLimit) {
+      chunks.push(chunk)
+      chunk = ''
+      chunkBytes = 0
+    }
+
+    chunk += character
+    chunkBytes += characterBytes
+  }
+
+  if (chunk) chunks.push(chunk)
+
+  return chunks
 }
 
 function geometrySqlLiteralDelete(tableName: string, column: string, value: string) {
