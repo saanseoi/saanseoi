@@ -1,4 +1,7 @@
 <script lang="ts">
+import { prefersReducedMotion } from 'svelte/motion'
+import { fade } from 'svelte/transition'
+
 import { Main, SourceFlowMap, SourcesHeader } from '$lib/bits'
 import type { SourceFlowInput, SourceFlowLane } from '$lib/bits'
 import { getCurrentLocale, selectLocalisedRow } from '$lib/bits/internal/i18n'
@@ -6,8 +9,10 @@ import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import { getSourcesPageData, type SourcesPageSource } from '$lib/registry/meta.remote'
 import { getPublisherLogo } from '$lib/registry/publisherLogo'
 import type { LocalisedRow } from '$lib/registry/types'
+import { Button } from '$lib/bits/primitives/button'
 
-let { sources, domainsByApiFamily } = $derived(await getSourcesPageData())
+const sourcesQuery = getSourcesPageData()
+const sourcesPageData = $derived(sourcesQuery.ready ? sourcesQuery.current : undefined)
 let locale = $derived(getCurrentLocale())
 let showPlanned = $state(true)
 let expandAll = $state(false)
@@ -188,101 +193,108 @@ const sourceFlowInput = (
 }
 
 const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
-  apiFamilyOrder.flatMap(familyType => {
-    const primaryType = primaryTypeByApiFamily[familyType]
-    const groupLabel = familyType === 'stats' ? 'cohort' : 'domain'
-    const sourceGroup =
-      familyType === 'stats'
-        ? sourceCohort
-        : (source: SourcesPageSource) => sourceDomain(source, familyType)
-    const domainMetadata = domainsByApiFamily[familyType]
-    const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
-    const familySources = sources
-      .filter(
-        source =>
-          source.theme === familyType &&
-          !(familyType === 'addresses' && source.publisherCode === 'overture'),
-      )
-      .sort((left, right) => {
-        const leftGroup = sourceGroup(left)
-        const rightGroup = sourceGroup(right)
-        if (familyType === 'stats' && leftGroup !== rightGroup) {
-          return rightGroup.localeCompare(leftGroup, undefined, { numeric: true })
-        }
-        if (familyType !== 'stats') {
-          const domainOrder = [
-            defaultDomainCode,
-            'default',
-            'overture',
-            'hkgov-pland-pu',
-            'hkgov-pland-new-town',
-            'hkgov-landsd',
-          ]
-          const domainRank = (domain: string) => {
-            const index = domainOrder.indexOf(domain)
-            return index === -1 ? domainOrder.length : index
-          }
-          const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
-          if (domainDifference) return domainDifference
-        }
-        const leftIsPrimary = left.resourceTypes.includes(primaryType)
-        const rightIsPrimary = right.resourceTypes.includes(primaryType)
-        if (leftIsPrimary !== rightIsPrimary) return leftIsPrimary ? -1 : 1
-        return left.code.localeCompare(right.code)
-      })
+  !sourcesPageData
+    ? []
+    : apiFamilyOrder.flatMap(familyType => {
+        const { domainsByApiFamily, sources } = sourcesPageData
+        const primaryType = primaryTypeByApiFamily[familyType]
+        const groupLabel = familyType === 'stats' ? 'cohort' : 'domain'
+        const sourceGroup =
+          familyType === 'stats'
+            ? sourceCohort
+            : (source: SourcesPageSource) => sourceDomain(source, familyType)
+        const domainMetadata = domainsByApiFamily[familyType]
+        const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
+        const familySources = sources
+          .filter(
+            source =>
+              source.theme === familyType &&
+              !(familyType === 'addresses' && source.publisherCode === 'overture'),
+          )
+          .sort((left, right) => {
+            const leftGroup = sourceGroup(left)
+            const rightGroup = sourceGroup(right)
+            if (familyType === 'stats' && leftGroup !== rightGroup) {
+              return rightGroup.localeCompare(leftGroup, undefined, { numeric: true })
+            }
+            if (familyType !== 'stats') {
+              const domainOrder = [
+                defaultDomainCode,
+                'default',
+                'overture',
+                'hkgov-pland-pu',
+                'hkgov-pland-new-town',
+                'hkgov-landsd',
+              ]
+              const domainRank = (domain: string) => {
+                const index = domainOrder.indexOf(domain)
+                return index === -1 ? domainOrder.length : index
+              }
+              const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
+              if (domainDifference) return domainDifference
+            }
+            const leftIsPrimary = left.resourceTypes.includes(primaryType)
+            const rightIsPrimary = right.resourceTypes.includes(primaryType)
+            if (leftIsPrimary !== rightIsPrimary) return leftIsPrimary ? -1 : 1
+            return left.code.localeCompare(right.code)
+          })
 
-    if (!familySources.length) return []
+        if (!familySources.length) return []
 
-    const theme = apiFamilyThemes[familyType]
-    const domains = [...new Set(familySources.map(sourceGroup))].flatMap(groupCode => {
-      const domainSources = familySources.filter(
-        source => sourceGroup(source) === groupCode,
-      )
-      const primary =
-        domainSources.find(source => source.resourceTypes.includes(primaryType)) ??
-        domainSources[0]
-      if (!primary) return []
+        const theme = apiFamilyThemes[familyType]
+        const domains = [...new Set(familySources.map(sourceGroup))].flatMap(
+          groupCode => {
+            const domainSources = familySources.filter(
+              source => sourceGroup(source) === groupCode,
+            )
+            const primary =
+              domainSources.find(source =>
+                source.resourceTypes.includes(primaryType),
+              ) ?? domainSources[0]
+            if (!primary) return []
 
-      return [
-        {
-          id: `${familyType}:${groupCode}`,
-          label:
-            familyType === 'stats'
-              ? groupCode
-              : domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
-          primary: sourceFlowInput(primary, primaryType),
-          variants: domainSources
-            .filter(source => source.code !== primary.code)
-            .map(source => sourceFlowInput(source, primaryType)),
-        },
-      ]
-    })
-    const defaultDomain =
-      (familyType === 'stats'
-        ? domains.find(domain => domain.label !== 'CURRENT')
-        : domains.find(domain => domain.id === `${familyType}:${defaultDomainCode}`)) ??
-      domains[0]
-    if (!defaultDomain) return []
+            return [
+              {
+                id: `${familyType}:${groupCode}`,
+                label:
+                  familyType === 'stats'
+                    ? groupCode
+                    : domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
+                primary: sourceFlowInput(primary, primaryType),
+                variants: domainSources
+                  .filter(source => source.code !== primary.code)
+                  .map(source => sourceFlowInput(source, primaryType)),
+              },
+            ]
+          },
+        )
+        const defaultDomain =
+          (familyType === 'stats'
+            ? domains.find(domain => domain.label !== 'CURRENT')
+            : domains.find(
+                domain => domain.id === `${familyType}:${defaultDomainCode}`,
+              )) ?? domains[0]
+        if (!defaultDomain) return []
 
-    return [
-      {
-        id: familyType,
-        label: theme.name,
-        href: `/apis/${familyType}`,
-        accent: theme.colorway.primary,
-        secondary: theme.colorway.secondary,
-        ink: '#fffaf0',
-        image: theme.image,
-        primary: defaultDomain.primary,
-        primaryGroupLabel: defaultDomain.label,
-        groupLabel,
-        defaultGroupExpanded: familyType === 'stats',
-        defaultAllGroupsExpanded: familyType === 'stats',
-        defaultInputLimit: familyType === 'stats' ? 3 : undefined,
-        domains,
-      },
-    ]
-  }),
+        return [
+          {
+            id: familyType,
+            label: theme.name,
+            href: `/apis/${familyType}`,
+            accent: theme.colorway.primary,
+            secondary: theme.colorway.secondary,
+            ink: '#fffaf0',
+            image: theme.image,
+            primary: defaultDomain.primary,
+            primaryGroupLabel: defaultDomain.label,
+            groupLabel,
+            defaultGroupExpanded: familyType === 'stats',
+            defaultAllGroupsExpanded: familyType === 'stats',
+            defaultInputLimit: familyType === 'stats' ? 3 : undefined,
+            domains,
+          },
+        ]
+      }),
 )
 </script>
 
@@ -295,5 +307,30 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
     {/snippet}
   </SourcesHeader.Root>
 
-  <SourceFlowMap.Root bind:expandAll bind:showPlanned lanes={sourceFlowLanes} />
+  {#if sourcesQuery.error}
+    <div
+      class="mt-8 flex flex-wrap items-center gap-4 rounded-default border border-outline-variant bg-surface-container-low px-4 py-3 font-body text-body-md text-foreground-alt"
+      data-source-flow-error
+      role="alert"
+    >
+      <p>Sources could not be loaded.</p>
+      <Button
+        disabled={sourcesQuery.loading}
+        onclick={() => void sourcesQuery.refresh()}
+        size="compact"
+        type="button"
+        variant="secondary"
+      >
+        Retry
+      </Button>
+    </div>
+  {:else if sourcesQuery.loading || !sourcesQuery.ready}
+    <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+      <SourceFlowMap.Skeleton />
+    </div>
+  {:else if sourcesQuery.ready}
+    <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+      <SourceFlowMap.Root bind:expandAll bind:showPlanned lanes={sourceFlowLanes} />
+    </div>
+  {/if}
 </Main>

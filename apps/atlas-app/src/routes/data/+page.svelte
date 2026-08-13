@@ -17,15 +17,25 @@ import {
 import { Main } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
-import { getDataPageData, getDataReleasesPageData } from '$lib/registry/meta.remote'
+import {
+  getDataPageApiData,
+  getDataPageBasemapData,
+  getDataReleasesPageData,
+  type DataPageRelease,
+} from '$lib/registry/meta.remote'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
 } from '$lib/registry/referenceDocs'
 import BasemapPostcard from '$lib/bits/pages/data/basemapPostcard.svelte'
 
-const data = await getDataPageData()
-let releases = $state(data.releases)
+const apiDataQuery = getDataPageApiData()
+const basemapDataQuery = getDataPageBasemapData()
+let apiData = $derived(apiDataQuery.ready ? apiDataQuery.current : undefined)
+let basemapData = $derived(
+  basemapDataQuery.ready ? basemapDataQuery.current : undefined,
+)
+let releases = $state<DataPageRelease[]>([])
 let locale = $derived(getCurrentLocale())
 const definitionHref = (id: 'api' | 'basemap') =>
   `saanseoi:${locale.toLowerCase()}:definition/${id}/v1`
@@ -57,37 +67,34 @@ let releaseCarouselNavigation = $state({
   canMoveBackward: false,
   canMoveForward: false,
 })
-let hasMoreReleases = $state(data.hasMore)
+let hasMoreReleases = $state(false)
 let isLoadingMoreReleases = $state(false)
-let nextReleaseOffset = $state(data.nextOffset)
+let nextReleaseOffset = $state(0)
 
 const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
 const pendingApiFamilies = new Set(['stats', 'places', 'streets'])
 const latestBasemapVersion = (code: 'gba' | 'hk' | 'mo') =>
-  data.basemapReleases.find(
+  basemapData?.basemapReleases.find(
     release => release.regionCode === code && release.displayStatus === 'current',
   )?.version ??
-  data.basemapReleases.find(release => release.regionCode === code)?.version ??
+  basemapData?.basemapReleases.find(release => release.regionCode === code)?.version ??
   'latest'
 const basemapDirectory = [
   {
     code: 'hk',
     name: 'Hong Kong',
     tileset: 'hongkong',
-    version: latestBasemapVersion('hk'),
   },
   {
     code: 'gba',
     name: 'Greater Bay Area',
     tileset: 'gba',
-    version: latestBasemapVersion('gba'),
   },
   {
     code: 'mo',
     name: 'Macao',
     tileset: 'macau',
-    version: latestBasemapVersion('mo'),
   },
 ] as const
 let activeBasemapCode = $state<(typeof basemapDirectory)[number]['code'] | null>(null)
@@ -112,6 +119,13 @@ onMount(() => {
     isBasemapDeckVisible = true
     isReleaseCarouselVisible = true
   })
+})
+
+$effect(() => {
+  if (!apiData) return
+  releases = apiData.releases
+  hasMoreReleases = apiData.hasMore
+  nextReleaseOffset = apiData.nextOffset
 })
 
 const rotateApiToBack = () => {
@@ -243,16 +257,16 @@ const handleViewportResize = () => {
 }
 
 const apiByFamily = $derived(
-  new Map(data.apis.map(api => [api.familyType.toLowerCase(), api])),
+  new Map(apiData?.apis.map(api => [api.familyType.toLowerCase(), api]) ?? []),
 )
 const apiDirectory = $derived(
   apiFamilyOrder.map(familyType => {
     const api = apiByFamily.get(familyType)
-    const releases =
-      api?.releases ?? data.releases.filter(release => release.apiFamily === familyType)
+    const familyReleases =
+      api?.releases ?? releases.filter(release => release.apiFamily === familyType)
     const latestRelease =
-      releases.find(release => release.displayStatus === 'current') ??
-      [...releases].sort(
+      familyReleases.find(release => release.displayStatus === 'current') ??
+      [...familyReleases].sort(
         (left, right) =>
           new Date(right.publishedAt ?? right.createdAt).getTime() -
           new Date(left.publishedAt ?? left.createdAt).getTime(),
@@ -308,7 +322,7 @@ const compactNumber = (value: number) =>
     maximumFractionDigits: value >= 1_000_000 ? 1 : 0,
     notation: 'compact',
   }).format(value)
-const releaseRecordCount = (release: (typeof data.releases)[number]) => {
+const releaseRecordCount = (release: DataPageRelease) => {
   return typeof release.primaryRecordCount === 'number'
     ? compactNumber(release.primaryRecordCount)
     : null
@@ -323,7 +337,7 @@ const releaseCarouselItems = $derived(
   })),
 )
 const basemapReleaseCarouselItems = $derived(
-  data.basemapReleases.map(release => ({
+  (basemapData?.basemapReleases ?? []).map(release => ({
     kind: 'basemap' as const,
     release,
     displayDate: displayDate(release.version),
@@ -343,6 +357,9 @@ const allReleaseCarouselItems = $derived(
         : (right.release.publishedAt ?? right.release.createdAt)
     return rightDate.localeCompare(leftDate)
   }),
+)
+const isInitialReleaseLoading = $derived(
+  apiDataQuery.loading || basemapDataQuery.loading,
 )
 
 const loadMoreReleases = async () => {
@@ -672,6 +689,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
               <CardDeck.ApiBody
                 active={activeApiIndex === apiIndex}
                 anotherCardActive={activeApiIndex !== null && activeApiIndex !== apiIndex}
+                isLoading={apiDataQuery.loading}
                 familyLabel={m.sources_flow_api_family()}
                 accessLabel={api.isPending ? m.data_coming_soon() : m.data_open_access()}
                 name={api.theme.name}
@@ -714,6 +732,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
           <div class="contents">
             <BasemapPostcard
               {...region}
+              version={latestBasemapVersion(region.code)}
+              isLoading={basemapDataQuery.loading}
               intro={{ y: 18, duration: 360, delay: index * 70 }}
               isSelected={activeBasemapCode === region.code}
               isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
@@ -766,12 +786,12 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       </PageSectionActions>
     </PageSectionHeader>
     {#if isReleaseCarouselVisible}
-      {#if allReleaseCarouselItems.length > 0}
+      {#if allReleaseCarouselItems.length > 0 || isInitialReleaseLoading}
         <div class="relative left-1/2 w-screen -translate-x-1/2">
           <ReleaseCarousel
             bind:this={releaseCarousel}
             items={allReleaseCarouselItems}
-            isLoading={isLoadingMoreReleases}
+            isLoading={isInitialReleaseLoading || isLoadingMoreReleases}
             onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
             onreachend={loadMoreReleases}
           />

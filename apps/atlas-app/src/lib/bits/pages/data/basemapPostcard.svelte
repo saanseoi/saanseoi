@@ -9,6 +9,7 @@ type Props = {
   name: string
   tileset: string
   version: string
+  isLoading?: boolean
   isSelected: boolean
   isShrunk: boolean
   shrunkIndex: number | null
@@ -31,6 +32,7 @@ let {
   code,
   tileset,
   version,
+  isLoading = false,
   isSelected,
   isShrunk,
   shrunkIndex,
@@ -214,6 +216,7 @@ const releaseNotesUrl = $derived(`/basemaps/releases/${code}/${version}`)
     {coverage}
     {flipAngle}
     {isDragging}
+    {isLoading}
     {isSelected}
     {onactivate}
     {onpointercancel}
