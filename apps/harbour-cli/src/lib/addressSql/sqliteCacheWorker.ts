@@ -76,6 +76,7 @@ async function importDatabaseDumpsToSqlite(
 
   try {
     sqlite.exec('PRAGMA foreign_keys = OFF;')
+    sqlite.exec('BEGIN;')
     for (const dumpPath of dumpPaths) {
       const dumpSql = await readFile(dumpPath, 'utf8')
 
@@ -85,10 +86,16 @@ async function importDatabaseDumpsToSqlite(
     }
 
     pruneCachedRows(sqlite, pruneOperations)
+    sqlite.exec('COMMIT;')
     sqlite.exec('PRAGMA foreign_keys = ON;')
     sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
   } catch (error) {
     failed = true
+    try {
+      sqlite.exec('ROLLBACK;')
+    } catch {
+      // The failure may have occurred before the transaction started.
+    }
     throw error
   } finally {
     sqlite.close()
