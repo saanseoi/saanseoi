@@ -20,10 +20,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# D1 imports use Wrangler's authenticated session. The application API token can
-# be scoped to a different Cloudflare account, so do not let Bun's automatic
-# .env loading override that session for schema administration commands.
-if env -u CLOUDFLARE_API_TOKEN bun x wrangler d1 execute "$@" --json >"$tmp_output" 2>&1; then
+# The application API token can be scoped to a different Cloudflare account.
+# Prefer the dedicated D1 import token when available; otherwise use Wrangler's
+# authenticated session without inheriting the application token.
+wrangler_env=(env -u CLOUDFLARE_API_TOKEN)
+if [[ -n "${CLOUDFLARE_D1_TOKEN:-}" ]]; then
+  wrangler_env=(env "CLOUDFLARE_API_TOKEN=$CLOUDFLARE_D1_TOKEN")
+fi
+
+if "${wrangler_env[@]}" bun x wrangler d1 execute "$@" --json >"$tmp_output" 2>&1; then
   bun -e '
     const raw = require("fs").readFileSync(process.argv[1], "utf8");
     const jsonStart = raw.search(/^[\[{]/m);

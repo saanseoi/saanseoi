@@ -531,16 +531,18 @@ async function findIncompletePublishedReleases(
       const snapshot = metaSqlite
         .query(
           `
-            SELECT s.id AS snapshotId
+            SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId
             FROM snapshots s
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-            INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
+            LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             WHERE ss.sourceReleaseId = ?
               AND ss.datasetId = ?
               AND s.resourceType = ?
               AND s.status = 'published'
-              AND sl.resourceType = ?
-              AND sl.primaryDatasetId = ?
+              AND (
+                s.snapshotLineageId IS NULL
+                OR (sl.resourceType = ? AND sl.primaryDatasetId = ?)
+              )
             ORDER BY s.revision DESC
             LIMIT 1
           `,
@@ -551,7 +553,7 @@ async function findIncompletePublishedReleases(
           release.type,
           release.type,
           release.datasetId,
-        ) as { snapshotId?: string } | null
+        ) as { snapshotId?: string; snapshotLineageId?: string | null } | null
 
       if (!snapshot?.snapshotId) {
         incomplete.push(
@@ -571,7 +573,10 @@ async function findIncompletePublishedReleases(
         )
         .get(snapshot.snapshotId) as { count?: number }
 
-      if ((releaseShardCount.count ?? 0) < 2 || (snapshotShardCount.count ?? 0) < 1) {
+      if (
+        (releaseShardCount.count ?? 0) < 2 ||
+        (snapshot.snapshotLineageId && (snapshotShardCount.count ?? 0) < 1)
+      ) {
         incomplete.push(`${release.code}: missing release or snapshot shard assignment`)
         continue
       }
