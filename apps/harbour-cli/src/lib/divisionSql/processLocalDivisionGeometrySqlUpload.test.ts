@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import {
   asOptionalInteger,
@@ -142,11 +143,32 @@ describe('geometryBuildUpsertSql', () => {
     }
   })
 
-  test('rejects a geometry row that cannot fit in one D1 statement', () => {
-    expect(() =>
-      geometryBuildUpsertSql('divisionAreas', [
-        { geometry: 'x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES), id: 'area-1' },
-      ]),
-    ).toThrow('Cannot replay divisionAreas geometry row')
+  test('replays an oversized geometry row through bounded statements', () => {
+    const geometry = 'x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2)
+    const sql = geometryBuildUpsertSql('divisionAreas', [
+      { geometry: 'small', id: 'area-1', snapshotId: 'snapshot-1' },
+      { geometry, id: 'area-2', snapshotId: 'snapshot-1' },
+      { geometry: 'small', id: 'area-3', snapshotId: 'snapshot-1' },
+    ])
+    const statements = sql.split('\n')
+
+    for (const statement of statements) {
+      expect(new TextEncoder().encode(statement).byteLength).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    }
+
+    const database = new Database(':memory:')
+    database.exec(
+      'CREATE TABLE divisionAreas (snapshotId TEXT NOT NULL, id TEXT NOT NULL, geometry TEXT NOT NULL, PRIMARY KEY (snapshotId, id));',
+    )
+    database.exec(sql)
+
+    expect(
+      database
+        .query('SELECT geometry FROM divisionAreas WHERE snapshotId = ? AND id = ?')
+        .get('snapshot-1', 'area-2'),
+    ).toEqual({ geometry })
+    database.close()
   })
 })
