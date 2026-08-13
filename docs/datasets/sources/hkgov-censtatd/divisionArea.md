@@ -37,6 +37,12 @@ byte-identical within the 2016 and 2021 cohorts. The updater suppresses only tho
 no-op objects; it continues to inspect the archive catalogue, so a changed slot or
 object key remains eligible for review.
 
+During a target bootstrap, the release report is evaluated separately for the `2016` and
+`2021` source cohorts. An absent cohort is rebuilt from its native CSDI archive group,
+while a cohort already reported by the target remains current even if the operator's
+local source checks differ. Consequently, rerunning an interrupted bootstrap does not
+attempt to create a duplicate release for the completed census cohort.
+
 ## Source contract
 
 Each release contains exactly 18 Polygon/MultiPolygon features. Required properties are:

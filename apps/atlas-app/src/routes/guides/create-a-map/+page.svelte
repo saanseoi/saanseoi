@@ -1417,7 +1417,8 @@ const rendererCodeLabel = $derived.by(() => {
 const rendererCssCode = $derived(rendererReference.stylesheetCode)
 const rendererCode = $derived(rendererReference.code)
 const basemapCode = $derived(
-  renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
+  selectedStyle &&
+    (renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet')
     ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl)
     : '',
 )
@@ -1430,15 +1431,7 @@ const rendererEditorInstruction = $derived(
     )
     .replace('{path}', rendererEditorPath),
 )
-const styleEditCode = $derived(
-  [
-    '// Before: the style declaration from the basemap step',
-    "// const style = await fetch('<existing style URL>').then(response => response.json())",
-    '',
-    '// After: the selected SaanSeoi style',
-    `const style = await fetch('${styleUrl}').then(response => response.json())`,
-  ].join('\n'),
-)
+const styleEditCode = $derived(basemapCode)
 const styleEditorInstruction = $derived(
   m
     .guide_style_editor_instruction()
@@ -2279,7 +2272,7 @@ const styleChoices = $derived.by(() =>
               />
             </div>
           </div>
-          {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
+          {#if region && selectedStyle && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             {#if !llmGuidanceEnabled}
               <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
                 <GuideSubSectionHeader
