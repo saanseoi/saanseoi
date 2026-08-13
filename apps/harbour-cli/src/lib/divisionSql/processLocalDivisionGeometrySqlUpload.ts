@@ -45,6 +45,7 @@ import { createLocalControlClient } from '../localPipeline/localControlClient.ts
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
   invalidateRemoteDbCache,
+  replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
@@ -523,6 +524,14 @@ export async function processLocalDivisionGeometrySqlUpload(
         publishResult: undefined,
       }
     }
+    // Remote replay is part of publishing this release. Start this phase before
+    // it so the CLI remains informative and the reported duration covers all
+    // work needed to make the dataset available remotely.
+    const publishStartedAt = Date.now()
+    progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
+      current: 0,
+      max: null,
+    })
     if (target.remote) {
       await replayGeometryIntoRemote(
         target,
@@ -532,11 +541,6 @@ export async function processLocalDivisionGeometrySqlUpload(
         snapshot.id,
       )
     }
-    const publishStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
-      current: 0,
-      max: null,
-    })
     await client.stageCompleted(
       releaseId,
       'processDataset',
@@ -700,23 +704,27 @@ async function replayGeometryIntoRemote(
   ]
 
   try {
-    for (const tableImport of tableImports) {
-      if (!tableImport.sql.trim()) continue
-      await executeSqlText(
-        {
-          databaseId: tableImport.databaseId ?? null,
-          name: tableImport.name,
-        },
-        tableImport.sql,
-        options,
-      )
-    }
+    await replayRemoteCacheWithRetry(
+      targetName,
+      context.state.dbCacheDir,
+      releaseId,
+      async () => {
+        for (const tableImport of tableImports) {
+          if (!tableImport.sql.trim()) continue
+          await executeSqlText(
+            {
+              databaseId: tableImport.databaseId ?? null,
+              name: tableImport.name,
+            },
+            tableImport.sql,
+            options,
+          )
+        }
+      },
+    )
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
-    await invalidateRemoteDbCache(targetName, context.state.dbCacheDir, reason)
-    throw new Error(
-      `Remote geometry replay failed; the cache was invalidated. ${reason}`,
-    )
+    throw new Error(`Remote geometry replay failed. ${reason}`)
   }
 }
 

@@ -12,6 +12,7 @@ set -g saanseoi_init_continue 0
 set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
 set -g saanseoi_init_completed_release_codes
+set -g saanseoi_init_docs_pending 0
 
 function init_configure
     set -l usage $argv[1]
@@ -123,6 +124,12 @@ end
 
 function init_publish_docs_if_processed
     if test "$argv[1]" -eq 1
+        set -g saanseoi_init_docs_pending 1
+    end
+end
+
+function init_publish_docs_if_needed
+    if test "$saanseoi_init_docs_pending" -eq 1
         init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
     end
 end

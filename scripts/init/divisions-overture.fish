@@ -76,3 +76,8 @@ for year in 2016 2021
         --yes
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
+
+# Publishing release documentation scans every published release. Defer it until
+# all cohort uploads have completed so an initial run does not repeat that scan
+# after each individual source release.
+init_publish_docs_if_needed

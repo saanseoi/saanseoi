@@ -45,6 +45,18 @@ type DbCacheManifest = {
   files: Record<string, string>
 }
 
+type RemoteCacheReplayJournal = {
+  attemptCount: number
+  cacheDir: string
+  completedAt?: string
+  failedAt?: string
+  lastError?: string
+  releaseCode: string
+  startedAt: string
+  status: 'failed' | 'replayed' | 'replaying'
+  target: 'preview' | 'production'
+}
+
 type LocalD1PreparedStatement = {
   run(): Promise<unknown>
   sql: string
@@ -152,6 +164,8 @@ const REMOTE_CACHE_BINDING_CONCURRENCY = 4
 const WRANGLER_CONFIG_HOME = resolve(REPO_ROOT, '.local/wrangler')
 const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
 const DB_CACHE_PROGRESS_HEARTBEAT_MS = 1000
+const REMOTE_CACHE_REPLAY_RETRY_LIMIT = 3
+const REMOTE_CACHE_REPLAY_RETRY_DELAY_MS = 750
 const BEFORE_SHARD_CUTOFF_YEAR = 2025
 const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
 const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
@@ -429,7 +443,15 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
   }
 
   const targetName = target.environment === 'production' ? 'production' : 'preview'
-  const metaPath = join(resolveRemoteCacheDir(targetName), 'DB_META.sqlite')
+  const cacheDir = resolveRemoteCacheDir(targetName)
+  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
+  const metaPath = manifest?.files.DB_META
+
+  if (!metaPath || !(await isValidCachedFile(metaPath, 'DB_META'))) {
+    throw new Error(
+      `No valid ${targetName} metadata cache is available. Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
+    )
+  }
   const meta = (await openSqliteDb(
     metaPath,
     metaSchema,
@@ -438,7 +460,13 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
 
   try {
     const rows = await meta.db
-      .select({ code: metaSchema.metaReleases.code })
+      .select({
+        code: metaSchema.metaReleases.code,
+        datasetId: metaSchema.metaReleases.datasetId,
+        id: metaSchema.metaReleases.id,
+        status: metaSchema.metaReleases.status,
+        type: metaSchema.metaReleases.resourceType,
+      })
       .from(metaSchema.metaReleases)
       .where(
         or(
@@ -448,10 +476,148 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
       )
       .all()
 
+    const incompleteReleases = await findIncompletePublishedReleases(
+      cacheDir,
+      meta.sqlite,
+      rows,
+    )
+
+    if (incompleteReleases.length > 0) {
+      throw new Error(
+        [
+          `The ${targetName} cache contains published releases that are not safe to skip.`,
+          ...incompleteReleases.map(release => `- ${release}`),
+          'Reset or repair the target before continuing; published releases are never silently reprocessed.',
+        ].join('\n'),
+      )
+    }
+
     return rows.map(row => row.code)
   } finally {
     meta.sqlite.close()
   }
+}
+
+async function findIncompletePublishedReleases(
+  cacheDir: string,
+  metaSqlite: SQLiteDatabase,
+  releases: Array<{
+    code: string
+    datasetId: string
+    id: string
+    status: string
+    type: string
+  }>,
+) {
+  const currentPath = resolve(cacheDir, 'DB_CURRENT.sqlite')
+  const currentSqlite = existsSync(currentPath)
+    ? new SQLiteDatabase(currentPath, { readonly: true })
+    : null
+  const incomplete: string[] = []
+
+  try {
+    for (const release of releases) {
+      if (release.status === 'superseded') {
+        continue
+      }
+
+      const currentTable = resolveCompletedReleaseCurrentTable(release.type)
+
+      // Non-SQL pipelines have no cache-level materialisation contract here.
+      if (!currentTable) {
+        continue
+      }
+
+      const snapshot = metaSqlite
+        .query(
+          `
+            SELECT s.id AS snapshotId
+            FROM snapshots s
+            INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
+            INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
+            WHERE ss.sourceReleaseId = ?
+              AND ss.datasetId = ?
+              AND s.resourceType = ?
+              AND s.status = 'published'
+              AND sl.resourceType = ?
+              AND sl.primaryDatasetId = ?
+            ORDER BY s.revision DESC
+            LIMIT 1
+          `,
+        )
+        .get(
+          release.id,
+          release.datasetId,
+          release.type,
+          release.type,
+          release.datasetId,
+        ) as { snapshotId?: string } | null
+
+      if (!snapshot?.snapshotId) {
+        incomplete.push(
+          `${release.code}: missing published snapshot lineage/source membership`,
+        )
+        continue
+      }
+
+      const releaseShardCount = metaSqlite
+        .query(
+          'SELECT COUNT(*) AS count FROM releaseShardAssignments WHERE releaseId = ?',
+        )
+        .get(release.id) as { count?: number }
+      const snapshotShardCount = metaSqlite
+        .query(
+          'SELECT COUNT(*) AS count FROM snapshotShardAssignments WHERE snapshotId = ?',
+        )
+        .get(snapshot.snapshotId) as { count?: number }
+
+      if ((releaseShardCount.count ?? 0) < 2 || (snapshotShardCount.count ?? 0) < 1) {
+        incomplete.push(`${release.code}: missing release or snapshot shard assignment`)
+        continue
+      }
+
+      if (!currentSqlite) {
+        incomplete.push(`${release.code}: DB_CURRENT cache file is missing`)
+        continue
+      }
+
+      try {
+        const rowCount = currentSqlite
+          .query(
+            `SELECT COUNT(*) AS count FROM ${quoteSqlIdentifier(currentTable)} WHERE "snapshotId" = ?`,
+          )
+          .get(snapshot.snapshotId) as { count?: number }
+        if ((rowCount.count ?? 0) === 0) {
+          incomplete.push(`${release.code}: current snapshot is not materialised`)
+        }
+      } catch (error) {
+        incomplete.push(
+          `${release.code}: could not verify current materialisation (${error instanceof Error ? error.message : String(error)})`,
+        )
+      }
+    }
+  } finally {
+    currentSqlite?.close()
+  }
+
+  return incomplete
+}
+
+function resolveCompletedReleaseCurrentTable(type: string) {
+  switch (type) {
+    case 'division':
+      return 'divisions'
+    case 'divisionArea':
+      return 'divisionAreas'
+    case 'divisionBoundary':
+      return 'divisionBoundaries'
+    default:
+      return null
+  }
+}
+
+function quoteSqlIdentifier(value: string) {
+  return `"${value.replaceAll('"', '""')}"`
 }
 
 /**
@@ -872,6 +1038,97 @@ export async function invalidateRemoteDbCache(
       2,
     ),
   ).catch(() => undefined)
+}
+
+/**
+ * Replays a published release into the local cache with a durable checkpoint.
+ * Generated SQL is idempotent, so a transient local SQLite failure can retry
+ * without cloning remote D1 again. A terminal failure still invalidates the
+ * cache: it may have applied only part of the release.
+ */
+export async function replayRemoteCacheWithRetry(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  releaseCode: string,
+  replay: () => Promise<void>,
+) {
+  assertRemoteCacheDirectory(target, cacheDir)
+  const journalPath = resolveRemoteCacheReplayJournalPath(cacheDir, releaseCode)
+  const startedAt = new Date().toISOString()
+  let lastError: unknown
+
+  await mkdir(dirname(journalPath), { recursive: true })
+
+  for (let attempt = 1; attempt <= REMOTE_CACHE_REPLAY_RETRY_LIMIT; attempt += 1) {
+    await writeRemoteCacheReplayJournal(journalPath, {
+      attemptCount: attempt,
+      cacheDir,
+      releaseCode,
+      startedAt,
+      status: 'replaying',
+      target,
+    })
+
+    try {
+      await replay()
+      await writeRemoteCacheReplayJournal(journalPath, {
+        attemptCount: attempt,
+        cacheDir,
+        completedAt: new Date().toISOString(),
+        releaseCode,
+        startedAt,
+        status: 'replayed',
+        target,
+      })
+      return
+    } catch (error) {
+      lastError = error
+      const lastErrorMessage = error instanceof Error ? error.message : String(error)
+      await writeRemoteCacheReplayJournal(journalPath, {
+        attemptCount: attempt,
+        cacheDir,
+        failedAt: new Date().toISOString(),
+        lastError: lastErrorMessage,
+        releaseCode,
+        startedAt,
+        status: 'failed',
+        target,
+      })
+
+      if (attempt < REMOTE_CACHE_REPLAY_RETRY_LIMIT) {
+        await Bun.sleep(REMOTE_CACHE_REPLAY_RETRY_DELAY_MS * attempt)
+      }
+    }
+  }
+
+  const reason = lastError instanceof Error ? lastError.message : String(lastError)
+  await invalidateRemoteDbCache(target, cacheDir, reason)
+  throw new Error(
+    `Updating the ${target} local cache failed after ${REMOTE_CACHE_REPLAY_RETRY_LIMIT} idempotent replay attempts. The cache was invalidated. ${reason}`,
+  )
+}
+
+function resolveRemoteCacheReplayJournalPath(cacheDir: string, releaseCode: string) {
+  const fileName = releaseCode.replaceAll(/[^a-zA-Z0-9._-]/g, '_')
+  return resolve(cacheDir, 'replay-journal', `${fileName}.json`)
+}
+
+async function writeRemoteCacheReplayJournal(
+  path: string,
+  journal: RemoteCacheReplayJournal,
+) {
+  await writeFile(path, `${JSON.stringify(journal, null, 2)}\n`)
+}
+
+function assertRemoteCacheDirectory(
+  target: 'preview' | 'production',
+  cacheDir: string,
+) {
+  if (!cacheDir.startsWith(resolveRemoteCacheDir(target))) {
+    throw new Error(
+      `Refusing to update a replay journal outside the ${target} cache root.`,
+    )
+  }
 }
 
 async function resolveD1Targets(target: 'local' | 'preview' | 'production') {
