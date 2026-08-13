@@ -846,10 +846,10 @@ function geometryBuildChunkedUpsertSql(
   prefix: string,
   suffix: string,
 ) {
-  const geometry = row.geometry
+  const geometry = geometrySqlText(row.geometry)
   const keyColumns = geometryReplayKeyColumns(row)
 
-  if (typeof geometry !== 'string' || !keyColumns) {
+  if (!geometry || !keyColumns) {
     const rowBytes = new TextEncoder().encode(
       `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
     ).byteLength
@@ -903,6 +903,12 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
     return ['id', 'versionHash']
   }
 
+  return null
+}
+
+function geometrySqlText(value: unknown) {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object') return JSON.stringify(value)
   return null
 }
 
