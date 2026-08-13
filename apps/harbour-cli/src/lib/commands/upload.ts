@@ -55,6 +55,10 @@ import { validateOvertureSchema } from '../schema/overture.ts'
 import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
 import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
+import {
+  discardDerivedReleaseArtefacts,
+  shouldCacheArtefacts,
+} from '../localPipeline/releaseArtefacts.ts'
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -78,6 +82,7 @@ export async function runUploadCommand(
   const inputFile = args.positionals[0]
   const commandStartedAt = Date.now()
   const mutedBar = '\u001B[90m│\u001B[39m'
+  const cacheArtefacts = shouldCacheArtefacts(args.options)
 
   if (args.options.verbose) {
     process.env.HARBOUR_VERBOSE = '1'
@@ -354,6 +359,11 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -398,6 +408,11 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -430,6 +445,11 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
         )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
@@ -469,6 +489,11 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -562,6 +587,11 @@ ${mutedBar}  `)
         logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
         )
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -594,6 +624,11 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
         )
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -612,6 +647,11 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
         )
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
         if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -625,6 +665,18 @@ ${mutedBar}  `)
   } finally {
     await sourcePreparationCleanup?.()
   }
+}
+
+async function discardSuccessfulReleaseArtefacts(
+  cacheArtefacts: boolean,
+  target: UploadTarget,
+  releaseCode: string,
+) {
+  if (cacheArtefacts) {
+    return
+  }
+
+  await discardDerivedReleaseArtefacts(target, releaseCode)
 }
 
 async function prepareHkgovHadGeoJsonUpload(
