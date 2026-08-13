@@ -1416,7 +1416,7 @@ async function ensureRemoteCachePaths(
     throw new Error(
       [
         `No complete reusable ${target} D1 cache was found at ${cacheDir}.`,
-        'Rollback uses the local mirror as its planning surface and will not clone remote D1 automatically.',
+        'Published-release replay uses the local mirror as its planning surface and will not clone remote D1 automatically.',
         `Refresh the mirror first, for example: bun run db:mirror:${target}:to:local`,
       ].join(' '),
     )
