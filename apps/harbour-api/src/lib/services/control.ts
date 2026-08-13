@@ -3,6 +3,8 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listDraftReleaseSetPrimaryReleases,
+  listDraftReleaseSets,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
@@ -27,6 +29,7 @@ import {
   type ResourceType,
 } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { ApiFamilyType } from '@repo/db'
 
 type StageRequest = {
   releaseCode?: string
@@ -47,6 +50,11 @@ type CleanupSnapshotsRequest = {
   dryRun?: boolean
   resourceType?: ResourceType
   snapshotIds?: string[]
+}
+
+export type ReconcileDraftReleaseSetsRequest = {
+  apiFamily?: ApiFamilyType
+  regionCode?: RegionCode
 }
 
 type ControlResult = {
@@ -73,6 +81,12 @@ type CleanupSnapshotsResult = {
   dryRun: boolean
   snapshotIds: string[]
   status: 'queued' | 'skipped'
+}
+
+export type ReconcileDraftReleaseSetsResult = {
+  inspected: number
+  pendingReleaseSetCodes: string[]
+  publishedReleaseSetCodes: string[]
 }
 
 export class ControlRequestError extends Error {}
@@ -217,6 +231,10 @@ export async function handlePublishDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   request: PublishRequest,
   cleanupQueue?: HarbourJobQueue,
+  options: {
+    reconcileDraftReleaseSet?: boolean
+    releaseSet?: { code: string; id: string }
+  } = {},
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
@@ -261,22 +279,24 @@ export async function handlePublishDataset(
 
     // Census cohorts are independently selectable required inputs. Publishing
     // a later one must not supersede the earlier source release.
-    const currentRelease = isCenstatdGeometry
-      ? null
-      : await getCurrentReleaseForDatasetId(
-          db,
-          dataset.datasetId,
-          datasetType,
-          dataset.releaseId,
-        )
+    const currentRelease =
+      isCenstatdGeometry || options.reconcileDraftReleaseSet
+        ? null
+        : await getCurrentReleaseForDatasetId(
+            db,
+            dataset.datasetId,
+            datasetType,
+            dataset.releaseId,
+          )
     const existingReleaseSet = isCenstatdGeometry
       ? null
-      : await resolveReleaseSetForRelease(
+      : (options.releaseSet ??
+        (await resolveReleaseSetForRelease(
           db,
           dataset.releaseId,
           datasetType,
           domainCode,
-        )
+        )))
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
         ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
@@ -408,7 +428,7 @@ export async function handlePublishDataset(
         // chronological order; the newest one becomes current.
         deferApiReleaseSet: !shouldPublishReleaseSet,
         publishApiCatalogRevision: shouldPublishReleaseSet,
-        updateDatasetRelease: isNewestReleaseSet,
+        updateDatasetRelease: !options.reconcileDraftReleaseSet && isNewestReleaseSet,
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
@@ -447,6 +467,58 @@ export async function handlePublishDataset(
       phase: null,
       snapshotId: snapshot.id,
       status: 'current',
+    }
+  })
+}
+
+/**
+ * Re-evaluates every selected draft set against its already-published source
+ * snapshots. This makes a resumed backfill safe: no source release is
+ * re-ingested and no source-release lifecycle state is changed.
+ */
+export async function handleReconcileDraftReleaseSets(
+  db: HarbourReadableDb & HarbourWritableDb,
+  request: ReconcileDraftReleaseSetsRequest = {},
+): Promise<ReconcileDraftReleaseSetsResult> {
+  return runWithTransientControlRetry(async () => {
+    const [draftReleaseSets, primaryReleases] = await Promise.all([
+      listDraftReleaseSets(db, request),
+      listDraftReleaseSetPrimaryReleases(db, request),
+    ])
+    const primaryReleaseByReleaseSetId = new Map(
+      primaryReleases.map(release => [release.apiReleaseSetId, release]),
+    )
+    const publishedReleaseSetCodes: string[] = []
+    const pendingReleaseSetCodes: string[] = []
+
+    for (const releaseSet of draftReleaseSets) {
+      const primaryRelease = primaryReleaseByReleaseSetId.get(releaseSet.id)
+      if (!primaryRelease) {
+        pendingReleaseSetCodes.push(releaseSet.code)
+        continue
+      }
+
+      const result = await handlePublishDataset(
+        db,
+        { releaseId: primaryRelease.releaseId, skipSnapshotCleanup: true },
+        undefined,
+        { reconcileDraftReleaseSet: true, releaseSet },
+      )
+      if (
+        result.apiReleaseSetPublications?.some(
+          publication => publication.apiReleaseSetCode === releaseSet.code,
+        )
+      ) {
+        publishedReleaseSetCodes.push(releaseSet.code)
+      } else {
+        pendingReleaseSetCodes.push(releaseSet.code)
+      }
+    }
+
+    return {
+      inspected: draftReleaseSets.length,
+      pendingReleaseSetCodes,
+      publishedReleaseSetCodes,
     }
   })
 }

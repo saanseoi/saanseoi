@@ -18,6 +18,7 @@ const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 
 const {
   handlePublishDataset,
+  handleReconcileDraftReleaseSets,
   handleStageCompleted,
   handleStageFailed,
   handleStageRunning,
@@ -1070,7 +1071,7 @@ describe('control service', () => {
     })
   })
 
-  test('keeps the draft division release set incomplete without its required C&SD areas', async () => {
+  test('reconciles a draft division release set once its required C&SD areas are available', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-had-draft-release-set.sqlite')
     const sqlite = initDb(dbPath)
@@ -1235,18 +1236,21 @@ describe('control service', () => {
       ) VALUES
         ('lineage-overture-division', 'sl-ds-hk-overture-division', 'hk', 'division', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division', 1761264000001, 1761264000001),
         ('lineage-overture-division-area', 'sl-ds-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-divisionArea', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
-        ('lineage-overture-division-boundary', 'sl-ds-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001);
+        ('lineage-overture-division-boundary', 'sl-ds-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001),
+        ('lineage-hkgov-had-division-area', 'sl-ds-hk-hkgov-had-division-area-district', 'hk', 'divisionArea', 'hkgov-had', 'persistent', 'hkgov-had-hk-district', 'vh-lineage-hkgov-had-division-area', 1761264000001, 1761264000001);
 
       UPDATE snapshots
       SET snapshotLineageId = CASE id
         WHEN 'snapshot-${division.releaseId}' THEN 'lineage-overture-division'
         WHEN 'snapshot-${overtureArea.releaseId}' THEN 'lineage-overture-division-area'
         WHEN 'snapshot-${boundary.releaseId}' THEN 'lineage-overture-division-boundary'
+        WHEN '${hadSnapshotId}' THEN 'lineage-hkgov-had-division-area'
       END
       WHERE id IN (
         'snapshot-${division.releaseId}',
         'snapshot-${overtureArea.releaseId}',
-        'snapshot-${boundary.releaseId}'
+        'snapshot-${boundary.releaseId}',
+        '${hadSnapshotId}'
       );
     `)
 
@@ -1277,6 +1281,60 @@ describe('control service', () => {
       .query('SELECT status FROM snapshots WHERE id = ?')
       .get(hadSnapshotId) as { status: string }
 
+    sqlite.exec(`
+      INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+        ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-hkgov-censtatd', 1761264000001, 1761264000001);
+
+      INSERT INTO datasets (
+        id, publisherId, code, regionCode, releaseType, releaseFrequency,
+        theme, sourceUrl, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'five-yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district', 1761264000001, 1761264000001
+      );
+
+      INSERT INTO datasetResourceTypes (datasetId, resourceType)
+      VALUES ('hkgov-censtatd-hk-district', 'divisionArea');
+    `)
+    for (const year of ['2016', '2021']) {
+      const releaseId = `release-dr-hk-hkgov-censtatd-division-area-district-${year}`
+      sqlite.exec(`
+        INSERT INTO releases (
+          id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+          rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+        ) VALUES (
+          '${releaseId}', 'hkgov-censtatd-hk-district', 'divisionArea',
+          'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
+          'hk/hkgov-censtatd/${year}/division-area.gml', 'division-area.gml', 'published',
+          '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
+        );
+
+        INSERT INTO snapshotLineages (
+          id, code, regionCode, resourceType, variant, identityMode,
+          primaryDatasetId, versionHash, createdAt, updatedAt
+        ) VALUES (
+          'lineage-censtatd-${year}', 'sl-ds-hk-hkgov-censtatd-division-area-district-${year}', 'hk', 'divisionArea', 'hkgov-censtatd:${year}', 'persistent', 'hkgov-censtatd-hk-district', 'vh-lineage-censtatd-${year}', 1761264000001, 1761264000001
+        );
+      `)
+      const snapshotId = seedSnapshot(sqlite, {
+        code: `ss-hk-division-area-district-${year}`,
+        cohortKey: year,
+        datasetId: 'hkgov-censtatd-hk-district',
+        resourceType: 'divisionArea',
+        releaseId,
+        status: 'published',
+      })
+      sqlite
+        .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
+        .run(`lineage-censtatd-${year}`, snapshotId)
+    }
+
+    const reconciliation = await handleReconcileDraftReleaseSets(db, {
+      apiFamily: 'divisions',
+      regionCode: 'hk',
+    })
+    const reconciledSet = sqlite
+      .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+      .get(releaseSetId) as { status: string }
     sqlite.close()
 
     expect(result.apiReleaseSetId).toBe(releaseSetId)
@@ -1284,6 +1342,12 @@ describe('control service', () => {
     expect(publishedSet.status).toBe('draft')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
+    expect(reconciliation).toEqual({
+      inspected: 1,
+      pendingReleaseSetCodes: [],
+      publishedReleaseSetCodes: [`data-hk-divisions-${cohortKey}`],
+    })
+    expect(reconciledSet.status).toBe('current')
     expect(members).toEqual([
       {
         anchorCode: null,

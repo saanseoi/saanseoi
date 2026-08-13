@@ -5,6 +5,7 @@ import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
+import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import {
   runCacheCompletedReleasesCommand,
   runCacheRebuildCommand,
@@ -70,6 +71,9 @@ async function main() {
         dryRun,
         skipConfirm,
       })
+      return
+    case 'release-sets:reconcile':
+      await runReconcileDraftReleaseSetsCommand(args, target, printUsage)
       return
     case 'docs:new':
       await runDocsNewCommand(args, target)

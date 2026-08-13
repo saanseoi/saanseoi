@@ -3,6 +3,7 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import {
   ControlRequestError,
   handlePublishDataset,
+  handleReconcileDraftReleaseSets,
   handleScheduleSnapshotCleanup,
   handleStageCompleted,
   handleStageFailed,
@@ -17,6 +18,8 @@ import {
   ControlStageRequestSchema,
   ErrorResponseSchema,
   PublishDatasetRequestSchema,
+  ReconcileDraftReleaseSetsRequestSchema,
+  ReconcileDraftReleaseSetsResponseSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
@@ -176,6 +179,36 @@ const cleanupSnapshotsRouteConfig = createRoute({
   },
 })
 
+const reconcileDraftReleaseSetsRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/control/reconcileDraftReleaseSets',
+  tags: ['Control'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ReconcileDraftReleaseSetsRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: ReconcileDraftReleaseSetsResponseSchema,
+        },
+      },
+      description: 'Draft release sets re-evaluated.',
+    },
+    400: baseResponses[400],
+    503: baseResponses[503],
+    500: baseResponses[500],
+    422: ValidationErrorOpenAPIResponse,
+  },
+})
+
 function createControlError(error: unknown) {
   const httpStatus = isTransientControlError(error)
     ? 503
@@ -282,10 +315,27 @@ export const cleanupSnapshotsRoute = defineOpenAPIRoute<
   },
 })
 
+export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
+  typeof reconcileDraftReleaseSetsRouteConfig,
+  AppEnv
+>({
+  route: reconcileDraftReleaseSetsRouteConfig,
+  handler: async c => {
+    try {
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      return c.json(await handleReconcileDraftReleaseSets(db, c.req.valid('json')), 200)
+    } catch (error) {
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
+    }
+  },
+})
+
 export const controlRoutes = [
   stageRunningRoute,
   stageCompletedRoute,
   stageFailedRoute,
   publishDatasetRoute,
   cleanupSnapshotsRoute,
+  reconcileDraftReleaseSetsRoute,
 ] as const

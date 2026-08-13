@@ -31,6 +31,7 @@ import {
 import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type {
+  ApiFamilyType,
   DataShardType,
   IngestRunStatus,
   ReleaseStatus,
@@ -2632,6 +2633,86 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
         right.cohortKey.localeCompare(left.cohortKey) ||
         right.code.localeCompare(left.code),
     )
+}
+
+/**
+ * Lists draft release sets with the published primary source release that can
+ * safely be used to re-evaluate their composition. A release-set publication
+ * is immutable, but a draft set may be completed after a resumed backfill
+ * skips the dependency upload that would normally trigger publication.
+ */
+export async function listDraftReleaseSets(
+  db: HarbourReadableDb,
+  options: { apiFamily?: ApiFamilyType; regionCode?: RegionCode } = {},
+) {
+  return db
+    .select({
+      code: metaApiReleaseSets.code,
+      id: metaApiReleaseSets.id,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(
+      and(
+        eq(metaApiReleaseSets.status, 'draft'),
+        options.apiFamily
+          ? eq(metaApiVersions.familyType, options.apiFamily)
+          : undefined,
+        options.regionCode
+          ? eq(metaApiReleaseSets.regionCode, options.regionCode)
+          : undefined,
+      ),
+    )
+    .orderBy(asc(metaApiReleaseSets.cohortKey), asc(metaApiReleaseSets.revision))
+    .all()
+}
+
+export async function listDraftReleaseSetPrimaryReleases(
+  db: HarbourReadableDb,
+  options: { apiFamily?: ApiFamilyType; regionCode?: RegionCode } = {},
+) {
+  const rows = await db
+    .select({
+      apiReleaseSetCode: metaApiReleaseSets.code,
+      apiReleaseSetId: metaApiReleaseSets.id,
+      releaseId: metaReleases.id,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiReleaseSetSnapshots,
+      eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshotSources.snapshotId, metaApiReleaseSetSnapshots.snapshotId),
+    )
+    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .where(
+      and(
+        eq(metaApiReleaseSets.status, 'draft'),
+        eq(metaApiReleaseSetSnapshots.role, 'primary'),
+        eq(metaSnapshotSources.role, 'primary'),
+        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+        options.apiFamily
+          ? eq(metaApiVersions.familyType, options.apiFamily)
+          : undefined,
+        options.regionCode
+          ? eq(metaApiReleaseSets.regionCode, options.regionCode)
+          : undefined,
+      ),
+    )
+    .orderBy(asc(metaApiReleaseSets.cohortKey), asc(metaApiReleaseSets.revision))
+    .all()
+
+  const releasesByReleaseSet = new Map<string, (typeof rows)[number]>()
+  for (const row of rows) {
+    if (!releasesByReleaseSet.has(row.apiReleaseSetId)) {
+      releasesByReleaseSet.set(row.apiReleaseSetId, row)
+    }
+  }
+
+  return [...releasesByReleaseSet.values()]
 }
 
 /**
