@@ -95,7 +95,7 @@ export const createAuthEmail = (
   )
   const displayName = getDisplayName(recipientName)
   const greeting = displayName
-    ? getAuthMessage(locale, 'auth_email_greeting').replace('{name}', displayName)
+    ? getAuthMessage(locale, 'auth_email_greeting').replace('{name}', () => displayName)
     : getAuthMessage(locale, 'auth_email_greeting_fallback')
   const fallback = getAuthMessage(locale, 'auth_email_fallback')
   const visit = getAuthMessage(locale, 'auth_email_visit')

@@ -38,4 +38,15 @@ describe('createAuthEmail', () => {
     expect(email.html).toContain('驗證你的電郵地址')
     expect(email.html).toContain('你好：')
   })
+
+  it('inserts display names literally in the greeting', () => {
+    const email = createAuthEmail(
+      'verify',
+      'en',
+      'https://saanseoi.hk/api/auth/verify-email?token=abc',
+      'Avery $&',
+    )
+
+    expect(email.text).toContain('Hi Avery $&,')
+  })
 })
