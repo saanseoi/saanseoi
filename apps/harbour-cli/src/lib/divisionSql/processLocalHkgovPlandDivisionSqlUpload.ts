@@ -147,7 +147,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const shardYear = previewPlan.sourceVersion.slice(0, 4)
-  const cacheTableProfile = 'division'
+  const cacheTableProfile = 'planningDivisionGeometry'
   const remoteCacheScopeKey = target.remote
     ? buildReleaseUploadDbCacheScopeKey({
         cacheTableProfile,
