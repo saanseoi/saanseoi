@@ -5,6 +5,7 @@ import {
   listRegistryApis,
   listRegistryReleases,
   listRegistrySources,
+  resolveRegistryReleaseDisplayStatus,
 } from '@repo/core/db/metaRegistry'
 import {
   and,
@@ -14,6 +15,8 @@ import {
   desc,
   eq,
   inArray,
+  metaApiReleaseSets,
+  metaApiVersions,
   metaAssets,
   metaReleases,
   sql,
@@ -77,6 +80,30 @@ export type SourcesPageSource = Pick<
         >
       >
     }
+  >
+}
+
+type DataPageRelease = Pick<
+  ApiRelease,
+  | 'apiFamily'
+  | 'apiVersionId'
+  | 'code'
+  | 'createdAt'
+  | 'id'
+  | 'publishedAt'
+  | 'schemaVersion'
+  | 'status'
+> & {
+  displayStatus?: ApiRelease['displayStatus']
+  primaryRecordCount: number | null
+}
+
+type DataPageApi = Pick<
+  RegistryApi,
+  'code' | 'familyType' | 'id' | 'status' | 'version'
+> & {
+  releases: Array<
+    Pick<DataPageRelease, 'code' | 'createdAt' | 'displayStatus' | 'publishedAt'>
   >
 }
 
@@ -453,29 +480,111 @@ async function loadDataReleasesPage(offset = 0) {
       )
 
       return {
-        ...release,
+        apiFamily: release.apiFamily,
+        apiVersionId: release.apiVersionId,
+        code: release.code,
+        createdAt: release.createdAt,
         primaryRecordCount:
           recordedCount ??
           (primarySnapshot === undefined
             ? null
             : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null)),
+        displayStatus: release.displayStatus as DataPageRelease['displayStatus'],
+        id: release.id,
+        publishedAt: release.publishedAt,
+        schemaVersion: release.schemaVersion,
+        status: release.status,
       }
-    }) as ApiRelease[],
+    }) satisfies DataPageRelease[],
     hasMore: releases.length > DATA_RELEASES_PAGE_SIZE,
     nextOffset: offset + Math.min(releases.length, DATA_RELEASES_PAGE_SIZE),
   }
 }
 
+async function loadDataPageApis(): Promise<DataPageApi[]> {
+  const db = getMetaDb()
+  const [apis, releases] = await Promise.all([
+    db
+      .select({
+        id: metaApiVersions.id,
+        code: metaApiVersions.code,
+        familyType: metaApiVersions.familyType,
+        status: metaApiVersions.status,
+        version: metaApiVersions.version,
+      })
+      .from(metaApiVersions)
+      .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+      .limit(100)
+      .all(),
+    db
+      .select({
+        apiFamily: metaApiVersions.familyType,
+        apiVersionId: metaApiReleaseSets.apiVersionId,
+        code: metaApiReleaseSets.code,
+        cohortKey: metaApiReleaseSets.cohortKey,
+        createdAt: metaApiReleaseSets.createdAt,
+        publishedAt: metaApiReleaseSets.publishedAt,
+        revision: metaApiReleaseSets.revision,
+        status: metaApiReleaseSets.status,
+      })
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .all(),
+  ])
+
+  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  for (const release of releases) {
+    if (release.status === 'draft' || release.cohortKey === null) continue
+    const latest = latestByFamily.get(release.apiFamily)
+    if (
+      !latest ||
+      release.cohortKey > latest.cohortKey ||
+      (release.cohortKey === latest.cohortKey && release.revision > latest.revision)
+    ) {
+      latestByFamily.set(release.apiFamily, {
+        cohortKey: release.cohortKey,
+        revision: release.revision,
+      })
+    }
+  }
+
+  return apis.map(api => {
+    const candidates = releases
+      .filter(release => release.apiVersionId === api.id)
+      .map(release => ({
+        code: release.code,
+        createdAt: release.createdAt,
+        displayStatus: resolveRegistryReleaseDisplayStatus(
+          release,
+          latestByFamily.get(release.apiFamily),
+        ) as DataPageRelease['displayStatus'],
+        publishedAt: release.publishedAt,
+      }))
+      .sort(
+        (left, right) =>
+          new Date(right.publishedAt ?? right.createdAt).getTime() -
+          new Date(left.publishedAt ?? left.createdAt).getTime(),
+      )
+    const latest =
+      candidates.find(release => release.displayStatus === 'current') ?? candidates[0]
+
+    return { ...api, releases: latest ? [latest] : [] }
+  })
+}
+
 async function loadDataPageData() {
   const [releasePage, apis, basemapReleases] = await Promise.all([
     loadDataReleasesPage(),
-    listRegistryApis(getMetaDb(), 100),
+    loadDataPageApis(),
     loadBasemapReleases(),
   ])
 
   return {
     ...releasePage,
-    apis: apis as RegistryApi[],
+    apis,
     basemapReleases,
   }
 }
@@ -488,10 +597,10 @@ export const getDataPageData = query(async () => {
     // registry tables. Render the empty registry state until the upload finishes.
     if (isRegistryBootstrapError(error)) {
       return {
-        releases: [] as ApiRelease[],
+        releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: 0,
-        apis: [] as RegistryApi[],
+        apis: [] as DataPageApi[],
         basemapReleases: await loadBasemapReleases(),
       }
     }
@@ -505,7 +614,7 @@ export const getDataReleasesPageData = query(releasePageSchema, async ({ offset 
   } catch (error) {
     if (isRegistryBootstrapError(error)) {
       return {
-        releases: [] as ApiRelease[],
+        releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: offset,
       }
