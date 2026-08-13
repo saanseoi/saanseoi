@@ -175,4 +175,45 @@ describe('geometryBuildUpsertSql', () => {
     ).toEqual({ geometry: geometryText })
     database.close()
   })
+
+  test('replays oversized Overture raw properties through bounded statements', () => {
+    const rawProperties = {
+      geometry: {
+        coordinates: ['x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2)],
+        type: 'Polygon',
+      },
+      id: 'area-1',
+    }
+    const rawPropertiesText = JSON.stringify(rawProperties)
+    const sql = geometryBuildUpsertSql('overtureDivisionAreas', [
+      {
+        rawProperties,
+        releaseId: 'release-1',
+        sourceRecordId: 'area-1',
+        versionHash: 'hash-1',
+      },
+    ])
+    const statements = sql.split('\n')
+
+    for (const statement of statements) {
+      expect(new TextEncoder().encode(statement).byteLength).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    }
+
+    const database = new Database(':memory:')
+    database.exec(
+      'CREATE TABLE overtureDivisionAreas (sourceRecordId TEXT NOT NULL, rawProperties TEXT NOT NULL, releaseId TEXT NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+    )
+    database.exec(sql)
+
+    expect(
+      database
+        .query(
+          'SELECT rawProperties FROM overtureDivisionAreas WHERE sourceRecordId = ? AND versionHash = ?',
+        )
+        .get('area-1', 'hash-1'),
+    ).toEqual({ rawProperties: rawPropertiesText })
+    database.close()
+  })
 })
