@@ -1819,6 +1819,7 @@ async function mirrorRemoteTargetToLocal(
                 exportRemoteTable(targetRecord, target, tableName, dumpPath, {
                   schemaOnly: shouldMirrorTableSchemaOnly(
                     targetRecord.bindingName,
+                    tableName,
                     options.cacheTableProfile,
                   ),
                 }),
@@ -1970,7 +1971,15 @@ function resolveMirrorTablesForBinding(
       cacheTableProfile === 'divisionGeometry' ||
       cacheTableProfile === 'planningDivisionGeometry'
     ) {
-      return ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
+      return cacheTableProfile === 'planningDivisionGeometry'
+        ? [
+            'divisions',
+            'divisionsI18n',
+            'divisionAreas',
+            'divisionBoundaries',
+            'snapshotVersionChanges',
+          ]
+        : ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
     }
 
     return [
@@ -2183,11 +2192,15 @@ async function exportRemoteTable(
 
 function shouldMirrorTableSchemaOnly(
   bindingName: string,
+  tableName: string,
   cacheTableProfile?: CacheTableProfile,
 ) {
   return (
     cacheTableProfile === 'planningDivisionGeometry' &&
-    bindingName === 'DB_HISTORY_HK_BEFORE'
+    bindingName === 'DB_HISTORY_HK_BEFORE' &&
+    (tableName === 'divisionAreas' ||
+      tableName === 'divisionBoundaries' ||
+      tableName === 'snapshotVersionChanges')
   )
 }
 
