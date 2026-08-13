@@ -26,11 +26,16 @@ filter_output() {
     -e '/https:\/\/.*r2\.cloudflarestorage\.com\/d1-sqlio-outgoing/d'
 }
 
-# Node avoids Bun's automatic repository .env loading, while preserving
-# authentication explicitly inherited from the caller's environment.
+# Node avoids Bun's automatic repository .env loading. Prefer the scoped D1
+# token over a general Cloudflare token, matching the other D1 helper scripts.
+wrangler_env=(env -u CLOUDFLARE_API_TOKEN)
+if [[ -n "${CLOUDFLARE_D1_TOKEN:-}" ]]; then
+  wrangler_env=(env "CLOUDFLARE_API_TOKEN=$CLOUDFLARE_D1_TOKEN")
+fi
+
 if (
   cd /tmp
-  node "$repo_root/node_modules/wrangler/bin/wrangler.js" d1 export "$@"
+  "${wrangler_env[@]}" node "$repo_root/node_modules/wrangler/bin/wrangler.js" d1 export "$@"
 ) >"$tmp_output" 2>&1; then
   filter_output <"$tmp_output"
   exit 0

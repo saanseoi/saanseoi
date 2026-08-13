@@ -917,6 +917,10 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
     return ['id', 'versionHash']
   }
 
+  if (typeof row.sourceRecordId === 'string' && typeof row.versionHash === 'string') {
+    return ['sourceRecordId', 'versionHash']
+  }
+
   return null
 }
 
