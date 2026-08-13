@@ -98,6 +98,10 @@ export function colorTeal(value: string) {
   return `\u001B[36m${value}\u001B[39m`
 }
 
+export function colorYellow(value: string) {
+  return `\u001B[33m${value}\u001B[39m`
+}
+
 export function greenCheck() {
   return `\u001B[32m✓\u001B[39m`
 }
