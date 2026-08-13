@@ -38,15 +38,15 @@
     },
     "deploy": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "cache": false
     },
     "deploy:preview": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "cache": false
     },
     "deploy:production": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
