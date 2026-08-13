@@ -121,7 +121,10 @@ async function registerUploadLocally(
           ? 'division'
           : previewResult.plan.type === 'divisionArea' ||
               previewResult.plan.type === 'divisionBoundary'
-            ? 'divisionGeometry'
+            ? previewResult.plan.source === 'hkgov-pland-pu' ||
+              previewResult.plan.source === 'hkgov-pland-new-town'
+              ? 'planningDivisionGeometry'
+              : 'divisionGeometry'
             : 'address',
     },
   )
