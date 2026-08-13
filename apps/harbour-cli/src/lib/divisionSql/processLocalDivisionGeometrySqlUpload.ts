@@ -161,7 +161,11 @@ export async function processLocalDivisionGeometrySqlUpload(
           reusedDbCache ||= event.action === 'reuse-cache'
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile: 'divisionGeometry',
+        cacheTableProfile:
+          previewPlan.source === 'hkgov-pland-pu' ||
+          previewPlan.source === 'hkgov-pland-new-town'
+            ? 'planningDivisionGeometry'
+            : 'divisionGeometry',
         includePreviousShardYears: true,
         refreshRemoteTables: false,
       },

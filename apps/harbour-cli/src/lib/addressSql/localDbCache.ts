@@ -151,6 +151,7 @@ export type CacheTableProfile =
   | 'address'
   | 'division'
   | 'divisionGeometry'
+  | 'planningDivisionGeometry'
   | 'nativeSource'
   | 'street'
 
@@ -1910,7 +1911,10 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n']
     }
 
-    if (cacheTableProfile === 'divisionGeometry') {
+    if (
+      cacheTableProfile === 'divisionGeometry' ||
+      cacheTableProfile === 'planningDivisionGeometry'
+    ) {
       return ['divisions', 'divisionAreas', 'divisionBoundaries']
     }
 
@@ -1935,7 +1939,10 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n', 'snapshotVersionChanges']
     }
 
-    if (cacheTableProfile === 'divisionGeometry') {
+    if (
+      cacheTableProfile === 'divisionGeometry' ||
+      cacheTableProfile === 'planningDivisionGeometry'
+    ) {
       return ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
     }
 
@@ -1983,6 +1990,10 @@ function resolveMirrorTablesForBinding(
         'hkgovCenstatdDivisionAreas',
         'hkgovCenstatdDivisionAreaDerivatives',
       ]
+    }
+
+    if (cacheTableProfile === 'planningDivisionGeometry') {
+      return []
     }
 
     return [
