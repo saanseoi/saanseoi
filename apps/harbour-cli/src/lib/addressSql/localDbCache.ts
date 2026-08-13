@@ -1794,7 +1794,12 @@ async function mirrorRemoteTargetToLocal(
             )
             await runWithProgressHeartbeat(options.onProgress, exportEvent, () =>
               retryRemoteCacheExport(() =>
-                exportRemoteTable(targetRecord, target, tableName, dumpPath),
+                exportRemoteTable(targetRecord, target, tableName, dumpPath, {
+                  schemaOnly: shouldMirrorTableSchemaOnly(
+                    targetRecord.bindingName,
+                    options.cacheTableProfile,
+                  ),
+                }),
               ),
             )
             dumpPaths.push(dumpPath)
@@ -2134,6 +2139,7 @@ async function exportRemoteTable(
   target: 'preview' | 'production',
   tableName: string,
   outputPath: string,
+  options: { schemaOnly?: boolean } = {},
 ) {
   await runMirrorCommand([
     'bash',
@@ -2145,9 +2151,20 @@ async function exportRemoteTable(
     target,
     '--remote',
     `--table=${tableName}`,
+    ...(options.schemaOnly ? ['--no-data'] : []),
     '--output',
     outputPath,
   ])
+}
+
+function shouldMirrorTableSchemaOnly(
+  bindingName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  return (
+    cacheTableProfile === 'planningDivisionGeometry' &&
+    bindingName === 'DB_HISTORY_HK_BEFORE'
+  )
 }
 
 async function importDatabaseDumpsToSqlite(
