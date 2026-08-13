@@ -9,6 +9,7 @@ type Props = {
   choices: GuideChoice[]
   hideLabel?: boolean
   hint?: string | string[]
+  illustratedCardSizing?: 'fixed' | 'fluid'
   illustratedLayout?: 'carousel' | 'grid'
   label: string
   marker?:
@@ -30,6 +31,7 @@ let {
   choices,
   hideLabel = false,
   hint,
+  illustratedCardSizing = 'fluid',
   illustratedLayout = 'carousel',
   label,
   marker,
@@ -47,9 +49,13 @@ let inspectedChoice = $derived(
 let hasTileDescriptions = $derived(
   variant === 'tiles' && choices.some(choice => Boolean(choice.description)),
 )
-let illustratedChoiceCarousel = $state<HTMLDivElement>()
+let illustratedChoiceCarousel = $state<HTMLElement>()
 let canScrollIllustratedPrevious = $state(false)
 let canScrollIllustratedNext = $state(true)
+let illustratedPointerId = $state<number>()
+let illustratedDragStartX = 0
+let illustratedDragStartScrollLeft = 0
+let illustratedDragMoved = $state(false)
 
 const updateIllustratedScrollControls = () => {
   const carousel = illustratedChoiceCarousel
@@ -69,6 +75,44 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
     left: direction * carousel.clientWidth * 0.82,
     behavior: 'smooth',
   })
+}
+
+const startIllustratedDrag = (event: PointerEvent) => {
+  const carousel = illustratedChoiceCarousel
+  if (!carousel || (event.pointerType === 'mouse' && event.button !== 0)) return
+
+  illustratedPointerId = event.pointerId
+  illustratedDragStartX = event.clientX
+  illustratedDragStartScrollLeft = carousel.scrollLeft
+  illustratedDragMoved = false
+}
+
+const moveIllustratedDrag = (event: PointerEvent) => {
+  const carousel = illustratedChoiceCarousel
+  if (!carousel || illustratedPointerId !== event.pointerId) return
+
+  const distance = event.clientX - illustratedDragStartX
+  if (Math.abs(distance) > 4 && !illustratedDragMoved) {
+    illustratedDragMoved = true
+    carousel.setPointerCapture(event.pointerId)
+  }
+  if (!illustratedDragMoved) return
+
+  event.preventDefault()
+  carousel.scrollLeft = illustratedDragStartScrollLeft - distance
+}
+
+const endIllustratedDrag = (event: PointerEvent) => {
+  const carousel = illustratedChoiceCarousel
+  if (!carousel || illustratedPointerId !== event.pointerId) return
+
+  if (carousel.hasPointerCapture(event.pointerId)) {
+    carousel.releasePointerCapture(event.pointerId)
+  }
+  illustratedPointerId = undefined
+  if (illustratedDragMoved) {
+    window.setTimeout(() => (illustratedDragMoved = false), 0)
+  }
 }
 </script>
 
@@ -138,18 +182,23 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
         </button>
       </fieldset>
     {/if}
-    <div
+    <section
       bind:this={illustratedChoiceCarousel}
+      aria-label={`${label} carousel`}
+      onpointerdown={startIllustratedDrag}
+      onpointermove={moveIllustratedDrag}
+      onpointerup={endIllustratedDrag}
+      onpointercancel={endIllustratedDrag}
       onscroll={updateIllustratedScrollControls}
       class={illustratedLayout === 'grid'
         ? `mt-6 grid w-full min-w-0 grid-cols-1 gap-4 overflow-visible sm:grid-cols-2 lg:grid-cols-3 ${hideLabel ? 'md:mt-0' : 'md:mt-8'}`
-        : `illustrated-choice-grid ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 md:overflow-visible md:pr-0 md:pb-0`}
+        : `illustrated-choice-grid ${illustratedCardSizing === 'fixed' ? 'illustrated-choice-grid-extended' : ''} ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 ${illustratedCardSizing === 'fixed' ? 'md:overflow-x-auto' : 'md:overflow-visible'} md:pr-0 md:pb-0`}
     >
       {#each choices as choice}
         <label
           for={`${label}-${choice.value}`}
           aria-label={choice.label}
-          class={`group relative flex flex-col select-none has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary ${illustratedLayout === 'grid' ? 'w-full min-w-0' : 'w-[min(84vw,19rem)] shrink-0 snap-start md:w-full md:min-w-0 md:max-w-64 md:flex-1'} ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
+          class={`group relative flex flex-col select-none has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary ${illustratedLayout === 'grid' ? 'w-full min-w-0' : illustratedCardSizing === 'fixed' ? 'w-[min(84vw,19rem)] shrink-0 snap-start md:w-64 md:min-w-64 md:max-w-64 md:flex-none' : 'w-[min(84vw,19rem)] shrink-0 snap-start md:w-full md:min-w-0 md:max-w-64 md:flex-1'} ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
         >
           <input
             id={`${label}-${choice.value}`}
@@ -161,7 +210,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
             onchange={() => onchange?.(choice.value)}
             disabled={choice.disabled}
           >
-          {#if choice.image || illustratedLayout === 'grid'}
+          {#if choice.image || choice.imageSlices || illustratedLayout === 'grid'}
             <span class="relative flex h-64 items-center justify-center">
               {#if choice.badge}
                 <span
@@ -175,18 +224,31 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
                   class="max-h-full max-w-full object-contain dark:hidden"
                   src={choice.image}
                   alt=""
+                  draggable="false"
                 >
                 <img
                   class="hidden max-h-full max-w-full object-contain dark:block"
                   src={choice.darkImage}
                   alt=""
+                  draggable="false"
                 >
               {:else if choice.image}
                 <img
                   class="max-h-full max-w-full object-contain"
                   src={choice.image}
                   alt=""
+                  draggable="false"
                 >
+              {:else if choice.imageSlices}
+                <span class="relative block size-full overflow-hidden">
+                  {#each choice.imageSlices as image, index}
+                    <span
+                      class="absolute inset-0 block bg-cover bg-center"
+                      style={`background-image: url("${image}"); background-position: ${index * 20}% center; clip-path: polygon(${(index / choice.imageSlices.length) * 100}% 0, ${((index + 1) / choice.imageSlices.length) * 100}% 0, ${Math.min(100, ((index + 1) / choice.imageSlices.length) * 100 + 4)}% 100%, ${Math.min(100, (index / choice.imageSlices.length) * 100 + 4)}% 100%); background-size: ${choice.imageSlices.length * 100}% 100%;`}
+                      aria-hidden="true"
+                    ></span>
+                  {/each}
+                </span>
               {/if}
             </span>
           {/if}
@@ -215,7 +277,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
           </span>
         </label>
       {/each}
-    </div>
+    </section>
   {:else}
     <div
       class={variant === 'tiles'
@@ -361,6 +423,11 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
   .illustrated-choice-grid-left {
     width: 100%;
     margin-left: 0;
+  }
+
+  .illustrated-choice-grid-extended {
+    width: calc(100vw - 8rem);
+    margin-left: calc(50% - 50vw + 4rem);
   }
 }
 </style>
