@@ -1655,6 +1655,7 @@ const styleChoices = $derived.by(() =>
               choices={objectiveChoices}
               bind:value={objective}
               onchange={handleObjectiveChange}
+              illustratedFitWhenPossible
               variant="illustrated"
             />
           </div>
