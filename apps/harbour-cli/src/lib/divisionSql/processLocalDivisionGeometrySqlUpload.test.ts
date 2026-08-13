@@ -7,7 +7,7 @@ import {
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
-  shouldCompressCenstatdCanonicalGeometry,
+  shouldCompressCanonicalGeometry,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
@@ -263,17 +263,14 @@ describe('geometryBuildUpsertSql', () => {
   })
 })
 
-describe('shouldCompressCenstatdCanonicalGeometry', () => {
-  test('stores exact C&SD canonical geometry as a Brotli BLOB', () => {
-    expect(
-      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', undefined),
-    ).toBeTrue()
+describe('shouldCompressCanonicalGeometry', () => {
+  test('stores exact C&SD and Planning Unit canonical geometry as Brotli BLOBs', () => {
+    expect(shouldCompressCanonicalGeometry('hkgov-censtatd', undefined)).toBeTrue()
+    expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', undefined)).toBeTrue()
   })
 
   test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {
-    expect(
-      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', 'simplified'),
-    ).toBeFalse()
-    expect(shouldCompressCenstatdCanonicalGeometry('overture', undefined)).toBeFalse()
+    expect(shouldCompressCanonicalGeometry('hkgov-censtatd', 'simplified')).toBeFalse()
+    expect(shouldCompressCanonicalGeometry('overture', undefined)).toBeFalse()
   })
 })

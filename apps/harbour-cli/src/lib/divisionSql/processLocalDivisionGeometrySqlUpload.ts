@@ -1450,7 +1450,7 @@ async function writeGeometryRows(
   onProgress?.('build write batches')
   const currentRows = rows.map(row => ({
     ...row.canonical,
-    geometry: shouldCompressCenstatdCanonicalGeometry(version.source, version.transform)
+    geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
       ? compressJsonBrotli(row.canonical.geometry)
       : row.canonical.geometry,
     snapshotId: version.snapshotId,
@@ -1460,10 +1460,7 @@ async function writeGeometryRows(
   const historyRows = await Promise.all(
     rows.map(async row => ({
       ...row.canonical,
-      geometry: shouldCompressCenstatdCanonicalGeometry(
-        version.source,
-        version.transform,
-      )
+      geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
         ? compressJsonBrotli(row.canonical.geometry)
         : row.canonical.geometry,
       versionHash: await hashDivisionGeometryRow(row.canonical),
@@ -1906,11 +1903,14 @@ function geometryStatRow(
   }
 }
 
-export function shouldCompressCenstatdCanonicalGeometry(
+export function shouldCompressCanonicalGeometry(
   source: GeometryUploadPlan['source'],
   transform: GeometryUploadPlan['transform'],
 ) {
-  return source === 'hkgov-censtatd' && transform === undefined
+  return (
+    (source === 'hkgov-censtatd' || source === 'hkgov-pland-pu') &&
+    transform === undefined
+  )
 }
 
 type GeometryChurnCounts = {
