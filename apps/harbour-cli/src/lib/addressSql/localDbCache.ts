@@ -18,6 +18,14 @@ import {
 } from '@repo/db'
 
 import type { UploadTarget } from '../cli/options.ts'
+import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import {
+  appendPhaseDetails,
+  colorRed,
+  colorTeal,
+  formatCompletedPhaseLabel,
+  formatRunningPhaseLabel,
+} from '../localPipeline/progressFormatting.ts'
 
 type D1TargetRecord = {
   bindingName: string
@@ -390,7 +398,10 @@ export async function resolveLocalAddressDbContext(
  * D1 databases. This is intentionally explicit because it replaces the local
  * cache rather than replaying a release into it.
  */
-export async function rebuildRemoteDbCache(target: UploadTarget) {
+export async function rebuildRemoteDbCache(
+  target: UploadTarget,
+  onProgress?: (event: LocalDbCacheProgressEvent) => void,
+) {
   if (!target.remote) {
     throw new Error(
       'The remote D1 cache can only be rebuilt for preview or production.',
@@ -400,11 +411,81 @@ export async function rebuildRemoteDbCache(target: UploadTarget) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const shardYear = await resolveLatestConfiguredShardYear(targetName)
   const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
+    onProgress,
     includePreviousShardYears: true,
     refreshRemoteCache: true,
   })
 
   dbContext.cleanup()
+}
+
+export function updateDbCacheProgress(
+  progress: LocalUploadProgress,
+  event: LocalDbCacheProgressEvent,
+) {
+  if (event.target !== 'preview' && event.target !== 'production') {
+    return
+  }
+
+  const label = formatDbCacheProgressLabel(event)
+  const current = Math.min(event.current, event.total)
+
+  if (!progress.hasActivePhase()) {
+    progress.beginPhase(label, {
+      current,
+      max: event.total,
+    })
+  } else {
+    progress.update(current, {
+      label,
+      max: event.total,
+    })
+  }
+
+  if (event.action === 'reuse-cache') {
+    progress.complete(
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(colorTeal('Cache'), colorRed('hit'), 0),
+        ['0 ms'],
+      ),
+    )
+  }
+}
+
+function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
+  const subject = describeDbCacheSubject(event)
+
+  return formatRunningPhaseLabel(
+    colorTeal('Clone cache'),
+    colorRed(subject),
+    Math.min(event.current, event.total),
+    event.total,
+  )
+}
+
+function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
+  const tableName = event.tableName
+    ? event.filter
+      ? `${event.tableName}:${event.filter}`
+      : event.tableName
+    : null
+
+  switch (event.action) {
+    case 'check-cache':
+      return `${event.target}.manifest`
+    case 'export-binding':
+      return tableName
+        ? `${event.bindingName}.${tableName}`
+        : `${event.bindingName}.export`
+    case 'reuse-cache':
+      return `${event.target}.reuse`
+    case 'mirror-table':
+      return tableName ? `${event.bindingName}.${tableName}` : event.bindingName
+    case 'copy-binding':
+      return `${event.bindingName}.sqlite`
+    case 'validate-binding':
+      return `${event.bindingName}.validate`
+  }
 }
 
 /**
