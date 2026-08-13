@@ -682,5 +682,19 @@
   "guide_host_github_pages_badge": "推薦",
   "guide_host_github_pages_description": "從 GitHub 儲存庫部署靜態網站。",
   "guide_embed_hint": "您的網站可能有用於地圖的外掛，但為確保所有功能都能正常運作，我們會採用網站原生的嵌入功能，讓您無論使用哪一種建站工具，都能完全掌控地圖：",
-  "guide_embed_host_hint": "要嵌入地圖，我們需要先找個地方託管它。幸好，許多託管服務商可免費託管您的地圖："
+  "guide_embed_host_hint": "要嵌入地圖，我們需要先找個地方託管它。幸好，許多託管服務商可免費託管您的地圖：",
+  "guide_best_for": "最適合",
+  "guide_works_with": "適用於",
+  "guide_works_with_map_libraries": "函式庫",
+  "guide_works_with_site_platforms": "嵌入",
+  "guide_works_with_hosting": "託管",
+  "guide_works_with_languages": "語言",
+  "guide_works_with_standards": "標準",
+  "guide_build_modes": "方式",
+  "guide_build_mode_hands_on": "親自動手",
+  "guide_build_mode_llm_assisted": "LLM 輔助",
+  "guide_build_mode_agentic_ai": "Agentic AI",
+  "guide_use_api_use_cases": "強化地圖|搜尋與探索|資料產品|地理空間分析",
+  "guide_create_map_use_cases": "網頁嵌入|自訂樣式|地理空間分析|互動敘事",
+  "guide_download_dataset_use_cases": "辦公工具|批次處理|檔案|時間分析"
 }
