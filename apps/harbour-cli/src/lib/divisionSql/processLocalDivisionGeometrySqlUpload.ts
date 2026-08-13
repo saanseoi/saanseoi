@@ -876,16 +876,7 @@ function geometryBuildChunkedUpsertSql(
   suffix: string,
 ) {
   const keyColumns = geometryReplayKeyColumns(row)
-  const oversizedColumns = columns
-    .map(column => ({ column, value: geometrySqlLargeValue(row[column]) }))
-    .filter(
-      (entry): entry is { column: string; value: string | Uint8Array } =>
-        entry.value !== null &&
-        new TextEncoder().encode(geometrySqlLiteral(entry.value)).byteLength >
-          MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
-    )
-
-  if (oversizedColumns.length === 0 || !keyColumns) {
+  if (!keyColumns) {
     const rowBytes = new TextEncoder().encode(
       `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
     ).byteLength
@@ -894,15 +885,53 @@ function geometryBuildChunkedUpsertSql(
     )
   }
 
-  const placeholderValue = `(${columns
-    .map(column =>
-      oversizedColumns.some(entry => entry.column === column)
-        ? geometrySqlLiteral('')
-        : geometrySqlLiteral(row[column]),
+  const chunkedColumns = columns
+    .map(column => ({ column, value: geometrySqlLargeValue(row[column]) }))
+    .filter(
+      (entry): entry is { column: string; value: string | Uint8Array } =>
+        entry.value !== null && !keyColumns.includes(entry.column),
     )
-    .join(', ')})`
-  const upsert = `${prefix}${placeholderValue}${suffix}`
-  const upsertBytes = new TextEncoder().encode(upsert).byteLength
+    .sort(
+      (left, right) =>
+        new TextEncoder().encode(geometrySqlLiteral(right.value)).byteLength -
+        new TextEncoder().encode(geometrySqlLiteral(left.value)).byteLength,
+    )
+  const selectedColumns = chunkedColumns.filter(
+    entry =>
+      new TextEncoder().encode(geometrySqlLiteral(entry.value)).byteLength >
+      MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+  )
+
+  const buildPlaceholderUpsert = () => {
+    const placeholderValue = `(${columns
+      .map(column =>
+        selectedColumns.some(entry => entry.column === column)
+          ? geometrySqlLiteral('')
+          : geometrySqlLiteral(row[column]),
+      )
+      .join(', ')})`
+    return `${prefix}${placeholderValue}${suffix}`
+  }
+  let upsert = buildPlaceholderUpsert()
+  let upsertBytes = new TextEncoder().encode(upsert).byteLength
+
+  for (const entry of chunkedColumns) {
+    if (upsertBytes <= MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) break
+    if (selectedColumns.some(selected => selected.column === entry.column)) continue
+
+    selectedColumns.push(entry)
+    upsert = buildPlaceholderUpsert()
+    upsertBytes = new TextEncoder().encode(upsert).byteLength
+  }
+
+  if (selectedColumns.length === 0) {
+    const rowBytes = new TextEncoder().encode(
+      `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
+    ).byteLength
+    throw new Error(
+      `Cannot replay ${tableName} geometry row: its ${rowBytes}-byte SQL statement exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+    )
+  }
 
   if (upsertBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
     throw new Error(
@@ -915,7 +944,7 @@ function geometryBuildChunkedUpsertSql(
     .join(' AND ')
   return [
     upsert,
-    ...oversizedColumns.flatMap(({ column, value }) => {
+    ...selectedColumns.flatMap(({ column, value }) => {
       const isBinary = value instanceof Uint8Array
       const updatePrefix = isBinary
         ? `UPDATE "${tableName}" SET "${column}" = CAST("${column}" || `
