@@ -8,8 +8,10 @@ import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import {
   currentSchema,
+  eq,
   historySchema,
   metaSchema,
+  or,
   sourceSchema,
   type CurrentDatabase,
   type HistoryDatabase,
@@ -417,6 +419,39 @@ export async function rebuildRemoteDbCache(
   })
 
   dbContext.cleanup()
+}
+
+export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget) {
+  if (!target.remote) {
+    throw new Error(
+      'Completed remote releases can only be read for preview or production.',
+    )
+  }
+
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const metaPath = join(resolveRemoteCacheDir(targetName), 'DB_META.sqlite')
+  const meta = (await openSqliteDb(
+    metaPath,
+    metaSchema,
+    'DB_META',
+  )) as unknown as OpenSqliteDb<MetaDatabase>
+
+  try {
+    const rows = await meta.db
+      .select({ code: metaSchema.metaReleases.code })
+      .from(metaSchema.metaReleases)
+      .where(
+        or(
+          eq(metaSchema.metaReleases.status, 'published'),
+          eq(metaSchema.metaReleases.status, 'superseded'),
+        ),
+      )
+      .all()
+
+    return rows.map(row => row.code)
+  } finally {
+    meta.sqlite.close()
+  }
 }
 
 export function updateDbCacheProgress(
@@ -1450,6 +1485,8 @@ function resolveMirrorTablesForBinding(
       'streetsI18n',
       'address2d',
       'address2dI18n',
+      'divisionAreas',
+      'divisionBoundaries',
     ]
   }
 
@@ -1471,6 +1508,8 @@ function resolveMirrorTablesForBinding(
       'divisionsI18n',
       'address2d',
       'address2dI18n',
+      'divisionAreas',
+      'divisionBoundaries',
       'snapshotVersionChanges',
     ]
   }
@@ -1508,7 +1547,13 @@ function resolveMirrorTablesForBinding(
       ]
     }
 
-    return ['overtureDivisions', 'hkgovAlsAddresses2d']
+    return [
+      'overtureDivisions',
+      'overtureDivisionAreas',
+      'overtureDivisionBoundaries',
+      'hkgovHadDivisionAreas',
+      'hkgovAlsAddresses2d',
+    ]
   }
 
   return []

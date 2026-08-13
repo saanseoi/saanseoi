@@ -1,5 +1,6 @@
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
+  readRemoteCachedCompletedReleaseCodes,
   rebuildRemoteDbCache,
   updateDbCacheProgress,
 } from '../addressSql/localDbCache.ts'
@@ -46,5 +47,27 @@ export async function runCacheRebuildCommand(
         [formatDurationMs(Date.now() - startedAt)],
       ),
     )
+  }
+}
+
+export async function runCacheCompletedReleasesCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  printUsage: () => void,
+) {
+  if (
+    args.positionals.length > 0 ||
+    Object.keys(args.options).some(key => key !== 'target') ||
+    !target.remote
+  ) {
+    printUsage()
+    throw new Error(
+      '`cache:completed-releases` accepts only `--target preview|production`.',
+    )
+  }
+
+  const releaseCodes = await readRemoteCachedCompletedReleaseCodes(target)
+  if (releaseCodes.length > 0) {
+    process.stdout.write(`${releaseCodes.join('\n')}\n`)
   }
 }
