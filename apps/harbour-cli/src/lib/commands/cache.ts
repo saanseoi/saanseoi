@@ -20,19 +20,23 @@ export async function runCacheRebuildCommand(
   printUsage: () => void,
 ) {
   const cacheTableProfile = args.options['table-profile']
+  const cohortKey = args.options['cohort-key']
   if (
     args.positionals.length > 0 ||
     Object.keys(args.options).some(
-      key => key !== 'target' && key !== 'table-profile',
+      key => key !== 'target' && key !== 'table-profile' && key !== 'cohort-key',
     ) ||
     (cacheTableProfile !== undefined &&
       cacheTableProfile !== 'divisionGeometry' &&
       cacheTableProfile !== 'planningDivisionGeometry') ||
+    (cohortKey !== undefined &&
+      (typeof cohortKey !== 'string' || !/^\d{4}$/.test(cohortKey))) ||
+    (cohortKey !== undefined && cacheTableProfile !== 'planningDivisionGeometry') ||
     !target.remote
   ) {
     printUsage()
     throw new Error(
-      '`cache:rebuild` accepts `--target preview|production` and optional `--table-profile divisionGeometry|planningDivisionGeometry`.',
+      '`cache:rebuild` accepts `--target preview|production`, optional `--table-profile divisionGeometry|planningDivisionGeometry`, and `--cohort-key YYYY` with the Planning profile.',
     )
   }
 
@@ -44,6 +48,7 @@ export async function runCacheRebuildCommand(
       target,
       event => updateDbCacheProgress(progress, event),
       cacheTableProfile as CacheTableProfile | undefined,
+      cohortKey as string | undefined,
     )
   } catch (error) {
     progress.fail()

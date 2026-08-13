@@ -504,6 +504,7 @@ export async function rebuildRemoteDbCache(
   target: UploadTarget,
   onProgress?: (event: LocalDbCacheProgressEvent) => void,
   cacheTableProfile?: CacheTableProfile,
+  shardYear?: string,
 ) {
   if (!target.remote) {
     throw new Error(
@@ -512,13 +513,19 @@ export async function rebuildRemoteDbCache(
   }
 
   const targetName = target.environment === 'production' ? 'production' : 'preview'
-  const shardYear = await resolveLatestConfiguredShardYear(targetName)
-  const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
-    cacheTableProfile,
-    onProgress,
-    includePreviousShardYears: true,
-    refreshRemoteCache: true,
-  })
+  const resolvedShardYear =
+    shardYear ?? (await resolveLatestConfiguredShardYear(targetName))
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    resolvedShardYear,
+    {
+      cacheTableProfile,
+      onProgress,
+      includePreviousShardYears: true,
+      refreshRemoteCache: true,
+    },
+  )
 
   dbContext.cleanup()
 }

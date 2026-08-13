@@ -2,6 +2,7 @@
 
 source (command dirname (status filename))/common.fish
 set -g saanseoi_init_cache_table_profile planningDivisionGeometry
+set -g saanseoi_init_cache_cohort_key 2001
 init_configure "saanseoi init:divisions:hkgov-pland-pu" $argv
 
 set -l continue_args
