@@ -3,7 +3,6 @@ import {
   getRegistrySource,
   getRegistrySourcePublisher,
   listRegistryApis,
-  listRegistryReleases,
   listRegistrySources,
   resolveRegistryReleaseDisplayStatus,
 } from '@repo/core/db/metaRegistry'
@@ -19,6 +18,7 @@ import {
   metaApiVersions,
   metaAssets,
   metaReleases,
+  stats,
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
@@ -83,7 +83,7 @@ export type SourcesPageSource = Pick<
   >
 }
 
-type DataPageRelease = Pick<
+export type DataPageRelease = Pick<
   ApiRelease,
   | 'apiFamily'
   | 'apiVersionId'
@@ -429,67 +429,104 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
 
 async function loadDataReleasesPage(offset = 0) {
   const db = getMetaDb()
-  const releases = await listRegistryReleases(db, DATA_RELEASES_PAGE_SIZE + 1, offset)
-
-  const [addressCounts, divisionCounts] = await Promise.all([
-    getCurrentDb()
+  const [lifecycleRows, releases] = await Promise.all([
+    db
       .select({
-        count: sql<number>`count(*)`,
-        snapshotId: currentSchema.address2d.snapshotId,
+        apiFamily: metaApiVersions.familyType,
+        cohortKey: metaApiReleaseSets.cohortKey,
+        revision: metaApiReleaseSets.revision,
+        status: metaApiReleaseSets.status,
       })
-      .from(currentSchema.address2d)
-      .groupBy(currentSchema.address2d.snapshotId)
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
       .all(),
-    getCurrentDb()
+    db
       .select({
-        count: sql<number>`count(*)`,
-        snapshotId: currentSchema.divisions.snapshotId,
+        apiFamily: metaApiVersions.familyType,
+        apiVersionId: metaApiReleaseSets.apiVersionId,
+        code: metaApiReleaseSets.code,
+        cohortKey: metaApiReleaseSets.cohortKey,
+        createdAt: metaApiReleaseSets.createdAt,
+        id: metaApiReleaseSets.id,
+        publishedAt: metaApiReleaseSets.publishedAt,
+        revision: metaApiReleaseSets.revision,
+        schemaVersion: metaApiReleaseSets.schemaVersion,
+        status: metaApiReleaseSets.status,
       })
-      .from(currentSchema.divisions)
-      .groupBy(currentSchema.divisions.snapshotId)
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .orderBy(
+        desc(
+          sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
+        ),
+        desc(metaApiReleaseSets.id),
+      )
+      .limit(DATA_RELEASES_PAGE_SIZE + 1)
+      .offset(offset)
       .all(),
   ])
-  const countsBySnapshot = new Map(
-    [...addressCounts, ...divisionCounts].map(row => [
-      row.snapshotId,
-      Number(row.count),
-    ]),
+  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  for (const release of lifecycleRows) {
+    if (release.status === 'draft' || release.cohortKey === null) continue
+    const latest = latestByFamily.get(release.apiFamily)
+    if (
+      !latest ||
+      release.cohortKey > latest.cohortKey ||
+      (release.cohortKey === latest.cohortKey && release.revision > latest.revision)
+    ) {
+      latestByFamily.set(release.apiFamily, {
+        cohortKey: release.cohortKey,
+        revision: release.revision,
+      })
+    }
+  }
+  const releaseIds = releases.map(release => release.id)
+  const releaseStats = releaseIds.length
+    ? await db
+        .select({
+          apiReleaseSetId: stats.apiReleaseSetId,
+          dimension: stats.dimension,
+          groupBy: stats.groupBy,
+          groupValue: stats.groupValue,
+          metric: stats.metric,
+          metricUnit: stats.metricUnit,
+          value: stats.value,
+        })
+        .from(stats)
+        .where(inArray(stats.apiReleaseSetId, releaseIds))
+        .all()
+    : []
+  const primaryRecordCountByReleaseId = new Map(
+    releaseStats.flatMap(stat =>
+      stat.apiReleaseSetId &&
+      stat.dimension === 'records' &&
+      stat.metric === 'count' &&
+      stat.metricUnit === 'count' &&
+      stat.groupBy === null &&
+      stat.groupValue === null
+        ? [[stat.apiReleaseSetId, stat.value] as const]
+        : [],
+    ),
   )
+
   return {
     releases: releases.slice(0, DATA_RELEASES_PAGE_SIZE).map(release => {
-      // API release-set stats are immutable presentation data for this exact
-      // release. Prefer them over DB_CURRENT: that database only retains the
-      // active snapshot, so it cannot count a revised or superseded release.
-      const recordedCount = release.stats.find(
-        stat =>
-          stat.dimension === 'records' &&
-          stat.metric === 'count' &&
-          stat.metricUnit === 'count' &&
-          stat.groupBy === null &&
-          stat.groupValue === null,
-      )?.value
-      const primaryResourceType =
-        release.apiFamily === 'addresses'
-          ? 'address'
-          : release.apiFamily === 'divisions'
-            ? 'division'
-            : null
-      const primarySnapshot = release.apiReleaseSetSnapshots?.find(
-        releaseSnapshot =>
-          releaseSnapshot.snapshot.resourceType === primaryResourceType,
-      )
-
       return {
         apiFamily: release.apiFamily,
         apiVersionId: release.apiVersionId,
         code: release.code,
         createdAt: release.createdAt,
-        primaryRecordCount:
-          recordedCount ??
-          (primarySnapshot === undefined
-            ? null
-            : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null)),
-        displayStatus: release.displayStatus as DataPageRelease['displayStatus'],
+        primaryRecordCount: primaryRecordCountByReleaseId.get(release.id) ?? null,
+        displayStatus: resolveRegistryReleaseDisplayStatus(
+          release,
+          latestByFamily.get(release.apiFamily),
+        ) as DataPageRelease['displayStatus'],
         id: release.id,
         publishedAt: release.publishedAt,
         schemaVersion: release.schemaVersion,
@@ -575,23 +612,21 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
   })
 }
 
-async function loadDataPageData() {
-  const [releasePage, apis, basemapReleases] = await Promise.all([
+async function loadDataPageApiData() {
+  const [releasePage, apis] = await Promise.all([
     loadDataReleasesPage(),
     loadDataPageApis(),
-    loadBasemapReleases(),
   ])
 
   return {
     ...releasePage,
     apis,
-    basemapReleases,
   }
 }
 
-export const getDataPageData = query(async () => {
+export const getDataPageApiData = query(async () => {
   try {
-    return await runWithD1ReadRetry(loadDataPageData)
+    return await runWithD1ReadRetry(loadDataPageApiData)
   } catch (error) {
     // An import can briefly expose the app before both D1 databases have their
     // registry tables. Render the empty registry state until the upload finishes.
@@ -601,12 +636,15 @@ export const getDataPageData = query(async () => {
         hasMore: false,
         nextOffset: 0,
         apis: [] as DataPageApi[],
-        basemapReleases: await loadBasemapReleases(),
       }
     }
     throw error
   }
 })
+
+export const getDataPageBasemapData = query(async () => ({
+  basemapReleases: await loadBasemapReleases(),
+}))
 
 export const getDataReleasesPageData = query(releasePageSchema, async ({ offset }) => {
   try {
