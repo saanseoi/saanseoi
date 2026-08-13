@@ -468,7 +468,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         sqlManifest,
         previewPlan,
         importOptions,
-        releaseCode,
+        {
+          datasetCode,
+          rawObjectKey,
+          releaseCode,
+          releaseId,
+        },
       )
     }
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
@@ -1653,7 +1658,12 @@ async function replayPlandSqlIntoSharedCache(
   manifest: PlandSqlArtefactManifest,
   plan: HkgovPlandDivisionUploadPlan,
   importOptions: SqlImportExecutionOptions,
-  releaseCode: string,
+  release: {
+    datasetCode: string
+    rawObjectKey: string
+    releaseCode: string
+    releaseId: string
+  },
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const sharedContext = await resolveLocalAddressDbContext(
@@ -1661,11 +1671,22 @@ async function replayPlandSqlIntoSharedCache(
     plan.regionCode,
     plan.sourceVersion,
     {
+      cacheTableProfile: 'planningDivisionGeometry',
       includePreviousShardYears: true,
       requireExistingRemoteCache: true,
     },
   )
   try {
+    const existingRelease = await sharedContext.metaDb
+      .select({ id: metaSchema.metaReleases.id })
+      .from(metaSchema.metaReleases)
+      .where(eq(metaSchema.metaReleases.code, release.releaseCode))
+      .limit(1)
+      .get()
+    if (!existingRelease) {
+      await syncStagedReleaseIntoLocalMetaCache(sharedContext.metaDb, release, plan)
+    }
+
     const targets = resolvePlandImportTargets(sharedContext, plan.sourceVersion)
     const localOptions: SqlImportExecutionOptions = {
       ...importOptions,
@@ -1676,7 +1697,7 @@ async function replayPlandSqlIntoSharedCache(
     await replayRemoteCacheWithRetry(
       targetName,
       resolveSharedRemoteDbCacheDir(target),
-      releaseCode,
+      release.releaseCode,
       async () => {
         await Promise.all([
           importSqlArtefactKeys(
