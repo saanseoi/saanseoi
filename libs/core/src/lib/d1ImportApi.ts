@@ -123,17 +123,30 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       let lastError: unknown = null
       // `Uint8Array` may be backed by a SharedArrayBuffer, which is not accepted
       // by the DOM's `BodyInit` type. Copy it into an ordinary ArrayBuffer first.
-      const body = sql instanceof Uint8Array ? new Uint8Array(sql).buffer : sql
+      const bytes =
+        typeof sql === 'string'
+          ? new TextEncoder().encode(sql)
+          : sql instanceof Uint8Array
+            ? new Uint8Array(sql)
+            : new Uint8Array(sql)
+      const body = bytes.buffer
 
       for (let attempt = 0; attempt <= uploadRetryLimit; attempt += 1) {
         try {
           const response = await fetchImpl(uploadUrl, {
             method: 'PUT',
+            headers: { 'Content-Length': String(bytes.byteLength) },
             body,
           })
 
           if (response.ok) {
-            return response.headers.get('ETag')?.replaceAll('"', '') ?? null
+            const uploadedEtag = response.headers.get('ETag')?.replaceAll('"', '')
+
+            if (!uploadedEtag) {
+              throw new Error('D1 import upload succeeded without an ETag.')
+            }
+
+            return uploadedEtag
           }
 
           if (
@@ -231,7 +244,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
         if (init.uploadUrl && init.filename) {
           uploadedEtag = await this.upload(init.uploadUrl, options.sql)
 
-          if (uploadedEtag && uploadedEtag !== options.etag) {
+          if (uploadedEtag !== options.etag) {
             throw new Error(
               `D1 import upload ETag mismatch: expected ${options.etag}, received ${uploadedEtag}.`,
             )
@@ -253,6 +266,19 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           throw new Error(
             'D1 import init response did not include an upload URL or poll status.',
           )
+        }
+
+        if (poll.status === 'error' || (poll.success === false && poll.error)) {
+          if (
+            isStorageResetImportPollWithoutBookmark(poll) &&
+            storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
+          ) {
+            storageResetAttempts += 1
+            await sleep(pollIntervalMs)
+            continue
+          }
+
+          throw new Error(`D1 import did not succeed: ${formatPollState(poll)}`)
         }
 
         while (
@@ -284,6 +310,22 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           await sleep(pollIntervalMs)
           poll = await this.poll(nextBookmark)
           currentBookmark = poll.atBookmark?.trim() || nextBookmark
+        }
+
+        if (poll.error === 'Not currently importing anything.') {
+          if (storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT) {
+            storageResetAttempts += 1
+            await sleep(pollIntervalMs)
+            continue
+          }
+
+          throw new Error(
+            `D1 import ended without reporting completion: ${formatPollState(poll)}`,
+          )
+        }
+
+        if (!poll.success) {
+          throw new Error(`D1 import did not succeed: ${formatPollState(poll)}`)
         }
 
         return {
