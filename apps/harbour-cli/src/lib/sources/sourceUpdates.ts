@@ -1202,23 +1202,34 @@ async function runOverturist(version: string, theme: string) {
 async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
   const { dataset } = context
   const archiveUpdates = await lookupCsdiArchives(context)
-  const targetHasNoRelease = archiveUpdates.some(
+  const missingTargetArchiveUpdates = archiveUpdates.filter(
     update =>
       context.targetVersions?.get(update.targetSourceKey ?? dataset.code) === null,
   )
-  if (targetHasNoRelease) return selectCsdiBootstrapUpdates(dataset, archiveUpdates)
+  const bootstrapUpdates = selectCsdiBootstrapUpdates(
+    dataset,
+    missingTargetArchiveUpdates,
+  )
+  const reportedTargetArchiveUpdates = archiveUpdates.filter(
+    update =>
+      context.targetVersions?.get(update.targetSourceKey ?? dataset.code) !== null,
+  )
 
   // CSDI's archive catalogue supplies the publisher package for every known
   // snapshot, including the latest available one. Prefer it over the WFS and
   // file-api conversion paths whenever it exists.
-  if (archiveUpdates.length > 0) {
-    const pendingUpdates = archiveUpdates.filter(
+  if (reportedTargetArchiveUpdates.length > 0) {
+    const pendingUpdates = reportedTargetArchiveUpdates.filter(
       update => update.status !== 'current' && !update.isKnownIdenticalArchive,
     )
-    if (pendingUpdates.length > 0) return pendingUpdates
+    if (pendingUpdates.length > 0) return [...bootstrapUpdates, ...pendingUpdates]
 
-    return summariseSettledCsdiArchives(dataset, archiveUpdates)
+    return [
+      ...bootstrapUpdates,
+      ...summariseSettledCsdiArchives(dataset, reportedTargetArchiveUpdates),
+    ]
   }
+  if (bootstrapUpdates.length > 0) return bootstrapUpdates
   return [
     {
       dataset,
