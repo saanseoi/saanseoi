@@ -144,7 +144,11 @@ describe('geometryBuildUpsertSql', () => {
   })
 
   test('replays an oversized geometry row through bounded statements', () => {
-    const geometry = 'x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2)
+    const geometry = {
+      coordinates: ['x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2)],
+      type: 'Polygon',
+    }
+    const geometryText = JSON.stringify(geometry)
     const sql = geometryBuildUpsertSql('divisionAreas', [
       { geometry: 'small', id: 'area-1', snapshotId: 'snapshot-1' },
       { geometry, id: 'area-2', snapshotId: 'snapshot-1' },
@@ -168,7 +172,7 @@ describe('geometryBuildUpsertSql', () => {
       database
         .query('SELECT geometry FROM divisionAreas WHERE snapshotId = ? AND id = ?')
         .get('snapshot-1', 'area-2'),
-    ).toEqual({ geometry })
+    ).toEqual({ geometry: geometryText })
     database.close()
   })
 })
