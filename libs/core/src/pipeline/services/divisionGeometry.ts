@@ -51,6 +51,7 @@ type StagedSourceRow<T> = Omit<
   | 'isCurrent'
   | 'createdAt'
   | 'updatedAt'
+  | 'sourceGeometry'
 > & {
   /** Publisher geometry retained outside raw publisher attributes until persistence. */
   sourceGeometry?: GeoJsonGeometry

@@ -5,18 +5,23 @@ import {
   SourceRecordRequestError,
   streamSourceRecordsNdjson,
 } from './sourceRecords'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
-function sourceDatabase(rows: Array<Record<string, unknown>>) {
+function sourceDatabase(
+  rows: Array<Record<string, unknown>>,
+  tableName = 'overtureDivisions',
+  sourceVersion = '2026-07-22.0',
+) {
   return {
     prepare(query: string) {
       return {
         bind(...values: unknown[]) {
           return {
             all: async () => {
-              expect(query).toContain('FROM overtureDivisions')
+              expect(query).toContain(`FROM ${tableName}`)
               expect(query).toContain('validFromRelease <= ?')
               expect(query).toContain('validToRelease IS NULL')
-              expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
+              expect(values.slice(0, 2)).toEqual([sourceVersion, sourceVersion])
               return { results: rows, success: true }
             },
           }
@@ -26,7 +31,15 @@ function sourceDatabase(rows: Array<Record<string, unknown>>) {
   } as never
 }
 
-function metaDatabase() {
+function metaDatabase(input?: {
+  datasetCode?: string
+  resourceType?: string
+  sourceReleaseCode?: string
+  sourceVersion?: string
+  sourceVariant?: string
+}) {
+  const sourceReleaseCode =
+    input?.sourceReleaseCode ?? 'dr-hk-overture-division-2026-07-22.0'
   return {
     $client: {
       prepare(query: string) {
@@ -35,17 +48,17 @@ function metaDatabase() {
             return {
               all: async () => {
                 expect(query).toContain('FROM releases')
-                expect(values).toEqual(['dr-hk-overture-division-2026-07-22.0'])
+                expect(values).toEqual([sourceReleaseCode])
                 return {
                   results: [
                     {
                       bindingName: 'DB_SOURCE_HK_2026',
-                      datasetCode: 'ds-hk-overture-division',
+                      datasetCode: input?.datasetCode ?? 'ds-hk-overture-division',
                       releaseId: 'source-release-id',
-                      resourceType: 'division',
-                      sourceReleaseCode: 'dr-hk-overture-division-2026-07-22.0',
-                      sourceVersion: '2026-07-22.0',
-                      sourceVariant: 'overture',
+                      resourceType: input?.resourceType ?? 'division',
+                      sourceReleaseCode,
+                      sourceVersion: input?.sourceVersion ?? '2026-07-22.0',
+                      sourceVariant: input?.sourceVariant ?? 'overture',
                     },
                   ],
                 }
@@ -126,6 +139,56 @@ describe('source records', () => {
     })
 
     expect(result?.records[0]).toMatchObject({ geometry })
+  })
+
+  test('decompresses exact C&SD geometry stored as a Brotli BLOB', async () => {
+    const geometry = {
+      coordinates: [
+        [114.1, 22.2],
+        [114.2, 22.2],
+        [114.1, 22.2],
+      ],
+      type: 'Polygon',
+    }
+    const censtatdRelease = 'dr-hk-hkgov-censtatd-division-area-district-2016'
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: sourceDatabase(
+          [
+            {
+              rawProperties: JSON.stringify({ dc: 1, dc_eng: 'Central and Western' }),
+              sourceGeometry: compressJsonBrotli(geometry),
+              sourceRecordId: 'CENSTATD:A',
+              versionHash: 'version-1',
+            },
+          ],
+          'hkgovCenstatdDivisionAreas',
+          '2016',
+        ),
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: true,
+      metaDb: metaDatabase({
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        resourceType: 'divisionArea',
+        sourceReleaseCode: censtatdRelease,
+        sourceVersion: '2016',
+        sourceVariant: 'hkgov-censtatd:2016',
+      }),
+      sourceReleaseCode: censtatdRelease,
+    })
+
+    expect(result?.records).toEqual([
+      {
+        geometry,
+        rawProperties: { dc: 1, dc_eng: 'Central and Western' },
+        resourceType: 'divisionArea',
+        sourceRecordId: 'CENSTATD:A',
+        variant: 'hkgov-censtatd:2016',
+      },
+    ])
   })
 
   test('rejects a malformed opaque source cursor', async () => {

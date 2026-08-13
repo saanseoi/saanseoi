@@ -1,3 +1,5 @@
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppBindings, AppEnv } from '../types'
 
@@ -9,6 +11,7 @@ type SourceFamily = 'divisions'
 
 type SourceRecordCatalogueEntry = {
   geometryColumn?: 'sourceGeometry'
+  geometryEncoding?: 'brotli-json'
   geometryProperty?: string
   tableName: string
 }
@@ -28,7 +31,7 @@ type SourceReleaseWithShard = SourceReleaseRow & {
 
 type SourceRecordRow = {
   rawProperties: string | null
-  sourceGeometry?: string | null
+  sourceGeometry?: unknown
   sourceRecordId: string
   versionHash: string
 }
@@ -73,6 +76,7 @@ type Cursor = {
 const DIVISION_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-hkgov-censtatd-division-area-district': {
     geometryColumn: 'sourceGeometry',
+    geometryEncoding: 'brotli-json',
     tableName: 'hkgovCenstatdDivisionAreas',
   },
   'ds-hk-hkgov-had-division-area-district': {
@@ -139,6 +143,19 @@ function parseRawProperties(value: string | null) {
     throw new Error('Source record rawProperties must be an object or null.')
   }
   return parsed as Record<string, unknown>
+}
+
+function parseSourceGeometry(value: unknown, entry: SourceRecordCatalogueEntry) {
+  if (entry.geometryEncoding === 'brotli-json') {
+    if (value instanceof Uint8Array) return decompressJsonBrotli(value)
+    if (value instanceof ArrayBuffer) return decompressJsonBrotli(value)
+    throw new Error('C&SD source geometry must be a Brotli-compressed BLOB.')
+  }
+
+  if (typeof value !== 'string') {
+    throw new Error('Source geometry must be stored as JSON text.')
+  }
+  return parseStoredJson(value)
 }
 
 function encodeCursor(cursor: Cursor) {
@@ -265,7 +282,7 @@ function toSourceRecord(
     row.sourceGeometry !== null &&
     row.sourceGeometry !== undefined
   ) {
-    record.geometry = parseStoredJson(row.sourceGeometry)
+    record.geometry = parseSourceGeometry(row.sourceGeometry, entry)
   }
   if (
     includeGeometry &&
