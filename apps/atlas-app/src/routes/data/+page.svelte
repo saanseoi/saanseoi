@@ -455,6 +455,22 @@ const handlePageKeydown = (event: KeyboardEvent) => {
   event.preventDefault()
 }
 
+const handlePageClick = (event: MouseEvent) => {
+  if (
+    activeBasemapCode === null ||
+    basemapDragState.isDragging ||
+    basemapDragState.isThrowing
+  )
+    return
+  if (
+    event.target instanceof Element &&
+    event.target.closest('[data-basemap-postcard]')
+  )
+    return
+
+  activeBasemapCode = null
+}
+
 const resetBasemapDragState = () => {
   basemapDragState = {
     pointerId: null,
@@ -584,7 +600,11 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
 }
 </script>
 
-<svelte:window onresize={handleViewportResize} onkeydown={handlePageKeydown} />
+<svelte:window
+  onresize={handleViewportResize}
+  onkeydown={handlePageKeydown}
+  onclick={handlePageClick}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-18"
