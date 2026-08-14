@@ -616,6 +616,202 @@ let { children, class: className = '' }: Props = $props()
     }
   }
 
+  @media (min-width: 120rem) {
+    .pipeline-panel {
+      max-width: max(var(--spacing-container-max), min(63.333333vw, 112.592593vh));
+      padding-inline: max(2rem, min(1.666667vw, 2.962963vh));
+      padding-top: max(11.5rem, min(9.583333vw, 17.037037vh));
+      padding-bottom: max(5rem, min(4.166667vw, 7.407407vh));
+    }
+
+    .landing-section-header {
+      gap: max(1.5rem, min(1.25vw, 2.222222vh));
+      padding-bottom: max(1.5rem, min(1.25vw, 2.222222vh));
+    }
+
+    .landing-section-header h2 {
+      font-size: max(4.2rem, min(3.5vw, 6.222222vh));
+    }
+
+    .landing-section-header p {
+      margin-top: max(1rem, min(0.833333vw, 1.481481vh));
+      font-size: max(1.14rem, min(0.95vw, 1.688889vh));
+    }
+
+    .pipeline {
+      margin-top: max(3rem, min(2.5vw, 4.444444vh));
+      padding-block: max(4rem, min(3.333333vw, 5.925926vh));
+    }
+
+    .pipeline-wave-field {
+      background-size: max(8.75rem, min(7.291667vw, 12.962963vh))
+        max(5.25rem, min(4.375vw, 7.777778vh));
+    }
+
+    .pipeline-stages {
+      min-height: max(24rem, min(20vw, 35.555556vh));
+    }
+
+    .pipeline-arc {
+      height: max(15rem, min(12.5vw, 22.222222vh));
+    }
+
+    .pipeline-arc path {
+      stroke-width: max(1.4px, min(0.072917vw, 0.12963vh));
+    }
+
+    .pipeline-traveller {
+      r: max(6px, min(0.3125vw, 0.555556vh));
+    }
+
+    .pipeline-stage {
+      min-height: max(13rem, min(10.833333vw, 19.259259vh));
+      padding-block: max(2rem, min(1.666667vw, 2.962963vh));
+      transform-origin: 50% min(-24rem, max(-20vw, -35.555556vh));
+    }
+
+    .pipeline-number {
+      width: max(4.75rem, min(3.958333vw, 7.037037vh));
+      border-width: max(1px, min(0.052083vw, 0.092593vh));
+      box-shadow:
+        0 0 0 max(0.38rem, min(0.316667vw, 0.562963vh))
+        color-mix(in srgb, currentColor 7%, transparent),
+        0 max(0.85rem, min(0.708333vw, 1.259259vh))
+        max(2rem, min(1.666667vw, 2.962963vh)) rgb(0 0 0 / 0.16);
+      font-size: max(1.8rem, min(1.5vw, 2.666667vh));
+    }
+
+    .pipeline-number::before {
+      inset: min(-0.38rem, max(-0.316667vw, -0.562963vh));
+      border-width: max(2px, min(0.104167vw, 0.185185vh));
+    }
+
+    .pipeline-stage-source,
+    .pipeline-stage-api {
+      transform: translateY(max(1.45rem, min(1.208333vw, 2.148148vh)));
+    }
+
+    .pipeline-stage-release {
+      transform: translateY(max(3.35rem, min(2.791667vw, 4.962963vh))) scale(1.05);
+    }
+
+    .pipeline-stage > div > p:first-of-type {
+      margin-top: max(1.25rem, min(1.041667vw, 1.851852vh));
+      font-size: max(0.875rem, min(0.729167vw, 1.296296vh));
+      letter-spacing: max(0.18em, min(0.15vw, 0.266667vh));
+    }
+
+    .pipeline-stage h2 {
+      margin-top: max(0.25rem, min(0.208333vw, 0.37037vh));
+      font-size: max(1.5rem, min(1.25vw, 2.222222vh));
+    }
+
+    .pipeline-stage h2 + p {
+      max-width: max(20rem, min(16.666667vw, 29.62963vh));
+      margin-top: max(0.5rem, min(0.416667vw, 0.740741vh));
+      font-size: max(1rem, min(0.833333vw, 1.481481vh));
+      line-height: max(1.5rem, min(1.25vw, 2.222222vh));
+    }
+
+    .pipeline-artefacts {
+      inset: min(-3.5rem, max(-2.916667vw, -5.185185vh))
+        min(-1.25rem, max(-1.041667vw, -1.851852vh));
+    }
+
+    .artefact {
+      font-size: max(0.68rem, min(0.566667vw, 1.007407vh));
+      letter-spacing: max(0.08em, min(0.066667vw, 0.118519vh));
+    }
+
+    .artefact-raw-coord {
+      top: max(1.1rem, min(0.916667vw, 1.62963vh));
+      left: max(1.4rem, min(1.166667vw, 2.074074vh));
+    }
+
+    .artefact-raw-ref {
+      top: max(3.1rem, min(2.583333vw, 4.592593vh));
+      left: max(2.2rem, min(1.833333vw, 3.259259vh));
+    }
+
+    .artefact-raw-meter {
+      right: max(1.35rem, min(1.125vw, 2vh));
+      bottom: max(2.1rem, min(1.75vw, 3.111111vh));
+    }
+
+    .artefact-release-square {
+      top: min(-4.85rem, max(-4.041667vw, -7.185185vh));
+      right: max(1.8rem, min(1.5vw, 2.666667vh));
+      width: max(4.2rem, min(3.5vw, 6.222222vh));
+      height: max(4.2rem, min(3.5vw, 6.222222vh));
+      border-width: max(1px, min(0.052083vw, 0.092593vh));
+    }
+
+    .artefact-release-circle {
+      top: min(-2.7rem, max(-2.25vw, -4vh));
+      right: max(4.7rem, min(3.916667vw, 6.962963vh));
+      width: max(1.8rem, min(1.5vw, 2.666667vh));
+      height: max(1.8rem, min(1.5vw, 2.666667vh));
+      border-width: max(1px, min(0.052083vw, 0.092593vh));
+    }
+
+    .artefact-release-label {
+      top: max(0.25rem, min(0.208333vw, 0.37037vh));
+      right: max(0.1rem, min(0.083333vw, 0.148148vh));
+    }
+
+    .artefact-release-grid {
+      right: max(8.2rem, min(6.833333vw, 12.148148vh));
+      bottom: max(1rem, min(0.833333vw, 1.481481vh));
+      width: max(3.2rem, min(2.666667vw, 4.740741vh));
+      height: max(3.2rem, min(2.666667vw, 4.740741vh));
+      background-size: max(0.75rem, min(0.625vw, 1.111111vh))
+        max(0.75rem, min(0.625vw, 1.111111vh));
+    }
+
+    .artefact-release-bars {
+      bottom: max(2.1rem, min(1.75vw, 3.111111vh));
+      left: max(2.4rem, min(2vw, 3.555556vh));
+      width: max(4.7rem, min(3.916667vw, 6.962963vh));
+      height: max(0.5rem, min(0.416667vw, 0.740741vh));
+      border-width: max(0.25rem, min(0.208333vw, 0.37037vh));
+    }
+
+    .artefact-api-target {
+      right: max(1.4rem, min(1.166667vw, 2.074074vh));
+      bottom: max(3.8rem, min(3.166667vw, 5.62963vh));
+      width: max(1.5rem, min(1.25vw, 2.222222vh));
+      height: max(1.5rem, min(1.25vw, 2.222222vh));
+      border-width: max(1px, min(0.052083vw, 0.092593vh));
+    }
+
+    .artefact-api-target::after {
+      inset: max(0.38rem, min(0.316667vw, 0.562963vh));
+      border-width: max(1px, min(0.052083vw, 0.092593vh));
+    }
+
+    .artefact-api-latency {
+      bottom: max(0.6rem, min(0.5vw, 0.888889vh));
+      left: max(3.9rem, min(3.25vw, 5.777778vh));
+    }
+
+    .artefact-api-coord {
+      top: max(0.6rem, min(0.5vw, 0.888889vh));
+      right: max(3rem, min(2.5vw, 4.444444vh));
+    }
+
+    .artefact-api-status {
+      top: max(3rem, min(2.5vw, 4.444444vh));
+      right: max(1.6rem, min(1.333333vw, 2.37037vh));
+      padding: max(0.12rem, min(0.1vw, 0.177778vh))
+        max(0.45rem, min(0.375vw, 0.666667vh));
+    }
+
+    .pipeline-arrow {
+      padding-inline: max(0.5rem, min(0.416667vw, 0.740741vh));
+      font-size: max(1.875rem, min(1.5625vw, 2.777778vh));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .landing-pipeline .landing-section-header,
     .landing-pipeline .pipeline-stage {
