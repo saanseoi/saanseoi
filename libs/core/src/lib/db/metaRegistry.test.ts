@@ -176,6 +176,33 @@ function createRegistryReleasesDb() {
 }
 
 describe('listRegistryReleases', () => {
+  test('keeps the latest release current in each domain', async () => {
+    const { sqlite, db } = createRegistryReleasesDb()
+
+    sqlite.exec(`
+      INSERT INTO apiVersions (id, code, familyType) VALUES
+        ('api-divisions', 'api-divisions-v0.1', 'divisions');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, schemaVersion,
+        rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('overture-current', 'api-divisions', 'data-hk-divisions-2026-07-22.0', 'hk', 'overture', '2026-07-22.0', 0, 'v1', 'v1', 'current', '2026-08-13T15:19:40.010Z', 'hash-1', '2026-08-13T15:19:40.010Z', '2026-08-13T15:19:40.010Z'),
+        ('pland-2016', 'api-divisions', 'data-hk-divisions-2016--hkgov-pland-pu', 'hk', 'hkgov-pland-pu', '2016', 0, 'v1', 'v1', 'archived', '2026-08-13T20:12:29.763Z', 'hash-2', '2026-08-13T20:12:29.763Z', '2026-08-13T20:12:29.763Z'),
+        ('pland-current', 'api-divisions', 'data-hk-divisions-2021--hkgov-pland-pu', 'hk', 'hkgov-pland-pu', '2021', 0, 'v1', 'v1', 'current', '2026-08-13T20:27:16.700Z', 'hash-3', '2026-08-13T20:27:16.700Z', '2026-08-13T20:27:16.700Z');
+    `)
+
+    const releases = await listRegistryReleases(db as never)
+    const statuses = new Map(
+      releases.map(release => [release.id, release.displayStatus]),
+    )
+
+    expect(statuses.get('overture-current')).toBe('current')
+    expect(statuses.get('pland-current')).toBe('current')
+    expect(statuses.get('pland-2016')).toBe('superseded')
+    sqlite.close()
+  })
+
   test('orders drafts by createdAt alongside published releases', async () => {
     const { sqlite, db } = createRegistryReleasesDb()
 

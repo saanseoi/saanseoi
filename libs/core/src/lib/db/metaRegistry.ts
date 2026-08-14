@@ -197,6 +197,14 @@ type RegistryReleaseLifecycle = {
   status: string
 }
 
+export function getRegistryReleaseLifecycleScope(
+  apiFamily: string,
+  regionCode: string | null,
+  domainCode: string | null,
+) {
+  return `${apiFamily}\u0000${regionCode ?? ''}\u0000${domainCode ?? ''}`
+}
+
 export function resolveRegistryReleaseDisplayStatus(
   release: RegistryReleaseLifecycle,
   latest?: Pick<RegistryReleaseLifecycle, 'cohortKey' | 'revision'>,
@@ -234,6 +242,8 @@ export async function listRegistryReleases(
     .select({
       id: metaApiReleaseSets.id,
       apiFamily: metaApiVersions.familyType,
+      regionCode: metaApiReleaseSets.regionCode,
+      domainCode: metaApiReleaseSets.domainCode,
       cohortKey: metaApiReleaseSets.cohortKey,
       revision: metaApiReleaseSets.revision,
       status: metaApiReleaseSets.status,
@@ -243,16 +253,21 @@ export async function listRegistryReleases(
     .where(apiVersionId ? eq(metaApiReleaseSets.apiVersionId, apiVersionId) : undefined)
     .all()
 
-  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
   for (const row of lifecycleRows) {
     if (row.status === 'draft' || row.cohortKey === null) continue
-    const latest = latestByFamily.get(row.apiFamily)
+    const scope = getRegistryReleaseLifecycleScope(
+      row.apiFamily,
+      row.regionCode,
+      row.domainCode,
+    )
+    const latest = latestByScope.get(scope)
     if (
       !latest ||
       row.cohortKey > latest.cohortKey ||
       (row.cohortKey === latest.cohortKey && row.revision > latest.revision)
     ) {
-      latestByFamily.set(row.apiFamily, {
+      latestByScope.set(scope, {
         cohortKey: row.cohortKey,
         revision: row.revision,
       })
@@ -430,7 +445,13 @@ export async function listRegistryReleases(
   }
 
   return releases.map(release => {
-    const latest = latestByFamily.get(release.apiFamily)
+    const latest = latestByScope.get(
+      getRegistryReleaseLifecycleScope(
+        release.apiFamily,
+        release.regionCode,
+        release.domainCode,
+      ),
+    )
     const displayStatus = resolveRegistryReleaseDisplayStatus(release, latest)
     const snapshots = releaseSnapshots.filter(
       snapshot => snapshot.apiReleaseSetId === release.id,
