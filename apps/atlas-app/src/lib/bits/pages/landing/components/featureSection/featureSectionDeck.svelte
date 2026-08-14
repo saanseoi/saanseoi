@@ -240,10 +240,10 @@ const handleViewportResize = () => {
   background-size: 1.2rem 1.2rem;
 }
 .principles-deck-expanded {
-  height: 44.25rem;
+  height: clamp(44.25rem, 50vw, 49rem);
 }
 .principles-deck-expanded :global(.principle-card) {
-  top: 29.1rem;
+  top: clamp(29.1rem, 41.5vw, 33.2rem);
   width: min(16.25rem, 23vw);
   height: 13.25rem;
   justify-content: flex-start;
@@ -254,8 +254,9 @@ const handleViewportResize = () => {
   top: 1rem;
   left: 50%;
   z-index: 5;
-  width: min(26rem, 100%);
-  height: 27rem;
+  width: min(clamp(22rem, 34vw, 26rem), calc(100% - 3rem));
+  height: auto;
+  aspect-ratio: 9 / 11;
   justify-content: flex-start;
   opacity: 1;
   transform: translateX(-50%) rotate(0);
@@ -310,8 +311,9 @@ const handleViewportResize = () => {
   top: 1rem;
   left: 50%;
   z-index: 6;
-  width: min(26rem, 100%);
-  height: 27rem;
+  width: min(clamp(22rem, 34vw, 26rem), calc(100% - 3rem));
+  height: auto;
+  aspect-ratio: 9 / 11;
   justify-content: flex-start;
   cursor: grabbing;
   opacity: 1;
@@ -461,6 +463,120 @@ const handleViewportResize = () => {
     :global(.principle-card:not(.principle-card-active) .principle-animation) {
     height: 10.5rem;
     margin-bottom: 0.25rem;
+  }
+}
+
+@media (min-width: 120rem) {
+  .principles-deck.principles-deck {
+    height: max(31.5rem, 26.25vw);
+    top: 0;
+  }
+  .principles-deck :global(.principle-card) {
+    top: max(7rem, 5.833333vw);
+    width: max(18rem, 15vw);
+    height: auto;
+    aspect-ratio: 9 / 11;
+    border-width: clamp(1px, calc(0.15625vw - 2px), 2px);
+    border-radius: max(1rem, 0.833333vw);
+  }
+  .principles-deck :global(.principle-stack-position-0) {
+    left: calc(50% - max(29.75rem, 24.791667vw));
+  }
+  .principles-deck :global(.principle-stack-position-1) {
+    left: calc(50% - max(15.6rem, 13vw));
+  }
+  .principles-deck :global(.principle-stack-position-2) {
+    left: calc(50% - max(1.4rem, 1.166667vw));
+  }
+  .principles-deck :global(.principle-stack-position-3) {
+    left: calc(50% + max(12.75rem, 10.625vw));
+  }
+  .principles-deck:not(.principles-deck-expanded) :global(.principle-card) {
+    padding: max(1.35rem, 1.125vw);
+  }
+  .principles-deck:not(.principles-deck-expanded) :global(.principle-animation) {
+    height: max(10.5rem, 8.75vw);
+  }
+  .principles-deck :global(.principle-card-title) {
+    font-size: max(1.55rem, 1.291667vw);
+  }
+  .principles-deck :global(.principle-card-body) {
+    font-size: max(1rem, 0.833333vw);
+    margin-top: max(1rem, 0.833333vw);
+  }
+  .principles-deck :global(.principle-card-title) {
+    padding-top: max(1rem, 0.833333vw);
+  }
+  .principles-deck:not(.principles-deck-expanded) :global(.principle-animation) {
+    margin-bottom: max(1.25rem, 1.041667vw);
+  }
+  .principles-deck-expanded.principles-deck-expanded {
+    height: max(44.25rem, min(36.875vw, 65.555556vh));
+  }
+  .principles-deck-expanded :global(.principle-card) {
+    top: max(29.1rem, min(24.21875vw, 43.055556vh));
+    width: max(16.25rem, min(13.541667vw, 24.074074vh));
+    height: max(13.25rem, min(11.041667vw, 19.62963vh));
+    padding: max(1rem, min(0.833333vw, 1.481481vh));
+  }
+  .principles-deck-expanded :global(.principle-card:not(.principle-card-active)) {
+    border-width: clamp(1px, min(calc(0.15625vw - 2px), calc(0.277778vh - 2px)), 2px);
+    border-radius: max(1rem, min(0.833333vw, 1.481481vh));
+  }
+  .principles-deck-expanded :global(.principle-card-active),
+  .principles-deck-desktop-dragging :global(.principle-card-dragging-candidate) {
+    top: 1rem;
+    left: 50%;
+    width: min(max(22rem, 21.666667vw), max(22rem, 38.518519vh), calc(100% - 3rem));
+    height: auto;
+    aspect-ratio: 9 / 11;
+    border-width: clamp(1px, min(calc(0.15625vw - 2px), calc(0.277778vh - 2px)), 2px);
+    border-radius: max(1rem, min(0.833333vw, 1.481481vh));
+    padding: max(1rem, min(0.833333vw, 1.481481vh));
+  }
+  .principles-deck-expanded
+    :global(.principle-stack-position-0:not(.principle-card-active)) {
+    left: calc(50% - max(28.8rem, 24vw));
+  }
+  .principles-deck-expanded
+    :global(.principle-stack-position-1:not(.principle-card-active)) {
+    left: calc(50% - max(15.6rem, 13vw));
+  }
+  .principles-deck-expanded
+    :global(.principle-stack-position-2:not(.principle-card-active)) {
+    left: calc(50% - max(2.4rem, 2vw));
+  }
+  .principles-deck-expanded
+    :global(.principle-stack-position-3:not(.principle-card-active)) {
+    left: calc(50% + max(10.8rem, 9vw));
+  }
+  .principles-deck-expanded :global(.principle-card-active .principle-animation),
+  .principles-deck-desktop-dragging
+    :global(.principle-card-dragging-candidate .principle-animation) {
+    height: max(16rem, min(13.333333vw, 23.703704vh));
+    margin-bottom: max(0.25rem, min(0.208333vw, 0.37037vh));
+  }
+  .principles-deck-expanded :global(.principle-card-active .principle-card-title),
+  .principles-deck-desktop-dragging
+    :global(.principle-card-dragging-candidate .principle-card-title) {
+    padding-top: max(1rem, min(0.833333vw, 1.481481vh));
+    font-size: max(1.55rem, min(1.291667vw, 2.296296vh));
+  }
+  .principles-deck-expanded
+    :global(.principle-card:not(.principle-card-active) .principle-card-title) {
+    padding-top: max(1rem, min(0.833333vw, 1.481481vh));
+    font-size: max(1.55rem, min(1.291667vw, 2.296296vh));
+  }
+  .principles-deck-expanded :global(.principle-card-active .principle-card-body),
+  .principles-deck-desktop-dragging
+    :global(.principle-card-dragging-candidate .principle-card-body) {
+    margin-top: max(0.75rem, min(0.625vw, 1.111111vh));
+    font-size: max(1rem, min(0.833333vw, 1.481481vh));
+  }
+  .principles-deck-expanded
+    :global(.principle-card:not(.principle-card-active) .principle-animation) {
+    height: max(6.6rem, min(5.5vw, 9.777778vh));
+    margin-bottom: max(0.8rem, min(0.666667vw, 1.185185vh));
   }
 }
 </style>
