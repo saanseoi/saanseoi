@@ -1,21 +1,34 @@
 <script lang="ts">
 import GuideWorksWith from '$lib/bits/pages/guides/components/guideWorksWith.svelte'
+import Icon from '@iconify/svelte'
 
-import { Main, PageDescription, PageHeader, PageTitle } from '$lib/bits'
+import { Button, Main, PageDescription, PageHeader, PageTitle } from '$lib/bits'
 import { m } from '$lib/bits/internal/i18n'
 
 const guides = [
   {
     href: '/guides/create-a-map',
-    image: '/guides/build-a-map.webp',
+    id: 'build-a-map',
+    jumpLabel: 'Build a Map',
+    darkImage: '/guides/build-a-map-dark.webp',
     imageAlt: 'A folded city map, mapping layers and laptop',
+    lightImage: '/guides/build-a-map-light.webp',
     title: () => m.guide_create_map_title(),
     description: () => m.guide_create_map_description(),
     useCases: () => m.guide_create_map_use_cases().split('|'),
     buildModes: () => [
-      m.guide_build_mode_hands_on(),
-      m.guide_build_mode_llm_assisted(),
-      m.guide_build_mode_agentic_ai(),
+      {
+        href: '/guides/create-a-map?llm-mode=manual',
+        label: m.guide_build_mode_hands_on(),
+      },
+      {
+        href: '/guides/create-a-map?llm-mode=assisted',
+        label: m.guide_build_mode_llm_assisted(),
+      },
+      {
+        href: '/guides/create-a-map?llm-mode=handover',
+        label: m.guide_build_mode_agentic_ai(),
+      },
     ],
     worksWith: () => [
       {
@@ -48,8 +61,11 @@ const guides = [
   },
   {
     href: '/guides/use-the-api',
-    image: '/guides/data-from-api.webp',
+    id: 'data-from-api',
+    jumpLabel: 'Get data from API',
+    darkImage: '/guides/data-from-api-dark.webp',
     imageAlt: 'Map data flowing from an API into a detailed city map',
+    lightImage: '/guides/data-from-api-light.webp',
     title: () => m.guide_use_api_title(),
     description: () => m.guide_use_api_description(),
     useCases: () => m.guide_use_api_use_cases().split('|'),
@@ -86,8 +102,11 @@ const guides = [
   },
   {
     href: '/guides/download-dataset',
-    image: '/guides/download-data.webp',
+    id: 'download-datasets',
+    jumpLabel: 'Download datasets',
+    darkImage: '/guides/download-data-dark.webp',
     imageAlt: 'Downloaded map data organised in an archive box',
+    lightImage: '/guides/download-data-light.webp',
     title: () => m.guide_download_dataset_title(),
     description: () => m.guide_download_dataset_description(),
     useCases: () => m.guide_download_dataset_use_cases().split('|'),
@@ -105,59 +124,78 @@ const guides = [
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
 >
   <PageHeader class="max-w-3xl">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_eyebrow()}
-    </p>
-    <PageTitle class="mt-3">{m.guide_hero()}</PageTitle>
+    <PageTitle>{m.guide_hero()}</PageTitle>
     <PageDescription class="mt-5">{m.guide_description()}</PageDescription>
+    <nav class="mt-8 grid gap-3 sm:grid-cols-3" aria-label="Jump to a guide">
+      {#each guides as guide}
+        <a
+          class="guide-jump-link group flex min-h-14 items-center justify-between gap-4 px-6 py-3 font-body text-body-md font-semibold tracking-[0.01em] uppercase focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+          href={`#${guide.id}`}
+        >
+          {guide.jumpLabel}
+          <Icon
+            class="guide-jump-link__arrow size-6 shrink-0"
+            icon="proicons:arrow-down"
+            aria-hidden="true"
+          />
+        </a>
+      {/each}
+    </nav>
   </PageHeader>
 
-  <section class="mt-16 border-y border-border-card lg:mt-24">
+  <section class="mt-10 border-t border-border-card lg:mt-24">
     {#each guides as guide, index}
-      <a
-        class={`guide-feature group relative isolate block py-10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary md:py-14 lg:py-18 ${index !== 0 ? 'border-t border-border-card' : ''}`}
-        href={guide.href}
+      <article
+        id={guide.id}
+        class={`grid scroll-mt-24 items-center gap-8 py-10 md:py-14 lg:scroll-mt-32 lg:grid-cols-2 lg:gap-x-12 lg:py-18 ${index !== 0 ? 'border-t border-border-card' : ''} ${index === guides.length - 1 ? 'pb-0 md:pb-0 lg:pb-0' : ''}`}
       >
-        <article
-          class="relative z-2 grid items-center gap-8 lg:grid-cols-2 lg:gap-x-12"
-        >
-          <div class={index % 2 === 1 ? 'lg:order-2' : ''}>
-            <div class="relative aspect-5/4">
-              <img
-                class="guide-artwork size-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.025]"
-                src={guide.image}
-                alt={guide.imageAlt}
-                loading="lazy"
-                decoding="async"
-              >
-            </div>
-            <aside class="guide-best-for mt-7 w-full">
-              <p
-                class="font-body text-label-sm font-semibold tracking-[0.16em] text-secondary uppercase"
-              >
-                {m.guide_best_for()}
-              </p>
-              <ul class="mt-2.5 grid grid-cols-2 gap-x-5 gap-y-2.5">
-                {#each guide.useCases() as useCase, useCaseIndex}
-                  <li
-                    class={`flex items-start gap-2 font-body text-body-sm leading-5 text-foreground-alt ${guide.useCases().length % 2 === 1 && useCaseIndex === guide.useCases().length - 1 ? 'col-span-2 justify-self-center' : ''}`}
-                  >
-                    <span
-                      class="mt-1.5 size-1.5 shrink-0 rounded-full bg-secondary"
-                      aria-hidden="true"
-                    ></span>
-                    <span>{useCase}</span>
-                  </li>
-                {/each}
-              </ul>
-            </aside>
-          </div>
-
-          <div
-            class={`relative lg:translate-y-8 ${index % 2 === 1 ? 'lg:order-1' : ''}`}
+        <div class={`contents lg:block ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
+          <a
+            class="group relative order-2 block aspect-square focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary lg:aspect-5/4"
+            href={guide.href}
+            aria-label={guide.title()}
           >
+            <img
+              class="guide-artwork size-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.025] dark:hidden"
+              src={guide.lightImage}
+              alt={guide.imageAlt}
+              loading="lazy"
+              decoding="async"
+            >
+            <img
+              class="guide-artwork hidden size-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.025] dark:block"
+              src={guide.darkImage}
+              alt={guide.imageAlt}
+              loading="lazy"
+              decoding="async"
+            >
+          </a>
+          <aside class="guide-best-for order-4 w-full lg:mt-7">
+            <p
+              class="font-body text-label-sm font-semibold tracking-[0.16em] text-secondary uppercase"
+            >
+              {m.guide_best_for()}
+            </p>
+            <ul class="mt-2.5 grid grid-cols-2 gap-x-5 gap-y-2.5">
+              {#each guide.useCases() as useCase, useCaseIndex}
+                <li
+                  class={`flex items-start gap-2 font-body text-body-sm leading-5 text-foreground-alt ${guide.useCases().length % 2 === 1 && useCaseIndex === guide.useCases().length - 1 ? 'col-span-2 justify-self-center' : ''}`}
+                >
+                  <span
+                    class="mt-1.5 size-1.5 shrink-0 rounded-full bg-secondary"
+                    aria-hidden="true"
+                  ></span>
+                  <span>{useCase}</span>
+                </li>
+              {/each}
+            </ul>
+          </aside>
+        </div>
+
+        <div
+          class={`contents lg:relative lg:block lg:translate-y-8 ${index % 2 === 1 ? 'lg:order-1' : ''}`}
+        >
+          <div class="order-1">
             {#if guide.buildModes}
               <aside
                 class="guide-build-modes mb-3 max-w-md"
@@ -165,7 +203,14 @@ const guides = [
               >
                 <ul class="guide-build-modes__list">
                   {#each guide.buildModes() as mode, modeIndex}
-                    <li>{mode}</li>
+                    <li>
+                      <a
+                        class="transition-colors hover:text-secondary focus-visible:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                        href={mode.href}
+                      >
+                        {mode.label}
+                      </a>
+                    </li>
                     {#if modeIndex < guide.buildModes().length - 1}
                       <li class="guide-build-modes__separator" aria-hidden="true">/</li>
                     {/if}
@@ -181,33 +226,137 @@ const guides = [
               </aside>
             {/if}
             <h2
-              class="max-w-md font-display text-[clamp(2.8rem,5.2vw,5.1rem)] leading-[0.88] font-bold tracking-[-0.055em] text-primary transition-colors duration-300 group-hover:text-secondary"
+              class="max-w-md font-display text-[clamp(2.8rem,5.2vw,5.1rem)] leading-[0.88] font-bold tracking-[-0.055em] text-primary"
             >
-              {guide.title()}
+              <a
+                class="transition-colors duration-300 hover:text-secondary focus-visible:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+                href={guide.href}
+              >
+                {guide.title()}
+              </a>
             </h2>
-            <p
-              class="mt-7 max-w-md font-body text-body-lg leading-8 text-foreground-alt"
-            >
+          </div>
+          <div class="order-3 max-w-md lg:mt-7">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
               {guide.description()}
             </p>
-            {#if guide.worksWith}
+          </div>
+          {#if guide.worksWith}
+            <div class="order-5">
               <GuideWorksWith
-                class="mt-10 max-w-md"
+                class="max-w-md lg:mt-10"
                 title={m.guide_works_with()}
                 groups={guide.worksWith()}
               />
-            {/if}
-          </div>
-        </article>
-      </a>
+            </div>
+          {/if}
+          {#if !guide.comingSoon}
+            <div class="order-6 flex justify-center lg:mt-10 lg:justify-start">
+              <Button
+                class="guide-card-cta group min-w-52 justify-between rounded-none px-5"
+                size="default"
+                variant="text"
+                href={guide.href}
+              >
+                Start Building
+                <Icon
+                  class="guide-card-cta__arrow size-5"
+                  icon="proicons:arrow-right"
+                  aria-hidden="true"
+                />
+              </Button>
+            </div>
+          {/if}
+        </div>
+      </article>
     {/each}
   </section>
 </Main>
 
 <style>
+:global(html) {
+  scroll-behavior: smooth;
+}
+
 .guide-best-for {
-  margin-inline: auto;
-  width: 80%;
+  width: 100%;
+}
+
+:global(.guide-card-cta),
+.guide-jump-link {
+  background: var(--color-secondary-container);
+  color: white;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    transform 0.2s;
+}
+
+:global(.guide-card-cta:not(:disabled):hover),
+.guide-jump-link:hover {
+  background: color-mix(in srgb, var(--color-secondary-container) 78%, black);
+  color: white;
+}
+
+:global(.guide-card-cta__arrow),
+:global(.guide-jump-link__arrow) {
+  will-change: transform;
+}
+
+:global(.guide-card-cta:hover .guide-card-cta__arrow) {
+  animation: guide-card-cta-arrow 0.42s ease-out;
+}
+
+:global(.guide-jump-link:hover .guide-jump-link__arrow) {
+  animation: guide-jump-link-arrow 0.42s ease-out;
+}
+
+@keyframes guide-card-cta-arrow {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  45% {
+    transform: translateX(0.4rem);
+  }
+
+  70% {
+    transform: translateX(0.2rem);
+  }
+}
+
+@keyframes guide-jump-link-arrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  45% {
+    transform: translateY(0.4rem);
+  }
+
+  70% {
+    transform: translateY(0.2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html) {
+    scroll-behavior: auto;
+  }
+
+  :global(.guide-card-cta__arrow),
+  :global(.guide-jump-link__arrow) {
+    animation: none !important;
+  }
+}
+
+@media (min-width: 64rem) {
+  .guide-best-for {
+    margin-inline: auto;
+    width: 80%;
+  }
 }
 
 .guide-artwork {
@@ -287,29 +436,5 @@ const guides = [
   .guide-build-modes__list {
     gap: 0.4rem;
   }
-}
-
-.guide-feature::before {
-  background: color-mix(in srgb, var(--color-secondary-container) 15%, transparent);
-  content: "";
-  inset-block: -1px;
-  left: 50%;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: translateX(-50%);
-  transition: opacity 0.3s;
-  width: 100vw;
-  z-index: 1;
-}
-
-.guide-feature:hover::before,
-.guide-feature:focus-visible::before {
-  opacity: 1;
-}
-
-.guide-feature:hover,
-.guide-feature:focus-visible {
-  z-index: 1;
 }
 </style>
