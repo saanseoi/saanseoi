@@ -77,27 +77,38 @@ const loopCopies = [0, 1, 2, 3]
 }
 
 .guide-works-with__viewport {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 1.25rem,
-    black calc(100% - 1.25rem),
-    transparent
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 1.25rem,
-    black calc(100% - 1.25rem),
-    transparent
-  );
+  contain: paint;
   overflow: hidden;
+  position: relative;
+}
+
+.guide-works-with__viewport::before,
+.guide-works-with__viewport::after {
+  bottom: 0;
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 1.25rem;
+  z-index: 1;
+}
+
+.guide-works-with__viewport::before {
+  background: linear-gradient(to right, var(--color-background), transparent);
+  left: 0;
+}
+
+.guide-works-with__viewport::after {
+  background: linear-gradient(to left, var(--color-background), transparent);
+  right: 0;
 }
 
 .guide-works-with__track {
   animation: guide-works-with-scroll 42s linear infinite;
+  backface-visibility: hidden;
   display: flex;
   min-width: max-content;
+  will-change: transform;
   width: max-content;
 }
 
@@ -129,11 +140,11 @@ const loopCopies = [0, 1, 2, 3]
 
 @keyframes guide-works-with-scroll {
   from {
-    transform: translateX(1.25rem);
+    transform: translate3d(1.25rem, 0, 0);
   }
 
   to {
-    transform: translateX(calc(-25% + 1.25rem));
+    transform: translate3d(calc(-25% + 1.25rem), 0, 0);
   }
 }
 
