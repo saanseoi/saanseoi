@@ -118,7 +118,7 @@ onMount(() => {
 
 <fieldset
   bind:this={choiceGroupElement}
-  class={`min-w-0 ${hideLabel && variant === 'illustrated' ? 'mt-0 mb-12' : 'my-12'} ${variant === 'illustrated' ? 'overflow-visible' : ''}`}
+  class={`min-w-0 ${hideLabel && variant === 'illustrated' ? 'mt-0 mb-0' : 'mt-12 mb-0'} ${variant === 'illustrated' ? 'overflow-visible' : ''}`}
   style={illustratedFullBleed ? `--illustrated-content-inset: ${illustratedContentInset}px` : undefined}
 >
   <legend
