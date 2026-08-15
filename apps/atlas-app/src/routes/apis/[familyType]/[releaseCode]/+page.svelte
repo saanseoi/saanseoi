@@ -12,10 +12,11 @@ import {
   ReleaseNotes,
   ReleaseStats,
 } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
 import { getApiReleasePageData } from '$lib/registry/meta.remote'
 import { diffMarkdown } from '$lib/registry/markdown'
 import { getReleaseVersionLabel } from '$lib/registry/releaseCode'
+import { getReleaseHeaderDomainOptions } from '$lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions'
 import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
@@ -39,8 +40,14 @@ let release = $derived.by(() => {
   return selected
 })
 let locale = $derived(getCurrentLocale())
+let currentDomainCode = $derived(release.domainCode ?? 'default')
+let domainReleases = $derived(
+  (api.releases ?? []).filter(
+    item => (item.domainCode ?? 'default') === currentDomainCode,
+  ),
+)
 let previousRelease = $derived.by(() => {
-  const releases = api.releases ?? []
+  const releases = domainReleases
   const currentIndex = releases.findIndex(item => item.code === release.code)
   return currentIndex >= 0 ? releases[currentIndex + 1] : undefined
 })
@@ -122,11 +129,26 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
   qualityDescription: humaniseStat,
 })
 let versions = $derived(
-  (api.releases ?? []).map((item, index, releases) => ({
+  domainReleases.map((item, index, releases) => ({
     code: item.code,
     href: `/apis/${api.familyType}/${item.code}${showNoteDiff && index < releases.length - 1 ? '?view=diff' : ''}`,
     label: getReleaseVersionLabel(item.code, api.familyType),
   })),
+)
+let currentComposition = $derived(
+  api.apiComposition
+    ?.filter(item => item.status === 'current')
+    .sort((left, right) => right.version - left.version)[0],
+)
+let domains = $derived(
+  getReleaseHeaderDomainOptions(api, release)
+    .filter(option => option.code !== currentDomainCode)
+    .map(option => ({
+      ...option,
+      label:
+        selectLocalisedRow(currentComposition?.i18n?.[option.code], locale)?.name ??
+        option.code,
+    })),
 )
 function setShowNoteDiff(enabled: boolean) {
   const url = new URL(page.url)
@@ -230,6 +252,8 @@ $effect(() => {
   <ReleaseHeader.ApiVariant {api} {release} {locale} />
   <ReleaseNav.Root
     {versions}
+    {domains}
+    domainTitle="Domains"
     currentVersionCode={release.code}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
