@@ -4,6 +4,7 @@ import {
   getRegistrySourcePublisher,
   listRegistryApis,
   listRegistrySources,
+  getRegistryReleaseLifecycleScope,
   resolveRegistryReleaseDisplayStatus,
 } from '@repo/core/db/metaRegistry'
 import {
@@ -433,6 +434,8 @@ async function loadDataReleasesPage(offset = 0) {
     db
       .select({
         apiFamily: metaApiVersions.familyType,
+        regionCode: metaApiReleaseSets.regionCode,
+        domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         revision: metaApiReleaseSets.revision,
         status: metaApiReleaseSets.status,
@@ -448,6 +451,8 @@ async function loadDataReleasesPage(offset = 0) {
         apiFamily: metaApiVersions.familyType,
         apiVersionId: metaApiReleaseSets.apiVersionId,
         code: metaApiReleaseSets.code,
+        regionCode: metaApiReleaseSets.regionCode,
+        domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         createdAt: metaApiReleaseSets.createdAt,
         id: metaApiReleaseSets.id,
@@ -471,16 +476,21 @@ async function loadDataReleasesPage(offset = 0) {
       .offset(offset)
       .all(),
   ])
-  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
   for (const release of lifecycleRows) {
     if (release.status === 'draft' || release.cohortKey === null) continue
-    const latest = latestByFamily.get(release.apiFamily)
+    const scope = getRegistryReleaseLifecycleScope(
+      release.apiFamily,
+      release.regionCode,
+      release.domainCode,
+    )
+    const latest = latestByScope.get(scope)
     if (
       !latest ||
       release.cohortKey > latest.cohortKey ||
       (release.cohortKey === latest.cohortKey && release.revision > latest.revision)
     ) {
-      latestByFamily.set(release.apiFamily, {
+      latestByScope.set(scope, {
         cohortKey: release.cohortKey,
         revision: release.revision,
       })
@@ -525,7 +535,13 @@ async function loadDataReleasesPage(offset = 0) {
         primaryRecordCount: primaryRecordCountByReleaseId.get(release.id) ?? null,
         displayStatus: resolveRegistryReleaseDisplayStatus(
           release,
-          latestByFamily.get(release.apiFamily),
+          latestByScope.get(
+            getRegistryReleaseLifecycleScope(
+              release.apiFamily,
+              release.regionCode,
+              release.domainCode,
+            ),
+          ),
         ) as DataPageRelease['displayStatus'],
         id: release.id,
         publishedAt: release.publishedAt,
@@ -558,6 +574,8 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
         apiFamily: metaApiVersions.familyType,
         apiVersionId: metaApiReleaseSets.apiVersionId,
         code: metaApiReleaseSets.code,
+        regionCode: metaApiReleaseSets.regionCode,
+        domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         createdAt: metaApiReleaseSets.createdAt,
         publishedAt: metaApiReleaseSets.publishedAt,
@@ -572,16 +590,21 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
       .all(),
   ])
 
-  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
   for (const release of releases) {
     if (release.status === 'draft' || release.cohortKey === null) continue
-    const latest = latestByFamily.get(release.apiFamily)
+    const scope = getRegistryReleaseLifecycleScope(
+      release.apiFamily,
+      release.regionCode,
+      release.domainCode,
+    )
+    const latest = latestByScope.get(scope)
     if (
       !latest ||
       release.cohortKey > latest.cohortKey ||
       (release.cohortKey === latest.cohortKey && release.revision > latest.revision)
     ) {
-      latestByFamily.set(release.apiFamily, {
+      latestByScope.set(scope, {
         cohortKey: release.cohortKey,
         revision: release.revision,
       })
@@ -596,7 +619,13 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
         createdAt: release.createdAt,
         displayStatus: resolveRegistryReleaseDisplayStatus(
           release,
-          latestByFamily.get(release.apiFamily),
+          latestByScope.get(
+            getRegistryReleaseLifecycleScope(
+              release.apiFamily,
+              release.regionCode,
+              release.domainCode,
+            ),
+          ),
         ) as DataPageRelease['displayStatus'],
         publishedAt: release.publishedAt,
       }))
