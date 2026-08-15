@@ -33,14 +33,15 @@ let {
 let observedOutlineId = $state<string | null>(null)
 let guideOpen = $state(true)
 let projectChoicesOpen = $state(true)
+let contentElement = $state<HTMLElement>()
 let navigationElement = $state<HTMLElement>()
 let navigationContentsElement = $state<HTMLElement>()
 let compactNavigation = $state(false)
 let currentOutlineId = $derived(activeOutlineId ?? observedOutlineId)
 
 const fixedNavigationBreakpoint = '(min-width: 1024px)'
-const compactNavigationBreakpoint = '(max-width: 1279px)'
 const defaultHeaderHeight = 72
+const expandedNavigationWidth = 12 * 16
 
 $effect(() => {
   const outlineKey = outline.map(item => `${item.id}:${item.hidden}`).join('|')
@@ -66,12 +67,14 @@ function updateNavigationPresentation() {
   const headerHeight =
     document.querySelector('header')?.getBoundingClientRect().height ??
     defaultHeaderHeight
+  const contentWidth = contentElement?.getBoundingClientRect().width ?? 0
+  const shouldCompactForContentWidth =
+    contentWidth + 2 * expandedNavigationWidth >= window.innerWidth
   const navigationHeight = compactNavigation
     ? (navigationContentsElement?.scrollHeight ?? 0)
     : (navigationElement?.scrollHeight ?? 0)
   compactNavigation =
-    window.matchMedia(compactNavigationBreakpoint).matches ||
-    navigationHeight > window.innerHeight - headerHeight
+    shouldCompactForContentWidth || navigationHeight > window.innerHeight - headerHeight
 }
 
 function toggleGuide() {
@@ -95,7 +98,7 @@ onMount(() => {
 </script>
 
 <div class="flex flex-col">
-  <div class="min-w-0 lg:pr-56">{@render children?.()}</div>
+  <div bind:this={contentElement} class="min-w-0 lg:pr-56">{@render children?.()}</div>
   <aside class="order-first lg:order-0" aria-label={tocLabel}>
     <nav
       bind:this={navigationElement}
@@ -103,7 +106,7 @@ onMount(() => {
     >
       {#if compactNavigation}
         <button
-          class="absolute right-0 top-0 z-20 inline-flex h-11 w-20 items-center justify-center gap-2 border border-border-card bg-background px-3 font-body text-label-sm font-semibold tracking-[0.12em] text-secondary uppercase shadow-card transition-colors duration-300 group-hover:border-secondary group-focus-visible:border-secondary"
+          class="absolute right-0 top-0 z-20 inline-flex h-11 w-20 items-center justify-center gap-2 border border-border-card bg-background px-3 font-body text-label-sm font-semibold tracking-[border-color,opacity] duration-300 group-hover:z-0 group-hover:border-secondary group-hover:opacity-0 group-focus-within:z-0 group-focus-within:border-secondary group-focus-within:opacity-0"
           type="button"
           aria-label="Open table of contents and project choices"
         >
@@ -115,7 +118,7 @@ onMount(() => {
         </button>
         <div
           bind:this={navigationContentsElement}
-          class="pointer-events-none absolute right-0 top-0 z-10 max-h-[calc(100vh-4.5rem)] w-52 translate-x-[calc(100%-5rem)] overflow-y-auto border border-border-card bg-background p-3 pt-14 opacity-0 shadow-popover transition-[opacity,transform] duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100"
+          class="pointer-events-none absolute right-0 top-0 z-10 max-h-[calc(100vh-4.5rem)] w-48 -translate-y-1/2 translate-x-[calc(100%-5rem)] overflow-y-auto opacity-0 transition-[opacity,transform] duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-x-0 group-focus-within:opacity-100"
         >
           <div
             class="flex items-center justify-between gap-3 bg-background lg:block lg:bg-transparent lg:p-0"
