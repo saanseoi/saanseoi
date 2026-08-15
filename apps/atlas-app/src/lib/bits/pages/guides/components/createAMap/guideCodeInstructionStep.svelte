@@ -29,7 +29,7 @@ let {
 }: Props = $props()
 </script>
 
-<div class="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+<div class="space-y-6">
   <GuideCodeBlock
     label={codeLabel}
     {code}

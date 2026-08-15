@@ -189,7 +189,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`overflow-hidden border shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`w-full max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
