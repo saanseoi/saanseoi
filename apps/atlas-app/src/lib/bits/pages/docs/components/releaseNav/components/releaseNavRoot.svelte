@@ -3,6 +3,7 @@ import type { Snippet } from 'svelte'
 import { tick } from 'svelte'
 import type {
   ReleaseNavAction,
+  ReleaseNavDomain,
   ReleaseNavOutlineItem,
   ReleaseNavTab,
   ReleaseNavVersion,
@@ -29,7 +30,10 @@ type Props = {
   tabs: ReleaseNavTab[]
   versionTitle: string
   versions: ReleaseNavVersion[]
+  currentDomainCode?: string
   currentVersionCode: string
+  domains?: ReleaseNavDomain[]
+  domainTitle?: string
 }
 
 let {
@@ -43,7 +47,10 @@ let {
   tabs,
   versionTitle,
   versions,
+  currentDomainCode,
   currentVersionCode,
+  domains = [],
+  domainTitle = 'Domains',
 }: Props = $props()
 
 let contentPanel = $state<HTMLElement>()
@@ -108,6 +115,9 @@ $effect(() => {
     activeOutlineId={activeOutlineId ?? observedOutlineId}
     canExpand={nestedContent || outline.length > 0}
     {currentVersionCode}
+    {currentDomainCode}
+    {domains}
+    {domainTitle}
     {outline}
     panel={contentPanel}
     {versions}
