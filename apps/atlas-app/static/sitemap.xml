@@ -6,14 +6,17 @@
   <url><loc>https://saanseoi.hk/docs</loc></url>
   <url><loc>https://saanseoi.hk/docs/glossary</loc></url>
   <url><loc>https://saanseoi.hk/guides</loc></url>
-  <url><loc>https://saanseoi.hk/guides/basemaps</loc></url>
-  <url><loc>https://saanseoi.hk/guides/create-a-map</loc></url>
+  <url>
+    <loc>https://saanseoi.hk/guides/create-a-map</loc>
+    <lastmod>2026-08-16</lastmod>
+  </url>
   <url><loc>https://saanseoi.hk/guides/download-dataset</loc></url>
   <url><loc>https://saanseoi.hk/guides/use-the-api</loc></url>
+  <url><loc>https://saanseoi.hk/apis/get-started</loc></url>
+  <url><loc>https://saanseoi.hk/basemaps/get-started</loc></url>
   <url><loc>https://saanseoi.hk/themes</loc></url>
+  <url><loc>https://saanseoi.hk/themes/get-started</loc></url>
   <url><loc>https://saanseoi.hk/manifesto</loc></url>
-  <url><loc>https://saanseoi.hk/community</loc></url>
-  <url><loc>https://saanseoi.hk/projects</loc></url>
   <url><loc>https://saanseoi.hk/policy/privacy</loc></url>
   <url><loc>https://saanseoi.hk/policy/terms</loc></url>
   <url><loc>https://saanseoi.hk/policy/fair-use</loc></url>
