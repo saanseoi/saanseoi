@@ -1,6 +1,6 @@
 <script lang="ts">
-import { Button, Main, Seo } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import { Button, Main, Seo } from '#lib/bits/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 </script>
 
 <Seo

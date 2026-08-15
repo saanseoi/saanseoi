@@ -1,5 +1,5 @@
-import { getLocalisedMessage, type AppLocale } from '$lib/bits/internal/i18n'
-import type { ReleaseNotesPresentation } from '$lib/bits/pages/docs/components/releaseNotes'
+import { getLocalisedMessage, type AppLocale } from '#lib/bits/internal/i18n.js'
+import type { ReleaseNotesPresentation } from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 
 import {
   getMarkdownHeadings,

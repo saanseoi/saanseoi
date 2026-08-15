@@ -1,7 +1,7 @@
 <script lang="ts">
-import ManifestoPage from '$lib/bits/pages/manifesto/page.svelte'
-import { Seo } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import ManifestoPage from '#lib/bits/pages/manifesto/page.svelte'
+import { Seo } from '#lib/bits/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 const sections = [
   'Dropping Anchor',

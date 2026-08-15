@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Main, Seo } from '$lib/bits'
+import { Main, Seo } from '#lib/bits/index.js'
 
 import PolicyDocument from './components/policyDocument.svelte'
 import PolicyNotice from './components/policyNotice.svelte'

@@ -1,12 +1,12 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { GlossaryEntries, GlossaryHeader, Main, Seo } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { GlossaryEntries, GlossaryHeader, Main, Seo } from '#lib/bits/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import {
   getMarkdownGlossaryEntries,
   getMarkdownTransclusionDisplayTitle,
-} from '$lib/registry/referenceDocs'
+} from '#lib/registry/referenceDocs.js'
 
 let query = $state('')
 let locale = $derived(getCurrentLocale())

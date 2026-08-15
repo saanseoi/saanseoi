@@ -1,8 +1,8 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { m } from '#lib/bits/internal/i18n.js'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Props = {
   children?: Snippet

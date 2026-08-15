@@ -1,10 +1,10 @@
 <script lang="ts">
 import { onMount, type Component } from 'svelte'
 
-import { Main, Divider, Seo } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import { Main, Divider, Seo } from '#lib/bits/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
-import HeroSection from '$lib/bits/pages/landing/heroSection.svelte'
+import HeroSection from '#lib/bits/pages/landing/heroSection.svelte'
 
 let landingPage = $state<HTMLElement>()
 let FoundationSection = $state<Component>()
@@ -21,25 +21,25 @@ onMount(() => {
   // later section is then requested in reading order while the browser is idle.
   const preloadSections = async () => {
     const { default: foundationSection } = await import(
-      '$lib/bits/pages/landing/foundationSection.svelte'
+      '#lib/bits/pages/landing/foundationSection.svelte'
     )
     if (cancelled) return
     FoundationSection = foundationSection
 
     const { default: featureSection } = await import(
-      '$lib/bits/pages/landing/featureSection.svelte'
+      '#lib/bits/pages/landing/featureSection.svelte'
     )
     if (cancelled) return
     FeatureSection = featureSection
 
     const { default: pipelineSection } = await import(
-      '$lib/bits/pages/landing/pipelineSection.svelte'
+      '#lib/bits/pages/landing/pipelineSection.svelte'
     )
     if (cancelled) return
     PipelineSection = pipelineSection
 
     const { default: communitySection } = await import(
-      '$lib/bits/pages/landing/communitySection.svelte'
+      '#lib/bits/pages/landing/communitySection.svelte'
     )
     if (!cancelled) CommunitySection = communitySection
   }

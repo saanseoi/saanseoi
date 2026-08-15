@@ -1,11 +1,11 @@
 <script lang="ts">
-import dianapangLogo from '$lib/assets/sourcePublishers/dpang.png'
-import hkgovLogo from '$lib/assets/sourcePublishers/hkgov.webp'
-import overtureLogo from '$lib/assets/sourcePublishers/overture.png'
-import { m, selectLocalisedRow, type AppLocale } from '$lib/bits/internal/i18n'
-import * as ReleaseNotes from '$lib/bits/pages/docs/components/releaseNotes'
-import { buildReleaseNotesPresentation } from '$lib/registry/releaseNotesPresentation'
-import type { RegistrySource, SourceVersion } from '$lib/registry/types'
+import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
+import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
+import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
+import { m, selectLocalisedRow, type AppLocale } from '#lib/bits/internal/i18n.js'
+import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
+import { buildReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
+import type { RegistrySource, SourceVersion } from '#lib/registry/types.js'
 
 import * as ReleaseHeader from '../components'
 

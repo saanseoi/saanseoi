@@ -2,7 +2,7 @@
 import type { Snippet } from 'svelte'
 import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
 
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'text'
 type Size = 'compact' | 'default'

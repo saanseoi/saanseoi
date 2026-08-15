@@ -1,10 +1,36 @@
+import adapter from '@sveltejs/adapter-cloudflare'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import tailwindcss from '@tailwindcss/vite'
 import { sveltekit } from '@sveltejs/kit/vite'
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [
+    tailwindcss(),
+    sveltekit({
+      compilerOptions: {
+        experimental: { async: true },
+        // Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+        runes: ({ filename }) =>
+          filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+      },
+
+      adapter: adapter({
+        platformProxy: {
+          // Share the same Miniflare state as the local API/workers stack and migration scripts.
+          configPath: resolve(import.meta.dirname, 'wrangler.jsonc'),
+
+          // Wrangler appends `v3` to its --persist-to root; getPlatformProxy passes
+          // this path directly to Miniflare. Point at Wrangler's effective store.
+          persist: { path: resolve(import.meta.dirname, '../../.local/d1/dev/v3') },
+          envFiles: ['.dev.vars'],
+          remoteBindings: true,
+        },
+      }),
+      experimental: { remoteFunctions: true },
+    }),
+  ],
   server: {
     // Tailnet-only remote development through `tailscale serve --https=8443`.
     // Vite otherwise rejects the MagicDNS Host header before proxying/HMR.

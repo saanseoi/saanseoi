@@ -1,5 +1,5 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'

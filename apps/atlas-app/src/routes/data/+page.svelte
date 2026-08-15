@@ -3,8 +3,8 @@ import Icon from '@iconify/svelte'
 import { Popover } from 'bits-ui'
 import { onMount } from 'svelte'
 
-import * as CardDeck from '$lib/bits/components/cardDeck'
-import { ReleaseCarousel } from '$lib/bits/components/carousel'
+import * as CardDeck from '#lib/bits/components/cardDeck/index.js'
+import { ReleaseCarousel } from '#lib/bits/components/carousel/index.js'
 import {
   PageDescription,
   PageHeader,
@@ -13,21 +13,21 @@ import {
   PageSectionHeader,
   PageSectionTitle,
   PageTitle,
-} from '$lib/bits/pages/shared'
-import { Main, Seo } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
+} from '#lib/bits/pages/shared/index.js'
+import { Main, Seo } from '#lib/bits/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import {
   getDataPageApiData,
   getDataPageBasemapData,
   getDataReleasesPageData,
   type DataPageRelease,
-} from '$lib/registry/meta.remote'
+} from '#lib/registry/meta.remote.js'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
-} from '$lib/registry/referenceDocs'
-import BasemapPostcard from '$lib/bits/pages/data/basemapPostcard.svelte'
+} from '#lib/registry/referenceDocs.js'
+import BasemapPostcard from '#lib/bits/pages/data/basemapPostcard.svelte'
 
 const apiDataQuery = getDataPageApiData()
 const basemapDataQuery = getDataPageBasemapData()

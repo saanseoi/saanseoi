@@ -2,7 +2,7 @@
 import { onMount } from 'svelte'
 
 import type { Snippet } from 'svelte'
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 type NavigationState = { canMoveBackward: boolean; canMoveForward: boolean }
 type DragState = { cardId: string | null }
 type Props = {

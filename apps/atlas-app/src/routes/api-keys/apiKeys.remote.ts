@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit'
 import { command, getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
-import { createApiKey, listApiKeys, revokeApiKey } from '$lib/server/apiKeys'
+import { createApiKey, listApiKeys, revokeApiKey } from '#lib/server/apiKeys.js'
 
 const createApiKeySchema = z.object({
   name: z

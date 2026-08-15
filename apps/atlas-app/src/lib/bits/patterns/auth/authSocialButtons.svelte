@@ -1,9 +1,9 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Button } from '$lib/bits'
-import { socialProviders, type SocialProvider } from '$lib/auth-providers'
-import { m } from '$lib/bits/internal/i18n'
+import { Button } from '#lib/bits/index.js'
+import { socialProviders, type SocialProvider } from '#lib/auth-providers.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = {
   disabled?: boolean

@@ -5,7 +5,7 @@ import { onMount, type Snippet } from 'svelte'
 import {
   observeReleaseNavOutline,
   scrollToReleaseNavAnchor,
-} from '$lib/bits/pages/docs/components/releaseNav/releaseNavScroll'
+} from '#lib/bits/pages/docs/components/releaseNav/releaseNavScroll.js'
 
 import type { GuideDecision, GuideOutlineItem } from './guide.types'
 

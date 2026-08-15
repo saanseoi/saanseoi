@@ -1,10 +1,10 @@
 <script lang="ts">
-import { dev } from '$app/environment'
-import { env } from '$env/dynamic/public'
+import { dev } from '$app/env'
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
 const environmentLabel = dev
   ? 'DEV'
-  : env.PUBLIC_ATLAS_API_BASE_URL === 'https://preview.api.saanseoi.hk'
+  : PUBLIC_ATLAS_API_BASE_URL === 'https://preview.api.saanseoi.hk'
     ? 'PREVIEW'
     : null
 </script>

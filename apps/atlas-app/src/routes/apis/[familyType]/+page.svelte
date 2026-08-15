@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
-import { getApiFamilyPageData } from '$lib/registry/meta.remote'
+import { Main } from '#lib/bits/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
+import { getApiFamilyPageData } from '#lib/registry/meta.remote.js'
 
 let { params } = $props()
 let data = $derived(await getApiFamilyPageData(params.familyType))

@@ -1,6 +1,6 @@
-import dianapangLogo from '$lib/assets/sourcePublishers/dpang.png'
-import hkgovLogo from '$lib/assets/sourcePublishers/hkgov.webp'
-import overtureLogo from '$lib/assets/sourcePublishers/overture.png'
+import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
+import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
+import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
 
 const publisherLogos: Record<string, string> = {
   dpang: dianapangLogo,

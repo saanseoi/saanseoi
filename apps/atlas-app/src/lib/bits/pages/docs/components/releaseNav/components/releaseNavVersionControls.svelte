@@ -26,7 +26,7 @@ let controls = $derived([
     {#if item.version}
       <a
         class="inline-flex size-7 items-center justify-center rounded-default border border-data-outline-variant/60 bg-data-surface-container-lowest text-data-primary transition hover:border-data-primary hover:bg-data-surface-container-high"
-        data-sveltekit-noscroll
+        data-sveltekit-reset="false"
         href={item.version.href}
         aria-label={`${item.label} release: ${item.version.label}`}
       >

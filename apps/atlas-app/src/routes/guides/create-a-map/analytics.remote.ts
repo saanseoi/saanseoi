@@ -1,5 +1,5 @@
 import { command, getRequestEvent } from '$app/server'
-import { createAMapSelectionChoices } from '$lib/guides/createAMapSelections'
+import { createAMapSelectionChoices } from '#lib/guides/createAMapSelections.js'
 import { z } from 'zod'
 
 const choices = createAMapSelectionChoices

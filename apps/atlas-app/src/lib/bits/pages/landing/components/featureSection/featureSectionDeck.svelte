@@ -1,7 +1,7 @@
 <script lang="ts">
 import FeatureSectionCard from './featureSectionCard.svelte'
 import type { FeatureSectionPrinciple } from './featureSectionTypes'
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type PrincipleIndex = 0 | 1 | 2 | 3
 type DragMode = 'desktop' | 'mobile' | null

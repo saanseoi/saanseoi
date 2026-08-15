@@ -1,9 +1,16 @@
 <script lang="ts">
-import GuideWorksWith from '$lib/bits/pages/guides/components/guideWorksWith.svelte'
+import GuideWorksWith from '#lib/bits/pages/guides/components/guideWorksWith.svelte'
 import Icon from '@iconify/svelte'
 
-import { Button, Main, PageDescription, PageHeader, PageTitle, Seo } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import {
+  Button,
+  Main,
+  PageDescription,
+  PageHeader,
+  PageTitle,
+  Seo,
+} from '#lib/bits/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 const guides = [
   {

@@ -1,8 +1,8 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { authClient } from '$lib/auth-client'
-import type { SocialProvider } from '$lib/auth-providers'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { Button, Main } from '#lib/bits/index.js'
+import { authClient } from '#lib/auth-client.js'
+import type { SocialProvider } from '#lib/auth-providers.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import Icon from '@iconify/svelte'
 import { Dialog } from 'bits-ui'
 

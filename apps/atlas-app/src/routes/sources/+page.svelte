@@ -2,14 +2,17 @@
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 
-import { Main, Seo, SourceFlowMap, SourcesHeader } from '$lib/bits'
-import type { SourceFlowInput, SourceFlowLane } from '$lib/bits'
-import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
-import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
-import { getSourcesPageData, type SourcesPageSource } from '$lib/registry/meta.remote'
-import { getPublisherLogo } from '$lib/registry/publisherLogo'
-import type { LocalisedRow } from '$lib/registry/types'
-import { Button } from '$lib/bits/primitives/button'
+import { Main, Seo, SourceFlowMap, SourcesHeader } from '#lib/bits/index.js'
+import type { SourceFlowInput, SourceFlowLane } from '#lib/bits/index.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
+import {
+  getSourcesPageData,
+  type SourcesPageSource,
+} from '#lib/registry/meta.remote.js'
+import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
+import type { LocalisedRow } from '#lib/registry/types.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 const sourcesQuery = getSourcesPageData()
 const sourcesPageData = $derived(sourcesQuery.ready ? sourcesQuery.current : undefined)

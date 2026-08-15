@@ -1,8 +1,6 @@
 <script lang="ts">
-import { Basemap, Main, Seo } from '$lib/bits'
-import MappingIntegration from '$lib/bits/components/mappingIntegration.svelte'
-import { basemapIntegrations } from '$lib/bits/components/mappingIntegrations'
-import { getCurrentLocale, m, type MessageKey } from '$lib/bits/internal/i18n'
+import { Basemap, Main, Seo } from '#lib/bits/index.js'
+import { getCurrentLocale, m, type MessageKey } from '#lib/bits/internal/i18n.js'
 
 let locale = $derived(getCurrentLocale())
 const t = (key: MessageKey) => {
@@ -22,11 +20,6 @@ const t = (key: MessageKey) => {
   <Basemap.Hero />
   <Basemap.Prerequisites />
   <Basemap.TokenExchange />
-  <MappingIntegration
-    eyebrow="Choose your library"
-    heading="Add the basemap with the library you already use."
-    description="Start with MapLibre, or switch to the Mapbox GL JS or Leaflet example. Each loads the same SaanSeoi vector source and style."
-    integrations={basemapIntegrations}
-  />
+  <Basemap.Integrations />
   <Basemap.Credentials />
 </Main>

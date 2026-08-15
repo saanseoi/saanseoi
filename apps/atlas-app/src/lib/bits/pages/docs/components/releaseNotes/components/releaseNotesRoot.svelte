@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { MarkdownHeading } from '$lib/registry/markdown'
+import type { MarkdownHeading } from '#lib/registry/markdown.js'
 
 import OutlineTracker from '../../releaseContentOutline/releaseContentOutlineTracker.svelte'
 

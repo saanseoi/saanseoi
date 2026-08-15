@@ -2,10 +2,20 @@ import { betterAuth } from 'better-auth/minimal'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { passkey } from '@better-auth/passkey'
-import { env } from '$env/dynamic/private'
+
+import {
+  BETTER_AUTH_SECRET,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  FACEBOOK_CLIENT_ID,
+  FACEBOOK_CLIENT_SECRET,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
+  ORIGIN,
+} from '$app/env/private'
+
 import { getRequestEvent } from '$app/server'
 import { createMetaDb } from '@repo/db/client'
-
 import { createAuthEmail } from './auth-email'
 
 const sendAuthEmail = (input: {
@@ -19,7 +29,6 @@ const sendAuthEmail = (input: {
   const email = platform?.env.EMAIL
 
   if (!email) throw new Error('Email binding "EMAIL" not found.')
-
   platform.ctx.waitUntil(
     email.send({
       to: input.to,
@@ -45,13 +54,13 @@ type AuthEnvironment = {
 }
 
 const localAuthEnvironment: AuthEnvironment = {
-  BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
-  GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
-  FACEBOOK_CLIENT_ID: env.FACEBOOK_CLIENT_ID,
-  FACEBOOK_CLIENT_SECRET: env.FACEBOOK_CLIENT_SECRET,
-  GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID,
-  GITHUB_CLIENT_SECRET: env.GITHUB_CLIENT_SECRET,
+  BETTER_AUTH_SECRET,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  FACEBOOK_CLIENT_ID,
+  FACEBOOK_CLIENT_SECRET,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
 }
 
 const createSocialProviders = (authEnv: AuthEnvironment) => ({
@@ -65,6 +74,7 @@ const createSocialProviders = (authEnv: AuthEnvironment) => ({
         },
       }
     : {}),
+
   ...(authEnv.FACEBOOK_CLIENT_ID && authEnv.FACEBOOK_CLIENT_SECRET
     ? {
         facebook: {
@@ -73,6 +83,7 @@ const createSocialProviders = (authEnv: AuthEnvironment) => ({
         },
       }
     : {}),
+
   ...(authEnv.GITHUB_CLIENT_ID && authEnv.GITHUB_CLIENT_SECRET
     ? {
         github: {
@@ -95,13 +106,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
       },
     },
     user: {
-      additionalFields: {
-        locale: {
-          type: 'string',
-          required: false,
-          input: false,
-        },
-      },
+      additionalFields: { locale: { type: 'string', required: false, input: false } },
     },
     emailAndPassword: {
       enabled: true,
@@ -138,7 +143,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
 
 export const createAuth = (
   d1: D1Database,
-  baseURL = env.ORIGIN ?? 'http://localhost:5173',
+  baseURL = ORIGIN || 'http://localhost:5173',
   authEnv: AuthEnvironment = localAuthEnvironment,
 ) =>
   betterAuth({

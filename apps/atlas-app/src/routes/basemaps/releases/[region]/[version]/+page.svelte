@@ -7,7 +7,7 @@ import {
   PageSectionTitle,
   PageTitle,
   Seo,
-} from '$lib/bits'
+} from '#lib/bits/index.js'
 
 let { data } = $props()
 const schemaVersion = 'protomaps-v4.0'

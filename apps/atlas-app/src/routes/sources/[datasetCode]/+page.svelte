@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
-import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
-import { getSourcePageData } from '$lib/registry/meta.remote'
+import { Main } from '#lib/bits/index.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { getSourcePageData } from '#lib/registry/meta.remote.js'
 
 let { params } = $props()
 let source = $derived(await getSourcePageData(params.datasetCode))

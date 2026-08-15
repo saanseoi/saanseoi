@@ -2,9 +2,9 @@
 import { flip } from 'svelte/animate'
 
 import CarouselRoot from '../carouselRoot.svelte'
-import { Release as CardRelease } from '$lib/bits/components/card'
-import { BasemapRelease as CardBasemapRelease } from '$lib/bits/components/card'
-import type { BasemapRelease } from '$lib/registry/types'
+import { Release as CardRelease } from '#lib/bits/components/card/index.js'
+import { BasemapRelease as CardBasemapRelease } from '#lib/bits/components/card/index.js'
+import type { BasemapRelease } from '#lib/registry/types.js'
 import ReleaseCarouselSkeleton from './releaseCarouselSkeleton.svelte'
 type Release = {
   apiFamily: string

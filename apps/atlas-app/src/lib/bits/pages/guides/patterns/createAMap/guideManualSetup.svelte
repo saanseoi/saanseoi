@@ -1,6 +1,6 @@
 <script lang="ts">
-import viteDemoPage from '$lib/assets/guides/vite-demo-page.png'
-import { m } from '$lib/bits/internal/i18n'
+import viteDemoPage from '#lib/assets/guides/vite-demo-page.png'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideCodeInstructionStep from '../../components/createAMap/guideCodeInstructionStep.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'

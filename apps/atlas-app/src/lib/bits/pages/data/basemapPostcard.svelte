@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 
 import * as BasemapPostcard from './components/basemapPostcard'
 import type { BasemapPostcardCode } from './components/basemapPostcard/basemapPostcardTypes'

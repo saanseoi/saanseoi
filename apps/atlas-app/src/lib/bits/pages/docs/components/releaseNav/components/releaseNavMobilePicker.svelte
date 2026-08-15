@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 import { tick } from 'svelte'
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 import type { ReleaseNavVersion } from '../releaseNav.types'
 
 type Props = { currentVersionCode: string; versions: ReleaseNavVersion[] }
@@ -62,7 +62,7 @@ function close() {
         {#each versions as version}
           <a
             class={`flex items-center justify-between rounded-md border px-3 py-2.5 font-mono text-label-md font-semibold transition ${version.code === currentVersionCode ? 'border-secondary/70 bg-secondary-container text-primary dark:text-[#edf2ee]!' : 'border-outline-variant/60 bg-surface-container-lowest text-foreground-alt hover:border-secondary/70 dark:border-outline-variant'}`}
-            data-sveltekit-noscroll
+            data-sveltekit-reset="false"
             href={version.href}
             aria-current={version.code === currentVersionCode ? 'page' : undefined}
             onclick={close}

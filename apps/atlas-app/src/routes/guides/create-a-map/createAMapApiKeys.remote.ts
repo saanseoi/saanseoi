@@ -1,7 +1,7 @@
 import { command, getRequestEvent } from '$app/server'
 import { z } from 'zod'
 
-import { createApiKey } from '$lib/server/apiKeys'
+import { createApiKey } from '#lib/server/apiKeys.js'
 
 const createApiKeySchema = z.object({
   name: z

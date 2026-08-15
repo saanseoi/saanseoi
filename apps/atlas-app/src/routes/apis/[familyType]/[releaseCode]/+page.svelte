@@ -1,7 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
-import { env } from '$env/dynamic/public'
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import {
   Main,
   ReleaseAudit,
@@ -11,34 +11,39 @@ import {
   ReleaseNav,
   ReleaseNotes,
   ReleaseStats,
-} from '$lib/bits'
-import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
-import { getApiReleasePageData } from '$lib/registry/meta.remote'
-import { diffMarkdown } from '$lib/registry/markdown'
-import { getReleaseVersionLabel } from '$lib/registry/releaseCode'
-import { getReleaseHeaderDomainOptions } from '$lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions'
+} from '#lib/bits/index.js'
+
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { getApiReleasePageData } from '#lib/registry/meta.remote.js'
+import { diffMarkdown } from '#lib/registry/markdown.js'
+import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
+import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
 import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
-} from '$lib/registry/releaseNotesPresentation'
+} from '#lib/registry/releaseNotesPresentation.js'
 import type {
   ReleaseNavAction,
   ReleaseNavOutlineItem,
   ReleaseNavTab,
-} from '$lib/bits/pages/docs/components/releaseNav/releaseNav.types'
-import type { ReleaseContentHeading } from '$lib/bits/pages/docs/components/releaseContentOutline'
-import type { ReleaseStatsCopy } from '$lib/bits/pages/docs/components/releaseStats'
-import type { MarkdownHeading } from '$lib/registry/markdown'
+} from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
+import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/releaseContentOutline/index.js'
+import type { ReleaseStatsCopy } from '#lib/bits/pages/docs/components/releaseStats/index.js'
+import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
 
 let { params } = $props()
 let api = $derived(await getApiReleasePageData(params.familyType))
+
 let release = $derived.by(() => {
   const selected = api.releases?.find(item => item.code === params.releaseCode)
+
   if (!selected) error(404, 'API release not found.')
+
   return selected
 })
+
 let locale = $derived(getCurrentLocale())
 let currentDomainCode = $derived(release.domainCode ?? 'default')
 let domainReleases = $derived(
@@ -46,11 +51,14 @@ let domainReleases = $derived(
     item => (item.domainCode ?? 'default') === currentDomainCode,
   ),
 )
+
 let previousRelease = $derived.by(() => {
   const releases = domainReleases
   const currentIndex = releases.findIndex(item => item.code === release.code)
+
   return currentIndex >= 0 ? releases[currentIndex + 1] : undefined
 })
+
 let notes = $derived(selectReleaseNotesMarkdown(release.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(previousRelease?.notes, locale))
 let notesPresentation = $derived(
@@ -66,6 +74,7 @@ let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
 let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
+
 const humaniseStat = (value: string | null | undefined) =>
   !value
     ? 'Unspecified'
@@ -73,6 +82,7 @@ const humaniseStat = (value: string | null | undefined) =>
         .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
         .replaceAll(/[_-]/g, ' ')
         .replace(/\b\w/g, letter => letter.toUpperCase())
+
 let statsPresentation = $derived<ReleaseStatsCopy>({
   labels: {
     added: m.source_added(),
@@ -111,6 +121,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     recordsByDistrict: 'Records by district',
     district: 'District',
   },
+
   localeName: code =>
     ({
       en: m.source_locale_en(),
@@ -135,11 +146,13 @@ let versions = $derived(
     label: getReleaseVersionLabel(item.code, api.familyType),
   })),
 )
+
 let currentComposition = $derived(
   api.apiComposition
     ?.filter(item => item.status === 'current')
     .sort((left, right) => right.version - left.version)[0],
 )
+
 let domains = $derived(
   getReleaseHeaderDomainOptions(api, release).map(option => ({
     ...option,
@@ -149,12 +162,11 @@ let domains = $derived(
   })),
 )
 function setShowNoteDiff(enabled: boolean) {
-  const url = new URL(page.url)
+  const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    keepFocus: true,
-    noScroll: true,
+    reset: false,
     replaceState: true,
   })
 }
@@ -166,6 +178,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
+
 let actions = $derived<ReleaseNavAction[]>(
   activeTab === 'notes' && versions[1]
     ? [
@@ -189,16 +202,18 @@ let actions = $derived<ReleaseNavAction[]>(
         ]
       : [],
 )
+
 let sourceReleaseLinksPresentation = $derived(
   buildApiReleaseLinksPresentation(
     release.contributingSources,
     api.familyType,
-    (env.PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, ''),
+    (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, ''),
   ),
 )
 let sourceOutline = $derived(
   ReleaseLinks.getReleaseLinksOutline(sourceReleaseLinksPresentation, 'groups'),
 )
+
 let tocHeadings = $derived(
   activeTab === 'notes'
     ? noteHeadings
@@ -248,6 +263,7 @@ $effect(() => {
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   <ReleaseHeader.ApiVariant {api} {release} {locale} />
+
   <ReleaseNav.Root
     {versions}
     {domains}

@@ -2,7 +2,7 @@
 import Icon from '@iconify/svelte'
 import { Dialog } from 'bits-ui'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import ReleaseAuditEvidenceActions from './releaseAuditEvidenceActions.svelte'
 import ReleaseAuditJsonEvidence from './releaseAuditJsonEvidence.svelte'

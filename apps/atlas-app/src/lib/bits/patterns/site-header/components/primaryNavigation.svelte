@@ -2,7 +2,7 @@
 import Icon from '@iconify/svelte'
 import { Tooltip } from 'bits-ui'
 
-import { Button } from '$lib/bits/primitives/button'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 import { navigationItems } from './navigationItems'
 </script>

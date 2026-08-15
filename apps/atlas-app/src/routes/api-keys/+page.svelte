@@ -2,8 +2,8 @@
 import Icon from '@iconify/svelte'
 import { Dialog } from 'bits-ui'
 
-import { Button, Main } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { Button, Main } from '#lib/bits/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 
 import {
   createApiKeyForCurrentUser,

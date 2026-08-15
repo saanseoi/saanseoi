@@ -1,8 +1,8 @@
 <script lang="ts">
 import SvelteMarkdown, { defaultSanitizeUrl } from '@humanspeak/svelte-markdown'
 
-import ApiUrlCodeBlock from '$lib/bits/components/api-url-code-block.svelte'
-import { getMarkdownHeadingId } from '$lib/registry/markdownHeading'
+import ApiUrlCodeBlock from '#lib/bits/components/api-url-code-block.svelte'
+import { getMarkdownHeadingId } from '#lib/registry/markdownHeading.js'
 
 import type {
   ReleaseNotesLabels,

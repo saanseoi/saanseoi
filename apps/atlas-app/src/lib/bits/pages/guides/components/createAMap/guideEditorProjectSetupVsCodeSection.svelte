@@ -1,9 +1,9 @@
 <script lang="ts">
-import vscodeManageTrust from '$lib/assets/guides/editor-vscode-manage-trust.png'
-import vscodeOpenFolder from '$lib/assets/guides/editor-vscode-open-folder.png'
-import vscodeTrustedFolder from '$lib/assets/guides/editor-vscode-trusted-folder.png'
-import { m } from '$lib/bits/internal/i18n'
-import GuideScreenshot from '$lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
+import vscodeManageTrust from '#lib/assets/guides/editor-vscode-manage-trust.png'
+import vscodeOpenFolder from '#lib/assets/guides/editor-vscode-open-folder.png'
+import vscodeTrustedFolder from '#lib/assets/guides/editor-vscode-trusted-folder.png'
+import { m } from '#lib/bits/internal/i18n.js'
+import GuideScreenshot from '#lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
 </script>
 
 <div class="my-6 w-full space-y-6">

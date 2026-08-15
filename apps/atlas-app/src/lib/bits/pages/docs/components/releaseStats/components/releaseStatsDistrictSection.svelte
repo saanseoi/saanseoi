@@ -1,5 +1,5 @@
 <script lang="ts">
-import * as ChoroplethMap from '$lib/bits/components/choroplethMap'
+import * as ChoroplethMap from '#lib/bits/components/choroplethMap/index.js'
 import type {
   DistrictDistributionPresentation,
   ReleaseStatsLabels,

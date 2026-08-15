@@ -1,7 +1,7 @@
-import { m } from '$lib/bits/internal/i18n'
-import type { ReleaseLinksProvenancePresentation } from '$lib/bits/pages/docs/components/releaseLinks'
-import type { ApiRelease } from '$lib/registry/types'
-import { getPublisherLogo } from '$lib/registry/publisherLogo'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { ReleaseLinksProvenancePresentation } from '#lib/bits/pages/docs/components/releaseLinks/index.js'
+import type { ApiRelease } from '#lib/registry/types.js'
+import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
 
 const sourceLinkId = (source: NonNullable<ApiRelease['contributingSources']>[number]) =>
   [

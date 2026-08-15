@@ -1,5 +1,5 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 import {
   Button,
   Main,
@@ -8,7 +8,7 @@ import {
   PageSection,
   PageTitle,
   Seo,
-} from '$lib/bits'
+} from '#lib/bits/index.js'
 import { mapStyleDefinitions, type MapStyleDefinition } from '@repo/basemap'
 
 const regions = [
