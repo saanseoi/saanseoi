@@ -1,10 +1,12 @@
-import { homedir } from 'node:os'
-import { mkdir, realpath, writeFile } from 'node:fs/promises'
+import { homedir, tmpdir } from 'node:os'
+import { mkdir, readFile, realpath, unlink, writeFile } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import { join, resolve } from 'node:path'
 
 import { note, outro } from '@clack/prompts'
 
 import type { ParsedArgs } from '../cli/options.ts'
+import type { ScheduledUpdateSummary } from './update.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const UNIT_NAMES = ['saanseoi-monthly-tiles.timer', 'saanseoi-daily-update.timer']
@@ -65,6 +67,7 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
   }
 
   const startedAt = performance.now()
+  const summaryPath = await createRunSummaryPath(job)
   const child = Bun.spawn(
     [
       await resolveCommandPath(),
@@ -72,7 +75,10 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
     ],
     {
       cwd: REPO_ROOT,
-      env: process.env,
+      env: {
+        ...process.env,
+        SAANSEOI_RUN_SUMMARY_PATH: summaryPath,
+      },
       stdin: 'ignore',
       stdout: 'inherit',
       stderr: 'inherit',
@@ -81,7 +87,9 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
   const exitCode = await child.exited
   const duration = formatDuration(performance.now() - startedAt)
   const succeeded = exitCode === 0
-  const summary = jobSummary(job, duration)
+  const summary = await jobSummary(job, duration, summaryPath)
+
+  await postDiscordJobMessage(succeeded, summary)
 
   await sendNotification(
     succeeded ? 'SaanSeoi schedule complete' : 'SaanSeoi schedule failed',
@@ -104,6 +112,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 Environment=SAANSEOI_BUN_PATH=${bunExecutable}
+EnvironmentFile=-%h/.config/saanseoi/scheduled-jobs.env
 ExecStart=${executable} schedule:run tiles
 TimeoutStartSec=infinity
 StandardOutput=journal
@@ -128,6 +137,7 @@ After=network-online.target saanseoi-monthly-tiles.service
 [Service]
 Type=oneshot
 Environment=SAANSEOI_BUN_PATH=${bunExecutable}
+EnvironmentFile=-%h/.config/saanseoi/scheduled-jobs.env
 ExecStart=${executable} schedule:run update
 TimeoutStartSec=infinity
 StandardOutput=journal
@@ -171,10 +181,61 @@ async function runSystemctl(args: string[]) {
   if (exitCode !== 0) throw new Error(`systemctl --user ${args.join(' ')} failed.`)
 }
 
-function jobSummary(job: ScheduledJob, duration: string) {
-  return job === 'tiles'
-    ? `PMTiles refresh finished in ${duration}. Ensured 3 published tilesets: GBA, Hong Kong, and Macao.`
-    : `Dataset update finished in ${duration}. Checked all configured datasets.`
+async function jobSummary(job: ScheduledJob, duration: string, summaryPath: string) {
+  if (job === 'tiles') {
+    return `✅ tiles refresh ran · ${duration}`
+  }
+
+  let summary: ScheduledUpdateSummary | undefined
+  try {
+    summary = JSON.parse(await readFile(summaryPath, 'utf8')) as ScheduledUpdateSummary
+  } catch {
+    // The existing local notification below remains useful if the child failed
+    // before it could write its optional machine-readable summary.
+  } finally {
+    await unlink(summaryPath).catch(() => undefined)
+  }
+
+  if (!summary) return `⚠️ update ran · summary unavailable · ${duration}`
+  if (summary.errors.length > 0) {
+    return `⚠️ update ran · ${summary.errors.length} issue${summary.errors.length === 1 ? '' : 's'} · ${duration}`
+  }
+  if (summary.added.length === 0) return '✅ update ran · no changes'
+
+  const additions = summary.added.map(({ datasetCode, version }) =>
+    version ? `• ${datasetCode} · ${version}` : `• ${datasetCode}`,
+  )
+  return `✅ update ran · ${summary.added.length} dataset${summary.added.length === 1 ? '' : 's'} added · ${duration}\n${additions.join('\n')}`
+}
+
+async function createRunSummaryPath(job: ScheduledJob) {
+  const runtimeDirectory = process.env.XDG_RUNTIME_DIR ?? join(tmpdir(), 'saanseoi')
+  await mkdir(runtimeDirectory, { recursive: true })
+  return join(runtimeDirectory, `saanseoi-${job}-${randomUUID()}.json`)
+}
+
+async function postDiscordJobMessage(succeeded: boolean, summary: string) {
+  const webhookUrl = process.env.SAANSEOI_DISCORD_JOBS_WEBHOOK_URL
+  if (!webhookUrl) return
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      signal: AbortSignal.timeout(10_000),
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        content: succeeded ? summary : `❌ ${summary.replace(/^(?:✅|⚠️)\s*/, '')}`,
+        allowed_mentions: { parse: [] },
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Discord webhook returned HTTP ${response.status}.`)
+    }
+  } catch (error) {
+    console.error(
+      `Could not post the SaanSeoi scheduled-job record to Discord: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
 }
 
 async function sendNotification(

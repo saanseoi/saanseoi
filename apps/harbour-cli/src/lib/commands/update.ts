@@ -1,5 +1,5 @@
 import { confirm, isCancel, log, outro, select, spinner } from '@clack/prompts'
-import { stat } from 'node:fs/promises'
+import { stat, writeFile } from 'node:fs/promises'
 import { relative } from 'node:path'
 
 import { describeTarget } from '../cli/display.ts'
@@ -46,6 +46,14 @@ type UpdateProcessingResult =
   | 'reviewed'
   | 'skipped'
   | 'uploaded'
+
+export type ScheduledUpdateSummary = {
+  added: Array<{
+    datasetCode: string
+    version?: string
+  }>
+  errors: string[]
+}
 
 const UPDATE_LINE_WIDTH = 120
 const CLACK_STATUS_PREFIX_WIDTH = 3
@@ -110,6 +118,7 @@ export async function runUpdateCommand(
   const forceCheck =
     args.options.force === true || args.options['check-now'] === true || forceDownload
   const errors: string[] = []
+  const added = new Map<string, string | undefined>()
   let reportedTargetLookupFailure = false
   const planned: PlannedDatasetUpdates[] = []
 
@@ -226,6 +235,7 @@ export async function runUpdateCommand(
     }
     for (const plan of phasePlans) {
       await processPlannedUpdates(plan, {
+        added,
         errors,
         forceDownload,
         printUsage,
@@ -249,11 +259,19 @@ export async function runUpdateCommand(
       },
     )
   }
+  await writeScheduledUpdateSummary({
+    added: [...added.entries()].map(([datasetCode, version]) => ({
+      datasetCode,
+      ...(version ? { version } : {}),
+    })),
+    errors,
+  })
   const family =
     selectedFamily === 'all'
       ? colorFamilyLabel('API family', 'all')
       : colorFamilyLabel(familyLabel(selectedFamily), selectedFamily)
   outro(`Checked all ${family} datasets for new releases`)
+  if (errors.length > 0) process.exitCode = 1
 }
 
 function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
@@ -341,6 +359,7 @@ function updateVersionBase(version: string | null | undefined) {
 async function processPlannedUpdates(
   plan: PlannedDatasetUpdates,
   options: {
+    added: Map<string, string | undefined>
     errors: string[]
     forceDownload: boolean
     printUsage: () => void
@@ -376,6 +395,9 @@ async function processPlannedUpdates(
       if (result === 'ingested' && update.version) {
         plan.targetVersions.set(sourceKey, update.version)
       }
+      if ((result === 'ingested' || result === 'uploaded') && update.version) {
+        options.added.set(plan.dataset.code, update.version)
+      }
       if (update.mirroredArchive) {
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
       }
@@ -407,6 +429,13 @@ async function processPlannedUpdates(
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
+}
+
+async function writeScheduledUpdateSummary(summary: ScheduledUpdateSummary) {
+  const path = process.env.SAANSEOI_RUN_SUMMARY_PATH
+  if (!path) return
+
+  await writeFile(path, `${JSON.stringify(summary)}\n`, 'utf8')
 }
 
 /**
