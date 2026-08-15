@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Button, Main, Seo } from '$lib/bits'
-import MappingIntegration from '$lib/bits/components/mappingIntegration.svelte'
-import { themeIntegrations } from '$lib/bits/components/mappingIntegrations'
+import { Button, Main, Seo } from '#lib/bits/index.js'
+import MappingIntegration from '#lib/bits/components/mappingIntegration.svelte'
+import { themeIntegrations } from '#lib/bits/components/mappingIntegrations.js'
 </script>
 
 <Seo
