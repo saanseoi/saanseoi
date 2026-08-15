@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { GlossaryEntries, GlossaryHeader, Main } from '$lib/bits'
+import { GlossaryEntries, GlossaryHeader, Main, Seo } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import {
   getMarkdownGlossaryEntries,
@@ -33,10 +33,7 @@ let resultCount = $derived(
 )
 </script>
 
-<svelte:head>
-  <title>{m.glossary_title()} | SaanSeoi</title>
-  <meta name="description" content={m.glossary_description()}>
-</svelte:head>
+<Seo title={m.glossary_title()} description={m.glossary_description()} />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

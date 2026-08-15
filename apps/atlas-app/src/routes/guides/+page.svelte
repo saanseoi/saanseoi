@@ -2,7 +2,7 @@
 import GuideWorksWith from '$lib/bits/pages/guides/components/guideWorksWith.svelte'
 import Icon from '@iconify/svelte'
 
-import { Button, Main, PageDescription, PageHeader, PageTitle } from '$lib/bits'
+import { Button, Main, PageDescription, PageHeader, PageTitle, Seo } from '$lib/bits'
 import { m } from '$lib/bits/internal/i18n'
 
 const guides = [
@@ -115,10 +115,7 @@ const guides = [
 ]
 </script>
 
-<svelte:head>
-  <title>{m.guide_title()} | SaanSeoi</title>
-  <meta name="description" content={m.guide_meta_description()}>
-</svelte:head>
+<Seo title={m.guide_title()} description={m.guide_meta_description()} />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

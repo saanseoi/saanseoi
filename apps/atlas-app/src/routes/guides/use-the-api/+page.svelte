@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Button, Main } from '$lib/bits'
+import { Button, Main, Seo } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 
 let locale = $derived(getCurrentLocale())
@@ -27,10 +27,11 @@ let steps = $derived.by(() => {
 })
 </script>
 
-<svelte:head>
-  <title>{m.guide_use_api_title()} | SaanSeoi</title>
-  <meta name="description" content={m.get_started_meta_description()}>
-</svelte:head>
+<Seo
+  title={m.guide_use_api_title()}
+  description={m.get_started_meta_description()}
+  image="/guides/data-from-api-light.webp"
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

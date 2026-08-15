@@ -2,9 +2,9 @@
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 
-import { Main, SourceFlowMap, SourcesHeader } from '$lib/bits'
+import { Main, Seo, SourceFlowMap, SourcesHeader } from '$lib/bits'
 import type { SourceFlowInput, SourceFlowLane } from '$lib/bits'
-import { getCurrentLocale, selectLocalisedRow } from '$lib/bits/internal/i18n'
+import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import { getSourcesPageData, type SourcesPageSource } from '$lib/registry/meta.remote'
 import { getPublisherLogo } from '$lib/registry/publisherLogo'
@@ -297,6 +297,11 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
       }),
 )
 </script>
+
+<Seo
+  title={m.sources_title()}
+  description="Trace the published sources, licences and release history behind SaanSeoi's geospatial data."
+/>
 
 <Main variant="page" class="py-14">
   <SourcesHeader.Root>

@@ -1,7 +1,13 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
+import { Main, Seo } from '$lib/bits'
 import { m } from '$lib/bits/internal/i18n'
 </script>
+
+<Seo
+  title={m.nav_community()}
+  description={m.community_coming_soon_description()}
+  noindex={true}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-18"

@@ -14,7 +14,7 @@ import {
   PageSectionTitle,
   PageTitle,
 } from '$lib/bits/pages/shared'
-import { Main } from '$lib/bits'
+import { Main, Seo } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import {
@@ -599,6 +599,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
   return `relative w-full min-[901px]:absolute min-[901px]:w-[30%] ${positions[code]}`
 }
 </script>
+
+<Seo title={m.data_title()} description={m.data_description()} />
 
 <svelte:window
   onresize={handleViewportResize}

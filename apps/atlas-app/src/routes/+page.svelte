@@ -1,7 +1,8 @@
 <script lang="ts">
 import { onMount, type Component } from 'svelte'
 
-import { Main, Divider } from '$lib/bits'
+import { Main, Divider, Seo } from '$lib/bits'
+import { m } from '$lib/bits/internal/i18n'
 
 import HeroSection from '$lib/bits/pages/landing/heroSection.svelte'
 
@@ -267,6 +268,35 @@ onMount(() => {
   }
 })
 </script>
+
+<Seo
+  title="山水"
+  description={m.hero_description()}
+  structuredData={{
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'SaanSeoi',
+        alternateName: '山水',
+        url: 'https://saanseoi.hk',
+        description: m.hero_description(),
+        areaServed: {
+          '@type': 'AdministrativeArea',
+          name: 'Hong Kong',
+        },
+      },
+      {
+        '@type': 'WebSite',
+        name: 'SaanSeoi',
+        alternateName: '山水',
+        url: 'https://saanseoi.hk',
+        description: m.hero_description(),
+        inLanguage: ['en', 'zh-Hant', 'zh-Hans'],
+      },
+    ],
+  }}
+/>
 
 <Main class="[--landing-header-height:0px]">
   <div bind:this={landingPage}>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
+import { Main, Seo } from '$lib/bits'
 
 import PolicyDocument from './components/policyDocument.svelte'
 import PolicyNotice from './components/policyNotice.svelte'
@@ -12,6 +12,12 @@ type Props = {
 
 let { policy }: Props = $props()
 </script>
+
+<Seo
+  title={policy.i18n.en.title}
+  description={`${policy.i18n.en.title} for SaanSeoi, effective ${policy.effectiveDate}.`}
+  type="article"
+/>
 
 <Main class="policy-shell">
   <section class="policy-hero">

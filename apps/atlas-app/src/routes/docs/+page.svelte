@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { Main } from '$lib/bits'
+import { Main, Seo } from '$lib/bits'
 import { m } from '$lib/bits/internal/i18n'
 import {
   THEME_CHANGE_EVENT,
@@ -115,9 +115,10 @@ onMount(() => {
 })
 </script>
 
-<svelte:head>
-  <title>{m.docs_title()}</title>
-</svelte:head>
+<Seo
+  title={m.docs_title()}
+  description="Reference documentation for SaanSeoi's public APIs, data models and authentication."
+/>
 
 <Main class="min-h-[calc(100vh-10rem)] bg-background">
   <div
