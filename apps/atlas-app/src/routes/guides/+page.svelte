@@ -284,8 +284,8 @@ const guides = [
 
 :global(.guide-card-cta),
 .guide-jump-link {
-  background: var(--color-secondary-container);
-  color: white;
+  background: var(--color-secondary);
+  color: var(--color-on-secondary);
   transition:
     background-color 0.2s,
     color 0.2s,
@@ -294,6 +294,18 @@ const guides = [
 
 :global(.guide-card-cta:not(:disabled):hover),
 .guide-jump-link:hover {
+  background: color-mix(in srgb, var(--color-secondary) 78%, black);
+  color: var(--color-on-secondary);
+}
+
+:global(.dark .guide-card-cta),
+:global(.dark) .guide-jump-link {
+  background: var(--color-secondary-container);
+  color: white;
+}
+
+:global(.dark .guide-card-cta:not(:disabled):hover),
+:global(.dark) .guide-jump-link:hover {
   background: color-mix(in srgb, var(--color-secondary-container) 78%, black);
   color: white;
 }
