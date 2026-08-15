@@ -37,7 +37,11 @@ let {
     <ReleaseNavActions {actions} />
   </div>
   <div class="hidden h-10 items-center justify-between xl:flex">
-    <h2 class="font-body text-label-md font-semibold text-primary">{versionTitle}</h2>
+    <h2
+      class="font-body text-label-md font-semibold uppercase tracking-[0.14em] text-primary"
+    >
+      {versionTitle}
+    </h2>
     <ReleaseNavVersionControls {currentVersionCode} {versions} />
   </div>
 </div>

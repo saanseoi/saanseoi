@@ -8,6 +8,7 @@ type Props = {
   canExpand?: boolean
   children?: Snippet
   currentVersionCode: string
+  footer?: Snippet
   open?: boolean
   versions: ReleaseNavVersion[]
 }
@@ -15,6 +16,7 @@ let {
   canExpand = true,
   children,
   currentVersionCode,
+  footer,
   open = $bindable(true),
   versions,
 }: Props = $props()
@@ -107,4 +109,5 @@ $effect(() => {
       >
     {/if}
   {/each}
+  {@render footer?.()}
 </nav>

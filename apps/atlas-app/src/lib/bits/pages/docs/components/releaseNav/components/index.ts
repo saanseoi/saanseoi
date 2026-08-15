@@ -1,4 +1,5 @@
 export { default as Content } from './releaseNavContent.svelte'
+export { default as DomainList } from './releaseNavDomainList.svelte'
 export { default as MobilePicker } from './releaseNavMobilePicker.svelte'
 export { default as MobileSideNav } from './releaseNavMobileSideNav.svelte'
 export { default as NavActions } from './releaseNavActions.svelte'

@@ -141,14 +141,12 @@ let currentComposition = $derived(
     .sort((left, right) => right.version - left.version)[0],
 )
 let domains = $derived(
-  getReleaseHeaderDomainOptions(api, release)
-    .filter(option => option.code !== currentDomainCode)
-    .map(option => ({
-      ...option,
-      label:
-        selectLocalisedRow(currentComposition?.i18n?.[option.code], locale)?.name ??
-        option.code,
-    })),
+  getReleaseHeaderDomainOptions(api, release).map(option => ({
+    ...option,
+    label:
+      selectLocalisedRow(currentComposition?.i18n?.[option.code], locale)?.name ??
+      option.code,
+  })),
 )
 function setShowNoteDiff(enabled: boolean) {
   const url = new URL(page.url)
@@ -254,6 +252,7 @@ $effect(() => {
     {versions}
     {domains}
     domainTitle="Domains"
+    {currentDomainCode}
     currentVersionCode={release.code}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
