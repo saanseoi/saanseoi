@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount, setContext } from 'svelte'
 
-import * as CardDeck from '$lib/bits/components/cardDeck'
+import * as CardDeck from '#lib/bits/components/cardDeck/index.js'
 
 import {
   basemapPostcardFocusContext,

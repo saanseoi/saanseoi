@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = {
   copied: boolean

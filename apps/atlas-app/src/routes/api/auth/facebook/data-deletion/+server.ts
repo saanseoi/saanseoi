@@ -1,4 +1,4 @@
-import { error, json, type RequestHandler } from '@sveltejs/kit'
+import { error, type RequestHandler } from '@sveltejs/kit'
 import { and, eq } from '@repo/db'
 import { createMetaDb } from '@repo/db/client'
 import {
@@ -12,7 +12,7 @@ import {
   createFacebookDeletionConfirmationCode,
   hashFacebookDeletionConfirmationCode,
   parseFacebookSignedRequest,
-} from '$lib/server/facebook-data-deletion'
+} from '#lib/server/facebook-data-deletion.js'
 
 /**
  * Handles Meta's Facebook user-data deletion callback.
@@ -90,7 +90,7 @@ export const POST: RequestHandler = async ({ platform, request, url }) => {
     })
     .onConflictDoNothing()
 
-  return json({
+  return Response.json({
     url: `${url.origin}/api/auth/facebook/data-deletion/status?code=${confirmationCode}`,
     confirmation_code: confirmationCode,
   })

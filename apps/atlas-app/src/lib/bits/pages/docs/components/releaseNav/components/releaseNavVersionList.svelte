@@ -103,7 +103,7 @@ $effect(() => {
     {:else}
       <a
         class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
-        data-sveltekit-noscroll
+        data-sveltekit-reset="false"
         href={version.href}
         >{version.label}</a
       >

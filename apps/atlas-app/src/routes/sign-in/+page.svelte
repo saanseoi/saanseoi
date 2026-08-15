@@ -1,10 +1,10 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
+import { Button, Main } from '#lib/bits/index.js'
 import Icon from '@iconify/svelte'
-import { authClient } from '$lib/auth-client'
-import type { SocialProvider } from '$lib/auth-providers'
-import { m } from '$lib/bits/internal/i18n'
-import AuthSocialButtons from '$lib/bits/patterns/auth/authSocialButtons.svelte'
+import { authClient } from '#lib/auth-client.js'
+import type { SocialProvider } from '#lib/auth-providers.js'
+import { m } from '#lib/bits/internal/i18n.js'
+import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
 import { page } from '$app/state'
 
 let email = $state('')

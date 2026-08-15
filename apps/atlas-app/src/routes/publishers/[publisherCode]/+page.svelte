@@ -1,10 +1,10 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Main } from '$lib/bits'
-import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
-import { getPublisherPageData } from '$lib/registry/meta.remote'
-import type { RegistrySource } from '$lib/registry/types'
+import { Main } from '#lib/bits/index.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { getPublisherPageData } from '#lib/registry/meta.remote.js'
+import type { RegistrySource } from '#lib/registry/types.js'
 
 let { params } = $props()
 let data = $derived(await getPublisherPageData(params.publisherCode))

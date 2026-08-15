@@ -1,4 +1,4 @@
-import type { ApiRelease, RegistryApi } from '$lib/registry/types'
+import type { ApiRelease, RegistryApi } from '#lib/registry/types.js'
 
 export type ReleaseHeaderDomainOption = {
   code: string

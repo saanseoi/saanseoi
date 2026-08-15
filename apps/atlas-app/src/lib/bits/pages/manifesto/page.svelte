@@ -1,6 +1,6 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import topo from '$lib/assets/topo.jpg'
+import { Button, Main } from '#lib/bits/index.js'
+import topo from '#lib/assets/topo.jpg'
 
 import MarkerOrbit from './components/markerOrbit.svelte'
 import PrincipleCard from './components/principleCard.svelte'

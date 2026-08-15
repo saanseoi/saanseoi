@@ -1,5 +1,5 @@
 import type { User, Session } from "better-auth";
-import { createAuth } from "$lib/server/auth";
+import { createAuth } from "#lib/server/auth.js";
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces

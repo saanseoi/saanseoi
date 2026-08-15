@@ -1,5 +1,5 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import type { AuditBulkRule } from './releaseAuditBulkSections'
 import { formatAuditOperationCode } from './releaseAuditUtils'

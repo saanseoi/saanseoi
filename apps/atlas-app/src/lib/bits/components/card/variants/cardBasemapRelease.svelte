@@ -2,8 +2,8 @@
 import Icon from '@iconify/svelte'
 import { onMount } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
-import type { BasemapRelease } from '$lib/registry/types'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { BasemapRelease } from '#lib/registry/types.js'
 
 type Props = {
   release: BasemapRelease

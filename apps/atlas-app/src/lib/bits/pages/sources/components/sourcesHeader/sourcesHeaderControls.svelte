@@ -1,7 +1,7 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
-import { Label } from '$lib/bits/primitives/label'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Label } from '#lib/bits/primitives/label/index.js'
 
 type Props = {
   expandAll?: boolean

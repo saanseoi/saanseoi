@@ -1,5 +1,5 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = { element?: HTMLElement }
 let { element = $bindable() }: Props = $props()

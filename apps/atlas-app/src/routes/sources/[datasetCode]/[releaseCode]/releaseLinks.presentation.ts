@@ -1,7 +1,7 @@
-import { m } from '$lib/bits/internal/i18n'
-import { getApiFamilyTheme } from '$lib/registry/apiFamilyTheme'
-import { getReleaseCodeParts } from '$lib/registry/releaseCode'
-import type { ReleaseLinksProvenancePresentation } from '$lib/bits/pages/docs/components/releaseLinks'
+import { m } from '#lib/bits/internal/i18n.js'
+import { getApiFamilyTheme } from '#lib/registry/apiFamilyTheme.js'
+import { getReleaseCodeParts } from '#lib/registry/releaseCode.js'
+import type { ReleaseLinksProvenancePresentation } from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 
 type ReleasedApi = {
   apiFamily: string

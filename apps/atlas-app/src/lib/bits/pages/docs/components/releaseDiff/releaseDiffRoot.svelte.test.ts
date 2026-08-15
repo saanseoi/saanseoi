@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 
-import { getReleaseNotesPresentation } from '$lib/registry/releaseNotesPresentation'
+import { getReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
 
 import ReleaseDiffRoot from './components/releaseDiffRoot.svelte'
 

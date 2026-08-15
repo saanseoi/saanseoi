@@ -1,8 +1,8 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 import GuideCreateAMapModelTable from './guideCreateAMapModelTable.svelte'
 import GuideCreateAMapPricingTable from './guideCreateAMapPricingTable.svelte'

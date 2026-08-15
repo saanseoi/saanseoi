@@ -2,9 +2,9 @@
 import Icon from '@iconify/svelte'
 import { slide } from 'svelte/transition'
 
-import type { SocialProvider } from '$lib/auth-providers'
-import { authClient } from '$lib/auth-client'
-import { m } from '$lib/bits/internal/i18n'
+import type { SocialProvider } from '#lib/auth-providers.js'
+import { authClient } from '#lib/auth-client.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type AccountMode = 'sign-in' | 'sign-up'
 type Props = {

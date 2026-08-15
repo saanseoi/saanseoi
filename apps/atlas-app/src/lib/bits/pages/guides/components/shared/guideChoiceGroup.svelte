@@ -2,7 +2,7 @@
 import Icon from '@iconify/svelte'
 import { onMount } from 'svelte'
 
-import CarouselRoot from '$lib/bits/components/carousel/carouselRoot.svelte'
+import CarouselRoot from '#lib/bits/components/carousel/carouselRoot.svelte'
 
 import GuideProgressMarker from './guideProgressMarker.svelte'
 import type { GuideChoice } from './guide.types'

@@ -1,8 +1,8 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 import { onMount } from 'svelte'
-import { m } from '$lib/bits/internal/i18n'
-import { getApiFamilyTheme } from '$lib/registry/apiFamilyTheme'
+import { m } from '#lib/bits/internal/i18n.js'
+import { getApiFamilyTheme } from '#lib/registry/apiFamilyTheme.js'
 import CardReleaseBackdrop from './cardReleaseBackdrop.svelte'
 type Release = {
   apiFamily: string

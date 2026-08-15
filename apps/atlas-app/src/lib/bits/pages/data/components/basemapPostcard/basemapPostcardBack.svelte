@@ -2,7 +2,7 @@
 import Icon from '@iconify/svelte'
 import { getContext } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import {
   basemapPostcardFocusContext,

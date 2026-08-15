@@ -1,15 +1,15 @@
-import { json, type RequestHandler } from '@sveltejs/kit'
+import type { RequestHandler } from '@sveltejs/kit'
 import { eq } from '@repo/db'
 import { createMetaDb } from '@repo/db/client'
 import { facebookDeletionRequest } from '@repo/db'
-import { hashFacebookDeletionConfirmationCode } from '$lib/server/facebook-data-deletion'
+import { hashFacebookDeletionConfirmationCode } from '#lib/server/facebook-data-deletion.js'
 
 /** Reports the status of a completed Meta Facebook deletion callback. */
 export const GET: RequestHandler = async ({ platform, url }) => {
   const confirmationCode = url.searchParams.get('code')
   const database = platform?.env.DB_META
   if (!confirmationCode || !database) {
-    return json({ status: 'unknown', confirmation_code: confirmationCode })
+    return Response.json({ status: 'unknown', confirmation_code: confirmationCode })
   }
 
   const db = createMetaDb(database)
@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ platform, url }) => {
     )
     .limit(1)
 
-  return json({
+  return Response.json({
     status: completedRequest.length ? 'completed' : 'unknown',
     confirmation_code: confirmationCode,
   })

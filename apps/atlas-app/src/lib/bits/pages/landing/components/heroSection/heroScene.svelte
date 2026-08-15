@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import heroBackground from '$lib/assets/bg.jpg'
-import heroForeground from '$lib/assets/fg.png'
-import { m } from '$lib/bits/internal/i18n'
+import heroBackground from '#lib/assets/bg.jpg'
+import heroForeground from '#lib/assets/fg.png'
+import { m } from '#lib/bits/internal/i18n.js'
 
 let floatStyle = $state('')
 

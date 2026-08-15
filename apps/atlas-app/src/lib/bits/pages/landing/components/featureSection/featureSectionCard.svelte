@@ -1,6 +1,6 @@
 <script lang="ts">
-import { cn } from '$lib/bits/utilities/helpers/cn'
-import * as Card from '$lib/bits/components/cardDeck'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
+import * as Card from '#lib/bits/components/cardDeck/index.js'
 import FeatureSectionCardAnimation from './featureSectionCardAnimation.svelte'
 import type { FeatureSectionPrinciple } from './featureSectionTypes'
 

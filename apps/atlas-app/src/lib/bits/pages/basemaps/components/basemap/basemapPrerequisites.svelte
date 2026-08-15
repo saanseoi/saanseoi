@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { getCurrentLocale } from '$lib/bits/internal/i18n'
+import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
 
 import { getBasemapMessage as getMessage } from './basemapMessages'
 

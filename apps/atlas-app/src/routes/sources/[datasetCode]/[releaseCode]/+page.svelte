@@ -1,7 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
-import { env } from '$env/dynamic/public'
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
 import {
   Main,
@@ -12,34 +12,35 @@ import {
   ReleaseNav,
   ReleaseNotes,
   ReleaseStats,
-} from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import { diffMarkdown } from '$lib/registry/markdown'
-import type { MarkdownHeading } from '$lib/registry/markdown'
-import type { ReleaseContentHeading } from '$lib/bits/pages/docs/components/releaseContentOutline'
+} from '#lib/bits/index.js'
+
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { diffMarkdown } from '#lib/registry/markdown.js'
+import type { MarkdownHeading } from '#lib/registry/markdown.js'
+import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/releaseContentOutline/index.js'
 import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
-} from '$lib/bits/pages/docs/components/releaseStats'
+} from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
-} from '$lib/registry/releaseNotesPresentation'
+} from '#lib/registry/releaseNotesPresentation.js'
 import { buildSourceReleaseLinksPresentation } from './releaseLinks.presentation'
 import type {
   ReleaseNavAction,
   ReleaseNavOutlineItem,
   ReleaseNavTab,
-} from '$lib/bits/pages/docs/components/releaseNav/releaseNav.types'
+} from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import {
   getDistrictCoverageMapData,
   getSourceDatasetPageData,
-} from '$lib/registry/meta.remote'
+} from '#lib/registry/meta.remote.js'
 import { error } from '@sveltejs/kit'
 
 let { params } = $props()
-
 let source = $derived(await getSourceDatasetPageData(params.datasetCode))
+
 let version = $derived.by(() => {
   const selected = source.sourceVersions?.find(item => item.code === params.releaseCode)
   if (!selected) error(404, 'Source release not found.')
@@ -49,8 +50,10 @@ let locale = $derived(getCurrentLocale())
 let previousVersion = $derived.by(() => {
   const versions = source.sourceVersions ?? []
   const currentIndex = versions.findIndex(item => item.code === version.code)
+
   return currentIndex >= 0 ? versions[currentIndex + 1] : undefined
 })
+
 let notes = $derived(selectReleaseNotesMarkdown(version.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(previousVersion?.notes, locale))
 let notesPresentation = $derived(
@@ -74,6 +77,7 @@ let bulkActions = $derived(
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
+
 const humaniseStat = (value: string | null | undefined) =>
   !value
     ? 'Unspecified'
@@ -83,6 +87,7 @@ const humaniseStat = (value: string | null | undefined) =>
           .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
           .replaceAll(/[_-]/g, ' ')
           .replace(/\b\w/g, letter => letter.toUpperCase())
+
 const isDistrictGeometry = (
   geometry: unknown,
 ): geometry is ReleaseStatsDistrictArea['geometry'] =>
@@ -95,6 +100,7 @@ const isDistrictGeometry = (
         (geometry as { type?: unknown }).type === 'MultiPolygon'),
   )
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
+
 $effect(() => {
   const request = districtMapData
   let cancelled = false
@@ -102,22 +108,31 @@ $effect(() => {
     districtAreas = []
     return
   }
+
   void request
     .then(rows => {
       if (!cancelled)
         districtAreas = rows.flatMap(row =>
           isDistrictGeometry(row.geometry)
-            ? [{ divisionId: row.divisionId, geometry: row.geometry, name: row.name }]
+            ? [
+                {
+                  divisionId: row.divisionId,
+                  geometry: row.geometry,
+                  name: row.name,
+                },
+              ]
             : [],
         )
     })
     .catch(() => {
       if (!cancelled) districtAreas = []
     })
+
   return () => {
     cancelled = true
   }
 })
+
 let statsPresentation = $derived<ReleaseStatsCopy>({
   labels: {
     added: m.source_added(),
@@ -156,6 +171,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     recordsByDistrict: 'Records by district',
     district: 'District',
   },
+
   localeName: code =>
     ({
       en: m.source_locale_en(),
@@ -205,12 +221,15 @@ let activeTocHeadingId = $derived(
 )
 let sourceArchiveUrl = $derived.by(() => {
   if (!version.sourceArchiveAssetId) return undefined
-  const baseUrl = (env.PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
+
+  const baseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
     /\/+$/,
     '',
   )
+
   return `${baseUrl}/v0/assets/${version.sourceArchiveAssetId}`
 })
+
 let versions = $derived(
   (source.sourceVersions ?? []).map((item, index, releases) => ({
     code: item.code,
@@ -219,12 +238,11 @@ let versions = $derived(
   })),
 )
 function setShowNoteDiff(enabled: boolean) {
-  const url = new URL(page.url)
+  const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    keepFocus: true,
-    noScroll: true,
+    reset: false,
     replaceState: true,
   })
 }
@@ -236,6 +254,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'released-as', label: m.source_tab_released_as() },
 ])
+
 let actions = $derived<ReleaseNavAction[]>(
   activeTab === 'notes' && versions[1]
     ? [
@@ -302,6 +321,7 @@ $effect(() => {
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   <ReleaseHeader.SourceVariant {source} {version} {locale} />
+
   <ReleaseNav.Root
     {versions}
     currentVersionCode={version.code}

@@ -1,8 +1,8 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { authClient } from '$lib/auth-client'
+import { Button, Main } from '#lib/bits/index.js'
+import { authClient } from '#lib/auth-client.js'
 import { page } from '$app/state'
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 const token = $derived(page.url.searchParams.get('token'))
 const invalid = $derived(page.url.searchParams.has('error') || !token)

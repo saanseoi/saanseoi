@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideExpandablePattern from '../../components/shared/guideExpandablePattern.svelte'
 import GuideTerminalDemo from './guideTerminalDemo.svelte'

@@ -1,21 +1,21 @@
 <script lang="ts">
-import { env } from '$env/dynamic/public'
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
-import { Input } from '$lib/bits/primitives/input'
-import { Label } from '$lib/bits/primitives/label'
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Input } from '#lib/bits/primitives/input/index.js'
+import { Label } from '#lib/bits/primitives/label/index.js'
 import CommunitySectionPrivacyAcknowledgement from './communitySectionPrivacyAcknowledgement.svelte'
 
 type Props = { element?: HTMLElement }
-let { element = $bindable() }: Props = $props()
 
+let { element = $bindable() }: Props = $props()
 let email = $state('')
 let isSubmitting = $state(false)
 let isSubscribed = $state(false)
 let errorMessage = $state('')
 
-const endpoint = env.PUBLIC_ATLAS_API_BASE_URL
-  ? `${env.PUBLIC_ATLAS_API_BASE_URL}/v0/meta/substack`
+const endpoint = PUBLIC_ATLAS_API_BASE_URL
+  ? `${PUBLIC_ATLAS_API_BASE_URL}/v0/meta/substack`
   : 'http://localhost:8787/v0/meta/substack'
 
 async function handleSubmit(event: SubmitEvent) {
@@ -32,6 +32,7 @@ async function handleSubmit(event: SubmitEvent) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email }),
     })
+
     const payload = (await response.json().catch(() => null)) as {
       message?: string
     } | null

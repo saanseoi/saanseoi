@@ -1,7 +1,7 @@
-import type { AppLocale } from '$lib/bits/internal/i18n'
+import type { AppLocale } from '#lib/bits/internal/i18n.js'
 import { diffLines } from 'diff'
 import GithubSlugger from 'github-slugger'
-import type { ReleaseDiffChange } from '$lib/bits/pages/docs/components/releaseDiff'
+import type { ReleaseDiffChange } from '#lib/bits/pages/docs/components/releaseDiff/index.js'
 import { getMarkdownHeadingId } from './markdownHeading'
 
 const localeHeadings = {

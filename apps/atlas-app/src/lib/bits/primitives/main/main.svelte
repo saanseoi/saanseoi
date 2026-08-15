@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Variant = 'default' | 'page'
 

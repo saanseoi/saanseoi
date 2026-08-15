@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { authClient } from '$lib/auth-client'
-import { m } from '$lib/bits/internal/i18n'
+import { Button, Main } from '#lib/bits/index.js'
+import { authClient } from '#lib/auth-client.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 let email = $state('')
 let submitted = $state(false)

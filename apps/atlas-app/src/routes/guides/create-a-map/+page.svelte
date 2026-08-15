@@ -3,10 +3,10 @@ import { page } from '$app/state'
 import Icon from '@iconify/svelte'
 import { onMount, tick } from 'svelte'
 
-import codexCliTrustDirectory from '$lib/assets/guides/codex-cli-trust-directory.png'
-import leafletSetupResult from '$lib/assets/guides/leaflet-setup-result.png'
-import mapboxSetupResult from '$lib/assets/guides/mapbox-setup-result.png'
-import maplibreSetupResult from '$lib/assets/guides/maplibre-setup-result.png'
+import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
+import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
+import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
+import maplibreSetupResult from '#lib/assets/guides/maplibre-setup-result.png'
 import {
   Button,
   CreateAMap,
@@ -36,16 +36,16 @@ import {
   GuidePromptBlock,
   Main,
   Seo,
-} from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import { scrollToElementBelowHeader } from '$lib/bits/utilities/helpers/scrollToElementBelowHeader'
+} from '#lib/bits/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { scrollToElementBelowHeader } from '#lib/bits/utilities/helpers/scrollToElementBelowHeader.js'
 import {
   createAMapStylePreviewUrl,
   createAMapTileset,
   detectOperatingSystem,
   getCreateAMapQueryChoice,
   type CreateAMapSelectionValue,
-} from '$lib/guides/createAMapSelections'
+} from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
 
 import { createCreateAMapGuideAdapter } from './createAMapGuideAdapter.svelte'
@@ -199,7 +199,7 @@ let isZedSetupGuideProvided = $derived(aiAccess === 'agentic' && agentTool === '
 let isLlmReadinessComplete = $derived(completedLlmReadinessKey === llmReadinessKey)
 let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
 let basemapAccountContinueUrl = $derived.by(() => {
-  const url = new URL(page.url)
+  const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
   return `${url.pathname}${url.search}${url.hash}`
 })

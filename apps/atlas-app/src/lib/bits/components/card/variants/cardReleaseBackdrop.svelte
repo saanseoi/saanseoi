@@ -1,5 +1,5 @@
 <script lang="ts">
-import topoImage from '$lib/assets/topo.jpg'
+import topoImage from '#lib/assets/topo.jpg'
 
 type Props = {
   accent: string

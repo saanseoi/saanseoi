@@ -1,11 +1,11 @@
 <script lang="ts">
 import { Popover } from 'bits-ui'
 
-import { getCurrentLocale } from '$lib/bits/internal/i18n'
+import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
-} from '$lib/registry/referenceDocs'
+} from '#lib/registry/referenceDocs.js'
 
 type Props = {
   href: string

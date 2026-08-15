@@ -1,5 +1,5 @@
 <script lang="ts">
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Props = {
   title: string

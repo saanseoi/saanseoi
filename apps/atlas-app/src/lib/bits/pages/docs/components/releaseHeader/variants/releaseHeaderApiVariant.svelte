@@ -1,7 +1,7 @@
 <script lang="ts">
-import { m, selectLocalisedRow, type AppLocale } from '$lib/bits/internal/i18n'
-import { getApiFamilyTheme } from '$lib/registry/apiFamilyTheme'
-import type { ApiRelease, RegistryApi } from '$lib/registry/types'
+import { m, selectLocalisedRow, type AppLocale } from '#lib/bits/internal/i18n.js'
+import { getApiFamilyTheme } from '#lib/registry/apiFamilyTheme.js'
+import type { ApiRelease, RegistryApi } from '#lib/registry/types.js'
 
 import * as ReleaseHeader from '../components'
 import { getReleaseHeaderDomainOptions } from '../releaseHeaderDomainOptions'

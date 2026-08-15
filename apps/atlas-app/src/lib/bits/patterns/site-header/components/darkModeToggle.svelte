@@ -7,9 +7,9 @@ import {
   getStoredTheme,
   resolveTheme,
   setTheme,
-} from '$lib/bits/internal/theme'
-import { Swap } from '$lib/bits/components/swap'
-import { cn } from '$lib/bits/utilities/helpers/cn'
+} from '#lib/bits/internal/theme.js'
+import { Swap } from '#lib/bits/components/swap/index.js'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Props = {
   class?: string

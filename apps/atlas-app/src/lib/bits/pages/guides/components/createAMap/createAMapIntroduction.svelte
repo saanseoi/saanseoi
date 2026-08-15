@@ -1,7 +1,7 @@
 <script lang="ts">
-import { GuideFoundations } from '$lib/bits/pages/guides'
-import { PageDescription, PageHeader, PageTitle } from '$lib/bits/pages/shared'
-import { m } from '$lib/bits/internal/i18n'
+import { GuideFoundations } from '#lib/bits/pages/guides/index.js'
+import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type Foundation = {
   description: string
