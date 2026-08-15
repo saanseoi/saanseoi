@@ -159,11 +159,10 @@ let details = $derived([
 {/snippet}
 
 {#snippet domainSelector()}
-  <div class="flex min-w-0 items-center gap-1.5">
+  <div class="flex shrink-0 items-center gap-1.5">
     <span
       class="hidden shrink-0 font-body text-caption font-semibold uppercase tracking-[0.14em] text-secondary sm:inline"
-      >{m.api_release_domain()}
-      ·</span
+      >{m.api_release_domain()}:</span
     >
     <ReleaseHeader.DomainSelector
       currentDomainCode={release.domainCode ?? 'default'}

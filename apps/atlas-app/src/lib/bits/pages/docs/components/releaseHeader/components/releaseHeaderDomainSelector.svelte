@@ -24,9 +24,9 @@ function selectDomain(event: Event) {
 </script>
 
 {#if options.length > 1 && currentOption}
-  <div class="relative max-w-full">
+  <div class="flex shrink-0 items-center gap-1">
     <select
-      class="w-fit max-w-full cursor-pointer appearance-none bg-transparent pr-5 font-body text-caption font-semibold uppercase tracking-[0.14em] text-secondary outline-none transition-colors hover:text-primary focus-visible:text-primary"
+      class="block w-auto min-w-max cursor-pointer appearance-none bg-transparent font-body text-caption font-semibold uppercase tracking-[0.14em] text-secondary outline-none transition-colors field-sizing-content hover:text-primary focus-visible:text-primary"
       aria-label={label}
       value={currentDomainCode}
       onchange={selectDomain}
@@ -37,7 +37,7 @@ function selectDomain(event: Event) {
     </select>
     <Icon
       icon="ion:chevron-down-outline"
-      class="pointer-events-none absolute right-0 top-1/2 size-3.5 -translate-y-1/2 text-secondary"
+      class="pointer-events-none size-3.5 text-secondary"
       aria-hidden="true"
     />
   </div>
