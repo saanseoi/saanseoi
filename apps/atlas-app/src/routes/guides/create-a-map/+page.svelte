@@ -35,6 +35,7 @@ import {
   GuideUrbanDensityExample,
   GuidePromptBlock,
   Main,
+  Seo,
 } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { scrollToElementBelowHeader } from '$lib/bits/utilities/helpers/scrollToElementBelowHeader'
@@ -1603,16 +1604,70 @@ const styleChoices = $derived.by(() =>
 )
 </script>
 
-<svelte:head>
-  <title>{m.guide_create_map_title()} | SaanSeoi</title>
-  <meta name="description" content={m.guide_create_map_meta_description()}>
-  <meta name="author" content="Mart van de Ven">
-  <meta name="date" content="2026-08-08">
-  <meta name="version" content="v1">
-  <meta property="article:author" content="https://type.hk">
-  <meta property="article:published_time" content="2026-08-08">
-  <link rel="author" href="https://type.hk">
-</svelte:head>
+<Seo
+  title={m.guide_create_map_title()}
+  description={m.guide_create_map_meta_description()}
+  image="/guides/build-a-map-dark.webp"
+  type="article"
+  publishedTime="2026-08-08"
+  modifiedTime="2026-08-16"
+  noindex={page.url.searchParams.size > 0}
+  structuredData={{
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'LearningResource',
+        '@id': 'https://saanseoi.hk/guides/create-a-map#resource',
+        name: m.guide_create_map_title(),
+        description: m.guide_create_map_meta_description(),
+        url: 'https://saanseoi.hk/guides/create-a-map',
+        image: 'https://saanseoi.hk/guides/build-a-map-dark.webp',
+        inLanguage: 'en',
+        author: {
+          '@type': 'Person',
+          name: 'Mart van de Ven',
+          url: 'https://type.hk',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'SaanSeoi',
+          url: 'https://saanseoi.hk',
+        },
+        datePublished: '2026-08-08',
+        dateModified: '2026-08-16',
+        educationalLevel: 'Beginner',
+        teaches: [
+          'Creating a digital map',
+          'Using SaanSeoi basemap, styles and API data',
+          'Publishing a map online or embedding it in a site',
+        ],
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://saanseoi.hk/',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: m.guide_title(),
+            item: 'https://saanseoi.hk/guides',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: m.guide_create_map_title(),
+            item: 'https://saanseoi.hk/guides/create-a-map',
+          },
+        ],
+      },
+    ],
+  }}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-16 md:py-20"

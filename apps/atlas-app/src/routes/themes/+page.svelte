@@ -7,6 +7,7 @@ import {
   PageHeader,
   PageSection,
   PageTitle,
+  Seo,
 } from '$lib/bits'
 import { mapStyleDefinitions, type MapStyleDefinition } from '@repo/basemap'
 
@@ -88,10 +89,7 @@ function purposeLabel(option: PurposeFilter) {
 }
 </script>
 
-<svelte:head>
-  <title>{m.themes_title()} | SaanSeoi</title>
-  <meta name="description" content={m.themes_meta_description()}>
-</svelte:head>
+<Seo title={m.themes_title()} description={m.themes_meta_description()} />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
