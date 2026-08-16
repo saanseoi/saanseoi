@@ -23,6 +23,8 @@ let emailMessage = $state<string>()
 let emailPending = $state(false)
 let passkeyError = $state<string>()
 let passkeyPending = $state(false)
+let pendingProvider = $state<SocialProvider>()
+let socialError = $state<string>()
 
 const providers: { id: SocialProvider; icon: string; label: () => string }[] = [
   { id: 'google', icon: 'ion:logo-google', label: () => m.common_google() },
@@ -31,12 +33,27 @@ const providers: { id: SocialProvider; icon: string; label: () => string }[] = [
 ]
 
 const continueWithSocial = async (provider: SocialProvider) => {
-  await authClient.signIn.social({ provider, callbackURL: continueUrl })
+  if (pendingProvider || passkeyPending) return
+  socialError = undefined
+  pendingProvider = provider
+  try {
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: continueUrl,
+    })
+    if (!result.error) return
+    socialError = result.error.message ?? m.auth_sign_in_error()
+  } catch {
+    socialError = m.auth_sign_in_error()
+  }
+
+  pendingProvider = undefined
 }
 
 const openEmailForm = (accountMode: AccountMode) => {
   emailError = undefined
   emailMessage = undefined
+  socialError = undefined
   emailFormMode = accountMode
 }
 
@@ -95,6 +112,7 @@ const switchMode = (nextMode: AccountMode) => {
   emailError = undefined
   emailMessage = undefined
   passkeyError = undefined
+  socialError = undefined
 }
 </script>
 
@@ -109,11 +127,17 @@ const switchMode = (nextMode: AccountMode) => {
       {#each providers as provider (provider.id)}
         <button
           aria-label={`${accountMode === 'sign-up' ? m.auth_create_account() : m.auth_sign_in_title()} ${provider.label()}`}
-          class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+          aria-busy={pendingProvider === provider.id}
+          class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary disabled:cursor-wait disabled:opacity-60"
+          disabled={pendingProvider !== undefined || passkeyPending}
           onclick={() => continueWithSocial(provider.id)}
           type="button"
         >
-          <Icon icon={provider.icon} class="size-7 text-secondary" aria-hidden="true" />
+          <Icon
+            icon={pendingProvider === provider.id ? 'ion:reload-outline' : provider.icon}
+            class="size-7 text-secondary {pendingProvider === provider.id ? 'motion-safe:animate-spin' : ''}"
+            aria-hidden="true"
+          />
           <span>{provider.label()}</span>
         </button>
       {/each}
@@ -134,11 +158,16 @@ const switchMode = (nextMode: AccountMode) => {
       <button
         aria-label={m.auth_continue_with_passkey()}
         class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary disabled:cursor-wait disabled:opacity-60"
-        disabled={passkeyPending}
+        aria-busy={passkeyPending}
+        disabled={passkeyPending || pendingProvider !== undefined}
         onclick={continueWithPasskey}
         type="button"
       >
-        <Icon icon="ion:key-outline" class="size-7 text-secondary" aria-hidden="true" />
+        <Icon
+          icon={passkeyPending ? 'ion:reload-outline' : 'ion:key-outline'}
+          class="size-7 text-secondary {passkeyPending ? 'motion-safe:animate-spin' : ''}"
+          aria-hidden="true"
+        />
         <span>{m.account_passkey()}</span>
       </button>
       <button
@@ -285,6 +314,11 @@ const switchMode = (nextMode: AccountMode) => {
   {#if passkeyError}
     <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
       {passkeyError}
+    </p>
+  {/if}
+  {#if socialError}
+    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+      {socialError}
     </p>
   {/if}
 </div>
