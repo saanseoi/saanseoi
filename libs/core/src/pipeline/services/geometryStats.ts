@@ -29,6 +29,57 @@ export type DistrictGeometryMetrics = {
 
 export type DistrictGeometryStatistics = Map<string, DistrictGeometryMetrics>
 
+export type DistrictGeometrySelection = {
+  excludedRecordIds: string[]
+  records: GeometryStatisticRecord[]
+}
+
+/**
+ * Selects the records which have a defined district meaning. This is used for
+ * global or multi-level sources such as Overture: source records outside the
+ * district hierarchy are intentionally excluded, while a boundary adjoining a
+ * district is still attributed to that district even when its other side is
+ * not district-assigned.
+ *
+ * Geometry itself is never filtered or repaired here. Every selected record
+ * is still measured strictly by {@link calculateDistrictGeometryStatistics}.
+ */
+export function selectDistrictRelevantGeometryRecords(
+  resourceType: 'divisionArea' | 'divisionBoundary',
+  records: GeometryStatisticRecord[],
+  districtByDivisionId: Map<string, string>,
+): DistrictGeometrySelection {
+  const excludedRecordIds: string[] = []
+  const selected: GeometryStatisticRecord[] = []
+
+  for (const record of records) {
+    if (resourceType === 'divisionArea') {
+      if (!record.divisionId || !districtByDivisionId.has(record.divisionId)) {
+        excludedRecordIds.push(record.id)
+        continue
+      }
+      selected.push(record)
+      continue
+    }
+
+    const leftDivisionId =
+      record.leftDivisionId && districtByDivisionId.has(record.leftDivisionId)
+        ? record.leftDivisionId
+        : null
+    const rightDivisionId =
+      record.rightDivisionId && districtByDivisionId.has(record.rightDivisionId)
+        ? record.rightDivisionId
+        : null
+    if (!leftDivisionId && !rightDivisionId) {
+      excludedRecordIds.push(record.id)
+      continue
+    }
+    selected.push({ ...record, leftDivisionId, rightDivisionId })
+  }
+
+  return { excludedRecordIds, records: selected }
+}
+
 /**
  * Aggregates exact EPSG:4326 canonical geometry by its already-versioned
  * district assignment. Boundary records are deliberately attributed to both
