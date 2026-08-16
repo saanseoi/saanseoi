@@ -1,6 +1,11 @@
 import { expect, test } from 'bun:test'
 
-import { collectMessagesAfter, formatAdminLog, splitTelegramText } from './messages.ts'
+import {
+  collectMessagesAfter,
+  formatAdminLog,
+  formatGitHubDiscussion,
+  splitTelegramText,
+} from './messages.ts'
 
 test('walks backward through full Discord pages without skipping messages', async () => {
   const calls: Array<{ before?: string; limit: number }> = []
@@ -51,4 +56,73 @@ test('formats append-only admin records and splits without corrupting emoji', ()
     '#channel · Sender Name\n\nMessage contents\n\nhttps://example.com/attachment',
   )
   expect(splitTelegramText('ab😀cd', 4)).toEqual(['ab😀c', 'd'])
+})
+
+test('preserves Discord card fields, stickers and system events in Telegram text', () => {
+  expect(
+    formatAdminLog(
+      {
+        author: { username: 'Mountainfish' },
+        channel_id: 'releases',
+        embeds: [
+          {
+            description: 'The first changelog is now published.',
+            fields: [
+              { name: 'Publisher', value: 'Planning Department' },
+              { name: 'Source version', value: '`2021`' },
+            ],
+            title: 'divisions API release published',
+            url: 'https://saanseoi.hk/apis/divisions/release',
+          },
+        ],
+        id: 'card',
+        sticker_items: [{ name: 'Wave hello' }],
+      },
+      '#releases',
+    ),
+  ).toBe(
+    '#releases · Mountainfish\n\ndivisions API release published\nThe first changelog is now published.\nPublisher: Planning Department\nSource version: `2021`\nhttps://saanseoi.hk/apis/divisions/release\n\n[Sticker: Wave hello]',
+  )
+
+  expect(
+    formatAdminLog(
+      {
+        author: { username: 'member' },
+        channel_id: 'general',
+        id: 'join',
+        type: 7,
+      },
+      '#general',
+    ),
+  ).toBe('#general · member\n\n[Joined the server]')
+
+  expect(
+    formatAdminLog(
+      {
+        author: { username: 'member' },
+        channel_id: 'general',
+        id: 'rename',
+        type: 4,
+      },
+      '#general',
+    ),
+  ).toBe('#general · member\n\n[Changed the channel name]')
+})
+
+test('uses an announcement first line as a GitHub discussion title', () => {
+  const discussion = formatGitHubDiscussion(
+    {
+      attachments: [{ url: 'https://example.com/release-notes' }],
+      author: { username: 'sender' },
+      channel_id: 'channel',
+      content: '# August release\n\nThe full announcement.',
+      id: 'message',
+    },
+    'guild',
+  )
+
+  expect(discussion).toEqual({
+    title: 'August release',
+    body: '# August release\n\nThe full announcement.\n\nhttps://example.com/release-notes\n\n---\n[View the original Discord announcement](https://discord.com/channels/guild/channel/message)',
+  })
 })

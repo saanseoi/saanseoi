@@ -4,18 +4,39 @@ import {
   collectMessagesAfter,
   formatAdminLog,
   formatBody,
+  formatGitHubDiscussion,
   splitTelegramText,
   type DiscordMessage,
 } from './messages.ts'
 
 const DISCORD_API = 'https://discord.com/api/v10'
+const GITHUB_API = 'https://api.github.com'
+const GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
+const GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
+const GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
 const TELEGRAM_API = 'https://api.telegram.org/bot'
 const MESSAGEABLE_CHANNEL_TYPES = new Set([0, 5, 10, 11, 12])
 const REQUEST_TIMEOUT_MS = 15_000
 const TELEGRAM_MAX_RETRIES = 3
+const GITHUB_APP_TOKEN_REFRESH_BUFFER_MS = 60_000
 
 export type Env = CloudflareBindings & {
   BRIDGE_INITIAL_SYNC?: 'backfill'
+}
+
+type GitHubAppAccessToken = {
+  expires_at: string
+  token: string
+}
+
+type GitHubDiscussionTarget = {
+  categoryId: string
+  repositoryId: string
+}
+
+type GitHubGraphqlResponse<T> = {
+  data?: T
+  errors?: Array<{ message: string }>
 }
 
 type DiscordChannel = {
@@ -38,6 +59,8 @@ type TelegramResponse<T> = {
 
 type MessageDelivery = {
   admin_logged_at: number | null
+  github_completed_at: number | null
+  github_discussion_url: string | null
   public_completed_at: number | null
   public_telegram_message_ids: string | null
 }
@@ -47,6 +70,8 @@ type ChannelCursor = {
 }
 
 export class DiscordBridge extends DurableObject<Env> {
+  private githubAccessToken: GitHubAppAccessToken | undefined
+  private githubDiscussionTarget: GitHubDiscussionTarget | undefined
   private pollPromise: Promise<void> | undefined
 
   constructor(ctx: DurableObjectState, env: Env) {
@@ -60,10 +85,25 @@ export class DiscordBridge extends DurableObject<Env> {
         CREATE TABLE IF NOT EXISTS message_deliveries (
           message_id TEXT PRIMARY KEY,
           admin_logged_at INTEGER,
+          github_completed_at INTEGER,
+          github_discussion_url TEXT,
           public_completed_at INTEGER,
           public_telegram_message_ids TEXT
         );
       `)
+
+      const columns = ctx.storage.sql
+        .exec<{ name: string }>('PRAGMA table_info(message_deliveries)')
+        .toArray()
+        .map(column => column.name)
+      if (!columns.includes('github_completed_at'))
+        ctx.storage.sql.exec(
+          'ALTER TABLE message_deliveries ADD COLUMN github_completed_at INTEGER',
+        )
+      if (!columns.includes('github_discussion_url'))
+        ctx.storage.sql.exec(
+          'ALTER TABLE message_deliveries ADD COLUMN github_discussion_url TEXT',
+        )
     })
   }
 
@@ -122,22 +162,37 @@ export class DiscordBridge extends DurableObject<Env> {
     }
 
     if (message.channel_id !== this.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID) return
-    if (delivery?.public_completed_at) return
-
     const publicText = formatBody(message)
-    if (!publicText || message.content?.toLowerCase().includes('#no-telegram')) {
-      this.completePublicMirror(message.id, [])
+    if (!delivery?.public_completed_at) {
+      if (!publicText || message.content?.toLowerCase().includes('#no-telegram')) {
+        this.completePublicMirror(message.id, [])
+      } else {
+        const sent = await this.sendTelegramText(
+          this.env.TELEGRAM_ANNOUNCEMENTS_CHAT_ID,
+          publicText,
+        )
+        this.completePublicMirror(
+          message.id,
+          sent.map(message => message.message_id),
+        )
+      }
+    }
+
+    if (delivery?.github_completed_at) return
+    if (!publicText || message.content?.toLowerCase().includes('#no-github')) {
+      this.completeGitHubMirror(message.id)
       return
     }
 
-    const sent = await this.sendTelegramText(
-      this.env.TELEGRAM_ANNOUNCEMENTS_CHAT_ID,
-      publicText,
-    )
-    this.completePublicMirror(
-      message.id,
-      sent.map(message => message.message_id),
-    )
+    const discussion = formatGitHubDiscussion(message, this.env.DISCORD_GUILD_ID)
+    if (!discussion) {
+      this.completeGitHubMirror(message.id)
+      return
+    }
+
+    const target = await this.getGitHubDiscussionTarget()
+    const url = await this.createGitHubDiscussion(target, discussion)
+    this.completeGitHubMirror(message.id, url)
   }
 
   private async listMessageChannels() {
@@ -192,7 +247,8 @@ export class DiscordBridge extends DurableObject<Env> {
   private getDelivery(messageId: string) {
     return this.ctx.storage.sql
       .exec<MessageDelivery>(
-        `SELECT admin_logged_at, public_completed_at, public_telegram_message_ids
+        `SELECT admin_logged_at, github_completed_at, github_discussion_url,
+                public_completed_at, public_telegram_message_ids
          FROM message_deliveries
          WHERE message_id = ?`,
         messageId,
@@ -222,6 +278,134 @@ export class DiscordBridge extends DurableObject<Env> {
       Date.now(),
       JSON.stringify(telegramMessageIds),
     )
+  }
+
+  private completeGitHubMirror(messageId: string, discussionUrl?: string) {
+    this.ctx.storage.sql.exec(
+      `INSERT INTO message_deliveries
+       (message_id, github_completed_at, github_discussion_url)
+       VALUES (?, ?, ?)
+       ON CONFLICT(message_id) DO UPDATE SET
+         github_completed_at = excluded.github_completed_at,
+         github_discussion_url = excluded.github_discussion_url`,
+      messageId,
+      Date.now(),
+      discussionUrl ?? null,
+    )
+  }
+
+  private async getGitHubDiscussionTarget() {
+    if (this.githubDiscussionTarget) return this.githubDiscussionTarget
+
+    const payload = await this.githubGraphql<{
+      repository: {
+        discussionCategories: {
+          nodes: Array<{ id: string; slug: string }>
+        }
+        id: string
+      } | null
+    }>(
+      `query DiscussionTarget($owner: String!, $name: String!) {
+        repository(owner: $owner, name: $name) {
+          id
+          discussionCategories(first: 25) { nodes { id slug } }
+        }
+      }`,
+      { owner: GITHUB_DISCUSSIONS_OWNER, name: GITHUB_DISCUSSIONS_REPOSITORY },
+    )
+    const repository = payload.repository
+    const category = repository?.discussionCategories.nodes.find(
+      category => category.slug === GITHUB_DISCUSSIONS_CATEGORY,
+    )
+    if (!repository || !category)
+      throw new Error(
+        `GitHub discussion category ${GITHUB_DISCUSSIONS_CATEGORY} was not found on ${GITHUB_DISCUSSIONS_OWNER}/${GITHUB_DISCUSSIONS_REPOSITORY}.`,
+      )
+
+    this.githubDiscussionTarget = {
+      categoryId: category.id,
+      repositoryId: repository.id,
+    }
+    return this.githubDiscussionTarget
+  }
+
+  private async createGitHubDiscussion(
+    target: GitHubDiscussionTarget,
+    discussion: { body: string; title: string },
+  ) {
+    const payload = await this.githubGraphql<{
+      createDiscussion: { discussion: { url: string } | null }
+    }>(
+      `mutation CreateDiscussion($input: CreateDiscussionInput!) {
+        createDiscussion(input: $input) { discussion { url } }
+      }`,
+      {
+        input: {
+          body: discussion.body,
+          categoryId: target.categoryId,
+          repositoryId: target.repositoryId,
+          title: discussion.title,
+        },
+      },
+    )
+    const url = payload.createDiscussion.discussion?.url
+    if (!url) throw new Error('GitHub did not return a discussion URL.')
+    return url
+  }
+
+  private async githubGraphql<T>(query: string, variables: Record<string, unknown>) {
+    const response = await fetch(`${GITHUB_API}/graphql`, {
+      body: JSON.stringify({ query, variables }),
+      headers: {
+        accept: 'application/vnd.github+json',
+        authorization: `Bearer ${await this.getGitHubAccessToken()}`,
+        'content-type': 'application/json',
+      },
+      method: 'POST',
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+    const payload = (await response.json()) as GitHubGraphqlResponse<T>
+    if (!response.ok || !payload.data || payload.errors?.length)
+      throw new Error(
+        `GitHub GraphQL request failed${payload.errors?.[0]?.message ? `: ${payload.errors[0].message}` : ` with HTTP ${response.status}`}.`,
+      )
+    return payload.data
+  }
+
+  private async getGitHubAccessToken() {
+    const expiresAt =
+      this.githubAccessToken && Date.parse(this.githubAccessToken.expires_at)
+    if (
+      this.githubAccessToken &&
+      typeof expiresAt === 'number' &&
+      expiresAt > Date.now() + GITHUB_APP_TOKEN_REFRESH_BUFFER_MS
+    )
+      return this.githubAccessToken.token
+
+    const response = await fetch(
+      `${GITHUB_API}/app/installations/${this.env.GITHUB_APP_INSTALLATION_ID}/access_tokens`,
+      {
+        headers: {
+          accept: 'application/vnd.github+json',
+          authorization: `Bearer ${await createGitHubAppJwt(
+            this.env.GITHUB_APP_ID,
+            this.env.GITHUB_APP_PRIVATE_KEY_BASE64,
+          )}`,
+        },
+        method: 'POST',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      },
+    )
+    const payload = (await response.json()) as Partial<GitHubAppAccessToken> & {
+      message?: string
+    }
+    if (!response.ok || !payload.token || !payload.expires_at)
+      throw new Error(payload.message ?? 'GitHub App access-token exchange failed.')
+    this.githubAccessToken = {
+      expires_at: payload.expires_at,
+      token: payload.token,
+    }
+    return payload.token
   }
 
   private async discord<T>(path: string) {
@@ -286,6 +470,40 @@ function channelLabel(channel: DiscordChannel, channels: DiscordChannel[]) {
 
 function delay(milliseconds: number) {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+async function createGitHubAppJwt(appId: string, privateKeyBase64: string) {
+  const issuedAt = Math.floor(Date.now() / 1000) - 60
+  const signingInput = [
+    base64UrlEncode(JSON.stringify({ alg: 'RS256', typ: 'JWT' })),
+    base64UrlEncode(JSON.stringify({ exp: issuedAt + 540, iat: issuedAt, iss: appId })),
+  ].join('.')
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    base64ToArrayBuffer(privateKeyBase64),
+    { hash: 'SHA-256', name: 'RSASSA-PKCS1-v1_5' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    key,
+    new TextEncoder().encode(signingInput),
+  )
+  return `${signingInput}.${base64UrlEncode(signature)}`
+}
+
+function base64ToArrayBuffer(value: string) {
+  const decoded = atob(value.replace(/\s/g, ''))
+  return Uint8Array.from(decoded, character => character.charCodeAt(0)).buffer
+}
+
+function base64UrlEncode(value: ArrayBuffer | string) {
+  const bytes =
+    typeof value === 'string' ? new TextEncoder().encode(value) : new Uint8Array(value)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
 }
 
 export default {
