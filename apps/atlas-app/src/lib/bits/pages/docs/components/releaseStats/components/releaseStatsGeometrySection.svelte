@@ -193,6 +193,13 @@ const sortedRows = $derived(
           <tr>
             <th class="px-5 py-3 text-left font-semibold text-primary" scope="row">
               {row.label}
+              {#if row.unofficial}
+                <span
+                  class="ml-2 inline-flex rounded-sm border border-red-600/60 bg-red-100 px-1.5 py-0.5 text-caption font-semibold uppercase tracking-[0.08em] text-red-800 dark:border-red-400/60 dark:bg-red-950/60 dark:text-red-200"
+                >
+                  {labels.geometryUnofficial}
+                </span>
+              {/if}
             </th>
             {#if geometry.showFeatureCount}
               <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">

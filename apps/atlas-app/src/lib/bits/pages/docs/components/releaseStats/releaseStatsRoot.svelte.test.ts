@@ -67,3 +67,43 @@ test('renders geometry in an accessible district table', async () => {
     .element(screen.getByRole('button', { name: 'About geometry measurements' }))
     .toBeVisible()
 })
+
+test('labels the Lok Ma Chau Loop as an unofficial district', async () => {
+  const screen = await render(ReleaseStatsRootTestHarness, {
+    districtNames: [
+      {
+        divisionId: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        name: 'Lok Ma Chau Loop',
+        unofficial: true,
+      },
+    ],
+    stats: [
+      {
+        dimension: 'geometry',
+        metric: 'feature_count',
+        value: 1,
+        groupBy: 'district',
+        groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_segment_count',
+        value: 4,
+        groupBy: 'district',
+        groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_length',
+        value: 1.2,
+        groupBy: 'district',
+        groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+      },
+    ],
+  })
+
+  await expect
+    .element(screen.getByRole('rowheader', { name: 'Lok Ma Chau Loop Unofficial' }))
+    .toBeVisible()
+  await expect.element(screen.getByText('Unofficial')).toBeVisible()
+})

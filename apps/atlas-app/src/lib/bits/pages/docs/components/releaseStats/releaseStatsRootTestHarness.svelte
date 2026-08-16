@@ -4,10 +4,15 @@ import type {
   ReleaseStat,
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
 } from './releaseStats.types'
 
-type Props = { stats?: ReleaseStat[]; districtAreas?: ReleaseStatsDistrictArea[] }
-let { stats = [], districtAreas = [] }: Props = $props()
+type Props = {
+  stats?: ReleaseStat[]
+  districtAreas?: ReleaseStatsDistrictArea[]
+  districtNames?: ReleaseStatsDistrictName[]
+}
+let { stats = [], districtAreas = [], districtNames = [] }: Props = $props()
 let activeHeadingId = $state<string | null>(null)
 const presentation: ReleaseStatsCopy = {
   labels: {
@@ -56,6 +61,7 @@ const presentation: ReleaseStatsCopy = {
     geometryArea: 'Area',
     geometryBoundarySegments: 'Boundary segments',
     geometryBoundaryLength: 'Boundary length',
+    geometryUnofficial: 'Unofficial',
     notApplicable: 'Not applicable',
   },
   localeName: value => value,
@@ -65,5 +71,12 @@ const presentation: ReleaseStatsCopy = {
 }
 </script>
 
-<Root {stats} {districtAreas} locale="en" {presentation} bind:activeHeadingId />
+<Root
+  {stats}
+  {districtAreas}
+  {districtNames}
+  locale="en"
+  {presentation}
+  bind:activeHeadingId
+/>
 <output data-testid="active-heading">{activeHeadingId ?? ''}</output>

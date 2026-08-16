@@ -50,6 +50,7 @@ const copy: ReleaseStatsCopy = {
     geometryArea: 'Area',
     geometryBoundarySegments: 'Boundary segments',
     geometryBoundaryLength: 'Boundary length',
+    geometryUnofficial: 'Unofficial',
     notApplicable: 'Not applicable',
   },
   localeName: value => value,
@@ -196,6 +197,51 @@ describe('createReleaseStatsPresentation', () => {
       },
     ])
     expect(model.geometry?.showFeatureCount).toBe(true)
+  })
+
+  test('uses the canonical name and marks a non-official district', () => {
+    const model = createReleaseStatsPresentation({
+      locale: 'en',
+      copy,
+      districtNames: [
+        {
+          divisionId: '222b7818-970a-491d-98b6-b88d8c6f0161',
+          name: 'Lok Ma Chau Loop',
+          unofficial: true,
+        },
+      ],
+      stats: [
+        {
+          dimension: 'geometry',
+          metric: 'feature_count',
+          value: 1,
+          groupBy: 'district',
+          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_segment_count',
+          value: 4,
+          groupBy: 'district',
+          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_length',
+          value: 1.2,
+          groupBy: 'district',
+          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        },
+      ],
+    })
+
+    expect(model.geometry?.rows).toEqual([
+      expect.objectContaining({
+        districtId: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        label: 'Lok Ma Chau Loop',
+        unofficial: true,
+      }),
+    ])
   })
   test('distinguishes an all-new baseline from a prior-release churn summary', () => {
     expect(
