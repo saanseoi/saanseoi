@@ -2,6 +2,7 @@
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import { source_geometry_district_fallback } from '@repo/i18n/messages'
 
 import {
   Main,
@@ -14,7 +15,7 @@ import {
   ReleaseStats,
 } from '#lib/bits/index.js'
 
-import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/releaseContentOutline/index.js'
@@ -26,6 +27,7 @@ import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
+import { buildSourceReleaseAssembliesPresentation } from './releaseAssemblies.presentation'
 import { buildSourceReleaseLinksPresentation } from './releaseLinks.presentation'
 import type {
   ReleaseNavAction,
@@ -43,7 +45,15 @@ let source = $derived(await getSourceDatasetPageData(params.datasetCode))
 
 let version = $derived.by(() => {
   const selected = source.sourceVersions?.find(item => item.code === params.releaseCode)
-  if (!selected) error(404, 'Source release not found.')
+  if (!selected) {
+    // During client navigation, the remote query keeps its previous result
+    // until the selected dataset is available. Avoid treating that short-lived
+    // dataset/release mismatch as a missing release.
+    if (source.code !== params.datasetCode) {
+      return source.sourceVersions?.[0] ?? error(404, 'Source release not found.')
+    }
+    error(404, 'Source release not found.')
+  }
   return selected
 })
 let locale = $derived(getCurrentLocale())
@@ -66,7 +76,9 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
-let activeTab = $state<'notes' | 'released-as' | 'stats' | 'audit'>('notes')
+let activeTab = $state<'notes' | 'released-as' | 'assembled-with' | 'stats' | 'audit'>(
+  'notes',
+)
 let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
 let bulkActions = $derived(
@@ -156,6 +168,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     addressComponents: 'Address components',
     changeDistribution: m.source_change_distribution(),
     recordsByType: m.source_records_by_type(),
+    recordsByGeometryClass: m.source_records_by_geometry_class(),
     typeLegend: 'Added, changed, removed, and unchanged records',
     changeDistributionInfo: m.source_change_distribution_info(),
     changeDistributionInfoDescription: m.source_change_distribution_info_description(),
@@ -170,6 +183,16 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     stats: m.source_tab_stats(),
     recordsByDistrict: 'Records by district',
     district: 'District',
+    geometry: m.source_geometry(),
+    geometryByDistrict: m.source_geometry_by_district(),
+    geometryInfo: m.source_geometry_info(),
+    geometryInfoDescription: m.source_geometry_info_description(),
+    geometryFeatures: m.source_geometry_features(),
+    geometryPolygons: m.source_geometry_polygons(),
+    geometryArea: m.source_geometry_area(),
+    geometryBoundarySegments: m.source_geometry_boundary_segments(),
+    geometryBoundaryLength: m.source_geometry_boundary_length(),
+    notApplicable: m.source_not_applicable(),
   },
 
   localeName: code =>
@@ -179,6 +202,8 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       'zh-hans': m.source_locale_zh_hans(),
     })[code] ?? code,
   statLabel: humaniseStat,
+  districtFallback: districtId =>
+    source_geometry_district_fallback({ district: districtId }),
   processingAction: code => {
     const [rawMode, ...rawAction] = code.split(':')
     return {
@@ -199,6 +224,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'audit') {
     return Boolean(version.processingActions?.length || bulkActions.length)
   }
+  if (activeTab === 'assembled-with') return Boolean(version.assembledWith?.length)
   return Boolean(version.releaseAs?.length)
 })
 let tocHeadings = $derived(
@@ -237,6 +263,18 @@ let versions = $derived(
     label: item.sourceVersion || item.code,
   })),
 )
+let sourceReleaseAssembliesPresentation = $derived(
+  buildSourceReleaseAssembliesPresentation(
+    (version.assembledWith ?? []).map(source => ({
+      datasetCode: source.datasetCode,
+      href: `/sources/${source.datasetCode}/${source.sourceReleaseCode}`,
+      label: selectLocalisedRow(source.datasetI18n, locale)?.name ?? source.datasetCode,
+      publisherName: selectLocalisedRow(source.publisherI18n, locale)?.name,
+      role: source.role,
+      sourceVersion: source.sourceVersion,
+    })),
+  ),
+)
 function setShowNoteDiff(enabled: boolean) {
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
@@ -253,6 +291,9 @@ let tabs = $derived<ReleaseNavTab[]>([
     ? [{ id: 'audit', label: 'Audit' }]
     : []),
   { id: 'released-as', label: m.source_tab_released_as() },
+  ...(version.assembledWith?.length
+    ? [{ id: 'assembled-with', label: 'Assembly' }]
+    : []),
 ])
 
 let actions = $derived<ReleaseNavAction[]>(
@@ -299,17 +340,12 @@ let actions = $derived<ReleaseNavAction[]>(
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version.releaseAs),
 )
-let releaseAsOutline = $derived(
-  ReleaseLinks.getReleaseLinksOutline(sourceReleaseLinksPresentation),
-)
 let outline = $derived<ReleaseNavOutlineItem[]>(
-  activeTab === 'released-as'
-    ? releaseAsOutline
-    : tocHeadings.map(heading => ({
-        depth: heading.level,
-        id: heading.id,
-        label: 'label' in heading ? heading.label : heading.text,
-      })),
+  tocHeadings.map(heading => ({
+    depth: heading.level,
+    id: heading.id,
+    label: 'label' in heading ? heading.label : heading.text,
+  })),
 )
 $effect(() => {
   version.code
@@ -374,12 +410,20 @@ $effect(() => {
         bind:headings={auditHeadings}
         bind:activeHeadingId={activeAuditHeadingId}
       />
-    {:else}
+    {:else if activeTab === 'released-as'}
       <ReleaseLinks.Root>
         <ReleaseLinks.Provenance
           presentation={sourceReleaseLinksPresentation}
           copyRequestLabel="Copy request"
           emptyLabel={m.source_released_as_empty()}
+        />
+      </ReleaseLinks.Root>
+    {:else}
+      <ReleaseLinks.Root>
+        <ReleaseLinks.Provenance
+          presentation={sourceReleaseAssembliesPresentation}
+          copyRequestLabel="Copy request"
+          emptyLabel="No assembled source releases."
         />
       </ReleaseLinks.Root>
     {/if}
