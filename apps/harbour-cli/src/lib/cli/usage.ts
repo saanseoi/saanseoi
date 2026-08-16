@@ -33,6 +33,7 @@ export function printUsage() {
   saanseoi inspect [--stage normalised|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi stats:backfill-geometry --target local|preview|production [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--resource-type divisionArea|divisionBoundary|all] [--dry-run] [--refresh-cache] [--yes]
   saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
 `)

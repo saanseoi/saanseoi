@@ -4,6 +4,7 @@ import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
+import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import {
@@ -65,6 +66,9 @@ async function main() {
     case 'reports:processing-actions':
     case 'reports:releases':
       await runReportCommand(args, target)
+      return
+    case 'stats:backfill-geometry':
+      await runGeometryStatsBackfillCommand(args, target, printUsage)
       return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {
