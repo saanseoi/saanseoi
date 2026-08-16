@@ -5,6 +5,7 @@ import type {
   ReleaseStat,
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
 } from '../releaseStats.types'
 import type { ReleaseContentHeading } from '../../releaseContentOutline'
 import OutlineTracker from '../../releaseContentOutline/releaseContentOutlineTracker.svelte'
@@ -15,6 +16,7 @@ import Results from './releaseStatsResults.svelte'
 type Props = {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
+  districtNames?: ReleaseStatsDistrictName[]
   locale: string
   presentation: ReleaseStatsCopy
   headings?: ReleaseContentHeading[]
@@ -23,13 +25,14 @@ type Props = {
 let {
   stats = [],
   districtAreas = [],
+  districtNames = [],
   locale,
   presentation: copy,
   headings = $bindable<ReleaseContentHeading[]>([]),
   activeHeadingId = $bindable<string | null>(null),
 }: Props = $props()
 let model = $derived(
-  createReleaseStatsPresentation({ stats, districtAreas, locale, copy }),
+  createReleaseStatsPresentation({ stats, districtAreas, districtNames, locale, copy }),
 )
 let panel = $state<HTMLElement>()
 $effect(() => {

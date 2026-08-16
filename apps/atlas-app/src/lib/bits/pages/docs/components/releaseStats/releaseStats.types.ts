@@ -15,6 +15,11 @@ export type ReleaseStatsDistrictArea = {
   geometry: Polygon | MultiPolygon
   name: string | null
 }
+export type ReleaseStatsDistrictName = {
+  divisionId: string
+  name: string | null
+  unofficial: boolean
+}
 export type ReleaseStatsCopy = {
   labels: ReleaseStatsLabels
   localeName: (locale: string) => string
@@ -69,6 +74,7 @@ export type ReleaseStatsLabels = {
   geometryArea: string
   geometryBoundarySegments: string
   geometryBoundaryLength: string
+  geometryUnofficial: string
   notApplicable: string
 }
 export type ChurnMetricPresentation = {
@@ -124,6 +130,7 @@ export type GeometryStatisticsPresentation = {
     featureCount: string
     label: string
     polygonCount?: string
+    unofficial: boolean
   }>
 }
 export type ProcessingPresentation = {

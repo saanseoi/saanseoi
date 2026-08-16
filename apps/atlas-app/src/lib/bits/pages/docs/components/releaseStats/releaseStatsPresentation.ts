@@ -3,6 +3,7 @@ import type {
   ReleaseStat,
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
   ReleaseStatsPresentation,
 } from './releaseStats.types'
 
@@ -20,11 +21,13 @@ const sectionId = (value: string) =>
 export function createReleaseStatsPresentation({
   stats,
   districtAreas = [],
+  districtNames = [],
   locale,
   copy,
 }: {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
+  districtNames?: ReleaseStatsDistrictName[]
   locale: string
   copy: ReleaseStatsCopy
 }): ReleaseStatsPresentation {
@@ -139,7 +142,18 @@ export function createReleaseStatsPresentation({
           if (districtId)
             districts.set(districtId, [...(districts.get(districtId) ?? []), row])
         })
-        const names = new Map(districtAreas.map(area => [area.divisionId, area.name]))
+        const districtsById = new Map(
+          districtAreas.map(area => [
+            area.divisionId,
+            { name: area.name, unofficial: false },
+          ]),
+        )
+        for (const district of districtNames) {
+          districtsById.set(district.divisionId, {
+            name: district.name,
+            unofficial: district.unofficial,
+          })
+        }
         const result = [...districts]
           .map(([districtId, districtRows]) => {
             const featureCount = valueFor(districtRows, 'geometry', 'feature_count')
@@ -157,9 +171,11 @@ export function createReleaseStatsPresentation({
               return undefined
             const polygonCount = valueFor(districtRows, 'geometry', 'polygon_count')
             const area = valueFor(districtRows, 'geometry', 'area')
+            const district = districtsById.get(districtId)
             return {
               districtId,
-              label: names.get(districtId) ?? copy.districtFallback(districtId),
+              label: district?.name ?? copy.districtFallback(districtId),
+              unofficial: district?.unofficial ?? false,
               featureCount: formatReleaseStat(locale, featureCount),
               boundarySegmentCount: formatReleaseStat(locale, boundarySegmentCount),
               ...(polygonCount === undefined
