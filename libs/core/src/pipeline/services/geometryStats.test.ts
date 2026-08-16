@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   calculateDistrictGeometryStatistics,
   calculateGeometryMeasurement,
+  selectDistrictRelevantGeometryRecords,
 } from './geometryStats'
 
 const southWest: [number, number] = [114, 22]
@@ -108,6 +109,46 @@ describe('geometry statistics', () => {
     expect(metrics.get('district-west')).toEqual(metrics.get('district-east'))
     expect(metrics.get('district-west')?.featureCount).toBe(1)
     expect(metrics.get('district-west')?.boundarySegmentCount).toBe(1)
+  })
+
+  test('selects only Overture-style district geometry while retaining an outer boundary', () => {
+    const districts = new Map([['district-division', 'district']])
+    const areas = selectDistrictRelevantGeometryRecords(
+      'divisionArea',
+      [
+        {
+          id: 'district-area',
+          divisionId: 'district-division',
+          geometry: { type: 'Polygon', coordinates: [square] },
+        },
+        {
+          id: 'non-district-area',
+          divisionId: 'non-district-division',
+          geometry: { type: 'Polygon', coordinates: [square] },
+        },
+      ],
+      districts,
+    )
+    const boundaries = selectDistrictRelevantGeometryRecords(
+      'divisionBoundary',
+      [
+        {
+          id: 'outer-edge',
+          leftDivisionId: 'district-division',
+          rightDivisionId: 'non-district-division',
+          geometry: { type: 'LineString', coordinates: [southWest, southEast] },
+        },
+      ],
+      districts,
+    )
+
+    expect(areas.excludedRecordIds).toEqual(['non-district-area'])
+    expect(areas.records).toHaveLength(1)
+    expect(boundaries.excludedRecordIds).toEqual([])
+    expect(boundaries.records[0]).toMatchObject({
+      leftDivisionId: 'district-division',
+      rightDivisionId: null,
+    })
   })
 
   test('does not count repeated positions or an already-closed ring twice', () => {
