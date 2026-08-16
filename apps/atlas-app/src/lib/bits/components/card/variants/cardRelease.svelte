@@ -16,6 +16,7 @@ type Props = {
   index: number
   displayDate: string
   displayCode: string
+  href?: string
   records: string | null
   isDragging?: boolean
 }
@@ -24,6 +25,7 @@ let {
   index,
   displayDate,
   displayCode,
+  href,
   records,
   isDragging = false,
 }: Props = $props()
@@ -73,7 +75,7 @@ onMount(() => {
   class={`group relative grid min-h-69 w-80 shrink-0 isolate overflow-hidden rounded-[1.1rem] border-[0.35rem] border-[#fff9ed] p-5 text-(--release-ink) shadow-[0_0.35rem_1rem_rgb(0_0_0/0.1)] transition-[opacity,translate,box-shadow] duration-360 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(150deg,color-mix(in_srgb,var(--release-accent)_34%,#fff9ed),color-mix(in_srgb,var(--release-secondary)_18%,#fff9ed))] before:content-[''] after:pointer-events-none after:absolute after:inset-2 after:z-1 after:rounded-[0.62rem] after:border after:border-(--release-accent)/32 after:content-[''] hover:shadow-[0_0.6rem_1.4rem_rgb(0_0_0/0.14)] focus-visible:outline-none focus-visible:shadow-[0_0.6rem_1.4rem_rgb(0_0_0/0.14)] ${isIntroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4.5'} ${isDragging ? 'shadow-[0_0.6rem_1.4rem_rgb(0_0_0/0.14)]' : ''}`}
   data-carousel-card={release.code}
   style={cardStyle}
-  href={`/apis/${release.apiFamily}/${release.code}`}
+  href={href ?? `/apis/${release.apiFamily}/${release.code}`}
 >
   {#if isDraft}
     <span
