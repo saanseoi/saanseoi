@@ -18,6 +18,7 @@ type ApiItem = {
   release: Release
   displayDate: string
   displayCode: string
+  href?: string
   records: string | null
 }
 type BasemapItem = {
