@@ -19,6 +19,23 @@ API 發出請求，它會回傳資料。這表示你無須自行下載或託管�
 API 是让<i>软件</i>彼此通信的方式。你可以使用代码或 LLM 向 SaanSeoi
 API 发出请求，它会返回数据。这意味着无需自行下载或托管数据；只需将地图、应用程序或分析工具连接到我们的 API，就不必担心数据库或保持数据更新。
 
+# API family
+
+## v1
+
+### EN
+
+An API family groups together source data and makes it available in a unified schema: a
+data structure with consistent names and conventions.
+
+### ZH-HANT
+
+API family 會把來源資料整合，並以統一的 schema 提供：即名稱與慣例一致的資料結構。
+
+### ZH-HANS
+
+API family 会整合来源数据，并以统一的 schema 提供：即名称与惯例一致的数据结构。
+
 # Basemap
 
 ## v1
@@ -193,19 +210,23 @@ set 的发布与变体的已发布规则。它使必要输入、时间规则及�
 ### EN
 
 A domain is an independently versioned lineage of records with its own identity and
-hierarchy rules. For example there are many ways to create 'divisions' in Hong Kong:
-based on topographical names, planning units, or district council constituent areas.
-These divisions are mutually exclusive and don't form part of the same hierarchy, so
-each is relegated to their own domain. Records from different domains are never silently
-combined.
+hierarchy rules. When data sources aren't strictly compatible (for example, different
+perspectives on a 'division'), sources are made available as a domain within the family.
+For example, the Planning Unit domain in the Divisions API uses different boundaries
+than the Census does, so they are offered as distinct domains within one family. Records
+from different domains are never silently combined.
 
 ### ZH-HANT
 
-domain 是具有自身身分及層級規則、可獨立版本化的記錄譜系。例如，香港的「區劃」可按地名、規劃單元或區議會選區劃分。這些區劃互不相容，亦不屬於同一層級結構，因此各自歸入不同的 domain。不同 domain 的記錄絕不會被靜默合併。
+domain 是具有自身身分及層級規則、可獨立版本化的記錄譜系。當來源資料並不完全相容（例如對「區劃」有不同的界定方式），它們會作為同一 API
+family 內的 domain 提供。例如，Divisions
+API 的規劃單元 domain 使用的邊界與人口普查不同，因此會在同一 family 中作為不同 domain 提供。不同 domain 的記錄絕不會被靜默合併。
 
 ### ZH-HANS
 
-domain 是具有自身身份及层级规则、可独立版本化的记录谱系。例如，香港的「区划」可按地名、规划单元或区议会选区划分。这些区划互不相容，也不属于同一层级结构，因此各自归入不同的 domain。不同 domain 的记录绝不会被静默合并。
+domain 是具有自身身份及层级规则、可独立版本化的记录谱系。当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API
+family 内的 domain 提供。例如，Divisions
+API 的规划单元 domain 使用的边界与人口普查不同，因此会在同一 family 中作为不同 domain 提供。不同 domain 的记录绝不会被静默合并。
 
 # Hong Kong extract
 
