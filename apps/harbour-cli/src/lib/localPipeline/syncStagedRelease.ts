@@ -4,6 +4,7 @@ import {
   metaDatasets,
   metaPublishers,
   metaReleases,
+  metaSourceReleases,
   or,
   toIsoTimestamp,
 } from '@repo/db'
@@ -12,6 +13,10 @@ import {
   resolveSourceSchemaVersion,
   type ResourceType,
 } from '@repo/core'
+import {
+  buildDeterministicSourceReleaseId,
+  buildSourceReleaseCode,
+} from '@repo/core/db/metaRegistry'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import type { MetaDatabase } from '@repo/db'
 
@@ -80,35 +85,47 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     allowOlderMappedRelease: true,
   })
   const processingRules = dataset.processingRules
+  const sourceReleaseCode = buildSourceReleaseCode(
+    release.datasetCode,
+    plan.sourceVersion,
+  )
+  const sourceReleaseId = buildDeterministicSourceReleaseId(sourceReleaseCode)
 
   const result = await runWithWriteRetry(() =>
-    metaDb
-      .insert(metaReleases)
-      .values({
-        id: release.releaseId,
-        datasetId: dataset.id,
-        code: release.releaseCode,
-        resourceType: plan.type,
-        sourceVersion: plan.sourceVersion,
-        sourceSchemaVersion,
-        processingRules,
-        publicationDate: plan.sourceVersion.split('.')[0] ?? null,
-        cohortKey: plan.cohortKey,
-        rawObjectKey: release.rawObjectKey,
-        originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
-        notes: null,
-        status: 'staged',
-        revokedAt: null,
-        revocationReason: null,
-        supersededByReleaseId: null,
-        ingestedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: metaReleases.code,
-        set: {
+    metaDb.transaction(async tx => {
+      await tx
+        .insert(metaSourceReleases)
+        .values({
+          id: sourceReleaseId,
           datasetId: dataset.id,
+          code: sourceReleaseCode,
+          sourceVersion: plan.sourceVersion,
+          sourceSchemaVersion,
+          publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+          cohortKey: plan.cohortKey,
+          rawObjectKey: release.rawObjectKey,
+          originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
+          notes: null,
+          status: 'staged',
+          revokedAt: null,
+          revocationReason: null,
+          supersededBySourceReleaseId: null,
+          processingRules,
+          ingestedAt: now,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoNothing()
+        .run()
+
+      return tx
+        .insert(metaReleases)
+        .values({
+          id: release.releaseId,
+          sourceReleaseId,
+          datasetId: dataset.id,
+          code: release.releaseCode,
+          resourceType: plan.type,
           sourceVersion: plan.sourceVersion,
           sourceSchemaVersion,
           processingRules,
@@ -116,16 +133,41 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           cohortKey: plan.cohortKey,
           rawObjectKey: release.rawObjectKey,
           originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
+          notes: null,
           status: 'staged',
           revokedAt: null,
           revocationReason: null,
           supersededByReleaseId: null,
           ingestedAt: now,
+          createdAt: now,
           updatedAt: now,
-        },
-        where: or(eq(metaReleases.status, 'staged'), eq(metaReleases.status, 'failed')),
-      })
-      .run(),
+        })
+        .onConflictDoUpdate({
+          target: metaReleases.code,
+          set: {
+            sourceReleaseId,
+            datasetId: dataset.id,
+            sourceVersion: plan.sourceVersion,
+            sourceSchemaVersion,
+            processingRules,
+            publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+            cohortKey: plan.cohortKey,
+            rawObjectKey: release.rawObjectKey,
+            originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
+            status: 'staged',
+            revokedAt: null,
+            revocationReason: null,
+            supersededByReleaseId: null,
+            ingestedAt: now,
+            updatedAt: now,
+          },
+          where: or(
+            eq(metaReleases.status, 'staged'),
+            eq(metaReleases.status, 'failed'),
+          ),
+        })
+        .run()
+    }),
   )
   if (result.changes === 0) {
     throw new Error(
