@@ -1,24 +1,39 @@
 <script lang="ts">
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
+import { Popover } from 'bits-ui'
 
 import { Main, Seo, SourceFlowMap, SourcesHeader } from '#lib/bits/index.js'
 import type { SourceFlowInput, SourceFlowLane } from '#lib/bits/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import {
   getSourcesPageData,
   type SourcesPageSource,
 } from '#lib/registry/meta.remote.js'
 import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
+import {
+  getMarkdownTransclusion,
+  getMarkdownTransclusionDisplayTitle,
+} from '#lib/registry/referenceDocs.js'
 import type { LocalisedRow } from '#lib/registry/types.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 
 const sourcesQuery = getSourcesPageData()
 const sourcesPageData = $derived(sourcesQuery.ready ? sourcesQuery.current : undefined)
 let locale = $derived(getCurrentLocale())
+const definitionHref = (id: 'api-family' | 'domain') =>
+  `saanseoi:${locale.toLowerCase()}:definition/${id}/v1`
+let apiFamilyDefinition = $derived(
+  getMarkdownTransclusion(definitionHref('api-family')),
+)
+let domainDefinition = $derived(getMarkdownTransclusion(definitionHref('domain')))
 let showPlanned = $state(true)
 let expandAll = $state(false)
+let sourceSearch = $state('')
+let sourceSearchQuery = $derived(sourceSearch.trim().toLocaleLowerCase(locale))
+let isSourceSearchActive = $derived(sourceSearchQuery.length >= 2)
 const apiFamilyOrder = ['divisions', 'addresses', 'places', 'streets', 'stats'] as const
 const primaryTypeByApiFamily = {
   stats: 'divisionStatistic',
@@ -49,11 +64,6 @@ const sourceCohort = (source: SourcesPageSource) => {
   const sourceName = selectLocalisedRow(source.datasetI18n, locale)?.name ?? ''
   const explicitYear = explicitCohort(source.code) ?? explicitCohort(sourceName)
   if (explicitYear) return explicitYear
-
-  // The remaining C&SD statistics are published against the 2021 census geography.
-  if (source.theme === 'stats' && source.publisherCode === 'hkgov-censtatd') {
-    return '2021'
-  }
 
   return 'CURRENT'
 }
@@ -110,6 +120,17 @@ const publisherName = (source: SourcesPageSource) =>
   selectLocalisedRow(source.publisher?.publisherI18n, locale)?.name ??
   source.publisherCode
 
+const sourceMatchesSearch = (source: SourcesPageSource) => {
+  if (!isSourceSearchActive) return true
+
+  const terms = [
+    ...source.datasetI18n.flatMap(row => [row.name, row.description ?? '']),
+    ...(source.publisher?.publisherI18n ?? []).map(row => row.name),
+  ]
+
+  return terms.some(term => term.toLocaleLowerCase(locale).includes(sourceSearchQuery))
+}
+
 const publisherAccent = (publisherCode: string) => {
   if (publisherCode === 'dpang') return sourceAccentColors.dpang
   if (publisherCode === 'overture') return sourceAccentColors.overture
@@ -118,6 +139,8 @@ const publisherAccent = (publisherCode: string) => {
 }
 
 const sourceDomain = (source: SourcesPageSource, familyType: string) => {
+  if (familyType === 'stats') return source.sourceVariant
+
   if (source.theme !== 'divisions') return 'default'
 
   const publishedDomain = sourceVersion(source)?.releaseAs?.find(
@@ -201,11 +224,9 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
     : apiFamilyOrder.flatMap(familyType => {
         const { domainsByApiFamily, sources } = sourcesPageData
         const primaryType = primaryTypeByApiFamily[familyType]
-        const groupLabel = familyType === 'stats' ? 'cohort' : 'domain'
-        const sourceGroup =
-          familyType === 'stats'
-            ? sourceCohort
-            : (source: SourcesPageSource) => sourceDomain(source, familyType)
+        const groupLabel = 'domain'
+        const sourceGroup = (source: SourcesPageSource) =>
+          sourceDomain(source, familyType)
         const domainMetadata = domainsByApiFamily[familyType]
         const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
         const familySources = sources
@@ -214,28 +235,24 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
               source.theme === familyType &&
               !(familyType === 'addresses' && source.publisherCode === 'overture'),
           )
+          .filter(sourceMatchesSearch)
           .sort((left, right) => {
             const leftGroup = sourceGroup(left)
             const rightGroup = sourceGroup(right)
-            if (familyType === 'stats' && leftGroup !== rightGroup) {
-              return rightGroup.localeCompare(leftGroup, undefined, { numeric: true })
+            const domainOrder = [
+              defaultDomainCode,
+              'default',
+              'overture',
+              'hkgov-pland-pu',
+              'hkgov-pland-new-town',
+              'hkgov-landsd',
+            ]
+            const domainRank = (domain: string) => {
+              const index = domainOrder.indexOf(domain)
+              return index === -1 ? domainOrder.length : index
             }
-            if (familyType !== 'stats') {
-              const domainOrder = [
-                defaultDomainCode,
-                'default',
-                'overture',
-                'hkgov-pland-pu',
-                'hkgov-pland-new-town',
-                'hkgov-landsd',
-              ]
-              const domainRank = (domain: string) => {
-                const index = domainOrder.indexOf(domain)
-                return index === -1 ? domainOrder.length : index
-              }
-              const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
-              if (domainDifference) return domainDifference
-            }
+            const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
+            if (domainDifference) return domainDifference
             const leftIsPrimary = left.resourceTypes.includes(primaryType)
             const rightIsPrimary = right.resourceTypes.includes(primaryType)
             if (leftIsPrimary !== rightIsPrimary) return leftIsPrimary ? -1 : 1
@@ -259,10 +276,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             return [
               {
                 id: `${familyType}:${groupCode}`,
-                label:
-                  familyType === 'stats'
-                    ? groupCode
-                    : domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
+                label: domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
                 primary: sourceFlowInput(primary, primaryType),
                 variants: domainSources
                   .filter(source => source.code !== primary.code)
@@ -272,11 +286,8 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           },
         )
         const defaultDomain =
-          (familyType === 'stats'
-            ? domains.find(domain => domain.label !== 'CURRENT')
-            : domains.find(
-                domain => domain.id === `${familyType}:${defaultDomainCode}`,
-              )) ?? domains[0]
+          domains.find(domain => domain.id === `${familyType}:${defaultDomainCode}`) ??
+          domains[0]
         if (!defaultDomain) return []
 
         return [
@@ -307,13 +318,64 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
 />
 
 <Main variant="page" class="py-14">
-  <SourcesHeader.Root>
-    <SourcesHeader.Path />
-    <SourcesHeader.Title />
-    {#snippet actions()}
-      <SourcesHeader.Controls bind:expandAll bind:showPlanned />
-    {/snippet}
-  </SourcesHeader.Root>
+  <section class="space-y-8">
+    <PageHeader class="max-w-none">
+      <PageTitle>{m.sources_title()}</PageTitle>
+      <PageDescription class="max-w-none">
+        <Popover.Root>
+          <Popover.Trigger openOnHover openDelay={200}>
+            {#snippet child({ props })}
+              <button
+                {...props}
+                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                type="button"
+                aria-label={getMarkdownTransclusionDisplayTitle(apiFamilyDefinition, locale)}
+              >
+                {m.sources_api_families()}
+              </button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              side="bottom"
+              sideOffset={8}
+              collisionPadding={{ right: 16 }}
+              >{@html apiFamilyDefinition?.markdown ?? ''}</Popover.Content
+            >
+          </Popover.Portal>
+        </Popover.Root>
+        {m.sources_api_families_description()}
+        <Popover.Root>
+          <Popover.Trigger openOnHover openDelay={200}>
+            {#snippet child({ props })}
+              <button
+                {...props}
+                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                type="button"
+                aria-label={getMarkdownTransclusionDisplayTitle(domainDefinition, locale)}
+              >
+                {m.sources_domains()}
+              </button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              side="bottom"
+              sideOffset={8}
+              collisionPadding={{ right: 16 }}
+              >{@html domainDefinition?.markdown ?? ''}</Popover.Content
+            >
+          </Popover.Portal>
+        </Popover.Root>
+        {m.sources_domains_description()}
+      </PageDescription>
+    </PageHeader>
+    <div class="flex justify-end">
+      <SourcesHeader.Controls bind:expandAll bind:showPlanned bind:sourceSearch />
+    </div>
+  </section>
 
   {#if sourcesQuery.error}
     <div
@@ -338,7 +400,18 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
     </div>
   {:else if sourcesQuery.ready}
     <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
-      <SourceFlowMap.Root bind:expandAll bind:showPlanned lanes={sourceFlowLanes} />
+      {#if sourceFlowLanes.length}
+        <SourceFlowMap.Root
+          bind:expandAll
+          bind:showPlanned
+          lanes={sourceFlowLanes}
+          sourceFilterActive={isSourceSearchActive}
+        />
+      {:else}
+        <p class="py-12 text-center font-body text-body-lg text-foreground-alt">
+          {m.sources_search_empty()}
+        </p>
+      {/if}
     </div>
   {/if}
 </Main>
