@@ -126,7 +126,7 @@ function createRegistryReleasesDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      sourceReleaseId TEXT,
       role TEXT NOT NULL
     );
 
@@ -650,6 +650,7 @@ function createLatestDatasetLookupDb() {
 
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
+      sourceReleaseId TEXT,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
       resourceType TEXT NOT NULL,
@@ -667,6 +668,28 @@ function createLatestDatasetLookupDb() {
       revocationReason TEXT,
       supersededByReleaseId TEXT,
       ingestedAt TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE sourceReleases (
+      id TEXT PRIMARY KEY,
+      datasetId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      sourceVersion TEXT NOT NULL,
+      sourceSchemaVersion TEXT,
+      publicationDate TEXT,
+      cohortKey TEXT,
+      rawObjectKey TEXT,
+      originalFileName TEXT,
+      releaseNotesUrl TEXT,
+      notes TEXT,
+      status TEXT NOT NULL,
+      revokedAt TEXT,
+      revocationReason TEXT,
+      supersededBySourceReleaseId TEXT,
+      processingRules TEXT,
+      ingestedAt TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
