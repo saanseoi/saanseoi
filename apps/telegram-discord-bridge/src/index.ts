@@ -1,11 +1,13 @@
 import { DurableObject } from 'cloudflare:workers'
 
+import { createGitHubAppJwt } from './githubApp.ts'
 import {
   collectMessagesAfter,
   formatAdminLog,
   formatBody,
   formatGitHubDiscussion,
-  splitTelegramText,
+  formatTelegramHtml,
+  splitTelegramHtml,
   type DiscordMessage,
 } from './messages.ts'
 
@@ -14,6 +16,7 @@ const GITHUB_API = 'https://api.github.com'
 const GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
 const GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
 const GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
+const GITHUB_USER_AGENT = 'SaanSeoi-Announcements-Relay'
 const TELEGRAM_API = 'https://api.telegram.org/bot'
 const MESSAGEABLE_CHANNEL_TYPES = new Set([0, 5, 10, 11, 12])
 const REQUEST_TIMEOUT_MS = 15_000
@@ -360,6 +363,7 @@ export class DiscordBridge extends DurableObject<Env> {
         accept: 'application/vnd.github+json',
         authorization: `Bearer ${await this.getGitHubAccessToken()}`,
         'content-type': 'application/json',
+        'user-agent': GITHUB_USER_AGENT,
       },
       method: 'POST',
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -391,6 +395,7 @@ export class DiscordBridge extends DurableObject<Env> {
             this.env.GITHUB_APP_ID,
             this.env.GITHUB_APP_PRIVATE_KEY_BASE64,
           )}`,
+          'user-agent': GITHUB_USER_AGENT,
         },
         method: 'POST',
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -421,11 +426,12 @@ export class DiscordBridge extends DurableObject<Env> {
 
   private async sendTelegramText(chatId: string, text: string) {
     const messages: TelegramMessage[] = []
-    for (const chunk of splitTelegramText(text)) {
+    for (const chunk of splitTelegramHtml(formatTelegramHtml(text))) {
       messages.push(
         await this.telegram<TelegramMessage>('sendMessage', {
           chat_id: chatId,
-          disable_web_page_preview: true,
+          link_preview_options: { is_disabled: true },
+          parse_mode: 'HTML',
           text: chunk,
         }),
       )
@@ -470,40 +476,6 @@ function channelLabel(channel: DiscordChannel, channels: DiscordChannel[]) {
 
 function delay(milliseconds: number) {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
-
-async function createGitHubAppJwt(appId: string, privateKeyBase64: string) {
-  const issuedAt = Math.floor(Date.now() / 1000) - 60
-  const signingInput = [
-    base64UrlEncode(JSON.stringify({ alg: 'RS256', typ: 'JWT' })),
-    base64UrlEncode(JSON.stringify({ exp: issuedAt + 540, iat: issuedAt, iss: appId })),
-  ].join('.')
-  const key = await crypto.subtle.importKey(
-    'pkcs8',
-    base64ToArrayBuffer(privateKeyBase64),
-    { hash: 'SHA-256', name: 'RSASSA-PKCS1-v1_5' },
-    false,
-    ['sign'],
-  )
-  const signature = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5',
-    key,
-    new TextEncoder().encode(signingInput),
-  )
-  return `${signingInput}.${base64UrlEncode(signature)}`
-}
-
-function base64ToArrayBuffer(value: string) {
-  const decoded = atob(value.replace(/\s/g, ''))
-  return Uint8Array.from(decoded, character => character.charCodeAt(0)).buffer
-}
-
-function base64UrlEncode(value: ArrayBuffer | string) {
-  const bytes =
-    typeof value === 'string' ? new TextEncoder().encode(value) : new Uint8Array(value)
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
 }
 
 export default {
