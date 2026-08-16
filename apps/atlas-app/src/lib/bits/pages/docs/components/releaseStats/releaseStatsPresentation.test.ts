@@ -71,7 +71,17 @@ describe('createReleaseStatsPresentation', () => {
         {
           divisionId: 'district-b',
           name: 'Beta',
-          geometry: { type: 'Polygon', coordinates: [] },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [114.1, 22.3],
+                [114.2, 22.3],
+                [114.2, 22.4],
+                [114.1, 22.3],
+              ],
+            ],
+          },
         },
         {
           divisionId: 'district-a',
@@ -146,6 +156,10 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.geometry?.id).toBe('stats-geometry-statistics')
     expect(model.geometry?.rows.map(row => row.label)).toEqual(['Alpha', 'Beta'])
     expect(model.geometry?.showFeatureCount).toBe(false)
+    expect(model.geometry?.map).toEqual({
+      features: [expect.objectContaining({ id: 'district-b', label: 'Beta' })],
+      values: [{ id: 'district-b', value: 1 }],
+    })
     expect(model.geometry?.rows[0]?.boundarySegmentCount).toBe('4')
     expect(model.geometry?.rows[1]?.area).not.toBe('0')
     expect(model.genericGroups).toEqual([])

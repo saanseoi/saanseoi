@@ -1,6 +1,7 @@
 <script lang="ts">
 import type {
   ReleaseStatsPresentation,
+  ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
@@ -15,7 +16,14 @@ import TypeDistribution from './releaseStatsTypeDistributionSection.svelte'
 let {
   presentation,
   labels,
-}: { presentation: ReleaseStatsPresentation; labels: ReleaseStatsLabels } = $props()
+  locale,
+  districtNames,
+}: {
+  presentation: ReleaseStatsPresentation
+  labels: ReleaseStatsLabels
+  locale: 'en' | 'zh-Hant' | 'zh-Hans'
+  districtNames?: ReleaseStatsDistrictName[]
+} = $props()
 </script>
 <div class="grid gap-6">
   {#if presentation.overview}
@@ -25,7 +33,7 @@ let {
     <District districtDistribution={presentation.districtDistribution} {labels} />
   {/if}
   {#if presentation.geometry}
-    <Geometry geometry={presentation.geometry} {labels} />
+    <Geometry {districtNames} geometry={presentation.geometry} {labels} {locale} />
   {/if}
   {#if presentation.localeCoverage}
     <LocaleCoverage rows={presentation.localeCoverage} {labels} />

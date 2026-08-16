@@ -121,6 +121,7 @@ export type TypeDistributionPresentation = {
 }
 export type GeometryStatisticsPresentation = {
   id: string
+  map?: DistrictDistributionPresentation
   showFeatureCount: boolean
   rows: Array<{
     area?: string
@@ -128,6 +129,7 @@ export type GeometryStatisticsPresentation = {
     boundarySegmentCount: string
     districtId: string
     featureCount: string
+    featureCountValue: number
     label: string
     polygonCount?: string
     unofficial: boolean

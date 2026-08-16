@@ -177,6 +177,7 @@ export function createReleaseStatsPresentation({
               label: district?.name ?? copy.districtFallback(districtId),
               unofficial: district?.unofficial ?? false,
               featureCount: formatReleaseStat(locale, featureCount),
+              featureCountValue: featureCount,
               boundarySegmentCount: formatReleaseStat(locale, boundarySegmentCount),
               ...(polygonCount === undefined
                 ? {}
@@ -197,8 +198,32 @@ export function createReleaseStatsPresentation({
         claim(geometryRows)
         return {
           id: addHeading('stats-geometry-statistics', copy.labels.geometry),
+          map: (() => {
+            const rowByDistrict = new Map(result.map(row => [row.districtId, row]))
+            const features = districtAreas.flatMap(area => {
+              const row = rowByDistrict.get(area.divisionId)
+              return row && area.geometry.coordinates.length
+                ? [
+                    {
+                      id: area.divisionId,
+                      geometry: area.geometry,
+                      label: row.label,
+                    },
+                  ]
+                : []
+            })
+            return features.length
+              ? {
+                  features,
+                  values: features.map(feature => ({
+                    id: feature.id,
+                    value: rowByDistrict.get(feature.id)?.featureCountValue ?? 0,
+                  })),
+                }
+              : undefined
+          })(),
           rows: result,
-          showFeatureCount: new Set(result.map(row => row.featureCount)).size > 1,
+          showFeatureCount: new Set(result.map(row => row.featureCountValue)).size > 1,
         }
       })()
     : undefined

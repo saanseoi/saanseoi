@@ -1,9 +1,12 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { getDistrictGeometryNames } from '#lib/registry/meta.remote.js'
 import type {
   GeometryStatisticsPresentation,
+  ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
+import * as ChoroplethMap from '#lib/bits/components/choroplethMap/index.js'
 import InfoTooltip from './releaseStatsInfoTooltip.svelte'
 import Section from './releaseStatsSection.svelte'
 import Header from './releaseStatsSectionHeader.svelte'
@@ -11,7 +14,14 @@ import Header from './releaseStatsSectionHeader.svelte'
 let {
   geometry,
   labels,
-}: { geometry: GeometryStatisticsPresentation; labels: ReleaseStatsLabels } = $props()
+  locale,
+  districtNames,
+}: {
+  geometry: GeometryStatisticsPresentation
+  labels: ReleaseStatsLabels
+  locale: 'en' | 'zh-Hant' | 'zh-Hans'
+  districtNames?: ReleaseStatsDistrictName[]
+} = $props()
 
 type SortColumn =
   | 'area'
@@ -23,6 +33,49 @@ type SortColumn =
 
 let sortColumn = $state<SortColumn>('district')
 let sortDirection = $state<'ascending' | 'descending'>('ascending')
+let resolvedDistrictNames = $state<ReleaseStatsDistrictName[]>([])
+let nameRequestComplete = $state(false)
+const districtIdsKey = $derived(
+  geometry.rows
+    .map(row => row.districtId)
+    .sort()
+    .join(','),
+)
+const availableDistrictNames = $derived(districtNames ?? resolvedDistrictNames)
+const namesLoading = $derived(
+  districtNames === undefined && !nameRequestComplete && Boolean(districtIdsKey),
+)
+
+$effect(() => {
+  if (districtNames !== undefined) {
+    nameRequestComplete = true
+    return
+  }
+
+  const districtIds = districtIdsKey ? districtIdsKey.split(',') : []
+  if (!districtIds.length) {
+    resolvedDistrictNames = []
+    nameRequestComplete = true
+    return
+  }
+
+  let cancelled = false
+  nameRequestComplete = false
+  void getDistrictGeometryNames({ districtIds, locale })
+    .then(rows => {
+      if (!cancelled) {
+        resolvedDistrictNames = rows
+        nameRequestComplete = true
+      }
+    })
+    .catch(() => {
+      if (!cancelled) nameRequestComplete = true
+    })
+
+  return () => {
+    cancelled = true
+  }
+})
 
 const sortRows = (column: SortColumn) => {
   if (sortColumn === column) {
@@ -34,8 +87,20 @@ const sortRows = (column: SortColumn) => {
   sortDirection = 'ascending'
 }
 
+const rows = $derived.by(() => {
+  const namesByDistrict = new Map(
+    availableDistrictNames.map(district => [district.divisionId, district]),
+  )
+  return geometry.rows.map(row => {
+    const district = namesByDistrict.get(row.districtId)
+    return district
+      ? { ...row, label: district.name ?? row.label, unofficial: district.unofficial }
+      : row
+  })
+})
+
 const sortedRows = $derived(
-  [...geometry.rows].sort((left, right) => {
+  [...rows].sort((left, right) => {
     if (sortColumn === 'district') {
       const difference = left.label.localeCompare(right.label)
       return sortDirection === 'ascending' ? difference : -difference
@@ -187,39 +252,56 @@ const sortedRows = $derived(
         </tr>
       </thead>
       <tbody
+        aria-busy={namesLoading}
         class="divide-y divide-data-outline-variant/60 bg-data-surface-container-lowest"
       >
-        {#each sortedRows as row (row.districtId)}
+        {#if namesLoading}
           <tr>
-            <th class="px-5 py-3 text-left font-semibold text-primary" scope="row">
-              {row.label}
-              {#if row.unofficial}
-                <span
-                  class="ml-2 inline-flex rounded-sm border border-red-600/60 bg-red-100 px-1.5 py-0.5 text-caption font-semibold uppercase tracking-[0.08em] text-red-800 dark:border-red-400/60 dark:bg-red-950/60 dark:text-red-200"
-                >
-                  {labels.geometryUnofficial}
-                </span>
-              {/if}
-            </th>
-            {#if geometry.showFeatureCount}
-              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-                {row.featureCount}
-              </td>
-            {/if}
-            <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-              {row.polygonCount ?? labels.notApplicable}
-            </td>
-            <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-              {row.boundarySegmentCount}
-            </td>
-            <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-              {row.area ?? labels.notApplicable}
-            </td>
-            <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-              {row.boundaryLength}
+            <td class="px-5 py-8" colspan={geometry.showFeatureCount ? 6 : 5}>
+              <span
+                aria-hidden="true"
+                class="block h-4 w-48 animate-pulse rounded-sm bg-data-surface-container-high"
+              ></span>
             </td>
           </tr>
-        {/each}
+        {:else}
+          {#each sortedRows as row (row.districtId)}
+            <tr>
+              <th
+                class="whitespace-nowrap px-5 py-3 text-left font-semibold text-primary"
+                scope="row"
+              >
+                <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                  {row.label}
+                  {#if row.unofficial}
+                    <span
+                      class="rounded-sm border border-red-600/60 bg-red-100 px-1.5 py-0.5 text-caption font-semibold uppercase tracking-[0.08em] text-red-800 dark:border-red-400/60 dark:bg-red-950/60 dark:text-red-200"
+                    >
+                      {labels.geometryUnofficial}
+                    </span>
+                  {/if}
+                </span>
+              </th>
+              {#if geometry.showFeatureCount}
+                <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                  {row.featureCount}
+                </td>
+              {/if}
+              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                {row.polygonCount ?? labels.notApplicable}
+              </td>
+              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                {row.boundarySegmentCount}
+              </td>
+              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                {row.area ?? labels.notApplicable}
+              </td>
+              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                {row.boundaryLength}
+              </td>
+            </tr>
+          {/each}
+        {/if}
       </tbody>
     </table>
   </div>

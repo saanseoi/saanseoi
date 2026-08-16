@@ -265,7 +265,15 @@ let sourceArchiveUrl = $derived.by(() => {
 let versions = $derived(
   (source.sourceVersions ?? []).map((item, index, releases) => ({
     code: item.code,
-    href: `/sources/${source.code}/${item.code}${showNoteDiff && index < releases.length - 1 ? '?view=diff' : ''}`,
+    href: (() => {
+      const searchParams = new URLSearchParams()
+      if (activeTab !== 'notes') searchParams.set('tab', activeTab)
+      if (activeTab === 'notes' && showNoteDiff && index < releases.length - 1)
+        searchParams.set('view', 'diff')
+
+      const search = searchParams.toString()
+      return `/sources/${source.code}/${item.code}${search ? `?${search}` : ''}`
+    })(),
     label: item.sourceVersion || item.code,
   })),
 )
@@ -286,8 +294,8 @@ function setShowNoteDiff(enabled: boolean) {
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    reset: false,
-    replaceState: true,
+    shallow: true,
+    replace: true,
   })
 }
 function setActiveTab(tab: string) {
@@ -296,7 +304,7 @@ function setActiveTab(tab: string) {
   else url.searchParams.set('tab', tab)
   url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    reset: false,
+    shallow: true,
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
