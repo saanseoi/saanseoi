@@ -61,8 +61,8 @@ let groups = $derived(presentation.groups.filter(group => group.entries.length))
                 class="absolute top-10.5 left-[-1.65rem] z-10 size-2 rounded-full bg-(--release-accent) ring-4 ring-(--release-list-surface)"
                 aria-hidden="true"
               ></span>
-              <ReleaseLinksCard {...entry}>
-                {#if entry.description || entry.request || entry.facts?.length || entry.actions?.length}
+              {#if entry.description || entry.request || entry.facts?.length || entry.actions?.length}
+                <ReleaseLinksCard {...entry}>
                   <div class="grid gap-5">
                     {#if entry.description}
                       <p
@@ -81,8 +81,10 @@ let groups = $derived(presentation.groups.filter(group => group.entries.length))
                     <ReleaseLinksActions actions={entry.actions} />
                     <ReleaseLinksProvenanceFactGrid facts={entry.facts} />
                   </div>
-                {/if}
-              </ReleaseLinksCard>
+                </ReleaseLinksCard>
+              {:else}
+                <ReleaseLinksCard {...entry} />
+              {/if}
             </div>
           {/each}
         </div>
