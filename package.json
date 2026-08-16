@@ -17,7 +17,7 @@
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
     "upload": "./bin/saanseoi upload",
-    "dataops": "SAANSEOI_INVOCATION_CWD=\"$PWD\" bun --env-file=.env --env-file=.env.local --cwd ./apps/harbour-dataops ./src/cli.ts",
+    "dataops": "SAANSEOI_INVOCATION_CWD=\"$PWD\" bun --env-file=\"$PWD/.env\" --env-file=\"$PWD/.env.local\" --cwd ./apps/harbour-dataops ./src/cli.ts",
     "bridge:telegram-discord": "bun run --cwd ./apps/telegram-discord-bridge deploy",
     "datasets:update": "./bin/saanseoi update",
     "upload:preview": "./bin/saanseoi upload --target preview",
