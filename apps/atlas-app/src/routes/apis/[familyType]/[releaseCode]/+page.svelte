@@ -18,6 +18,7 @@ import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n
 import {
   getApiReleasePageData,
   getDistrictCoverageMapData,
+  getDistrictGeometryNames,
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
@@ -35,6 +36,7 @@ import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/rele
 import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
@@ -105,6 +107,16 @@ const isDistrictGeometry = (
         (geometry as { type?: unknown }).type === 'MultiPolygon'),
   )
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
+let districtNames = $state<ReleaseStatsDistrictName[]>([])
+let districtGeometryIds = $derived([
+  ...new Set(
+    (release.stats ?? []).flatMap(row =>
+      row.dimension === 'geometry' && row.groupBy === 'district' && row.groupValue
+        ? [row.groupValue]
+        : [],
+    ),
+  ),
+])
 
 $effect(() => {
   const request = districtMapData
@@ -131,6 +143,30 @@ $effect(() => {
     })
     .catch(() => {
       if (!cancelled) districtAreas = []
+    })
+
+  return () => {
+    cancelled = true
+  }
+})
+
+$effect(() => {
+  const request =
+    activeTab === 'stats' && districtGeometryIds.length
+      ? getDistrictGeometryNames({ districtIds: districtGeometryIds, locale })
+      : null
+  let cancelled = false
+  if (!request) {
+    districtNames = []
+    return
+  }
+
+  void request
+    .then(rows => {
+      if (!cancelled) districtNames = rows
+    })
+    .catch(() => {
+      if (!cancelled) districtNames = []
     })
 
   return () => {
@@ -185,6 +221,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     geometryArea: m.source_geometry_area(),
     geometryBoundarySegments: m.source_geometry_boundary_segments(),
     geometryBoundaryLength: m.source_geometry_boundary_length(),
+    geometryUnofficial: m.source_geometry_unofficial(),
     notApplicable: m.source_not_applicable(),
   },
 
@@ -238,6 +275,13 @@ function setShowNoteDiff(enabled: boolean) {
     replaceState: true,
   })
 }
+function setActiveTab(tab: string) {
+  const url = new URL(page.url.href)
+  url.hash = tab === 'notes' ? '' : tab
+  void goto(`${url.pathname}${url.search}${url.hash}`, {
+    reset: false,
+  })
+}
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
   { id: 'stats', label: m.api_release_stats() },
@@ -246,6 +290,11 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
+
+$effect(() => {
+  const tab = page.url.hash.slice(1)
+  activeTab = tabs.some(({ id }) => id === tab) ? tab : 'notes'
+})
 
 let actions = $derived<ReleaseNavAction[]>(
   activeTab === 'notes' && versions[1]
@@ -345,6 +394,7 @@ $effect(() => {
     {actions}
     versionTitle={m.api_release_versions()}
     {tabs}
+    onTabChange={setActiveTab}
     bind:activeTab
   >
     {#if activeTab === 'notes'}
@@ -373,6 +423,7 @@ $effect(() => {
       <ReleaseStats.Root
         stats={release.stats}
         {districtAreas}
+        {districtNames}
         {locale}
         presentation={statsPresentation}
         bind:headings={statsHeadings}
