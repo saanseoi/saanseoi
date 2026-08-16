@@ -47,7 +47,7 @@ let allDetailsOpen = $state(false)
     {@render description()}
   {/if}
   <dl
-    class="mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3 lg:grid-cols-[11rem_max-content_max-content]"
+    class="mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3 lg:grid-cols-[11rem_minmax(0,1fr)_minmax(0,1fr)]"
   >
     {#each details as detail}
       {#if detail.disclosure?.length}
@@ -64,7 +64,7 @@ let allDetailsOpen = $state(false)
             {detail.label}
           </dt>
           <dd
-            class={`mt-2 text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
+            class={`mt-2 min-w-0 wrap-break-word text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
           >
             {#if detail.href}
               <a
