@@ -332,7 +332,9 @@ const releaseCarouselItems = $derived(
     kind: 'api' as const,
     release,
     displayDate: displayDate(release.publishedAt ?? release.createdAt),
-    displayCode: releaseDisplayCode(release.code, release.apiFamily),
+    displayCode:
+      release.displayCode ?? releaseDisplayCode(release.code, release.apiFamily),
+    href: release.href,
     records: releaseRecordCount(release),
   })),
 )
