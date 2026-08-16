@@ -20,7 +20,11 @@ the SaanSeoi server: `#general`, `#datasets`, `#mapping`, `#feedback`, `#help`,
 `#rules`, `#welcome`, `#announcements`, `#jobs`, `#system` and `#releases`. It does not
 replay messages that were already present when a channel first acquired a cursor. A
 message sent after that first poll is included in the private Telegram log, even if its
-Discord body is empty (for example, a join or other Discord system message).
+Discord body is empty. Discord cards, link previews, attachment links and stickers are
+rendered into plain Telegram text. Join events are rendered as `[Joined the server]`. An
+ordinary Discord message whose API payload has no text, attachment, embed or sticker is
+genuinely empty; a member's Discord profile or custom status is not message content and
+cannot be mirrored.
 
 ## Discord administration
 
@@ -161,16 +165,10 @@ after publishing.
 
 ## First production deployment
 
-After completing the Discord and GitHub setup, use a temporary `.env` file containing
-all nine secrets. Do not use individual `wrangler secret put` commands for this initial
-setup: each one creates a new live Worker version. From `apps/telegram-discord-bridge`:
-
-```fish
-set secrets_file (mktemp --suffix=.env)
-$EDITOR $secrets_file
-```
-
-Enter these lines in the temporary file, then save it:
+After completing the Discord and GitHub setup, keep all nine secrets in the ignored
+`apps/telegram-discord-bridge/.dev.vars` file. Do not use individual
+`wrangler secret put` commands for initial setup: each one creates a new live Worker
+version. Its complete shape is:
 
 ```dotenv
 DISCORD_BOT_TOKEN=
@@ -189,13 +187,27 @@ deployment. It uploads the code and all nine encrypted secrets together; it has 
 preview or local target.
 
 ```fish
-bunx wrangler deploy --secrets-file $secrets_file --minify
-rm -- $secrets_file
+bunx wrangler deploy --secrets-file .dev.vars --minify
 ```
 
 Later deployments made by GitHub Actions preserve these Worker secrets. For a future
 secret rotation, use `bunx wrangler secret put SECRET_NAME` from this same directory;
 that also targets the production Worker directly.
+
+### Adding GitHub delivery to an existing bridge
+
+For an already deployed bridge with its Discord and Telegram secrets in place, add the
+three GitHub values to `.dev.vars`. `wrangler deploy --secrets-file .dev.vars` applies
+the values additively, so it leaves the existing six production secrets unchanged:
+
+```dotenv
+GITHUB_APP_ID=1234567
+GITHUB_APP_INSTALLATION_ID=12345678
+GITHUB_APP_PRIVATE_KEY_BASE64=base64-encoded-private-key-on-one-line
+```
+
+The final value is the Base64 encoding of the downloaded `.pem` file, not the PEM text
+itself. Keep `.dev.vars` at mode `0600` and never commit it.
 
 ## Scheduled job records
 
