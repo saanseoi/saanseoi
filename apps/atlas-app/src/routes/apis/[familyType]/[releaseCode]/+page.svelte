@@ -75,7 +75,14 @@ let notesPresentation = $derived(
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
-let activeTab = $state('notes')
+type ApiReleaseTab = 'notes' | 'stats' | 'audit' | 'sources'
+const getApiReleaseTabFromUrl = (): ApiReleaseTab => {
+  const tab = page.url.searchParams.get('tab') ?? ''
+  return ['notes', 'stats', 'audit', 'sources'].includes(tab)
+    ? (tab as ApiReleaseTab)
+    : 'notes'
+}
+let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl())
 let activeHeadingId = $state<string | null>(null)
 let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
@@ -277,7 +284,9 @@ function setShowNoteDiff(enabled: boolean) {
 }
 function setActiveTab(tab: string) {
   const url = new URL(page.url.href)
-  url.hash = tab === 'notes' ? '' : tab
+  if (tab === 'notes') url.searchParams.delete('tab')
+  else url.searchParams.set('tab', tab)
+  url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
     reset: false,
   })
@@ -292,7 +301,7 @@ let tabs = $derived<ReleaseNavTab[]>([
 ])
 
 $effect(() => {
-  const tab = page.url.hash.slice(1)
+  const tab = getApiReleaseTabFromUrl()
   activeTab = tabs.some(({ id }) => id === tab) ? tab : 'notes'
 })
 
