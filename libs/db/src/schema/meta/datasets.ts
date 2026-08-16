@@ -124,10 +124,69 @@ export const metaDatasetTransforms = sqliteTable(
   ],
 )
 
+/**
+ * One immutable publisher artefact/version. A source release can materialise
+ * more than one resource type, so it owns the upstream metadata and archive
+ * independently from its resource releases.
+ */
+export const metaSourceReleases = sqliteTable(
+  'sourceReleases',
+  {
+    id: primaryUuid('id'),
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+    code: text('code').notNull().unique(),
+    sourceVersion: text('sourceVersion').notNull(),
+    sourceSchemaVersion: text('sourceSchemaVersion'),
+    publicationDate: text('publicationDate'),
+    cohortKey: text('cohortKey'),
+    rawObjectKey: text('rawObjectKey'),
+    originalFileName: text('originalFileName'),
+    releaseNotesUrl: text('releaseNotesUrl'),
+    notes: text('notes'),
+    status: text('status', { enum: releaseStatuses }).notNull(),
+    revokedAt: isoTimestamp('revokedAt'),
+    revocationReason: text('revocationReason'),
+    supersededBySourceReleaseId: text('supersededBySourceReleaseId'),
+    // Copied from the dataset when this immutable source release is created.
+    // Do not rebuild a historic audit from later dataset metadata or later
+    // merge-ruleset revisions.
+    processingRules: jsonText('processingRules'),
+    ingestedAt: isoTimestamp('ingestedAt'),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('sourceReleases_datasetId_sourceVersion_unique_idx').on(
+      table.datasetId,
+      table.sourceVersion,
+    ),
+    uniqueIndex('sourceReleases_id_datasetId_unique_idx').on(table.id, table.datasetId),
+    foreignKey({
+      columns: [table.supersededBySourceReleaseId],
+      foreignColumns: [table.id],
+      name: 'sourceReleases_supersededBySourceReleaseId_sourceReleases_id_fk',
+    }).onDelete('set null'),
+    index('sourceReleases_status_idx').on(table.status),
+    index('sourceReleases_supersededBySourceReleaseId_idx').on(
+      table.supersededBySourceReleaseId,
+    ),
+  ],
+)
+
+/**
+ * One independently processed resource materialisation of a source release.
+ * A Planning Department source release, for example, produces both division
+ * and division-area resources while retaining a single upstream archive,
+ * version, changelog, and source-release code.
+ */
 export const metaReleases = sqliteTable(
   'releases',
   {
     id: primaryUuid('id'),
+    sourceReleaseId: text('sourceReleaseId')
+      .notNull()
+      .references(() => metaSourceReleases.id, { onDelete: 'restrict' }),
     datasetId: text('datasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
@@ -153,6 +212,7 @@ export const metaReleases = sqliteTable(
     ...timestamps,
   },
   table => [
+    index('releases_sourceReleaseId_idx').on(table.sourceReleaseId),
     uniqueIndex('releases_datasetId_resourceType_sourceVersion_unique_idx').on(
       table.datasetId,
       table.resourceType,
