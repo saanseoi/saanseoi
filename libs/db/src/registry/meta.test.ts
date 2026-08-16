@@ -104,6 +104,18 @@ describe('fixture version hashes', () => {
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
     ).toMatchObject({ defaultDomainCode: 'census' })
+    expect(
+      censtatdStats.every(dataset =>
+        dataset.processingRules?.rulesets.some(
+          ruleset =>
+            ruleset.rulesetVersion === 'rs-division-statistic-merge-v1' &&
+            ruleset.rules.some(
+              rule =>
+                rule.operationCode === 'normalise_censtatd_statistic_source_assertion',
+            ),
+        ),
+      ),
+    ).toBe(true)
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
@@ -151,6 +163,10 @@ describe('fixture version hashes', () => {
           expect.objectContaining({
             rulesetVersion: 'rs-division-statistic-merge-v1',
             rules: [
+              expect.objectContaining({
+                operationCode: 'normalise_censtatd_statistic_source_assertion',
+                type: 'bulk',
+              }),
               expect.objectContaining({
                 operationCode: 'map_censtatd_district_code_to_canonical_division',
                 type: 'bulk',
