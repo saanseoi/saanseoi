@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onMount, type Component } from 'svelte'
+import { onMount, tick, type Component } from 'svelte'
 
 import { Main, Divider, Seo } from '#lib/bits/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
@@ -12,10 +12,51 @@ let FeatureSection = $state<Component>()
 let PipelineSection = $state<Component>()
 let CommunitySection = $state<Component>()
 
+const landingSectionIds = [
+  'hero',
+  'foundation',
+  'feature',
+  'pipeline',
+  'community',
+] as const
+
 onMount(() => {
   let cancelled = false
   let idleCallback: number | undefined
   let preloadTimer: number | undefined
+  const initialHashTimers: number[] = []
+
+  const scrollToLandingSectionHash = async () => {
+    const targetId = window.location.hash.slice(1)
+    if (
+      !landingSectionIds.includes(targetId as (typeof landingSectionIds)[number]) ||
+      !landingPage
+    ) {
+      return
+    }
+
+    await tick()
+    const target = landingPage.querySelector<HTMLElement>(`#${targetId}`)
+    if (!target) return
+
+    const scrollToTarget = () => {
+      window.scrollTo({
+        top: Math.min(
+          Math.max(0, target.getBoundingClientRect().top + window.scrollY),
+          document.documentElement.scrollHeight - window.innerHeight,
+        ),
+        behavior: 'auto',
+      })
+    }
+
+    // When a lazily loaded landing section is the initial fragment target,
+    // the browser's own fragment restoration can run after the component is
+    // mounted and leave the viewport at the bottom of the document. Reapply
+    // the same precise top alignment once that restoration has settled.
+    scrollToTarget()
+    window.requestAnimationFrame(scrollToTarget)
+    window.setTimeout(scrollToTarget, 750)
+  }
 
   // Keep the hero's image and hydration work alone on the critical path. Each
   // later section is then requested in reading order while the browser is idle.
@@ -41,14 +82,31 @@ onMount(() => {
     const { default: communitySection } = await import(
       '#lib/bits/pages/landing/communitySection.svelte'
     )
-    if (!cancelled) CommunitySection = communitySection
+    if (cancelled) return
+
+    CommunitySection = communitySection
+    await scrollToLandingSectionHash()
   }
 
   const startPreload = () => void preloadSections()
   const scheduleIdleCallback = window.requestIdleCallback as
     | ((callback: () => void, options?: { timeout: number }) => number)
     | undefined
-  if (scheduleIdleCallback) {
+  const initialLandingHash = window.location.hash
+  if (landingSectionIds.some(id => initialLandingHash === `#${id}`)) {
+    startPreload()
+    // A fragment may be resolved again when its deferred section enters the
+    // document. Settle the initial target after each likely render point; a
+    // changed hash is always left alone.
+    for (const delay of [500, 1_250, 2_500]) {
+      initialHashTimers.push(
+        window.setTimeout(() => {
+          if (window.location.hash === initialLandingHash)
+            void scrollToLandingSectionHash()
+        }, delay),
+      )
+    }
+  } else if (scheduleIdleCallback) {
     idleCallback = scheduleIdleCallback(startPreload, { timeout: 1_500 })
   } else {
     preloadTimer = window.setTimeout(startPreload, 0)
@@ -252,11 +310,13 @@ onMount(() => {
   window.addEventListener('touchmove', onTouchMove, { passive: false })
   window.addEventListener('touchend', onTouchEnd, { passive: true })
   window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('hashchange', scrollToLandingSectionHash)
 
   return () => {
     cancelled = true
     if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback)
     if (preloadTimer !== undefined) window.clearTimeout(preloadTimer)
+    for (const timer of initialHashTimers) window.clearTimeout(timer)
     finishSettling()
     window.removeEventListener('wheel', onWheel)
     window.removeEventListener('scroll', resumeSectionScroll)
@@ -265,6 +325,7 @@ onMount(() => {
     window.removeEventListener('touchmove', onTouchMove)
     window.removeEventListener('touchend', onTouchEnd)
     window.removeEventListener('keydown', onKeyDown)
+    window.removeEventListener('hashchange', scrollToLandingSectionHash)
   }
 })
 </script>
@@ -300,29 +361,29 @@ onMount(() => {
 
 <Main class="[--landing-header-height:0px]">
   <div bind:this={landingPage}>
-    <div data-landing-section>
+    <div data-landing-section id="hero">
       <HeroSection />
       <Divider />
     </div>
-    <div data-landing-section>
+    <div data-landing-section id="foundation">
       {#if FoundationSection}
         <FoundationSection />
         <Divider />
       {/if}
     </div>
-    <div data-landing-section>
+    <div data-landing-section id="feature">
       {#if FeatureSection}
         <FeatureSection />
         <Divider />
       {/if}
     </div>
-    <div data-landing-section>
+    <div data-landing-section id="pipeline">
       {#if PipelineSection}
         <PipelineSection />
         <Divider />
       {/if}
     </div>
-    <div data-landing-section>
+    <div data-landing-section id={CommunitySection ? 'community' : undefined}>
       {#if CommunitySection}
         <CommunitySection />
         <Divider />
