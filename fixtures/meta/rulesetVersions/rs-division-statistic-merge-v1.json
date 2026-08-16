@@ -1,0 +1,45 @@
+{
+  "code": "rs-division-statistic-merge-v1",
+  "resourceType": "divisionStatistic",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "C&SD division-statistic merge ruleset.",
+  "mergeRules": [
+    {
+      "operationCode": "map_censtatd_district_code_to_canonical_division",
+      "type": "bulk",
+      "sourceFieldPath": "district_code",
+      "targetFieldPath": "divisionId, districtCode",
+      "condition": "Resolves through the C&SD and HAD district identifier bridge for the release's canonical division snapshot.",
+      "mappings": [
+        {
+          "from": "district_code",
+          "to": "identifierBridges.externalCode where authority = hkgov-censtatd, domain = administrative, resourceType = division, cohortKey = 2021"
+        },
+        {
+          "from": "matching C&SD bridge canonicalId",
+          "to": "divisionId"
+        },
+        {
+          "from": "matching C&SD bridge canonicalId",
+          "to": "identifierBridges.externalCode where authority = hkgov-had, domain = administrative, resourceType = division, cohortKey = 2022 → districtCode"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Maps each C&SD district code to the canonical district code and division ID used by the history observation."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將每個政府統計處地區代碼對應至歷史觀測資料使用的標準地區代碼及區劃 ID。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
+        }
+      ]
+    }
+  ],
+  "versionHash": "sha256:589201154e0df86863aaeec9b092b57d766730ab9842db759b482d654970dab5"
+}
