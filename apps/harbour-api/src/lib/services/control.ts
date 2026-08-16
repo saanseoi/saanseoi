@@ -248,6 +248,19 @@ export async function handlePublishDataset(
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
+    // Division Statistics currently have no API composition or snapshot. Their
+    // source and history shards are nevertheless a complete published release.
+    if (datasetType === 'divisionStatistic') {
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        phase: null,
+        status: 'published',
+      }
+    }
+
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
@@ -821,9 +834,10 @@ async function requireReleaseSetPublicationMetadata(
 }
 
 function getEnglishDomainCopy(value: unknown, domainCode: string) {
+  const composition = parseCompositionI18n(value)
   const translations =
-    value && typeof value === 'object'
-      ? (value as Record<string, unknown>)[domainCode]
+    composition && typeof composition === 'object'
+      ? (composition as Record<string, unknown>)[domainCode]
       : undefined
   const english = Array.isArray(translations)
     ? translations.find(
@@ -847,6 +861,19 @@ function getEnglishDomainCopy(value: unknown, domainCode: string) {
       : ''
 
   return { description, name }
+}
+
+function parseCompositionI18n(value: unknown) {
+  if (typeof value !== 'string') return value
+
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, unknown>)
+      : undefined
+  } catch {
+    return undefined
+  }
 }
 
 async function waitForSnapshotForRelease(
