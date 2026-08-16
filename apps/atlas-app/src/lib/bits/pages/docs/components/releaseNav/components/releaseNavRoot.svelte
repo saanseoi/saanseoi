@@ -26,6 +26,7 @@ type Props = {
   children?: Snippet
   hasContent: boolean
   nestedContent?: boolean
+  onTabChange?: (tab: string) => void
   outline?: ReleaseNavOutlineItem[]
   tabs: ReleaseNavTab[]
   versionTitle: string
@@ -43,6 +44,7 @@ let {
   children,
   hasContent,
   nestedContent = false,
+  onTabChange,
   outline = [],
   tabs,
   versionTitle,
@@ -67,6 +69,7 @@ const nestedScroll = createNestedContentScroll({
 
 async function selectTab(tab: string) {
   activeTab = tab
+  onTabChange?.(tab)
   await tick()
   const content = getReleaseNavContentTarget(contentPanel)
   if (content && content.getBoundingClientRect().top <= 72) {
