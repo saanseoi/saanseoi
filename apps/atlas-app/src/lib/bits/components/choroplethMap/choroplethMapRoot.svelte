@@ -2,6 +2,7 @@
 import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
 import { tick } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { MultiPolygon, Polygon } from 'geojson'
@@ -133,7 +134,7 @@ function updateActiveFeature(event: {
       minZoom={8}
       maxZoom={13}
       attributionControl={false}
-      autoloadGlobalCss={true}
+      autoloadGlobalCss={false}
     >
       <GeoJSONSource id="choropleth-districts" data={sourceData}>
         <FillLayer
