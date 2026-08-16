@@ -8,9 +8,10 @@ import { m } from '#lib/bits/internal/i18n.js'
 type Props = {
   disabled?: boolean
   onselect: (provider: SocialProvider) => void
+  pendingProvider?: SocialProvider | null
 }
 
-let { disabled = false, onselect }: Props = $props()
+let { disabled = false, onselect, pendingProvider = null }: Props = $props()
 
 const providerLabel = (provider: SocialProvider) =>
   provider === 'google'
@@ -22,8 +23,18 @@ const providerLabel = (provider: SocialProvider) =>
 
 <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
   {#each socialProviders as provider (provider.id)}
-    <Button {disabled} onclick={() => onselect(provider.id)} variant="secondary">
-      <Icon icon={provider.icon} class="size-5" />
+    {@const isPending = pendingProvider === provider.id}
+    <Button
+      aria-busy={isPending}
+      {disabled}
+      onclick={() => onselect(provider.id)}
+      variant="secondary"
+    >
+      <Icon
+        icon={isPending ? 'ion:reload-outline' : provider.icon}
+        class="size-5 {isPending ? 'motion-safe:animate-spin' : ''}"
+        aria-hidden="true"
+      />
       {providerLabel(provider.id)}
     </Button>
   {/each}
