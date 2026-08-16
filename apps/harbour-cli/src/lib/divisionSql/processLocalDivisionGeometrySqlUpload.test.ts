@@ -8,6 +8,7 @@ import {
   geometryBuildUpsertSql,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   shouldCompressCanonicalGeometry,
+  shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
@@ -121,6 +122,13 @@ describe('createGeometryChurnCounts', () => {
       removed: 0,
       unchanged: 0,
     })
+  })
+})
+
+describe('exact geometry release statistics', () => {
+  test('C&SD simplified derivatives cannot replace exact release measurements', () => {
+    expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
+    expect(shouldWriteExactGeometryReleaseStats('simplified')).toBe(false)
   })
 })
 

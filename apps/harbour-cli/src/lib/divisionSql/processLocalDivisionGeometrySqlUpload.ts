@@ -32,6 +32,12 @@ import {
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
 } from '@repo/core/pipeline/services/divisionGeometry'
+import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+import {
+  calculateDistrictGeometryStatistics,
+  selectDistrictRelevantGeometryRecords,
+} from '@repo/core/pipeline/services/geometryStats'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import {
   compressJsonBrotli,
   MAX_BROTLI_QUALITY,
@@ -526,17 +532,21 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    await replaceDatasetStats(
-      metaDb,
-      releaseId,
-      await buildGeometryStats(
-        dbContext.currentDb,
+    // A simplified C&SD pass is only a display derivative. Release statistics
+    // are permanently tied to the exact canonical source geometry.
+    if (shouldWriteExactGeometryReleaseStats(previewPlan.transform)) {
+      await replaceDatasetStats(
         metaDb,
-        previewPlan,
-        normalised,
-        writeResult.churn,
-      ),
-    )
+        releaseId,
+        await buildGeometryStats(
+          dbContext.currentDb,
+          metaDb,
+          previewPlan,
+          normalised,
+          writeResult.churn,
+        ),
+      )
+    }
     await replaceReleaseProcessingActions(
       metaDb,
       releaseId,
@@ -1927,7 +1937,6 @@ async function closeChangedRows(
 }
 
 function geometryStatRow(
-  type: GeometryUploadPlan['type'],
   dimension: string,
   metric: string,
   value: number,
@@ -1935,7 +1944,7 @@ function geometryStatRow(
   groupValue: string | null = null,
 ) {
   return {
-    type,
+    type: 'release',
     dimension,
     metric,
     metricUnit: 'count',
@@ -1953,6 +1962,13 @@ export function shouldCompressCanonicalGeometry(
     (source === 'hkgov-censtatd' || source === 'hkgov-pland-pu') &&
     transform === undefined
   )
+}
+
+/** Only the exact source pass owns release-level geometry measurements. */
+export function shouldWriteExactGeometryReleaseStats(
+  transform: GeometryUploadPlan['transform'],
+) {
+  return transform !== 'simplified'
 }
 
 type GeometryChurnCounts = {
@@ -2056,59 +2072,62 @@ async function buildGeometryStats(
   rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
 ) {
+  const districts = await resolveGeometryDistricts(currentDb, metaDb, plan)
+  if (resolveProviderBridgeConfig(plan.source)) {
+    for (const row of rows) {
+      for (const divisionId of divisionReferenceIds(plan.type, row)) {
+        // HAD and C&SD bridges resolve these canonical identifiers directly to
+        // districts, including historical cohorts whose generic hierarchy has
+        // no matching snapshot entry.
+        if (!districts.has(divisionId)) districts.set(divisionId, divisionId)
+      }
+    }
+  }
+  const geometryRows =
+    plan.source === 'overture'
+      ? selectDistrictRelevantGeometryRecords(
+          plan.type,
+          rows.map(row => ({
+            ...row.canonical,
+            geometry: row.canonical.geometry as GeoJsonGeometry,
+          })),
+          districts,
+        ).records
+      : rows.map(row => ({
+          ...row.canonical,
+          geometry: row.canonical.geometry as GeoJsonGeometry,
+        }))
   return [
     ...buildGeometryChurnStatRows(plan.type, churn),
-    ...buildGeometryDistrictDistributionRows(
+    ...buildGeometryReleaseStatsRows(
       plan.type,
-      rows,
-      await resolveGeometryDistricts(currentDb, metaDb, plan),
-      resolveProviderBridgeConfig(plan.source) !== null,
+      calculateDistrictGeometryStatistics(plan.type, geometryRows, districts),
     ),
+    ...buildGeometryDistrictDistributionRows(plan.type, rows, districts),
   ]
 }
 
 function buildGeometryChurnStatRows(
-  type: GeometryUploadPlan['type'],
+  _type: GeometryUploadPlan['type'],
   churn: GeometryChurnCounts,
 ) {
   const rows = [
-    geometryStatRow(type, 'count', 'churn', churn.count),
-    geometryStatRow(type, 'added_count', 'churn', churn.added),
-    geometryStatRow(type, 'changed_count', 'churn', churn.changed),
-    geometryStatRow(type, 'removed_count', 'churn', churn.removed),
-    geometryStatRow(type, 'unchanged_count', 'churn', churn.unchanged),
+    geometryStatRow('count', 'churn', churn.count),
+    geometryStatRow('added_count', 'churn', churn.added),
+    geometryStatRow('changed_count', 'churn', churn.changed),
+    geometryStatRow('removed_count', 'churn', churn.removed),
+    geometryStatRow('unchanged_count', 'churn', churn.unchanged),
   ]
 
   for (const [groupValue, counts] of [...churn.byType].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {
     rows.push(
-      geometryStatRow(type, 'count', 'churn', counts.count, 'type', groupValue),
-      geometryStatRow(type, 'added_count', 'churn', counts.added, 'type', groupValue),
-      geometryStatRow(
-        type,
-        'changed_count',
-        'churn',
-        counts.changed,
-        'type',
-        groupValue,
-      ),
-      geometryStatRow(
-        type,
-        'removed_count',
-        'churn',
-        counts.removed,
-        'type',
-        groupValue,
-      ),
-      geometryStatRow(
-        type,
-        'unchanged_count',
-        'churn',
-        counts.unchanged,
-        'type',
-        groupValue,
-      ),
+      geometryStatRow('count', 'churn', counts.count, 'type', groupValue),
+      geometryStatRow('added_count', 'churn', counts.added, 'type', groupValue),
+      geometryStatRow('changed_count', 'churn', counts.changed, 'type', groupValue),
+      geometryStatRow('removed_count', 'churn', counts.removed, 'type', groupValue),
+      geometryStatRow('unchanged_count', 'churn', counts.unchanged, 'type', groupValue),
     )
   }
 
@@ -2120,13 +2139,31 @@ async function resolveGeometryDistricts(
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
 ) {
-  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-    metaDb,
-    'division',
-    plan.regionCode,
-    plan.cohortKey,
-  )
-  if (!snapshot) return new Map<string, string>()
+  if (resolveProviderBridgeConfig(plan.source)) {
+    // HAD and C&SD geometries are normalised through cohort-scoped identifier
+    // bridges to canonical district IDs. No unrelated division snapshot may
+    // replace that reviewed source mapping.
+    return new Map<string, string>()
+  }
+  const snapshot =
+    (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      metaDb,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { variant: plan.source },
+    )) ??
+    (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      metaDb,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+    ))
+  if (!snapshot) {
+    throw new Error(
+      `No published division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; geometry statistics require versioned district assignments.`,
+    )
+  }
 
   const divisions = await currentDb
     .select({
@@ -2161,16 +2198,13 @@ function buildGeometryDistrictDistributionRows(
   type: GeometryUploadPlan['type'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   districtsByDivisionId: Map<string, string>,
-  directDistrictReferences = false,
 ) {
   const counts = new Map<string, number>()
 
   for (const row of rows) {
     const districts = new Set(
       divisionReferenceIds(type, row)
-        .map(
-          id => districtsByDivisionId.get(id) ?? (directDistrictReferences ? id : null),
-        )
+        .map(id => districtsByDivisionId.get(id))
         .filter((id): id is string => Boolean(id)),
     )
     for (const districtId of districts) {
@@ -2181,7 +2215,7 @@ function buildGeometryDistrictDistributionRows(
   return [...counts.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([groupValue, value]) =>
-      geometryStatRow(type, 'records', 'distribution', value, 'district', groupValue),
+      geometryStatRow('records', 'distribution', value, 'district', groupValue),
     )
 }
 
