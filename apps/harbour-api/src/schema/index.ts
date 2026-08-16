@@ -314,10 +314,25 @@ export const ReconcileDraftReleaseSetsRequestSchema = z
   })
   .openapi('HarbourReconcileDraftReleaseSetsRequest')
 
+const ReleaseSetPublicationSchema = z.object({
+  apiCatalogRevisionCode: z.string().optional(),
+  apiFamily: z.string(),
+  apiReleaseSetCode: z.string(),
+  cohortKey: z.string().nullable(),
+  description: z.string(),
+  domainCode: z.string(),
+  domainName: z.string(),
+  publishedAt: z.string(),
+  publisherName: z.string(),
+  regionCode: z.string(),
+  revision: z.number().int().nonnegative(),
+})
+
 export const ReconcileDraftReleaseSetsResponseSchema = z
   .object({
     inspected: z.number().int().nonnegative(),
     pendingReleaseSetCodes: z.array(z.string()),
+    publishedReleaseSetPublications: z.array(ReleaseSetPublicationSchema),
     publishedReleaseSetCodes: z.array(z.string()),
   })
   .openapi('HarbourReconcileDraftReleaseSetsResponse')
@@ -348,14 +363,7 @@ export const ControlResponseSchema = z
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
     apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
-    apiReleaseSetPublications: z
-      .array(
-        z.object({
-          apiCatalogRevisionCode: z.string().optional(),
-          apiReleaseSetCode: z.string(),
-        }),
-      )
-      .optional(),
+    apiReleaseSetPublications: z.array(ReleaseSetPublicationSchema).optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
