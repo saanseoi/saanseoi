@@ -1,5 +1,5 @@
 <script lang="ts">
-import { slide } from 'svelte/transition'
+import { scale } from 'svelte/transition'
 
 import { m } from '#lib/bits/internal/i18n.js'
 import SourceFlowMapConnectors from './sourceFlowMapConnectors.svelte'
@@ -85,7 +85,7 @@ let shouldShowLaneToggle = $derived(
   <section
     bind:this={groupElement}
     class={`source-flow-lane source-flow-lane-${lane.id}`}
-    transition:slide={{ duration: 220, axis: 'y' }}
+    transition:scale={{ duration: 180, start: 0.97 }}
     style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' || lane.id === 'streets' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
     aria-labelledby={`source-flow-${groupId}`}
   >
