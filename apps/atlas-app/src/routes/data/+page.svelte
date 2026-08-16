@@ -739,6 +739,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         <a class="font-body text-label-md font-semibold text-secondary" href="/themes"
           >{m.data_map_styles()}</a
         >
+        <span aria-hidden="true" class="text-foreground-alt">·</span>
         <a
           class="font-body text-label-md font-semibold text-secondary"
           href="/basemaps/get-started"
