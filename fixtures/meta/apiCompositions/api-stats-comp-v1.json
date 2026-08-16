@@ -6,22 +6,22 @@
   "status": "current",
   "domains": [
     {
-      "code": "default",
+      "code": "census",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "Default",
-          "description": "Explore statistics for Hong Kong’s geographical divisions, including population, housing, land area, and other census measures."
+          "name": "Census",
+          "description": "Explore census statistics for Hong Kong’s geographical divisions, including population, housing, land area, and other measures."
         },
         {
           "locale": "zh-hant",
-          "name": "預設",
+          "name": "人口普查",
           "description": "探索香港地理分區的統計資料，包括人口、房屋、土地面積及其他人口普查指標。"
         },
         {
           "locale": "zh-hans",
-          "name": "默认",
+          "name": "人口普查",
           "description": "探索香港地理分区的统计资料，包括人口、房屋、土地面积及其他人口普查指标。"
         }
       ],
@@ -36,5 +36,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:632886cd10963d988e0482e4d0e1d4ccde1c01dcf0fb388bc6b1ecaff20ba6d7"
+  "versionHash": "sha256:12c93a9c4868a571372c1540b08cde6f221967333c12b55d3c54e4c496ae9be1"
 }
