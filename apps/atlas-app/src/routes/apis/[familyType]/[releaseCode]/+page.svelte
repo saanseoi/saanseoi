@@ -18,7 +18,6 @@ import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n
 import {
   getApiReleasePageData,
   getDistrictCoverageMapData,
-  getDistrictGeometryNames,
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
@@ -36,7 +35,6 @@ import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/rele
 import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
-  ReleaseStatsDistrictName,
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
@@ -114,16 +112,6 @@ const isDistrictGeometry = (
         (geometry as { type?: unknown }).type === 'MultiPolygon'),
   )
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
-let districtNames = $state<ReleaseStatsDistrictName[]>([])
-let districtGeometryIds = $derived([
-  ...new Set(
-    (release.stats ?? []).flatMap(row =>
-      row.dimension === 'geometry' && row.groupBy === 'district' && row.groupValue
-        ? [row.groupValue]
-        : [],
-    ),
-  ),
-])
 
 $effect(() => {
   const request = districtMapData
@@ -150,30 +138,6 @@ $effect(() => {
     })
     .catch(() => {
       if (!cancelled) districtAreas = []
-    })
-
-  return () => {
-    cancelled = true
-  }
-})
-
-$effect(() => {
-  const request =
-    activeTab === 'stats' && districtGeometryIds.length
-      ? getDistrictGeometryNames({ districtIds: districtGeometryIds, locale })
-      : null
-  let cancelled = false
-  if (!request) {
-    districtNames = []
-    return
-  }
-
-  void request
-    .then(rows => {
-      if (!cancelled) districtNames = rows
-    })
-    .catch(() => {
-      if (!cancelled) districtNames = []
     })
 
   return () => {
@@ -254,7 +218,15 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
 let versions = $derived(
   domainReleases.map((item, index, releases) => ({
     code: item.code,
-    href: `/apis/${api.familyType}/${item.code}${showNoteDiff && index < releases.length - 1 ? '?view=diff' : ''}`,
+    href: (() => {
+      const searchParams = new URLSearchParams()
+      if (activeTab !== 'notes') searchParams.set('tab', activeTab)
+      if (activeTab === 'notes' && showNoteDiff && index < releases.length - 1)
+        searchParams.set('view', 'diff')
+
+      const search = searchParams.toString()
+      return `/apis/${api.familyType}/${item.code}${search ? `?${search}` : ''}`
+    })(),
     label: getReleaseVersionLabel(item.code, api.familyType),
   })),
 )
@@ -278,8 +250,8 @@ function setShowNoteDiff(enabled: boolean) {
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    reset: false,
-    replaceState: true,
+    shallow: true,
+    replace: true,
   })
 }
 function setActiveTab(tab: string) {
@@ -288,7 +260,7 @@ function setActiveTab(tab: string) {
   else url.searchParams.set('tab', tab)
   url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
-    reset: false,
+    shallow: true,
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
@@ -432,7 +404,6 @@ $effect(() => {
       <ReleaseStats.Root
         stats={release.stats}
         {districtAreas}
-        {districtNames}
         {locale}
         presentation={statsPresentation}
         bind:headings={statsHeadings}
