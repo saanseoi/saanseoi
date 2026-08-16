@@ -2,6 +2,7 @@
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import { source_geometry_district_fallback } from '@repo/i18n/messages'
 import {
   Main,
   ReleaseAudit,
@@ -14,7 +15,10 @@ import {
 } from '#lib/bits/index.js'
 
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
-import { getApiReleasePageData } from '#lib/registry/meta.remote.js'
+import {
+  getApiReleasePageData,
+  getDistrictCoverageMapData,
+} from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
 import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
@@ -28,7 +32,10 @@ import type {
   ReleaseNavTab,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/releaseContentOutline/index.js'
-import type { ReleaseStatsCopy } from '#lib/bits/pages/docs/components/releaseStats/index.js'
+import type {
+  ReleaseStatsCopy,
+  ReleaseStatsDistrictArea,
+} from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
@@ -74,6 +81,9 @@ let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
 let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
+let districtMapData = $derived(
+  activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
+)
 
 const humaniseStat = (value: string | null | undefined) =>
   !value
@@ -83,13 +93,58 @@ const humaniseStat = (value: string | null | undefined) =>
         .replaceAll(/[_-]/g, ' ')
         .replace(/\b\w/g, letter => letter.toUpperCase())
 
+const isDistrictGeometry = (
+  geometry: unknown,
+): geometry is ReleaseStatsDistrictArea['geometry'] =>
+  Boolean(
+    geometry &&
+      typeof geometry === 'object' &&
+      'type' in geometry &&
+      'coordinates' in geometry &&
+      ((geometry as { type?: unknown }).type === 'Polygon' ||
+        (geometry as { type?: unknown }).type === 'MultiPolygon'),
+  )
+let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
+
+$effect(() => {
+  const request = districtMapData
+  let cancelled = false
+  if (!request) {
+    districtAreas = []
+    return
+  }
+
+  void request
+    .then(rows => {
+      if (!cancelled)
+        districtAreas = rows.flatMap(row =>
+          isDistrictGeometry(row.geometry)
+            ? [
+                {
+                  divisionId: row.divisionId,
+                  geometry: row.geometry,
+                  name: row.name,
+                },
+              ]
+            : [],
+        )
+    })
+    .catch(() => {
+      if (!cancelled) districtAreas = []
+    })
+
+  return () => {
+    cancelled = true
+  }
+})
+
 let statsPresentation = $derived<ReleaseStatsCopy>({
   labels: {
     added: m.source_added(),
     changed: m.source_changed(),
     removed: m.source_removed(),
     unchanged: m.source_unchanged(),
-    dataset: m.source_dataset(),
+    dataset: m.source_primary_records(),
     records: m.source_records(),
     overview: m.source_change_summary(),
     changeSummary: m.source_change_summary(),
@@ -106,6 +161,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     addressComponents: 'Address components',
     changeDistribution: m.source_change_distribution(),
     recordsByType: m.source_records_by_type(),
+    recordsByGeometryClass: m.source_records_by_geometry_class(),
     typeLegend: 'Added, changed, removed, and unchanged records',
     changeDistributionInfo: m.source_change_distribution_info(),
     changeDistributionInfoDescription: m.source_change_distribution_info_description(),
@@ -120,6 +176,16 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
     stats: m.source_tab_stats(),
     recordsByDistrict: 'Records by district',
     district: 'District',
+    geometry: m.source_geometry(),
+    geometryByDistrict: m.source_geometry_by_district(),
+    geometryInfo: m.source_geometry_info(),
+    geometryInfoDescription: m.source_geometry_info_description(),
+    geometryFeatures: m.source_geometry_features(),
+    geometryPolygons: m.source_geometry_polygons(),
+    geometryArea: m.source_geometry_area(),
+    geometryBoundarySegments: m.source_geometry_boundary_segments(),
+    geometryBoundaryLength: m.source_geometry_boundary_length(),
+    notApplicable: m.source_not_applicable(),
   },
 
   localeName: code =>
@@ -129,6 +195,8 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       'zh-hans': m.source_locale_zh_hans(),
     })[code] ?? code,
   statLabel: humaniseStat,
+  districtFallback: districtId =>
+    source_geometry_district_fallback({ district: districtId }),
   processingAction: code => {
     const [mode, ...action] = code.split(':')
     return {
@@ -304,6 +372,7 @@ $effect(() => {
     {:else if activeTab === 'stats'}
       <ReleaseStats.Root
         stats={release.stats}
+        {districtAreas}
         {locale}
         presentation={statsPresentation}
         bind:headings={statsHeadings}
