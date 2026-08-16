@@ -2072,6 +2072,12 @@ async function buildGeometryStats(
   rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
 ) {
+  if (!supportsDistrictGeometryStatistics(plan.source)) {
+    // Planning Units/Subunits and New Towns are separate division domains.
+    // Their geometry needs a domain-specific grouping contract rather than a
+    // misleading district assignment, while lifecycle churn remains useful.
+    return buildGeometryChurnStatRows(plan.type, churn)
+  }
   const districts = await resolveGeometryDistricts(currentDb, metaDb, plan)
   if (resolveProviderBridgeConfig(plan.source)) {
     for (const row of rows) {
@@ -2105,6 +2111,10 @@ async function buildGeometryStats(
     ),
     ...buildGeometryDistrictDistributionRows(plan.type, rows, districts),
   ]
+}
+
+function supportsDistrictGeometryStatistics(source: GeometryUploadPlan['source']) {
+  return source === 'hkgov-had' || source === 'hkgov-censtatd' || source === 'overture'
 }
 
 function buildGeometryChurnStatRows(

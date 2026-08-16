@@ -278,7 +278,17 @@ async function listGeometryReleases(
       (row): row is typeof row & { resourceType: GeometryResourceType } =>
         row.resourceType === 'divisionArea' || row.resourceType === 'divisionBoundary',
     )
+    .filter(isDistrictGeometryRelease)
     .sort((left, right) => left.code.localeCompare(right.code))
+}
+
+function isDistrictGeometryRelease(release: BackfillRelease) {
+  return (
+    release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+    release.datasetCode === 'ds-hk-overture-division-area' ||
+    release.datasetCode === 'ds-hk-overture-division-boundary'
+  )
 }
 
 function usesReviewedDistrictBridge(release: BackfillRelease) {
