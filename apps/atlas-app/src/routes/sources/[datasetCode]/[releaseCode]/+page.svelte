@@ -22,7 +22,6 @@ import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/rele
 import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
-  ReleaseStatsDistrictName,
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import {
   buildReleaseNotesPresentation,
@@ -37,7 +36,6 @@ import type {
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import {
   getDistrictCoverageMapData,
-  getDistrictGeometryNames,
   getSourceDatasetPageData,
 } from '#lib/registry/meta.remote.js'
 import { error } from '@sveltejs/kit'
@@ -78,9 +76,14 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
-let activeTab = $state<'notes' | 'released-as' | 'assembled-with' | 'stats' | 'audit'>(
-  'notes',
-)
+type SourceReleaseTab = 'notes' | 'releases' | 'assembly' | 'stats' | 'audit'
+const getSourceReleaseTabFromUrl = (): SourceReleaseTab => {
+  const tab = page.url.searchParams.get('tab') ?? ''
+  return ['notes', 'releases', 'assembly', 'stats', 'audit'].includes(tab)
+    ? (tab as SourceReleaseTab)
+    : 'notes'
+}
+let activeTab = $state<SourceReleaseTab>(getSourceReleaseTabFromUrl())
 let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
 let bulkActions = $derived(
@@ -114,16 +117,6 @@ const isDistrictGeometry = (
         (geometry as { type?: unknown }).type === 'MultiPolygon'),
   )
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
-let districtNames = $state<ReleaseStatsDistrictName[]>([])
-let districtGeometryIds = $derived([
-  ...new Set(
-    (version.stats ?? []).flatMap(row =>
-      row.dimension === 'geometry' && row.groupBy === 'district' && row.groupValue
-        ? [row.groupValue]
-        : [],
-    ),
-  ),
-])
 
 $effect(() => {
   const request = districtMapData
@@ -150,30 +143,6 @@ $effect(() => {
     })
     .catch(() => {
       if (!cancelled) districtAreas = []
-    })
-
-  return () => {
-    cancelled = true
-  }
-})
-
-$effect(() => {
-  const request =
-    activeTab === 'stats' && districtGeometryIds.length
-      ? getDistrictGeometryNames({ districtIds: districtGeometryIds, locale })
-      : null
-  let cancelled = false
-  if (!request) {
-    districtNames = []
-    return
-  }
-
-  void request
-    .then(rows => {
-      if (!cancelled) districtNames = rows
-    })
-    .catch(() => {
-      if (!cancelled) districtNames = []
     })
 
   return () => {
@@ -261,7 +230,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'audit') {
     return Boolean(version.processingActions?.length || bulkActions.length)
   }
-  if (activeTab === 'assembled-with') return Boolean(version.assembledWith?.length)
+  if (activeTab === 'assembly') return Boolean(version.assembledWith?.length)
   return Boolean(version.releaseAs?.length)
 })
 let tocHeadings = $derived(
@@ -323,7 +292,9 @@ function setShowNoteDiff(enabled: boolean) {
 }
 function setActiveTab(tab: string) {
   const url = new URL(page.url.href)
-  url.hash = tab === 'notes' ? '' : tab
+  if (tab === 'notes') url.searchParams.delete('tab')
+  else url.searchParams.set('tab', tab)
+  url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
     reset: false,
   })
@@ -334,15 +305,13 @@ let tabs = $derived<ReleaseNavTab[]>([
   ...(version.processingActions?.length || bulkActions.length
     ? [{ id: 'audit', label: 'Audit' }]
     : []),
-  { id: 'released-as', label: m.source_tab_released_as() },
-  ...(version.assembledWith?.length
-    ? [{ id: 'assembled-with', label: 'Assembly' }]
-    : []),
+  { id: 'releases', label: m.source_tab_released_as() },
+  ...(version.assembledWith?.length ? [{ id: 'assembly', label: 'Assembly' }] : []),
 ])
 
 $effect(() => {
-  const tab = page.url.hash.slice(1)
-  activeTab = tabs.some(({ id }) => id === tab) ? (tab as typeof activeTab) : 'notes'
+  const tab = getSourceReleaseTabFromUrl()
+  activeTab = tabs.some(({ id }) => id === tab) ? tab : 'notes'
 })
 
 let actions = $derived<ReleaseNavAction[]>(
@@ -446,7 +415,6 @@ $effect(() => {
       <ReleaseStats.Root
         stats={version.stats}
         {districtAreas}
-        {districtNames}
         {locale}
         presentation={statsPresentation}
         bind:headings={statsHeadings}
@@ -461,7 +429,7 @@ $effect(() => {
         bind:headings={auditHeadings}
         bind:activeHeadingId={activeAuditHeadingId}
       />
-    {:else if activeTab === 'released-as'}
+    {:else if activeTab === 'releases'}
       <ReleaseLinks.Root>
         <ReleaseLinks.Provenance
           presentation={sourceReleaseLinksPresentation}
