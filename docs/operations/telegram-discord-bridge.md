@@ -112,7 +112,7 @@ Set these as Cloudflare Worker secrets for the production Worker only:
 - `TELEGRAM_LOG_CHAT_ID`: the private Telegram admin-log channel/chat ID.
 - `GITHUB_APP_ID`: the ID of the GitHub App that publishes announcements.
 - `GITHUB_APP_INSTALLATION_ID`: that App's installation ID for `saanseoi/saanseoi`.
-- `GITHUB_APP_PRIVATE_KEY_BASE64`: Base64 encoding of the GitHub App's downloaded PKCS#8
+- `GITHUB_APP_PRIVATE_KEY_BASE64`: Base64 encoding of the GitHub App's downloaded PEM
   private-key file. This stays a single Worker secret without storing a PEM file on the
   Worker filesystem.
 
