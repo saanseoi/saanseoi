@@ -26,6 +26,7 @@ const copy: ReleaseStatsCopy = {
     addressComponents: 'Address components',
     changeDistribution: 'Change distribution',
     recordsByType: 'Records by type',
+    recordsByGeometryClass: 'Records by geometry class',
     typeLegend: 'Type legend',
     changeDistributionInfo: 'Distribution info',
     changeDistributionInfoDescription: 'Distribution details',
@@ -40,8 +41,19 @@ const copy: ReleaseStatsCopy = {
     stats: 'Stats',
     recordsByDistrict: 'Records by district',
     district: 'District',
+    geometry: 'Geometry',
+    geometryByDistrict: 'By District',
+    geometryInfo: 'About geometry measurements',
+    geometryInfoDescription: 'Geometry details',
+    geometryFeatures: 'Features',
+    geometryPolygons: 'Polygons',
+    geometryArea: 'Area',
+    geometryBoundarySegments: 'Boundary segments',
+    geometryBoundaryLength: 'Boundary length',
+    notApplicable: 'Not applicable',
   },
   localeName: value => value,
+  districtFallback: districtId => `District ${districtId}`,
   statLabel: value => value ?? 'Unspecified',
   processingAction: code => ({ issue: code, outcome: 'Processed', mode: 'Automatic' }),
 }
@@ -50,6 +62,141 @@ const present = (
 ) => createReleaseStatsPresentation({ stats, locale: 'en', copy })
 
 describe('createReleaseStatsPresentation', () => {
+  test('presents geometry facts in a name-sorted district table and claims the rows', () => {
+    const model = createReleaseStatsPresentation({
+      locale: 'en',
+      copy,
+      districtAreas: [
+        {
+          divisionId: 'district-b',
+          name: 'Beta',
+          geometry: { type: 'Polygon', coordinates: [] },
+        },
+        {
+          divisionId: 'district-a',
+          name: 'Alpha',
+          geometry: { type: 'Polygon', coordinates: [] },
+        },
+      ],
+      stats: [
+        {
+          dimension: 'geometry',
+          metric: 'feature_count',
+          value: 1,
+          groupBy: 'district',
+          groupValue: 'district-b',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'polygon_count',
+          value: 2,
+          groupBy: 'district',
+          groupValue: 'district-b',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'area',
+          metricUnit: 'square_kilometres',
+          value: 0.00012,
+          groupBy: 'district',
+          groupValue: 'district-b',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_segment_count',
+          metricUnit: 'count',
+          value: 8,
+          groupBy: 'district',
+          groupValue: 'district-b',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_length',
+          metricUnit: 'kilometres',
+          value: 0.0045,
+          groupBy: 'district',
+          groupValue: 'district-b',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'feature_count',
+          value: 1,
+          groupBy: 'district',
+          groupValue: 'district-a',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_segment_count',
+          metricUnit: 'count',
+          value: 4,
+          groupBy: 'district',
+          groupValue: 'district-a',
+        },
+        {
+          dimension: 'geometry',
+          metric: 'boundary_length',
+          metricUnit: 'kilometres',
+          value: 1,
+          groupBy: 'district',
+          groupValue: 'district-a',
+        },
+      ],
+    })
+    expect(model.geometry?.id).toBe('stats-geometry-statistics')
+    expect(model.geometry?.rows.map(row => row.label)).toEqual(['Alpha', 'Beta'])
+    expect(model.geometry?.showFeatureCount).toBe(false)
+    expect(model.geometry?.rows[0]?.boundarySegmentCount).toBe('4')
+    expect(model.geometry?.rows[1]?.area).not.toBe('0')
+    expect(model.genericGroups).toEqual([])
+  })
+
+  test('keeps the feature column when districts have different feature counts', () => {
+    const model = present([
+      {
+        dimension: 'geometry',
+        metric: 'feature_count',
+        value: 1,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_segment_count',
+        value: 4,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_length',
+        value: 1,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'feature_count',
+        value: 2,
+        groupBy: 'district',
+        groupValue: 'district-b',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_segment_count',
+        value: 8,
+        groupBy: 'district',
+        groupValue: 'district-b',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_length',
+        value: 2,
+        groupBy: 'district',
+        groupValue: 'district-b',
+      },
+    ])
+    expect(model.geometry?.showFeatureCount).toBe(true)
+  })
   test('distinguishes an all-new baseline from a prior-release churn summary', () => {
     expect(
       present([
@@ -115,7 +262,7 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.quality?.issues).toHaveLength(1)
   })
 
-  test('uses a source/table record count fallback when churn is absent', () => {
+  test('uses a source/table record count fallback without showing its supporting table row', () => {
     const model = present([
       {
         dimension: 'records',
@@ -128,6 +275,72 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.overview?.recordCount).toBe('7')
     expect(model.overview?.churn).toBeUndefined()
     expect(model.districtDistribution).toBeUndefined()
+    expect(model.genericGroups).toHaveLength(0)
+  })
+
+  test('keeps primary and localised table counts together when the primary total is available', () => {
+    const model = present([
+      { dimension: 'records', metric: 'count', value: 7 },
+      {
+        dimension: 'records',
+        metric: 'count',
+        groupBy: 'table',
+        groupValue: 'divisions',
+        value: 7,
+      },
+      {
+        dimension: 'localised_records',
+        metric: 'count',
+        groupBy: 'table',
+        groupValue: 'divisionsI18n',
+        value: 21,
+      },
+    ])
+    expect(model.overview?.recordCount).toBe('7')
+    expect(model.genericGroups).toEqual([
+      expect.objectContaining({
+        label: 'table',
+        rows: expect.arrayContaining([
+          expect.objectContaining({ groupValue: 'divisions', value: '7' }),
+          expect.objectContaining({ groupValue: 'divisionsI18n', value: '21' }),
+        ]),
+      }),
+    ])
+  })
+
+  test('renders record distributions as bars and keeps district identifiers out of generic cards', () => {
+    const model = present([
+      { dimension: 'records', metric: 'count', value: 10 },
+      {
+        dimension: 'records',
+        metric: 'count',
+        groupBy: 'divisionType',
+        groupValue: 'district',
+        value: 8,
+      },
+      {
+        dimension: 'records',
+        metric: 'count',
+        groupBy: 'level',
+        groupValue: '2',
+        value: 8,
+      },
+      {
+        dimension: 'records',
+        metric: 'distribution',
+        groupBy: 'district',
+        groupValue: 'opaque-id',
+        value: 8,
+      },
+    ])
+    expect(model.recordDistributions.map(distribution => distribution.title)).toEqual([
+      'divisionType',
+      'level',
+    ])
+    expect(
+      model.recordDistributions.every(distribution => !distribution.showChangeLegend),
+    ).toBe(true)
+    expect(model.genericGroups).toHaveLength(0)
   })
 
   test('keeps unknown and unrendered dimensions in generic groups with stable unique IDs', () => {
@@ -158,9 +371,7 @@ describe('createReleaseStatsPresentation', () => {
     ])
     expect(
       model.genericGroups.flatMap(group => group.rows).map(row => row.dimension),
-    ).toEqual(
-      expect.arrayContaining(['source_metadata', 'strange_dimension', 'records']),
-    )
+    ).toEqual(expect.arrayContaining(['source_metadata', 'strange_dimension']))
     expect(
       model.genericGroups
         .flatMap(group => group.rows)

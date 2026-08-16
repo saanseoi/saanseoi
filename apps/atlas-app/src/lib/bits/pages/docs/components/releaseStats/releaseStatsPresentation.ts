@@ -49,6 +49,9 @@ export function createReleaseStatsPresentation({
 
   const churn = matching(row => row.metric === 'churn' && !row.groupBy)
   const total = valueFor(churn, 'count', 'churn')
+  const primaryRecords = matching(
+    row => row.dimension === 'records' && row.metric === 'count' && !row.groupBy,
+  )[0]
   const fallback = matching(
     row =>
       row.dimension === 'records' &&
@@ -58,7 +61,8 @@ export function createReleaseStatsPresentation({
   const overview = rows.length
     ? (() => {
         if (total !== undefined) claim(churn)
-        if (fallback) claim([fallback])
+        if (primaryRecords) claim([primaryRecords])
+        if (fallback && !primaryRecords) claim([fallback])
         const metrics = (
           [
             ['added_count', 'added', copy.labels.added],
@@ -77,7 +81,10 @@ export function createReleaseStatsPresentation({
         }))
         addHeading('stats-overview', copy.labels.overview ?? copy.labels.dataset)
         return {
-          recordCount: formatReleaseStat(locale, total ?? fallback?.value ?? 0),
+          recordCount: formatReleaseStat(
+            locale,
+            total ?? primaryRecords?.value ?? fallback?.value ?? 0,
+          ),
           ...(total === undefined
             ? {}
             : {
@@ -99,10 +106,10 @@ export function createReleaseStatsPresentation({
       row.groupBy === 'district' &&
       Boolean(row.groupValue),
   )
+  claim(districtRows)
   const districtDistribution =
     districtAreas.length && districtRows.length
       ? (() => {
-          claim(districtRows)
           addHeading('stats-records-by-district', copy.labels.recordsByDistrict)
           return {
             features: districtAreas.map(area => ({
@@ -117,6 +124,68 @@ export function createReleaseStatsPresentation({
           }
         })()
       : undefined
+
+  const geometryRows = matching(
+    row =>
+      row.dimension === 'geometry' &&
+      row.groupBy === 'district' &&
+      Boolean(row.groupValue),
+  )
+  const geometry = geometryRows.length
+    ? (() => {
+        const districts = new Map<string, Row[]>()
+        geometryRows.forEach(row => {
+          const districtId = row.groupValue
+          if (districtId)
+            districts.set(districtId, [...(districts.get(districtId) ?? []), row])
+        })
+        const names = new Map(districtAreas.map(area => [area.divisionId, area.name]))
+        const result = [...districts]
+          .map(([districtId, districtRows]) => {
+            const featureCount = valueFor(districtRows, 'geometry', 'feature_count')
+            const boundarySegmentCount = valueFor(
+              districtRows,
+              'geometry',
+              'boundary_segment_count',
+            )
+            const boundaryLength = valueFor(districtRows, 'geometry', 'boundary_length')
+            if (
+              featureCount === undefined ||
+              boundarySegmentCount === undefined ||
+              boundaryLength === undefined
+            )
+              return undefined
+            const polygonCount = valueFor(districtRows, 'geometry', 'polygon_count')
+            const area = valueFor(districtRows, 'geometry', 'area')
+            return {
+              districtId,
+              label: names.get(districtId) ?? copy.districtFallback(districtId),
+              featureCount: formatReleaseStat(locale, featureCount),
+              boundarySegmentCount: formatReleaseStat(locale, boundarySegmentCount),
+              ...(polygonCount === undefined
+                ? {}
+                : { polygonCount: formatReleaseStat(locale, polygonCount) }),
+              ...(area === undefined
+                ? {}
+                : { area: formatReleaseStat(locale, area, 'square_kilometres') }),
+              boundaryLength: formatReleaseStat(locale, boundaryLength, 'kilometres'),
+            }
+          })
+          .filter((row): row is NonNullable<typeof row> => Boolean(row))
+          .sort(
+            (left, right) =>
+              left.label.localeCompare(right.label, locale) ||
+              left.districtId.localeCompare(right.districtId),
+          )
+        if (!result.length) return undefined
+        claim(geometryRows)
+        return {
+          id: addHeading('stats-geometry-statistics', copy.labels.geometry),
+          rows: result,
+          showFeatureCount: new Set(result.map(row => row.featureCount)).size > 1,
+        }
+      })()
+    : undefined
 
   const localeRows = matching(
     row =>
@@ -184,62 +253,85 @@ export function createReleaseStatsPresentation({
       })()
     : undefined
 
-  const typeRows = matching(
+  const distributionRows = matching(
     row =>
       Boolean(row.groupValue) &&
-      ((row.metric === 'churn' && row.groupBy === 'type') ||
-        (row.dimension === 'records' &&
-          row.metric === 'count' &&
-          row.groupBy === 'type')),
+      row.groupBy !== 'district' &&
+      row.groupBy !== 'table' &&
+      row.groupBy !== 'source' &&
+      (row.metric === 'churn' ||
+        (row.dimension === 'records' && row.metric === 'count')),
   )
-  const typeDistribution = typeRows.length
+  const recordDistributions = distributionRows.length
     ? (() => {
         const groups = new Map<string, Row[]>()
-        typeRows.forEach(row => {
-          const groupValue = row.groupValue
-          if (groupValue) {
-            groups.set(groupValue, [...(groups.get(groupValue) ?? []), row])
-          }
+        distributionRows.forEach(row => {
+          const groupBy = row.groupBy
+          if (groupBy) groups.set(groupBy, [...(groups.get(groupBy) ?? []), row])
         })
-        const entries = [...groups]
-          .map(([type, group]) => {
-            const unchanged =
-              valueFor(group, 'unchanged_count', 'churn') ??
-              valueFor(group, 'records', 'count') ??
-              0
-            const added = valueFor(group, 'added_count', 'churn') ?? 0
-            const changed = valueFor(group, 'changed_count', 'churn') ?? 0
-            const removed = valueFor(group, 'removed_count', 'churn') ?? 0
-            const total =
-              valueFor(group, 'count', 'churn') ??
-              valueFor(group, 'records', 'count') ??
-              0
+        const presentations = [...groups]
+          .map(([groupBy, groupRows]) => {
+            const values = new Map<string, Row[]>()
+            groupRows.forEach(row => {
+              const groupValue = row.groupValue
+              if (groupValue)
+                values.set(groupValue, [...(values.get(groupValue) ?? []), row])
+            })
+            const rows = [...values]
+              .map(([groupValue, valueRows]) => {
+                const unchanged =
+                  valueFor(valueRows, 'unchanged_count', 'churn') ??
+                  valueFor(valueRows, 'records', 'count') ??
+                  0
+                const added = valueFor(valueRows, 'added_count', 'churn') ?? 0
+                const changed = valueFor(valueRows, 'changed_count', 'churn') ?? 0
+                const removed = valueFor(valueRows, 'removed_count', 'churn') ?? 0
+                const total =
+                  valueFor(valueRows, 'count', 'churn') ??
+                  valueFor(valueRows, 'records', 'count') ??
+                  0
+                return {
+                  label: copy.statLabel(groupValue),
+                  count: formatReleaseStat(locale, total),
+                  total,
+                  added,
+                  changed,
+                  removed,
+                  unchanged,
+                }
+              })
+              .filter(row => row.total > 0)
+              .sort((a, b) => b.total - a.total)
+            if (!rows.length) return undefined
+            const title =
+              groupBy === 'type'
+                ? groupRows.some(row =>
+                    ['land', 'maritime', 'mixed'].includes(row.groupValue ?? ''),
+                  )
+                  ? copy.labels.recordsByGeometryClass
+                  : copy.labels.recordsByType
+                : copy.statLabel(groupBy)
             return {
-              label: copy.statLabel(type),
-              count: formatReleaseStat(locale, total),
-              total,
-              added,
-              changed,
-              removed,
-              unchanged,
+              id: addHeading(sectionId(groupBy), title),
+              title,
+              showChangeLegend: groupRows.some(row => row.metric === 'churn'),
+              rows,
+              maxVolume: Math.max(
+                1,
+                ...rows.map(
+                  row => row.added + row.changed + row.removed + row.unchanged,
+                ),
+              ),
             }
           })
-          .filter(row => row.total > 0)
-          .sort((a, b) => b.total - a.total)
-        if (!entries.length) return undefined
-        claim(typeRows)
-        addHeading('stats-records-by-type', copy.labels.recordsByType)
-        return {
-          rows: entries,
-          maxVolume: Math.max(
-            1,
-            ...entries.map(
-              row => row.added + row.changed + row.removed + row.unchanged,
-            ),
-          ),
-        }
+          .filter((presentation): presentation is NonNullable<typeof presentation> =>
+            Boolean(presentation),
+          )
+        if (!presentations.length) return []
+        claim(distributionRows)
+        return presentations
       })()
-    : undefined
+    : []
 
   const processingRows = matching(
     row => row.metric === 'processing' && row.groupBy === 'action',
@@ -313,7 +405,8 @@ export function createReleaseStatsPresentation({
     districtDistribution,
     localeCoverage,
     componentCoverage,
-    typeDistribution,
+    geometry,
+    recordDistributions,
     processing,
     quality,
     genericGroups,

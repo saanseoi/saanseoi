@@ -18,6 +18,7 @@ export type ReleaseStatsDistrictArea = {
 export type ReleaseStatsCopy = {
   labels: ReleaseStatsLabels
   localeName: (locale: string) => string
+  districtFallback: (districtId: string) => string
   statLabel: (value: string | null | undefined) => string
   processingAction: (code: string) => { issue: string; outcome: string; mode: string }
   qualityDescription?: (dimension: string) => string
@@ -44,6 +45,7 @@ export type ReleaseStatsLabels = {
   addressComponents: string
   changeDistribution: string
   recordsByType: string
+  recordsByGeometryClass: string
   typeLegend: string
   changeDistributionInfo: string
   changeDistributionInfoDescription: string
@@ -58,6 +60,16 @@ export type ReleaseStatsLabels = {
   stats: string
   recordsByDistrict: string
   district: string
+  geometry: string
+  geometryByDistrict: string
+  geometryInfo: string
+  geometryInfoDescription: string
+  geometryFeatures: string
+  geometryPolygons: string
+  geometryArea: string
+  geometryBoundarySegments: string
+  geometryBoundaryLength: string
+  notApplicable: string
 }
 export type ChurnMetricPresentation = {
   key: 'added' | 'changed' | 'removed' | 'unchanged'
@@ -87,6 +99,9 @@ export type ComponentCoveragePresentation = {
   formattedValue: string
 }[]
 export type TypeDistributionPresentation = {
+  id: string
+  title: string
+  showChangeLegend: boolean
   rows: Array<{
     label: string
     count: string
@@ -97,6 +112,19 @@ export type TypeDistributionPresentation = {
     unchanged: number
   }>
   maxVolume: number
+}
+export type GeometryStatisticsPresentation = {
+  id: string
+  showFeatureCount: boolean
+  rows: Array<{
+    area?: string
+    boundaryLength: string
+    boundarySegmentCount: string
+    districtId: string
+    featureCount: string
+    label: string
+    polygonCount?: string
+  }>
 }
 export type ProcessingPresentation = {
   issue: string
@@ -124,7 +152,8 @@ export type ReleaseStatsPresentation = {
   districtDistribution?: DistrictDistributionPresentation
   localeCoverage?: LocaleCoveragePresentation
   componentCoverage?: ComponentCoveragePresentation
-  typeDistribution?: TypeDistributionPresentation
+  geometry?: GeometryStatisticsPresentation
+  recordDistributions: TypeDistributionPresentation[]
   processing?: ProcessingPresentation
   quality?: QualityPresentation
   genericGroups: GenericStatGroupPresentation[]

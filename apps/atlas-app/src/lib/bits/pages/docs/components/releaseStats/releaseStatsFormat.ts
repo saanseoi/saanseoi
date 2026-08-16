@@ -8,4 +8,9 @@ export const formatReleaseStat = (
         maximumFractionDigits: 1,
         style: 'percent',
       }).format(value / 100)
-    : new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value)
+    : new Intl.NumberFormat(
+        locale,
+        unit === 'kilometres' || unit === 'square_kilometres'
+          ? { maximumSignificantDigits: 5 }
+          : { maximumFractionDigits: 2 },
+      ).format(value)
