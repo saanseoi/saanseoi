@@ -21,6 +21,7 @@ let error = $state<string | null>(null)
 let unlinkingAccountId = $state<string | null>(null)
 let removingPasskeyId = $state<string | null>(null)
 let addingPasskey = $state(false)
+let linkingProvider = $state<SocialProvider | null>(null)
 let password = $state('')
 let currentPassword = $state('')
 let passwordMessage = $state<string | null>(null)
@@ -46,7 +47,18 @@ $effect(() => {
 })
 
 const link = async (provider: SocialProvider) => {
-  await authClient.linkSocial({ provider, callbackURL: '/account' })
+  if (linkingProvider) return
+  error = null
+  linkingProvider = provider
+  try {
+    const result = await authClient.linkSocial({ provider, callbackURL: '/account' })
+    if (!result.error) return
+    error = result.error.message ?? m.auth_sign_in_error()
+  } catch {
+    error = m.auth_sign_in_error()
+  }
+
+  linkingProvider = null
 }
 
 const addPasskey = async () => {
@@ -213,10 +225,16 @@ const providerDetails = (providerId: string) =>
               </div>
             </div>
             <Button
+              aria-busy={linkingProvider === provider.id}
+              disabled={linkingProvider !== null}
               onclick={() => link(provider.id as SocialProvider)}
               size="compact"
               variant="primary"
-              >{m.account_connect()}</Button
+              ><Icon
+                icon={linkingProvider === provider.id ? 'ion:reload-outline' : 'ion:link-outline'}
+                class="size-4 {linkingProvider === provider.id ? 'motion-safe:animate-spin' : ''}"
+                aria-hidden="true"
+              />{m.account_connect()}</Button
             >
           </article>
         {/if}
@@ -262,11 +280,16 @@ const providerDetails = (providerId: string) =>
           </div>
         </div>
         <Button
+          aria-busy={addingPasskey}
           disabled={addingPasskey}
           onclick={addPasskey}
           size="compact"
           variant="primary"
-          >{m.account_add_passkey()}</Button
+          ><Icon
+            icon={addingPasskey ? 'ion:reload-outline' : 'ion:key-outline'}
+            class="size-4 {addingPasskey ? 'motion-safe:animate-spin' : ''}"
+            aria-hidden="true"
+          />{m.account_add_passkey()}</Button
         >
       </article>
       {#if !linked('credential')}

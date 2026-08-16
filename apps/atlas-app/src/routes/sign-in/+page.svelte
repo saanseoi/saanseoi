@@ -11,6 +11,8 @@ let email = $state('')
 let password = $state('')
 let error = $state<string | null>(null)
 let busy = $state(false)
+let pendingProvider = $state<SocialProvider | null>(null)
+let passkeyPending = $state(false)
 let showEmailForm = $state(false)
 const next = $derived(page.url.searchParams.get('next') ?? '/api-keys')
 
@@ -24,7 +26,20 @@ const signIn = async () => {
 }
 
 const socialSignIn = async (provider: SocialProvider) => {
-  await authClient.signIn.social({ provider, callbackURL: next })
+  if (busy) return
+  busy = true
+  error = null
+  pendingProvider = provider
+  try {
+    const result = await authClient.signIn.social({ provider, callbackURL: next })
+    if (!result.error) return
+    error = result.error.message ?? m.auth_sign_in_error()
+  } catch {
+    error = m.auth_sign_in_error()
+  }
+
+  busy = false
+  pendingProvider = null
 }
 
 const openEmailForm = () => {
@@ -35,6 +50,7 @@ const openEmailForm = () => {
 const passkeySignIn = async () => {
   if (busy) return
   busy = true
+  passkeyPending = true
   error = null
   try {
     const result = await authClient.signIn.passkey()
@@ -43,6 +59,7 @@ const passkeySignIn = async () => {
   } catch {
     error = m.auth_passkey_error()
   } finally {
+    passkeyPending = false
     busy = false
   }
 }
@@ -61,7 +78,8 @@ const passkeySignIn = async () => {
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.auth_sign_in_description()}
   </p>
-  <AuthSocialButtons disabled={busy} onselect={socialSignIn} />
+  <p class="sr-only" aria-live="polite">{busy ? m.auth_signing_in() : ''}</p>
+  <AuthSocialButtons {pendingProvider} disabled={busy} onselect={socialSignIn} />
   <div class="my-7 flex items-center gap-3" aria-hidden="true">
     <div class="h-px flex-1 bg-border-card"></div>
     <span
@@ -74,8 +92,16 @@ const passkeySignIn = async () => {
     <Button disabled={busy} onclick={openEmailForm} variant="secondary"
       ><Icon icon="ion:mail-outline" class="size-5" />{m.common_email()}</Button
     >
-    <Button disabled={busy} onclick={passkeySignIn} variant="secondary"
-      ><Icon icon="ion:key-outline" class="size-5" />{m.account_passkey()}</Button
+    <Button
+      aria-busy={passkeyPending}
+      disabled={busy}
+      onclick={passkeySignIn}
+      variant="secondary"
+      ><Icon
+        icon={passkeyPending ? 'ion:reload-outline' : 'ion:key-outline'}
+        class="size-5 {passkeyPending ? 'motion-safe:animate-spin' : ''}"
+        aria-hidden="true"
+      />{m.account_passkey()}</Button
     >
   </div>
   {#if showEmailForm}

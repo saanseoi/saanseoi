@@ -13,6 +13,7 @@ let password = $state('')
 let message = $state<string | null>(null)
 let error = $state<string | null>(null)
 let busy = $state(false)
+let pendingProvider = $state<SocialProvider | null>(null)
 let showEmailForm = $state(false)
 let callbackUrl = $derived.by(() => {
   const candidate = page.url.searchParams.get('continue')
@@ -36,7 +37,23 @@ const signUp = async () => {
 }
 
 const socialSignUp = async (provider: SocialProvider) => {
-  await authClient.signIn.social({ provider, callbackURL: callbackUrl })
+  if (busy) return
+  busy = true
+  error = null
+  pendingProvider = provider
+  try {
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: callbackUrl,
+    })
+    if (!result.error) return
+    error = result.error.message ?? m.auth_sign_up_error()
+  } catch {
+    error = m.auth_sign_up_error()
+  }
+
+  busy = false
+  pendingProvider = null
 }
 
 const openEmailForm = () => {
@@ -59,7 +76,10 @@ const openEmailForm = () => {
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.auth_sign_up_description()}
   </p>
-  <AuthSocialButtons disabled={busy} onselect={socialSignUp} />
+  <p class="sr-only" aria-live="polite">
+    {busy ? (pendingProvider ? m.auth_signing_in() : m.auth_creating()) : ''}
+  </p>
+  <AuthSocialButtons {pendingProvider} disabled={busy} onselect={socialSignUp} />
   <div class="my-7 flex items-center gap-3" aria-hidden="true">
     <div class="h-px flex-1 bg-border-card"></div>
     <span
