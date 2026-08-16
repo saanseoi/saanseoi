@@ -348,6 +348,16 @@ function getSourceArchiveReleaseSlot(manifest: unknown) {
 
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
+const districtGeometryNamesSchema = z.object({
+  districtIds: z.array(z.string().trim().min(1).max(200)).max(10_000),
+  locale: districtMapLocaleSchema,
+})
+const D1_DISTRICT_NAME_BATCH_SIZE = 98
+const UNOFFICIAL_DISTRICT_IDS = new Set([
+  // Overture's Lok Ma Chau Loop is a named geographic area, not an official
+  // Hong Kong district. Its localised names remain canonical division data.
+  '222b7818-970a-491d-98b6-b88d8c6f0161',
+])
 
 /**
  * The district-coverage map uses the C&SD 2021 Census District Boundary's
@@ -413,6 +423,68 @@ export const getDistrictCoverageMapData = query(
         localisedNames?.get(row.divisionId) ??
         englishNames?.get(row.divisionId) ??
         null,
+    }))
+  },
+)
+
+/**
+ * Resolves names for district geometry statistics. This intentionally uses
+ * canonical division localisations instead of display geometry, because a
+ * release can contain a district that is not part of the official C&SD map.
+ */
+export const getDistrictGeometryNames = query(
+  districtGeometryNamesSchema,
+  async ({ districtIds, locale }) => {
+    const ids = [...new Set(districtIds)]
+    if (!ids.length) return []
+
+    const i18nLocale = locale.toLowerCase()
+    const { divisionsI18n } = currentSchema
+    const rows = (
+      await Promise.all(
+        Array.from(
+          { length: Math.ceil(ids.length / D1_DISTRICT_NAME_BATCH_SIZE) },
+          (_, index) =>
+            getCurrentDb()
+              .select({
+                divisionId: divisionsI18n.divisionId,
+                locale: divisionsI18n.locale,
+                name: divisionsI18n.name,
+                updatedAt: divisionsI18n.updatedAt,
+              })
+              .from(divisionsI18n)
+              .where(
+                and(
+                  inArray(divisionsI18n.locale, [i18nLocale, 'en']),
+                  inArray(
+                    divisionsI18n.divisionId,
+                    ids.slice(
+                      index * D1_DISTRICT_NAME_BATCH_SIZE,
+                      (index + 1) * D1_DISTRICT_NAME_BATCH_SIZE,
+                    ),
+                  ),
+                ),
+              )
+              .orderBy(desc(divisionsI18n.updatedAt))
+              .all(),
+        ),
+      )
+    ).flat()
+
+    const namesByLocale = new Map<string, Map<string, string>>()
+    for (const row of rows) {
+      if (!row.name) continue
+      const names = namesByLocale.get(row.locale) ?? new Map<string, string>()
+      if (!names.has(row.divisionId)) names.set(row.divisionId, row.name)
+      namesByLocale.set(row.locale, names)
+    }
+    const localisedNames = namesByLocale.get(i18nLocale)
+    const englishNames = namesByLocale.get('en')
+
+    return ids.map(divisionId => ({
+      divisionId,
+      name: localisedNames?.get(divisionId) ?? englishNames?.get(divisionId) ?? null,
+      unofficial: UNOFFICIAL_DISTRICT_IDS.has(divisionId),
     }))
   },
 )
