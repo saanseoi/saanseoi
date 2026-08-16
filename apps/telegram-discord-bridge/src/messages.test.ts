@@ -4,6 +4,8 @@ import {
   collectMessagesAfter,
   formatAdminLog,
   formatGitHubDiscussion,
+  formatTelegramHtml,
+  splitTelegramHtml,
   splitTelegramText,
 } from './messages.ts'
 
@@ -58,6 +60,20 @@ test('formats append-only admin records and splits without corrupting emoji', ()
   expect(splitTelegramText('ab😀cd', 4)).toEqual(['ab😀c', 'd'])
 })
 
+test('converts Discord Markdown to Telegram HTML', () => {
+  expect(
+    formatTelegramHtml(
+      '# **Community** channels\n\n*Join* __us__ at [SaanSeoi](https://saanseoi.hk/?a=1&b=2).\n\n> ~~No previews~~ ||secret||\n\n```ts\nconst html = `<safe>`\n```',
+    ),
+  ).toBe(
+    '<b><b>Community</b> channels</b>\n\n<i>Join</i> <u>us</u> at <a href="https://saanseoi.hk/?a=1&amp;b=2">SaanSeoi</a>.\n\n<blockquote><s>No previews</s> <tg-spoiler>secret</tg-spoiler></blockquote>\n\n<pre>const html = `&lt;safe&gt;`</pre>',
+  )
+})
+
+test('splits Telegram HTML at valid tag boundaries', () => {
+  expect(splitTelegramHtml('<b>ab😀cd</b>', 10)).toEqual(['<b>ab😀</b>', '<b>cd</b>'])
+})
+
 test('preserves Discord card fields, stickers and system events in Telegram text', () => {
   expect(
     formatAdminLog(
@@ -109,20 +125,53 @@ test('preserves Discord card fields, stickers and system events in Telegram text
   ).toBe('#general · member\n\n[Changed the channel name]')
 })
 
-test('uses an announcement first line as a GitHub discussion title', () => {
+test('keeps authored cards while discarding Discord link-preview embeds', () => {
+  expect(
+    formatAdminLog(
+      {
+        author: { username: 'sender' },
+        channel_id: 'announcements',
+        content: 'Read https://example.com/announcement',
+        embeds: [
+          {
+            description: 'This is a Discord link preview.',
+            provider: { name: 'Example' },
+            title: 'Example preview',
+            type: 'article',
+            url: 'https://example.com/announcement',
+          },
+          { type: 'rich', url: 'https://example.com/announcement' },
+          {
+            description: 'An authored release card.',
+            title: 'Release published',
+            type: 'rich',
+            url: 'https://saanseoi.hk/apis/release',
+          },
+        ],
+        id: 'preview',
+      },
+      '#announcements',
+    ),
+  ).toBe(
+    '#announcements · sender\n\nRead https://example.com/announcement\n\nRelease published\nAn authored release card.\nhttps://saanseoi.hk/apis/release',
+  )
+})
+
+test('uses a plain-text announcement first line as a GitHub discussion title', () => {
   const discussion = formatGitHubDiscussion(
     {
       attachments: [{ url: 'https://example.com/release-notes' }],
       author: { username: 'sender' },
       channel_id: 'channel',
-      content: '# August release\n\nThe full announcement.',
+      content:
+        '# **August release** [notes](https://example.com/notes) <:saanseoi:123>\n\nThe full announcement.',
       id: 'message',
     },
     'guild',
   )
 
   expect(discussion).toEqual({
-    title: 'August release',
-    body: '# August release\n\nThe full announcement.\n\nhttps://example.com/release-notes\n\n---\n[View the original Discord announcement](https://discord.com/channels/guild/channel/message)',
+    title: 'August release notes :saanseoi:',
+    body: '# **August release** [notes](https://example.com/notes) <:saanseoi:123>\n\nThe full announcement.\n\nhttps://example.com/release-notes\n\n---\n[View the original Discord announcement](https://discord.com/channels/guild/channel/message)',
   })
 })
