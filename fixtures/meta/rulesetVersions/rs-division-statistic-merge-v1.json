@@ -3,8 +3,29 @@
   "resourceType": "divisionStatistic",
   "strategy": "merge",
   "version": "1",
-  "notes": "C&SD division-statistic merge ruleset.",
+  "notes": "C&SD division-statistic source normalisation and identity ruleset.",
   "mergeRules": [
+    {
+      "operationCode": "normalise_censtatd_statistic_source_assertion",
+      "type": "bulk",
+      "sourceFieldPath": "feature_id, layer_name, reference_year, raw_properties, source_geometry",
+      "targetFieldPath": "source assertion: sourceRecordId, datasetCode, featureId, layerName, referenceYear, rawProperties, sourceGeometry, sources",
+      "condition": "Applies to every C&SD division-statistic feature read from a publisher-native CSDI GML archive.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Normalises each C&SD statistic feature into a versioned source assertion while preserving its native properties and geometry."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將每個政府統計處統計要素正規化為具版本的來源聲明，並保留其原生屬性及幾何資料。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将每个政府统计处统计要素规范化为带版本的来源断言，并保留其原生属性和几何数据。"
+        }
+      ]
+    },
     {
       "operationCode": "map_censtatd_district_code_to_canonical_division",
       "type": "bulk",
@@ -41,5 +62,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:589201154e0df86863aaeec9b092b57d766730ab9842db759b482d654970dab5"
+  "versionHash": "sha256:0a3adc02849582bf0b89a8554ec6834031e7987aef6950201081826d52e28ecd"
 }
