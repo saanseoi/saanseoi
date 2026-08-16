@@ -1,10 +1,13 @@
 import { Database } from 'bun:sqlite'
 
-import { and, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
+import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'
-import { calculateDistrictGeometryStatistics } from '@repo/core/pipeline/services/geometryStats'
+import {
+  calculateDistrictGeometryStatistics,
+  selectDistrictRelevantGeometryRecords,
+} from '@repo/core/pipeline/services/geometryStats'
 import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
@@ -96,30 +99,9 @@ export async function runGeometryStatsBackfillCommand(
           `Snapshot ${snapshot.id} requires history shard ${shard.bindingName}, which is not in the local cache. Re-run with --refresh-cache.`,
         )
       }
-      const districtSnapshot =
-        (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-          seedContext.metaDb as unknown as HarbourReadableDb,
-          'division',
-          release.regionCode.toLowerCase() as 'hk' | 'mo',
-          snapshot.cohortKey,
-          { variant: release.sourceVariant },
-        )) ??
-        (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-          seedContext.metaDb as unknown as HarbourReadableDb,
-          'division',
-          release.regionCode.toLowerCase() as 'hk' | 'mo',
-          snapshot.cohortKey,
-        ))
-      if (!districtSnapshot) {
-        throw new Error(
-          `No versioned division snapshot is available for ${release.code} (${snapshot.cohortKey}).`,
-        )
-      }
-      const districtRows = await findSnapshotRows(
-        seedContext.historyTargets,
-        districtSnapshot.id,
-        'division',
-      )
+      const districtRows = usesReviewedDistrictBridge(release)
+        ? []
+        : await findDivisionSnapshotRows(seedContext, release, snapshot.cohortKey)
       const geometryRows = await findSnapshotRows(
         [historyTarget],
         snapshot.id,
@@ -145,10 +127,7 @@ export async function runGeometryStatsBackfillCommand(
           .map(row => [row.id, districtIdForDivision(row)] as const)
           .filter(isPair),
       )
-      if (
-        release.datasetCode.includes('hkgov-had') ||
-        release.datasetCode.includes('hkgov-censtatd')
-      ) {
+      if (usesReviewedDistrictBridge(release)) {
         for (const row of typedGeometryRows) {
           for (const divisionId of [
             row.divisionId,
@@ -161,11 +140,29 @@ export async function runGeometryStatsBackfillCommand(
           }
         }
       }
+      const districtGeometry =
+        release.datasetCode === 'ds-hk-overture-division-area' ||
+        release.datasetCode === 'ds-hk-overture-division-boundary'
+          ? selectDistrictRelevantGeometryRecords(
+              release.resourceType,
+              typedGeometryRows.map(row => ({
+                ...row,
+                geometry: row.geometry as GeoJsonGeometry,
+              })),
+              districtByDivisionId,
+            )
+          : {
+              excludedRecordIds: [],
+              records: typedGeometryRows.map(row => ({
+                ...row,
+                geometry: row.geometry as GeoJsonGeometry,
+              })),
+            }
       const metrics = calculateDistrictGeometryStatistics(
         release.resourceType,
-        typedGeometryRows.map(row => ({
+        districtGeometry.records.map(row => ({
           id: row.id,
-          geometry: row.geometry as GeoJsonGeometry,
+          geometry: row.geometry,
           divisionId: row.divisionId,
           leftDivisionId: row.leftDivisionId,
           rightDivisionId: row.rightDivisionId,
@@ -204,7 +201,9 @@ export async function runGeometryStatsBackfillCommand(
           `resourceType=${release.resourceType}`,
           `snapshot=${snapshot.id}`,
           `historyShard=${shard.bindingName}`,
-          `geometryRows=${typedGeometryRows.length}`,
+          `sourceGeometryRows=${typedGeometryRows.length}`,
+          `geometryRows=${districtGeometry.records.length}`,
+          `excludedNonDistrictGeometryRows=${districtGeometry.excludedRecordIds.length}`,
           `districts=${metrics.size}`,
           `areaKm2=${totalArea}`,
           `boundaryKm=${totalLength}`,
@@ -257,6 +256,7 @@ async function listGeometryReleases(
       resourceType: metaSchema.metaReleases.resourceType,
       sourceVariant: metaSchema.metaDatasets.sourceVariant,
       sourceVersion: metaSchema.metaReleases.sourceVersion,
+      status: metaSchema.metaReleases.status,
     })
     .from(metaSchema.metaReleases)
     .innerJoin(
@@ -273,11 +273,54 @@ async function listGeometryReleases(
         (filters.datasetCodes.length === 0 ||
           filters.datasetCodes.includes(row.datasetCode)),
     )
+    .filter(row => row.status === 'published')
     .filter(
       (row): row is typeof row & { resourceType: GeometryResourceType } =>
         row.resourceType === 'divisionArea' || row.resourceType === 'divisionBoundary',
     )
     .sort((left, right) => left.code.localeCompare(right.code))
+}
+
+function usesReviewedDistrictBridge(release: BackfillRelease) {
+  return (
+    release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district'
+  )
+}
+
+async function findDivisionSnapshotRows(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  release: BackfillRelease,
+  cohortKey: string,
+) {
+  const districtSnapshot =
+    (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      context.metaDb as unknown as HarbourReadableDb,
+      'division',
+      release.regionCode.toLowerCase() as 'hk' | 'mo',
+      cohortKey,
+      { variant: release.sourceVariant },
+    )) ??
+    (await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      context.metaDb as unknown as HarbourReadableDb,
+      'division',
+      release.regionCode.toLowerCase() as 'hk' | 'mo',
+      cohortKey,
+    ))
+  if (!districtSnapshot) {
+    throw new Error(
+      `No versioned division snapshot is available for ${release.code} (${cohortKey}).`,
+    )
+  }
+  return context.currentDb
+    .select({
+      hierarchy: currentSchema.divisions.hierarchy,
+      id: currentSchema.divisions.id,
+      type: currentSchema.divisions.type,
+    })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, districtSnapshot.id))
+    .all()
 }
 
 async function resolveExactSnapshot(
