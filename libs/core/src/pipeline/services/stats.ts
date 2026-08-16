@@ -4,6 +4,7 @@ import type {
   ReleaseScopedStatsRow,
 } from '@repo/db/metaSchema'
 import type { GeoJsonGeometry } from '../geojson'
+import type { DistrictGeometryStatistics } from './geometryStats'
 
 export type StatsLocaleGroup = 'en' | 'zh-hant' | 'zh-hans'
 
@@ -70,6 +71,7 @@ export type AddressReleaseStatsInput = {
 }
 
 export type DivisionApiReleaseSetStatsInput = {
+  byDistrict?: Map<string, number> | Record<string, number>
   divisionCount: number
   divisionI18nCount: number
   byDivisionType?: Map<string, number> | Record<string, number>
@@ -81,6 +83,73 @@ export type DivisionApiReleaseSetStatsInput = {
     totals: ChurnCounts
   }
   quality?: QualityCounts
+}
+
+/**
+ * Turns exact, canonical geometry measurements into release-owned statistics.
+ * Area geometry includes feature, polygon, area, boundary-segment, and
+ * all-ring boundary-length measurements; boundary geometry deliberately has
+ * no polygon or area metric.
+ */
+export function buildGeometryReleaseStatsRows(
+  resourceType: 'divisionArea' | 'divisionBoundary',
+  districts: DistrictGeometryStatistics,
+  createdAt = toIsoTimestamp(),
+): ReleaseScopedStatsRow[] {
+  return [...districts]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .flatMap(([districtId, metrics]) => {
+      const grouping = { groupBy: 'district', groupValue: districtId }
+      const rows: ReleaseScopedStatsRow[] = [
+        buildReleaseStatsRow(
+          'geometry',
+          'feature_count',
+          'count',
+          metrics.featureCount,
+          createdAt,
+          grouping,
+        ),
+        buildReleaseStatsRow(
+          'geometry',
+          'boundary_segment_count',
+          'count',
+          metrics.boundarySegmentCount,
+          createdAt,
+          grouping,
+        ),
+        buildReleaseStatsRow(
+          'geometry',
+          'boundary_length',
+          'kilometres',
+          metrics.boundaryLength,
+          createdAt,
+          grouping,
+        ),
+      ]
+      if (resourceType === 'divisionArea') {
+        rows.splice(
+          1,
+          0,
+          buildReleaseStatsRow(
+            'geometry',
+            'polygon_count',
+            'count',
+            metrics.polygonCount ?? 0,
+            createdAt,
+            grouping,
+          ),
+          buildReleaseStatsRow(
+            'geometry',
+            'area',
+            'square_kilometres',
+            metrics.area ?? 0,
+            createdAt,
+            grouping,
+          ),
+        )
+      }
+      return rows
+    })
 }
 
 export type LocalisedStatsRow = {
@@ -478,6 +547,26 @@ export function buildDistrictDistributionStatsRows(
     )
 }
 
+function buildApiReleaseSetDistrictDistributionStatsRows(
+  districtCounts: Map<string, number> | Record<string, number>,
+  createdAt = toIsoTimestamp(),
+) {
+  const entries =
+    districtCounts instanceof Map
+      ? [...districtCounts.entries()]
+      : Object.entries(districtCounts)
+
+  return entries
+    .filter(([, count]) => count > 0)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([districtId, count]) =>
+      buildApiReleaseSetStatsRow('records', 'distribution', 'count', count, createdAt, {
+        groupBy: 'district',
+        groupValue: districtId,
+      }),
+    )
+}
+
 export function buildAddressApiReleaseSetStatsRows(
   input: AddressApiReleaseSetStatsInput,
 ) {
@@ -670,6 +759,7 @@ export function buildDivisionApiReleaseSetStatsRows(
   ]
 
   rows.push(
+    ...buildApiReleaseSetDistrictDistributionStatsRows(input.byDistrict ?? {}),
     ...buildGroupedCountRows(
       input.byDivisionType,
       'records',
