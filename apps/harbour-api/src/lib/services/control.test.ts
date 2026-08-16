@@ -1342,10 +1342,23 @@ describe('control service', () => {
     expect(publishedSet.status).toBe('draft')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
-    expect(reconciliation).toEqual({
+    expect(reconciliation).toMatchObject({
       inspected: 1,
       pendingReleaseSetCodes: [],
       publishedReleaseSetCodes: [`data-hk-divisions-${cohortKey}`],
+      publishedReleaseSetPublications: [
+        {
+          apiFamily: 'divisions',
+          apiReleaseSetCode: `data-hk-divisions-${cohortKey}`,
+          cohortKey,
+          description: '',
+          domainCode: 'overture',
+          domainName: 'overture',
+          publisherName: 'overture',
+          regionCode: 'hk',
+          revision: 0,
+        },
+      ],
     })
     expect(reconciledSet.status).toBe('current')
     expect(members).toEqual([
