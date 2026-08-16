@@ -6,6 +6,7 @@ import type {
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
 import District from './releaseStatsDistrictSection.svelte'
 import GenericGroups from './releaseStatsGenericGroups.svelte'
+import Geometry from './releaseStatsGeometrySection.svelte'
 import LocaleCoverage from './releaseStatsLocaleCoverageSection.svelte'
 import Overview from './releaseStatsOverviewSection.svelte'
 import Processing from './releaseStatsProcessingSection.svelte'
@@ -23,15 +24,18 @@ let {
   {#if presentation.districtDistribution}
     <District districtDistribution={presentation.districtDistribution} {labels} />
   {/if}
+  {#if presentation.geometry}
+    <Geometry geometry={presentation.geometry} {labels} />
+  {/if}
   {#if presentation.localeCoverage}
     <LocaleCoverage rows={presentation.localeCoverage} {labels} />
   {/if}
   {#if presentation.componentCoverage}
     <ComponentCoverage rows={presentation.componentCoverage} {labels} />
   {/if}
-  {#if presentation.typeDistribution}
-    <TypeDistribution distribution={presentation.typeDistribution} {labels} />
-  {/if}
+  {#each presentation.recordDistributions as distribution}
+    <TypeDistribution {distribution} {labels} />
+  {/each}
   {#if presentation.processing}
     <Processing processing={presentation.processing} {labels} />
   {/if}
