@@ -1,5 +1,5 @@
 <script lang="ts">
-import { slide } from 'svelte/transition'
+import { scale } from 'svelte/transition'
 
 import type { SourceFlowInput } from './sourceFlowMapTypes'
 
@@ -16,7 +16,7 @@ let { input }: Props = $props()
   style={`--source-accent: ${input.accent};`}
   href={input.href}
   aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}
-  transition:slide={{ duration: 180, axis: 'y' }}
+  transition:scale={{ duration: 180, start: 0.96 }}
 >
   <span
     class={`source-flow-icon ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}

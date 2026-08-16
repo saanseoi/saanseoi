@@ -41,11 +41,7 @@ const lanes = [
         {/each}
       </div>
       <div
-        class="mt-[9px] min-h-[5.65rem] overflow-hidden rounded bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] motion-reduce:animate-none max-[900px]:ml-4 max-[900px]:min-h-11"
-        aria-hidden="true"
-      ></div>
-      <div
-        class="mt-2 min-h-[5.65rem] overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] motion-reduce:animate-none max-[900px]:ml-4"
+        class="col-start-3 mt-2 min-h-[5.65rem] overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] motion-reduce:animate-none max-[900px]:col-auto max-[900px]:ml-4"
         aria-hidden="true"
       ></div>
     </div>
