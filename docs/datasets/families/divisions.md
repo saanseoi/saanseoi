@@ -104,6 +104,14 @@ counted against the `district` entry in its normalised hierarchy. Atlas joins th
 canonical identifiers to the HAD district-area geometry for a comparable map across
 division datasets.
 
+Geometry releases additionally persist release-owned district geometry facts from the
+exact canonical EPSG:4326 snapshot: features, Polygon/MultiPolygon parts, area, boundary
+segments, and boundary length. A boundary segment is a non-zero coordinate-to-coordinate
+edge across every exterior or interior polygon ring, or every boundary line. It
+indicates geometric complexity rather than positional accuracy; an exact C&SD release
+and its `simplified` display derivative therefore never share or replace these
+measurements.
+
 Historical C&SD district areas are required, cohort-qualified statistical-geometry
 variants, never defaults. Each census cohort has an exact source variant
 (`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named

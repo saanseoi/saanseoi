@@ -128,6 +128,12 @@ source artefact, then publishes the exact and display snapshots together under t
 source release. The transform has no separate upload or release-notes URL; the source
 release records the CSDI dataset URL instead.
 
+The release Geometry statistics are calculated only from the exact canonical source
+snapshot. Besides feature and Polygon/MultiPolygon-part counts, they record area,
+boundary length, and non-zero boundary-segment count for every district. Segment count
+describes the source geometry's complexity, not its accuracy, and is never recalculated
+from or overwritten by the `simplified` display derivative.
+
 Both C&SD census cohorts are required Overture division-release inputs. The selected
 source snapshots are carried forward at or before the Overture cohort, so their stable
 source schema is always included in the release's API-field provenance. They are
