@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import {
   REMOTE_GEOMETRY_HEX_CHUNK_BYTES,
+  REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
   assertBinaryGeometryRow,
   geometrySha256,
   reassembleHexChunks,
@@ -2398,7 +2399,14 @@ async function mirrorBinaryGeometryTable(
         geometryDigest = geometrySha256(geometry)
         values[binaryColumn] = null
       } else if (typeof values[binaryColumn] === 'string') {
-        values[binaryColumn] = rejectReplacementCharacter(values[binaryColumn])
+        try {
+          values[binaryColumn] = rejectReplacementCharacter(values[binaryColumn])
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error)
+          throw new Error(
+            `Unsafe text geometry in ${targetRecord.bindingName}.${tableName} snapshot=${snapshotId ?? 'none'} record=${recordId}: ${reason}`,
+          )
+        }
       }
 
       const row: BinaryGeometryRow = {
@@ -2446,20 +2454,34 @@ async function readRemoteGeometryHexChunks(
   for (
     let offset = 1;
     offset <= byteLength;
-    offset += REMOTE_GEOMETRY_HEX_CHUNK_BYTES
+    offset += REMOTE_GEOMETRY_HEX_CHUNK_BYTES * REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY
   ) {
+    const chunkCount = Math.min(
+      REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+      Math.ceil((byteLength - offset + 1) / REMOTE_GEOMETRY_HEX_CHUNK_BYTES),
+    )
+    const chunkColumns = Array.from(
+      { length: chunkCount },
+      (_, index) =>
+        `hex(substr(${quoteSqlIdentifier(binaryColumn)}, ${
+          offset + index * REMOTE_GEOMETRY_HEX_CHUNK_BYTES
+        }, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "hex${index}"`,
+    )
     const rows = await queryRemoteD1(
       targetRecord,
       target,
-      `SELECT hex(substr(${quoteSqlIdentifier(binaryColumn)}, ${offset}, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "hex" FROM ${quoteSqlIdentifier(tableName)} WHERE ${where}`,
+      `SELECT ${chunkColumns.join(', ')} FROM ${quoteSqlIdentifier(tableName)} WHERE ${where}`,
     )
-    const hex = rows[0]?.hex
-    if (typeof hex !== 'string') {
-      throw new Error(
-        `Remote geometry chunk is missing for ${targetRecord.bindingName}.${tableName}.`,
-      )
+    const firstRow = rows[0]
+    for (let index = 0; index < chunkCount; index += 1) {
+      const hex = firstRow?.[`hex${index}`]
+      if (typeof hex !== 'string') {
+        throw new Error(
+          `Remote geometry chunk is missing for ${targetRecord.bindingName}.${tableName}.`,
+        )
+      }
+      chunks.push(hex)
     }
-    chunks.push(hex)
   }
   return chunks
 }
