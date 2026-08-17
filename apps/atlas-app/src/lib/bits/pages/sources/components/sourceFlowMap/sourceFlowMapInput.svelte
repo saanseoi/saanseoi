@@ -16,6 +16,8 @@ let { input }: Props = $props()
   style={`--source-accent: ${input.accent};`}
   href={input.href}
   aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}
+  data-sveltekit-preload-code={input.href ? 'viewport' : undefined}
+  data-sveltekit-preload-data={input.href ? 'hover' : undefined}
   transition:scale={{ duration: 180, start: 0.96 }}
 >
   <span

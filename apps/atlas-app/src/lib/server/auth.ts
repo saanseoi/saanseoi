@@ -11,7 +11,6 @@ import {
   FACEBOOK_CLIENT_SECRET,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
-  ORIGIN,
 } from '$app/env/private'
 
 import { getRequestEvent } from '$app/server'
@@ -143,7 +142,9 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
 
 export const createAuth = (
   d1: D1Database,
-  baseURL = ORIGIN || 'http://localhost:5173',
+  // The runtime instance receives event.url.origin from hooks.server.ts.
+  // This value is only used by the Better Auth CLI schema instance.
+  baseURL = 'http://localhost:5173',
   authEnv: AuthEnvironment = localAuthEnvironment,
 ) =>
   betterAuth({
