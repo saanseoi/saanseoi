@@ -25,6 +25,8 @@ import {
   metaReleases,
   metaSourceReleases,
   ingestRuns,
+  metaApiComposition,
+  metaApiCompositionMembers,
   stats,
   sql,
 } from '@repo/db'
@@ -103,6 +105,7 @@ export type DataPageRelease = {
   apiVersionId?: string
   code: string
   cohortKey?: string | null
+  domainCode?: string | null
   createdAt: string
   displayCode?: string
   displayStatus?: ApiRelease['displayStatus']
@@ -118,8 +121,13 @@ type DataPageApi = Pick<
   RegistryApi,
   'code' | 'familyType' | 'id' | 'status' | 'version'
 > & {
+  defaultDomainCode: string
+  domainCount: number
   releases: Array<
-    Pick<DataPageRelease, 'code' | 'createdAt' | 'displayStatus' | 'publishedAt'>
+    Pick<
+      DataPageRelease,
+      'code' | 'createdAt' | 'displayStatus' | 'domainCode' | 'publishedAt'
+    >
   >
 }
 
@@ -765,6 +773,7 @@ async function loadDataReleasesPage(offset = 0) {
 
 async function loadDataPageApis(): Promise<DataPageApi[]> {
   const db = getMetaDb()
+  const apiQueryBatchSize = 90
   const [apis, releases] = await Promise.all([
     db
       .select({
@@ -799,6 +808,54 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
       .all(),
   ])
 
+  const apiIds = apis.map(api => api.id)
+  const apiIdBatches = Array.from(
+    { length: Math.ceil(apiIds.length / apiQueryBatchSize) },
+    (_, index) =>
+      apiIds.slice(index * apiQueryBatchSize, (index + 1) * apiQueryBatchSize),
+  )
+  const compositions = (
+    await Promise.all(
+      apiIdBatches.map(ids =>
+        ids.length
+          ? db
+              .select({
+                apiVersionId: metaApiComposition.apiVersionId,
+                defaultDomainCode: metaApiComposition.defaultDomainCode,
+                id: metaApiComposition.id,
+                status: metaApiComposition.status,
+                version: metaApiComposition.version,
+              })
+              .from(metaApiComposition)
+              .where(inArray(metaApiComposition.apiVersionId, ids))
+              .all()
+          : Promise.resolve([]),
+      ),
+    )
+  ).flat()
+  const compositionIds = compositions.map(composition => composition.id)
+  const compositionIdBatches = Array.from(
+    { length: Math.ceil(compositionIds.length / apiQueryBatchSize) },
+    (_, index) =>
+      compositionIds.slice(index * apiQueryBatchSize, (index + 1) * apiQueryBatchSize),
+  )
+  const compositionMembers = (
+    await Promise.all(
+      compositionIdBatches.map(ids =>
+        ids.length
+          ? db
+              .select({
+                apiCompositionId: metaApiCompositionMembers.apiCompositionId,
+                domainCode: metaApiCompositionMembers.domainCode,
+              })
+              .from(metaApiCompositionMembers)
+              .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
+              .all()
+          : Promise.resolve([]),
+      ),
+    )
+  ).flat()
+
   const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
   for (const release of releases) {
     if (release.status === 'draft' || release.cohortKey === null) continue
@@ -821,11 +878,27 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
   }
 
   return apis.map(api => {
+    const currentComposition = compositions
+      .filter(
+        composition =>
+          composition.apiVersionId === api.id && composition.status === 'current',
+      )
+      .sort((left, right) => right.version - left.version)[0]
+    const defaultDomainCode = currentComposition?.defaultDomainCode ?? 'default'
+    const domainCount = currentComposition
+      ? new Set(
+          compositionMembers
+            .filter(member => member.apiCompositionId === currentComposition.id)
+            .map(member => member.domainCode),
+        ).size
+      : 0
     const candidates = releases
       .filter(release => release.apiVersionId === api.id)
+      .filter(release => release.domainCode === defaultDomainCode)
       .map(release => ({
         code: release.code,
         createdAt: release.createdAt,
+        domainCode: release.domainCode,
         displayStatus: resolveRegistryReleaseDisplayStatus(
           release,
           latestByScope.get(
@@ -846,7 +919,12 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
     const latest =
       candidates.find(release => release.displayStatus === 'current') ?? candidates[0]
 
-    return { ...api, releases: latest ? [latest] : [] }
+    return {
+      ...api,
+      defaultDomainCode,
+      domainCount,
+      releases: latest ? [latest] : [],
+    }
   })
 }
 
