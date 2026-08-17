@@ -14,7 +14,6 @@ import {
   geometrySha256,
   partitionRemoteGeometryRows,
   reassembleHexChunks,
-  rejectReplacementCharacter,
   type BinaryGeometryRow,
 } from './binaryGeometryMirror.ts'
 import {
@@ -821,13 +820,14 @@ export function updateDbCacheProgress(
   event: LocalDbCacheProgressEvent,
   options: {
     completeOnReuse?: boolean
+    operation?: 'clone' | 're-export'
   } = {},
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {
     return
   }
 
-  const label = formatDbCacheProgressLabel(event)
+  const label = formatDbCacheProgressLabel(event, options.operation)
   const current = Math.min(event.current, event.total)
 
   if (!progress.hasActivePhase()) {
@@ -852,11 +852,14 @@ export function updateDbCacheProgress(
   }
 }
 
-function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
+function formatDbCacheProgressLabel(
+  event: LocalDbCacheProgressEvent,
+  operation: 'clone' | 're-export' = 'clone',
+) {
   const subject = describeDbCacheSubject(event)
 
   return formatRunningPhaseLabel(
-    colorTeal('Clone cache'),
+    colorTeal(operation === 're-export' ? 'Re-export cache' : 'Clone cache'),
     colorRed(subject),
     Math.min(event.current, event.total),
     event.total,
@@ -1444,6 +1447,43 @@ async function ensureRemoteCachePaths(
     return existingManifest.files
   }
 
+  const reusableFiles = await resolveReusableCachedFiles(
+    cacheDir,
+    options.refreshRemoteCache ? {} : (existingManifest?.files ?? {}),
+    targets,
+    options.cacheTableProfile,
+    target,
+    options.remoteCacheScopeKey,
+  )
+
+  if (
+    options.requireExistingRemoteCache &&
+    Object.keys(reusableFiles).length === targets.length
+  ) {
+    const manifest: DbCacheManifest = {
+      cacheVersion: DB_CACHE_MANIFEST_VERSION,
+      cacheScopeKey: options.remoteCacheScopeKey,
+      cacheTableProfile: options.cacheTableProfile,
+      files: reusableFiles,
+      preparedAt: new Date().toISOString(),
+      target,
+    }
+
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+    await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR), {
+      force: true,
+      recursive: true,
+    }).catch(() => undefined)
+    await options.onProgress?.({
+      action: 'reuse-cache',
+      bindingName: 'cache',
+      current: totalUnits,
+      target,
+      total: totalUnits,
+    })
+    return reusableFiles
+  }
+
   if (options.requireExistingRemoteCache) {
     throw new Error(
       [
@@ -1454,14 +1494,6 @@ async function ensureRemoteCachePaths(
     )
   }
 
-  const reusableFiles = await resolveReusableCachedFiles(
-    cacheDir,
-    options.refreshRemoteCache ? {} : (existingManifest?.files ?? {}),
-    targets,
-    options.cacheTableProfile,
-    target,
-    options.remoteCacheScopeKey,
-  )
   const targetsToMirror = targets.filter(
     targetRecord => !reusableFiles[targetRecord.bindingName],
   )
@@ -2444,7 +2476,8 @@ async function mirrorBinaryGeometryTable(
       [
         `SELECT ${selectedColumns.join(', ')},`,
         `typeof(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryType",`,
-        `length(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryLength"`,
+        `length(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryLength",`,
+        `length(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB)) AS "__geometryByteLength"`,
         `FROM ${quoteSqlIdentifier(tableName)}`,
         `ORDER BY ${orderBy}`,
         `LIMIT ${REMOTE_GEOMETRY_PAGE_SIZE} OFFSET ${offset}`,
@@ -2452,7 +2485,7 @@ async function mirrorBinaryGeometryTable(
     )
 
     const pageRows: BinaryGeometryRow[] = remoteRows.map(remoteRow => {
-      const geometryType = requireGeometryType(remoteRow.__geometryType)
+      let geometryType = requireGeometryType(remoteRow.__geometryType)
       const values = Object.fromEntries(
         columnNames.map(column => [
           column,
@@ -2464,16 +2497,17 @@ async function mirrorBinaryGeometryTable(
       const recordId = String(values.id ?? values.sourceRecordId ?? 'unknown-record')
       const snapshotId =
         typeof values.snapshotId === 'string' ? values.snapshotId : null
-      const geometryLength = asOptionalRemoteInteger(remoteRow.__geometryLength)
+      let geometryLength = asOptionalRemoteInteger(remoteRow.__geometryLength)
 
       if (geometryType !== 'blob' && typeof values[binaryColumn] === 'string') {
-        try {
-          values[binaryColumn] = rejectReplacementCharacter(values[binaryColumn])
-        } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error)
-          throw new Error(
-            `Unsafe text geometry in ${targetRecord.bindingName}.${tableName} snapshot=${snapshotId ?? 'none'} record=${recordId}: ${reason}`,
-          )
+        if (values[binaryColumn].includes('\uFFFD')) {
+          // D1 can expose invalid binary bytes as replacement characters when
+          // a BLOB is observed through a TEXT expression. Recover the original
+          // bytes through the hex path instead of persisting lossy UTF-8.
+          geometryType = 'blob'
+          geometryLength =
+            asOptionalRemoteInteger(remoteRow.__geometryByteLength) ?? geometryLength
+          values[binaryColumn] = null
         }
       }
 
@@ -2524,7 +2558,7 @@ async function mirrorBinaryGeometryTable(
         const chunkColumns = Array.from(
           { length: chunkCount },
           (_, index) =>
-            `hex(substr(${quoteSqlIdentifier(binaryColumn)}, ${
+            `hex(substr(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB), ${
               1 + (task.chunkOffset + index) * REMOTE_GEOMETRY_HEX_CHUNK_BYTES
             }, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "__hex${index}"`,
         )
