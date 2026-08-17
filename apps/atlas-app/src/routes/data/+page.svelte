@@ -272,6 +272,7 @@ const apiDirectory = $derived(
       code: api?.code ?? `api-${familyType}-v0.1`,
       status: api?.status ?? 'planned',
       version: api?.version ?? '0.1',
+      domainCount: api?.domainCount ?? 0,
       latestRelease,
       isPending: pendingApiFamilies.has(familyType),
       theme: apiFamilyThemes[familyType],
@@ -712,7 +713,9 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
                 accessLabel={api.isPending ? m.data_coming_soon() : m.data_open_access()}
                 name={api.theme.name}
                 description={apiFamilyDescription(api.familyType)}
-                releasesHref={`/apis/${api.familyType}`}
+                releasesHref={api.latestRelease
+                    ? `/apis/${api.familyType}/${api.latestRelease.code}`
+                    : `/apis/${api.familyType}`}
                 releasesLabel={m.data_releases()}
                 docsHref={docsUrlForFamily(api.familyType)}
                 docsLabel={m.data_docs()}
@@ -720,6 +723,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
                 version={api.version}
                 releaseLabel={m.data_latest_release()}
                 release={releaseDisplayCode(api.latestRelease?.code, api.familyType)}
+                domainsLabel={m.sources_flow_domains()}
+                domains={api.domainCount}
               />
             </div>
           </CardDeck.Card>
