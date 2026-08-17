@@ -62,11 +62,13 @@
       "dependencies": {
         "@better-auth/passkey": "1.6.18",
         "@humanspeak/svelte-markdown": "^1.8.6",
+        "@iconify-svelte/emojione-monotone": "1.0.3",
+        "@iconify-svelte/hugeicons": "1.0.18",
         "@iconify-svelte/ion": "1.0.3",
+        "@iconify-svelte/lucide": "1.0.55",
         "@iconify-svelte/material-symbols-light": "1.0.49",
         "@iconify-svelte/proicons": "1.0.5",
         "@iconify-svelte/simple-icons": "1.0.41",
-        "@iconify/svelte": "^5.2.2",
         "@protomaps/basemaps": "^5.7.2",
         "@repo/core": "workspace:*",
         "@repo/db": "workspace:*",
@@ -590,7 +592,13 @@
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.93", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-/XhANjfGYOuqvSR3TmUnkQkINvQ4GVjVuukvymRbxtVFBvIq/yiXJqCDycKcQPT401OYT9H2vIY6ihAlz1QIAw=="],
 
+    "@iconify-svelte/emojione-monotone": ["@iconify-svelte/emojione-monotone@1.0.3", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-COGnvFgJ2n0c6Txj+ITrOGerMQKnEAj4Eazf5CCZqPUhOAdMBrIS6BM11ABkGb0qRnaCCpNETqfZbILuBA5xPw=="],
+
+    "@iconify-svelte/hugeicons": ["@iconify-svelte/hugeicons@1.0.18", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-kNihwMaaqVP+hIJpfHmRcoCMywkR1BYdGLTh1xhZ0iAB4x6xWbl/5g34mY/hOSeQz9gLy3HU88ZWWePh3EK2GQ=="],
+
     "@iconify-svelte/ion": ["@iconify-svelte/ion@1.0.3", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-GD+0Awgi0gL+THr27tNwPLczZt570AtgQUm+uvbTijRKz1sP8Z9N/V408ulDuUD5qe8ibXwfxp9oDlynQFkZVQ=="],
+
+    "@iconify-svelte/lucide": ["@iconify-svelte/lucide@1.0.55", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-AFVvZ+XgIq8s0zlj7WU1R7GYKrQ9wsVHGyw3T8LM63f5RZQln265+Ht6xy596ogLQoB2GZ3Yd2d8zEtS7FM8hw=="],
 
     "@iconify-svelte/material-symbols-light": ["@iconify-svelte/material-symbols-light@1.0.49", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-ECYhS3FKXsgRV1aQLcAFrGRyHjsbQZU/U8r0pQs2/ZuOfctTLRZLA59PtwlAiLzAb2Q/aD+MxpHdJfNWxpmAew=="],
 

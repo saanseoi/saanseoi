@@ -1,4 +1,6 @@
-// Individual icon components are provided by Iconify
+// Individual icon components are bundled by Iconify and rendered inline.
+import IconEmojioneMonotoneFlagForHongKongSarChina from '@iconify-svelte/emojione-monotone/flag-for-hong-kong-sar-china'
+import IconHugeiconsScroll01 from '@iconify-svelte/hugeicons/scroll-01'
 import IconIonArrowForwardOutline from '@iconify-svelte/ion/arrow-forward-outline'
 import IconIonBookOutline from '@iconify-svelte/ion/book-outline'
 import IconIonCallOutline from '@iconify-svelte/ion/call-outline'
@@ -30,6 +32,7 @@ import IconIonOpenOutline from '@iconify-svelte/ion/open-outline'
 import IconIonReloadOutline from '@iconify-svelte/ion/reload-outline'
 import IconMaterialSymbolsLightApiRounded from '@iconify-svelte/material-symbols-light/api-rounded'
 import IconMaterialSymbolsLightArrowForwardRounded from '@iconify-svelte/material-symbols-light/arrow-forward-rounded'
+import IconMaterialSymbolsLightArrowTopRight from '@iconify-svelte/material-symbols-light/arrow-top-right'
 import IconMaterialSymbolsLightArrowUpwardRounded from '@iconify-svelte/material-symbols-light/arrow-upward-rounded'
 import IconMaterialSymbolsLightCheckCircleRounded from '@iconify-svelte/material-symbols-light/check-circle-rounded'
 import IconMaterialSymbolsLightCheckRounded from '@iconify-svelte/material-symbols-light/check-rounded'
@@ -39,15 +42,19 @@ import IconMaterialSymbolsLightExpandMoreRounded from '@iconify-svelte/material-
 import IconMaterialSymbolsLightForumOutlineRounded from '@iconify-svelte/material-symbols-light/forum-outline-rounded'
 import IconMaterialSymbolsLightFullscreen from '@iconify-svelte/material-symbols-light/fullscreen'
 import IconMaterialSymbolsLightFullscreenExit from '@iconify-svelte/material-symbols-light/fullscreen-exit'
+import IconMaterialSymbolsLightLogout from '@iconify-svelte/material-symbols-light/logout'
 import IconMaterialSymbolsLightKeyboardArrowDownRounded from '@iconify-svelte/material-symbols-light/keyboard-arrow-down-rounded'
 import IconMaterialSymbolsLightKeyboardArrowUpRounded from '@iconify-svelte/material-symbols-light/keyboard-arrow-up-rounded'
 import IconMaterialSymbolsLightKeyboardCommandKeyRounded from '@iconify-svelte/material-symbols-light/keyboard-command-key-rounded'
 import IconMaterialSymbolsLightKeyboardRounded from '@iconify-svelte/material-symbols-light/keyboard-rounded'
 import IconMaterialSymbolsLightKeyboardTabRounded from '@iconify-svelte/material-symbols-light/keyboard-tab-rounded'
 import IconMaterialSymbolsLightMouseRounded from '@iconify-svelte/material-symbols-light/mouse-rounded'
+import IconMaterialSymbolsLightOpenInBrowser from '@iconify-svelte/material-symbols-light/open-in-browser'
 import IconMaterialSymbolsLightOpenInNewRounded from '@iconify-svelte/material-symbols-light/open-in-new-rounded'
 import IconMaterialSymbolsLightReplayRounded from '@iconify-svelte/material-symbols-light/replay-rounded'
 import IconMaterialSymbolsLightRestartAltRounded from '@iconify-svelte/material-symbols-light/restart-alt-rounded'
+import IconMaterialSymbolsLightSelectOutline from '@iconify-svelte/material-symbols-light/select-outline'
+import IconMaterialSymbolsLightSmartphone from '@iconify-svelte/material-symbols-light/smartphone'
 import IconMaterialSymbolsLightSmartToyOutline from '@iconify-svelte/material-symbols-light/smart-toy-outline'
 import IconMaterialSymbolsLightSmartToyOutlineRounded from '@iconify-svelte/material-symbols-light/smart-toy-outline-rounded'
 import IconMaterialSymbolsLightTerminalRounded from '@iconify-svelte/material-symbols-light/terminal-rounded'
@@ -55,12 +62,14 @@ import IconMaterialSymbolsLightTroubleshootRounded from '@iconify-svelte/materia
 import IconMaterialSymbolsLightWarningRounded from '@iconify-svelte/material-symbols-light/warning-rounded'
 import IconProiconsArchive from '@iconify-svelte/proicons/archive'
 import IconProiconsArrowDown from '@iconify-svelte/proicons/arrow-down'
+import IconProiconsArrowDownload from '@iconify-svelte/proicons/arrow-download'
 import IconProiconsArrowLeft from '@iconify-svelte/proicons/arrow-left'
 import IconProiconsArrowRight from '@iconify-svelte/proicons/arrow-right'
 import IconProiconsArrowSort from '@iconify-svelte/proicons/arrow-sort'
 import IconProiconsArrowUp from '@iconify-svelte/proicons/arrow-up'
 import IconProiconsBook from '@iconify-svelte/proicons/book'
 import IconProiconsBookOpen from '@iconify-svelte/proicons/book-open'
+import IconProiconsBarChart from '@iconify-svelte/proicons/bar-chart'
 import IconProiconsBrackets from '@iconify-svelte/proicons/brackets'
 import IconProiconsBrightness from '@iconify-svelte/proicons/brightness'
 import IconProiconsCancel from '@iconify-svelte/proicons/cancel'
@@ -84,6 +93,8 @@ import IconProiconsMap from '@iconify-svelte/proicons/map'
 import IconProiconsMenu from '@iconify-svelte/proicons/menu'
 import IconProiconsMoon from '@iconify-svelte/proicons/moon'
 import IconProiconsMore from '@iconify-svelte/proicons/more'
+import IconProiconsPerson from '@iconify-svelte/proicons/person'
+import IconProiconsPersonAdd from '@iconify-svelte/proicons/person-add'
 import IconProiconsPizza from '@iconify-svelte/proicons/pizza'
 import IconProiconsQuestion from '@iconify-svelte/proicons/question'
 import IconProiconsSapling from '@iconify-svelte/proicons/sapling'
@@ -132,8 +143,12 @@ import IconSimpleIconsWindows11 from '@iconify-svelte/simple-icons/windows11'
 import IconSimpleIconsWix from '@iconify-svelte/simple-icons/wix'
 import IconSimpleIconsWordpress from '@iconify-svelte/simple-icons/wordpress'
 import IconSimpleIconsZedindustries from '@iconify-svelte/simple-icons/zedindustries'
+import IconLucideMail from '@iconify-svelte/lucide/mail'
 
 export const localIconComponents = {
+  'emojione-monotone:flag-for-hong-kong-sar-china':
+    IconEmojioneMonotoneFlagForHongKongSarChina,
+  'hugeicons:scroll-01': IconHugeiconsScroll01,
   'ion:arrow-forward-outline': IconIonArrowForwardOutline,
   'ion:book-outline': IconIonBookOutline,
   'ion:call-outline': IconIonCallOutline,
@@ -163,6 +178,7 @@ export const localIconComponents = {
   'ion:mail-outline': IconIonMailOutline,
   'ion:open-outline': IconIonOpenOutline,
   'ion:reload-outline': IconIonReloadOutline,
+  'ion:select-outline': IconMaterialSymbolsLightSelectOutline,
   'material-symbols-light:api-rounded': IconMaterialSymbolsLightApiRounded,
   'material-symbols-light:arrow-forward-rounded':
     IconMaterialSymbolsLightArrowForwardRounded,
@@ -201,18 +217,30 @@ export const localIconComponents = {
   'material-symbols-light:troubleshoot-rounded':
     IconMaterialSymbolsLightTroubleshootRounded,
   'material-symbols-light:warning-rounded': IconMaterialSymbolsLightWarningRounded,
+  'material-symbols-light:arrow-forward-alt-rounded':
+    IconMaterialSymbolsLightArrowForwardRounded,
+  'material-symbols-light:auto-awesome': IconProiconsSparkle,
+  'material-symbols-light:logout': IconMaterialSymbolsLightLogout,
+  'material-symbols-light:open-in-browser': IconMaterialSymbolsLightOpenInBrowser,
+  'material-symbols-light:select-outline': IconMaterialSymbolsLightSelectOutline,
+  'material-symbols-light:smartphone': IconMaterialSymbolsLightSmartphone,
+  'lucide:mail': IconLucideMail,
   'proicons:archive': IconProiconsArchive,
+  'proicons:api': IconMaterialSymbolsLightApiRounded,
   'proicons:arrow-down': IconProiconsArrowDown,
+  'proicons:arrow-down-to-bracket': IconProiconsArrowDownload,
   'proicons:arrow-left': IconProiconsArrowLeft,
   'proicons:arrow-right': IconProiconsArrowRight,
   'proicons:arrow-sort': IconProiconsArrowSort,
   'proicons:arrow-up': IconProiconsArrowUp,
+  'proicons:arrow-up-right': IconMaterialSymbolsLightArrowTopRight,
   'proicons:book': IconProiconsBook,
   'proicons:book-open': IconProiconsBookOpen,
   'proicons:brackets': IconProiconsBrackets,
   'proicons:brightness': IconProiconsBrightness,
   'proicons:cancel': IconProiconsCancel,
   'proicons:chat': IconProiconsChat,
+  'proicons:chart-bar': IconProiconsBarChart,
   'proicons:checkmark': IconProiconsCheckmark,
   'proicons:checkmark-circle': IconProiconsCheckmarkCircle,
   'proicons:chevron-left': IconProiconsChevronLeft,
@@ -232,6 +260,10 @@ export const localIconComponents = {
   'proicons:menu': IconProiconsMenu,
   'proicons:moon': IconProiconsMoon,
   'proicons:more': IconProiconsMore,
+  'proicons:browser': IconMaterialSymbolsLightOpenInBrowser,
+  'proicons:open-new-window': IconMaterialSymbolsLightOpenInNewRounded,
+  'proicons:sign-out': IconMaterialSymbolsLightLogout,
+  'proicons:smartphone': IconMaterialSymbolsLightSmartphone,
   'proicons:pizza': IconProiconsPizza,
   'proicons:question': IconProiconsQuestion,
   'proicons:sapling': IconProiconsSapling,
@@ -239,7 +271,10 @@ export const localIconComponents = {
   'proicons:settings': IconProiconsSettings,
   'proicons:share': IconProiconsShare,
   'proicons:sparkle': IconProiconsSparkle,
+  'proicons:sparkles': IconProiconsSparkle,
   'proicons:terminal': IconProiconsTerminal,
+  'proicons:user': IconProiconsPerson,
+  'proicons:user-add': IconProiconsPersonAdd,
   'simple-icons:alibabacloud': IconSimpleIconsAlibabacloud,
   'simple-icons:android': IconSimpleIconsAndroid,
   'simple-icons:anthropic': IconSimpleIconsAnthropic,
