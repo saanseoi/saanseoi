@@ -6,6 +6,7 @@ type Props = {
   filteredCount: string
   infoDescription: string
   infoLabel: string
+  loading?: boolean
   query?: string
   totalCount: string
 }
@@ -14,6 +15,7 @@ let {
   filteredCount,
   infoDescription,
   infoLabel,
+  loading = false,
   query = $bindable(''),
   totalCount,
 }: Props = $props()
@@ -26,6 +28,7 @@ let {
     {filteredCount}
     {infoDescription}
     {infoLabel}
+    {loading}
     {totalCount}
   />
   <ReleaseAuditControlsSearch bind:query />
