@@ -6,6 +6,7 @@ import { Dialog } from 'bits-ui'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 
 import {
   createApiKeyForCurrentUser,
@@ -72,7 +73,7 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
 }
 </script>
 
-<svelte:head><title>{m.api_keys_title()} | Saanseoi</title></svelte:head>
+<Seo title={m.api_keys_title()} description={m.api_keys_description()} noindex />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

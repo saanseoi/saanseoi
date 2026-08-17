@@ -387,7 +387,7 @@ onMount(() => {
 </script>
 
 <Seo
-  title="山水"
+  title={m.saanseoi()}
   description={m.hero_description()}
   structuredData={{
     '@context': 'https://schema.org',

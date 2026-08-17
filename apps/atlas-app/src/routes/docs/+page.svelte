@@ -116,10 +116,7 @@ onMount(() => {
 })
 </script>
 
-<Seo
-  title={m.docs_title()}
-  description="Reference documentation for SaanSeoi's public APIs, data models and authentication."
-/>
+<Seo title={m.docs_title()} description={m.docs_meta_description()} />
 
 <Main class="min-h-[calc(100vh-10rem)] bg-background">
   <div

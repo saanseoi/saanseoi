@@ -1,6 +1,7 @@
 <script lang="ts">
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import type { RegistrySource } from '#lib/registry/types.js'
@@ -11,6 +12,10 @@ let locale = $derived(getCurrentLocale())
 let publisher = $derived(
   selectLocalisedRow(publisherPageData.publisher.publisherI18n, locale),
 )
+let seoTitle = $derived(publisher?.name ?? publisherPageData.publisher.code)
+let seoDescription = $derived(
+  publisher?.description ?? `${m.source_publisher()}: ${seoTitle}.`,
+)
 
 const sourceHref = (source: RegistrySource) => {
   const latestVersion = source.sourceVersions?.[0]
@@ -19,6 +24,8 @@ const sourceHref = (source: RegistrySource) => {
     : `/sources/${source.code}`
 }
 </script>
+
+<Seo title={seoTitle} description={seoDescription} />
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8">
   <section
