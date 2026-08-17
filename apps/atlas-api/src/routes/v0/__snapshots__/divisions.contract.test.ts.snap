@@ -1,0 +1,1469 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Divisions API responses through the Worker route default list through app.fetch: default list through app.fetch 1`] = `
+{
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "China",
+            },
+            "zh-hant": {
+              "name": "中國",
+            },
+          },
+          "level": 0,
+          "type": "country",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-country-cn",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-country-cn",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Hong Kong SAR",
+            },
+            "zh-hant": {
+              "name": "香港特別行政區",
+            },
+          },
+          "level": 0,
+          "type": "sar",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-hk-sar",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Eastern District",
+            },
+            "zh-hant": {
+              "name": "東區",
+            },
+          },
+          "level": 2,
+          "type": "district",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-east",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-east",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "A Kung Ngam",
+            },
+            "zh-hant": {
+              "name": "阿公岩",
+            },
+          },
+          "level": 3,
+          "type": "locality",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-a-kung-ngam",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-east",
+                "meta": {
+                  "name": "Eastern District",
+                  "subType": "region",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2025-09-24.0",
+      "domain": "overture",
+      "filters": {},
+      "locales": [
+        "en",
+        "zh-hant",
+      ],
+      "page": {
+        "limit": 25,
+        "offset": 0,
+        "total": 4,
+      },
+      "profile": "default",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route v0 alias and map profile through app.fetch: v0 alias and map profile through app.fetch 1`] = `
+{
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "bbox": [
+            104.19,
+            35.79,
+            104.21000000000001,
+            35.809999999999995,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              104.2,
+              35.8,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "China",
+            },
+            "zh-hant": {
+              "name": "中國",
+            },
+          },
+          "level": 0,
+          "type": "country",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-country-cn",
+        "links": {
+          "self": "http://localhost/v0/divisions/division-country-cn",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.16,
+            22.31,
+            114.18,
+            22.330000000000002,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              114.17,
+              22.32,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "Hong Kong SAR",
+            },
+            "zh-hant": {
+              "name": "香港特別行政區",
+            },
+          },
+          "level": 0,
+          "type": "sar",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-hk-sar",
+        "links": {
+          "self": "http://localhost/v0/divisions/division-hk-sar",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.21,
+            22.27,
+            114.23,
+            22.290000000000003,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              114.22,
+              22.28,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "Eastern District",
+            },
+            "zh-hant": {
+              "name": "東區",
+            },
+          },
+          "level": 2,
+          "type": "district",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-east",
+        "links": {
+          "self": "http://localhost/v0/divisions/division-east",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.2162,
+            22.2688,
+            114.23620000000001,
+            22.288800000000002,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              114.2262,
+              22.2788,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "A Kung Ngam",
+            },
+            "zh-hant": {
+              "name": "阿公岩",
+            },
+          },
+          "level": 3,
+          "type": "locality",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-a-kung-ngam",
+        "links": {
+          "self": "http://localhost/v0/divisions/division-a-kung-ngam",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-east",
+                "meta": {
+                  "name": "Eastern District",
+                  "subType": "region",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "first": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=map&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2025-09-24.0",
+      "domain": "overture",
+      "filters": {},
+      "locales": [
+        "en",
+        "zh-hant",
+      ],
+      "page": {
+        "limit": 25,
+        "offset": 0,
+        "total": 4,
+      },
+      "profile": "map",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route areas and boundaries through app.fetch: areas and boundaries through app.fetch 1`] = `
+{
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "China",
+            },
+            "zh-hant": {
+              "name": "中國",
+            },
+          },
+          "level": 0,
+          "type": "country",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-country-cn",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-country-cn",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Hong Kong SAR",
+            },
+            "zh-hant": {
+              "name": "香港特別行政區",
+            },
+          },
+          "level": 0,
+          "type": "sar",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-hk-sar",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+        },
+        "relationships": {
+          "boundaries": {
+            "data": [
+              {
+                "id": "boundary-overture-division-east",
+                "type": "division-boundaries",
+              },
+            ],
+          },
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Eastern District",
+            },
+            "zh-hant": {
+              "name": "東區",
+            },
+          },
+          "level": 2,
+          "type": "district",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-east",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-east",
+        },
+        "relationships": {
+          "areas": {
+            "data": [
+              {
+                "id": "area-overture-division-east",
+                "type": "division-areas",
+              },
+            ],
+          },
+          "boundaries": {
+            "data": [
+              {
+                "id": "boundary-overture-division-east",
+                "type": "division-boundaries",
+              },
+            ],
+          },
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "A Kung Ngam",
+            },
+            "zh-hant": {
+              "name": "阿公岩",
+            },
+          },
+          "level": 3,
+          "type": "locality",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-a-kung-ngam",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-east",
+                "meta": {
+                  "name": "Eastern District",
+                  "subType": "region",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "included": [
+      {
+        "attributes": {
+          "bbox": [
+            114.18,
+            22.25,
+            114.3,
+            22.35,
+          ],
+          "divisionId": "division-east",
+          "geometry": {
+            "coordinates": [],
+            "type": "Polygon",
+          },
+          "isLand": true,
+          "isTerritorial": false,
+          "sourceKeys": {
+            "provider": "overture",
+          },
+          "sources": {
+            "provider": [
+              {
+                "dataset": "overture",
+                "property": "/id",
+                "record_id": "area-overture-division-east",
+              },
+            ],
+          },
+          "type": "Polygon",
+          "variant": "overture",
+        },
+        "id": "area-overture-division-east",
+        "type": "division-areas",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.18,
+            22.25,
+            114.3,
+            22.35,
+          ],
+          "geometry": {
+            "coordinates": [
+              [
+                114.2,
+                22.25,
+              ],
+              [
+                114.2,
+                22.35,
+              ],
+            ],
+            "type": "LineString",
+          },
+          "isLand": true,
+          "isTerritorial": false,
+          "leftDivisionId": "division-east",
+          "rightDivisionId": "division-hk-sar",
+          "sourceKeys": {
+            "provider": "overture",
+          },
+          "sources": {
+            "overture": [
+              {
+                "dataset": "overture",
+                "property": "/id",
+                "record_id": "boundary-east",
+              },
+            ],
+          },
+          "type": "LineString",
+          "variant": "overture",
+        },
+        "id": "boundary-overture-division-east",
+        "type": "division-boundaries",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2025-09-24.0",
+      "domain": "overture",
+      "filters": {},
+      "locales": [
+        "en",
+        "zh-hant",
+      ],
+      "page": {
+        "limit": 25,
+        "offset": 0,
+        "total": 4,
+      },
+      "profile": "default",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route detail and hierarchy through app.fetch: detail and hierarchy through app.fetch 1`] = `
+{
+  "response": {
+    "data": {
+      "attributes": {
+        "bbox": [
+          114.2162,
+          22.2688,
+          114.23620000000001,
+          22.288800000000002,
+        ],
+        "cartography": {
+          "kind": "label-center",
+        },
+        "createdAt": "2025-09-24T00:00:00.000Z",
+        "geometry": {
+          "coordinates": [
+            114.2262,
+            22.2788,
+          ],
+          "type": "Point",
+        },
+        "i18n": {
+          "en": {
+            "name": "A Kung Ngam",
+            "nameAlts": null,
+            "nameRules": null,
+            "nameVariant": [
+              "A Kung Ngam",
+            ],
+          },
+          "zh-hant": {
+            "name": "阿公岩",
+            "nameAlts": null,
+            "nameRules": null,
+            "nameVariant": [
+              "阿公岩",
+            ],
+          },
+        },
+        "identifiers": null,
+        "level": 3,
+        "overture": {
+          "class": "locality",
+          "hierarchies": [
+            {
+              "division_id": "division-country-cn",
+              "name": "中国",
+              "subtype": "country",
+            },
+            {
+              "division_id": "division-hk-sar",
+              "name": "Hong Kong SAR",
+              "subtype": "dependency",
+            },
+            {
+              "division_id": "division-east",
+              "name": "Eastern District",
+              "subtype": "region",
+            },
+          ],
+          "subtype": "locality",
+          "version": 1,
+        },
+        "snapshotId": "snapshot-overture-2025",
+        "sources": {
+          "overture": [
+            {
+              "dataset": "overture",
+              "property": "/properties/id",
+              "record_id": "ovt-division-a-kung-ngam",
+            },
+          ],
+        },
+        "type": "locality",
+        "updatedAt": "2025-09-24T00:00:00.000Z",
+        "wikidata": null,
+      },
+      "id": "division-a-kung-ngam",
+      "links": {
+        "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+      },
+      "relationships": {
+        "hierarchy": {
+          "data": [
+            {
+              "id": "division-country-cn",
+              "meta": {
+                "name": "中国",
+                "subType": "country",
+              },
+              "type": "divisions",
+            },
+            {
+              "id": "division-hk-sar",
+              "meta": {
+                "name": "Hong Kong SAR",
+                "subType": "dependency",
+              },
+              "type": "divisions",
+            },
+            {
+              "id": "division-east",
+              "meta": {
+                "name": "Eastern District",
+                "subType": "region",
+              },
+              "type": "divisions",
+            },
+          ],
+        },
+      },
+      "type": "divisions",
+    },
+    "included": [
+      {
+        "attributes": {
+          "bbox": [
+            104.19,
+            35.79,
+            104.21000000000001,
+            35.809999999999995,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              104.2,
+              35.8,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "China",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "China",
+              ],
+            },
+            "zh-hant": {
+              "name": "中國",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "中國",
+              ],
+            },
+          },
+          "identifiers": null,
+          "level": 0,
+          "overture": {
+            "class": "country",
+            "hierarchies": [],
+            "subtype": "country",
+            "version": 1,
+          },
+          "snapshotId": "snapshot-overture-2025",
+          "sources": {
+            "overture": [
+              {
+                "dataset": "overture",
+                "property": "/properties/id",
+                "record_id": "ovt-division-country-cn",
+              },
+            ],
+          },
+          "type": "country",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-country-cn",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-country-cn",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.16,
+            22.31,
+            114.18,
+            22.330000000000002,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              114.17,
+              22.32,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "Hong Kong SAR",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "Hong Kong SAR",
+              ],
+            },
+            "zh-hant": {
+              "name": "香港特別行政區",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "香港特別行政區",
+              ],
+            },
+          },
+          "identifiers": null,
+          "level": 0,
+          "overture": {
+            "class": "sar",
+            "hierarchies": [
+              {
+                "division_id": "division-country-cn",
+                "name": "中国",
+                "subtype": "country",
+              },
+            ],
+            "subtype": "sar",
+            "version": 1,
+          },
+          "snapshotId": "snapshot-overture-2025",
+          "sources": {
+            "overture": [
+              {
+                "dataset": "overture",
+                "property": "/properties/id",
+                "record_id": "ovt-division-hk-sar",
+              },
+            ],
+          },
+          "type": "sar",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-hk-sar",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "bbox": [
+            114.21,
+            22.27,
+            114.23,
+            22.290000000000003,
+          ],
+          "cartography": {
+            "kind": "label-center",
+          },
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "geometry": {
+            "coordinates": [
+              114.22,
+              22.28,
+            ],
+            "type": "Point",
+          },
+          "i18n": {
+            "en": {
+              "name": "Eastern District",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "Eastern District",
+              ],
+            },
+            "zh-hant": {
+              "name": "東區",
+              "nameAlts": null,
+              "nameRules": null,
+              "nameVariant": [
+                "東區",
+              ],
+            },
+          },
+          "identifiers": null,
+          "level": 2,
+          "overture": {
+            "class": "district",
+            "hierarchies": [
+              {
+                "division_id": "division-country-cn",
+                "name": "中国",
+                "subtype": "country",
+              },
+              {
+                "division_id": "division-hk-sar",
+                "name": "Hong Kong SAR",
+                "subtype": "dependency",
+              },
+            ],
+            "subtype": "district",
+            "version": 1,
+          },
+          "snapshotId": "snapshot-overture-2025",
+          "sources": {
+            "overture": [
+              {
+                "dataset": "overture",
+                "property": "/properties/id",
+                "record_id": "ovt-division-east",
+              },
+            ],
+          },
+          "type": "district",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-east",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-east",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "permalink": "http://localhost/v0.1/divisions/division-a-kung-ngam?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=hierarchy&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=*&profile=full&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/v0.1/divisions/division-a-kung-ngam?releaseSet=data-hk-divisions-2025-09-24.0&profile=full&include=hierarchy",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2025-09-24.0",
+      "domain": "overture",
+      "locales": [
+        "*",
+      ],
+      "profile": "full",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+      "rulesetVersion": "rs-division-merge-v1",
+      "schemaVersion": "sv-division-v1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route planning domain through app.fetch: planning domain through app.fetch 1`] = `
+{
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "China",
+            },
+            "zh-hant": {
+              "name": "中國",
+            },
+          },
+          "level": 0,
+          "type": "country",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-country-cn",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-country-cn",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Hong Kong SAR",
+            },
+            "zh-hant": {
+              "name": "香港特別行政區",
+            },
+          },
+          "level": 0,
+          "type": "sar",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-hk-sar",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "Eastern District",
+            },
+            "zh-hant": {
+              "name": "東區",
+            },
+          },
+          "level": 2,
+          "type": "district",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-east",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-east",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "A Kung Ngam",
+            },
+            "zh-hant": {
+              "name": "阿公岩",
+            },
+          },
+          "level": 3,
+          "type": "locality",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-a-kung-ngam",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-east",
+                "meta": {
+                  "name": "Eastern District",
+                  "subType": "region",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "first": "http://localhost/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2021&domain=hkgov-pland-pu&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2021--hkgov-pland-pu",
+      "self": "http://localhost/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2021--hkgov-pland-pu",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2021",
+      "domain": "hkgov-pland-pu",
+      "filters": {},
+      "locales": [
+        "en",
+        "zh-hant",
+      ],
+      "page": {
+        "limit": 25,
+        "offset": 0,
+        "total": 4,
+      },
+      "profile": "default",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route filters and pagination through app.fetch: filters and pagination through app.fetch 1`] = `
+{
+  "response": {
+    "data": [
+      {
+        "attributes": {
+          "createdAt": "2025-09-24T00:00:00.000Z",
+          "i18n": {
+            "en": {
+              "name": "A Kung Ngam",
+            },
+            "zh-hant": {
+              "name": "阿公岩",
+            },
+          },
+          "level": 3,
+          "type": "locality",
+          "updatedAt": "2025-09-24T00:00:00.000Z",
+          "wikidata": null,
+        },
+        "id": "division-a-kung-ngam",
+        "links": {
+          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+        },
+        "relationships": {
+          "hierarchy": {
+            "data": [
+              {
+                "id": "division-country-cn",
+                "meta": {
+                  "name": "中国",
+                  "subType": "country",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-hk-sar",
+                "meta": {
+                  "name": "Hong Kong SAR",
+                  "subType": "dependency",
+                },
+                "type": "divisions",
+              },
+              {
+                "id": "division-east",
+                "meta": {
+                  "name": "Eastern District",
+                  "subType": "region",
+                },
+                "type": "divisions",
+              },
+            ],
+          },
+        },
+        "type": "divisions",
+      },
+    ],
+    "jsonapi": {
+      "version": "1.1",
+    },
+    "links": {
+      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+    },
+    "meta": {
+      "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
+      "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
+      "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
+      "cohort": "2025-09-24.0",
+      "domain": "overture",
+      "filters": {
+        "divisionType": "locality",
+        "level": 3,
+        "parent": "division-east",
+      },
+      "locales": [
+        "en",
+        "zh-hant",
+      ],
+      "page": {
+        "limit": 1,
+        "offset": 0,
+        "total": 1,
+      },
+      "profile": "default",
+      "requestedApiFamily": "divisions",
+      "requestedApiVersion": "0.1",
+      "resolvedApiVersion": "api-divisions-v0.1",
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`Divisions API responses through the Worker route invalid request through app.fetch: invalid request through app.fetch 1`] = `
+{
+  "response": {
+    "details": [
+      {
+        "code": "invalid_format",
+        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/",
+        "path": "include",
+      },
+    ],
+    "error": "validation_error",
+    "message": "Request validation failed.",
+    "target": "query",
+  },
+  "status": 422,
+}
+`;
