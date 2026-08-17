@@ -1,0 +1,7 @@
+{
+  "browser": {
+    "launchOptions": {
+      "executablePath": "/opt/google/chrome-canary/google-chrome-canary"
+    }
+  }
+}
