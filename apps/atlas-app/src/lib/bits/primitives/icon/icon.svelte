@@ -6,13 +6,13 @@ import { localIconComponents } from './iconComponents'
 
 type Props = {
   icon: string
-  [key: string]: unknown
+  [key: string]: string
 }
 
 let { icon, ...props }: Props = $props()
 let LocalIcon = $derived(
-  localIconComponents[icon as keyof typeof localIconComponents] as
-    | Component<Record<string, unknown>>
+  localIconComponents[icon as keyof typeof localIconComponents] as unknown as
+    | Component<Record<string, string>>
     | undefined,
 )
 </script>

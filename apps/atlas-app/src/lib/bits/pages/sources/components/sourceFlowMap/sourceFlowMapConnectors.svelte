@@ -19,12 +19,13 @@ let stackedArrowHalfHeight = $state(2.625)
 
 const defaultConnectorY = (inputCount: number, inputIndex: number) => {
   const cardHeight = 5.65
+  const outputOffset = 0.5
   const rowHeight = 6.4
   const flowHeight = Math.max(
     cardHeight,
     inputCount * rowHeight - (rowHeight - cardHeight),
   )
-  const outputY = (cardHeight / 2 / flowHeight) * 100
+  const outputY = ((cardHeight / 2 + outputOffset) / flowHeight) * 100
   const inputY = ((cardHeight / 2 + inputIndex * rowHeight) / flowHeight) * 100
 
   return { inputY, outputY }
