@@ -64,6 +64,12 @@ test('renders geometry in an accessible district table', async () => {
     .element(screen.getByRole('columnheader', { name: 'Boundary segments' }))
     .toBeVisible()
   await expect
+    .element(screen.getByRole('columnheader', { name: 'Polygons' }))
+    .not.toBeVisible()
+  await expect
+    .element(screen.getByRole('columnheader', { name: 'Area (km²)' }))
+    .not.toBeVisible()
+  await expect
     .element(screen.getByRole('button', { name: 'About geometry measurements' }))
     .toBeVisible()
 })

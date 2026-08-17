@@ -18,6 +18,7 @@ type Props = {
   id?: string
   publisherLogoSrc?: string
   publisherName?: string
+  reload?: boolean
   title: string
   titleColour?: string
   titleParts?: ReleaseLinkTitlePart[]

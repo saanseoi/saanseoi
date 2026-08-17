@@ -35,6 +35,12 @@ let sortColumn = $state<SortColumn>('district')
 let sortDirection = $state<'ascending' | 'descending'>('ascending')
 let resolvedDistrictNames = $state<ReleaseStatsDistrictName[]>([])
 let nameRequestComplete = $state(false)
+const visibleColumnCount = $derived(
+  3 +
+    Number(geometry.showFeatureCount) +
+    Number(geometry.showPolygonCount) +
+    Number(geometry.showArea),
+)
 const districtIdsKey = $derived(
   geometry.rows
     .map(row => row.districtId)
@@ -175,24 +181,26 @@ const sortedRows = $derived(
               </button>
             </th>
           {/if}
-          <th
-            class="px-5 py-3 text-right"
-            aria-sort={sortColumn === 'polygonCount' ? sortDirection : 'none'}
-            scope="col"
-          >
-            <button
-              class="inline-flex cursor-pointer items-center gap-1.5 hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
-              onclick={() => sortRows('polygonCount')}
-              type="button"
+          {#if geometry.showPolygonCount}
+            <th
+              class="px-5 py-3 text-right"
+              aria-sort={sortColumn === 'polygonCount' ? sortDirection : 'none'}
+              scope="col"
             >
-              {labels.geometryPolygons}
-              <Icon
-                aria-hidden="true"
-                class="size-3"
-                icon={sortColumn === 'polygonCount' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
-              />
-            </button>
-          </th>
+              <button
+                class="inline-flex cursor-pointer items-center gap-1.5 hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
+                onclick={() => sortRows('polygonCount')}
+                type="button"
+              >
+                {labels.geometryPolygons}
+                <Icon
+                  aria-hidden="true"
+                  class="size-3"
+                  icon={sortColumn === 'polygonCount' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                />
+              </button>
+            </th>
+          {/if}
           <th
             class="px-5 py-3 text-right"
             aria-sort={sortColumn === 'boundarySegmentCount' ? sortDirection : 'none'}
@@ -211,25 +219,27 @@ const sortedRows = $derived(
               />
             </button>
           </th>
-          <th
-            class="px-5 py-3 text-right"
-            aria-sort={sortColumn === 'area' ? sortDirection : 'none'}
-            scope="col"
-          >
-            <button
-              class="inline-flex cursor-pointer items-center gap-1.5 hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
-              onclick={() => sortRows('area')}
-              type="button"
+          {#if geometry.showArea}
+            <th
+              class="px-5 py-3 text-right"
+              aria-sort={sortColumn === 'area' ? sortDirection : 'none'}
+              scope="col"
             >
-              {labels.geometryArea}
-              (km²)
-              <Icon
-                aria-hidden="true"
-                class="size-3"
-                icon={sortColumn === 'area' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
-              />
-            </button>
-          </th>
+              <button
+                class="inline-flex cursor-pointer items-center gap-1.5 hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
+                onclick={() => sortRows('area')}
+                type="button"
+              >
+                {labels.geometryArea}
+                (km²)
+                <Icon
+                  aria-hidden="true"
+                  class="size-3"
+                  icon={sortColumn === 'area' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                />
+              </button>
+            </th>
+          {/if}
           <th
             class="px-5 py-3 text-right"
             aria-sort={sortColumn === 'boundaryLength' ? sortDirection : 'none'}
@@ -257,7 +267,7 @@ const sortedRows = $derived(
       >
         {#if namesLoading}
           <tr>
-            <td class="px-5 py-8" colspan={geometry.showFeatureCount ? 6 : 5}>
+            <td class="px-5 py-8" colspan={visibleColumnCount}>
               <span
                 aria-hidden="true"
                 class="block h-4 w-48 animate-pulse rounded-sm bg-data-surface-container-high"
@@ -287,15 +297,19 @@ const sortedRows = $derived(
                   {row.featureCount}
                 </td>
               {/if}
-              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-                {row.polygonCount ?? labels.notApplicable}
-              </td>
+              {#if geometry.showPolygonCount}
+                <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                  {row.polygonCount ?? labels.notApplicable}
+                </td>
+              {/if}
               <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
                 {row.boundarySegmentCount}
               </td>
-              <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
-                {row.area ?? labels.notApplicable}
-              </td>
+              {#if geometry.showArea}
+                <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
+                  {row.area ?? labels.notApplicable}
+                </td>
+              {/if}
               <td class="px-5 py-3 text-right font-mono tabular-nums text-primary">
                 {row.boundaryLength}
               </td>

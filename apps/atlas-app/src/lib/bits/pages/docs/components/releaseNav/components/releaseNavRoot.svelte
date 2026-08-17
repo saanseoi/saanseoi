@@ -1,6 +1,10 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 import { tick } from 'svelte'
+import {
+  preconnectChoroplethMapOrigins,
+  preloadChoroplethMapAssets,
+} from '#lib/bits/components/choroplethMap/choroplethMapPreload.js'
 import type {
   ReleaseNavAction,
   ReleaseNavDomain,
@@ -88,7 +92,28 @@ $effect(() => {
   observedOutlineId = null
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
 })
+
+$effect(() => {
+  if (activeTab !== 'notes') return
+
+  const controller = new AbortController()
+  const timeout = window.setTimeout(
+    () => preloadChoroplethMapAssets(controller.signal),
+    250,
+  )
+
+  return () => {
+    window.clearTimeout(timeout)
+    controller.abort()
+  }
+})
 </script>
+
+<svelte:head>
+  {#each preconnectChoroplethMapOrigins as origin}
+    <link rel="preconnect" href={origin} crossorigin="anonymous">
+  {/each}
+</svelte:head>
 
 {#snippet navBar()}
   <ReleaseNavBar
