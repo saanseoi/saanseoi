@@ -1,5 +1,5 @@
 <script lang="ts">
-import { pushState, replaceState } from '$app/navigation'
+import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { source_geometry_district_fallback } from '@repo/i18n/messages'
@@ -116,7 +116,10 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
-let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
+let showNoteDiff = $state(page.url.searchParams.get('view') === 'diff')
+$effect(() => {
+  showNoteDiff = page.url.searchParams.get('view') === 'diff'
+})
 let showBulkActions = $state(false)
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
@@ -276,10 +279,15 @@ let domains = $derived(
   })),
 )
 function setShowNoteDiff(enabled: boolean) {
+  showNoteDiff = enabled
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
-  replaceState(`${url.pathname}${url.search}${url.hash}`, {})
+  void goto(`${url.pathname}${url.search}${url.hash}`, {
+    replace: true,
+    shallow: true,
+    state: {},
+  })
 }
 function setActiveTab(tab: string) {
   activeTab = tab as ApiReleaseTab
@@ -287,7 +295,10 @@ function setActiveTab(tab: string) {
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
   url.hash = ''
-  pushState(`${url.pathname}${url.search}${url.hash}`, {})
+  void goto(`${url.pathname}${url.search}${url.hash}`, {
+    shallow: true,
+    state: {},
+  })
 }
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
