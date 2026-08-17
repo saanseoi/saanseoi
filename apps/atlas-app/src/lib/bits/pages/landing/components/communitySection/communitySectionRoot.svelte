@@ -220,7 +220,7 @@ let { children, class: className = '' }: Props = $props()
     --newsletter-orange-freefall-trigger-duration: 5.9s;
     --newsletter-orange-freefall-duration: 3.8s;
     --newsletter-orange-lower-landing-duration: 900ms;
-    --newsletter-orange-return-duration: 10s;
+    --newsletter-orange-return-duration: 12.5s;
     --newsletter-orange-loop-duration: 12.5s;
     --newsletter-orange-loop-freefall-trigger-duration: 12.25s;
     --newsletter-orange-y-shift-58: clamp(-0.422rem, -0.493vw, -0.229rem);
@@ -1016,7 +1016,7 @@ let { children, class: className = '' }: Props = $props()
     11% {
       top: var(--newsletter-orange-return-one-apex-y);
       left: var(--newsletter-orange-return-one-apex-x);
-      transform: scale(1.08, 0.9);
+      transform: scale(1.03, 0.97);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
@@ -1038,7 +1038,7 @@ let { children, class: className = '' }: Props = $props()
     27% {
       top: var(--newsletter-orange-return-two-apex-y);
       left: var(--newsletter-orange-return-two-apex-x);
-      transform: scale(1.08, 0.9);
+      transform: scale(1.03, 0.97);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
@@ -1060,7 +1060,7 @@ let { children, class: className = '' }: Props = $props()
     43% {
       top: var(--newsletter-orange-return-three-apex-y);
       left: var(--newsletter-orange-return-three-apex-x);
-      transform: scale(1.08, 0.9);
+      transform: scale(1.03, 0.97);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
@@ -1082,15 +1082,37 @@ let { children, class: className = '' }: Props = $props()
     59% {
       top: var(--newsletter-orange-return-four-apex-y);
       left: var(--newsletter-orange-return-four-apex-x);
-      transform: scale(1.08, 0.9);
+      transform: scale(1.03, 0.97);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
     64%,
-    68%,
-    100% {
+    68% {
       top: var(--newsletter-orange-return-four-y);
       left: var(--newsletter-orange-return-four-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    70% {
+      top: var(--newsletter-orange-return-four-y);
+      left: var(--newsletter-orange-return-four-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    75% {
+      top: var(--newsletter-orange-return-five-apex-y);
+      left: var(--newsletter-orange-return-five-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    80%,
+    84%,
+    100% {
+      top: var(--newsletter-orange-return-five-y);
+      left: var(--newsletter-orange-return-five-x);
       transform: scale(1);
       animation-timing-function: step-end;
     }
@@ -1151,8 +1173,18 @@ let { children, class: className = '' }: Props = $props()
 
     64%,
     68%,
-    100% {
+    70% {
       rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 5760deg);
+    }
+
+    75% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 6480deg);
+    }
+
+    80%,
+    84%,
+    100% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 7200deg);
     }
   }
 
@@ -1172,15 +1204,15 @@ let { children, class: className = '' }: Props = $props()
       animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
     }
 
-    10% {
+    12.3% {
       top: var(--newsletter-orange-lower-platform-approach-apex-y);
       left: var(--newsletter-orange-lower-platform-approach-apex-x);
       transform: scale(1.08, 0.9);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
-    14%,
-    22% {
+    21.7%,
+    24% {
       top: var(--newsletter-orange-step-one-y);
       left: var(--newsletter-orange-step-one-x);
       transform: scale(1);
@@ -1308,17 +1340,17 @@ let { children, class: className = '' }: Props = $props()
       rotate: var(--newsletter-orange-loop-spin-start, 10440deg);
     }
 
-    10% {
-      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 720deg);
+    12.3% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 540deg);
     }
 
-    14%,
-    22% {
-      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1440deg);
+    21.7%,
+    24% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
     }
 
     26% {
-      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1440deg);
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
     }
 
     30% {
