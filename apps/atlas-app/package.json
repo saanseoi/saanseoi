@@ -45,8 +45,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@sveltejs/adapter-cloudflare": "7.2.9",
-    "@sveltejs/kit": "2.70.2",
+    "@sveltejs/adapter-cloudflare": "next",
+    "@sveltejs/kit": "next",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
