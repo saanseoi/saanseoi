@@ -429,7 +429,7 @@ onMount(() => {
     background: #5865f2;
     transform: translateY(calc(var(--community-shape-size) * 0.02))
       translate(
-        calc(var(--community-shape-size) * -0.036585),
+        calc(var(--community-shape-size) * -0.036585 - 2rem),
         calc(var(--community-shape-size) * -0.082927)
       );
   }
@@ -437,7 +437,7 @@ onMount(() => {
   .community-space-blob-discord-upper {
     transform: translateY(calc(var(--community-shape-size) * 0.02 - 0.8rem))
       translate(
-        calc(var(--community-shape-size) * -0.036585 - 0.8rem),
+        calc(var(--community-shape-size) * -0.036585 - 0.8rem - 2rem),
         calc(var(--community-shape-size) * -0.082927 - 0.8rem)
       );
   }
@@ -445,7 +445,7 @@ onMount(() => {
   .community-space-blob-discord-lower {
     transform: translateY(calc(var(--community-shape-size) * 0.02 + 0.8rem))
       translate(
-        calc(var(--community-shape-size) * -0.036585 + 0.8rem),
+        calc(var(--community-shape-size) * -0.036585 + 0.8rem - 2rem),
         calc(var(--community-shape-size) * -0.082927 + 0.8rem)
       );
   }
@@ -456,7 +456,7 @@ onMount(() => {
     background: #45d2bb;
     transform: translateY(calc(var(--community-shape-size) * 0.02))
       translate(
-        calc(var(--community-shape-size) * 0.085366),
+        calc(var(--community-shape-size) * 0.085366 + 2rem),
         calc(var(--community-shape-size) * -0.253049)
       )
       scaleX(-1);
@@ -465,7 +465,7 @@ onMount(() => {
   .community-space-blob-discussions-upper {
     transform: translateY(calc(var(--community-shape-size) * 0.02 - 0.8rem))
       translate(
-        calc(var(--community-shape-size) * 0.085366 - 0.8rem),
+        calc(var(--community-shape-size) * 0.085366 - 0.8rem + 2rem),
         calc(var(--community-shape-size) * -0.253049 - 0.8rem)
       )
       scaleX(-1);
@@ -474,7 +474,7 @@ onMount(() => {
   .community-space-blob-discussions-lower {
     transform: translateY(calc(var(--community-shape-size) * 0.02 + 0.8rem))
       translate(
-        calc(var(--community-shape-size) * 0.085366 + 0.8rem),
+        calc(var(--community-shape-size) * 0.085366 + 0.8rem + 2rem),
         calc(var(--community-shape-size) * -0.253049 + 0.8rem)
       )
       scaleX(-1);
@@ -1088,14 +1088,30 @@ onMount(() => {
 }
 
 @media (min-width: 901px) and (max-width: 1085px) {
+  .community-space-card-identity,
+  .community-space-card-title,
   .community-space-card-description {
+    display: none;
+  }
+
+  .community-space-card-topics {
     display: none;
   }
 
   .community-space-card-footer,
   .community-space-card-discord .community-space-card-footer,
   .community-space-card-discussions .community-space-card-footer {
-    margin-top: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .community-space-card-cta {
+    transform: none;
   }
 }
 
