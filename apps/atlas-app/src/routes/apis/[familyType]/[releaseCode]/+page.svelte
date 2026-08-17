@@ -1,8 +1,10 @@
 <script lang="ts">
-import { goto } from '$app/navigation'
+import { pushState, replaceState } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { source_geometry_district_fallback } from '@repo/i18n/messages'
+import { prefersReducedMotion } from 'svelte/motion'
+import { fade } from 'svelte/transition'
 import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
@@ -13,6 +15,7 @@ import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/inde
 import { Main } from '#lib/bits/primitives/main/index.js'
 
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
 import {
   getApiReleasePageData,
   getDistrictCoverageMapData,
@@ -36,10 +39,28 @@ import type {
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
+import ApiReleaseContentSkeleton from './apiReleaseContentSkeleton.svelte'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
 
-let { params } = $props()
-let api = $derived(await getApiReleasePageData(params.familyType))
+let { params, data } = $props()
+let initialShell = $derived(data.apiReleaseShell)
+let lastReadyShell = $state<typeof initialShell | null>(null)
+$effect(() => {
+  if (initialShell) lastReadyShell = initialShell
+})
+let shell = $derived(initialShell ?? lastReadyShell)
+let contentResource = createDeferredRemoteResource({
+  createQuery: familyType => getApiReleasePageData(familyType),
+  getInput: () => params.familyType,
+  getKey: familyType => familyType,
+  hasShell: () => Boolean(shell),
+})
+let api = $derived.by(() => {
+  const value = contentResource.current ?? shell
+  if (!value) error(500, 'API release data unavailable.')
+  return value
+})
+let isContentLoading = $derived(contentResource.loading)
 
 let release = $derived.by(() => {
   const selected = api.releases?.find(item => item.code === params.releaseCode)
@@ -72,13 +93,18 @@ let notesPresentation = $derived(
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
 type ApiReleaseTab = 'notes' | 'stats' | 'audit' | 'sources'
-const getApiReleaseTabFromUrl = (): ApiReleaseTab => {
-  const tab = page.url.searchParams.get('tab') ?? ''
+type ApiReleaseUrl = {
+  searchParams: {
+    get(name: string): string | null
+  }
+}
+const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
+  const tab = url.searchParams.get('tab') ?? ''
   return ['notes', 'stats', 'audit', 'sources'].includes(tab)
     ? (tab as ApiReleaseTab)
     : 'notes'
 }
-let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl())
+let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
 let activeHeadingId = $state<string | null>(null)
 let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
@@ -247,19 +273,15 @@ function setShowNoteDiff(enabled: boolean) {
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
-  void goto(`${url.pathname}${url.search}${url.hash}`, {
-    shallow: true,
-    replace: true,
-  })
+  replaceState(`${url.pathname}${url.search}${url.hash}`, {})
 }
 function setActiveTab(tab: string) {
+  activeTab = tab as ApiReleaseTab
   const url = new URL(page.url.href)
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
   url.hash = ''
-  void goto(`${url.pathname}${url.search}${url.hash}`, {
-    shallow: true,
-  })
+  pushState(`${url.pathname}${url.search}${url.hash}`, {})
 }
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
@@ -271,7 +293,7 @@ let tabs = $derived<ReleaseNavTab[]>([
 ])
 
 $effect(() => {
-  const tab = getApiReleaseTabFromUrl()
+  const tab = getApiReleaseTabFromUrl(page.url)
   activeTab = tabs.some(({ id }) => id === tab) ? tab : 'notes'
 })
 
@@ -337,17 +359,19 @@ let outline = $derived<ReleaseNavOutlineItem[]>(
         label: 'label' in heading ? heading.label : heading.text,
       })),
 )
-let hasContent = $derived(
-  activeTab === 'notes'
-    ? showNoteDiff
+let hasContent = $derived.by(() => {
+  if (isContentLoading) return true
+  if (activeTab === 'notes') {
+    return showNoteDiff
       ? noteDiff.changes.length > 0
       : Boolean(notesPresentation.markdown.trim())
-    : activeTab === 'stats'
-      ? Boolean(release.stats?.length)
-      : activeTab === 'audit'
-        ? Boolean(release.processingActions?.length || release.bulkActions?.length)
-        : Boolean(release.contributingSources?.length),
-)
+  }
+  if (activeTab === 'stats') return Boolean(release.stats?.length)
+  if (activeTab === 'audit') {
+    return Boolean(release.processingActions?.length || release.bulkActions?.length)
+  }
+  return Boolean(release.contributingSources?.length)
+})
 
 $effect(() => {
   release.code
@@ -366,6 +390,7 @@ $effect(() => {
     domainTitle="Domains"
     {currentDomainCode}
     currentVersionCode={release.code}
+    loading={isContentLoading}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
     nestedContent={activeTab === 'notes' && !showNoteDiff}
@@ -376,53 +401,73 @@ $effect(() => {
     onTabChange={setActiveTab}
     bind:activeTab
   >
-    {#if activeTab === 'notes'}
-      <div class:contents={showNoteDiff} class="h-full min-h-0">
-        {#if showNoteDiff && previousRelease}
-          <ReleaseDiff.Root
-            changes={noteDiff.changes}
-            labels={{
-              added: m.source_added(),
-              removed: m.source_removed(),
-              empty: m.source_diff_no_changes(),
-            }}
-            markdown={notesPresentation}
+    {#if isContentLoading && contentResource.showSkeleton}
+      <ApiReleaseContentSkeleton tab={activeTab} diff={showNoteDiff} />
+    {:else if contentResource.error}
+      <section
+        class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
+        role="alert"
+      >
+        <p>API release content could not be loaded.</p>
+        <button
+          class="mt-3 font-semibold underline underline-offset-4"
+          onclick={() => void contentResource.query.refresh()}
+          type="button"
+        >
+          Retry
+        </button>
+      </section>
+    {:else}
+      <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+        {#if activeTab === 'notes'}
+          <div class:contents={showNoteDiff} class="h-full min-h-0">
+            {#if showNoteDiff && previousRelease}
+              <ReleaseDiff.Root
+                changes={noteDiff.changes}
+                labels={{
+                  added: m.source_added(),
+                  removed: m.source_removed(),
+                  empty: m.source_diff_no_changes(),
+                }}
+                markdown={notesPresentation}
+              />
+            {:else}
+              <ReleaseNotes.Root
+                markdown={notesPresentation.markdown}
+                headings={noteHeadings}
+                labels={notesPresentation.labels}
+                transclusions={notesPresentation.transclusions}
+                bind:activeHeadingId
+              />
+            {/if}
+          </div>
+        {:else if activeTab === 'stats'}
+          <ReleaseStats.Root
+            stats={release.stats}
+            {districtAreas}
+            {locale}
+            presentation={statsPresentation}
+            bind:headings={statsHeadings}
+            bind:activeHeadingId={activeStatsHeadingId}
+          />
+        {:else if activeTab === 'audit'}
+          <ReleaseAudit.Root
+            actions={release.processingActions}
+            bulkActions={release.bulkActions}
+            {locale}
+            {showBulkActions}
+            bind:headings={auditHeadings}
+            bind:activeHeadingId={activeAuditHeadingId}
           />
         {:else}
-          <ReleaseNotes.Root
-            markdown={notesPresentation.markdown}
-            headings={noteHeadings}
-            labels={notesPresentation.labels}
-            transclusions={notesPresentation.transclusions}
-            bind:activeHeadingId
-          />
+          <ReleaseLinks.Root>
+            <ReleaseLinks.Provenance
+              presentation={sourceReleaseLinksPresentation}
+              emptyLabel={m.api_release_unavailable()}
+            />
+          </ReleaseLinks.Root>
         {/if}
       </div>
-    {:else if activeTab === 'stats'}
-      <ReleaseStats.Root
-        stats={release.stats}
-        {districtAreas}
-        {locale}
-        presentation={statsPresentation}
-        bind:headings={statsHeadings}
-        bind:activeHeadingId={activeStatsHeadingId}
-      />
-    {:else if activeTab === 'audit'}
-      <ReleaseAudit.Root
-        actions={release.processingActions}
-        bulkActions={release.bulkActions}
-        {locale}
-        {showBulkActions}
-        bind:headings={auditHeadings}
-        bind:activeHeadingId={activeAuditHeadingId}
-      />
-    {:else}
-      <ReleaseLinks.Root>
-        <ReleaseLinks.Provenance
-          presentation={sourceReleaseLinksPresentation}
-          emptyLabel={m.api_release_unavailable()}
-        />
-      </ReleaseLinks.Root>
     {/if}
   </ReleaseNav.Root>
 </Main>
