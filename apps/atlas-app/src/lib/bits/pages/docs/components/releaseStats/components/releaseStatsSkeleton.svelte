@@ -8,7 +8,7 @@
     class="overflow-hidden rounded-lg border border-data-outline-variant/60 bg-data-surface-container-low"
   >
     <div
-      class="flex items-start justify-between gap-4 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
+      class="flex items-start justify-between gap-4 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-6"
     >
       <div>
         <div class="h-3 w-28 rounded-full bg-data-surface-container-high"></div>
@@ -24,7 +24,7 @@
         ['border-data-error', 'bg-data-error', 'w-14'],
         ['border-data-neutral', 'bg-data-neutral', 'w-20'],
       ] as metric}
-        <div class={`border-t-8 bg-data-surface-container-low px-5 py-5 ${metric[0]}`}>
+        <div class={`border-t-8 bg-data-surface-container-low px-5 py-6 ${metric[0]}`}>
           <div class="flex items-center gap-2">
             <span class={`size-2 rounded-full ${metric[1]}`}></span>
             <span class="h-4 w-16 rounded-full bg-data-surface-container-high"></span>
@@ -41,7 +41,7 @@
     class="overflow-hidden rounded-lg border border-data-outline-variant/60 bg-data-surface-container-low"
   >
     <div
-      class="border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
+      class="border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-6"
     >
       <div class="h-3 w-20 rounded-full bg-data-surface-container-high"></div>
       <div class="mt-2 h-5 w-44 rounded-md bg-data-surface-container-high"></div>
