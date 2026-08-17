@@ -445,7 +445,7 @@ function calculateOrangeHopArc(
       ({
         'lower-platform': 0.3,
         'stair-climbing': 0.162,
-        'upper-platform': 0.13,
+        'upper-platform': 0.0975,
         'jump-off': 0.06,
         freefall: 0.08,
       }[type] ?? 0.1),
@@ -453,16 +453,16 @@ function calculateOrangeHopArc(
       ({
         'lower-platform': 2.4,
         'stair-climbing': 2.16,
-        'upper-platform': 1.8,
+        'upper-platform': 1.35,
         'jump-off': 1,
         freefall: 0.8,
       }[type] ?? 1.5),
   )
-  // The lettering hops should clear the title without leaving the frame. They
-  // previously used a 320px minimum; keep the lower and freefall arcs
-  // unchanged while making these post-second-step hops 25% shorter. The
-  // stair-climbing arc is 10% shorter in both its section and creature caps.
-  const minimumLift = type === 'upper-platform' || type === 'jump-off' ? 240 : 0
+  // The second-step-to-lettering hop is 25% shorter than the previous 240px
+  // minimum. Title hops keep their existing 240px minimum, while the
+  // stair-climbing arc remains 10% shorter in both its section and creature
+  // caps.
+  const minimumLift = type === 'upper-platform' ? 180 : type === 'jump-off' ? 240 : 0
   const lift = Math.max(minimumLift, naturalLift)
   const apexY = Math.min(start.y, end.y) - lift
   const control = {
@@ -620,10 +620,11 @@ function setOrangeRouteGeometry() {
     x: footerLanding.x + (lowerPlatformApproach.x - footerLanding.x) * progress,
     y: groundTop,
   })
-  const returnHopOne = returnPoint(0.25)
-  const returnHopTwo = returnPoint(0.5)
-  const returnHopThree = returnPoint(0.75)
-  const returnHopFour = returnPoint(1)
+  const returnHopOne = returnPoint(0.2)
+  const returnHopTwo = returnPoint(0.4)
+  const returnHopThree = returnPoint(0.6)
+  const returnHopFour = returnPoint(0.8)
+  const returnHopFive = returnPoint(1)
   const firstArc = calculateOrangeHopArc(
     { x: edgeX, y: groundTop },
     firstGround,
@@ -736,6 +737,14 @@ function setOrangeRouteGeometry() {
     creatureSize,
     'lower-platform',
   )
+  const returnArcFive = calculateOrangeHopArc(
+    returnHopFour,
+    returnHopFive,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
+  )
   const values: Record<string, string> = {
     '--newsletter-orange-start-x': `${startX}px`,
     '--newsletter-orange-edge-x': `${edgeX}px`,
@@ -795,6 +804,10 @@ function setOrangeRouteGeometry() {
     '--newsletter-orange-return-four-y': `${returnHopFour.y}px`,
     '--newsletter-orange-return-four-apex-x': `${returnArcFour.apex.x}px`,
     '--newsletter-orange-return-four-apex-y': `${returnArcFour.apex.y}px`,
+    '--newsletter-orange-return-five-x': `${returnHopFive.x}px`,
+    '--newsletter-orange-return-five-y': `${returnHopFive.y}px`,
+    '--newsletter-orange-return-five-apex-x': `${returnArcFive.apex.x}px`,
+    '--newsletter-orange-return-five-apex-y': `${returnArcFive.apex.y}px`,
   }
 
   for (const [property, value] of Object.entries(values)) {
@@ -1102,7 +1115,7 @@ onMount(() => {
     if (!isNewsletterActive) return
 
     window.clearTimeout(returnAdvanceTimer)
-    const loopSpinStart = returnSpinStart - 5760
+    const loopSpinStart = returnSpinStart - 7200
     loopFreefallSpinStart = loopSpinStart - 360
     orangeCreature.style.setProperty(
       '--newsletter-orange-loop-spin-start',
@@ -1233,17 +1246,17 @@ onMount(() => {
     if (godHasJumped) {
       spawnDataPacketsForGodJump(godSpinDirection)
       const spinKick = lowerPlatformMotion
-        ? Math.min(14, Math.max(5.5, Math.abs(lastGodRotationDelta) * 0.5))
+        ? Math.min(9, Math.max(3.5, Math.abs(lastGodRotationDelta) * 0.35))
         : Math.min(6, Math.max(2.2, Math.abs(lastGodRotationDelta) * 0.28))
       for (const [index, bearing] of bearingStates.entries()) {
         bearing.angularVelocity +=
           (bearingKickDirections[index] ?? 1) *
           (spinKick + index * 0.25) *
-          (lowerPlatformMotion ? 1.7 : 1)
+          (lowerPlatformMotion ? 1.05 : 1)
       }
     }
     if (godHasLanded) {
-      kickBearingsOnLanding(godSpinDirection, lowerPlatformMotion ? 1.7 : 1)
+      kickBearingsOnLanding(godSpinDirection, lowerPlatformMotion ? 1.05 : 1)
     }
 
     lastGodTop = godTop
@@ -1255,7 +1268,10 @@ onMount(() => {
     // removes energy on each pass, so a bearing cannot freeze at an arbitrary
     // point in the band as a finite CSS keyframe animation can.
     const gravity = lowerPlatformMotion ? 5.8 : 8.4
-    const damping = lowerPlatformMotion ? 0.16 : 0.55
+    // Keep momentum across every landing. The bearings are still pulled
+    // toward the bottom of the ring, but switching to high damping when GOD
+    // reaches the upper platform made them visibly freeze on impact.
+    const damping = lowerPlatformMotion ? 0.12 : 0.16
 
     for (const bearing of bearingStates) {
       const angleFromRest = bearing.angle - bearing.restAngle
