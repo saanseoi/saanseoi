@@ -46,7 +46,10 @@ export async function runCacheRebuildCommand(
   try {
     await rebuildRemoteDbCache(
       target,
-      event => updateDbCacheProgress(progress, event),
+      event =>
+        updateDbCacheProgress(progress, event, {
+          operation: 're-export',
+        }),
       cacheTableProfile as CacheTableProfile | undefined,
       cohortKey as string | undefined,
     )
@@ -59,7 +62,7 @@ export async function runCacheRebuildCommand(
     progress.complete(
       appendPhaseDetails(
         formatCompletedPhaseLabel(
-          colorTeal('Clone cache'),
+          colorTeal('Re-export cache'),
           colorRed(target.environment),
         ),
         [formatDurationMs(Date.now() - startedAt)],
