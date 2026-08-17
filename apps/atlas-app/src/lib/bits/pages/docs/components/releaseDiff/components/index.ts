@@ -1,4 +1,5 @@
 export { default as Root } from './releaseDiffRoot.svelte'
+export { default as Skeleton } from './releaseDiffSkeleton.svelte'
 export { default as Legend } from './releaseDiffLegend.svelte'
 export { default as ChangeList } from './releaseDiffChangeList.svelte'
 export { default as Change } from './releaseDiffChange.svelte'
