@@ -1,4 +1,6 @@
 <script lang="ts">
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
+
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -58,34 +60,38 @@ async function handleSubmit(event: SubmitEvent) {
       <p class="newsletter-success-body">{m.newsletter_success_body()}</p>
     </div>
   {:else}
-    <form
-      class="newsletter-card newsletter-form grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 p-[clamp(1rem,2.8vw,1.35rem)] max-[900px]:grid-cols-1"
-      onsubmit={handleSubmit}
-    >
-      <div class="newsletter-field min-w-0">
-        <Label class="sr-only" for="newsletter-email">
-          {m.newsletter_email_label()}
-        </Label>
-        <Input
-          class="newsletter-input"
-          id="newsletter-email"
-          name="email"
-          placeholder={m.newsletter_email_placeholder()}
-          type="email"
-          bind:value={email}
-          disabled={isSubmitting}
-          required
-        />
-      </div>
-      <Button
-        class="newsletter-submit"
-        type="submit"
-        variant="primary"
-        disabled={isSubmitting}
+    <div class="newsletter-form-stack">
+      <form
+        class="newsletter-card newsletter-form p-[clamp(1rem,2.8vw,1.35rem)]"
+        id="newsletter-subscription"
+        onsubmit={handleSubmit}
       >
-        {m.newsletter_submit()}
-      </Button>
-    </form>
+        <div class="newsletter-field min-w-0">
+          <Label class="sr-only" for="newsletter-email">
+            {m.newsletter_email_label()}
+          </Label>
+          <Input
+            class="newsletter-input"
+            id="newsletter-email"
+            name="email"
+            placeholder={m.newsletter_email_placeholder()}
+            type="email"
+            bind:value={email}
+            disabled={isSubmitting}
+            required
+          />
+        </div>
+        <Button
+          class="newsletter-submit inline-flex min-h-12! w-fit items-center gap-2 rounded-xl! bg-secondary! px-5 py-3 font-body text-[0.93rem] font-bold text-on-secondary! shadow-none transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest"
+          type="submit"
+          variant="primary"
+          disabled={isSubmitting}
+        >
+          <Icon icon="lucide:mail" class="size-4" aria-hidden="true" />
+          {m.newsletter_submit()}
+        </Button>
+      </form>
+    </div>
 
     {#if errorMessage}
       <p class="newsletter-error">{errorMessage}</p>
@@ -97,12 +103,29 @@ async function handleSubmit(event: SubmitEvent) {
 
 <style>
 .newsletter-content {
-  display: grid;
+  display: flex;
   min-height: 12.5rem;
-  grid-template-columns: 1fr;
-  gap: 0;
+  flex-direction: column;
   align-items: center;
   isolation: isolate;
+}
+
+.newsletter-form-stack {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+}
+
+.newsletter-form {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.newsletter-field {
+  width: 100%;
 }
 
 .newsletter-card {
@@ -116,7 +139,6 @@ async function handleSubmit(event: SubmitEvent) {
     color-mix(in srgb, var(--surface) 96%, transparent)
   );
   box-shadow: 0 1.2rem 3.2rem rgb(0 0 0 / 0.11);
-  grid-area: 1 / 1;
 }
 
 .newsletter-card::before {
@@ -130,7 +152,7 @@ async function handleSubmit(event: SubmitEvent) {
     90deg,
     transparent,
     color-mix(in srgb, var(--secondary) 70%, transparent),
-    color-mix(in srgb, var(--tertiary) 55%, transparent),
+    color-mix(in srgb, var(--secondary) 55%, transparent),
     transparent
   );
 }
@@ -151,6 +173,10 @@ async function handleSubmit(event: SubmitEvent) {
   min-width: 9.5rem;
   min-height: 3.55rem;
   box-shadow: 0 0.8rem 1.8rem rgb(0 0 0 / 0.14);
+}
+
+:global(.newsletter-submit:hover) {
+  box-shadow: 0 0 1.5rem color-mix(in srgb, var(--secondary) 45%, transparent);
 }
 
 .newsletter-success {
@@ -191,13 +217,9 @@ async function handleSubmit(event: SubmitEvent) {
 }
 
 :global(.newsletter-privacy) {
-  position: absolute;
-  top: calc(50% + 3.75rem);
-  right: 0;
-  left: 0;
+  position: static;
   width: 100%;
-  margin-top: 0;
-  margin-left: 0;
+  margin-top: 0.9rem;
   text-align: center;
   font-family: var(--font-body);
   font-size: 0.78rem;
@@ -206,7 +228,7 @@ async function handleSubmit(event: SubmitEvent) {
 }
 
 :global(.newsletter-error + .newsletter-privacy) {
-  top: calc(50% + 5.55rem);
+  margin-top: 0.9rem;
 }
 
 :global(.newsletter-privacy a) {
@@ -225,15 +247,59 @@ async function handleSubmit(event: SubmitEvent) {
     width: 100%;
   }
 
+  form.newsletter-form {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .newsletter-field {
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--outline-variant) 86%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-container-lowest) 86%, transparent),
+      color-mix(in srgb, var(--surface) 96%, transparent)
+    );
+  }
+
+  :global(.newsletter-submit) {
+    justify-self: end;
+  }
+
   .newsletter-error,
   :global(.newsletter-privacy),
   :global(.newsletter-error + .newsletter-privacy) {
     position: static;
     margin-top: 0.8rem;
   }
+}
 
+@media (min-width: 901px) and (max-height: 1050px) {
+  .newsletter-content {
+    min-height: 10rem;
+  }
+
+  :global(.newsletter-input),
   :global(.newsletter-submit) {
-    width: 100%;
+    min-height: 3rem;
+  }
+}
+
+@media (min-width: 901px) {
+  .newsletter-content {
+    min-height: 0;
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
+  }
+
+  :global(.newsletter-form),
+  :global(.newsletter-submit) {
+    pointer-events: auto;
   }
 }
 </style>
