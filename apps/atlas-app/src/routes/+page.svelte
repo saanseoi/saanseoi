@@ -13,6 +13,7 @@ let FoundationSection = $state<Component>()
 let FeatureSection = $state<Component>()
 let PipelineSection = $state<Component>()
 let CommunitySection = $state<Component>()
+let communityClosingSectionPromise = $state<Promise<Component>>()
 
 const landingSectionIds = [
   'hero',
@@ -20,6 +21,7 @@ const landingSectionIds = [
   'feature',
   'pipeline',
   'community',
+  'footer',
 ] as const
 
 onMount(() => {
@@ -87,6 +89,16 @@ onMount(() => {
     if (cancelled) return
 
     CommunitySection = communitySection
+
+    // The closing community panel owns the newsletter and landing-page footer.
+    // Request it only after the main community section has been requested.
+    const closingSectionPromise = import(
+      '#lib/bits/pages/landing/components/communitySection/communitySectionClosing.svelte'
+    ).then(({ default: closingSection }) => closingSection)
+    if (cancelled) return
+
+    communityClosingSectionPromise = closingSectionPromise
+    await closingSectionPromise
     await scrollToLandingSectionHash()
   }
 
@@ -127,13 +139,41 @@ onMount(() => {
   let hasLeftLanding = false
 
   const sections = () =>
-    Array.from(page.querySelectorAll<HTMLElement>(':scope > [data-landing-section]'))
+    Array.from(page.querySelectorAll<HTMLElement>('[data-landing-section]'))
 
-  const canControlSectionScroll = () =>
-    window.matchMedia('(min-width: 786px)').matches ||
-    sections().every(
-      section => section.getBoundingClientRect().height <= window.innerHeight,
+  const isWithinStackedCommunitySection = () => {
+    if (!window.matchMedia('(min-width: 768px) and (max-width: 900px)').matches)
+      return false
+
+    const communitySection = page.querySelector<HTMLElement>('#community')
+    if (!communitySection) return false
+
+    const communityTop = communitySection.getBoundingClientRect().top + window.scrollY
+    const communityBottom = communityTop + communitySection.offsetHeight
+    return window.scrollY >= communityTop && window.scrollY < communityBottom
+  }
+
+  const canControlSectionScroll = () => {
+    if (isWithinStackedCommunitySection()) return false
+
+    return (
+      window.matchMedia('(min-width: 786px)').matches ||
+      sections().every(
+        section => section.getBoundingClientRect().height <= window.innerHeight,
+      )
     )
+  }
+
+  const shouldAllowNativeEndScroll = () => {
+    if (!window.matchMedia('(max-width: 900px)').matches) return false
+
+    const sectionElements = sections()
+    const currentIndex = sectionElements.findLastIndex(
+      section =>
+        section.getBoundingClientRect().top + window.scrollY <= window.scrollY + 1,
+    )
+    return currentIndex === sectionElements.length - 1
+  }
 
   const finishSettling = () => {
     isSettling = false
@@ -177,7 +217,7 @@ onMount(() => {
     if (!target) return
 
     if (target === sectionElements[activeIndex]) {
-      if (direction < 0) return
+      if (direction < 0 || window.matchMedia('(max-width: 900px)').matches) return
 
       const top = Math.min(
         window.scrollY + window.innerHeight,
@@ -244,10 +284,16 @@ onMount(() => {
     if (isFormControl(event.target) || Math.abs(event.deltaY) <= Math.abs(event.deltaX))
       return
 
-    if (scrollControlReleased || !canControlSectionScroll()) return
+    const direction = Math.sign(event.deltaY)
+    if (
+      scrollControlReleased ||
+      !canControlSectionScroll() ||
+      shouldAllowNativeEndScroll()
+    )
+      return
 
     event.preventDefault()
-    move(Math.sign(event.deltaY))
+    move(direction)
   }
 
   const onTouchStart = (event: TouchEvent) => {
@@ -273,7 +319,10 @@ onMount(() => {
     if (Math.abs(deltaY) < 12 || Math.abs(deltaY) < Math.abs(deltaX)) return
 
     touchDirection = Math.sign(deltaY)
-    if (scrollControlReleased) return
+    if (scrollControlReleased || shouldAllowNativeEndScroll()) {
+      touchDirection = 0
+      return
+    }
     event.preventDefault()
   }
 
@@ -299,7 +348,12 @@ onMount(() => {
           : 0
     if (!direction) return
 
-    if (scrollControlReleased || !canControlSectionScroll()) return
+    if (
+      scrollControlReleased ||
+      !canControlSectionScroll() ||
+      shouldAllowNativeEndScroll()
+    )
+      return
 
     event.preventDefault()
     move(direction)
@@ -361,35 +415,44 @@ onMount(() => {
   }}
 />
 
-<Main class="[--landing-header-height:0px]">
-  <div bind:this={landingPage}>
-    <div data-landing-section id="hero">
-      <HeroSection />
-      <Divider />
-    </div>
-    <div data-landing-section id="foundation">
-      {#if FoundationSection}
-        <FoundationSection />
+<div bind:this={landingPage}>
+  <Main class="[--landing-header-height:0px]">
+    <div>
+      <div data-landing-section id="hero">
+        <HeroSection />
         <Divider />
-      {/if}
+      </div>
+      <div data-landing-section id="foundation">
+        {#if FoundationSection}
+          <FoundationSection />
+          <Divider />
+        {/if}
+      </div>
+      <div data-landing-section id="feature">
+        {#if FeatureSection}
+          <FeatureSection />
+          <Divider />
+        {/if}
+      </div>
+      <div data-landing-section id="pipeline">
+        {#if PipelineSection}
+          <PipelineSection />
+          <Divider />
+        {/if}
+      </div>
+      <div data-landing-section id={CommunitySection ? 'community' : undefined}>
+        {#if CommunitySection}
+          <CommunitySection />
+        {/if}
+      </div>
     </div>
-    <div data-landing-section id="feature">
-      {#if FeatureSection}
-        <FeatureSection />
-        <Divider />
-      {/if}
-    </div>
-    <div data-landing-section id="pipeline">
-      {#if PipelineSection}
-        <PipelineSection />
-        <Divider />
-      {/if}
-    </div>
-    <div data-landing-section id={CommunitySection ? 'community' : undefined}>
-      {#if CommunitySection}
-        <CommunitySection />
-        <Divider />
-      {/if}
-    </div>
-  </div>
-</Main>
+  </Main>
+
+  {#if communityClosingSectionPromise}
+    {#await communityClosingSectionPromise then CommunityClosingSection}
+      <div data-landing-section id="footer">
+        <CommunityClosingSection />
+      </div>
+    {/await}
+  {/if}
+</div>
