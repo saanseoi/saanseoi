@@ -11,7 +11,7 @@ import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
-import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
+import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
 import { readLandsdPlaceNameArchive } from '../../../harbour-cli/src/lib/sources/landsd/landsdPlaceName.ts'
 import {

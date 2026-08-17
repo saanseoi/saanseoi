@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 import PipelineSectionArrow from './pipelineSectionArrow.svelte'
 import PipelineSectionArtefactsApi from './pipelineSectionArtefactsApi.svelte'
 import PipelineSectionArtefactsBundle from './pipelineSectionArtefactsBundle.svelte'

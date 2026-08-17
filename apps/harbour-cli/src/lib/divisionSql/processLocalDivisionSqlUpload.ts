@@ -12,7 +12,9 @@ import {
   and,
   eq,
   metaReleaseShardAssignments,
+  metaSnapshotLineages,
   metaSnapshotAssemblyRuns,
+  metaSnapshotShardAssignments,
   metaSnapshotSources,
   metaSnapshots,
   releaseProcessingActions,
@@ -111,14 +113,14 @@ import {
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
-import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -1868,9 +1870,12 @@ async function buildDivisionMetaSqlFile(
   const snapshotRow = await metaDb
     .select({
       id: metaSnapshots.id,
+      snapshotLineageId: metaSnapshots.snapshotLineageId,
+      parentSnapshotId: metaSnapshots.parentSnapshotId,
       resourceType: metaSnapshots.resourceType,
       code: metaSnapshots.code,
       cohortKey: metaSnapshots.cohortKey,
+      revision: metaSnapshots.revision,
       status: metaSnapshots.status,
       publishedAt: metaSnapshots.publishedAt,
       validFrom: metaSnapshots.validFrom,
@@ -1887,6 +1892,20 @@ async function buildDivisionMetaSqlFile(
   if (!snapshotRow) {
     throw new Error(
       `Division snapshot metadata missing from local meta cache: ${state.snapshotId}.`,
+    )
+  }
+
+  const snapshotLineageRows = snapshotRow.snapshotLineageId
+    ? await metaDb
+        .select()
+        .from(metaSnapshotLineages)
+        .where(eq(metaSnapshotLineages.id, snapshotRow.snapshotLineageId))
+        .all()
+    : []
+
+  if (snapshotLineageRows.length !== 1) {
+    throw new Error(
+      `Division snapshot lineage metadata missing for snapshot ${state.snapshotId}.`,
     )
   }
 
@@ -1941,9 +1960,24 @@ async function buildDivisionMetaSqlFile(
     .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
     .all()
 
+  const snapshotShardAssignmentRows = await metaDb
+    .select({
+      snapshotId: metaSnapshotShardAssignments.snapshotId,
+      dataShardId: metaSnapshotShardAssignments.dataShardId,
+    })
+    .from(metaSnapshotShardAssignments)
+    .where(eq(metaSnapshotShardAssignments.snapshotId, state.snapshotId))
+    .all()
+
   if (releaseShardAssignmentRows.length === 0) {
     throw new Error(
       `Division release shard assignment missing from local meta cache: ${releaseId}.`,
+    )
+  }
+
+  if (snapshotShardAssignmentRows.length === 0) {
+    throw new Error(
+      `Division snapshot shard assignment missing from local meta cache: ${state.snapshotId}.`,
     )
   }
 
@@ -2014,12 +2048,44 @@ async function buildDivisionMetaSqlFile(
 
   const statements = [
     ...buildInsertStatements(
+      'snapshotLineages',
+      [
+        'id',
+        'code',
+        'regionCode',
+        'resourceType',
+        'variant',
+        'identityMode',
+        'primaryDatasetId',
+        'versionHash',
+        'createdAt',
+        'updatedAt',
+      ],
+      snapshotLineageRows,
+      {
+        suffix: `
+ON CONFLICT(id) DO UPDATE SET
+  code = excluded.code,
+  regionCode = excluded.regionCode,
+  resourceType = excluded.resourceType,
+  variant = excluded.variant,
+  identityMode = excluded.identityMode,
+  primaryDatasetId = excluded.primaryDatasetId,
+  versionHash = excluded.versionHash,
+  createdAt = excluded.createdAt,
+  updatedAt = excluded.updatedAt`.trim(),
+      },
+    ),
+    ...buildInsertStatements(
       'snapshots',
       [
         'id',
+        'snapshotLineageId',
+        'parentSnapshotId',
         'resourceType',
         'code',
         'cohortKey',
+        'revision',
         'status',
         'publishedAt',
         'validFrom',
@@ -2032,9 +2098,12 @@ async function buildDivisionMetaSqlFile(
       {
         suffix: `
 ON CONFLICT(id) DO UPDATE SET
+  snapshotLineageId = excluded.snapshotLineageId,
+  parentSnapshotId = excluded.parentSnapshotId,
   resourceType = excluded.resourceType,
   code = excluded.code,
   cohortKey = excluded.cohortKey,
+  revision = excluded.revision,
   status = excluded.status,
   publishedAt = excluded.publishedAt,
   validFrom = excluded.validFrom,
@@ -2103,6 +2172,14 @@ ON CONFLICT(id) DO UPDATE SET
       releaseShardAssignmentRows,
       {
         suffix: `ON CONFLICT(releaseId, dataShardId) DO NOTHING`,
+      },
+    ),
+    ...buildInsertStatements(
+      'snapshotShardAssignments',
+      ['snapshotId', 'dataShardId'],
+      snapshotShardAssignmentRows,
+      {
+        suffix: `ON CONFLICT(snapshotId, dataShardId) DO NOTHING`,
       },
     ),
     `DELETE FROM releaseProcessingActions WHERE releaseId = ${sqlLiteral(releaseId)};`,

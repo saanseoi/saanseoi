@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 </script>
 
 <div

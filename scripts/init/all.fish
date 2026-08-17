@@ -20,10 +20,6 @@ for command in \
     init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
     init:addresses:default
-    switch $command
-        case init:divisions:overture init:divisions:hkgov-pland-pu init:divisions:hkgov-pland-new-town
-            init_run_step ./bin/saanseoi $command $continuation_args $cache_artefact_args
-        case '*'
-            init_run_step ./bin/saanseoi $command $cache_artefact_args
-    end
+    init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
+        $continuation_args $cache_artefact_args
 end

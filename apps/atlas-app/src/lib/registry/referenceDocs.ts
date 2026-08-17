@@ -41,6 +41,12 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     glossary: true,
     source: glossary,
   },
+  'api-family': {
+    title: 'API family',
+    displayTitleKey: 'reference_api_family',
+    glossary: true,
+    source: glossary,
+  },
   basemap: {
     title: 'Basemap',
     displayTitleKey: 'reference_basemap',

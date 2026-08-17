@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import topo from '$lib/assets/topo.jpg'
+import topo from '#lib/assets/topo.jpg'
 
 type Tone = 'default' | 'accent' | 'highlight' | 'plain'
 type Align = 'left' | 'center'

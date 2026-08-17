@@ -1,11 +1,13 @@
 {
-  "versionHash": "sha256:7ec8c7cc2fac64d2a2a48668e0b1a1dc1b01b34f0659ff324f8337405e1c7b8d",
+  "versionHash": "sha256:87b79c662733749cd53cdbb067503b45bd1e93c8e8efc29e79b997631b78240f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
+  "sourceVariant": "census",
+  "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
@@ -44,6 +46,12 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-statistic-merge-v1",
+      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+    }
+  ],
   "releases": [
     {
       "sourceVersion": "2021"

@@ -62,7 +62,7 @@ import {
   type PreparedSourceAsset,
   type SourceAssetRole,
 } from '../../sourceAssets.ts'
-import { withLocalMetaDb } from '../../../addressSql/localDbCache.ts'
+import { withLocalMetaDb } from '../../../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../../../cli/options.ts'
 
 export const LANDSD_STREET_DATASET_CODE = 'ds-hk-hkgov-landsd-street'

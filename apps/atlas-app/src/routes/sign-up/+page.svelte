@@ -1,11 +1,13 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { page } from '$app/state'
-import Icon from '@iconify/svelte'
-import { authClient } from '$lib/auth-client'
-import type { SocialProvider } from '$lib/auth-providers'
-import { m } from '$lib/bits/internal/i18n'
-import AuthSocialButtons from '$lib/bits/patterns/auth/authSocialButtons.svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import { authClient } from '#lib/auth-client.js'
+import type { SocialProvider } from '#lib/auth-providers.js'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
 
 let name = $state('')
 let email = $state('')
@@ -13,6 +15,7 @@ let password = $state('')
 let message = $state<string | null>(null)
 let error = $state<string | null>(null)
 let busy = $state(false)
+let pendingProvider = $state<SocialProvider | null>(null)
 let showEmailForm = $state(false)
 let callbackUrl = $derived.by(() => {
   const candidate = page.url.searchParams.get('continue')
@@ -36,7 +39,23 @@ const signUp = async () => {
 }
 
 const socialSignUp = async (provider: SocialProvider) => {
-  await authClient.signIn.social({ provider, callbackURL: callbackUrl })
+  if (busy) return
+  busy = true
+  error = null
+  pendingProvider = provider
+  try {
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: callbackUrl,
+    })
+    if (!result.error) return
+    error = result.error.message ?? m.auth_sign_up_error()
+  } catch {
+    error = m.auth_sign_up_error()
+  }
+
+  busy = false
+  pendingProvider = null
 }
 
 const openEmailForm = () => {
@@ -46,7 +65,11 @@ const openEmailForm = () => {
 }
 </script>
 
-<svelte:head><title>{m.auth_sign_up_title()} | Saanseoi</title></svelte:head>
+<Seo
+  title={m.auth_sign_up_title()}
+  description={m.auth_sign_up_description()}
+  noindex
+/>
 <Main class="mx-auto w-full max-w-xl px-6 py-14 md:py-20"
   ><p
     class="font-body text-label-md font-semibold uppercase tracking-[0.12em] text-secondary"
@@ -59,7 +82,10 @@ const openEmailForm = () => {
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.auth_sign_up_description()}
   </p>
-  <AuthSocialButtons disabled={busy} onselect={socialSignUp} />
+  <p class="sr-only" aria-live="polite">
+    {busy ? (pendingProvider ? m.auth_signing_in() : m.auth_creating()) : ''}
+  </p>
+  <AuthSocialButtons {pendingProvider} disabled={busy} onselect={socialSignUp} />
   <div class="my-7 flex items-center gap-3" aria-hidden="true">
     <div class="h-px flex-1 bg-border-card"></div>
     <span

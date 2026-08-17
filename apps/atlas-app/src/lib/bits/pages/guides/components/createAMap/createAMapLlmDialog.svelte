@@ -1,9 +1,9 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 type HandoverChatChoice = {
   icon: string

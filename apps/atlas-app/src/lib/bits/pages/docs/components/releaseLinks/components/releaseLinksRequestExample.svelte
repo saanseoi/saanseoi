@@ -1,7 +1,6 @@
 <script lang="ts">
-import { env } from '$env/dynamic/public'
-import Icon from '@iconify/svelte'
-
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseLinkRequestExample } from './releaseLinks.types'
 
 type Props = {
@@ -13,11 +12,10 @@ type Props = {
 let { copyLabel, label, request }: Props = $props()
 let copied = $state(false)
 let copiedTimeout: ReturnType<typeof setTimeout> | undefined
-const apiBaseUrl = (env.PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
+const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
   /\/+$/,
   '',
 )
-
 const requestText = (value: ReleaseLinkRequestExample) =>
   apiBaseUrl +
   value.path +

@@ -1,16 +1,3 @@
-<script lang="ts" module>
-import { addCollection } from '@iconify/svelte'
-import { icons as proicons } from '@iconify-json/proicons'
-import { icons as ionicons } from '@iconify-json/ion'
-import { icons as materialSymbolsLight } from '@iconify-json/material-symbols-light'
-import { icons as simpleIcons } from '@iconify-json/simple-icons'
-
-addCollection(proicons)
-addCollection(ionicons)
-addCollection(materialSymbolsLight)
-addCollection(simpleIcons)
-</script>
-
 <script lang="ts">
 import { page } from '$app/state'
 

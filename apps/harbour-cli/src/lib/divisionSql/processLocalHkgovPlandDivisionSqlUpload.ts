@@ -25,6 +25,10 @@ import {
 import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
 import {
+  compressJsonBrotli,
+  MAX_BROTLI_QUALITY,
+} from '@repo/core/pipeline/services/brotliJson'
+import {
   chunkArray,
   createHash,
   getMaxItemsPerInClause,
@@ -51,7 +55,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   buildReleaseUploadDbCacheScopeKey,
   refreshRemoteMetaCache,
@@ -61,7 +65,8 @@ import {
   resolveLocalAddressDbContext,
   resolveShardBindingName,
   type LocalAddressDbContext,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
+import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -147,7 +152,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const shardYear = previewPlan.sourceVersion.slice(0, 4)
-  const cacheTableProfile = 'division'
+  const cacheTableProfile = 'planningDivisionGeometry'
   const remoteCacheScopeKey = target.remote
     ? buildReleaseUploadDbCacheScopeKey({
         cacheTableProfile,
@@ -463,7 +468,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         sqlManifest,
         previewPlan,
         importOptions,
-        releaseCode,
+        {
+          datasetCode,
+          rawObjectKey,
+          releaseCode,
+          releaseId,
+        },
       )
     }
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
@@ -685,6 +695,7 @@ async function replaceCurrentSnapshot(
       .values(
         chunk.map(record => ({
           ...record.base,
+          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
           snapshotId,
           createdAt: now,
           updatedAt: now,
@@ -749,6 +760,7 @@ async function insertHistoryRows(
       .values(
         chunk.map(record => ({
           ...record.base,
+          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
           versionHash: record.versionHash,
           sourceReleaseId: releaseId,
           snapshotId,
@@ -1276,25 +1288,6 @@ async function buildPlandHistorySql(
       .where(eq(historySchema.snapshotVersionChanges.snapshotId, state.snapshotId))
       .all(),
   ])
-  const divisionColumns = [
-    'id',
-    'identifiers',
-    'level',
-    'type',
-    'sourceKeys',
-    'wikidata',
-    'hierarchy',
-    'cartography',
-    'sources',
-    'geometry',
-    'bbox',
-    'versionHash',
-    'sourceReleaseId',
-    'snapshotId',
-    'isCurrent',
-    'createdAt',
-    'updatedAt',
-  ]
   const i18nColumns = [
     'divisionId',
     'locale',
@@ -1321,10 +1314,6 @@ async function buildPlandHistorySql(
     'createdAt',
     'updatedAt',
   ]
-  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
-    'id',
-    'versionHash',
-  ])
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'divisionId',
     'versionHash',
@@ -1332,10 +1321,7 @@ async function buildPlandHistorySql(
   ])
   const statements = [
     ...buildCloseHistoryStatements(affectedIds),
-    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows, {
-      suffix: buildUpdateSuffix(divisionColumns, ['id', 'versionHash']),
-    }),
-    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
       suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'versionHash', 'locale']),
     }),
@@ -1370,22 +1356,6 @@ async function buildPlandCurrentSql(
       .where(eq(currentSchema.divisionsI18n.snapshotId, state.snapshotId))
       .all(),
   ])
-  const divisionColumns = [
-    'snapshotId',
-    'id',
-    'identifiers',
-    'level',
-    'type',
-    'sourceKeys',
-    'wikidata',
-    'hierarchy',
-    'cartography',
-    'sources',
-    'geometry',
-    'bbox',
-    'createdAt',
-    'updatedAt',
-  ]
   const i18nColumns = [
     'snapshotId',
     'divisionId',
@@ -1398,10 +1368,6 @@ async function buildPlandCurrentSql(
     'createdAt',
     'updatedAt',
   ]
-  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
-    'snapshotId',
-    'id',
-  ])
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'snapshotId',
     'divisionId',
@@ -1411,8 +1377,7 @@ async function buildPlandCurrentSql(
   return sqlFile([
     `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
     `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows),
-    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
     ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
   ])
@@ -1693,7 +1658,12 @@ async function replayPlandSqlIntoSharedCache(
   manifest: PlandSqlArtefactManifest,
   plan: HkgovPlandDivisionUploadPlan,
   importOptions: SqlImportExecutionOptions,
-  releaseCode: string,
+  release: {
+    datasetCode: string
+    rawObjectKey: string
+    releaseCode: string
+    releaseId: string
+  },
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const sharedContext = await resolveLocalAddressDbContext(
@@ -1701,11 +1671,22 @@ async function replayPlandSqlIntoSharedCache(
     plan.regionCode,
     plan.sourceVersion,
     {
+      cacheTableProfile: 'planningDivisionGeometry',
       includePreviousShardYears: true,
       requireExistingRemoteCache: true,
     },
   )
   try {
+    const existingRelease = await sharedContext.metaDb
+      .select({ id: metaSchema.metaReleases.id })
+      .from(metaSchema.metaReleases)
+      .where(eq(metaSchema.metaReleases.code, release.releaseCode))
+      .limit(1)
+      .get()
+    if (!existingRelease) {
+      await syncStagedReleaseIntoLocalMetaCache(sharedContext.metaDb, release, plan)
+    }
+
     const targets = resolvePlandImportTargets(sharedContext, plan.sourceVersion)
     const localOptions: SqlImportExecutionOptions = {
       ...importOptions,
@@ -1716,7 +1697,7 @@ async function replayPlandSqlIntoSharedCache(
     await replayRemoteCacheWithRetry(
       targetName,
       resolveSharedRemoteDbCacheDir(target),
-      releaseCode,
+      release.releaseCode,
       async () => {
         await Promise.all([
           importSqlArtefactKeys(

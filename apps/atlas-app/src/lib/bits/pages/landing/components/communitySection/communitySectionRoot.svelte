@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Props = {
   children?: Snippet
@@ -13,7 +13,7 @@ let { children, class: className = '' }: Props = $props()
 
 <section
   class={cn(
-    'landing-community-section min-h-[calc(100svh-var(--landing-header-height,4.5rem))]',
+    'landing-community-section flex min-h-[calc(100svh-var(--landing-header-height,4.5rem))] flex-col min-[901px]:min-h-0 min-[901px]:overflow-hidden',
     className,
   )}
 >
@@ -21,6 +21,169 @@ let { children, class: className = '' }: Props = $props()
 </section>
 
 <style>
+@media (min-width: 901px) {
+  .landing-community-section {
+    position: relative;
+    isolation: isolate;
+    /* 41rem is the FHD composition. On shorter or narrower displays, every
+     * desktop element keys off this single dimension rather than independently
+     * responding to the viewport. */
+    --community-shape-size: min(41rem, 42vw, 60.75svh);
+    --community-discussions-size: var(--community-shape-size);
+    --community-discord-offset: 24px;
+    height: max(100svh, 42.75rem, calc(var(--community-shape-size) + 12rem));
+  }
+
+  :global(.community-spaces) {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 0;
+  }
+
+  :global(.community-spaces-grid) {
+    display: grid;
+    height: var(--community-shape-size);
+    grid-template-columns: repeat(2, var(--community-shape-size));
+    justify-content: center;
+    gap: 0;
+    --community-blob-clip-path: shape(
+      from 94.43% 43.59%,
+      curve to 92.63% 55.93% with 90.99% 50.00%,
+      smooth to 92.79% 67.86%,
+      smooth to 83.99% 75.26%,
+      smooth to 73.76% 81.39%,
+      smooth to 66.33% 90.08%,
+      smooth to 55.90% 96.66%,
+      smooth to 45.14% 92.77%,
+      smooth to 32.76% 89.57%,
+      smooth to 22.15% 86.91%,
+      smooth to 18.92% 74.48%,
+      smooth to 15.67% 64.03%,
+      smooth to 11.04% 55.01%,
+      smooth to 8.36% 44.27%,
+      smooth to 9.39% 33.17%,
+      smooth to 16.91% 25.03%,
+      smooth to 25.51% 17.73%,
+      smooth to 33.17% 8.43%,
+      smooth to 43.79% 4.12%,
+      smooth to 55.24% 7.72%,
+      smooth to 64.66% 14.13%,
+      smooth to 71.91% 21.19%,
+      smooth to 81.80% 26.36%,
+      smooth to 93.24% 32.44%,
+      smooth to 94.43% 43.59%
+    );
+  }
+
+  :global(.community-space-card) {
+    position: relative;
+    aspect-ratio: 1;
+    transform-origin: 50% 50%;
+    transition: filter 260ms ease;
+  }
+
+  :global(.community-space-card-discord) {
+    z-index: 2;
+    left: -4rem;
+    top: calc(2rem + var(--community-discord-offset) - 32px);
+    height: calc(var(--community-shape-size) + 48px);
+    transform: translateY(calc(var(--community-shape-size) * 0.02)) rotate(0deg)
+      translate(
+        calc(var(--community-shape-size) * -0.036585),
+        calc(var(--community-shape-size) * -0.082927)
+      );
+    clip-path: shape(
+      from 94.43% 43.59%,
+      curve to 92.63% 55.93% with 90.99% 50.00%,
+      smooth to 92.79% 67.86%,
+      smooth to 83.99% 75.26%,
+      smooth to 73.76% 81.39%,
+      smooth to 66.33% 90.08%,
+      smooth to 55.90% 96.66%,
+      smooth to 45.14% 92.77%,
+      smooth to 32.76% 89.57%,
+      smooth to 22.15% 86.91%,
+      smooth to 18.92% 74.48%,
+      smooth to 15.67% 64.03%,
+      smooth to 11.04% 55.01%,
+      smooth to 8.36% 44.27%,
+      smooth to 9.39% 33.17%,
+      smooth to 16.91% 25.03%,
+      smooth to 25.51% 17.73%,
+      smooth to 33.17% 8.43%,
+      smooth to 43.79% 4.12%,
+      smooth to 55.24% 7.72%,
+      smooth to 64.66% 14.13%,
+      smooth to 71.91% 21.19%,
+      smooth to 81.80% 26.36%,
+      smooth to 93.24% 32.44%,
+      smooth to 94.43% 43.59%
+    );
+  }
+
+  :global(.community-space-card-discussions) {
+    z-index: 3;
+    left: 4rem;
+    margin-left: calc(var(--community-shape-size) * -0.109756);
+    transform: translateY(calc(var(--community-shape-size) * 0.02))
+      translate(
+        calc(var(--community-shape-size) * 0.085366),
+        calc(var(--community-shape-size) * -0.253049)
+      )
+      scaleX(-1);
+    clip-path: shape(
+      from 94.43% 43.59%,
+      curve to 92.63% 55.93% with 90.99% 50.00%,
+      smooth to 92.79% 67.86%,
+      smooth to 83.99% 75.26%,
+      smooth to 73.76% 81.39%,
+      smooth to 66.33% 90.08%,
+      smooth to 55.90% 96.66%,
+      smooth to 45.14% 92.77%,
+      smooth to 32.76% 89.57%,
+      smooth to 22.15% 86.91%,
+      smooth to 18.92% 74.48%,
+      smooth to 15.67% 64.03%,
+      smooth to 11.04% 55.01%,
+      smooth to 8.36% 44.27%,
+      smooth to 9.39% 33.17%,
+      smooth to 16.91% 25.03%,
+      smooth to 25.51% 17.73%,
+      smooth to 33.17% 8.43%,
+      smooth to 43.79% 4.12%,
+      smooth to 55.24% 7.72%,
+      smooth to 64.66% 14.13%,
+      smooth to 71.91% 21.19%,
+      smooth to 81.80% 26.36%,
+      smooth to 93.24% 32.44%,
+      smooth to 94.43% 43.59%
+    );
+  }
+
+  :global(.community-space-card-discord:hover) {
+    filter: drop-shadow(0 0 1.25rem rgb(88 101 242 / 0.52));
+  }
+
+  :global(.community-space-card-discussions:hover) {
+    filter: drop-shadow(0 0 1.25rem rgb(15 157 133 / 0.52));
+  }
+}
+
+/* Match the pipeline's 16:9 scale once the viewport exceeds FHD. The FHD
+ * artwork stays at 41rem, while larger viewports grow in both axes rather
+ * than creating unused space around a fixed composition. */
+@media (min-width: 120rem) {
+  .landing-community-section {
+    --community-shape-size: min(34.166667vw, 60.740741svh);
+  }
+}
+
+@media (max-width: 1050px) and (min-width: 901px) {
+  :global(.community-space-card-discussions) {
+    margin-left: -3rem;
+  }
+}
+
 :global {
   .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature,
   .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature::after,
@@ -29,25 +192,40 @@ let { children, class: className = '' }: Props = $props()
     animation-play-state: paused;
   }
 
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange {
+    animation: none;
+    visibility: hidden;
+  }
+
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange::before {
+    animation: none;
+  }
+
+  .newsletter-panel-active .newsletter-creature-orange {
+    visibility: visible;
+  }
+
+  .newsletter-panel-animation-disabled .newsletter-creature,
+  .newsletter-panel-animation-disabled .newsletter-packet,
+  .newsletter-panel-animation-disabled .newsletter-packet-fragment {
+    display: none;
+  }
+
   .newsletter-panel {
-    /* Keep this at 4s while iterating; set it to 12s for the production cadence. */
-    --newsletter-orange-cycle: 30s;
-    /* Keep the existing route aligned to the content after expanding its corridors. */
-    --newsletter-orange-y-shift-15: clamp(1.001rem, 2.156vw, 1.848rem);
-    --newsletter-orange-y-shift-negative-3: clamp(1.516rem, 3.265vw, 2.798rem);
-    --newsletter-orange-y-shift-14-6: clamp(1.012rem, 2.181vw, 1.869rem);
-    --newsletter-orange-y-shift-14-5: clamp(1.015rem, 2.187vw, 1.874rem);
-    --newsletter-orange-y-shift-67: clamp(-0.898rem, -1.047vw, -0.486rem);
+    /* GOD's route is paired with live packet launches on each jump. */
+    --newsletter-orange-intro-duration: 14s;
+    /* Upper-platform hops are deliberately 30% slower, while the spin
+     * keyframes still complete one full turn for each hop. */
+    --newsletter-orange-title-duration: 15.6s;
+    --newsletter-orange-freefall-trigger-duration: 5.9s;
+    --newsletter-orange-freefall-duration: 3.8s;
+    --newsletter-orange-lower-landing-duration: 900ms;
+    --newsletter-orange-return-duration: 12.5s;
+    --newsletter-orange-loop-duration: 12.5s;
+    --newsletter-orange-loop-freefall-trigger-duration: 12.25s;
     --newsletter-orange-y-shift-58: clamp(-0.422rem, -0.493vw, -0.229rem);
-    --newsletter-orange-y-shift-45: clamp(0.143rem, 0.308vw, 0.264rem);
     --newsletter-orange-y-shift-43: clamp(0.2rem, 0.431vw, 0.37rem);
-    --newsletter-orange-y-shift-30: clamp(0.572rem, 1.232vw, 1.056rem);
-    --newsletter-orange-y-shift-11: clamp(1.115rem, 2.402vw, 2.059rem);
     --newsletter-orange-text-alignment: 1.25rem;
-    --newsletter-orange-initial-hop-alignment: 1.25rem;
-    --newsletter-orange-floor-alignment: 4rem;
-    --newsletter-orange-start-end-alignment: 0.5rem;
-    --newsletter-orange-start-end-x-alignment: 0.75rem;
   }
 
   .newsletter-signal {
@@ -57,7 +235,7 @@ let { children, class: className = '' }: Props = $props()
     right: calc(50% - 50vw);
     bottom: 0;
     left: calc(50% - 50vw);
-    z-index: 2;
+    z-index: 0;
     overflow: visible;
     pointer-events: none;
   }
@@ -161,7 +339,7 @@ let { children, class: className = '' }: Props = $props()
     top: 2.5%;
     left: 1.4%;
     width: var(--orange-creature-diameter);
-    color: var(--tertiary);
+    color: var(--newsletter-highlight);
     background:
       repeating-radial-gradient(
         circle at center,
@@ -190,17 +368,37 @@ let { children, class: className = '' }: Props = $props()
         transparent 76% 100%
       );
     animation:
-      newsletter-orange-route-x-v2 var(--newsletter-orange-cycle) linear infinite,
-      newsletter-orange-route-y-v2 var(--newsletter-orange-cycle) linear infinite,
-      newsletter-orange-route-spin-v2 var(--newsletter-orange-cycle) linear infinite;
+      newsletter-orange-intro var(--newsletter-orange-intro-duration) linear both,
+      newsletter-orange-intro-spin var(--newsletter-orange-intro-duration) linear both,
+      newsletter-orange-title-route var(--newsletter-orange-title-duration) linear
+      var(--newsletter-orange-intro-duration) forwards,
+      newsletter-orange-title-spin var(--newsletter-orange-title-duration) linear
+      var(--newsletter-orange-intro-duration) forwards,
+      newsletter-orange-freefall-trigger
+      var(--newsletter-orange-freefall-trigger-duration) linear
+      var(--newsletter-orange-intro-duration) both;
   }
 
   .newsletter-creature-orange::before {
-    width: 0.3rem;
-    background: color-mix(in srgb, currentColor 82%, transparent);
-    box-shadow:
-      0 0 0 0.6rem color-mix(in srgb, currentColor 10%, transparent),
-      0 0 0 1.35rem color-mix(in srgb, currentColor 6%, transparent);
+    display: none;
+  }
+
+  .newsletter-orange-bearing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 0.14rem color-mix(in srgb, currentColor 13%, transparent);
+    /* The outermost repeating radial line is centred at 88.5% of GOD's
+     * radius, which is 44.25% of its diameter. */
+    --newsletter-orange-bearing-radius: calc(var(--orange-creature-diameter) * -0.4425);
+    transform: translate(-50%, -50%) translateY(var(--newsletter-orange-bearing-radius));
+    transform-origin: 50% 50%;
+    will-change: transform;
   }
 
   .newsletter-creature-collector-a,
@@ -209,14 +407,34 @@ let { children, class: className = '' }: Props = $props()
     top: 0;
     left: 0;
     width: clamp(1.65rem, 2.6vw, 2.2rem);
-    opacity: 0.68;
+    border-width: 1.5px;
+    opacity: 0.82;
+    background: transparent;
     transition: transform var(--collector-duration) cubic-bezier(0.2, 0.78, 0.24, 1);
     will-change: transform;
   }
 
+  .newsletter-collector-bearing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: 0.34rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 0.1rem color-mix(in srgb, currentColor 16%, transparent);
+    transform: translate(-50%, -50%);
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
   .newsletter-creature-orange::after {
-    animation: newsletter-orange-route-refined-momentum var(--newsletter-orange-cycle)
-      cubic-bezier(0.55, 0, 0.2, 1) infinite;
+    display: none;
+  }
+
+  .newsletter-creature-collector::after {
+    display: none;
   }
 
   .newsletter-creature-collector-a::after {
@@ -300,10 +518,12 @@ let { children, class: className = '' }: Props = $props()
   }
 
   :global(html:not(.dark)) .newsletter-creature-orange::before {
-    background: color-mix(in srgb, currentColor 74%, transparent);
+    background: transparent;
     box-shadow:
-      0 0 0 0.46rem color-mix(in srgb, currentColor 9%, transparent),
-      0 0 0 1.1rem color-mix(in srgb, currentColor 5%, transparent);
+      calc(var(--orange-creature-diameter) * -0.34) 0 0 -0.04rem currentColor,
+      calc(var(--orange-creature-diameter) * 0.34) 0 0 -0.04rem currentColor,
+      0 calc(var(--orange-creature-diameter) * -0.34) 0 -0.04rem currentColor,
+      0 calc(var(--orange-creature-diameter) * 0.34) 0 -0.04rem currentColor;
   }
 
   :global(html:not(.dark)) .newsletter-creature-collector {
@@ -365,6 +585,1068 @@ let { children, class: className = '' }: Props = $props()
 
     75% {
       transform: translateX(-50%) translate3d(-1px, -3px, 0) rotate(0.25deg);
+    }
+  }
+
+  @keyframes newsletter-orange-intro {
+    0%,
+    9.43% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-start-x);
+      transform: scale(0.9, 0.96);
+      animation-timing-function: step-end;
+    }
+
+    11% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-edge-x);
+      transform: scale(0.9, 0.96);
+      animation-timing-function: step-end;
+    }
+
+    12.57% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-edge-x);
+      transform: scale(0.9, 0.96);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    18.86% {
+      top: var(--newsletter-orange-intro-apex-y);
+      left: var(--newsletter-orange-intro-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    28.29% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-first-ground-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    34.57% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-first-ground-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    42.43% {
+      top: var(--newsletter-orange-setup-apex-y);
+      left: var(--newsletter-orange-setup-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    51.86% {
+      top: var(--newsletter-orange-setup-y);
+      left: var(--newsletter-orange-setup-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    55% {
+      top: var(--newsletter-orange-setup-y);
+      left: var(--newsletter-orange-setup-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    61.29% {
+      top: var(--newsletter-orange-step-one-apex-y);
+      left: var(--newsletter-orange-step-one-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    67.57% {
+      top: var(--newsletter-orange-step-one-y);
+      left: var(--newsletter-orange-step-one-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    69.14% {
+      top: var(--newsletter-orange-step-one-y);
+      left: var(--newsletter-orange-step-one-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    73.86% {
+      top: var(--newsletter-orange-step-two-apex-y);
+      left: var(--newsletter-orange-step-two-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    78.57% {
+      top: var(--newsletter-orange-step-two-y);
+      left: var(--newsletter-orange-step-two-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    82.5% {
+      top: var(--newsletter-orange-step-two-y);
+      left: var(--newsletter-orange-step-two-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    89.25% {
+      top: var(--newsletter-orange-letter-apex-y);
+      left: var(--newsletter-orange-letter-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    96%,
+    100% {
+      top: var(--newsletter-orange-letter-y);
+      left: var(--newsletter-orange-letter-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+  }
+
+  @keyframes newsletter-orange-intro-spin {
+    0%,
+    9.43%,
+    11%,
+    12.57% {
+      rotate: 0deg;
+    }
+
+    18.86% {
+      rotate: 540deg;
+    }
+
+    28.29%,
+    34.57% {
+      rotate: 1080deg;
+    }
+
+    42.43% {
+      rotate: 1620deg;
+    }
+
+    51.86%,
+    55% {
+      rotate: 2160deg;
+    }
+
+    61.29% {
+      rotate: 2700deg;
+    }
+
+    67.57%,
+    69.14% {
+      rotate: 3240deg;
+    }
+
+    73.86% {
+      rotate: 3060deg;
+    }
+
+    78.57% {
+      rotate: 2880deg;
+    }
+
+    82.5% {
+      rotate: 2880deg;
+    }
+
+    89.25% {
+      rotate: 3240deg;
+    }
+
+    96%,
+    100% {
+      rotate: 3960deg;
+    }
+  }
+
+  @keyframes newsletter-orange-title-route {
+    0% {
+      top: var(--newsletter-orange-letter-y);
+      left: var(--newsletter-orange-letter-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    2% {
+      top: var(--newsletter-orange-letter-y);
+      left: var(--newsletter-orange-letter-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    6% {
+      top: var(--newsletter-orange-title-hop-one-apex-y);
+      left: var(--newsletter-orange-title-hop-one-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    10% {
+      top: var(--newsletter-orange-title-hop-one-y);
+      left: var(--newsletter-orange-title-hop-one-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    14% {
+      top: var(--newsletter-orange-title-hop-one-y);
+      left: var(--newsletter-orange-title-hop-one-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    18% {
+      top: var(--newsletter-orange-title-hop-two-apex-y);
+      left: var(--newsletter-orange-title-hop-two-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    22% {
+      top: var(--newsletter-orange-title-hop-two-y);
+      left: var(--newsletter-orange-title-hop-two-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    26% {
+      top: var(--newsletter-orange-title-hop-two-y);
+      left: var(--newsletter-orange-title-hop-two-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    30% {
+      top: var(--newsletter-orange-title-hop-three-apex-y);
+      left: var(--newsletter-orange-title-hop-three-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    34%,
+    100% {
+      top: var(--newsletter-orange-title-hop-three-y);
+      left: var(--newsletter-orange-title-hop-three-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+  }
+
+  @keyframes newsletter-orange-title-spin {
+    0%,
+    2% {
+      rotate: 3960deg;
+    }
+
+    6% {
+      rotate: 4320deg;
+    }
+
+    10%,
+    14% {
+      rotate: 4680deg;
+    }
+
+    18% {
+      rotate: 5040deg;
+    }
+
+    22%,
+    26% {
+      rotate: 5400deg;
+    }
+
+    30% {
+      rotate: 5760deg;
+    }
+
+    34%,
+    100% {
+      rotate: 6120deg;
+    }
+  }
+
+  @keyframes newsletter-orange-freefall {
+    0% {
+      top: var(--newsletter-orange-title-hop-three-y);
+      left: var(--newsletter-orange-title-hop-three-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    18% {
+      top: var(--newsletter-orange-freefall-apex-y);
+      left: var(--newsletter-orange-freefall-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    86% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1.08, 0.86);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    90% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateY(-0.45rem) scale(1.02, 0.95);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    93% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateY(0.15rem) scale(0.96, 1.05);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    96% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translate(-0.25rem, -0.1rem) scale(1.04, 0.96);
+      animation-timing-function: ease-out;
+    }
+
+    98% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateX(0.2rem) scale(0.99, 1.01);
+      animation-timing-function: ease-in-out;
+    }
+
+    100% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1);
+    }
+  }
+
+  @keyframes newsletter-orange-freefall-spin {
+    0% {
+      rotate: var(--newsletter-orange-freefall-spin-start, 6120deg);
+    }
+
+    18% {
+      rotate: calc(var(--newsletter-orange-freefall-spin-start, 6120deg) + 360deg);
+    }
+
+    100% {
+      rotate: calc(var(--newsletter-orange-freefall-spin-start, 6120deg) + 1080deg);
+    }
+  }
+
+  @keyframes newsletter-orange-lower-landing {
+    0%,
+    18% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    34% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateY(-0.42rem) scale(1.04, 0.94);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    52% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateY(0.12rem) scale(0.97, 1.04);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    70% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translate(-0.12rem, -0.04rem) scale(1.02, 0.98);
+      animation-timing-function: ease-out;
+    }
+
+    84% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: translateX(0.07rem) scale(0.99, 1.01);
+      animation-timing-function: ease-in-out;
+    }
+
+    100% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1);
+    }
+  }
+
+  @keyframes newsletter-orange-lower-landing-spin {
+    from,
+    to {
+      rotate: var(--newsletter-orange-lower-landing-spin-start, 8640deg);
+    }
+  }
+
+  @keyframes newsletter-orange-return {
+    0%,
+    4% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    6% {
+      top: var(--newsletter-orange-freefall-end-y);
+      left: var(--newsletter-orange-freefall-end-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    11% {
+      top: var(--newsletter-orange-return-one-apex-y);
+      left: var(--newsletter-orange-return-one-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    16%,
+    20% {
+      top: var(--newsletter-orange-return-one-y);
+      left: var(--newsletter-orange-return-one-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    22% {
+      top: var(--newsletter-orange-return-one-y);
+      left: var(--newsletter-orange-return-one-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    27% {
+      top: var(--newsletter-orange-return-two-apex-y);
+      left: var(--newsletter-orange-return-two-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    32%,
+    36% {
+      top: var(--newsletter-orange-return-two-y);
+      left: var(--newsletter-orange-return-two-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    38% {
+      top: var(--newsletter-orange-return-two-y);
+      left: var(--newsletter-orange-return-two-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    43% {
+      top: var(--newsletter-orange-return-three-apex-y);
+      left: var(--newsletter-orange-return-three-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    48%,
+    52% {
+      top: var(--newsletter-orange-return-three-y);
+      left: var(--newsletter-orange-return-three-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    54% {
+      top: var(--newsletter-orange-return-three-y);
+      left: var(--newsletter-orange-return-three-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    59% {
+      top: var(--newsletter-orange-return-four-apex-y);
+      left: var(--newsletter-orange-return-four-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    64%,
+    68% {
+      top: var(--newsletter-orange-return-four-y);
+      left: var(--newsletter-orange-return-four-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    70% {
+      top: var(--newsletter-orange-return-four-y);
+      left: var(--newsletter-orange-return-four-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    75% {
+      top: var(--newsletter-orange-return-five-apex-y);
+      left: var(--newsletter-orange-return-five-apex-x);
+      transform: scale(1.03, 0.97);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    80%,
+    84%,
+    100% {
+      top: var(--newsletter-orange-return-five-y);
+      left: var(--newsletter-orange-return-five-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+  }
+
+  @keyframes newsletter-orange-return-spin {
+    0%,
+    4% {
+      rotate: var(--newsletter-orange-return-spin-start, 8640deg);
+    }
+
+    6% {
+      rotate: var(--newsletter-orange-return-spin-start, 8640deg);
+    }
+
+    11% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 360deg);
+    }
+
+    16%,
+    20% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 720deg);
+    }
+
+    22% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 720deg);
+    }
+
+    27% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1080deg);
+    }
+
+    32%,
+    36% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
+    }
+
+    38% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
+    }
+
+    43% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1800deg);
+    }
+
+    48%,
+    52% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2160deg);
+    }
+
+    54% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2160deg);
+    }
+
+    59% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2520deg);
+    }
+
+    64%,
+    68%,
+    70% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2880deg);
+    }
+
+    75% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 3240deg);
+    }
+
+    80%,
+    84%,
+    100% {
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 3600deg);
+    }
+  }
+
+  @keyframes newsletter-orange-loop {
+    0%,
+    2% {
+      top: var(--newsletter-orange-lower-platform-approach-y);
+      left: var(--newsletter-orange-lower-platform-approach-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    6% {
+      top: var(--newsletter-orange-lower-platform-approach-y);
+      left: var(--newsletter-orange-lower-platform-approach-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    12.3% {
+      top: var(--newsletter-orange-lower-platform-approach-apex-y);
+      left: var(--newsletter-orange-lower-platform-approach-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    21.7%,
+    24% {
+      top: var(--newsletter-orange-step-one-y);
+      left: var(--newsletter-orange-step-one-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    26% {
+      top: var(--newsletter-orange-step-one-y);
+      left: var(--newsletter-orange-step-one-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    30% {
+      top: var(--newsletter-orange-step-two-apex-y);
+      left: var(--newsletter-orange-step-two-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    34%,
+    38% {
+      top: var(--newsletter-orange-step-two-y);
+      left: var(--newsletter-orange-step-two-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    42% {
+      top: var(--newsletter-orange-step-two-y);
+      left: var(--newsletter-orange-step-two-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    46% {
+      top: var(--newsletter-orange-letter-apex-y);
+      left: var(--newsletter-orange-letter-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50%,
+    54% {
+      top: var(--newsletter-orange-letter-y);
+      left: var(--newsletter-orange-letter-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    58% {
+      top: var(--newsletter-orange-letter-y);
+      left: var(--newsletter-orange-letter-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    60% {
+      top: var(--newsletter-orange-title-hop-one-apex-y);
+      left: var(--newsletter-orange-title-hop-one-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    66%,
+    70% {
+      top: var(--newsletter-orange-title-hop-one-y);
+      left: var(--newsletter-orange-title-hop-one-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    74% {
+      top: var(--newsletter-orange-title-hop-one-y);
+      left: var(--newsletter-orange-title-hop-one-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    76% {
+      top: var(--newsletter-orange-title-hop-two-apex-y);
+      left: var(--newsletter-orange-title-hop-two-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    82%,
+    86% {
+      top: var(--newsletter-orange-title-hop-two-y);
+      left: var(--newsletter-orange-title-hop-two-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+
+    90% {
+      top: var(--newsletter-orange-title-hop-two-y);
+      left: var(--newsletter-orange-title-hop-two-x);
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
+    }
+
+    92% {
+      top: var(--newsletter-orange-title-hop-three-apex-y);
+      left: var(--newsletter-orange-title-hop-three-apex-x);
+      transform: scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    98%,
+    100% {
+      top: var(--newsletter-orange-title-hop-three-y);
+      left: var(--newsletter-orange-title-hop-three-x);
+      transform: scale(1);
+      animation-timing-function: step-end;
+    }
+  }
+
+  @keyframes newsletter-orange-loop-spin {
+    0%,
+    2% {
+      rotate: var(--newsletter-orange-loop-spin-start, 10440deg);
+    }
+
+    6% {
+      rotate: var(--newsletter-orange-loop-spin-start, 10440deg);
+    }
+
+    12.3% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 540deg);
+    }
+
+    21.7%,
+    24% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
+    }
+
+    26% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
+    }
+
+    30% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1620deg);
+    }
+
+    34%,
+    38% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1800deg);
+    }
+
+    42% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1800deg);
+    }
+
+    46% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1620deg);
+    }
+
+    50%,
+    54% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1440deg);
+    }
+
+    58% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1440deg);
+    }
+
+    60% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1260deg);
+    }
+
+    66%,
+    70% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
+    }
+
+    74% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 1080deg);
+    }
+
+    76% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 900deg);
+    }
+
+    82%,
+    86% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 720deg);
+    }
+
+    90% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 720deg);
+    }
+
+    92% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 540deg);
+    }
+
+    98%,
+    100% {
+      rotate: calc(var(--newsletter-orange-loop-spin-start, 10440deg) - 360deg);
+    }
+  }
+
+  @keyframes newsletter-orange-loop-freefall-trigger {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes newsletter-orange-freefall-trigger {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* GOD lands on the description, climbs across the title, drops to the
+   * footer, then comes back from right to left behind the form. Every landing
+   * is held briefly so each hop reads as intentional. */
+  @keyframes newsletter-orange-route-loop {
+    0%,
+    4% {
+      top: var(--newsletter-orange-setup-y);
+      left: var(--newsletter-orange-setup-x);
+      transform: rotate(2160deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    6% {
+      top: var(--newsletter-orange-apex-1-y);
+      left: var(--newsletter-orange-apex-1-x);
+      transform: rotate(2340deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    8%,
+    12% {
+      top: var(--newsletter-orange-landing-1-y);
+      left: var(--newsletter-orange-landing-1-x);
+      transform: rotate(2520deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    14% {
+      top: var(--newsletter-orange-apex-2-y);
+      left: var(--newsletter-orange-apex-2-x);
+      transform: rotate(2700deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    16%,
+    20% {
+      top: var(--newsletter-orange-landing-2-y);
+      left: var(--newsletter-orange-landing-2-x);
+      transform: rotate(2880deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    22% {
+      top: var(--newsletter-orange-apex-3-y);
+      left: var(--newsletter-orange-apex-3-x);
+      transform: rotate(3060deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    24%,
+    28% {
+      top: var(--newsletter-orange-landing-3-y);
+      left: var(--newsletter-orange-landing-3-x);
+      transform: rotate(3240deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    30% {
+      top: var(--newsletter-orange-apex-4-y);
+      left: var(--newsletter-orange-apex-4-x);
+      transform: rotate(3420deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    32%,
+    36% {
+      top: var(--newsletter-orange-landing-4-y);
+      left: var(--newsletter-orange-landing-4-x);
+      transform: rotate(3600deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    38% {
+      top: var(--newsletter-orange-apex-5-y);
+      left: var(--newsletter-orange-apex-5-x);
+      transform: rotate(3780deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    40%,
+    44% {
+      top: var(--newsletter-orange-landing-5-y);
+      left: var(--newsletter-orange-landing-5-x);
+      transform: rotate(3960deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    47% {
+      top: var(--newsletter-orange-apex-6-y);
+      left: var(--newsletter-orange-apex-6-x);
+      transform: rotate(4140deg) scale(1.06, 0.92);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50%,
+    54% {
+      top: var(--newsletter-orange-ground-top);
+      left: var(--newsletter-orange-fall-x);
+      transform: rotate(4320deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    58% {
+      top: var(--newsletter-orange-apex-7-y);
+      left: var(--newsletter-orange-apex-7-x);
+      transform: rotate(4500deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    64%,
+    68% {
+      top: var(--newsletter-orange-return-one-y);
+      left: var(--newsletter-orange-return-one-x);
+      transform: rotate(4680deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    72% {
+      top: var(--newsletter-orange-apex-8-y);
+      left: var(--newsletter-orange-apex-8-x);
+      transform: rotate(4860deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    78%,
+    82% {
+      top: var(--newsletter-orange-return-two-y);
+      left: var(--newsletter-orange-return-two-x);
+      transform: rotate(5040deg) scale(1);
+      animation-timing-function: step-end;
+    }
+
+    86% {
+      top: var(--newsletter-orange-apex-9-y);
+      left: var(--newsletter-orange-apex-9-x);
+      transform: rotate(5220deg) scale(1.08, 0.9);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    92%,
+    100% {
+      top: var(--newsletter-orange-setup-y);
+      left: var(--newsletter-orange-setup-x);
+      transform: rotate(5400deg) scale(1);
+      animation-timing-function: step-end;
+    }
+  }
+
+  @keyframes newsletter-orange-hop-momentum {
+    0%,
+    8%,
+    16%,
+    24%,
+    32%,
+    40%,
+    50%,
+    64%,
+    78%,
+    92%,
+    100% {
+      transform: translate(2rem, 1.8rem) scale(0.82);
+    }
+
+    6%,
+    14%,
+    22%,
+    30%,
+    38%,
+    47%,
+    58%,
+    72%,
+    86% {
+      transform: translate(-1.7rem, -2rem) scale(1.12);
+    }
+  }
+
+  /* The orange signal arcs through the heading (behind it) and lands on the
+   * description line, whose platforms now mark each landing. */
+  @keyframes newsletter-orange-description-route {
+    0%,
+    2%,
+    8%,
+    10%,
+    18%,
+    20%,
+    28%,
+    30%,
+    38%,
+    40%,
+    48%,
+    50%,
+    56%,
+    64%,
+    70.3%,
+    76.6%,
+    82.9%,
+    90%,
+    96%,
+    100% {
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      top: 60%;
+    }
+
+    4%,
+    14%,
+    24%,
+    34%,
+    44%,
+    52%,
+    58%,
+    66.1%,
+    72.4%,
+    78.7%,
+    85%,
+    92%,
+    97.5% {
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+      top: 14%;
     }
   }
 
@@ -1921,6 +3203,7 @@ let { children, class: className = '' }: Props = $props()
 
   @media (prefers-reduced-motion: reduce) {
     .newsletter-creature,
+    .newsletter-creature::before,
     .newsletter-creature::after,
     .newsletter-packet,
     .newsletter-orange-platform {

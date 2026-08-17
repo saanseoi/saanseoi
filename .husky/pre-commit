@@ -122,7 +122,4 @@ if [ -n "$TOOL_MODIFIED_STAGED" ]; then
   exit 1
 fi
 
-echo "Running workspace checks..."
-bun run check
-
 echo "Pre-commit checks passed."

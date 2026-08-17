@@ -7,21 +7,25 @@ import {
   createHkgovCenstatdDistrictResolution,
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
-import {
-  chunkArray,
-  createHash,
-  getMaxRowsPerInsert,
-  stableJsonStringify,
-} from '@repo/core/pipeline/utils'
-import { historySchema, metaSchema, sourceSchema } from '@repo/db'
-import { and, eq, inArray, or } from 'drizzle-orm'
+import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
+import { metaSchema } from '@repo/db'
+import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  resolveLocalAddressDbContext,
+  updateDbCacheProgress,
+} from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import {
+  buildStatisticSqlBatches,
+  replayStatisticSqlBatches,
+  type StatisticSqlReplayProgress,
+} from './statisticSqlReplay.ts'
 
 type Plan = {
   cohortKey: string
@@ -87,11 +91,31 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
-  const context = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    plan.sourceVersion.slice(0, 4),
-  )
+  const progress = new LocalUploadProgress()
+  const cacheStartedAt = Date.now()
+  progress.beginPhase('Prepare statistic processing cache', { max: null })
+  let context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  try {
+    context = await resolveLocalAddressDbContext(
+      target,
+      plan.regionCode,
+      plan.sourceVersion.slice(0, 4),
+      {
+        cacheTableProfile: 'divisionStatistic',
+        onProgress(event) {
+          updateDbCacheProgress(progress, event)
+        },
+      },
+    )
+  } catch (error) {
+    progress.fail()
+    throw error
+  }
+  if (progress.hasActivePhase()) {
+    progress.complete(
+      `Prepared statistic cache in ${formatDuration(Date.now() - cacheStartedAt)}`,
+    )
+  }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
@@ -100,13 +124,19 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       })
 
   try {
+    const processingStepCount = target.remote ? 7 : 5
+    progress.beginPhase('Start district statistic processing', {
+      max: processingStepCount,
+    })
     await client.stageRunning(
       releaseId,
       'processDataset',
       { resourceType: plan.type, sourceRows: plan.rowCount },
       releaseCode,
     )
+    progress.update(1, { label: 'Resolve canonical districts' })
     const resolutionBySourceDistrictCode = await resolveCanonicalDistricts(metaDb)
+    progress.update(2, { label: 'Read 18 publisher statistic rows' })
     const sourceRows = await readSourceRows(
       preparedUpload.filePath,
       releaseId,
@@ -119,39 +149,50 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       )
     }
     assertUniqueDistrictAssertions(sourceRows)
+    progress.update(3, { label: 'Normalise district statistics' })
     const historyRows = await Promise.all(
       sourceRows.map(row =>
         normaliseHistoryRow(row, resolutionBySourceDistrictCode, releaseId),
       ),
     )
-    const now = new Date().toISOString()
-
-    await closeCurrentSourceRows(
-      context.sourceDb as HarbourWritableDb,
-      sourceRows.map(row => row.sourceRecordId),
-      releaseId,
+    const batches = buildStatisticSqlBatches({
+      history: { rows: historyRows, table: 'divisionStatistics' },
       releaseCode,
-      now,
-    )
-    await closeCurrentHistoryRows(
-      context.historyDb as unknown as HarbourWritableDb,
-      historyRows.map(row => row.id),
-      now,
-    )
-    await insertSourceRows(context.sourceDb as HarbourWritableDb, sourceRows)
-    await insertHistoryRows(
-      context.historyDb as unknown as HarbourWritableDb,
-      historyRows,
+      releaseId,
+      source: {
+        rows: sourceRows,
+        table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+      },
+    })
+    await replayStatisticSqlBatches(
+      target,
+      context,
+      plan.sourceVersion.slice(0, 4),
+      batches,
+      {
+        onProgress(event) {
+          updateStatisticReplayProgress(progress, event, target.remote)
+        },
+      },
     )
 
+    progress.update(processingStepCount - 1, {
+      label: 'Complete district statistic replay',
+    })
     await client.stageCompleted(
       releaseId,
       'processDataset',
       { historyRows: historyRows.length, importedRows: sourceRows.length },
       releaseCode,
     )
-    return client.publishDataset(releaseId, releaseCode)
+    progress.update(processingStepCount, {
+      label: 'Publish district statistic release',
+    })
+    const published = await client.publishDataset(releaseId, releaseCode)
+    progress.complete('Published district statistic release')
+    return published
   } catch (error) {
+    progress.fail()
     await client
       .stageFailed(
         releaseId,
@@ -165,6 +206,28 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   } finally {
     context.cleanup()
   }
+}
+
+function formatDuration(durationMs: number) {
+  return `${Math.max(0, Math.round(durationMs / 1_000))} s`
+}
+
+function updateStatisticReplayProgress(
+  progress: LocalUploadProgress,
+  event: StatisticSqlReplayProgress,
+  isRemote: boolean,
+) {
+  const phaseLabels = {
+    'local-replay': 'Replay source and history in local cache',
+    'remote-history-replay': 'Replay history into remote D1',
+    'remote-source-replay': 'Replay source into remote D1',
+  } as const
+  const phaseStep =
+    event.phase === 'local-replay' ? 4 : event.phase === 'remote-source-replay' ? 5 : 6
+  if (!isRemote && event.phase !== 'local-replay') return
+  progress.update(phaseStep, {
+    label: `${phaseLabels[event.phase]} (${event.completedBatches}/${event.totalBatches})`,
+  })
 }
 
 /**
@@ -253,9 +316,10 @@ async function normaliseHistoryRow(
   resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
   sourceReleaseId: string,
 ): Promise<HistoryStatisticRow> {
-  // See `map_censtatd_district_code_to_canonical_division` in the division
-  // merge ruleset selected by this dataset fixture. Keep its field paths and
-  // localised description in sync with this canonical identity resolution.
+  // See `map_censtatd_district_code_to_canonical_division` in the
+  // division-statistic merge ruleset selected by this dataset fixture. Keep
+  // its field paths and localised description in sync with this canonical
+  // identity resolution.
   const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
   if (!resolved) {
     throw new Error(
@@ -329,105 +393,6 @@ async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
       .all(),
   ])
   return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
-}
-
-async function closeCurrentSourceRows(
-  db: HarbourWritableDb,
-  sourceRecordIds: string[],
-  releaseId: string,
-  releaseCode: string,
-  now: string,
-) {
-  if (sourceRecordIds.length === 0) return
-  await db
-    .update(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
-    .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
-    .where(
-      and(
-        eq(
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities.isCurrent,
-          true,
-        ),
-        // A local repair may replace an earlier source-only ingest whose
-        // record IDs incorrectly included the reference year. Retire those
-        // rows by their release as well as the stable publisher assertion ID.
-        or(
-          inArray(
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-              .sourceRecordId,
-            sourceRecordIds,
-          ),
-          eq(
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-              .releaseId,
-            releaseId,
-          ),
-        ),
-      ),
-    )
-    .run()
-}
-
-async function closeCurrentHistoryRows(
-  db: HarbourWritableDb,
-  ids: string[],
-  now: string,
-) {
-  if (ids.length === 0) return
-  await db
-    .update(historySchema.divisionStatistics)
-    .set({ isCurrent: false, updatedAt: now })
-    .where(
-      and(
-        eq(historySchema.divisionStatistics.isCurrent, true),
-        inArray(historySchema.divisionStatistics.id, ids),
-      ),
-    )
-    .run()
-}
-
-async function insertSourceRows(db: HarbourWritableDb, rows: SourceStatisticRow[]) {
-  // This source assertion has 18 bound columns, including source versioning.
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(18))) {
-    await db
-      .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-            .sourceRecordId,
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-            .versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId: chunk[0]?.releaseId,
-          updatedAt: new Date().toISOString(),
-          validToRelease: null,
-        },
-      })
-      .run()
-  }
-}
-
-async function insertHistoryRows(db: HarbourWritableDb, rows: HistoryStatisticRow[]) {
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(13))) {
-    await db
-      .insert(historySchema.divisionStatistics)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [
-          historySchema.divisionStatistics.id,
-          historySchema.divisionStatistics.versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          sourceReleaseId: chunk[0]?.sourceReleaseId,
-          updatedAt: new Date().toISOString(),
-        },
-      })
-      .run()
-  }
 }
 
 function json(value: unknown, field: string) {

@@ -1,10 +1,10 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
-import mapboxCreateAccessToken from '$lib/assets/guides/mapbox-create-access-token.png'
-import mapboxTokenUrlRestrictions from '$lib/assets/guides/mapbox-token-url-restrictions.png'
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
+import mapboxCreateAccessToken from '#lib/assets/guides/mapbox-create-access-token.png'
+import mapboxTokenUrlRestrictions from '#lib/assets/guides/mapbox-token-url-restrictions.png'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'

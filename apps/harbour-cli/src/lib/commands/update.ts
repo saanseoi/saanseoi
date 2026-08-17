@@ -1,5 +1,5 @@
 import { confirm, isCancel, log, outro, select, spinner } from '@clack/prompts'
-import { stat } from 'node:fs/promises'
+import { stat, writeFile } from 'node:fs/promises'
 import { relative } from 'node:path'
 
 import { describeTarget } from '../cli/display.ts'
@@ -35,6 +35,10 @@ type PlannedDatasetUpdates = {
   updates: DatasetUpdate[]
 }
 
+type TargetVersionLookup =
+  | { status: 'available'; versions: Map<string, string | null> }
+  | { status: 'unknown' }
+
 type UpdateProcessingResult =
   | 'downloaded'
   | 'ingested'
@@ -43,12 +47,21 @@ type UpdateProcessingResult =
   | 'skipped'
   | 'uploaded'
 
+export type ScheduledUpdateSummary = {
+  added: Array<{
+    datasetCode: string
+    version?: string
+  }>
+  errors: string[]
+}
+
 const UPDATE_LINE_WIDTH = 120
 const CLACK_STATUS_PREFIX_WIDTH = 3
 const PUBLISHER_COLUMN_WIDTH = 10
 const RESOURCE_TYPE_COLUMN_WIDTH = 16
 const VERSION_COLUMN_WIDTH = 'vXXXX-XX-XX.XX'.length
 const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
+const TARGET_RELEASE_REPORT_LIMIT = 100
 
 function updateLineWidth() {
   const columns = process.stdout.isTTY ? process.stdout.columns : undefined
@@ -105,22 +118,35 @@ export async function runUpdateCommand(
   const forceCheck =
     args.options.force === true || args.options['check-now'] === true || forceDownload
   const errors: string[] = []
+  const added = new Map<string, string | undefined>()
   let reportedTargetLookupFailure = false
   const planned: PlannedDatasetUpdates[] = []
 
   for (const dataset of selectedDatasets) {
-    let targetVersions: Map<string, string | null>
+    let targetVersionLookup: TargetVersionLookup
     try {
-      targetVersions = await fetchTargetVersions(target, dataset)
+      targetVersionLookup = {
+        status: 'available',
+        versions: await fetchTargetVersions(target, dataset),
+      }
     } catch {
       if (!reportedTargetLookupFailure) {
         log.warn(
-          'Target release report unavailable; comparing updates against local versions instead.',
+          'Target release report unavailable; skipping affected datasets until it can be retrieved.',
         )
         reportedTargetLookupFailure = true
       }
-      targetVersions = new Map()
+      targetVersionLookup = { status: 'unknown' }
     }
+
+    if (targetVersionLookup.status === 'unknown') {
+      const row = new UpdateRow(dataset)
+      row.start('checking target release')
+      row.finish('SKIPPED', undefined, null)
+      continue
+    }
+
+    const targetVersions = targetVersionLookup.versions
 
     const duePhases = getDueUpdatePhases(dataset, state[dataset.code], {
       force: forceCheck,
@@ -209,6 +235,7 @@ export async function runUpdateCommand(
     }
     for (const plan of phasePlans) {
       await processPlannedUpdates(plan, {
+        added,
         errors,
         forceDownload,
         printUsage,
@@ -232,11 +259,19 @@ export async function runUpdateCommand(
       },
     )
   }
+  await writeScheduledUpdateSummary({
+    added: [...added.entries()].map(([datasetCode, version]) => ({
+      datasetCode,
+      ...(version ? { version } : {}),
+    })),
+    errors,
+  })
   const family =
     selectedFamily === 'all'
       ? colorFamilyLabel('API family', 'all')
       : colorFamilyLabel(familyLabel(selectedFamily), selectedFamily)
   outro(`Checked all ${family} datasets for new releases`)
+  if (errors.length > 0) process.exitCode = 1
 }
 
 function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
@@ -324,6 +359,7 @@ function updateVersionBase(version: string | null | undefined) {
 async function processPlannedUpdates(
   plan: PlannedDatasetUpdates,
   options: {
+    added: Map<string, string | undefined>
     errors: string[]
     forceDownload: boolean
     printUsage: () => void
@@ -359,6 +395,9 @@ async function processPlannedUpdates(
       if (result === 'ingested' && update.version) {
         plan.targetVersions.set(sourceKey, update.version)
       }
+      if ((result === 'ingested' || result === 'uploaded') && update.version) {
+        options.added.set(plan.dataset.code, update.version)
+      }
       if (update.mirroredArchive) {
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
       }
@@ -390,6 +429,13 @@ async function processPlannedUpdates(
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
+}
+
+async function writeScheduledUpdateSummary(summary: ScheduledUpdateSummary) {
+  const path = process.env.SAANSEOI_RUN_SUMMARY_PATH
+  if (!path) return
+
+  await writeFile(path, `${JSON.stringify(summary)}\n`, 'utf8')
 }
 
 /**
@@ -515,8 +561,13 @@ function colorize(value: string, color: number) {
 async function fetchTargetVersions(target: UploadTarget, dataset: DatasetFixture) {
   const report = await fetchReleaseReport(target, {
     datasetCode: dataset.code,
-    limit: 100,
+    limit: TARGET_RELEASE_REPORT_LIMIT,
   })
+  if (report.rows.length === TARGET_RELEASE_REPORT_LIMIT) {
+    throw new Error(
+      `Target release report for ${dataset.code} may be truncated at ${TARGET_RELEASE_REPORT_LIMIT} rows.`,
+    )
+  }
   return targetVersionsFromReport(dataset, report.rows)
 }
 

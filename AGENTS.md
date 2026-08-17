@@ -29,6 +29,8 @@ Repo-local operating notes for Codex and similar agents.
 - The product is pre-release: do not retain legacy compatibility paths or migration
   shims unless explicitly requested.
 - Use `playwright` to validate front-end design changes. Ignore content changes.
+- Keep Playwright and browser-validation output out of chat where possible; report only
+  concise pass/fail results and relevant findings rather than raw tool output.
 
 ## Component and styling conventions
 

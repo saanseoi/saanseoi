@@ -1,11 +1,13 @@
 {
-  "versionHash": "sha256:caa8178cd8e2b51c361f92c1d0f1000fe36dc75471164b657fc8bf097e6c9cbc",
+  "versionHash": "sha256:52bc84c09598e88dec245372b35814fa2eb40175535871c812b1b2a28dfcc555",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
+  "sourceVariant": "census",
+  "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
@@ -44,6 +46,12 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-statistic-merge-v1",
+      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+    }
+  ],
   "releases": [
     {
       "sourceVersion": "2021"

@@ -1,10 +1,39 @@
+import adapter from '@sveltejs/adapter-cloudflare'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import tailwindcss from '@tailwindcss/vite'
 import { sveltekit } from '@sveltejs/kit/vite'
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [
+    tailwindcss(),
+    sveltekit({
+      compilerOptions: {
+        experimental: { async: true },
+        // Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+        runes: ({ filename }) =>
+          filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+      },
+
+      adapter: adapter({
+        platformProxy: {
+          // Share the same Miniflare state as the local API/workers stack and migration scripts.
+          configPath: resolve(import.meta.dirname, 'wrangler.jsonc'),
+
+          // Wrangler appends `v3` to its --persist-to root; getPlatformProxy passes
+          // this path directly to Miniflare. Point at Wrangler's effective store.
+          persist: { path: resolve(import.meta.dirname, '../../.local/d1/dev/v3') },
+          envFiles: ['.dev.vars'],
+          remoteBindings: true,
+        },
+      }),
+      experimental: {
+        explicitEnvironmentVariables: true,
+        remoteFunctions: true,
+      },
+    }),
+  ],
   server: {
     // Tailnet-only remote development through `tailscale serve --https=8443`.
     // Vite otherwise rejects the MagicDNS Host header before proxying/HMR.
@@ -12,7 +41,17 @@ export default defineConfig({
     watch: {
       usePolling: true,
       interval: 1000,
-      ignored: ['!**/src/**/*.{js,ts,jsx,tsx}'],
+      // Do not let Vite observe its own dependency cache or SvelteKit's
+      // generated output. Both are rewritten during a reload and otherwise
+      // form a reload loop when polling is enabled.
+      ignored: [
+        '**/.git/**',
+        '**/node_modules/**',
+        '**/.svelte-kit/**',
+        '**/.local/**',
+        '**/.turbo/**',
+        '**/libs/i18n/src/paraglide/**',
+      ],
     },
   },
   optimizeDeps: {

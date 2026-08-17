@@ -11,9 +11,10 @@ type Props = {
   laneIndex: number
   showPlanned: boolean
   expandAll: boolean
+  sourceFilterActive: boolean
 }
 
-let { lane, laneIndex, showPlanned, expandAll }: Props = $props()
+let { lane, laneIndex, showPlanned, expandAll, sourceFilterActive }: Props = $props()
 let expanded = $state(false)
 let expandedDomainIds = $state<string[]>([])
 let defaultInputListExpanded = $state(false)
@@ -22,6 +23,7 @@ const isPlanned = (input: SourceFlowInput) => input.planned === true
 const visibleInputs = (inputs: SourceFlowInput[]) =>
   inputs.filter(input => showPlanned || !isPlanned(input))
 const isDomainExpanded = (domain: SourceFlowDomain) =>
+  sourceFilterActive ||
   (lane.defaultGroupExpanded === true && domain.label === lane.primaryGroupLabel) ||
   expandedDomainIds.includes(domain.id)
 const fullDomainInputs = (domain: SourceFlowDomain) =>
@@ -30,7 +32,8 @@ const visibleDomainInputs = (domain: SourceFlowDomain) => {
   const inputs = fullDomainInputs(domain)
   return lane.defaultInputLimit &&
     domain.label === lane.primaryGroupLabel &&
-    !defaultInputListExpanded
+    !defaultInputListExpanded &&
+    !sourceFilterActive
     ? inputs.slice(0, lane.defaultInputLimit)
     : inputs
 }
@@ -51,7 +54,13 @@ const hasVisibleDefault = () => {
 }
 const remainingDefaultInputCount = () => {
   const domain = lane.domains[0]
-  if (!domain || !lane.defaultInputLimit || defaultInputListExpanded) return 0
+  if (
+    !domain ||
+    !lane.defaultInputLimit ||
+    defaultInputListExpanded ||
+    sourceFilterActive
+  )
+    return 0
   return Math.max(fullDomainInputs(domain).length - lane.defaultInputLimit, 0)
 }
 const remainingGroupCount = () =>
@@ -83,7 +92,9 @@ $effect(() => {
   }
 })
 
-let isExpanded = $derived(lane.defaultAllGroupsExpanded === true || expanded)
+let isExpanded = $derived(
+  sourceFilterActive || lane.defaultAllGroupsExpanded === true || expanded,
+)
 let primaryDomain = $derived(lane.domains[0])
 let primaryGroupDomain = $derived(
   isExpanded ? primaryDomain : lane.domains.length === 1 ? primaryDomain : undefined,

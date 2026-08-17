@@ -63,6 +63,45 @@ export async function replaceDatasetStats(
   return rows.length
 }
 
+/** Replaces one release-stat dimension while preserving all other release facts. */
+export async function replaceReleaseStatsDimension(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  dimension: string,
+  rows: ReleaseScopedStatsRow[],
+) {
+  const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
+  if (!dataset) throw new Error(`Release not found: ${releaseId}`)
+
+  await runStatementBatchWithWriteRetry(metaDb, [
+    metaDb
+      .delete(metaSchema.stats)
+      .where(
+        and(
+          eq(metaSchema.stats.releaseId, dataset.releaseId),
+          eq(metaSchema.stats.type, 'release'),
+          eq(metaSchema.stats.dimension, dimension),
+        ),
+      ),
+  ])
+  if (rows.length === 0) return 0
+
+  const statements = []
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(13))) {
+    statements.push(
+      metaDb.insert(metaSchema.stats).values(
+        chunk.map(row => ({
+          ...row,
+          releaseId: dataset.releaseId,
+          id: crypto.randomUUID(),
+        })),
+      ),
+    )
+  }
+  await runStatementsInGroupsWithWriteRetry(metaDb, statements)
+  return rows.length
+}
+
 /**
  * Replaces all API-release-set presentation stats rows for an API release set.
  */

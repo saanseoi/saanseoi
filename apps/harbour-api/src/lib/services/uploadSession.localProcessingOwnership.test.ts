@@ -65,15 +65,27 @@ describe('local upload registration', () => {
       status: 'staged',
     })
   })
+
+  test('allows an authenticated force repair of a published dataset', async () => {
+    const db = initHarness('harbour-local-registration-force.sqlite')
+    await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
+    sqliteHandles.at(-1)?.exec("UPDATE releases SET status = 'published';")
+
+    await expect(
+      registerFixtureUpload(db, '2026-05-20.0', '2026-05', true),
+    ).resolves.toMatchObject({ status: 'staged' })
+  })
 })
 
 function registerFixtureUpload(
   db: ReturnType<typeof createLocalHarbourDb>,
   sourceVersion: string,
   cohortKey: string,
+  force = false,
 ) {
   return handleRegisterUploadRequest(db, {
     fileName: 'hkgov-dpo-hk-address.parquet',
+    force,
     inspection: fixtureInspection,
     plan: {
       cohortKey,

@@ -1,8 +1,8 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { getContext } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import {
   basemapPostcardFocusContext,
@@ -17,6 +17,7 @@ type Props = BasemapPostcardInteraction & {
   coverage: string
   flipAngle: number
   isDragging: boolean
+  isLoading?: boolean
   isSelected: boolean
   openStreetMapUrl: string
   publicFormats: readonly PublicFormat[]
@@ -32,6 +33,7 @@ let {
   coverage,
   flipAngle,
   isDragging,
+  isLoading = false,
   isSelected,
   onactivate,
   onpointercancel,
@@ -182,14 +184,18 @@ const stopCardInteraction = (event: Event) => event.stopPropagation()
           <dt class="font-semibold uppercase tracking-[0.08em] opacity-55">
             {m.postcard_version()}
           </dt>
-          <dd class="mt-0.5 font-bold">
+          <dd class="relative mt-0.5 font-bold" aria-busy={isLoading}>
             <a
-              class="pointer-events-auto underline decoration-[#213238]/25 underline-offset-3 hover:decoration-[#213238]/60"
+              class={`pointer-events-auto underline decoration-[#213238]/25 underline-offset-3 transition-opacity duration-300 hover:decoration-[#213238]/60 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               href={releaseNotesUrl}
               onclick={stopCardInteraction}
               onpointerdown={stopCardInteraction}
               >{releaseVersion}</a
             >
+            <span
+              class={`absolute top-0 left-0 h-4 w-24 rounded-full bg-[#213238]/16 transition-[filter,opacity] duration-300 ${isLoading ? 'motion-safe:animate-pulse opacity-100 blur-[2px]' : 'pointer-events-none opacity-0'}`}
+              aria-hidden="true"
+            ></span>
           </dd>
         </div>
       </dl>

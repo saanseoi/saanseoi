@@ -1,9 +1,9 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { getContext } from 'svelte'
 
-import * as CardDeck from '$lib/bits/components/cardDeck'
-import { m } from '$lib/bits/internal/i18n'
+import * as CardDeck from '#lib/bits/components/cardDeck/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import {
   basemapPostcardFocusContext,

@@ -1,8 +1,10 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { authClient } from '$lib/auth-client'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { authClient } from '#lib/auth-client.js'
 import { page } from '$app/state'
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 
 const token = $derived(page.url.searchParams.get('token'))
 const invalid = $derived(page.url.searchParams.has('error') || !token)
@@ -26,7 +28,11 @@ const resetPassword = async () => {
 }
 </script>
 
-<svelte:head><title>{m.auth_choose_new_password()} | Saanseoi</title></svelte:head>
+<Seo
+  title={m.auth_choose_new_password()}
+  description={m.auth_reset_description()}
+  noindex
+/>
 
 <Main class="mx-auto w-full max-w-xl px-6 py-14 md:py-20">
   <p

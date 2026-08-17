@@ -408,6 +408,88 @@ describe('createD1ImportClient', () => {
     ])
   })
 
+  test('accepts a cleared import after D1 has begun polling', async () => {
+    const requests: Array<unknown> = []
+    const fetchImpl: D1ImportFetch = async (input, init) => {
+      const url = String(input)
+      const body =
+        typeof init?.body === 'string' && url !== 'https://upload.example/import.sql'
+          ? JSON.parse(init.body)
+          : undefined
+
+      requests.push(body)
+
+      if (body?.action === 'init') {
+        return Response.json({
+          success: true,
+          result: {
+            filename: 'import.sql',
+            upload_url: 'https://upload.example/import.sql',
+          },
+        })
+      }
+
+      if (url === 'https://upload.example/import.sql') {
+        return new Response(null, {
+          headers: {
+            ETag: '"abc123"',
+          },
+        })
+      }
+
+      if (body?.action === 'ingest') {
+        return Response.json({
+          success: true,
+          result: {
+            at_bookmark: 'bookmark-1',
+            success: false,
+          },
+        })
+      }
+
+      if (body?.action === 'poll') {
+        return Response.json({
+          success: true,
+          result: {
+            error: 'Not currently importing anything.',
+            messages: [],
+            status: null,
+            success: false,
+          },
+        })
+      }
+
+      return Response.json({ success: false, errors: [{ message: 'unexpected' }] })
+    }
+
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: fetchImpl,
+    })
+
+    const result = await client.importSql({
+      etag: 'abc123',
+      pollIntervalMs: 0,
+      sql: 'SELECT 1;',
+    })
+
+    expect(result.poll).toEqual({
+      atBookmark: undefined,
+      error: undefined,
+      messages: [],
+      status: 'complete',
+      success: true,
+    })
+    expect(requests).toEqual([
+      { action: 'init', etag: 'abc123' },
+      undefined,
+      { action: 'ingest', etag: 'abc123', filename: 'import.sql' },
+      { action: 'poll', current_bookmark: 'bookmark-1' },
+    ])
+  })
+
   test('retries init while D1 reports another long-running import is active', async () => {
     const requests: Array<unknown> = []
     let initAttempts = 0

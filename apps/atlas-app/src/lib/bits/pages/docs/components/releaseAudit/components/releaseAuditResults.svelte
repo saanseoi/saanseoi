@@ -1,7 +1,7 @@
 <script lang="ts">
 import { slide } from 'svelte/transition'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import ReleaseAuditBulkSections from './releaseAuditBulkSections.svelte'
 import ReleaseAuditEmptyState from './releaseAuditEmptyState.svelte'

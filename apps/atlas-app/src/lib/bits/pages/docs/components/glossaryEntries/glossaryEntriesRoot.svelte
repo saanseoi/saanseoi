@@ -1,7 +1,7 @@
 <script lang="ts">
-import type { AppLocale } from '$lib/bits/internal/i18n'
-import { m } from '$lib/bits/internal/i18n'
-import type { MarkdownGlossaryEntry } from '$lib/registry/referenceDocs'
+import type { AppLocale } from '#lib/bits/internal/i18n.js'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { MarkdownGlossaryEntry } from '#lib/registry/referenceDocs.js'
 
 import GlossaryEntriesEmpty from './glossaryEntriesEmpty.svelte'
 import GlossaryEntriesItem from './glossaryEntriesItem.svelte'

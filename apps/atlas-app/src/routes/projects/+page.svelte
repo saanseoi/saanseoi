@@ -1,7 +1,14 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 </script>
+
+<Seo
+  title={m.nav_projects()}
+  description={m.projects_coming_soon_description()}
+  noindex={true}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-18"

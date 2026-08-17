@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { slide } from 'svelte/transition'
 
 type Detail = {
@@ -26,7 +26,7 @@ let { detail, isOpen, onToggle }: Props = $props()
 
 <div class="min-w-0">
   <button
-    class="group cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+    class="group block w-full min-w-0 cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
     type="button"
     aria-expanded={isOpen}
     onclick={onToggle}
@@ -42,7 +42,7 @@ let { detail, isOpen, onToggle }: Props = $props()
       />
     </span>
     <span
-      class={`mt-2 block text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono whitespace-nowrap' : ''}`}
+      class={`mt-2 block min-w-0 wrap-break-word text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
     >
       {detail.value}
     </span>
@@ -61,7 +61,7 @@ let { detail, isOpen, onToggle }: Props = $props()
             {item.label}
           </dt>
           <dd
-            class={`mt-1.5 text-sm font-semibold leading-5 text-primary ${item.isMonospace ? 'font-mono whitespace-nowrap' : ''}`}
+            class={`mt-1.5 min-w-0 wrap-break-word text-sm font-semibold leading-5 text-primary ${item.isMonospace ? 'font-mono' : ''}`}
           >
             {#if item.href}
               <a

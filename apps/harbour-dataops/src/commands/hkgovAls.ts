@@ -20,7 +20,7 @@ import {
   type HkgovAlsIdentityHistory,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
 import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
-import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
+import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import type {
   ParsedArgs,

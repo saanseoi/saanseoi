@@ -188,6 +188,14 @@ export type SourceVersion = {
     snapshotCode: string
     variant: string
   }>
+  assembledWith?: Array<{
+    datasetCode: string
+    datasetI18n: LocalisedRow[]
+    publisherI18n: LocalisedRow[]
+    role: string
+    sourceReleaseCode: string
+    sourceVersion: string
+  }>
   createdAt: string
   updatedAt: string
   license?: {

@@ -20,4 +20,10 @@ test('creates persistent user timers for the nightly update and monthly tiles', 
   expect(units['saanseoi-monthly-tiles.service']).toContain(
     'Environment=SAANSEOI_BUN_PATH="/home/example/.bun/bin/bun"',
   )
+  expect(units['saanseoi-monthly-tiles.service']).toContain(
+    'EnvironmentFile=-%h/.config/saanseoi/scheduled-jobs.env',
+  )
+  expect(units['saanseoi-daily-update.service']).toContain(
+    'EnvironmentFile=-%h/.config/saanseoi/scheduled-jobs.env',
+  )
 })

@@ -87,4 +87,39 @@ describe('Planning Department backfills', () => {
       { skipSnapshotCleanup: false, sourceVersion: '2021', type: 'divisionArea' },
     ])
   })
+
+  test('continues a remote backfill from that target’s completed releases', async () => {
+    const target = { environment: 'production' as const, remote: true }
+    let completedTarget: unknown
+
+    await runHkgovPlandBackfillCommand(
+      {
+        command: 'hkgov-pland:backfill',
+        positionals: [],
+        options: { continue: true, target: 'production' },
+      },
+      target,
+      'pu',
+      () => undefined,
+      {
+        getCompletedReleaseCodes: async receivedTarget => {
+          completedTarget = receivedTarget
+          return new Set([
+            'dr-hk-hkgov-pland-division-pu-2001',
+            'dr-hk-hkgov-pland-division-area-pu-2001',
+            'dr-hk-hkgov-pland-division-pu-2006',
+            'dr-hk-hkgov-pland-division-area-pu-2006',
+            'dr-hk-hkgov-pland-division-pu-2011',
+            'dr-hk-hkgov-pland-division-area-pu-2011',
+            'dr-hk-hkgov-pland-division-pu-2016',
+            'dr-hk-hkgov-pland-division-area-pu-2016',
+            'dr-hk-hkgov-pland-division-pu-2021',
+            'dr-hk-hkgov-pland-division-area-pu-2021',
+          ])
+        },
+      },
+    )
+
+    expect(completedTarget).toEqual(target)
+  })
 })

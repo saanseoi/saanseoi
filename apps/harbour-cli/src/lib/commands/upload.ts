@@ -23,7 +23,7 @@ import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
   withRemoteCachedMetaDb,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import {
   HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
   prepareHkgovCenstatdDistrictUpload,
@@ -258,6 +258,14 @@ ${mutedBar}  `)
                   completeOnReuse: false,
                 })
               },
+              cacheTableProfile:
+                previewResult.plan.type === 'divisionArea' ||
+                previewResult.plan.type === 'divisionBoundary'
+                  ? previewResult.plan.source === 'hkgov-pland-pu' ||
+                    previewResult.plan.source === 'hkgov-pland-new-town'
+                    ? 'planningDivisionGeometry'
+                    : 'divisionGeometry'
+                  : undefined,
               includePreviousShardYears: true,
             },
           )
@@ -1178,7 +1186,7 @@ export async function assertDivisionGeometryUploadPrerequisites(
   throw new Error(
     [
       `${plan.type} uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
-      `No published division snapshot was found for the ${plan.sourceVersion.slice(0, 4)} address shard.`,
+      `No published division snapshot was found for the ${plan.cohortKey} cohort.`,
       'Upload the division release first, then rerun this upload.',
     ].join(' '),
   )
@@ -1502,7 +1510,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
             matchesDivisionDomain(plan.source),
-            sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+            eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )

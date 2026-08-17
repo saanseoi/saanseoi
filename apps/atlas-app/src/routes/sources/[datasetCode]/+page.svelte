@@ -1,13 +1,15 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
-import { getCurrentLocale, m, selectLocalisedRow } from '$lib/bits/internal/i18n'
-import { getSourcePageData } from '$lib/registry/meta.remote'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 
-let { params } = $props()
-let source = $derived(await getSourcePageData(params.datasetCode))
+let { data } = $props()
+let source = $derived(data.source)
 let locale = $derived(getCurrentLocale())
 let name = $derived(selectLocalisedRow(source.datasetI18n, locale)?.name ?? source.code)
 </script>
+
+<Seo title={name} description={m.source_no_published_notes()} />
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8">
   <h1 class="font-display text-headline-lg font-bold text-primary">{name}</h1>

@@ -73,7 +73,7 @@ export const createAMapSelectionQueryKeys = {
 } as const satisfies Record<CreateAMapSelectionKey, string>
 
 export function getCreateAMapQueryChoice<Key extends CreateAMapSelectionKey>(
-  searchParams: URLSearchParams,
+  searchParams: Pick<URLSearchParams, 'get'>,
   selectionKey: Key,
 ): CreateAMapSelectionValue<Key> | undefined {
   const value = searchParams.get(createAMapSelectionQueryKeys[selectionKey])

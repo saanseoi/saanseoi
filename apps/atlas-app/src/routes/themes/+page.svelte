@@ -1,13 +1,14 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 import {
-  Button,
-  Main,
   PageDescription,
   PageHeader,
   PageSection,
   PageTitle,
-} from '$lib/bits'
+} from '#lib/bits/pages/shared/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { mapStyleDefinitions, type MapStyleDefinition } from '@repo/basemap'
 
 const regions = [
@@ -88,10 +89,7 @@ function purposeLabel(option: PurposeFilter) {
 }
 </script>
 
-<svelte:head>
-  <title>{m.themes_title()} | SaanSeoi</title>
-  <meta name="description" content={m.themes_meta_description()}>
-</svelte:head>
+<Seo title={m.themes_title()} description={m.themes_meta_description()} />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

@@ -1,12 +1,13 @@
 <script lang="ts">
 import {
-  Main,
   PageDescription,
   PageHeader,
   PageSection,
   PageSectionTitle,
   PageTitle,
-} from '$lib/bits'
+} from '#lib/bits/pages/shared/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 
 let { data } = $props()
 const schemaVersion = 'protomaps-v4.0'
@@ -16,13 +17,11 @@ const viewerUrl = $derived(
 )
 </script>
 
-<svelte:head>
-  <title>{data.regionName} basemap {releaseVersion} | SaanSeoi</title>
-  <meta
-    name="description"
-    content={`Release notes for SaanSeoi's ${data.regionName} basemap ${releaseVersion}.`}
-  >
-</svelte:head>
+<Seo
+  title={`${data.regionName} basemap ${releaseVersion}`}
+  description={`Release notes for SaanSeoi's ${data.regionName} basemap ${releaseVersion}.`}
+  type="article"
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

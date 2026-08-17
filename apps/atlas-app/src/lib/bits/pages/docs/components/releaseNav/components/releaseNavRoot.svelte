@@ -1,11 +1,12 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import { tick } from 'svelte'
 import type {
   ReleaseNavAction,
+  ReleaseNavDomain,
   ReleaseNavOutlineItem,
   ReleaseNavTab,
   ReleaseNavVersion,
+  ReleaseNavVersionPreload,
 } from '../releaseNav.types'
 import {
   createNestedContentScroll,
@@ -24,12 +25,18 @@ type Props = {
   activeTab?: string
   children?: Snippet
   hasContent: boolean
+  loading?: boolean
   nestedContent?: boolean
+  onTabChange?: (tab: string) => void
+  onVersionPreload?: ReleaseNavVersionPreload
   outline?: ReleaseNavOutlineItem[]
   tabs: ReleaseNavTab[]
   versionTitle: string
   versions: ReleaseNavVersion[]
+  currentDomainCode?: string
   currentVersionCode: string
+  domains?: ReleaseNavDomain[]
+  domainTitle?: string
 }
 
 let {
@@ -38,43 +45,57 @@ let {
   activeTab = $bindable('notes'),
   children,
   hasContent,
+  loading = false,
   nestedContent = false,
+  onTabChange,
+  onVersionPreload,
   outline = [],
   tabs,
   versionTitle,
   versions,
+  currentDomainCode,
   currentVersionCode,
+  domains = [],
+  domainTitle = 'Domains',
 }: Props = $props()
 
 let contentPanel = $state<HTMLElement>()
 let observedOutlineId = $state<string | null>(null)
+let optimisticVersionCode = $state<string | null>(null)
+let committedVersionCode = $state<string | null>(null)
 const persistence = createReleaseNavigationPersistence({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   getVersions: () => versions,
+  onVersionSelect: versionCode => (optimisticVersionCode = versionCode),
 })
+let visibleVersionCode = $derived(optimisticVersionCode ?? currentVersionCode)
 const nestedScroll = createNestedContentScroll({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   isEnabled: () => nestedContent,
   onNavigate: persistence.captureNavigation,
 })
 
-async function selectTab(tab: string) {
+function selectTab(tab: string) {
   activeTab = tab
-  await tick()
-  const content = getReleaseNavContentTarget(contentPanel)
-  if (content && content.getBoundingClientRect().top <= 72) {
-    window.dispatchEvent(new Event('app-header:preserve-visibility'))
-    content.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  onTabChange?.(tab)
 }
 
 $effect(() => {
-  currentVersionCode
+  if (committedVersionCode === null) {
+    committedVersionCode = currentVersionCode
+    return
+  }
+
+  if (currentVersionCode !== committedVersionCode) {
+    committedVersionCode = currentVersionCode
+    optimisticVersionCode = null
+  }
+  visibleVersionCode
   void persistence.restore()
 })
 
 $effect(() => {
-  currentVersionCode
+  visibleVersionCode
   observedOutlineId = null
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
 })
@@ -84,11 +105,12 @@ $effect(() => {
   <ReleaseNavBar
     {actions}
     {activeTab}
-    {currentVersionCode}
+    currentVersionCode={visibleVersionCode}
     onSelectTab={selectTab}
     {tabs}
     {versionTitle}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 
@@ -96,10 +118,12 @@ $effect(() => {
   <ReleaseNavMobileSideNav
     activeOutlineId={activeOutlineId ?? observedOutlineId}
     canShowToc={outline.length > 0}
-    {currentVersionCode}
+    currentVersionCode={visibleVersionCode}
+    {loading}
     {outline}
     panel={contentPanel}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 
@@ -107,10 +131,15 @@ $effect(() => {
   <ReleaseNavSideNav
     activeOutlineId={activeOutlineId ?? observedOutlineId}
     canExpand={nestedContent || outline.length > 0}
-    {currentVersionCode}
+    {loading}
+    currentVersionCode={visibleVersionCode}
+    {currentDomainCode}
+    {domains}
+    {domainTitle}
     {outline}
     panel={contentPanel}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 const resourceLinks = [
   {
@@ -21,16 +21,34 @@ const resourceLinks = [
   },
 ] as const
 
-const networkLinks = [
+const socialLinks = [
   {
-    href: 'https://github.com/saanseoi',
-    label: () => m.footer_network_github(),
-    icon: 'proicons:github',
+    href: 'https://www.instagram.com/saanseoi/',
+    label: () => m.footer_social_instagram(),
+    icon: 'simple-icons:instagram',
   },
   {
-    href: 'https://instagr.am/saanseoi',
-    label: () => m.footer_network_instagram(),
-    icon: 'proicons:instagram',
+    href: 'https://www.threads.com/@saanseoi',
+    label: () => m.footer_social_threads(),
+    icon: 'simple-icons:threads',
+  },
+  {
+    href: 'https://www.linkedin.com/company/saanseoi',
+    label: () => m.footer_social_linkedin(),
+    icon: 'simple-icons:linkedin',
+  },
+] as const
+
+const networkLinks = [
+  {
+    href: 'https://discord.gg/thXu6psten',
+    label: () => m.footer_network_discord(),
+    icon: 'simple-icons:discord',
+  },
+  {
+    href: 'https://github.com/saanseoi',
+    label: () => m.footer_network_codebase(),
+    icon: 'proicons:github',
   },
   {
     href: 'mailto:hi@saanseoi.hk',
@@ -42,7 +60,7 @@ const networkLinks = [
 
 <footer class="border-t border-border-card/60 bg-muted/55">
   <div
-    class="mx-auto grid grid-cols-2 gap-x-4 gap-y-12 max-w-(--spacing-container-max) px-(--spacing-margin-md) py-12 md:px-8 min-[900px]:grid-cols-[1.4fr_0.9fr_0.9fr] xl:px-(--spacing-margin-xl)"
+    class="mx-auto grid grid-cols-2 gap-x-4 gap-y-12 max-w-(--spacing-container-max) px-(--spacing-margin-md) py-12 md:px-8 min-[900px]:grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr] xl:px-(--spacing-margin-xl)"
   >
     <div class="col-span-2 space-y-5 min-[900px]:col-span-1">
       <a class="inline-flex items-center gap-3 text-foreground" href="/">
@@ -66,7 +84,7 @@ const networkLinks = [
       </p>
     </div>
 
-    <div>
+    <div class="hidden min-[900px]:block">
       <h3
         class="font-body text-[0.84rem] font-bold uppercase tracking-[0.08em] text-foreground-alt"
       >
@@ -74,6 +92,25 @@ const networkLinks = [
       </h3>
       <div class="mt-5 flex flex-col gap-3">
         {#each resourceLinks as link}
+          <a
+            class="inline-flex items-center gap-2 font-body text-[0.98rem] leading-[1.7] text-foreground transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
+            href={link.href}
+          >
+            <Icon icon={link.icon} class="size-4" />
+            {link.label()}
+          </a>
+        {/each}
+      </div>
+    </div>
+
+    <div>
+      <h3
+        class="font-body text-[0.84rem] font-bold uppercase tracking-[0.08em] text-foreground-alt"
+      >
+        {m.footer_socials_heading()}
+      </h3>
+      <div class="mt-5 flex flex-col gap-3">
+        {#each socialLinks as link}
           <a
             class="inline-flex items-center gap-2 font-body text-[0.98rem] leading-[1.7] text-foreground transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
             href={link.href}

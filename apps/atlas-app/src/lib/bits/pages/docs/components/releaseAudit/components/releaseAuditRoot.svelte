@@ -2,8 +2,8 @@
 import { Tooltip } from 'bits-ui'
 import { tick } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
-import type { MarkdownHeading } from '$lib/registry/markdown'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { MarkdownHeading } from '#lib/registry/markdown.js'
 
 import ReleaseAuditControls from './releaseAuditControls.svelte'
 import ReleaseAuditEvidenceDialog from './releaseAuditEvidenceDialog.svelte'

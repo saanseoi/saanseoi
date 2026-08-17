@@ -1,6 +1,6 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { m } from '#lib/bits/internal/i18n.js'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 export type FoundationSectionLabel = {
   number: string

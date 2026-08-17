@@ -8,12 +8,12 @@ const initialisationCommands = {
   init: {
     script: 'scripts/init/all.fish',
     supportsContinue: true,
-    supportsTarget: false,
+    supportsTarget: true,
   },
   'init:addresses:default': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
-    supportsTarget: false,
+    supportsTarget: true,
   },
   'init:divisions:hkgov-pland-new-town': {
     script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
@@ -27,7 +27,7 @@ const initialisationCommands = {
   },
   'init:divisions:hkgov-landsd': {
     script: 'scripts/init/divisions-hkgov-landsd.fish',
-    supportsContinue: false,
+    supportsContinue: true,
     supportsTarget: true,
   },
   'init:divisions:overture': {
@@ -37,8 +37,8 @@ const initialisationCommands = {
   },
   'init:streets:hkgov-landsd': {
     script: 'scripts/init/streets-hkgov-landsd.fish',
-    supportsContinue: false,
-    supportsTarget: false,
+    supportsContinue: true,
+    supportsTarget: true,
   },
 } as const
 

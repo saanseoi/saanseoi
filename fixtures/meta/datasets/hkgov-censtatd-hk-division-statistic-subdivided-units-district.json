@@ -1,11 +1,13 @@
 {
-  "versionHash": "sha256:7d400132c008f427dacfe72d62b3e26ff8de27eb2a833c4e7ca349c258b16e01",
+  "versionHash": "sha256:59ca4d6617fd8df09777776c44dc4c8ae66a5f125adce92f48d8d89404d14e4f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
+  "sourceVariant": "census",
+  "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
@@ -45,6 +47,12 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-statistic-merge-v1",
+      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+    }
+  ],
   "releases": [
     {
       "sourceVersion": "2016",

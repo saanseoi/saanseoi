@@ -1,11 +1,13 @@
 {
-  "versionHash": "sha256:ff165ebfea81253560610f8e7c38cb52d24fdde3273e082eba219025fc72fbb0",
+  "versionHash": "sha256:fc9cb5c38c8a05e22f8ea25c5ed187e1086681081a73db0bba76289b0d1bb1d1",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
+  "sourceVariant": "census",
+  "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
@@ -44,6 +46,12 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-statistic-merge-v1",
+      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+    }
+  ],
   "releases": [
     {
       "sourceVersion": "2021",

@@ -55,6 +55,38 @@ function initDb(dbPath: string) {
   return db
 }
 
+test('publishes a source-only division statistic without an API snapshot', async () => {
+  const tempDir = createTempDir()
+  const sqlite = initDb(join(tempDir, 'harbour-control-statistic.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const { releaseId } = insertFixtureRelease(sqlite, {
+    releaseId: 'release-hkgov-censtatd-district-statistic-2022',
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2022',
+    type: 'division',
+    sourceVersion: '2022',
+    rawObjectKey: 'hk/hkgov-censtatd/2022/division-statistic.parquet',
+    originalFileName: 'division-statistic.parquet',
+    status: 'processing',
+    ingestedAt: '2026-08-16T00:00:00.000Z',
+    createdAt: '2026-08-16T00:00:00.000Z',
+    updatedAt: '2026-08-16T00:00:00.000Z',
+  })
+  sqlite
+    .query('UPDATE releases SET resourceType = ? WHERE id = ?')
+    .run('divisionStatistic', releaseId)
+
+  const result = await handlePublishDataset(db, { releaseId })
+  const release = sqlite
+    .query('SELECT status FROM releases WHERE id = ?')
+    .get(releaseId) as { status: string }
+
+  expect(result).toMatchObject({ releaseId, status: 'published' })
+  expect(release.status).toBe('published')
+  sqlite.close()
+})
+
 function seedSnapshot(
   sqlite: Database,
   {
@@ -1080,6 +1112,10 @@ describe('control service', () => {
     const releaseSetId = 'd092ef65-1ae3-4a3d-beb2-19f20e8f5904'
 
     sqlite.exec(`
+      UPDATE apiComposition
+      SET i18n = '{"overture":[{"locale":"en","name":"Overture","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}]}'
+      WHERE id = 'api-composition-divisions-v1';
+
       DELETE FROM apiCompositionMembers
       WHERE apiCompositionId = 'api-composition-divisions-v1';
 
@@ -1342,10 +1378,24 @@ describe('control service', () => {
     expect(publishedSet.status).toBe('draft')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
-    expect(reconciliation).toEqual({
+    expect(reconciliation).toMatchObject({
       inspected: 1,
       pendingReleaseSetCodes: [],
       publishedReleaseSetCodes: [`data-hk-divisions-${cohortKey}`],
+      publishedReleaseSetPublications: [
+        {
+          apiFamily: 'divisions',
+          apiReleaseSetCode: `data-hk-divisions-${cohortKey}`,
+          cohortKey,
+          description:
+            'Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas.',
+          domainCode: 'overture',
+          domainName: 'Overture',
+          publisherName: 'overture',
+          regionCode: 'hk',
+          revision: 0,
+        },
+      ],
     })
     expect(reconciledSet.status).toBe('current')
     expect(members).toEqual([

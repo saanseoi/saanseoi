@@ -46,8 +46,8 @@ import type { UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
-import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
   resolveLandsdStreetDistricts,
   type LandsdStreetCanonicalDistrict,

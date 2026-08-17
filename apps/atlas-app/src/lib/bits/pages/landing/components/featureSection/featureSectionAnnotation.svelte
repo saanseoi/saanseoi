@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = { isCardActive: boolean }
 
@@ -26,7 +26,7 @@ onMount(() => {
 </script>
 
 <div
-  class="pointer-events-none absolute top-[30%] left-[calc(50%+7.5rem)] z-4 hidden text-secondary min-[901px]:block"
+  class="feature-section-annotation pointer-events-none absolute top-[30%] left-[calc(50%+7.5rem)] z-4 hidden text-secondary min-[901px]:block"
   aria-hidden="true"
 >
   <div class="annotation-floating flex items-start gap-3" style={floatStyle}>
@@ -57,3 +57,11 @@ onMount(() => {
     </span>
   </div>
 </div>
+
+<style>
+@media (min-width: 120rem) {
+  .feature-section-annotation {
+    left: calc(50% + max(7.5rem, 6.25vw));
+  }
+}
+</style>

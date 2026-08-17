@@ -21,15 +21,17 @@ const legend = $derived([
 </script>
 <Section
   ><Header
-    id="stats-records-by-type"
-    eyebrow={labels.changeDistribution}
-    title={labels.recordsByType}
+    id={distribution.id}
+    eyebrow={distribution.showChangeLegend ? labels.changeDistribution : labels.records}
+    title={distribution.title}
     ><div class="flex items-center gap-3">
-      <Legend label={labels.typeLegend} items={legend} />
-      <InfoTooltip
-        label={labels.changeDistributionInfo}
-        description={labels.changeDistributionInfoDescription}
-      />
+      {#if distribution.showChangeLegend}
+        <Legend label={labels.typeLegend} items={legend} />
+        <InfoTooltip
+          label={labels.changeDistributionInfo}
+          description={labels.changeDistributionInfoDescription}
+        />
+      {/if}
     </div></Header
   >
   <div
