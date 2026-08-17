@@ -1,14 +1,15 @@
 import { defineEnvVars } from '@sveltejs/kit/env'
+import { z } from 'zod'
 
-// These optional credentials deliberately retain the former dynamic-env fallback.
+const runtimeStringSchema = z.string().optional()
+
 export const variables = defineEnvVars({
-  PUBLIC_ATLAS_API_BASE_URL: { public: true, schema: input => input ?? '' },
-  BETTER_AUTH_SECRET: { schema: input => input ?? '' },
-  GOOGLE_CLIENT_ID: { schema: input => input ?? '' },
-  GOOGLE_CLIENT_SECRET: { schema: input => input ?? '' },
-  FACEBOOK_CLIENT_ID: { schema: input => input ?? '' },
-  FACEBOOK_CLIENT_SECRET: { schema: input => input ?? '' },
-  GITHUB_CLIENT_ID: { schema: input => input ?? '' },
-  GITHUB_CLIENT_SECRET: { schema: input => input ?? '' },
-  ORIGIN: { schema: input => input ?? '' },
+  PUBLIC_ATLAS_API_BASE_URL: { public: true, schema: runtimeStringSchema },
+  BETTER_AUTH_SECRET: { schema: runtimeStringSchema },
+  GOOGLE_CLIENT_ID: { schema: runtimeStringSchema },
+  GOOGLE_CLIENT_SECRET: { schema: runtimeStringSchema },
+  FACEBOOK_CLIENT_ID: { schema: runtimeStringSchema },
+  FACEBOOK_CLIENT_SECRET: { schema: runtimeStringSchema },
+  GITHUB_CLIENT_ID: { schema: runtimeStringSchema },
+  GITHUB_CLIENT_SECRET: { schema: runtimeStringSchema },
 })

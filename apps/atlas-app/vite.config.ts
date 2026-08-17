@@ -28,7 +28,10 @@ export default defineConfig({
           remoteBindings: true,
         },
       }),
-      experimental: { remoteFunctions: true },
+      experimental: {
+        explicitEnvironmentVariables: true,
+        remoteFunctions: true,
+      },
     }),
   ],
   server: {
@@ -38,7 +41,17 @@ export default defineConfig({
     watch: {
       usePolling: true,
       interval: 1000,
-      ignored: ['!**/src/**/*.{js,ts,jsx,tsx}'],
+      // Do not let Vite observe its own dependency cache or SvelteKit's
+      // generated output. Both are rewritten during a reload and otherwise
+      // form a reload loop when polling is enabled.
+      ignored: [
+        '**/.git/**',
+        '**/node_modules/**',
+        '**/.svelte-kit/**',
+        '**/.local/**',
+        '**/.turbo/**',
+        '**/libs/i18n/src/paraglide/**',
+      ],
     },
   },
   optimizeDeps: {
