@@ -4,6 +4,8 @@ import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@r
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
@@ -147,7 +149,7 @@ export async function runGeometryStatsBackfillCommand(
               release.resourceType,
               typedGeometryRows.map(row => ({
                 ...row,
-                geometry: row.geometry as GeoJsonGeometry,
+                geometry: decodeGeometry(row.geometry),
               })),
               districtByDivisionId,
             )
@@ -155,7 +157,7 @@ export async function runGeometryStatsBackfillCommand(
               excludedRecordIds: [],
               records: typedGeometryRows.map(row => ({
                 ...row,
-                geometry: row.geometry as GeoJsonGeometry,
+                geometry: decodeGeometry(row.geometry),
               })),
             }
       const metrics = calculateDistrictGeometryStatistics(
@@ -488,6 +490,27 @@ function sameGeometryRows(
     existing.length === rows.length &&
     existing.every(row => rows.some(candidate => key(candidate) === key(row)))
   )
+}
+
+function decodeGeometry(value: unknown): GeoJsonGeometry {
+  if (typeof value === 'string') {
+    return JSON.parse(value) as GeoJsonGeometry
+  }
+
+  if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+    try {
+      return decompressJsonBrotli(value) as GeoJsonGeometry
+    } catch {
+      const geometry = parseWkbGeometry(value)
+      if (geometry) return geometry
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    return value as GeoJsonGeometry
+  }
+
+  throw new Error('Geometry value could not be decoded.')
 }
 
 function buildRemoteStatsSql(cacheDir: string, releaseId: string) {
