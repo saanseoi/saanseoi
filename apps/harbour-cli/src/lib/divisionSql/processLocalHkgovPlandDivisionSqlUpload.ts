@@ -55,7 +55,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   buildReleaseUploadDbCacheScopeKey,
   refreshRemoteMetaCache,
@@ -65,7 +65,7 @@ import {
   resolveLocalAddressDbContext,
   resolveShardBindingName,
   type LocalAddressDbContext,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
 
 type UploadResult = {

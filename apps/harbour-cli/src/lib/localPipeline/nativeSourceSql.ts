@@ -7,7 +7,7 @@ import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from './localControlClient.ts'

@@ -16,7 +16,7 @@ import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'

@@ -113,14 +113,14 @@ import {
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
-import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 
 type UploadResult = {
   datasetCode?: string

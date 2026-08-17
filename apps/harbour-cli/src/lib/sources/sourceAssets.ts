@@ -8,7 +8,7 @@ import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
-import { withLocalMetaDb } from '../addressSql/localDbCache.ts'
+import { withLocalMetaDb } from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 
 export const LANDSD_SOURCE_ASSET_PREFIX = 'by-source/hk/hkgov-landsd/street-naming'

@@ -7,7 +7,7 @@ import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
