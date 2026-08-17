@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { m } from '#lib/bits/internal/i18n.js'

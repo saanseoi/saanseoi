@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseNavVersion } from '../releaseNav.types'
 
 type Props = { currentVersionCode: string; versions: ReleaseNavVersion[] }

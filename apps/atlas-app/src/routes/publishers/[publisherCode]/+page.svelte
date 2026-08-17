@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'

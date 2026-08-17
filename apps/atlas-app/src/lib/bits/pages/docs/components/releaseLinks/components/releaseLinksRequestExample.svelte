@@ -1,6 +1,6 @@
 <script lang="ts">
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseLinkRequestExample } from './releaseLinks.types'
 
 type Props = {

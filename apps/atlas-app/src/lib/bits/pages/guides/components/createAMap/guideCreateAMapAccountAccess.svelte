@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { slide } from 'svelte/transition'
 
 import type { SocialProvider } from '#lib/auth-providers.js'

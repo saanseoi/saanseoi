@@ -1,6 +1,6 @@
 <script lang="ts">
 import { page } from '$app/state'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'

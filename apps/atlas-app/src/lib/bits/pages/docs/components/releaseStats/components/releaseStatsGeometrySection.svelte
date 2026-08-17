@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { getDistrictGeometryNames } from '#lib/registry/meta.remote.js'
 import type {
   GeometryStatisticsPresentation,

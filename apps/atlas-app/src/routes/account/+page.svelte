@@ -4,7 +4,7 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
 import {

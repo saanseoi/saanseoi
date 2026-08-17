@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { GuideCodeBlock } from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'

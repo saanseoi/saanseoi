@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount } from 'svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import { getApiFamilyTheme } from '#lib/registry/apiFamilyTheme.js'
