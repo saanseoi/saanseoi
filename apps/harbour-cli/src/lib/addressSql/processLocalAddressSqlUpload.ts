@@ -63,14 +63,14 @@ import {
   loadAddressCurrentLookupCache,
   writeAddressCurrentLookupCache,
 } from './addressCurrentLookupCache.ts'
-import { LocalPipelineBucket } from './localBucket.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
-} from './localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 
 type UploadResult = {
   datasetCode?: string

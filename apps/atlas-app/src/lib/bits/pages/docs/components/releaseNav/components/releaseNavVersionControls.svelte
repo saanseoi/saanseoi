@@ -1,9 +1,13 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
-import type { ReleaseNavVersion } from '../releaseNav.types'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import type { ReleaseNavVersion, ReleaseNavVersionPreload } from '../releaseNav.types'
 
-type Props = { currentVersionCode: string; versions: ReleaseNavVersion[] }
-let { currentVersionCode, versions }: Props = $props()
+type Props = {
+  currentVersionCode: string
+  onVersionPreload?: ReleaseNavVersionPreload
+  versions: ReleaseNavVersion[]
+}
+let { currentVersionCode, onVersionPreload, versions }: Props = $props()
 let currentVersionIndex = $derived(
   versions.findIndex(version => version.code === currentVersionCode),
 )
@@ -26,9 +30,12 @@ let controls = $derived([
     {#if item.version}
       <a
         class="inline-flex size-7 items-center justify-center rounded-default border border-data-outline-variant/60 bg-data-surface-container-lowest text-data-primary transition hover:border-data-primary hover:bg-data-surface-container-high"
-        data-sveltekit-noscroll
+        data-sveltekit-reset="false"
+        data-sveltekit-preload-data="hover"
         href={item.version.href}
         aria-label={`${item.label} release: ${item.version.label}`}
+        onfocusin={() => onVersionPreload?.(item.version)}
+        onpointerenter={() => onVersionPreload?.(item.version)}
       >
         <Icon icon={item.icon} class="size-4" aria-hidden="true" />
       </a>

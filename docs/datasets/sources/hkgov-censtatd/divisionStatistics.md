@@ -74,8 +74,11 @@ passes that local prepared ZIP, its managed-asset key and its SHA-256 to the imp
 The importer verifies the local ZIP against that hash before parsing it; it never
 reloads the ZIP from object storage. The source assertion retains both archive
 references while the target-aware SQL processor uses its local target-database cache to
-generate and publish the release for local, preview or production. Publish through
-`saanseoi update`, or invoke the importer with the already-prepared archive:
+generate and publish the release for local, preview or production. That processor
+mirrors only the identifier bridges, C&SD density assertions, and division-statistics
+history required for this dataset; its console progress identifies the cache and
+processing stage currently in progress. Publish through `saanseoi update`, or invoke the
+importer with the already-prepared archive:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \

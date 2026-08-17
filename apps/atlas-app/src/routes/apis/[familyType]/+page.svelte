@@ -1,15 +1,20 @@
 <script lang="ts">
-import { Main } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
-import { getApiFamilyPageData } from '$lib/registry/meta.remote'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
-let { params } = $props()
-let data = $derived(await getApiFamilyPageData(params.familyType))
+let { data } = $props()
+let apiFamilyPageData = $derived(data.apiFamilyPageData)
 </script>
+
+<Seo
+  title={`${apiFamilyPageData.api.familyType} API`}
+  description={m.api_family_no_release_notes()}
+/>
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8">
   <h1 class="font-display text-headline-lg font-bold text-primary">
-    {data.api.familyType}
+    {apiFamilyPageData.api.familyType}
   </h1>
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.api_family_no_release_notes()}

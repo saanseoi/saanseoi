@@ -4,6 +4,7 @@ export { default as EmptyState } from './releaseLinksEmptyState.svelte'
 export { default as Group } from './releaseLinksGroup.svelte'
 export { default as Provenance } from './releaseLinksProvenance.svelte'
 export { default as Root } from './releaseLinksRoot.svelte'
+export { default as Skeleton } from './releaseLinksSkeleton.svelte'
 export type {
   ReleaseLinkAction,
   ReleaseLinkCardPresentation,

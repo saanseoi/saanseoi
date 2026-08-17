@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { coastlinePaths, ferryPaths } from '../../harbourMapData'
 import type { HarbourPath } from '../../harbourMapData'
 import FoundationSectionBaseMap from './foundationSectionBaseMap.svelte'

@@ -1,6 +1,7 @@
 <script lang="ts">
-import ManifestoPage from '$lib/bits/pages/manifesto/page.svelte'
-import { m } from '$lib/bits/internal/i18n'
+import ManifestoPage from '#lib/bits/pages/manifesto/page.svelte'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 
 const sections = [
   'Dropping Anchor',
@@ -67,9 +68,6 @@ const principles = $derived.by(() =>
 const badge = 'Document Ref: SS-2026-MANIFESTO.01 // 2026-06-15'
 </script>
 
-<svelte:head>
-  <title>{title} | {m.saanseoi()}</title>
-  <meta name="description" content={subtitle}>
-</svelte:head>
+<Seo {title} description={subtitle} type="article" />
 
 <ManifestoPage {principles} {subtitle} {badge} {ctaPrimary} {ctaSecondary} />

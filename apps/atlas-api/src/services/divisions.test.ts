@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 
 import type { DivisionRecord } from '../db/divisions'
+import {
+  getDivisionDetail,
+  listDivisions,
+  type DivisionServiceDependencies,
+} from './divisions'
 
 const activeSnapshot = {
   snapshotId: 'snapshot-hk-division',
@@ -255,11 +260,9 @@ const resolveApiReleaseSetSnapshotsForRequestMock = mock(
   async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
 
-mock.module('@repo/core/db/metaRegistry', () => ({
-  resolveApiReleaseSetSnapshotsForRequest: resolveApiReleaseSetSnapshotsForRequestMock,
-}))
-
-mock.module('../db/divisions', () => ({
+const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
+  resolveApiReleaseSetSnapshotsForRequest:
+    resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   countDivisionsCurrent: mock(async () => listRecords.length),
   getDivisionRecordCurrent: mock(async () => detailRecord),
   listDivisionRecordsCurrent: mock(async () => listRecords),
@@ -271,9 +274,7 @@ mock.module('../db/divisions', () => ({
   ),
   listDivisionAreasCurrentByDivisionIds: mock(async () => []),
   listDivisionBoundariesCurrentByDivisionIds: mock(async () => []),
-}))
-
-const { getDivisionDetail, listDivisions } = await import('./divisions')
+}
 
 describe('division services', () => {
   beforeEach(() => {
@@ -293,6 +294,7 @@ describe('division services', () => {
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: { include: 'areas:hkgov-pland-new-town' },
+      dependencies: divisionServiceDependencies,
     })
 
     expect(result).toEqual({
@@ -320,6 +322,7 @@ describe('division services', () => {
         query: {
           profile,
         },
+        dependencies: divisionServiceDependencies,
       })
 
       expect(result.status).toBe(200)
@@ -470,6 +473,7 @@ describe('division services', () => {
         include: 'hierarchy',
         profile: 'full',
       },
+      dependencies: divisionServiceDependencies,
     })
 
     expect(result.status).toBe(200)

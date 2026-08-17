@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Select } from 'bits-ui'
 
 import {
@@ -8,8 +8,8 @@ import {
   type AppLocale,
   getCurrentLocale,
   updateLocale,
-} from '$lib/bits/internal/i18n'
-import { Label } from '$lib/bits/primitives/label'
+} from '#lib/bits/internal/i18n.js'
+import { Label } from '#lib/bits/primitives/label/index.js'
 
 type PopoverSide = 'top' | 'right' | 'bottom' | 'left'
 type PopoverAlign = 'start' | 'center' | 'end'

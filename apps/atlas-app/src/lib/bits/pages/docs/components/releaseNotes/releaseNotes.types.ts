@@ -1,4 +1,4 @@
-import type { MarkdownHeading } from '$lib/registry/markdown'
+import type { MarkdownHeading } from '#lib/registry/markdown.js'
 
 export type ReleaseNotesTransclusion = {
   type: 'definition' | 'note'

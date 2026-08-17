@@ -7,6 +7,21 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import {
+  REMOTE_GEOMETRY_BATCH_BYTE_LIMIT,
+  REMOTE_GEOMETRY_HEX_CHUNK_BYTES,
+  REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+  assertBinaryGeometryRow,
+  geometrySha256,
+  partitionRemoteGeometryRows,
+  reassembleHexChunks,
+  type BinaryGeometryRow,
+} from './binaryGeometryMirror.ts'
+import {
+  createCloudflareD1QueryClient,
+  type RemoteD1QueryClient,
+} from './remoteD1Client.ts'
+
+import {
   currentSchema,
   eq,
   historySchema,
@@ -43,6 +58,16 @@ type DbCacheManifest = {
   preparedAt: string
   target: 'local' | 'preview' | 'production'
   files: Record<string, string>
+}
+
+type RemoteCachePartialCheckpoint = {
+  bindingName: string
+  cacheScopeKey?: string
+  cacheTableProfile?: CacheTableProfile
+  cacheVersion: number
+  filePath: string
+  target: 'preview' | 'production'
+  validatedAt: string
 }
 
 type RemoteCacheReplayJournal = {
@@ -138,6 +163,7 @@ type InternalLocalShardTarget<TDb> = {
 }
 
 type RemoteTableImport = {
+  binaryRowsPath?: string
   hasRows: boolean
   pruneOperation?: CachePruneOperation | null
   sqlPath: string
@@ -147,10 +173,12 @@ type CachePruneOperation = {
   tableName: string
   whereSql: string
 }
-type CacheTableProfile =
+export type CacheTableProfile =
   | 'address'
   | 'division'
   | 'divisionGeometry'
+  | 'divisionStatistic'
+  | 'planningDivisionGeometry'
   | 'nativeSource'
   | 'street'
 
@@ -159,7 +187,8 @@ const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc
 const LOCAL_D1_PERSIST_ROOT = resolve(REPO_ROOT, '.local/d1/dev')
 const CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/db-cache')
 const SQLITE_CACHE_WORKER_PATH = resolve(import.meta.dir, 'sqliteCacheWorker.ts')
-const DB_CACHE_MANIFEST_VERSION = 5
+// v6 requires byte-for-byte validation of every mirrored binary geometry.
+const DB_CACHE_MANIFEST_VERSION = 6
 const REMOTE_CACHE_BINDING_CONCURRENCY = 4
 const WRANGLER_CONFIG_HOME = resolve(REPO_ROOT, '.local/wrangler')
 const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
@@ -173,6 +202,9 @@ const BEFORE_SHARD_CUTOFF_YEAR = 2025
 const REQUIRED_RELEASE_SHARD_ASSIGNMENTS = 2
 const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
 const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
+const REMOTE_GEOMETRY_PAGE_SIZE = 100
+const REMOTE_GEOMETRY_QUERY_CONCURRENCY = 4
+const REMOTE_CACHE_PARTIAL_DIR = '.partial'
 const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'address2d',
   'address2dI18n',
@@ -262,12 +294,20 @@ export async function resetRemoteReleaseUploadCacheScope(
   const targets = await resolveD1Targets(targetName)
   const sharedCacheDir = resolveRemoteCacheDir(targetName)
   const sharedManifest = await readManifest(join(sharedCacheDir, 'manifest.json'))
+  const cachedTargets = sharedManifest
+    ? targets.filter(targetRecord => targetRecord.bindingName in sharedManifest.files)
+    : []
 
   if (
     !sharedManifest ||
     sharedManifest.cacheVersion !== DB_CACHE_MANIFEST_VERSION ||
     sharedManifest.target !== targetName ||
-    !(await doCachedFilesExist(sharedManifest.files, targets))
+    cachedTargets.length === 0 ||
+    !(await doCachedFilesExist(
+      sharedManifest.files,
+      cachedTargets,
+      sharedManifest.cacheTableProfile,
+    ))
   ) {
     throw new Error(
       `No valid shared ${targetName} D1 cache is available. Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
@@ -284,7 +324,7 @@ export async function resetRemoteReleaseUploadCacheScope(
   await mkdir(cacheDir, { recursive: true })
 
   const files: Record<string, string> = {}
-  for (const targetRecord of targets) {
+  for (const targetRecord of cachedTargets) {
     const sourcePath = sharedManifest.files[targetRecord.bindingName]
     if (!sourcePath) {
       throw new Error(`Shared cache manifest is missing ${targetRecord.bindingName}.`)
@@ -502,6 +542,8 @@ export async function resolveLocalAddressDbContext(
 export async function rebuildRemoteDbCache(
   target: UploadTarget,
   onProgress?: (event: LocalDbCacheProgressEvent) => void,
+  cacheTableProfile?: CacheTableProfile,
+  shardYear?: string,
 ) {
   if (!target.remote) {
     throw new Error(
@@ -510,17 +552,27 @@ export async function rebuildRemoteDbCache(
   }
 
   const targetName = target.environment === 'production' ? 'production' : 'preview'
-  const shardYear = await resolveLatestConfiguredShardYear(targetName)
-  const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
-    onProgress,
-    includePreviousShardYears: true,
-    refreshRemoteCache: true,
-  })
+  const resolvedShardYear =
+    shardYear ?? (await resolveLatestConfiguredShardYear(targetName))
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    resolvedShardYear,
+    {
+      cacheTableProfile,
+      onProgress,
+      includePreviousShardYears: true,
+      refreshRemoteCache: true,
+    },
+  )
 
   dbContext.cleanup()
 }
 
-export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget) {
+export async function readRemoteCachedCompletedReleaseCodes(
+  target: UploadTarget,
+  options: { allowPartialCache?: boolean } = {},
+) {
   if (!target.remote) {
     throw new Error(
       'Completed remote releases can only be read for preview or production.',
@@ -547,21 +599,23 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
       )
       .all()
 
-    const incompleteReleases = await findIncompletePublishedReleases(
-      cacheDir,
-      manifest.files,
-      metaSqlite,
-      rows,
-    )
-
-    if (incompleteReleases.length > 0) {
-      throw new Error(
-        [
-          `The ${targetName} cache contains published releases that are not safe to skip.`,
-          ...incompleteReleases.map(release => `- ${release}`),
-          'Reset or repair the target before continuing; published releases are never silently reprocessed.',
-        ].join('\n'),
+    if (!options.allowPartialCache) {
+      const incompleteReleases = await findIncompletePublishedReleases(
+        cacheDir,
+        manifest.files,
+        metaSqlite,
+        rows,
       )
+
+      if (incompleteReleases.length > 0) {
+        throw new Error(
+          [
+            `The ${targetName} cache contains published releases that are not safe to skip.`,
+            ...incompleteReleases.map(release => `- ${release}`),
+            'Reset or repair the target before continuing; published releases are never silently reprocessed.',
+          ].join('\n'),
+        )
+      }
     }
 
     return rows.map(row => row.code)
@@ -766,13 +820,14 @@ export function updateDbCacheProgress(
   event: LocalDbCacheProgressEvent,
   options: {
     completeOnReuse?: boolean
+    operation?: 'clone' | 're-export'
   } = {},
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {
     return
   }
 
-  const label = formatDbCacheProgressLabel(event)
+  const label = formatDbCacheProgressLabel(event, options.operation)
   const current = Math.min(event.current, event.total)
 
   if (!progress.hasActivePhase()) {
@@ -797,11 +852,14 @@ export function updateDbCacheProgress(
   }
 }
 
-function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
+function formatDbCacheProgressLabel(
+  event: LocalDbCacheProgressEvent,
+  operation: 'clone' | 're-export' = 'clone',
+) {
   const subject = describeDbCacheSubject(event)
 
   return formatRunningPhaseLabel(
-    colorTeal('Clone cache'),
+    colorTeal(operation === 're-export' ? 'Re-export cache' : 'Clone cache'),
     colorRed(subject),
     Math.min(event.current, event.total),
     event.total,
@@ -1389,25 +1447,53 @@ async function ensureRemoteCachePaths(
     return existingManifest.files
   }
 
+  const reusableFiles = await resolveReusableCachedFiles(
+    cacheDir,
+    options.refreshRemoteCache ? {} : (existingManifest?.files ?? {}),
+    targets,
+    options.cacheTableProfile,
+    target,
+    options.remoteCacheScopeKey,
+  )
+
+  if (
+    options.requireExistingRemoteCache &&
+    Object.keys(reusableFiles).length === targets.length
+  ) {
+    const manifest: DbCacheManifest = {
+      cacheVersion: DB_CACHE_MANIFEST_VERSION,
+      cacheScopeKey: options.remoteCacheScopeKey,
+      cacheTableProfile: options.cacheTableProfile,
+      files: reusableFiles,
+      preparedAt: new Date().toISOString(),
+      target,
+    }
+
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+    await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR), {
+      force: true,
+      recursive: true,
+    }).catch(() => undefined)
+    await options.onProgress?.({
+      action: 'reuse-cache',
+      bindingName: 'cache',
+      current: totalUnits,
+      target,
+      total: totalUnits,
+    })
+    return reusableFiles
+  }
+
   if (options.requireExistingRemoteCache) {
     throw new Error(
       [
         `No complete reusable ${target} D1 cache was found at ${cacheDir}.`,
-        'Rollback uses the local mirror as its planning surface and will not clone remote D1 automatically.',
+        'Published-release replay uses the local mirror as its planning surface and will not clone remote D1 automatically.',
         `Refresh the mirror first, for example: bun run db:mirror:${target}:to:local`,
       ].join(' '),
     )
   }
 
-  const reusableFiles =
-    options.refreshRemoteCache || !existingManifest
-      ? {}
-      : await resolveReusableCachedFiles(
-          cacheDir,
-          existingManifest.files,
-          targets,
-          options.cacheTableProfile,
-        )
   const targetsToMirror = targets.filter(
     targetRecord => !reusableFiles[targetRecord.bindingName],
   )
@@ -1415,6 +1501,7 @@ async function ensureRemoteCachePaths(
     targetsToMirror.length > 0
       ? await mirrorRemoteTargetToLocal(target, targetsToMirror, cacheDir, {
           cacheTableProfile: options.cacheTableProfile,
+          cacheScopeKey: options.remoteCacheScopeKey,
           onProgress: options.onProgress,
           preserveCacheDir: Object.keys(reusableFiles).length > 0,
           totalUnits,
@@ -1441,6 +1528,10 @@ async function ensureRemoteCachePaths(
   }
 
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+  await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR), {
+    force: true,
+    recursive: true,
+  }).catch(() => undefined)
   await rm(invalidatedManifestPath, { force: true }).catch(() => undefined)
   return files
 }
@@ -1450,24 +1541,85 @@ async function resolveReusableCachedFiles(
   files: Record<string, string>,
   targets: D1TargetRecord[],
   cacheTableProfile?: CacheTableProfile,
+  targetEnvironment?: 'preview' | 'production',
+  cacheScopeKey?: string,
 ) {
   const reusableFiles: Record<string, string> = {}
 
-  for (const target of targets) {
+  for (const targetRecord of targets) {
+    const partial = await readRemoteCachePartialCheckpoint(
+      cacheDir,
+      targetRecord.bindingName,
+    )
+    const partialMatches =
+      partial &&
+      partial.cacheVersion === DB_CACHE_MANIFEST_VERSION &&
+      partial.target === targetEnvironment &&
+      partial.cacheTableProfile === cacheTableProfile &&
+      partial.cacheScopeKey === cacheScopeKey
     const candidatePaths = [
-      files[target.bindingName],
-      resolve(cacheDir, `${target.bindingName}.sqlite`),
+      files[targetRecord.bindingName],
+      partialMatches ? partial.filePath : null,
     ].filter(isNonEmptyString)
 
     for (const filePath of candidatePaths) {
-      if (await isValidCachedFile(filePath, target.bindingName, cacheTableProfile)) {
-        reusableFiles[target.bindingName] = filePath
+      if (
+        await isValidCachedFile(filePath, targetRecord.bindingName, cacheTableProfile)
+      ) {
+        reusableFiles[targetRecord.bindingName] = filePath
         break
       }
     }
   }
 
   return reusableFiles
+}
+
+async function readRemoteCachePartialCheckpoint(cacheDir: string, bindingName: string) {
+  try {
+    const raw = await readFile(
+      resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR, `${bindingName}.json`),
+      'utf8',
+    )
+    return JSON.parse(raw) as RemoteCachePartialCheckpoint
+  } catch (error) {
+    if (isMissingFileError(error)) return null
+    throw error
+  }
+}
+
+async function writeRemoteCachePartialCheckpoint(input: {
+  bindingName: string
+  cacheDir: string
+  cacheScopeKey?: string
+  cacheTableProfile?: CacheTableProfile
+  filePath: string
+  target: 'preview' | 'production'
+}) {
+  const partialDir = resolve(input.cacheDir, REMOTE_CACHE_PARTIAL_DIR)
+  await mkdir(partialDir, { recursive: true })
+  const checkpoint: RemoteCachePartialCheckpoint = {
+    bindingName: input.bindingName,
+    ...(input.cacheScopeKey ? { cacheScopeKey: input.cacheScopeKey } : {}),
+    ...(input.cacheTableProfile ? { cacheTableProfile: input.cacheTableProfile } : {}),
+    cacheVersion: DB_CACHE_MANIFEST_VERSION,
+    filePath: input.filePath,
+    target: input.target,
+    validatedAt: new Date().toISOString(),
+  }
+  await writeFile(
+    resolve(partialDir, `${input.bindingName}.json`),
+    JSON.stringify(checkpoint, null, 2),
+  )
+}
+
+async function removeRemoteCachePartialCheckpoint(
+  cacheDir: string,
+  bindingName: string,
+) {
+  await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR, `${bindingName}.json`), {
+    force: true,
+  }).catch(() => undefined)
 }
 
 function isNonEmptyString(value: string | null | undefined): value is string {
@@ -1531,7 +1683,12 @@ async function refreshRemoteCacheTables(
             },
             () =>
               retryRemoteCacheExport(() =>
-                exportRemoteDatabase(targetRecord, target, dumpPath),
+                exportRemoteDatabase(targetRecord, target, dumpPath, {
+                  schemaOnly: shouldMirrorBindingSchemaOnly(
+                    targetRecord.bindingName,
+                    options.cacheTableProfile,
+                  ),
+                }),
               ),
           )
           await runWithProgressHeartbeat(
@@ -1560,11 +1717,13 @@ async function refreshRemoteCacheTables(
           return
         }
 
+        const remoteD1Client = createRemoteD1QueryClient(targetRecord, target)
         const tableImports = await buildRemoteTableImports(
           targetRecord,
           target,
           tables,
           workDir,
+          remoteD1Client,
         )
         const busyTableName = tableImports.at(-1)?.tableName
 
@@ -1615,11 +1774,12 @@ async function refreshRemoteCacheTables(
             total: options.totalUnits,
           },
           () =>
-            assertCachedDatabaseHasExpectedTables(
+            validateMirroredCacheBinding({
+              bindingName: targetRecord.bindingName,
+              cacheTableProfile: options.cacheTableProfile,
               destinationPath,
-              targetRecord.bindingName,
-              options.cacheTableProfile,
-            ),
+              binaryTableImports: tableImports,
+            }),
         )
         currentUnit += 1
       },
@@ -1719,6 +1879,7 @@ async function mirrorRemoteTargetToLocal(
   targets: D1TargetRecord[],
   cacheDir: string,
   options: {
+    cacheScopeKey?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
     preserveCacheDir?: boolean
@@ -1741,11 +1902,16 @@ async function mirrorRemoteTargetToLocal(
       targets,
       REMOTE_CACHE_BINDING_CONCURRENCY,
       async targetRecord => {
+        await removeRemoteCachePartialCheckpoint(cacheDir, targetRecord.bindingName)
         const tables = resolveMirrorTablesForBinding(
           targetRecord.bindingName,
           options.cacheTableProfile,
         )
         const dumpPaths: string[] = []
+        const remoteD1Client = createRemoteD1QueryClient(targetRecord, target)
+        const binaryTableImports: Array<
+          Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>
+        > = []
         const pruneOperations: CachePruneOperation[] = []
 
         if (tables.length === 0) {
@@ -1768,7 +1934,12 @@ async function mirrorRemoteTargetToLocal(
             },
             () =>
               retryRemoteCacheExport(() =>
-                exportRemoteDatabase(targetRecord, target, dumpPath),
+                exportRemoteDatabase(targetRecord, target, dumpPath, {
+                  schemaOnly: shouldMirrorBindingSchemaOnly(
+                    targetRecord.bindingName,
+                    options.cacheTableProfile,
+                  ),
+                }),
               ),
           )
           dumpPaths.push(dumpPath)
@@ -1791,10 +1962,28 @@ async function mirrorRemoteTargetToLocal(
             )
             await runWithProgressHeartbeat(options.onProgress, exportEvent, () =>
               retryRemoteCacheExport(() =>
-                exportRemoteTable(targetRecord, target, tableName, dumpPath),
+                exportRemoteTable(targetRecord, target, tableName, dumpPath, {
+                  schemaOnly:
+                    shouldMirrorTableSchemaOnly(
+                      targetRecord.bindingName,
+                      tableName,
+                      options.cacheTableProfile,
+                    ) || shouldMirrorBinaryGeometryTable(tableName),
+                }),
               ),
             )
             dumpPaths.push(dumpPath)
+            if (shouldMirrorBinaryGeometryTable(tableName)) {
+              binaryTableImports.push({
+                ...(await mirrorBinaryGeometryTable(
+                  targetRecord,
+                  tableName,
+                  workDir,
+                  remoteD1Client,
+                )),
+                tableName,
+              })
+            }
             const pruneOperation = resolveCachePruneOperation(
               targetRecord.bindingName,
               tableName,
@@ -1825,7 +2014,12 @@ async function mirrorRemoteTargetToLocal(
             total: options.totalUnits,
           },
           () =>
-            importDatabaseDumpsToSqlite(dumpPaths, destinationPath, pruneOperations),
+            importDatabaseDumpsToSqlite(
+              dumpPaths,
+              destinationPath,
+              pruneOperations,
+              binaryTableImports,
+            ),
         )
         currentUnit += 1
 
@@ -1846,13 +2040,22 @@ async function mirrorRemoteTargetToLocal(
             total: options.totalUnits,
           },
           () =>
-            assertCachedDatabaseHasExpectedTables(
+            validateMirroredCacheBinding({
+              bindingName: targetRecord.bindingName,
+              cacheTableProfile: options.cacheTableProfile,
               destinationPath,
-              targetRecord.bindingName,
-              options.cacheTableProfile,
-            ),
+              binaryTableImports,
+            }),
         )
         currentUnit += 1
+        await writeRemoteCachePartialCheckpoint({
+          bindingName: targetRecord.bindingName,
+          cacheDir,
+          cacheScopeKey: options.cacheScopeKey,
+          cacheTableProfile: options.cacheTableProfile,
+          filePath: destinationPath,
+          target,
+        })
         files[targetRecord.bindingName] = destinationPath
       },
     )
@@ -1900,6 +2103,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (bindingName === 'DB_CURRENT') {
+    if (cacheTableProfile === 'divisionStatistic') {
+      return []
+    }
+
     if (cacheTableProfile === 'street') {
       return ['divisions', 'divisionsI18n', 'streets', 'streetsI18n']
     }
@@ -1908,8 +2115,13 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n']
     }
 
-    if (cacheTableProfile === 'divisionGeometry') {
-      return ['divisions', 'divisionAreas', 'divisionBoundaries']
+    if (
+      cacheTableProfile === 'divisionGeometry' ||
+      cacheTableProfile === 'planningDivisionGeometry'
+    ) {
+      return cacheTableProfile === 'planningDivisionGeometry'
+        ? ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
+        : ['divisions', 'divisionAreas', 'divisionBoundaries']
     }
 
     return [
@@ -1925,6 +2137,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
+    if (cacheTableProfile === 'divisionStatistic') {
+      return ['divisionStatistics']
+    }
+
     if (cacheTableProfile === 'street') {
       return ['snapshotVersionChanges', 'streets', 'streetsI18n']
     }
@@ -1933,8 +2149,19 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n', 'snapshotVersionChanges']
     }
 
-    if (cacheTableProfile === 'divisionGeometry') {
-      return ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
+    if (
+      cacheTableProfile === 'divisionGeometry' ||
+      cacheTableProfile === 'planningDivisionGeometry'
+    ) {
+      return cacheTableProfile === 'planningDivisionGeometry'
+        ? [
+            'divisions',
+            'divisionsI18n',
+            'divisionAreas',
+            'divisionBoundaries',
+            'snapshotVersionChanges',
+          ]
+        : ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
     }
 
     return [
@@ -1949,6 +2176,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
+    if (cacheTableProfile === 'divisionStatistic') {
+      return ['hkgovCenstatdDistrictLandAreaPopulationDensities']
+    }
+
     if (cacheTableProfile === 'nativeSource') {
       return [
         'hkgovHydStreetNamePlates',
@@ -1981,6 +2212,10 @@ function resolveMirrorTablesForBinding(
         'hkgovCenstatdDivisionAreas',
         'hkgovCenstatdDivisionAreaDerivatives',
       ]
+    }
+
+    if (cacheTableProfile === 'planningDivisionGeometry') {
+      return []
     }
 
     return [
@@ -2101,6 +2336,7 @@ async function exportRemoteDatabase(
   targetRecord: D1TargetRecord,
   target: 'preview' | 'production',
   outputPath: string,
+  options: { schemaOnly?: boolean } = {},
 ) {
   await runMirrorCommand([
     'bash',
@@ -2111,6 +2347,7 @@ async function exportRemoteDatabase(
     '--env',
     target,
     '--remote',
+    ...(options.schemaOnly ? ['--no-data'] : []),
     '--output',
     outputPath,
   ])
@@ -2121,6 +2358,7 @@ async function exportRemoteTable(
   target: 'preview' | 'production',
   tableName: string,
   outputPath: string,
+  options: { schemaOnly?: boolean } = {},
 ) {
   await runMirrorCommand([
     'bash',
@@ -2132,17 +2370,46 @@ async function exportRemoteTable(
     target,
     '--remote',
     `--table=${tableName}`,
+    ...(options.schemaOnly ? ['--no-data'] : []),
     '--output',
     outputPath,
   ])
+}
+
+function shouldMirrorTableSchemaOnly(
+  bindingName: string,
+  tableName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  return (
+    cacheTableProfile === 'planningDivisionGeometry' &&
+    bindingName === 'DB_HISTORY_HK_BEFORE' &&
+    (tableName === 'divisionAreas' ||
+      tableName === 'divisionBoundaries' ||
+      tableName === 'snapshotVersionChanges')
+  )
+}
+
+function shouldMirrorBindingSchemaOnly(
+  bindingName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  return (
+    cacheTableProfile === 'planningDivisionGeometry' &&
+    /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)
+  )
 }
 
 async function importDatabaseDumpsToSqlite(
   dumpPaths: string[],
   destinationPath: string,
   pruneOperations: CachePruneOperation[] = [],
+  binaryTableImports: Array<
+    Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>
+  > = [],
 ) {
   await runSqliteCacheWorker({
+    binaryTableImports,
     destinationPath,
     dumpPaths,
     pruneOperations,
@@ -2150,11 +2417,327 @@ async function importDatabaseDumpsToSqlite(
   })
 }
 
+/** Tables whose geometry column may be a jsonTextOrBinary / binaryText BLOB. */
+function resolveBinaryGeometryColumn(tableName: string) {
+  switch (tableName) {
+    case 'address2d':
+    case 'divisions':
+    case 'divisionAreas':
+    case 'divisionBoundaries':
+    case 'hkgovCenstatdDivisionAreaDerivatives':
+      return 'geometry'
+    case 'hkgovCenstatdDivisionAreas':
+      return 'sourceGeometry'
+    default:
+      return null
+  }
+}
+
+function shouldMirrorBinaryGeometryTable(tableName: string) {
+  return resolveBinaryGeometryColumn(tableName) !== null
+}
+
+async function mirrorBinaryGeometryTable(
+  targetRecord: D1TargetRecord,
+  tableName: string,
+  workDir: string,
+  remoteD1Client: RemoteD1QueryClient,
+): Promise<Pick<RemoteTableImport, 'binaryRowsPath'>> {
+  const binaryColumn = resolveBinaryGeometryColumn(tableName)
+  if (!binaryColumn) {
+    throw new Error(`No binary geometry column is configured for ${tableName}.`)
+  }
+  const columns = await remoteD1Client.query(
+    `PRAGMA table_info(${quoteSqlIdentifier(tableName)})`,
+  )
+  const columnNames = columns.map(column =>
+    requireRemoteString(column.name, 'column name'),
+  )
+  const primaryKeyColumns = columns
+    .filter(column => Number(column.pk) > 0)
+    .sort((left, right) => Number(left.pk) - Number(right.pk))
+    .map(column => requireRemoteString(column.name, 'primary-key column'))
+  if (!columnNames.includes(binaryColumn) || primaryKeyColumns.length === 0) {
+    throw new Error(
+      `Binary cache mirror requires a geometry column and primary key for ${targetRecord.bindingName}.${tableName}.`,
+    )
+  }
+
+  const selectedColumns = columnNames.map(column =>
+    column === binaryColumn
+      ? `CASE WHEN typeof(${quoteSqlIdentifier(column)}) = 'blob' THEN NULL ELSE ${quoteSqlIdentifier(column)} END AS ${quoteSqlIdentifier(column)}`
+      : quoteSqlIdentifier(column),
+  )
+  const orderBy = primaryKeyColumns.map(quoteSqlIdentifier).join(', ')
+  const rows: BinaryGeometryRow[] = []
+
+  for (let offset = 0; ; offset += REMOTE_GEOMETRY_PAGE_SIZE) {
+    const remoteRows = await remoteD1Client.query(
+      [
+        `SELECT ${selectedColumns.join(', ')},`,
+        `typeof(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryType",`,
+        `length(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryLength",`,
+        `length(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB)) AS "__geometryByteLength"`,
+        `FROM ${quoteSqlIdentifier(tableName)}`,
+        `ORDER BY ${orderBy}`,
+        `LIMIT ${REMOTE_GEOMETRY_PAGE_SIZE} OFFSET ${offset}`,
+      ].join(' '),
+    )
+
+    const pageRows: BinaryGeometryRow[] = remoteRows.map(remoteRow => {
+      let geometryType = requireGeometryType(remoteRow.__geometryType)
+      const values = Object.fromEntries(
+        columnNames.map(column => [
+          column,
+          remoteRow[column] === undefined
+            ? null
+            : normaliseRemoteSqlValue(remoteRow[column]),
+        ]),
+      )
+      const recordId = String(values.id ?? values.sourceRecordId ?? 'unknown-record')
+      const snapshotId =
+        typeof values.snapshotId === 'string' ? values.snapshotId : null
+      let geometryLength = asOptionalRemoteInteger(remoteRow.__geometryLength)
+
+      if (geometryType !== 'blob' && typeof values[binaryColumn] === 'string') {
+        if (values[binaryColumn].includes('\uFFFD')) {
+          // D1 can expose invalid binary bytes as replacement characters when
+          // a BLOB is observed through a TEXT expression. Recover the original
+          // bytes through the hex path instead of persisting lossy UTF-8.
+          geometryType = 'blob'
+          geometryLength =
+            asOptionalRemoteInteger(remoteRow.__geometryByteLength) ?? geometryLength
+          values[binaryColumn] = null
+        }
+      }
+
+      return {
+        binaryColumn,
+        geometry: null,
+        geometryDigest: null,
+        geometryLength,
+        geometryType,
+        primaryKeyColumns,
+        recordId,
+        snapshotId,
+        values,
+      } satisfies BinaryGeometryRow
+    })
+
+    const batches = partitionRemoteGeometryRows(
+      pageRows.map(row => ({
+        geometryLength: row.geometryLength,
+        geometryType: row.geometryType,
+      })),
+      REMOTE_GEOMETRY_BATCH_BYTE_LIMIT,
+    )
+    const geometryChunkRows = new Map<string, string[]>()
+    const pageKeys = new Set(
+      pageRows.map(row => remotePrimaryKey(row.values, primaryKeyColumns)),
+    )
+    const chunkTasks = batches.flatMap(batch =>
+      Array.from(
+        {
+          length: Math.ceil(batch.maxChunkCount / REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY),
+        },
+        (_, windowIndex) => ({
+          batch,
+          chunkOffset: windowIndex * REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+        }),
+      ),
+    )
+
+    await mapWithConcurrency(
+      chunkTasks,
+      REMOTE_GEOMETRY_QUERY_CONCURRENCY,
+      async task => {
+        const chunkCount = Math.min(
+          REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+          task.batch.maxChunkCount - task.chunkOffset,
+        )
+        const chunkColumns = Array.from(
+          { length: chunkCount },
+          (_, index) =>
+            `hex(substr(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB), ${
+              1 + (task.chunkOffset + index) * REMOTE_GEOMETRY_HEX_CHUNK_BYTES
+            }, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "__hex${index}"`,
+        )
+        const chunkRows = await remoteD1Client.query(
+          [
+            `SELECT ${primaryKeyColumns.map(quoteSqlIdentifier).join(', ')},`,
+            chunkColumns.join(', '),
+            `FROM ${quoteSqlIdentifier(tableName)}`,
+            `ORDER BY ${orderBy}`,
+            `LIMIT ${task.batch.count}`,
+            `OFFSET ${offset + task.batch.start}`,
+          ].join(' '),
+        )
+
+        for (const chunkRow of chunkRows) {
+          const key = remotePrimaryKey(chunkRow, primaryKeyColumns)
+          if (!pageKeys.has(key)) {
+            throw new Error(
+              `Remote geometry row changed while mirroring ${targetRecord.bindingName}.${tableName}.`,
+            )
+          }
+          const chunks = geometryChunkRows.get(key) ?? []
+          for (let index = 0; index < chunkCount; index += 1) {
+            const hex = chunkRow[`__hex${index}`]
+            if (typeof hex !== 'string') {
+              throw new Error(
+                `Remote geometry chunk is missing for ${targetRecord.bindingName}.${tableName}.`,
+              )
+            }
+            chunks[task.chunkOffset + index] = hex
+          }
+          geometryChunkRows.set(key, chunks)
+        }
+      },
+    )
+
+    for (const row of pageRows) {
+      if (row.geometryType === 'blob') {
+        const chunkCount = Math.ceil(
+          Math.max(0, row.geometryLength ?? 0) / REMOTE_GEOMETRY_HEX_CHUNK_BYTES,
+        )
+        const chunks = geometryChunkRows.get(
+          remotePrimaryKey(row.values, primaryKeyColumns),
+        )
+        const hexChunks = chunks?.slice(0, chunkCount)
+        if (
+          chunkCount > 0 &&
+          (!hexChunks ||
+            hexChunks.length !== chunkCount ||
+            hexChunks.some(chunk => typeof chunk !== 'string'))
+        ) {
+          throw new Error(
+            `Remote geometry chunks are incomplete for ${targetRecord.bindingName}.${tableName} record=${row.recordId}.`,
+          )
+        }
+        row.geometry = reassembleHexChunks(hexChunks ?? [])
+        row.geometryDigest = geometrySha256(row.geometry)
+        row.values[binaryColumn] = null
+      }
+      assertBinaryGeometryRow(row)
+      rows.push(row)
+    }
+
+    if (remoteRows.length < REMOTE_GEOMETRY_PAGE_SIZE) break
+  }
+
+  const binaryRowsPath = resolve(
+    workDir,
+    `${targetRecord.bindingName}-${tableName}-binary.json`,
+  )
+  await writeFile(
+    binaryRowsPath,
+    JSON.stringify(
+      rows.map(row => ({
+        ...row,
+        geometry: row.geometry?.toString('hex') ?? null,
+      })),
+    ),
+  )
+  return { binaryRowsPath }
+}
+
+async function validateMirroredCacheBinding(input: {
+  bindingName: string
+  cacheTableProfile?: CacheTableProfile
+  destinationPath: string
+  binaryTableImports: Array<Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>>
+}) {
+  try {
+    await validateMirroredCacheBindingUnchecked(input)
+  } catch (error) {
+    // A refreshed file which did not pass remote byte validation must never be
+    // selected by a later upload, replay, or geometry backfill.
+    await rm(input.destinationPath, { force: true }).catch(() => undefined)
+    throw error
+  }
+}
+
+async function validateMirroredCacheBindingUnchecked(input: {
+  bindingName: string
+  cacheTableProfile?: CacheTableProfile
+  destinationPath: string
+  binaryTableImports: Array<Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>>
+}) {
+  await assertCachedDatabaseHasExpectedTables(
+    input.destinationPath,
+    input.bindingName,
+    input.cacheTableProfile,
+  )
+  // The binary rows are the exact remote bytes captured for this import. Keep
+  // validation local to that capture; re-reading every geometry from D1 here
+  // doubles the remote transfer without adding byte-level assurance.
+  const sqlite = new SQLiteDatabase(input.destinationPath, { readonly: true })
+  try {
+    for (const tableImport of input.binaryTableImports) {
+      const tableName = tableImport.tableName
+      if (!shouldMirrorBinaryGeometryTable(tableName)) continue
+      const binaryColumn = resolveBinaryGeometryColumn(tableName)
+      if (!binaryColumn) continue
+      const binaryRowsPath = tableImport.binaryRowsPath
+      if (!binaryRowsPath) {
+        throw new Error(
+          `Binary mirror did not produce rows for ${input.bindingName}.${tableName}.`,
+        )
+      }
+      const rows = JSON.parse(
+        await readFile(binaryRowsPath, 'utf8'),
+      ) as BinaryGeometryRow[]
+      await rm(binaryRowsPath, { force: true })
+      for (const row of rows) {
+        const primaryKeyColumns =
+          row.primaryKeyColumns ??
+          [
+            'id',
+            'versionHash',
+            'snapshotId',
+            'sourceRecordId',
+            'inputVersionHash',
+            'transform',
+          ].filter(column => column in row.values)
+        const primaryKeys = primaryKeyColumns.map(
+          column => [column, row.values[column] ?? null] as const,
+        )
+        const where = primaryKeys
+          .map(([column]) => `${quoteSqlIdentifier(column)} = ?`)
+          .join(' AND ')
+        const local = sqlite
+          .query(
+            `SELECT typeof(${quoteSqlIdentifier(binaryColumn)}) AS type, length(${quoteSqlIdentifier(binaryColumn)}) AS length, hex(${quoteSqlIdentifier(binaryColumn)}) AS hex FROM ${quoteSqlIdentifier(tableName)} WHERE ${where}`,
+          )
+          .get(...primaryKeys.map(([, value]) => value)) as {
+          hex?: string
+          length?: number
+          type?: string
+        } | null
+        if (
+          !local ||
+          local.type !== row.geometryType ||
+          local.length !== row.geometryLength ||
+          (row.geometryType === 'blob' &&
+            geometrySha256(Buffer.from(local.hex ?? '', 'hex')) !== row.geometryDigest)
+        ) {
+          throw new Error(
+            `Binary cache validation failed for ${input.bindingName}.${tableName} snapshot=${row.snapshotId ?? 'none'} record=${row.recordId}. Delete the refreshed cache and retry; production backfill remains blocked.`,
+          )
+        }
+      }
+    }
+  } finally {
+    sqlite.close()
+  }
+}
+
 async function buildRemoteTableImports(
   targetRecord: D1TargetRecord,
   target: 'preview' | 'production',
   tables: string[],
   workDir: string,
+  remoteD1Client: RemoteD1QueryClient,
 ) {
   const imports: RemoteTableImport[] = []
 
@@ -2174,6 +2757,7 @@ async function buildRemoteTableImports(
       target,
       '--remote',
       `--table=${tableName}`,
+      ...(shouldMirrorBinaryGeometryTable(tableName) ? ['--no-data'] : []),
       '--output',
       tableDumpPath,
     ])
@@ -2190,11 +2774,21 @@ async function buildRemoteTableImports(
     )
     const hasRows = importSql.length > 0
 
+    const binaryTableImport = shouldMirrorBinaryGeometryTable(tableName)
+      ? await mirrorBinaryGeometryTable(
+          targetRecord,
+          tableName,
+          workDir,
+          remoteD1Client,
+        )
+      : null
+
     await writeFile(
       sqlPath,
       hasRows ? `PRAGMA defer_foreign_keys = true;\n\n${importSql}\n` : '',
     )
     imports.push({
+      ...(binaryTableImport ?? {}),
       hasRows,
       pruneOperation,
       sqlPath,
@@ -2220,6 +2814,9 @@ function stripExportTableDefinition(rawSql: string) {
 
 type SqliteCacheWorkerPayload =
   | {
+      binaryTableImports?: Array<
+        Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>
+      >
       destinationPath: string
       dumpPaths: string[]
       pruneOperations?: CachePruneOperation[]
@@ -2338,6 +2935,133 @@ async function runMirrorCommand(command: string[]) {
   if (exitCode !== 0) {
     throw new Error((stderr || stdout || command.join(' ')).trim())
   }
+}
+
+function createRemoteD1QueryClient(
+  targetRecord: D1TargetRecord,
+  target: 'preview' | 'production',
+): RemoteD1QueryClient {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
+  const apiToken = process.env.CLOUDFLARE_D1_TOKEN?.trim()
+
+  if (accountId && apiToken && targetRecord.databaseId) {
+    return createCloudflareD1QueryClient({
+      accountId,
+      apiToken,
+      databaseId: targetRecord.databaseId,
+    })
+  }
+
+  return {
+    query: command => queryRemoteD1WithWrangler(targetRecord, target, command),
+  }
+}
+
+async function queryRemoteD1WithWrangler(
+  targetRecord: D1TargetRecord,
+  target: 'preview' | 'production',
+  command: string,
+) {
+  await mkdir(WRANGLER_CONFIG_HOME, { recursive: true })
+  await mkdir(WRANGLER_LOG_PATH, { recursive: true })
+
+  // Invoke Node directly so Bun cannot load repository .env files. The result
+  // contains only ordinary SQL values or ASCII hex; BLOBs are never requested.
+  const env = { ...process.env }
+  if (env.CLOUDFLARE_D1_TOKEN) {
+    env.CLOUDFLARE_API_TOKEN = env.CLOUDFLARE_D1_TOKEN
+  } else {
+    delete env.CLOUDFLARE_API_TOKEN
+  }
+  const proc = Bun.spawn(
+    [
+      'node',
+      resolve(REPO_ROOT, 'node_modules/wrangler/bin/wrangler.js'),
+      'd1',
+      'execute',
+      targetRecord.databaseName,
+      '--config',
+      WRANGLER_CONFIG_PATH,
+      '--env',
+      target,
+      '--remote',
+      '--command',
+      command,
+      '--json',
+    ],
+    {
+      cwd: '/tmp',
+      env: {
+        ...env,
+        WRANGLER_LOG_PATH: env.WRANGLER_LOG_PATH ?? WRANGLER_LOG_PATH,
+        XDG_CONFIG_HOME: env.XDG_CONFIG_HOME ?? WRANGLER_CONFIG_HOME,
+      },
+      stderr: 'pipe',
+      stdout: 'pipe',
+    },
+  )
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ])
+  if (exitCode !== 0) {
+    throw new Error(
+      (stderr || stdout || `D1 query failed for ${targetRecord.bindingName}.`).trim(),
+    )
+  }
+  const jsonStart = stdout.search(/^[[{]/m)
+  if (jsonStart === -1) {
+    throw new Error(
+      `Unexpected D1 query response for ${targetRecord.bindingName}: ${stdout}`,
+    )
+  }
+  const payload = JSON.parse(stdout.slice(jsonStart)) as
+    | { error?: unknown; results?: Array<Record<string, unknown>>; success?: boolean }
+    | Array<{
+        error?: unknown
+        results?: Array<Record<string, unknown>>
+        success?: boolean
+      }>
+  const result = Array.isArray(payload) ? payload[0] : payload
+  if (!result || result.success === false || result.error) {
+    throw new Error(
+      `D1 query failed for ${targetRecord.bindingName}: ${JSON.stringify(result?.error ?? result)}`,
+    )
+  }
+  return result.results ?? []
+}
+
+function requireRemoteString(value: unknown, label: string) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`Remote D1 returned an invalid ${label}.`)
+  }
+  return value
+}
+
+function remotePrimaryKey(values: Record<string, unknown>, columns: string[]) {
+  return JSON.stringify(
+    columns.map(column => normaliseRemoteSqlValue(values[column] ?? null)),
+  )
+}
+
+function normaliseRemoteSqlValue(value: unknown): null | number | string {
+  if (value === null || typeof value === 'number' || typeof value === 'string') {
+    return value
+  }
+  if (typeof value === 'boolean') return value ? 1 : 0
+  throw new Error(`Remote D1 returned a non-SQL value: ${JSON.stringify(value)}`)
+}
+
+function requireGeometryType(value: unknown): 'blob' | 'text' | 'null' {
+  if (value === 'blob' || value === 'text' || value === 'null') return value
+  throw new Error(
+    `Remote D1 returned an unsupported geometry storage type: ${String(value)}.`,
+  )
+}
+
+function asOptionalRemoteInteger(value: unknown) {
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : null
 }
 
 async function mapWithConcurrency<T>(

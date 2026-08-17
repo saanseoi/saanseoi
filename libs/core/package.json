@@ -29,7 +29,7 @@
   "dependencies": {
     "@repo/db": "workspace:*",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
-    "hyparquet": "^1.28.1",
+    "hyparquet": "^1.28.2",
     "hyparquet-compressors": "^1.1.1"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
-import { m } from '$lib/bits/internal/i18n'
-import type { CreateAMapSelectionQuery } from '$lib/guides/createAMapSelections'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 export type MissingPrerequisiteQuestion = {
   answered: boolean

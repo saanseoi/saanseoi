@@ -73,7 +73,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers all proposed C&SD statistics sources as planned datasets', () => {
+  test('registers C&SD statistics under the Census source domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -89,6 +89,32 @@ describe('fixture version hashes', () => {
     expect(censtatdStats).toHaveLength(8)
     expect(
       censtatdStats.every(dataset => dataset.code.startsWith('ds-hk-hkgov-censtatd-')),
+    ).toBe(true)
+    expect(
+      censtatdStats.every(
+        dataset =>
+          dataset.sourceVariant === 'census' &&
+          dataset.sourceCrs === 'EPSG:2326' &&
+          dataset.releaseType === 'static' &&
+          dataset.releaseFrequency === 'five-yearly',
+      ),
+    ).toBe(true)
+    expect(
+      initialApiCompositions.find(
+        composition => composition.apiVersion === 'api-stats-v0.1',
+      ),
+    ).toMatchObject({ defaultDomainCode: 'census' })
+    expect(
+      censtatdStats.every(dataset =>
+        dataset.processingRules?.rulesets.some(
+          ruleset =>
+            ruleset.rulesetVersion === 'rs-division-statistic-merge-v1' &&
+            ruleset.rules.some(
+              rule =>
+                rule.operationCode === 'normalise_censtatd_statistic_source_assertion',
+            ),
+        ),
+      ),
     ).toBe(true)
   })
 
@@ -135,8 +161,12 @@ describe('fixture version hashes', () => {
       expect.objectContaining({
         rulesets: [
           expect.objectContaining({
-            rulesetVersion: 'rs-division-merge-v1',
+            rulesetVersion: 'rs-division-statistic-merge-v1',
             rules: [
+              expect.objectContaining({
+                operationCode: 'normalise_censtatd_statistic_source_assertion',
+                type: 'bulk',
+              }),
               expect.objectContaining({
                 operationCode: 'map_censtatd_district_code_to_canonical_division',
                 type: 'bulk',

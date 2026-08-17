@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
 
 let floatStyle = $state('')
 
@@ -23,7 +23,7 @@ onMount(() => {
 </script>
 
 <div
-  class="pointer-events-none absolute top-[34%] left-1/2 z-4 hidden -translate-x-1/2 text-secondary min-[901px]:block"
+  class="pipeline-section-annotation pointer-events-none absolute top-[34%] left-1/2 z-4 hidden -translate-x-1/2 text-secondary min-[901px]:block"
   aria-hidden="true"
 >
   <span
@@ -33,3 +33,11 @@ onMount(() => {
     {m.pipeline_process_callout()}
   </span>
 </div>
+
+<style>
+@media (min-width: 120rem) {
+  .pipeline-section-annotation :global(.annotation-floating) {
+    font-size: max(3.1rem, min(2.583333vw, 4.592593vh));
+  }
+}
+</style>

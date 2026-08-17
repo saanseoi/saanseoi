@@ -1,10 +1,10 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
-import { LanguageSelector } from '$lib/bits/components/language-selector'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { LanguageSelector } from '#lib/bits/components/language-selector/index.js'
 
 import DarkModeToggle from './darkModeToggle.svelte'
 import { navigationItems } from './navigationItems'

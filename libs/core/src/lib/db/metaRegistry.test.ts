@@ -12,6 +12,7 @@ import {
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
   insertDataset,
+  markDatasetCurrent,
   listRegistryReleases,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
@@ -26,6 +27,7 @@ import {
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
+  updateDatasetStatus,
 } from './metaRegistry'
 
 describe('resolveRegistryReleaseDisplayStatus', () => {
@@ -126,7 +128,7 @@ function createRegistryReleasesDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      sourceReleaseId TEXT,
       role TEXT NOT NULL
     );
 
@@ -176,6 +178,33 @@ function createRegistryReleasesDb() {
 }
 
 describe('listRegistryReleases', () => {
+  test('keeps the latest release current in each domain', async () => {
+    const { sqlite, db } = createRegistryReleasesDb()
+
+    sqlite.exec(`
+      INSERT INTO apiVersions (id, code, familyType) VALUES
+        ('api-divisions', 'api-divisions-v0.1', 'divisions');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, schemaVersion,
+        rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('overture-current', 'api-divisions', 'data-hk-divisions-2026-07-22.0', 'hk', 'overture', '2026-07-22.0', 0, 'v1', 'v1', 'current', '2026-08-13T15:19:40.010Z', 'hash-1', '2026-08-13T15:19:40.010Z', '2026-08-13T15:19:40.010Z'),
+        ('pland-2016', 'api-divisions', 'data-hk-divisions-2016--hkgov-pland-pu', 'hk', 'hkgov-pland-pu', '2016', 0, 'v1', 'v1', 'archived', '2026-08-13T20:12:29.763Z', 'hash-2', '2026-08-13T20:12:29.763Z', '2026-08-13T20:12:29.763Z'),
+        ('pland-current', 'api-divisions', 'data-hk-divisions-2021--hkgov-pland-pu', 'hk', 'hkgov-pland-pu', '2021', 0, 'v1', 'v1', 'current', '2026-08-13T20:27:16.700Z', 'hash-3', '2026-08-13T20:27:16.700Z', '2026-08-13T20:27:16.700Z');
+    `)
+
+    const releases = await listRegistryReleases(db as never)
+    const statuses = new Map(
+      releases.map(release => [release.id, release.displayStatus]),
+    )
+
+    expect(statuses.get('overture-current')).toBe('current')
+    expect(statuses.get('pland-current')).toBe('current')
+    expect(statuses.get('pland-2016')).toBe('superseded')
+    sqlite.close()
+  })
+
   test('orders drafts by createdAt alongside published releases', async () => {
     const { sqlite, db } = createRegistryReleasesDb()
 
@@ -623,6 +652,7 @@ function createLatestDatasetLookupDb() {
 
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
+      sourceReleaseId TEXT,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
       resourceType TEXT NOT NULL,
@@ -640,6 +670,28 @@ function createLatestDatasetLookupDb() {
       revocationReason TEXT,
       supersededByReleaseId TEXT,
       ingestedAt TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE sourceReleases (
+      id TEXT PRIMARY KEY,
+      datasetId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      sourceVersion TEXT NOT NULL,
+      sourceSchemaVersion TEXT,
+      publicationDate TEXT,
+      cohortKey TEXT,
+      rawObjectKey TEXT,
+      originalFileName TEXT,
+      releaseNotesUrl TEXT,
+      notes TEXT,
+      status TEXT NOT NULL,
+      revokedAt TEXT,
+      revocationReason TEXT,
+      supersededBySourceReleaseId TEXT,
+      processingRules TEXT,
+      ingestedAt TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
@@ -872,6 +924,7 @@ function createPublishReleaseArtefactsDb() {
 
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
+      sourceReleaseId TEXT,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
       releaseNotesUrl TEXT,
@@ -880,6 +933,14 @@ function createPublishReleaseArtefactsDb() {
       revokedAt INTEGER,
       revocationReason TEXT,
       supersededByReleaseId TEXT,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE sourceReleases (
+      id TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      revokedAt INTEGER,
+      revocationReason TEXT,
       updatedAt INTEGER NOT NULL
     );
 
@@ -1784,6 +1845,55 @@ describe('getLatestDatasetForRegionSourceType', () => {
   })
 })
 
+describe('source release lifecycle status', () => {
+  test('advances the source release with its resource release', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
+      INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
+        ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
+      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+        ('dataset-pland-pu', 'division');
+    `)
+
+    await insertDataset(
+      db as never,
+      {
+        cohortKey: '2001',
+        datasetCode: 'ds-hk-hkgov-pland-division-pu',
+        originalFileName: 'division.parquet',
+        releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
+        source: 'hkgov-pland-pu',
+        sourceVersion: '2001',
+        type: 'division',
+      } as never,
+      'raw/hkgov-pland-pu/2001/division.parquet',
+      '2026-07-21T00:00:00.000Z',
+    )
+
+    const release = sqlite
+      .query('SELECT id FROM releases WHERE code = ?')
+      .get('dr-hk-hkgov-pland-division-pu-2001') as { id: string }
+
+    await updateDatasetStatus(db as never, release.id, 'processing')
+    expect(
+      sqlite
+        .query('SELECT status FROM sourceReleases WHERE code = ?')
+        .get('dr-hk-hkgov-pland-division-pu-2001'),
+    ).toEqual({ status: 'processing' })
+
+    await markDatasetCurrent(db as never, release.id)
+    expect(
+      sqlite
+        .query('SELECT status FROM sourceReleases WHERE code = ?')
+        .get('dr-hk-hkgov-pland-division-pu-2001'),
+    ).toEqual({ status: 'published' })
+
+    sqlite.close()
+  })
+})
+
 describe('getCurrentReleaseForDatasetId', () => {
   test('keeps independently published resource types in one dataset separate', async () => {
     const { sqlite, db } = createLatestDatasetLookupDb()
@@ -2489,10 +2599,14 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
+      INSERT INTO sourceReleases (id, status, revokedAt, revocationReason, updatedAt) VALUES
+        ('source-release-1', 'staged', null, null, 1760000000000);
+
       INSERT INTO releases (
-        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+        id, sourceReleaseId, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
       ) VALUES (
         'release-1',
+        'source-release-1',
         '2026-06-17.0',
         '1.17.0',
         'staged',
@@ -2550,6 +2664,11 @@ describe('publishReleaseArtefacts', () => {
       status: 'archived',
       validTo: '2026-06-29T00:00:00.000Z',
     })
+    expect(
+      sqlite
+        .query('SELECT status FROM sourceReleases WHERE id = ?')
+        .get('source-release-1'),
+    ).toEqual({ status: 'published' })
     if (!catalogRevision) throw new Error('Expected a published catalogue revision.')
     expect(
       sqlite

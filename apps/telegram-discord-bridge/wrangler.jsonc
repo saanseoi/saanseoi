@@ -1,0 +1,44 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-telegram-discord-bridge-prod",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-15",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DISCORD_BRIDGE",
+        "class_name": "DiscordBridge"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "discord-bridge-v1",
+      "new_sqlite_classes": ["DiscordBridge"]
+    }
+  ],
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "secrets": {
+    "required": [
+      "DISCORD_ANNOUNCEMENTS_CHANNEL_ID",
+      "DISCORD_BOT_TOKEN",
+      "DISCORD_GUILD_ID",
+      "GITHUB_APP_ID",
+      "GITHUB_APP_INSTALLATION_ID",
+      "GITHUB_APP_PRIVATE_KEY_BASE64",
+      "TELEGRAM_ANNOUNCEMENTS_CHAT_ID",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_LOG_CHAT_ID"
+    ]
+  },
+  "minify": true,
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "persist": true
+    }
+  }
+}

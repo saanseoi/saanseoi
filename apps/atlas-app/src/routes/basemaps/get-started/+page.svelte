@@ -1,6 +1,8 @@
 <script lang="ts">
-import { Basemap, Main } from '$lib/bits'
-import { getCurrentLocale, m, type MessageKey } from '$lib/bits/internal/i18n'
+import { Basemap } from '#lib/bits/pages/basemaps/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { getCurrentLocale, m, type MessageKey } from '#lib/bits/internal/i18n.js'
 
 let locale = $derived(getCurrentLocale())
 const t = (key: MessageKey) => {
@@ -9,10 +11,10 @@ const t = (key: MessageKey) => {
 }
 </script>
 
-<svelte:head>
-  <title>{t('tiles_getting_started_title')} | Saanseoi</title>
-  <meta name="description" content={t('tiles_getting_started_meta_description')}>
-</svelte:head>
+<Seo
+  title={t('tiles_getting_started_title')}
+  description={t('tiles_getting_started_meta_description')}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

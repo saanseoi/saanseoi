@@ -1,14 +1,13 @@
 <script lang="ts">
 import { page } from '$app/state'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
-import codexCliTrustDirectory from '$lib/assets/guides/codex-cli-trust-directory.png'
-import leafletSetupResult from '$lib/assets/guides/leaflet-setup-result.png'
-import mapboxSetupResult from '$lib/assets/guides/mapbox-setup-result.png'
-import maplibreSetupResult from '$lib/assets/guides/maplibre-setup-result.png'
+import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
+import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
+import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
+import maplibreSetupResult from '#lib/assets/guides/maplibre-setup-result.png'
 import {
-  Button,
   CreateAMap,
   GuideAgenticAiPrimer,
   GuideCallout,
@@ -34,17 +33,19 @@ import {
   GuideTerminalIntroduction,
   GuideUrbanDensityExample,
   GuidePromptBlock,
-  Main,
-} from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import { scrollToElementBelowHeader } from '$lib/bits/utilities/helpers/scrollToElementBelowHeader'
+} from '#lib/bits/pages/guides/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { scrollToElementBelowHeader } from '#lib/bits/utilities/helpers/scrollToElementBelowHeader.js'
 import {
   createAMapStylePreviewUrl,
   createAMapTileset,
   detectOperatingSystem,
   getCreateAMapQueryChoice,
   type CreateAMapSelectionValue,
-} from '$lib/guides/createAMapSelections'
+} from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
 
 import { createCreateAMapGuideAdapter } from './createAMapGuideAdapter.svelte'
@@ -198,7 +199,7 @@ let isZedSetupGuideProvided = $derived(aiAccess === 'agentic' && agentTool === '
 let isLlmReadinessComplete = $derived(completedLlmReadinessKey === llmReadinessKey)
 let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
 let basemapAccountContinueUrl = $derived.by(() => {
-  const url = new URL(page.url)
+  const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
   return `${url.pathname}${url.search}${url.hash}`
 })
@@ -1568,6 +1569,14 @@ const urbanDensityMetricsCss = [
 
 const selectedStylePreview = (styleId: string) =>
   createAMapStylePreviewUrl(styleId, region, tileset)
+const styleChoiceDescription = (styleId: string) => {
+  if (styleId === 'light' || styleId === 'dark') return m.guide_style_protomap_default()
+  if (styleId === 'white' || styleId === 'grayscale' || styleId === 'black') {
+    return m.guide_style_protomap_dataviz()
+  }
+  if (styleId === 'midnight') return m.guide_style_midnight_description()
+  return ''
+}
 const styleChoices = $derived.by(() =>
   [
     ...mapStyleDefinitions.map(candidate => candidate.id),
@@ -1575,9 +1584,8 @@ const styleChoices = $derived.by(() =>
       value: 'custom',
       label: m.guide_style_custom(),
       description: m.guide_style_custom_choice_description(),
-      imageSlices: mapStyleDefinitions.map(candidate =>
-        selectedStylePreview(candidate.id),
-      ),
+      imageSlices: ['light', 'white', 'grayscale', 'light'].map(selectedStylePreview),
+      darkImageSlices: ['dark', 'black', 'midnight', 'dark'].map(selectedStylePreview),
     },
   ].map(choice => {
     if (typeof choice === 'string') {
@@ -1586,7 +1594,7 @@ const styleChoices = $derived.by(() =>
       return {
         value: choice,
         label: definition?.name ?? choice,
-        description: '',
+        description: styleChoiceDescription(choice),
         image: selectedStylePreview(choice),
       }
     }
@@ -1596,16 +1604,70 @@ const styleChoices = $derived.by(() =>
 )
 </script>
 
-<svelte:head>
-  <title>{m.guide_create_map_title()} | SaanSeoi</title>
-  <meta name="description" content={m.guide_create_map_meta_description()}>
-  <meta name="author" content="Mart van de Ven">
-  <meta name="date" content="2026-08-08">
-  <meta name="version" content="v1">
-  <meta property="article:author" content="https://type.hk">
-  <meta property="article:published_time" content="2026-08-08">
-  <link rel="author" href="https://type.hk">
-</svelte:head>
+<Seo
+  title={m.guide_create_map_title()}
+  description={m.guide_create_map_meta_description()}
+  image="/guides/build-a-map-dark.webp"
+  type="article"
+  publishedTime="2026-08-08"
+  modifiedTime="2026-08-16"
+  noindex={page.url.searchParams.size > 0}
+  structuredData={{
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'LearningResource',
+        '@id': 'https://saanseoi.hk/guides/create-a-map#resource',
+        name: m.guide_create_map_title(),
+        description: m.guide_create_map_meta_description(),
+        url: 'https://saanseoi.hk/guides/create-a-map',
+        image: 'https://saanseoi.hk/guides/build-a-map-dark.webp',
+        inLanguage: locale,
+        author: {
+          '@type': 'Person',
+          name: 'Mart van de Ven',
+          url: 'https://type.hk',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'SaanSeoi',
+          url: 'https://saanseoi.hk',
+        },
+        datePublished: '2026-08-08',
+        dateModified: '2026-08-16',
+        educationalLevel: 'Beginner',
+        teaches: [
+          'Creating a digital map',
+          'Using SaanSeoi basemap, styles and API data',
+          'Publishing a map online or embedding it in a site',
+        ],
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://saanseoi.hk/',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: m.guide_title(),
+            item: 'https://saanseoi.hk/guides',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: m.guide_create_map_title(),
+            item: 'https://saanseoi.hk/guides/create-a-map',
+          },
+        ],
+      },
+    ],
+  }}
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-16 md:py-20"
@@ -1648,6 +1710,7 @@ const styleChoices = $derived.by(() =>
               choices={objectiveChoices}
               bind:value={objective}
               onchange={handleObjectiveChange}
+              illustratedFitWhenPossible
               variant="illustrated"
             />
           </div>
@@ -2346,6 +2409,7 @@ const styleChoices = $derived.by(() =>
             choices={styleChoices}
             bind:value={style}
             illustratedCardSizing="fixed"
+            illustratedFullBleed
             variant="illustrated"
           />
         </div>

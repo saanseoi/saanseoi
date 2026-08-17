@@ -1,6 +1,6 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
-import { m } from '$lib/bits/internal/i18n'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import { m } from '#lib/bits/internal/i18n.js'
 import type { ReleaseNavOutlineItem } from '../releaseNav.types'
 import ReleaseNavOutline from './releaseNavOutline.svelte'
 import ReleaseNavInlineLabel from './releaseNavInlineLabel.svelte'

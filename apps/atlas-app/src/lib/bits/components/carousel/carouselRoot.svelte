@@ -2,7 +2,7 @@
 import { onMount } from 'svelte'
 
 import type { Snippet } from 'svelte'
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 type NavigationState = { canMoveBackward: boolean; canMoveForward: boolean }
 type DragState = { cardId: string | null }
 type Props = {
@@ -115,11 +115,14 @@ const suppressDraggedClick = (node: HTMLElement) => {
 onMount(() => {
   if (!viewport) return
   const resizeObserver = new ResizeObserver(updateNavigation)
+  const mutationObserver = new MutationObserver(updateNavigation)
   resizeObserver.observe(viewport)
+  mutationObserver.observe(viewport, { childList: true, subtree: true })
   viewport.addEventListener('scroll', updateNavigation, { passive: true })
   updateNavigation()
   return () => {
     resizeObserver.disconnect()
+    mutationObserver.disconnect()
     viewport?.removeEventListener('scroll', updateNavigation)
   }
 })

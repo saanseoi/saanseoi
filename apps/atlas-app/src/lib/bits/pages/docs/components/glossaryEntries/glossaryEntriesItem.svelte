@@ -1,10 +1,10 @@
 <script lang="ts">
-import type { AppLocale } from '$lib/bits/internal/i18n'
+import type { AppLocale } from '#lib/bits/internal/i18n.js'
 import {
   getMarkdownTransclusionDisplayTitle,
   type MarkdownGlossaryEntry,
-} from '$lib/registry/referenceDocs'
-import { buildReleaseNotesPresentation } from '$lib/registry/releaseNotesPresentation'
+} from '#lib/registry/referenceDocs.js'
+import { buildReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
 
 import { Content as ReleaseNotesContent } from '../releaseNotes'
 

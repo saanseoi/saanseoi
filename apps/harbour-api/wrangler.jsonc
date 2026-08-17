@@ -237,6 +237,7 @@
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
           "AZURE_TRANSLATION_KEY",
+          "DISCORD_BOT_TOKEN",
           "HARBOUR_API_KEY",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -245,6 +246,7 @@
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
         "DATA_SHARD_ENV": "production",
+        "DISCORD_RELEASES_CHANNEL_ID": "1538408473241460816",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [

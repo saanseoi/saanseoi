@@ -1,8 +1,6 @@
-import { browser } from '$app/environment'
+import { browser } from '$app/env'
 import { getLocale, setLocale } from '@repo/i18n/runtime'
-
-import { setUserLocale } from '$lib/locale.remote'
-
+import { setUserLocale } from '#lib/locale.remote.js'
 import type { AppLocale } from './i18n'
 
 const localeState = $state<{ current: AppLocale | null }>({

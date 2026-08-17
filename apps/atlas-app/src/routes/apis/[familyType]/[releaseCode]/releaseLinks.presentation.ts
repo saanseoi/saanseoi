@@ -1,7 +1,7 @@
-import { m } from '$lib/bits/internal/i18n'
-import type { ReleaseLinksProvenancePresentation } from '$lib/bits/pages/docs/components/releaseLinks'
-import type { ApiRelease } from '$lib/registry/types'
-import { getPublisherLogo } from '$lib/registry/publisherLogo'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { ReleaseLinksProvenancePresentation } from '#lib/bits/pages/docs/components/releaseLinks/index.js'
+import type { ApiRelease } from '#lib/registry/types.js'
+import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
 
 const sourceLinkId = (source: NonNullable<ApiRelease['contributingSources']>[number]) =>
   [
@@ -18,6 +18,10 @@ const sourceGroupId = (
   sources: NonNullable<ApiRelease['contributingSources']>,
 ) => ['source-records', role, ...sources.map(sourceLinkId).sort()].join(':')
 
+const sourceReleaseIdentity = (
+  source: NonNullable<ApiRelease['contributingSources']>[number],
+) => [source.sourceCode, source.sourceVersion, source.variant].join(':')
+
 const humaniseResourceType = (value: string) =>
   value
     .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
@@ -27,11 +31,32 @@ const humaniseResourceType = (value: string) =>
 const humaniseCode = (value: string) =>
   value.replaceAll(/[_-]/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 
+function consolidateSourceMaterialisations(
+  sources: NonNullable<ApiRelease['contributingSources']>,
+) {
+  const releasesBySource = new Map<string, (typeof sources)[number]>()
+
+  for (const source of sources) {
+    const key = sourceReleaseIdentity(source)
+    const existing = releasesBySource.get(key)
+
+    // One upstream source release may create several resource materialisations.
+    // Present it once, favouring its direct (primary) contribution when both
+    // direct and supporting materialisations are present.
+    if (!existing || (existing.role === 'supporting' && source.role === 'primary')) {
+      releasesBySource.set(key, source)
+    }
+  }
+
+  return [...releasesBySource.values()]
+}
+
 export function buildApiReleaseLinksPresentation(
   sources: ApiRelease['contributingSources'],
   familyType: string,
   apiBaseUrl: string,
 ): ReleaseLinksProvenancePresentation {
+  const consolidatedSources = consolidateSourceMaterialisations(sources ?? [])
   const entries = (items: NonNullable<ApiRelease['contributingSources']>) =>
     [...items]
       .sort(
@@ -98,13 +123,13 @@ export function buildApiReleaseLinksPresentation(
           titleColour: 'var(--data-primary)',
         }
       })
-  const primarySources = (sources ?? []).filter(source => source.role === 'primary')
+  const primarySources = consolidatedSources.filter(source => source.role === 'primary')
   const sourcesByResourceType = new Map<
     string,
     NonNullable<ApiRelease['contributingSources']>
   >()
 
-  for (const source of sources ?? []) {
+  for (const source of consolidatedSources) {
     if (source.role === 'primary') continue
     const groupedSources = sourcesByResourceType.get(source.resourceType) ?? []
     groupedSources.push(source)

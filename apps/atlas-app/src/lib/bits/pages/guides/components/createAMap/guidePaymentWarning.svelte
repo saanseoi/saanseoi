@@ -1,8 +1,8 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
+import { m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 type Props = {
   choice: string

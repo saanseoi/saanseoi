@@ -7,7 +7,8 @@ import {
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
-  shouldCompressCenstatdCanonicalGeometry,
+  shouldCompressCanonicalGeometry,
+  shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
@@ -121,6 +122,13 @@ describe('createGeometryChurnCounts', () => {
       removed: 0,
       unchanged: 0,
     })
+  })
+})
+
+describe('exact geometry release statistics', () => {
+  test('C&SD simplified derivatives cannot replace exact release measurements', () => {
+    expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
+    expect(shouldWriteExactGeometryReleaseStats('simplified')).toBe(false)
   })
 })
 
@@ -261,19 +269,54 @@ describe('geometryBuildUpsertSql', () => {
     ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })
     database.close()
   })
+
+  test('chunks a Brotli geometry blob when its row overhead exceeds D1’s limit', () => {
+    const geometry = Uint8Array.from(
+      { length: Math.floor(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES / 2) - 1_000 },
+      (_, index) => index % 251,
+    )
+    const sql = geometryBuildUpsertSql('divisionAreas', [
+      {
+        geometry,
+        id: 'area-1',
+        metadata: 'x'.repeat(3_000),
+        snapshotId: 'snapshot-1',
+      },
+    ])
+    const statements = sql.split('\n')
+
+    expect(statements).toHaveLength(2)
+    for (const statement of statements) {
+      expect(new TextEncoder().encode(statement).byteLength).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    }
+
+    const database = new Database(':memory:')
+    database.exec(
+      'CREATE TABLE divisionAreas (snapshotId TEXT NOT NULL, id TEXT NOT NULL, geometry BLOB NOT NULL, metadata TEXT NOT NULL, PRIMARY KEY (snapshotId, id));',
+    )
+    database.exec(sql)
+
+    expect(
+      database
+        .query(
+          'SELECT geometry, metadata FROM divisionAreas WHERE snapshotId = ? AND id = ?',
+        )
+        .get('snapshot-1', 'area-1'),
+    ).toEqual({ geometry: Buffer.from(geometry), metadata: 'x'.repeat(3_000) })
+    database.close()
+  })
 })
 
-describe('shouldCompressCenstatdCanonicalGeometry', () => {
-  test('stores exact C&SD canonical geometry as a Brotli BLOB', () => {
-    expect(
-      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', undefined),
-    ).toBeTrue()
+describe('shouldCompressCanonicalGeometry', () => {
+  test('stores exact C&SD and Planning Unit canonical geometry as Brotli BLOBs', () => {
+    expect(shouldCompressCanonicalGeometry('hkgov-censtatd', undefined)).toBeTrue()
+    expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', undefined)).toBeTrue()
   })
 
   test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {
-    expect(
-      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', 'simplified'),
-    ).toBeFalse()
-    expect(shouldCompressCenstatdCanonicalGeometry('overture', undefined)).toBeFalse()
+    expect(shouldCompressCanonicalGeometry('hkgov-censtatd', 'simplified')).toBeFalse()
+    expect(shouldCompressCanonicalGeometry('overture', undefined)).toBeFalse()
   })
 })

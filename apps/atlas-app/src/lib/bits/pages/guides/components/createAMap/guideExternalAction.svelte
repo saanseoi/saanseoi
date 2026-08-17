@@ -1,8 +1,8 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { Snippet } from 'svelte'
 
-import { Button } from '$lib/bits/primitives/button'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 type Props = {
   children?: Snippet

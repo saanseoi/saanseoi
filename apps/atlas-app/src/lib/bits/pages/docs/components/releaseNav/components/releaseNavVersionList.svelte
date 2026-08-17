@@ -1,21 +1,27 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import Icon from '@iconify/svelte'
-import type { ReleaseNavVersion } from '../releaseNav.types'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import type { ReleaseNavVersion, ReleaseNavVersionPreload } from '../releaseNav.types'
 import { revealReleaseNavVersion } from '../releaseNavScroll'
 
 type Props = {
   canExpand?: boolean
   children?: Snippet
   currentVersionCode: string
+  footer?: Snippet
+  loading?: boolean
   open?: boolean
+  onVersionPreload?: ReleaseNavVersionPreload
   versions: ReleaseNavVersion[]
 }
 let {
   canExpand = true,
   children,
   currentVersionCode,
+  footer,
+  loading = false,
   open = $bindable(true),
+  onVersionPreload,
   versions,
 }: Props = $props()
 let activeVersionElement = $state<HTMLDivElement>()
@@ -80,7 +86,7 @@ $effect(() => {
               {version.label}
               <Icon
                 icon="ion:chevron-down-outline"
-                class={`size-4 transition-transform duration-300 ${open ? '' : 'rotate-180'}`}
+                class={`size-4 transition-transform duration-300 ${loading ? 'animate-spin' : open ? '' : 'rotate-180'}`}
                 aria-hidden="true"
               />
             </button>
@@ -101,10 +107,14 @@ $effect(() => {
     {:else}
       <a
         class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
-        data-sveltekit-noscroll
+        data-sveltekit-reset="false"
+        data-sveltekit-preload-data="hover"
         href={version.href}
+        onfocusin={() => onVersionPreload?.(version)}
+        onpointerenter={() => onVersionPreload?.(version)}
         >{version.label}</a
       >
     {/if}
   {/each}
+  {@render footer?.()}
 </nav>

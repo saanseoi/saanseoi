@@ -1,6 +1,6 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
-import type { CreateAMapSelectionQuery } from '$lib/guides/createAMapSelections'
+import { m } from '#lib/bits/internal/i18n.js'
+import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import GuideChoiceGroup from '../../components/shared/guideChoiceGroup.svelte'
 import type { GuideChoice } from '../../components/shared/guide.types'

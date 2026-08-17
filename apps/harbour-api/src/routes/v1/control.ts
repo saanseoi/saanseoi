@@ -23,6 +23,10 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
+import {
+  publishDiscordReleaseEmbed,
+  type ReleaseSetPublication,
+} from '../../lib/services/releaseDiscord'
 
 const baseResponses = {
   200: {
@@ -287,7 +291,10 @@ export const publishDatasetRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
-      return c.json(await handlePublishDataset(db, request, c.env.DATASET_QUEUE), 200)
+      const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
+      await announcePublishedReleaseSets(c.env, result.apiReleaseSetAnnouncements)
+      const { apiReleaseSetAnnouncements: _announcements, ...response } = result
+      return c.json(response, 200)
     } catch (error) {
       const response = createControlError(error)
       return c.json(response, response.httpStatus)
@@ -323,7 +330,10 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      return c.json(await handleReconcileDraftReleaseSets(db, c.req.valid('json')), 200)
+      const result = await handleReconcileDraftReleaseSets(db, c.req.valid('json'))
+      await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
+      const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
+      return c.json(response, 200)
     } catch (error) {
       const response = createControlError(error)
       return c.json(response, response.httpStatus)
@@ -339,3 +349,31 @@ export const controlRoutes = [
   cleanupSnapshotsRoute,
   reconcileDraftReleaseSetsRoute,
 ] as const
+
+async function announcePublishedReleaseSets(
+  env: AppEnv['Bindings'],
+  publications: ReleaseSetPublication[] | undefined,
+) {
+  if (
+    env.DATA_SHARD_ENV !== 'production' ||
+    !env.DISCORD_BOT_TOKEN ||
+    !env.DISCORD_RELEASES_CHANNEL_ID
+  ) {
+    return
+  }
+
+  for (const publication of publications ?? []) {
+    try {
+      await publishDiscordReleaseEmbed(publication, {
+        atlasBaseUrl: 'https://saanseoi.hk',
+        botToken: env.DISCORD_BOT_TOKEN,
+        channelId: env.DISCORD_RELEASES_CHANNEL_ID,
+      })
+    } catch (error) {
+      console.error('Failed to announce published API release set on Discord', {
+        error: error instanceof Error ? error.message : String(error),
+        releaseSetCode: publication.apiReleaseSetCode,
+      })
+    }
+  }
+}

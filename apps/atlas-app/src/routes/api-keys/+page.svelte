@@ -1,18 +1,20 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import { refreshAll } from '$app/navigation'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
-import { Button, Main } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 
 import {
   createApiKeyForCurrentUser,
-  getApiKeysPageData,
   revokeApiKeyForCurrentUser,
 } from './apiKeys.remote'
 
-let loadedKeys = $derived(await getApiKeysPageData())
-let keys = $state<typeof loadedKeys>([])
+let { data } = $props()
+let keys = $state<typeof data.apiKeys>([])
 let name = $state('')
 let revealedKey = $state<string | null>(null)
 let keyRevealOpen = $state(false)
@@ -21,7 +23,7 @@ let showRevoked = $state(false)
 let error = $state<string | null>(null)
 
 $effect(() => {
-  keys = loadedKeys
+  keys = data.apiKeys
 })
 
 $effect(() => {
@@ -39,6 +41,7 @@ const createKey = async () => {
     revealedKey = result.rawKey
     keyRevealOpen = true
     name = ''
+    await refreshAll()
   } catch (exception) {
     error = exception instanceof Error ? exception.message : m.api_keys_create_error()
     return
@@ -55,6 +58,7 @@ const copyRevealedKey = async () => {
 const revokeKey = async (id: string) => {
   if (!confirm(m.api_keys_revoke_confirmation())) return
   await revokeApiKeyForCurrentUser({ id })
+  await refreshAll()
 }
 
 const visibleKeys = $derived(keys.filter(key => showRevoked || !key.revokedAt))
@@ -69,7 +73,7 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
 }
 </script>
 
-<svelte:head><title>{m.api_keys_title()} | Saanseoi</title></svelte:head>
+<Seo title={m.api_keys_title()} description={m.api_keys_description()} noindex />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

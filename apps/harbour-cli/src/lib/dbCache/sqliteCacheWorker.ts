@@ -1,13 +1,21 @@
 import { readFile, rm } from 'node:fs/promises'
+import { basename } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
+import {
+  assertBinaryGeometryRow,
+  type BinaryGeometryRow,
+} from './binaryGeometryMirror.ts'
+
 type RemoteTableImport = {
+  binaryRowsPath?: string
   hasRows: boolean
   pruneOperation?: CachePruneOperation | null
   sqlPath: string
   tableName: string
 }
+type BinaryTableImport = Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>
 
 type CachePruneOperation = {
   tableName: string
@@ -17,6 +25,7 @@ type CachePruneOperation = {
 type SqliteCacheWorkerPayload =
   | {
       destinationPath: string
+      binaryTableImports?: BinaryTableImport[]
       dumpPaths: string[]
       pruneOperations?: CachePruneOperation[]
       type: 'import-dumps'
@@ -52,6 +61,7 @@ async function main() {
         payload.dumpPaths,
         payload.destinationPath,
         payload.pruneOperations ?? [],
+        payload.binaryTableImports ?? [],
       )
       return
     case 'replace-table-rows':
@@ -68,6 +78,7 @@ async function importDatabaseDumpsToSqlite(
   dumpPaths: string[],
   destinationPath: string,
   pruneOperations: CachePruneOperation[] = [],
+  binaryTableImports: BinaryTableImport[] = [],
 ) {
   await rm(destinationPath, { force: true }).catch(() => undefined)
 
@@ -81,8 +92,17 @@ async function importDatabaseDumpsToSqlite(
       const dumpSql = await readFile(dumpPath, 'utf8')
 
       if (dumpSql.trim().length > 0) {
-        sqlite.exec(dumpSql)
+        try {
+          sqlite.exec(dumpSql)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          throw new Error(`Failed to import ${basename(dumpPath)}: ${message}`)
+        }
       }
+    }
+
+    for (const tableImport of binaryTableImports) {
+      await insertBinaryMirrorRows(sqlite, tableImport)
     }
 
     pruneCachedRows(sqlite, pruneOperations)
@@ -121,6 +141,11 @@ async function replaceCachedTableRows(
     }
 
     for (const tableImport of tableImports) {
+      if (tableImport.binaryRowsPath) {
+        await insertBinaryMirrorRows(sqlite, tableImport)
+        continue
+      }
+
       if (!tableImport.hasRows) {
         continue
       }
@@ -156,6 +181,47 @@ async function replaceCachedTableRows(
   }
 
   checkpointSqliteDatabase(filePath)
+}
+
+async function insertBinaryMirrorRows(
+  sqlite: SQLiteDatabase,
+  tableImport: BinaryTableImport,
+) {
+  if (!tableImport.binaryRowsPath) return
+
+  const rows = JSON.parse(await readFile(tableImport.binaryRowsPath, 'utf8')) as Array<
+    Omit<BinaryGeometryRow, 'geometry'> & { geometry: string | null }
+  >
+  if (rows.length === 0) return
+
+  const columns = Object.keys(rows[0]?.values ?? {})
+  const statement = sqlite.query(
+    `INSERT INTO ${quoteSqlIdentifier(tableImport.tableName)} (${columns
+      .map(quoteSqlIdentifier)
+      .join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
+  )
+
+  for (const row of rows) {
+    const hydratedRow: BinaryGeometryRow = {
+      ...row,
+      geometry: row.geometry === null ? null : Buffer.from(row.geometry, 'hex'),
+    }
+    assertBinaryGeometryRow(hydratedRow)
+    if (!columns.includes(hydratedRow.binaryColumn)) {
+      throw new Error(
+        `Binary mirror rows for ${tableImport.tableName} omit ${hydratedRow.binaryColumn}.`,
+      )
+    }
+    const values: Array<Buffer | null | number | string> = columns.map(
+      column => row.values[column] ?? null,
+    )
+    const geometryIndex = columns.indexOf(hydratedRow.binaryColumn)
+    values[geometryIndex] =
+      hydratedRow.geometryType === 'blob'
+        ? hydratedRow.geometry
+        : (hydratedRow.values[hydratedRow.binaryColumn] ?? null)
+    statement.run(...values)
+  }
 }
 
 function pruneCachedRows(

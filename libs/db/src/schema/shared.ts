@@ -143,7 +143,7 @@ export const sourceProvenance = {
 }
 
 export const geoBbox = {
-  geometry: jsonText('geometry'),
+  geometry: jsonTextOrBinary('geometry'),
   bbox: jsonText('bbox'),
 }
 

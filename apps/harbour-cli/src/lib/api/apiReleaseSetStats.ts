@@ -6,6 +6,7 @@ import {
   createLocaleStatsAccumulator,
   type StatsLocaleGroup,
 } from '@repo/core/pipeline/services/stats'
+import { resolveDistrictId } from '@repo/core/pipeline/services/division'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -251,40 +252,62 @@ async function buildDivisionStatsRows(
   db: HarbourReadableDb,
   snapshotId: string,
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
-  const [divisionCount, divisionI18nCount, byDivisionType, byLevel, localeStats] =
-    await Promise.all([
-      countRows(
-        db,
-        currentSchema.divisions,
-        currentSchema.divisions.snapshotId,
-        snapshotId,
-      ),
-      countRows(
-        db,
-        currentSchema.divisionsI18n,
-        currentSchema.divisionsI18n.snapshotId,
-        snapshotId,
-      ),
-      countGrouped(
-        db,
-        currentSchema.divisions,
-        currentSchema.divisions.snapshotId,
-        snapshotId,
-        currentSchema.divisions.type,
-      ),
-      countGrouped(
-        db,
-        currentSchema.divisions,
-        currentSchema.divisions.snapshotId,
-        snapshotId,
-        currentSchema.divisions.level,
-      ),
-      buildDivisionLocaleStats(db, snapshotId),
-    ])
+  const [
+    divisionCount,
+    divisionI18nCount,
+    byDivisionType,
+    byLevel,
+    divisionRows,
+    localeStats,
+  ] = await Promise.all([
+    countRows(
+      db,
+      currentSchema.divisions,
+      currentSchema.divisions.snapshotId,
+      snapshotId,
+    ),
+    countRows(
+      db,
+      currentSchema.divisionsI18n,
+      currentSchema.divisionsI18n.snapshotId,
+      snapshotId,
+    ),
+    countGrouped(
+      db,
+      currentSchema.divisions,
+      currentSchema.divisions.snapshotId,
+      snapshotId,
+      currentSchema.divisions.type,
+    ),
+    countGrouped(
+      db,
+      currentSchema.divisions,
+      currentSchema.divisions.snapshotId,
+      snapshotId,
+      currentSchema.divisions.level,
+    ),
+    db
+      .select({
+        hierarchy: currentSchema.divisions.hierarchy,
+        id: currentSchema.divisions.id,
+        type: currentSchema.divisions.type,
+      })
+      .from(currentSchema.divisions)
+      .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+      .all(),
+    buildDivisionLocaleStats(db, snapshotId),
+  ])
+
+  const byDistrict = new Map<string, number>()
+  for (const division of divisionRows) {
+    const districtId = resolveDistrictId(division)
+    if (districtId) byDistrict.set(districtId, (byDistrict.get(districtId) ?? 0) + 1)
+  }
 
   localeStats.total = divisionCount
 
   return buildDivisionApiReleaseSetStatsRows({
+    byDistrict,
     byDivisionType,
     byLevel,
     divisionCount,

@@ -3,7 +3,7 @@ import { goto } from '$app/navigation'
 import type {
   CreateAMapSelection,
   CreateAMapSelectionQuery,
-} from '$lib/guides/createAMapSelections'
+} from '#lib/guides/createAMapSelections.js'
 
 import { trackCreateAMapSelection } from './analytics.remote'
 
@@ -21,7 +21,7 @@ type CreateAMapGuideUrlState = CreateAMapSelectionQuery & {
 
 type Props = {
   getAnalyticsTrackingStarted: () => boolean
-  getCurrentUrl: () => URL
+  getCurrentUrl: () => Pick<URL, 'hash' | 'href' | 'pathname' | 'search'>
   getSelection: () => CreateAMapSelectionQuery
   getUrlState: () => CreateAMapGuideUrlState
 }
@@ -40,7 +40,7 @@ export function createCreateAMapGuideAdapter({
 }: Props) {
   $effect(() => {
     const currentUrl = getCurrentUrl()
-    const url = new URL(currentUrl)
+    const url = new URL(currentUrl.href)
     const state = getUrlState()
     const query: Record<string, string | undefined> = {
       objective: state.objective,
@@ -83,7 +83,7 @@ export function createCreateAMapGuideAdapter({
 
     const target = `${url.pathname}${url.search}${url.hash}`
     if (target !== `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`) {
-      void goto(target, { keepFocus: true, noScroll: true, replaceState: true })
+      void goto(target, { reset: false, replaceState: true })
     }
   })
 

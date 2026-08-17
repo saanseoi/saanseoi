@@ -7,6 +7,7 @@ type Props = {
   collectors: GreenCreatureState[]
   packetElements: Record<number, HTMLSpanElement | undefined>
   collectorElements: Record<number, HTMLSpanElement | undefined>
+  collectorBearingElements: Record<number, HTMLSpanElement | undefined>
   signal?: HTMLDivElement
   orangeCreature?: HTMLSpanElement
   onpacketsettled: (packetId: number) => void
@@ -17,6 +18,7 @@ let {
   collectors,
   packetElements = $bindable(),
   collectorElements = $bindable(),
+  collectorBearingElements = $bindable(),
   signal = $bindable(),
   orangeCreature = $bindable(),
   onpacketsettled,
@@ -30,7 +32,12 @@ let {
     <span
       class="newsletter-creature newsletter-creature-orange"
       bind:this={orangeCreature}
-    ></span>
+    >
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-a"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-b"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-c"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-d"></span>
+    </span>
   </span>
 
   {#each collectors as collector, collectorIndex (collector.id)}
@@ -39,7 +46,12 @@ let {
       class:newsletter-creature-collector-glowing={collector.glowing}
       bind:this={collectorElements[collector.id]}
       style={`width: ${collector.size}px; transform: translate(${collector.x}px, ${collector.y}px) rotate(${collector.rotation}deg); --collector-duration: ${collector.duration}ms;`}
-    ></span>
+    >
+      <span
+        class="newsletter-collector-bearing"
+        bind:this={collectorBearingElements[collector.id]}
+      ></span>
+    </span>
   {/each}
 
   {#each packets as packet (packet.id)}

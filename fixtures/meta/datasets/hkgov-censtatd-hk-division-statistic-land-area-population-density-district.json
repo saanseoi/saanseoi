@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:e3b30b6e3aa73d54fdc599a78fb4a979490d7ab963455ba954663b8cc51c929a",
+  "versionHash": "sha256:34f8c51d23eb979044c0b7ee03f1a497df8b68b024057771d3ccc78ec715d6f8",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
+  "sourceVariant": "census",
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
@@ -47,8 +48,11 @@
   },
   "mergeRules": [
     {
-      "rulesetVersion": "rs-division-merge-v1",
-      "operationCodes": ["map_censtatd_district_code_to_canonical_division"]
+      "rulesetVersion": "rs-division-statistic-merge-v1",
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "map_censtatd_district_code_to_canonical_division"
+      ]
     }
   ],
   "releases": [
@@ -60,6 +64,13 @@
           "releaseSlot": "2023-Q4",
           "sourceObjectHash": "9a91cc77cd3af6fbb8512d04b13e6f60d0f24fd6f64c017253baf6f07f2d7f20",
           "contentHash": "97459d23e1d08f1b72241e082a28d993dca5bbd7631b89db8c6f1e4b1d69f72a"
+        }
+      ],
+      "identicalArchiveSlots": [
+        {
+          "contentHash": "97459d23e1d08f1b72241e082a28d993dca5bbd7631b89db8c6f1e4b1d69f72a",
+          "releaseSlot": "2023-Q4",
+          "sourceObjectHash": "9a91cc77cd3af6fbb8512d04b13e6f60d0f24fd6f64c017253baf6f07f2d7f20"
         }
       ]
     },

@@ -53,7 +53,14 @@ function init_configure
             # Rebuild that cache before using release status to skip work.
             set -l cache_dir "$saanseoi_init_repo/.local/harbour-sql/db-cache/$saanseoi_init_target"
             if test -f "$cache_dir/invalidated.json"; or not test -f "$cache_dir/manifest.json"
-                init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
+                set -l cache_profile_args
+                if set -q saanseoi_init_cache_table_profile
+                    set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
+                end
+                if set -q saanseoi_init_cache_cohort_key
+                    set cache_profile_args $cache_profile_args --cohort-key $saanseoi_init_cache_cohort_key
+                end
+                init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target $cache_profile_args
             end
         end
         init_load_completed_release_codes
@@ -66,8 +73,12 @@ end
 
 function init_load_completed_release_codes
     if test "$saanseoi_init_target" != local
+        set -l cache_profile_args
+        if set -q saanseoi_init_cache_table_profile
+            set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
+        end
         set -l output (./bin/saanseoi cache:completed-releases \
-            --target $saanseoi_init_target 2>&1)
+            --target $saanseoi_init_target $cache_profile_args 2>&1)
         set -l command_status $status
         if test $command_status -ne 0
             string join \n -- $output >&2

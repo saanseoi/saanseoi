@@ -1,12 +1,15 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
-import { GlossaryEntries, GlossaryHeader, Main } from '$lib/bits'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
+import * as GlossaryEntries from '#lib/bits/pages/docs/components/glossaryEntries/index.js'
+import * as GlossaryHeader from '#lib/bits/pages/docs/components/glossaryHeader/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import {
   getMarkdownGlossaryEntries,
   getMarkdownTransclusionDisplayTitle,
-} from '$lib/registry/referenceDocs'
+} from '#lib/registry/referenceDocs.js'
 
 let query = $state('')
 let locale = $derived(getCurrentLocale())
@@ -33,10 +36,7 @@ let resultCount = $derived(
 )
 </script>
 
-<svelte:head>
-  <title>{m.glossary_title()} | SaanSeoi</title>
-  <meta name="description" content={m.glossary_description()}>
-</svelte:head>
+<Seo title={m.glossary_title()} description={m.glossary_description()} />
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

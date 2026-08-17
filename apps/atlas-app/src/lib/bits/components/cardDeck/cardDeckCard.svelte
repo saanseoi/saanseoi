@@ -2,7 +2,7 @@
 import type { Snippet } from 'svelte'
 import { fly } from 'svelte/transition'
 
-import { cn } from '$lib/bits/utilities/helpers/cn'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
 
 type Props = {
   as?: 'a' | 'article' | 'button' | 'div'

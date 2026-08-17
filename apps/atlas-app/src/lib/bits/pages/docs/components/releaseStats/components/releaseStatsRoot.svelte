@@ -5,6 +5,7 @@ import type {
   ReleaseStat,
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
 } from '../releaseStats.types'
 import type { ReleaseContentHeading } from '../../releaseContentOutline'
 import OutlineTracker from '../../releaseContentOutline/releaseContentOutlineTracker.svelte'
@@ -15,7 +16,8 @@ import Results from './releaseStatsResults.svelte'
 type Props = {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
-  locale: string
+  districtNames?: ReleaseStatsDistrictName[]
+  locale: 'en' | 'zh-Hant' | 'zh-Hans'
   presentation: ReleaseStatsCopy
   headings?: ReleaseContentHeading[]
   activeHeadingId?: string | null
@@ -23,13 +25,20 @@ type Props = {
 let {
   stats = [],
   districtAreas = [],
+  districtNames,
   locale,
   presentation: copy,
   headings = $bindable<ReleaseContentHeading[]>([]),
   activeHeadingId = $bindable<string | null>(null),
 }: Props = $props()
 let model = $derived(
-  createReleaseStatsPresentation({ stats, districtAreas, locale, copy }),
+  createReleaseStatsPresentation({
+    stats,
+    districtAreas,
+    districtNames: districtNames ?? [],
+    locale,
+    copy,
+  }),
 )
 let panel = $state<HTMLElement>()
 $effect(() => {
@@ -39,7 +48,7 @@ $effect(() => {
 <Tooltip.Provider delayDuration={200}
   ><Panel bind:element={panel}
     >{#if stats.length}
-      <Results presentation={model} labels={copy.labels} />
+      <Results {districtNames} {locale} presentation={model} labels={copy.labels} />
     {:else}
       <EmptyState label={copy.labels.noStats} />
     {/if}</Panel

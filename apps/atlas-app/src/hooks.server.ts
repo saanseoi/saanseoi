@@ -1,25 +1,39 @@
-import type { Handle } from '@sveltejs/kit'
-import { sequence } from '@sveltejs/kit/hooks'
-import { building } from '$app/environment'
+import { sequence, type Handle } from '@sveltejs/kit/hooks'
+import { building } from '$app/env'
 import { paraglideMiddleware } from '@repo/i18n/server'
-import { createAuth } from '$lib/server/auth'
+import { createAuth } from '#lib/server/auth.js'
 import { svelteKitHandler } from 'better-auth/svelte-kit'
-import { initTheme, THEME_STORAGE_KEY } from '$lib/bits/internal/theme'
+import { initTheme, THEME_STORAGE_KEY } from '#lib/bits/internal/theme.js'
 
-const themeInitScript = `(${initTheme.toString()})(${JSON.stringify(THEME_STORAGE_KEY)})`
+const themeInitScript = '('.concat(
+  initTheme.toString(),
+  ')(',
+  JSON.stringify(THEME_STORAGE_KEY),
+  ')',
+)
+
+const supportedLocales = ['en', 'zh-Hant', 'zh-Hans'] as const
+const getDocumentLocale = (value: string | undefined) =>
+  supportedLocales.includes(value as (typeof supportedLocales)[number]) ? value : 'en'
 
 const handleTheme: Handle = async ({ event, resolve }) => {
   const theme = event.cookies.get(THEME_STORAGE_KEY)
+  const locale = getDocumentLocale(event.cookies.get('PARAGLIDE_LOCALE'))
   const themeAttributes =
     theme === 'light' || theme === 'dark'
-      ? ` class="${theme === 'dark' ? 'dark' : ''}" style="color-scheme: ${theme};"`
+      ? theme === 'dark'
+        ? ' class="dark" style="color-scheme: dark;"'
+        : ' class="" style="color-scheme: light;"'
       : ''
 
   return resolve(event, {
     transformPageChunk: ({ html }) =>
       html
-        .replace('%theme-init%', `<script>${themeInitScript}</script>`)
-        .replace('<html lang="en">', `<html lang="en"${themeAttributes}>`),
+        .replace('%theme-init%', '<script>'.concat(themeInitScript, '</scr', 'ipt>'))
+        .replace(
+          `<html lang="en">`,
+          `<html lang="${locale}"`.concat(themeAttributes, '>'),
+        ),
   })
 }
 

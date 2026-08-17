@@ -1,5 +1,7 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
+import { m } from '#lib/bits/internal/i18n.js'
+import { prefersReducedMotion } from 'svelte/motion'
+import { flip } from 'svelte/animate'
 import type { ReleaseNavTab } from '../releaseNav.types'
 
 type Props = {
@@ -19,7 +21,8 @@ let { activeTab, onSelect, tabs }: Props = $props()
   >
     {#each tabs as { id, compactLabel, label } (id)}
       <button
-        class={`h-full border-b-2 px-1 font-body text-label-md font-semibold transition ${activeTab === id ? 'border-secondary text-primary' : 'border-transparent text-foreground-alt hover:text-primary'}`}
+        animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
+        class={`h-full cursor-pointer border-b-2 px-1 font-body text-label-md font-semibold transition hover:text-white ${activeTab === id ? 'border-secondary text-primary' : 'border-transparent text-foreground-alt'}`}
         type="button"
         role="tab"
         aria-selected={activeTab === id}

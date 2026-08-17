@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 </script>
 
 <div class="hidden md:col-span-4 md:flex md:items-center md:justify-center">

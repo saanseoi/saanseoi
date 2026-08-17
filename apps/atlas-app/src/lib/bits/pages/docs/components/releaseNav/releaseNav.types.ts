@@ -4,6 +4,14 @@ export type ReleaseNavVersion = {
   label: string
 }
 
+export type ReleaseNavVersionPreload = (version: ReleaseNavVersion) => void
+
+export type ReleaseNavDomain = {
+  code: string
+  href: string
+  label: string
+}
+
 export type ReleaseNavTab = {
   id: string
   label: string

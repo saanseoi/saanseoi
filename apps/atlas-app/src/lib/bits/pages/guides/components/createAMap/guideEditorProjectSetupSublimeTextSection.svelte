@@ -1,8 +1,8 @@
 <script lang="ts">
-import sublimeAddFolder from '$lib/assets/guides/editor-sublime-add-folder.png'
-import sublimeShowSidebar from '$lib/assets/guides/editor-sublime-show-sidebar.png'
-import { m } from '$lib/bits/internal/i18n'
-import GuideScreenshot from '$lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
+import sublimeAddFolder from '#lib/assets/guides/editor-sublime-add-folder.png'
+import sublimeShowSidebar from '#lib/assets/guides/editor-sublime-show-sidebar.png'
+import { m } from '#lib/bits/internal/i18n.js'
+import GuideScreenshot from '#lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
 </script>
 
 <div class="my-6 w-full space-y-6">

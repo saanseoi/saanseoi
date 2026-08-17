@@ -25,6 +25,26 @@ provider artefact
 retains archive evidence where applicable, and invokes the source's approved intake
 path. It is not a generic importer.
 
+## Statistics source/history replay
+
+Statistics datasets are source-only until a Statistics API composition is explicitly
+activated. Their processors must therefore publish the source release without creating
+or waiting for an API snapshot. This does not make them local-only: a remote processor
+must apply the same idempotent SQL batches to its local planning cache and to the
+selected remote D1 source and history shards before marking the release published.
+
+The required order is: stage processing, load the minimal cache profile, resolve any
+reviewed identifier bridges, build deterministic source and history SQL, apply it to the
+local cache, import those exact batches into remote D1, mark the processing stage
+complete, then publish the source-only release. On failure, mark the stage failed and
+leave the release retryable. Do not publish a statistics release merely because its
+local cache mutations succeeded.
+
+Each statistics processor should use the shared replay helper rather than directly
+mutating Drizzle tables. Its cache profile must include only the required metadata,
+source assertions and history observations; it must also report cache, normalisation,
+local replay, remote replay and publication progress.
+
 ## Local pipeline initialisation
 
 Initialise one API family and composition domain at a time. Reset local databases before

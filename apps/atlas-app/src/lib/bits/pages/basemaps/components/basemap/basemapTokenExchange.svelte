@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getCurrentLocale } from '$lib/bits/internal/i18n'
+import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
 
 import CodeBlock from './basemapCodeBlock.svelte'
 import { getBasemapMessage as getMessage } from './basemapMessages'

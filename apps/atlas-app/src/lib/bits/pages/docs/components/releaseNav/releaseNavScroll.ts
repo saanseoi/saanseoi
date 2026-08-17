@@ -1,6 +1,5 @@
 import { tick } from 'svelte'
-import { replaceState } from '$app/navigation'
-
+import { goto } from '$app/navigation'
 import type { ReleaseNavOutlineItem, ReleaseNavVersion } from './releaseNav.types'
 
 type ContentTarget = () => HTMLElement | undefined
@@ -18,9 +17,11 @@ export const getReleaseNavContentTarget = (panel?: HTMLElement) =>
 export function createReleaseNavigationPersistence({
   getContentTarget,
   getVersions,
+  onVersionSelect,
 }: {
   getContentTarget: ContentTarget
   getVersions: () => ReleaseNavVersion[]
+  onVersionSelect?: (versionCode: string) => void
 }) {
   let pendingScroll: { contentTop: number; pageTop: number } | null = null
 
@@ -28,8 +29,11 @@ export function createReleaseNavigationPersistence({
     if (!isPrimaryUnmodifiedClick(event) || !(event.target instanceof Element)) return
 
     const link = event.target.closest<HTMLAnchorElement>('a[href]')
+
     if (!link) return
+
     const destination = new URL(link.href)
+
     if (destination.pathname === window.location.pathname) return
     if (
       !getVersions().some(
@@ -39,6 +43,16 @@ export function createReleaseNavigationPersistence({
       )
     )
       return
+
+    const selectedVersion = getVersions().find(
+      version =>
+        new URL(version.href, window.location.origin).pathname === destination.pathname,
+    )
+    if (selectedVersion) {
+      // Let the link's own navigation handler read the original href before
+      // the optimistic version update rerenders the navigation controls.
+      window.setTimeout(() => onVersionSelect?.(selectedVersion.code), 0)
+    }
 
     pendingScroll = {
       contentTop: getContentTarget()?.scrollTop ?? 0,
@@ -95,8 +109,10 @@ export function createNestedContentScroll({
     const handleWheel = (event: WheelEvent) => {
       if (event.deltaY === 0 || event.ctrlKey || !event.cancelable || !isEnabled())
         return
+
       const controls = node.querySelector<HTMLElement>('[data-release-nav-controls]')
       const content = getContentTarget()
+
       if (!controls || !content || getComputedStyle(content).overflowY === 'visible')
         return
 
@@ -104,6 +120,7 @@ export function createNestedContentScroll({
       const versionList = node.querySelector<HTMLElement>(
         '[data-release-nav-version-list]',
       )
+
       if (event.target instanceof Node && versionList?.contains(event.target)) {
         const maximum = Math.max(0, versionList.scrollHeight - versionList.clientHeight)
         const available =
@@ -144,12 +161,14 @@ export function createNestedContentScroll({
         )
         remaining -= pageDelta - scrollPage(pageDelta)
       }
+
       if (remaining !== 0) remaining = scrollContent(content, remaining)
       if (remaining !== 0) scrollPage(remaining)
     }
 
     window.addEventListener('wheel', handleWheel, { capture: true, passive: false })
     node.addEventListener('click', onNavigate, { capture: true })
+
     return {
       destroy: () => {
         window.removeEventListener('wheel', handleWheel, { capture: true })
@@ -173,8 +192,11 @@ export function scrollToReleaseNavAnchor({
   panel?: HTMLElement
 }) {
   if (!isPrimaryUnmodifiedClick(event)) return
+
   const target = document.getElementById(id)
+
   if (!target) return
+
   event.preventDefault()
 
   const rootFontSize = Number.parseFloat(
@@ -192,14 +214,17 @@ export function scrollToReleaseNavAnchor({
         window.scrollBy({ top: panelTop - desiredPanelTop, behavior: 'auto' })
       }
     }
+
     const top =
       scrollContainer.scrollTop +
       target.getBoundingClientRect().top -
       scrollContainer.getBoundingClientRect().top -
       firstItemPadding -
       24
-    replaceState(`#${id}`, {})
+
+    void goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+
     return
   }
 
@@ -211,9 +236,13 @@ export function scrollToReleaseNavAnchor({
       .querySelector<HTMLElement>('[data-release-nav-mobile-toc-trigger]')
       ?.getBoundingClientRect().bottom ?? 0,
   )
+
   const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
-  replaceState(`#${id}`, {})
+
+  void goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
+
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
+
   window.scrollTo({
     top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset),
     behavior: 'smooth',
@@ -246,20 +275,25 @@ export const observeReleaseNavOutline = (
 
   const update = () => {
     const firstTarget = targets.at(0)
+
     if (!firstTarget) return
+
     const offset = Math.min(160, window.innerHeight * 0.25)
     const active =
       [...targets]
         .reverse()
         .find(target => target.getBoundingClientRect().top <= offset) ?? firstTarget
+
     onActive(active.id)
   }
 
   void tick().then(() => {
     if (disposed) return
+
     targets = items
       .map(item => document.getElementById(item.id))
       .filter((target): target is HTMLElement => target !== null)
+
     if (!targets.length) {
       onActive(null)
       return

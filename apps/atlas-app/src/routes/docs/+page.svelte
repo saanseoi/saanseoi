@@ -1,12 +1,13 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { Main } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 import {
   THEME_CHANGE_EVENT,
   resolveTheme,
   type ThemeMode,
-} from '$lib/bits/internal/theme'
+} from '#lib/bits/internal/theme.js'
 import type { createApiReference as createScalarApiReference } from '@scalar/api-reference'
 import '@scalar/api-reference/style.css'
 
@@ -115,9 +116,7 @@ onMount(() => {
 })
 </script>
 
-<svelte:head>
-  <title>{m.docs_title()}</title>
-</svelte:head>
+<Seo title={m.docs_title()} description={m.docs_meta_description()} />
 
 <Main class="min-h-[calc(100vh-10rem)] bg-background">
   <div

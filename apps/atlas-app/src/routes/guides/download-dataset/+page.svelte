@@ -1,12 +1,15 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { m } from '$lib/bits/internal/i18n'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { m } from '#lib/bits/internal/i18n.js'
 </script>
 
-<svelte:head>
-  <title>{m.guide_download_dataset_title()} | SaanSeoi</title>
-  <meta name="description" content={m.guide_download_dataset_description()}>
-</svelte:head>
+<Seo
+  title={m.guide_download_dataset_title()}
+  description={m.guide_download_dataset_description()}
+  image="/guides/download-data-light.webp"
+/>
 
 <Main
   class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"

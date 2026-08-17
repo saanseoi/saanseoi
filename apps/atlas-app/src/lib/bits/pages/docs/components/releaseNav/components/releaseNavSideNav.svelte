@@ -1,29 +1,56 @@
 <script lang="ts">
-import { m } from '$lib/bits/internal/i18n'
-import type { ReleaseNavOutlineItem, ReleaseNavVersion } from '../releaseNav.types'
+import { m } from '#lib/bits/internal/i18n.js'
+import type {
+  ReleaseNavDomain,
+  ReleaseNavOutlineItem,
+  ReleaseNavVersion,
+  ReleaseNavVersionPreload,
+} from '../releaseNav.types'
+import ReleaseNavDomainList from './releaseNavDomainList.svelte'
 import ReleaseNavOutline from './releaseNavOutline.svelte'
 import ReleaseNavVersionList from './releaseNavVersionList.svelte'
 
 type Props = {
   activeOutlineId: string | null
   canExpand?: boolean
+  currentDomainCode?: string
   currentVersionCode: string
+  domains?: ReleaseNavDomain[]
+  domainTitle?: string
+  loading?: boolean
   outline?: ReleaseNavOutlineItem[]
   panel?: HTMLElement
+  onVersionPreload?: ReleaseNavVersionPreload
   versions: ReleaseNavVersion[]
 }
 let {
   activeOutlineId,
   canExpand = true,
+  currentDomainCode,
   currentVersionCode,
+  domains = [],
+  domainTitle = 'Domains',
+  loading = false,
   outline = [],
   panel,
+  onVersionPreload,
   versions,
 }: Props = $props()
 </script>
 
+{#snippet domainList()}
+  <ReleaseNavDomainList {currentDomainCode} {domains} title={domainTitle} />
+{/snippet}
+
 <aside class="h-full">
-  <ReleaseNavVersionList {canExpand} {currentVersionCode} {versions}>
+  <ReleaseNavVersionList
+    {canExpand}
+    {currentVersionCode}
+    {loading}
+    {onVersionPreload}
+    footer={domainList}
+    {versions}
+  >
     {#if outline.length}
       <ReleaseNavOutline
         activeId={activeOutlineId}

@@ -1,9 +1,9 @@
-import addressesImage from '$lib/assets/apiFamily/addresses-light-512.webp'
-import divisionsImage from '$lib/assets/apiFamily/divisions-light-512.webp'
-import divisionsHeaderImage from '$lib/assets/apiFamily/divisions-light.webp'
-import placesImage from '$lib/assets/apiFamily/places-light-512.webp'
-import statsImage from '$lib/assets/apiFamily/statistics-light-512.webp'
-import streetsImage from '$lib/assets/apiFamily/streets-light-512.webp'
+import addressesImage from '#lib/assets/apiFamily/addresses-light-512.webp'
+import divisionsImage from '#lib/assets/apiFamily/divisions-light-512.webp'
+import divisionsHeaderImage from '#lib/assets/apiFamily/divisions-light.webp'
+import placesImage from '#lib/assets/apiFamily/places-light-512.webp'
+import statsImage from '#lib/assets/apiFamily/statistics-light-512.webp'
+import streetsImage from '#lib/assets/apiFamily/streets-light-512.webp'
 
 export type ApiFamilyTheme = {
   name: string

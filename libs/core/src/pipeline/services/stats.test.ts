@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  buildGeometryReleaseStatsRows,
   buildAddressApiReleaseSetStatsRows,
   buildAddressReleaseStatsRows,
   buildDivisionApiReleaseSetStatsRows,
@@ -21,6 +22,44 @@ const churnCounts: ChurnCounts = {
 }
 
 describe('stats rows', () => {
+  test('builds release-owned district geometry rows with only applicable metrics', () => {
+    const areas = buildGeometryReleaseStatsRows(
+      'divisionArea',
+      new Map([
+        [
+          'district-a',
+          {
+            featureCount: 1,
+            polygonCount: 2,
+            area: 1.234567,
+            boundarySegmentCount: 12,
+            boundaryLength: 4.56789,
+          },
+        ],
+      ]),
+      '2026-08-17T00:00:00.000Z',
+    )
+    expect(
+      areas.map(row => [row.type, row.dimension, row.metric, row.metricUnit]),
+    ).toEqual([
+      ['release', 'geometry', 'feature_count', 'count'],
+      ['release', 'geometry', 'polygon_count', 'count'],
+      ['release', 'geometry', 'area', 'square_kilometres'],
+      ['release', 'geometry', 'boundary_segment_count', 'count'],
+      ['release', 'geometry', 'boundary_length', 'kilometres'],
+    ])
+    expect(
+      buildGeometryReleaseStatsRows(
+        'divisionBoundary',
+        new Map([
+          [
+            'district-a',
+            { featureCount: 1, boundarySegmentCount: 1, boundaryLength: 2 },
+          ],
+        ]),
+      ).map(row => row.metric),
+    ).toEqual(['feature_count', 'boundary_segment_count', 'boundary_length'])
+  })
   test('counts village-addressed premises as a distinct address component', () => {
     const { componentCounts } = collectAddressCoverageCounts([
       {
@@ -172,6 +211,7 @@ describe('stats rows', () => {
 
   test('builds division API release set presentation rows', () => {
     const rows = buildDivisionApiReleaseSetStatsRows({
+      byDistrict: { 'district-id': 19 },
       byDivisionType: {
         country: 1,
         district: 18,
@@ -197,6 +237,15 @@ describe('stats rows', () => {
     })
 
     expect(rows.every(row => row.type === 'apiReleaseSet')).toBe(true)
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'district',
+        groupValue: 'district-id',
+        metric: 'distribution',
+        value: 19,
+      }),
+    )
     expect(rows).toContainEqual(
       expect.objectContaining({
         dimension: 'records',

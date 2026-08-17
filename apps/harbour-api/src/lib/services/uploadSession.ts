@@ -26,7 +26,7 @@ export async function handleRegisterUploadRequest(
   request: RegisterUploadRequest,
 ) {
   const registered = await registerUpload(db, {
-    allowExistingDatasetStatuses: request.force ? ['staged'] : undefined,
+    allowExistingDatasetStatuses: request.force ? ['staged', 'published'] : undefined,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
     filePath: request.fileName,

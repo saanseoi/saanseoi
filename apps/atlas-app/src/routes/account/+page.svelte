@@ -1,26 +1,30 @@
 <script lang="ts">
-import { Button, Main } from '$lib/bits'
-import { authClient } from '$lib/auth-client'
-import type { SocialProvider } from '$lib/auth-providers'
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import Icon from '@iconify/svelte'
+import { refreshAll } from '$app/navigation'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { authClient } from '#lib/auth-client.js'
+import type { SocialProvider } from '#lib/auth-providers.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
 import {
   addPasswordForCurrentUser,
   changePasswordForCurrentUser,
   deletePasskeyForCurrentUser,
-  getAccountPageData,
   unlinkAccountForCurrentUser,
 } from './account.remote'
 
-let data = $derived(await getAccountPageData())
-let accounts = $state<typeof data.accounts>([])
-let passkeys = $state<typeof data.passkeys>([])
+let { data } = $props()
+let accountPageData = $derived(data.accountPageData)
+let accounts = $state<typeof accountPageData.accounts>([])
+let passkeys = $state<typeof accountPageData.passkeys>([])
 let error = $state<string | null>(null)
 let unlinkingAccountId = $state<string | null>(null)
 let removingPasskeyId = $state<string | null>(null)
 let addingPasskey = $state(false)
+let linkingProvider = $state<SocialProvider | null>(null)
 let password = $state('')
 let currentPassword = $state('')
 let passwordMessage = $state<string | null>(null)
@@ -41,12 +45,23 @@ const handleSignOut = async () => {
 }
 
 $effect(() => {
-  accounts = data.accounts
-  passkeys = data.passkeys
+  accounts = accountPageData.accounts
+  passkeys = accountPageData.passkeys
 })
 
 const link = async (provider: SocialProvider) => {
-  await authClient.linkSocial({ provider, callbackURL: '/account' })
+  if (linkingProvider) return
+  error = null
+  linkingProvider = provider
+  try {
+    const result = await authClient.linkSocial({ provider, callbackURL: '/account' })
+    if (!result.error) return
+    error = result.error.message ?? m.auth_sign_in_error()
+  } catch {
+    error = m.auth_sign_in_error()
+  }
+
+  linkingProvider = null
 }
 
 const addPasskey = async () => {
@@ -56,7 +71,7 @@ const addPasskey = async () => {
   try {
     const result = await authClient.passkey.addPasskey()
     if (result.error) error = result.error.message ?? m.account_passkey_add_error()
-    else await getAccountPageData().refresh()
+    else await refreshAll()
   } catch {
     error = m.account_passkey_add_error()
   } finally {
@@ -74,6 +89,7 @@ const removePasskey = async (id: string) => {
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
+    else await refreshAll()
   } finally {
     removingPasskeyId = null
   }
@@ -90,6 +106,7 @@ const unlink = async (providerId: string, accountId: string) => {
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
+    else await refreshAll()
   } finally {
     unlinkingAccountId = null
   }
@@ -105,6 +122,7 @@ const addPassword = async () => {
   if (result.ok) {
     password = ''
     passwordDialogOpen = false
+    await refreshAll()
   }
 }
 
@@ -131,7 +149,7 @@ const providerDetails = (providerId: string) =>
       })
 </script>
 
-<svelte:head><title>{m.account_title()} | Saanseoi</title></svelte:head>
+<Seo title={m.account_title()} description={m.account_methods_description()} noindex />
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
   ><p
     class="font-body text-label-md font-semibold uppercase tracking-[0.12em] text-secondary"
@@ -143,7 +161,9 @@ const providerDetails = (providerId: string) =>
   >
     {m.account_settings()}
   </h1>
-  <p class="mt-3 font-body text-body-lg text-foreground-alt">{data.user.email}</p>
+  <p class="mt-3 font-body text-body-lg text-foreground-alt">
+    {accountPageData.user.email}
+  </p>
   <div class="mt-8 flex gap-3">
     <Button href="/api-keys" variant="primary">{m.account_manage_api_keys()}</Button>
     <Button onclick={handleSignOut} variant="secondary">{m.account_sign_out()}</Button>
@@ -213,10 +233,16 @@ const providerDetails = (providerId: string) =>
               </div>
             </div>
             <Button
+              aria-busy={linkingProvider === provider.id}
+              disabled={linkingProvider !== null}
               onclick={() => link(provider.id as SocialProvider)}
               size="compact"
               variant="primary"
-              >{m.account_connect()}</Button
+              ><Icon
+                icon={linkingProvider === provider.id ? 'ion:reload-outline' : 'ion:link-outline'}
+                class="size-4 {linkingProvider === provider.id ? 'motion-safe:animate-spin' : ''}"
+                aria-hidden="true"
+              />{m.account_connect()}</Button
             >
           </article>
         {/if}
@@ -262,11 +288,16 @@ const providerDetails = (providerId: string) =>
           </div>
         </div>
         <Button
+          aria-busy={addingPasskey}
           disabled={addingPasskey}
           onclick={addPasskey}
           size="compact"
           variant="primary"
-          >{m.account_add_passkey()}</Button
+          ><Icon
+            icon={addingPasskey ? 'ion:reload-outline' : 'ion:key-outline'}
+            class="size-4 {addingPasskey ? 'motion-safe:animate-spin' : ''}"
+            aria-hidden="true"
+          />{m.account_add_passkey()}</Button
         >
       </article>
       {#if !linked('credential')}

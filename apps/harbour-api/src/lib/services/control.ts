@@ -29,7 +29,18 @@ import {
   type ResourceType,
 } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import type { ApiFamilyType } from '@repo/db'
+import {
+  and,
+  eq,
+  metaApiComposition,
+  metaApiReleaseSets,
+  metaApiVersions,
+  metaPublisherI18n,
+  metaPublishers,
+  type ApiFamilyType,
+} from '@repo/db'
+
+import type { ReleaseSetPublication } from './releaseDiscord'
 
 type StageRequest = {
   releaseCode?: string
@@ -63,10 +74,9 @@ type ControlResult = {
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
-  apiReleaseSetPublications?: Array<{
-    apiCatalogRevisionCode?: string
-    apiReleaseSetCode: string
-  }>
+  /** Release-set publications that crossed draft -> current in this call. */
+  apiReleaseSetAnnouncements?: ReleaseSetPublication[]
+  apiReleaseSetPublications?: ReleaseSetPublication[]
   datasetId: string
   releaseCode: string
   releaseId: string
@@ -86,6 +96,9 @@ type CleanupSnapshotsResult = {
 export type ReconcileDraftReleaseSetsResult = {
   inspected: number
   pendingReleaseSetCodes: string[]
+  /** Release-set publications that crossed draft -> current in this call. */
+  publishedReleaseSetAnnouncements: ReleaseSetPublication[]
+  publishedReleaseSetPublications: ReleaseSetPublication[]
   publishedReleaseSetCodes: string[]
 }
 
@@ -233,12 +246,25 @@ export async function handlePublishDataset(
   cleanupQueue?: HarbourJobQueue,
   options: {
     reconcileDraftReleaseSet?: boolean
-    releaseSet?: { code: string; id: string }
+    releaseSet?: { code: string; id: string; status?: 'draft' | 'current' | 'archived' }
   } = {},
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
+    // Division Statistics currently have no API composition or snapshot. Their
+    // source and history shards are nevertheless a complete published release.
+    if (datasetType === 'divisionStatistic') {
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        phase: null,
+        status: 'published',
+      }
+    }
+
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
@@ -349,9 +375,15 @@ export async function handlePublishDataset(
     const apiReleaseSetPublications: NonNullable<
       ControlResult['apiReleaseSetPublications']
     > = []
+    const apiReleaseSetAnnouncements: NonNullable<
+      ControlResult['apiReleaseSetAnnouncements']
+    > = []
     const newestReleaseSetIndex = releaseSets.length - 1
     const publishedAtMs = Date.now()
+    const publisherName = await resolvePublisherName(db, dataset.source)
     for (const [index, releaseSet] of releaseSets.entries()) {
+      const releaseSetWasDraft =
+        !('status' in releaseSet) || releaseSet.status === 'draft'
       const releaseSetCohortKey =
         parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
       const previousReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
@@ -409,6 +441,7 @@ export async function handlePublishDataset(
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
+      const publishedAt = new Date(publishedAtMs + index).toISOString()
       const apiCatalogRevision = await publishReleaseArtefacts(db, {
         carriedSnapshots,
         currentRelease,
@@ -418,7 +451,7 @@ export async function handlePublishDataset(
         dataset,
         // Preserve chronological ordering in registry queries even when this
         // backfill completes within one clock tick.
-        publishedAt: new Date(publishedAtMs + index).toISOString(),
+        publishedAt,
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         type: datasetType,
@@ -432,10 +465,39 @@ export async function handlePublishDataset(
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
-        apiReleaseSetPublications.push({
+        const publishedReleaseSetStatus = await db
+          .select({ status: metaApiReleaseSets.status })
+          .from(metaApiReleaseSets)
+          .where(eq(metaApiReleaseSets.id, releaseSet.id))
+          .limit(1)
+          .get()
+        const publishedReleaseSet = await requireReleaseSetPublicationMetadata(
+          db,
+          releaseSet.id,
+          {
+            apiFamily: dataset.theme,
+            cohortKey: releaseSetCohortKey,
+            domainCode,
+            regionCode: dataset.regionCode,
+          },
+        )
+        const publication = {
           apiCatalogRevisionCode: apiCatalogRevision?.code,
+          apiFamily: publishedReleaseSet.apiFamily,
           apiReleaseSetCode: releaseSet.code,
-        })
+          cohortKey: publishedReleaseSet.cohortKey,
+          description: publishedReleaseSet.description,
+          domainCode: publishedReleaseSet.domainCode,
+          domainName: publishedReleaseSet.domainName,
+          publishedAt,
+          publisherName,
+          regionCode: publishedReleaseSet.regionCode,
+          revision: publishedReleaseSet.revision,
+        }
+        apiReleaseSetPublications.push(publication)
+        if (releaseSetWasDraft && publishedReleaseSetStatus?.status === 'current') {
+          apiReleaseSetAnnouncements.push(publication)
+        }
       }
     }
 
@@ -460,6 +522,7 @@ export async function handlePublishDataset(
       apiReleaseSetId: releaseSets.at(-1)?.id,
       apiReleaseSetCode: releaseSets.at(-1)?.code,
       apiReleaseSetStatus: selectedReleaseSetStatus,
+      apiReleaseSetAnnouncements,
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
@@ -489,6 +552,8 @@ export async function handleReconcileDraftReleaseSets(
       primaryReleases.map(release => [release.apiReleaseSetId, release]),
     )
     const publishedReleaseSetCodes: string[] = []
+    const publishedReleaseSetAnnouncements: ReleaseSetPublication[] = []
+    const publishedReleaseSetPublications: ReleaseSetPublication[] = []
     const pendingReleaseSetCodes: string[] = []
 
     for (const releaseSet of draftReleaseSets) {
@@ -510,6 +575,16 @@ export async function handleReconcileDraftReleaseSets(
         )
       ) {
         publishedReleaseSetCodes.push(releaseSet.code)
+        publishedReleaseSetAnnouncements.push(
+          ...(result.apiReleaseSetAnnouncements ?? []).filter(
+            publication => publication.apiReleaseSetCode === releaseSet.code,
+          ),
+        )
+        publishedReleaseSetPublications.push(
+          ...(result.apiReleaseSetPublications ?? []).filter(
+            publication => publication.apiReleaseSetCode === releaseSet.code,
+          ),
+        )
       } else {
         pendingReleaseSetCodes.push(releaseSet.code)
       }
@@ -518,6 +593,8 @@ export async function handleReconcileDraftReleaseSets(
     return {
       inspected: draftReleaseSets.length,
       pendingReleaseSetCodes,
+      publishedReleaseSetAnnouncements,
+      publishedReleaseSetPublications,
       publishedReleaseSetCodes,
     }
   })
@@ -709,6 +786,121 @@ async function requireDataset(
   }
 
   return dataset
+}
+
+async function resolvePublisherName(db: HarbourReadableDb, publisherCode: string) {
+  const publisher = await db
+    .select({ name: metaPublisherI18n.name })
+    .from(metaPublisherI18n)
+    .innerJoin(metaPublishers, eq(metaPublisherI18n.publisherId, metaPublishers.id))
+    .where(
+      and(eq(metaPublishers.code, publisherCode), eq(metaPublisherI18n.locale, 'en')),
+    )
+    .limit(1)
+    .get()
+
+  return publisher?.name ?? publisherCode
+}
+
+async function requireReleaseSetPublicationMetadata(
+  db: HarbourReadableDb,
+  releaseSetId: string,
+  fallback: {
+    apiFamily: string
+    cohortKey: string
+    domainCode: string
+    regionCode: string
+  },
+) {
+  const releaseSet = await db
+    .select({
+      apiFamily: metaApiVersions.familyType,
+      apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiCompositionId: metaApiReleaseSets.apiCompositionId,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      domainCode: metaApiReleaseSets.domainCode,
+      regionCode: metaApiReleaseSets.regionCode,
+      revision: metaApiReleaseSets.revision,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .limit(1)
+    .get()
+
+  if (!releaseSet) {
+    throw new ControlRequestError(
+      `Published API release set metadata not found: ${releaseSetId}`,
+    )
+  }
+
+  const composition = await db
+    .select({ i18n: metaApiComposition.i18n })
+    .from(metaApiComposition)
+    .where(
+      releaseSet.apiCompositionId
+        ? eq(metaApiComposition.id, releaseSet.apiCompositionId)
+        : and(
+            eq(metaApiComposition.apiVersionId, releaseSet.apiVersionId),
+            eq(metaApiComposition.status, 'current'),
+          ),
+    )
+    .limit(1)
+    .get()
+  const domainCode = releaseSet.domainCode ?? fallback.domainCode
+  const copy = getEnglishDomainCopy(composition?.i18n, domainCode)
+  return {
+    apiFamily: releaseSet.apiFamily ?? fallback.apiFamily,
+    cohortKey: releaseSet.cohortKey ?? fallback.cohortKey,
+    description: copy.description,
+    domainCode,
+    domainName: copy.name,
+    regionCode: releaseSet.regionCode ?? fallback.regionCode,
+    revision: releaseSet.revision,
+  }
+}
+
+function getEnglishDomainCopy(value: unknown, domainCode: string) {
+  const composition = parseCompositionI18n(value)
+  const translations =
+    composition && typeof composition === 'object'
+      ? (composition as Record<string, unknown>)[domainCode]
+      : undefined
+  const english = Array.isArray(translations)
+    ? translations.find(
+        translation =>
+          translation &&
+          typeof translation === 'object' &&
+          (translation as { locale?: unknown }).locale === 'en',
+      )
+    : undefined
+  const name =
+    english &&
+    typeof english === 'object' &&
+    typeof (english as { name?: unknown }).name === 'string'
+      ? (english as { name: string }).name
+      : domainCode
+  const description =
+    english &&
+    typeof english === 'object' &&
+    typeof (english as { description?: unknown }).description === 'string'
+      ? (english as { description: string }).description
+      : ''
+
+  return { description, name }
+}
+
+function parseCompositionI18n(value: unknown) {
+  if (typeof value !== 'string') return value
+
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, unknown>)
+      : undefined
+  } catch {
+    return undefined
+  }
 }
 
 async function waitForSnapshotForRelease(

@@ -2,6 +2,7 @@
 import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
 import { tick } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { MultiPolygon, Polygon } from 'geojson'
@@ -32,6 +33,7 @@ type Props = {
 }
 
 let { ariaLabel, features, values, valueLabel = 'records' }: Props = $props()
+const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
 
 // SaanSeoi publishes a TileJSON manifest, so it must be mounted as a vector source
 // inside a Style Specification rather than passed to MapLibre as a style URL.
@@ -40,7 +42,11 @@ const SAANSEOI_BASEMAP_STYLE: StyleSpecification = {
   sources: {
     'hongkong-latest': {
       type: 'vector',
-      url: 'https://tiles.saanseoi.hk/hongkong-latest.json',
+      url: `https://tiles.saanseoi.hk/hongkong-latest.json${
+        saanseoiAccessToken
+          ? `?access_token=${encodeURIComponent(saanseoiAccessToken)}`
+          : ''
+      }`,
     },
   },
   glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
@@ -128,7 +134,7 @@ function updateActiveFeature(event: {
       minZoom={8}
       maxZoom={13}
       attributionControl={false}
-      autoloadGlobalCss={true}
+      autoloadGlobalCss={false}
     >
       <GeoJSONSource id="choropleth-districts" data={sourceData}>
         <FillLayer

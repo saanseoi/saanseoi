@@ -3,6 +3,7 @@ import type {
   ReleaseNavAction,
   ReleaseNavTab,
   ReleaseNavVersion,
+  ReleaseNavVersionPreload,
 } from '../releaseNav.types'
 import ReleaseNavActions from './releaseNavActions.svelte'
 import ReleaseNavTabs from './releaseNavTabs.svelte'
@@ -13,6 +14,7 @@ type Props = {
   activeTab: string
   currentVersionCode: string
   onSelectTab: (tab: string) => void
+  onVersionPreload?: ReleaseNavVersionPreload
   tabs: ReleaseNavTab[]
   versionTitle: string
   versions: ReleaseNavVersion[]
@@ -22,6 +24,7 @@ let {
   activeTab,
   currentVersionCode,
   onSelectTab,
+  onVersionPreload,
   tabs,
   versionTitle,
   versions,
@@ -37,7 +40,11 @@ let {
     <ReleaseNavActions {actions} />
   </div>
   <div class="hidden h-10 items-center justify-between xl:flex">
-    <h2 class="font-body text-label-md font-semibold text-primary">{versionTitle}</h2>
-    <ReleaseNavVersionControls {currentVersionCode} {versions} />
+    <h2
+      class="font-body text-label-md font-semibold uppercase tracking-[0.14em] text-primary"
+    >
+      {versionTitle}
+    </h2>
+    <ReleaseNavVersionControls {currentVersionCode} {onVersionPreload} {versions} />
   </div>
 </div>

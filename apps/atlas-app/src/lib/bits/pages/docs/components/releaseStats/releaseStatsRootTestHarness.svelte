@@ -1,9 +1,18 @@
 <script lang="ts">
 import Root from './components/releaseStatsRoot.svelte'
-import type { ReleaseStat, ReleaseStatsCopy } from './releaseStats.types'
+import type {
+  ReleaseStat,
+  ReleaseStatsCopy,
+  ReleaseStatsDistrictArea,
+  ReleaseStatsDistrictName,
+} from './releaseStats.types'
 
-type Props = { stats?: ReleaseStat[] }
-let { stats = [] }: Props = $props()
+type Props = {
+  stats?: ReleaseStat[]
+  districtAreas?: ReleaseStatsDistrictArea[]
+  districtNames?: ReleaseStatsDistrictName[]
+}
+let { stats = [], districtAreas = [], districtNames = [] }: Props = $props()
 let activeHeadingId = $state<string | null>(null)
 const presentation: ReleaseStatsCopy = {
   labels: {
@@ -28,6 +37,7 @@ const presentation: ReleaseStatsCopy = {
     addressComponents: 'Address components',
     changeDistribution: 'Change distribution',
     recordsByType: 'Records by type',
+    recordsByGeometryClass: 'Records by geometry class',
     typeLegend: 'Type legend',
     changeDistributionInfo: 'Distribution info',
     changeDistributionInfoDescription: 'Distribution details',
@@ -42,12 +52,31 @@ const presentation: ReleaseStatsCopy = {
     stats: 'Stats',
     recordsByDistrict: 'Records by district',
     district: 'District',
+    geometry: 'Geometry',
+    geometryByDistrict: 'By District',
+    geometryInfo: 'About geometry measurements',
+    geometryInfoDescription: 'Geometry details',
+    geometryFeatures: 'Features',
+    geometryPolygons: 'Polygons',
+    geometryArea: 'Area',
+    geometryBoundarySegments: 'Boundary segments',
+    geometryBoundaryLength: 'Boundary length',
+    geometryUnofficial: 'Unofficial',
+    notApplicable: 'Not applicable',
   },
   localeName: value => value,
   statLabel: value => value ?? 'Unspecified',
+  districtFallback: districtId => `District ${districtId}`,
   processingAction: code => ({ issue: code, outcome: 'Processed', mode: 'Automatic' }),
 }
 </script>
 
-<Root {stats} locale="en" {presentation} bind:activeHeadingId />
+<Root
+  {stats}
+  {districtAreas}
+  {districtNames}
+  locale="en"
+  {presentation}
+  bind:activeHeadingId
+/>
 <output data-testid="active-heading">{activeHeadingId ?? ''}</output>

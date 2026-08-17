@@ -1,10 +1,10 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { cubicOut } from 'svelte/easing'
 import { onMount } from 'svelte'
 
-import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 
 const heroTitleWidthClass = $derived(
   getCurrentLocale() === 'en' ? 'max-w-[11ch]' : 'max-w-[12ch]',

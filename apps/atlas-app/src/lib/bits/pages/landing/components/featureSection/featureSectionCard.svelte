@@ -1,6 +1,6 @@
 <script lang="ts">
-import { cn } from '$lib/bits/utilities/helpers/cn'
-import * as Card from '$lib/bits/components/cardDeck'
+import { cn } from '#lib/bits/utilities/helpers/cn.js'
+import * as Card from '#lib/bits/components/cardDeck/index.js'
 import FeatureSectionCardAnimation from './featureSectionCardAnimation.svelte'
 import type { FeatureSectionPrinciple } from './featureSectionTypes'
 
@@ -75,7 +75,7 @@ const tones = {
     title={principle.title()}
     body={principle.body()}
     class="relative z-2 px-[.4rem]"
-    titleClass="block pt-4 font-display text-[1.55rem] font-bold leading-[1.02]"
+    titleClass="principle-card-title block pt-4 font-display text-[1.55rem] font-bold leading-[1.02]"
     bodyClass={cn(
       'principle-card-body mt-4 block max-h-0 pointer-events-none opacity-0 transition-[max-height,opacity] duration-450',
       isActive && 'max-h-none pointer-events-auto opacity-100',
