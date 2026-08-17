@@ -628,6 +628,62 @@ export async function listRegistryApis(db: MetaDatabase, limit?: number) {
   }))
 }
 
+/**
+ * Load only the API composition metadata needed by the Sources directory.
+ *
+ * The full `listRegistryApis` projection deliberately follows every API
+ * release, snapshot, source, statistic, and processing action. That is the
+ * right shape for API release pages, but the Sources directory only needs the
+ * current domain labels for each family.
+ */
+export async function listRegistryApiCompositions(db: MetaDatabase, limit?: number) {
+  const [apis, compositions] = await Promise.all([
+    db
+      .select({
+        id: metaApiVersions.id,
+        code: metaApiVersions.code,
+        familyType: metaApiVersions.familyType,
+        version: metaApiVersions.version,
+        status: metaApiVersions.status,
+      })
+      .from(metaApiVersions)
+      .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+      .limit(registryLimit(limit))
+      .all(),
+    db
+      .select({
+        id: metaApiComposition.id,
+        apiVersionId: metaApiComposition.apiVersionId,
+        defaultDomainCode: metaApiComposition.defaultDomainCode,
+        i18n: metaApiComposition.i18n,
+        status: metaApiComposition.status,
+        version: metaApiComposition.version,
+      })
+      .from(metaApiComposition)
+      .where(eq(metaApiComposition.status, 'current'))
+      .orderBy(desc(metaApiComposition.version))
+      .all(),
+  ])
+
+  const currentCompositionByApiVersionId = new Map<
+    string,
+    (typeof compositions)[number]
+  >()
+  for (const composition of compositions) {
+    if (!currentCompositionByApiVersionId.has(composition.apiVersionId)) {
+      currentCompositionByApiVersionId.set(composition.apiVersionId, composition)
+    }
+  }
+
+  return apis.map(api => {
+    const composition = currentCompositionByApiVersionId.get(api.id)
+    return {
+      ...api,
+      apiComposition: composition ? [{ ...composition }] : [],
+    }
+  })
+}
+
 export async function getRegistryApi(db: MetaDatabase, id: string) {
   const api = await db
     .select()
@@ -827,15 +883,218 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
   }))
 }
 
-export async function getRegistrySource(db: MetaDatabase, id: string) {
-  const source = await db
-    .select(registrySourceSelection)
+/**
+ * Load the deliberately small projection used by the Sources directory.
+ * Keep this separate from `listRegistrySources`, whose source-version
+ * projection is used for release and provenance views and is intentionally
+ * much richer.
+ */
+export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) {
+  const sources = await db
+    .select({
+      id: metaDatasets.id,
+      publisherId: metaDatasets.publisherId,
+      publisherCode: metaPublishers.code,
+      code: metaDatasets.code,
+      regionCode: metaDatasets.regionCode,
+      releaseFrequency: metaDatasets.releaseFrequency,
+      theme: metaDatasets.theme,
+      sourceVariant: metaDatasets.sourceVariant,
+      license: {
+        code: metaLicenses.code,
+      },
+    })
     .from(metaDatasets)
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
-    .where(sql`${metaDatasets.id} = ${id} or ${metaDatasets.code} = ${id}`)
-    .limit(1)
-    .get()
+    .orderBy(metaDatasets.regionCode, metaDatasets.code)
+    .limit(registryLimit(limit))
+    .all()
+
+  if (!sources.length) return []
+
+  const sourceIds = sources.map(source => source.id)
+  const publisherIds = [...new Set(sources.map(source => source.publisherId))]
+  const [resourceTypes, i18n, publisherI18n, sourceVersions] = await Promise.all([
+    queryInBatches(sourceIds, ids =>
+      db
+        .select()
+        .from(metaDatasetResourceTypes)
+        .where(inArray(metaDatasetResourceTypes.datasetId, ids))
+        .all(),
+    ),
+    queryInBatches(sourceIds, ids =>
+      db
+        .select()
+        .from(metaDatasetI18n)
+        .where(inArray(metaDatasetI18n.datasetId, ids))
+        .all(),
+    ),
+    queryInBatches(publisherIds, ids =>
+      db
+        .select()
+        .from(metaPublisherI18n)
+        .where(inArray(metaPublisherI18n.publisherId, ids))
+        .all(),
+    ),
+    db
+      .select({
+        id: metaSourceReleases.id,
+        datasetId: metaSourceReleases.datasetId,
+        datasetCode: metaDatasets.code,
+        code: metaSourceReleases.code,
+        sourceVersion: metaSourceReleases.sourceVersion,
+        cohortKey: metaSourceReleases.cohortKey,
+        status: metaSourceReleases.status,
+        license: {
+          code: metaLicenses.code,
+        },
+      })
+      .from(metaSourceReleases)
+      .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
+      .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
+      .where(
+        and(
+          inArray(metaSourceReleases.datasetId, sourceIds),
+          eq(metaSourceReleases.status, 'published'),
+        ),
+      )
+      .orderBy(
+        desc(metaSourceReleases.publicationDate),
+        desc(metaSourceReleases.createdAt),
+      )
+      .all(),
+  ])
+
+  const latestVersions = sourceVersions.filter(
+    (version, index, versions) =>
+      versions.findIndex(candidate => candidate.datasetId === version.datasetId) ===
+      index,
+  )
+  const sourceReleaseIds = latestVersions.map(version => version.id)
+  const resourceReleases = sourceReleaseIds.length
+    ? await queryInBatches(sourceReleaseIds, ids =>
+        db
+          .select({
+            id: metaReleases.id,
+            sourceReleaseId: metaReleases.sourceReleaseId,
+          })
+          .from(metaReleases)
+          .where(inArray(metaReleases.sourceReleaseId, ids))
+          .all(),
+      )
+    : []
+  const resourceReleaseIds = resourceReleases.map(release => release.id)
+
+  const [releaseStats, releaseAs] = resourceReleaseIds.length
+    ? await Promise.all([
+        queryInBatches(resourceReleaseIds, ids =>
+          db
+            .select({
+              releaseId: stats.releaseId,
+              dimension: stats.dimension,
+              metric: stats.metric,
+              metricUnit: stats.metricUnit,
+              value: stats.value,
+              groupBy: stats.groupBy,
+              groupValue: stats.groupValue,
+            })
+            .from(stats)
+            .where(
+              and(
+                inArray(stats.releaseId, ids),
+                eq(stats.dimension, 'records'),
+                eq(stats.metric, 'count'),
+                eq(stats.metricUnit, 'count'),
+                isNull(stats.groupBy),
+                isNull(stats.groupValue),
+              ),
+            )
+            .all(),
+        ),
+        queryInBatches(resourceReleaseIds, ids =>
+          db
+            .select({
+              sourceReleaseId: metaReleases.sourceReleaseId,
+              apiFamily: metaApiVersions.familyType,
+              domainCode: metaApiReleaseSets.domainCode,
+            })
+            .from(metaSnapshotSources)
+            .innerJoin(
+              metaReleases,
+              eq(metaSnapshotSources.sourceReleaseId, metaReleases.id),
+            )
+            .innerJoin(
+              metaSnapshots,
+              eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+            )
+            .innerJoin(
+              metaApiReleaseSetSnapshots,
+              eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+            )
+            .innerJoin(
+              metaApiReleaseSets,
+              eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+            )
+            .innerJoin(
+              metaApiVersions,
+              eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+            )
+            .where(
+              and(
+                inArray(metaSnapshotSources.sourceReleaseId, ids),
+                ne(metaSnapshotSources.role, 'lookup'),
+              ),
+            )
+            .all(),
+        ),
+      ])
+    : [[], []]
+
+  const resourceIdsBySourceReleaseId = new Map<string, string[]>()
+  for (const release of resourceReleases) {
+    const ids = resourceIdsBySourceReleaseId.get(release.sourceReleaseId) ?? []
+    ids.push(release.id)
+    resourceIdsBySourceReleaseId.set(release.sourceReleaseId, ids)
+  }
+
+  return sources.map(source => ({
+    ...source,
+    publisher: {
+      publisherI18n: publisherI18n.filter(
+        row => row.publisherId === source.publisherId,
+      ),
+    },
+    datasetI18n: i18n.filter(row => row.datasetId === source.id),
+    resourceTypes: resourceTypes
+      .filter(row => row.datasetId === source.id)
+      .map(row => row.resourceType),
+    sourceVersions: latestVersions
+      .filter(version => version.datasetId === source.id)
+      .map(version => {
+        const resourceIds = resourceIdsBySourceReleaseId.get(version.id) ?? []
+        return {
+          ...version,
+          releaseAs: releaseAs
+            .filter(release => release.sourceReleaseId === version.id)
+            .filter(
+              (release, index, releases) =>
+                releases.findIndex(
+                  candidate =>
+                    candidate.apiFamily === release.apiFamily &&
+                    candidate.domainCode === release.domainCode,
+                ) === index,
+            ),
+          stats: releaseStats.filter(stat =>
+            resourceIds.includes(stat.releaseId ?? ''),
+          ),
+        }
+      }),
+  }))
+}
+
+export async function getRegistrySource(db: MetaDatabase, id: string) {
+  const source = await getRegistrySourceRecord(db, id)
 
   if (!source) return null
 
@@ -870,10 +1129,135 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
   }
 }
 
+async function getRegistrySourceRecord(db: MetaDatabase, id: string) {
+  return db
+    .select(registrySourceSelection)
+    .from(metaDatasets)
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
+    .where(sql`${metaDatasets.id} = ${id} or ${metaDatasets.code} = ${id}`)
+    .limit(1)
+    .get()
+}
+
+export async function getRegistrySourceReleaseShell(
+  db: MetaDatabase,
+  id: string,
+  releaseCode: string,
+) {
+  const timings: Record<string, number> = {}
+  const timed = async <T>(name: string, fn: () => Promise<T>) => {
+    const startedAt = performance.now()
+    try {
+      return await fn()
+    } finally {
+      timings[name] = performance.now() - startedAt
+    }
+  }
+
+  const source = await timed('source', () => getRegistrySourceRecord(db, id))
+  if (!source) return null
+
+  const [datasetI18n, resourceTypes, sourceVersions, publisher] = await Promise.all([
+    timed('header-i18n', () =>
+      db
+        .select()
+        .from(metaDatasetI18n)
+        .where(eq(metaDatasetI18n.datasetId, source.id))
+        .all(),
+    ),
+    timed('header-resource-types', () =>
+      db
+        .select()
+        .from(metaDatasetResourceTypes)
+        .where(eq(metaDatasetResourceTypes.datasetId, source.id))
+        .all(),
+    ),
+    timed('versions', () =>
+      db
+        .select({
+          id: metaSourceReleases.id,
+          datasetId: metaSourceReleases.datasetId,
+          datasetCode: metaDatasets.code,
+          code: metaSourceReleases.code,
+          sourceVersion: metaSourceReleases.sourceVersion,
+          sourceSchemaVersion: metaSourceReleases.sourceSchemaVersion,
+          cohortKey: metaSourceReleases.cohortKey,
+          publicationDate: metaSourceReleases.publicationDate,
+          releaseNotesUrl: metaSourceReleases.releaseNotesUrl,
+          status: metaSourceReleases.status,
+          processingRules: metaSourceReleases.processingRules,
+          ingestedAt: metaSourceReleases.ingestedAt,
+          createdAt: metaSourceReleases.createdAt,
+          updatedAt: metaSourceReleases.updatedAt,
+        })
+        .from(metaSourceReleases)
+        .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
+        .where(eq(metaSourceReleases.datasetId, source.id))
+        .orderBy(
+          desc(metaSourceReleases.publicationDate),
+          desc(metaSourceReleases.createdAt),
+        )
+        .all(),
+    ),
+    timed('header-publisher', () => getRegistrySourcePublisher(db, source.publisherId)),
+  ])
+
+  return {
+    ...source,
+    publisher,
+    datasetI18n,
+    resourceTypes: resourceTypes.map(row => row.resourceType),
+    sourceVersions,
+    selectedReleaseCode: releaseCode,
+    timings,
+  }
+}
+
+export async function getRegistrySourceRelease(
+  db: MetaDatabase,
+  id: string,
+  releaseCode: string,
+) {
+  const source = await getRegistrySourceRecord(db, id)
+  if (!source) return null
+
+  const [datasetI18n, resourceTypes, transforms, sourceVersions, publisher] =
+    await Promise.all([
+      db
+        .select()
+        .from(metaDatasetI18n)
+        .where(eq(metaDatasetI18n.datasetId, source.id))
+        .all(),
+      db
+        .select()
+        .from(metaDatasetResourceTypes)
+        .where(eq(metaDatasetResourceTypes.datasetId, source.id))
+        .all(),
+      db
+        .select()
+        .from(metaDatasetTransforms)
+        .where(eq(metaDatasetTransforms.datasetId, source.id))
+        .all(),
+      queryRegistrySourceVersions(db, source.id, undefined, releaseCode),
+      getRegistrySourcePublisher(db, source.publisherId),
+    ])
+
+  return {
+    ...source,
+    publisher,
+    datasetI18n,
+    resourceTypes: resourceTypes.map(row => row.resourceType),
+    transforms,
+    sourceVersions,
+  }
+}
+
 async function queryRegistrySourceVersions(
   db: MetaDatabase,
   datasetId?: string,
   limit?: number,
+  sourceReleaseCode?: string,
 ) {
   const sourceReleases = await db
     .select({
@@ -907,7 +1291,12 @@ async function queryRegistrySourceVersions(
     .from(metaSourceReleases)
     .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
     .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
-    .where(datasetId ? eq(metaSourceReleases.datasetId, datasetId) : undefined)
+    .where(
+      and(
+        datasetId ? eq(metaSourceReleases.datasetId, datasetId) : undefined,
+        sourceReleaseCode ? eq(metaSourceReleases.code, sourceReleaseCode) : undefined,
+      ),
+    )
     .orderBy(
       desc(metaSourceReleases.publicationDate),
       desc(metaSourceReleases.createdAt),
