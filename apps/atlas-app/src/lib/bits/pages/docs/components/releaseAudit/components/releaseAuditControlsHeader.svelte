@@ -8,10 +8,17 @@ type Props = {
   filteredCount: string
   infoDescription: string
   infoLabel: string
+  loading?: boolean
   totalCount: string
 }
 
-let { filteredCount, infoDescription, infoLabel, totalCount }: Props = $props()
+let {
+  filteredCount,
+  infoDescription,
+  infoLabel,
+  loading = false,
+  totalCount,
+}: Props = $props()
 </script>
 
 <div class="flex flex-wrap items-start justify-between gap-4">
@@ -28,13 +35,16 @@ let { filteredCount, infoDescription, infoLabel, totalCount }: Props = $props()
   <div class="ml-auto flex items-center gap-4">
     <Tooltip.Root>
       <Tooltip.Trigger>
-        <button
-          class="inline-flex size-5 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"
-          type="button"
-          aria-label={infoLabel}
-        >
-          <Icon icon="proicons:info" class="size-3.5" aria-hidden="true" />
-        </button>
+        {#snippet child({ props })}
+          <button
+            {...props}
+            class="inline-flex size-5 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"
+            type="button"
+            aria-label={infoLabel}
+          >
+            <Icon icon="proicons:info" class="size-3.5" aria-hidden="true" />
+          </button>
+        {/snippet}
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content
@@ -46,9 +56,17 @@ let { filteredCount, infoDescription, infoLabel, totalCount }: Props = $props()
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
-    <p class="font-mono text-label-md font-bold tabular-nums text-primary">
-      {filteredCount}
-      / {totalCount}
-    </p>
+    {#if loading}
+      <span
+        class="h-4 w-14 rounded-full bg-data-surface-container-high motion-safe:animate-pulse"
+        aria-hidden="true"
+      ></span>
+      <span class="sr-only">Loading processing action count</span>
+    {:else}
+      <p class="font-mono text-label-md font-bold tabular-nums text-primary">
+        {filteredCount}
+        / {totalCount}
+      </p>
+    {/if}
   </div>
 </div>

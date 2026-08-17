@@ -19,5 +19,5 @@ let { tab, diff = false }: Props = $props()
 {:else if tab === 'audit'}
   <ReleaseAuditSkeleton />
 {:else}
-  <ReleaseLinksSkeleton />
+  <ReleaseLinksSkeleton variant={tab === 'assembly' ? 'assembly' : 'releases'} />
 {/if}

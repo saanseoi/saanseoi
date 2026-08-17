@@ -1,30 +1,21 @@
+<script lang="ts">
+import ReleaseLinksSkeletonGroup from './releaseLinksSkeletonGroup.svelte'
+
+type Props = { variant?: 'assembly' | 'releases' }
+
+let { variant = 'releases' }: Props = $props()
+</script>
+
 <div
-  class="animate-pulse space-y-6"
+  class="grid gap-6"
   aria-busy="true"
-  aria-label="Loading release links"
+  aria-label={variant === 'assembly' ? 'Loading assembly' : 'Loading release links'}
   role="status"
 >
-  {#each Array(2) as _}
-    <section
-      class="overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
-    >
-      <div
-        class="border-b border-outline-variant/60 px-5 py-4 dark:border-outline-variant"
-      >
-        <div class="h-3 w-24 rounded-full bg-surface-container-high"></div>
-        <div class="mt-2 h-6 w-52 rounded-md bg-surface-container-high"></div>
-      </div>
-      <div class="space-y-5 p-5 pl-12">
-        {#each Array(2) as _}
-          <div
-            class="space-y-3 rounded-md border border-outline-variant/60 p-4 dark:border-outline-variant"
-          >
-            <div class="h-5 w-48 rounded-md bg-surface-container-high"></div>
-            <div class="h-4 w-full rounded-full bg-surface-container-high"></div>
-            <div class="h-4 w-[72%] rounded-full bg-surface-container-high"></div>
-          </div>
-        {/each}
-      </div>
-    </section>
-  {/each}
+  {#if variant === 'assembly'}
+    <ReleaseLinksSkeletonGroup entryCount={2} />
+    <ReleaseLinksSkeletonGroup entryCount={1} />
+  {:else}
+    <ReleaseLinksSkeletonGroup expanded entryCount={1} />
+  {/if}
 </div>
