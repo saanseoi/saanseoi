@@ -343,7 +343,10 @@ $effect(() => {
           </button>
         </section>
       {:else}
-        <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+        <div
+          class="h-full min-h-0"
+          transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
+        >
           {#if activeTab === 'notes'}
             <div class:contents={showNoteDiff} class="h-full min-h-0">
               {#if showNoteDiff && previousVersion}
