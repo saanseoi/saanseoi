@@ -425,7 +425,7 @@ onMount(() => {
 
   .community-space-blob-discord {
     grid-column: 1;
-    height: calc((var(--community-shape-size) + 48px) * 1.05);
+    height: calc((var(--community-shape-size) + 48px) * 1.05 - 24px);
     background: #5865f2;
     transform: translateY(calc(var(--community-shape-size) * 0.02))
       translate(
@@ -435,7 +435,7 @@ onMount(() => {
   }
 
   .community-space-blob-discord-upper {
-    transform: translateY(calc(var(--community-shape-size) * 0.02 - 0.8rem))
+    transform: translateY(calc(var(--community-shape-size) * 0.02 - 0.8rem + 32px))
       translate(
         calc(var(--community-shape-size) * -0.036585 - 0.8rem - 2rem),
         calc(var(--community-shape-size) * -0.082927 - 0.8rem)
@@ -443,7 +443,7 @@ onMount(() => {
   }
 
   .community-space-blob-discord-lower {
-    transform: translateY(calc(var(--community-shape-size) * 0.02 + 0.8rem))
+    transform: translateY(calc(var(--community-shape-size) * 0.02 + 0.8rem + 16px))
       translate(
         calc(var(--community-shape-size) * -0.036585 + 0.8rem - 2rem),
         calc(var(--community-shape-size) * -0.082927 + 0.8rem)
