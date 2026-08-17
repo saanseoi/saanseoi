@@ -1,10 +1,9 @@
 <script lang="ts">
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
-import { getSourcePageData } from '#lib/registry/meta.remote.js'
 
-let { params } = $props()
-let source = $derived(await getSourcePageData(params.datasetCode))
+let { data } = $props()
+let source = $derived(data.source)
 let locale = $derived(getCurrentLocale())
 let name = $derived(selectLocalisedRow(source.datasetI18n, locale)?.name ?? source.code)
 </script>

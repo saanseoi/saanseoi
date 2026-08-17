@@ -1,6 +1,6 @@
 <script lang="ts">
-import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
+import { navigating } from '$app/state'
 import { Popover } from 'bits-ui'
 
 import * as SourceFlowMap from '#lib/bits/pages/sources/components/sourceFlowMap/index.js'
@@ -14,21 +14,21 @@ import type {
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
-import {
-  getSourcesPageData,
-  type SourcesPageSource,
-} from '#lib/registry/meta.remote.js'
+import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
 import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
 } from '#lib/registry/referenceDocs.js'
 import type { LocalisedRow } from '#lib/registry/types.js'
-import { Button } from '#lib/bits/primitives/button/index.js'
+import SourceReleasePageSkeleton from './[datasetCode]/[releaseCode]/sourceReleasePageSkeleton.svelte'
 
-const sourcesQuery = getSourcesPageData()
-const sourcesPageData = $derived(sourcesQuery.ready ? sourcesQuery.current : undefined)
+let { data } = $props()
+let sourcesPageData = $derived(data.sourcesPageData)
 let locale = $derived(getCurrentLocale())
+let isNavigatingToRelease = $derived(
+  /^\/sources\/[^/]+\/[^/]+$/.test(navigating.to?.url.pathname ?? ''),
+)
 const definitionHref = (id: 'api-family' | 'domain') =>
   `saanseoi:${locale.toLowerCase()}:definition/${id}/v1`
 let apiFamilyDefinition = $derived(
@@ -324,88 +324,69 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
 />
 
 <Main variant="page" class="py-14">
-  <section class="space-y-8">
-    <PageHeader class="max-w-none">
-      <PageTitle>{m.sources_title()}</PageTitle>
-      <PageDescription class="max-w-none">
-        <Popover.Root>
-          <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({ props })}
-              <button
-                {...props}
-                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-                type="button"
-                aria-label={getMarkdownTransclusionDisplayTitle(apiFamilyDefinition, locale)}
+  {#if isNavigatingToRelease}
+    <SourceReleasePageSkeleton />
+  {:else}
+    <section class="space-y-8">
+      <PageHeader class="max-w-none">
+        <PageTitle>{m.sources_title()}</PageTitle>
+        <PageDescription class="max-w-none">
+          <Popover.Root>
+            <Popover.Trigger openOnHover openDelay={200}>
+              {#snippet child({ props })}
+                <button
+                  {...props}
+                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  type="button"
+                  aria-label={getMarkdownTransclusionDisplayTitle(apiFamilyDefinition, locale)}
+                >
+                  {m.sources_api_families()}
+                </button>
+              {/snippet}
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                side="bottom"
+                sideOffset={8}
+                collisionPadding={{ right: 16 }}
+                >{@html apiFamilyDefinition?.markdown ?? ''}</Popover.Content
               >
-                {m.sources_api_families()}
-              </button>
-            {/snippet}
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
-              side="bottom"
-              sideOffset={8}
-              collisionPadding={{ right: 16 }}
-              >{@html apiFamilyDefinition?.markdown ?? ''}</Popover.Content
-            >
-          </Popover.Portal>
-        </Popover.Root>
-        {m.sources_api_families_description()}
-        <Popover.Root>
-          <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({ props })}
-              <button
-                {...props}
-                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-                type="button"
-                aria-label={getMarkdownTransclusionDisplayTitle(domainDefinition, locale)}
+            </Popover.Portal>
+          </Popover.Root>
+          {m.sources_api_families_description()}
+          <Popover.Root>
+            <Popover.Trigger openOnHover openDelay={200}>
+              {#snippet child({ props })}
+                <button
+                  {...props}
+                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  type="button"
+                  aria-label={getMarkdownTransclusionDisplayTitle(domainDefinition, locale)}
+                >
+                  {m.sources_domains()}
+                </button>
+              {/snippet}
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                side="bottom"
+                sideOffset={8}
+                collisionPadding={{ right: 16 }}
+                >{@html domainDefinition?.markdown ?? ''}</Popover.Content
               >
-                {m.sources_domains()}
-              </button>
-            {/snippet}
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
-              side="bottom"
-              sideOffset={8}
-              collisionPadding={{ right: 16 }}
-              >{@html domainDefinition?.markdown ?? ''}</Popover.Content
-            >
-          </Popover.Portal>
-        </Popover.Root>
-        {m.sources_domains_description()}
-      </PageDescription>
-    </PageHeader>
-    <div class="flex justify-end">
-      <SourcesHeader.Controls bind:expandAll bind:showPlanned bind:sourceSearch />
-    </div>
-  </section>
+            </Popover.Portal>
+          </Popover.Root>
+          {m.sources_domains_description()}
+        </PageDescription>
+      </PageHeader>
+      <div class="flex justify-end">
+        <SourcesHeader.Controls bind:expandAll bind:showPlanned bind:sourceSearch />
+      </div>
+    </section>
 
-  {#if sourcesQuery.error}
-    <div
-      class="mt-8 flex flex-wrap items-center gap-4 rounded-default border border-outline-variant bg-surface-container-low px-4 py-3 font-body text-body-md text-foreground-alt"
-      data-source-flow-error
-      role="alert"
-    >
-      <p>Sources could not be loaded.</p>
-      <Button
-        disabled={sourcesQuery.loading}
-        onclick={() => void sourcesQuery.refresh()}
-        size="compact"
-        type="button"
-        variant="secondary"
-      >
-        Retry
-      </Button>
-    </div>
-  {:else if sourcesQuery.loading || !sourcesQuery.ready}
-    <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
-      <SourceFlowMap.Skeleton />
-    </div>
-  {:else if sourcesQuery.ready}
-    <div transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+    <div transition:fade>
       {#if sourceFlowLanes.length}
         <SourceFlowMap.Root
           bind:expandAll
