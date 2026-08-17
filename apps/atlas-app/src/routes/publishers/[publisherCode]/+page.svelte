@@ -3,13 +3,14 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
-import { getPublisherPageData } from '#lib/registry/meta.remote.js'
 import type { RegistrySource } from '#lib/registry/types.js'
 
-let { params } = $props()
-let data = $derived(await getPublisherPageData(params.publisherCode))
+let { data } = $props()
+let publisherPageData = $derived(data.publisherPageData)
 let locale = $derived(getCurrentLocale())
-let publisher = $derived(selectLocalisedRow(data.publisher.publisherI18n, locale))
+let publisher = $derived(
+  selectLocalisedRow(publisherPageData.publisher.publisherI18n, locale),
+)
 
 const sourceHref = (source: RegistrySource) => {
   const latestVersion = source.sourceVersions?.[0]
@@ -33,7 +34,7 @@ const sourceHref = (source: RegistrySource) => {
         <h1
           class="font-display text-headline-lg font-bold text-primary md:text-display-sm"
         >
-          {publisher?.name ?? data.publisher.code}
+          {publisher?.name ?? publisherPageData.publisher.code}
         </h1>
         {#if publisher?.description}
           <p
@@ -43,10 +44,10 @@ const sourceHref = (source: RegistrySource) => {
           </p>
         {/if}
       </div>
-      {#if data.publisher.url}
+      {#if publisherPageData.publisher.url}
         <a
           class="inline-flex items-center gap-1 rounded-full border border-outline-variant px-4 py-2 font-body text-label-md font-semibold text-primary hover:border-secondary hover:text-secondary"
-          href={data.publisher.url}
+          href={publisherPageData.publisher.url}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -64,7 +65,7 @@ const sourceHref = (source: RegistrySource) => {
       {m.source_contributions()}
     </p>
     <div class="mt-4 grid gap-3 md:grid-cols-2">
-      {#each data.sources as source}
+      {#each publisherPageData.sources as source}
         <a
           class="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 transition hover:-translate-y-0.5 hover:border-secondary"
           href={sourceHref(source)}

@@ -1,6 +1,11 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { PageDescription, PageHeader, PageSection, PageTitle } from '#lib/bits/pages/shared/index.js'
+import {
+  PageDescription,
+  PageHeader,
+  PageSection,
+  PageTitle,
+} from '#lib/bits/pages/shared/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'

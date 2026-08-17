@@ -1,4 +1,5 @@
 <script lang="ts">
+import { refreshAll } from '$app/navigation'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
@@ -8,12 +9,11 @@ import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 
 import {
   createApiKeyForCurrentUser,
-  getApiKeysPageData,
   revokeApiKeyForCurrentUser,
 } from './apiKeys.remote'
 
-let loadedKeys = $derived(await getApiKeysPageData())
-let keys = $state<typeof loadedKeys>([])
+let { data } = $props()
+let keys = $state<typeof data.apiKeys>([])
 let name = $state('')
 let revealedKey = $state<string | null>(null)
 let keyRevealOpen = $state(false)
@@ -22,7 +22,7 @@ let showRevoked = $state(false)
 let error = $state<string | null>(null)
 
 $effect(() => {
-  keys = loadedKeys
+  keys = data.apiKeys
 })
 
 $effect(() => {
@@ -40,6 +40,7 @@ const createKey = async () => {
     revealedKey = result.rawKey
     keyRevealOpen = true
     name = ''
+    await refreshAll()
   } catch (exception) {
     error = exception instanceof Error ? exception.message : m.api_keys_create_error()
     return
@@ -56,6 +57,7 @@ const copyRevealedKey = async () => {
 const revokeKey = async (id: string) => {
   if (!confirm(m.api_keys_revoke_confirmation())) return
   await revokeApiKeyForCurrentUser({ id })
+  await refreshAll()
 }
 
 const visibleKeys = $derived(keys.filter(key => showRevoked || !key.revokedAt))
