@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { Component } from 'svelte'
-import Iconify from '@iconify/svelte'
+import IconProiconsQuestion from '@iconify-svelte/proicons/question'
 
 import { localIconComponents } from './iconComponents'
 
@@ -20,5 +20,5 @@ let LocalIcon = $derived(
 {#if LocalIcon}
   <LocalIcon {...props} />
 {:else}
-  <Iconify {icon} {...props} />
+  <IconProiconsQuestion {...props} />
 {/if}
