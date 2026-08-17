@@ -2171,22 +2171,53 @@ export async function resetFailedDataset(
     .run()
 }
 
+async function resolveSourceReleaseId(db: HarbourReadableDb, releaseId: string) {
+  return (
+    (
+      await db
+        .select({ sourceReleaseId: metaReleases.sourceReleaseId })
+        .from(metaReleases)
+        .where(eq(metaReleases.id, releaseId))
+        .limit(1)
+        .get()
+    )?.sourceReleaseId ?? null
+  )
+}
+
 export async function updateDatasetStatus(
-  db: HarbourWritableDb,
+  db: HarbourWritableDb & HarbourReadableDb,
   releaseId: string,
   status: ReleaseStatus,
 ) {
+  const sourceReleaseId = await resolveSourceReleaseId(db, releaseId)
+  const updatedAt = toIsoTimestamp()
+
   await db
     .update(metaReleases)
     .set({
       status,
-      updatedAt: toIsoTimestamp(),
+      updatedAt,
     })
     .where(eq(metaReleases.id, releaseId))
     .run()
+
+  if (sourceReleaseId) {
+    await db
+      .update(metaSourceReleases)
+      .set({
+        status,
+        updatedAt,
+      })
+      .where(eq(metaSourceReleases.id, sourceReleaseId))
+      .run()
+  }
 }
 
-export async function markDatasetCurrent(db: HarbourWritableDb, releaseId: string) {
+export async function markDatasetCurrent(
+  db: HarbourWritableDb & HarbourReadableDb,
+  releaseId: string,
+) {
+  const sourceReleaseId = await resolveSourceReleaseId(db, releaseId)
   const now = toIsoTimestamp()
 
   await db
@@ -2199,6 +2230,19 @@ export async function markDatasetCurrent(db: HarbourWritableDb, releaseId: strin
     })
     .where(eq(metaReleases.id, releaseId))
     .run()
+
+  if (sourceReleaseId) {
+    await db
+      .update(metaSourceReleases)
+      .set({
+        status: 'published',
+        revokedAt: null,
+        revocationReason: null,
+        updatedAt: now,
+      })
+      .where(eq(metaSourceReleases.id, sourceReleaseId))
+      .run()
+  }
 }
 
 export async function markDatasetHistoric(
@@ -4069,6 +4113,7 @@ export async function publishReleaseArtefacts(
     .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
     .where(inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds))
     .all()
+  const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
 
   const sourceSchemas = new Map<string, string>()
 
@@ -4208,6 +4253,19 @@ export async function publishReleaseArtefacts(
                 updatedAt: publishedAt,
               })
               .where(eq(metaReleases.id, args.dataset.releaseId)),
+            ...(sourceReleaseId
+              ? [
+                  tx
+                    .update(metaSourceReleases)
+                    .set({
+                      status: 'published',
+                      revokedAt: null,
+                      revocationReason: null,
+                      updatedAt: publishedAt,
+                    })
+                    .where(eq(metaSourceReleases.id, sourceReleaseId)),
+                ]
+              : []),
           ]
         : []),
     )
