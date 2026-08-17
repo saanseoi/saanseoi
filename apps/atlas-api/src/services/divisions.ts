@@ -37,6 +37,26 @@ export type RequestedDivisionApiVersion = '0.1'
 export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
 export type DivisionProfile = ApiProfileName
 
+export type DivisionServiceDependencies = {
+  resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
+  countDivisionsCurrent: typeof countDivisionsCurrent
+  getDivisionRecordCurrent: typeof getDivisionRecordCurrent
+  listDivisionRecordsCurrent: typeof listDivisionRecordsCurrent
+  listDivisionRecordsCurrentByIds: typeof listDivisionRecordsCurrentByIds
+  listDivisionAreasCurrentByDivisionIds: typeof listDivisionAreasCurrentByDivisionIds
+  listDivisionBoundariesCurrentByDivisionIds: typeof listDivisionBoundariesCurrentByDivisionIds
+}
+
+const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
+  resolveApiReleaseSetSnapshotsForRequest,
+  countDivisionsCurrent,
+  getDivisionRecordCurrent,
+  listDivisionRecordsCurrent,
+  listDivisionRecordsCurrentByIds,
+  listDivisionAreasCurrentByDivisionIds,
+  listDivisionBoundariesCurrentByDivisionIds,
+}
+
 type JsonObject = Record<string, unknown>
 
 type DivisionHierarchyResourceIdentifier = {
@@ -747,9 +767,10 @@ async function getActiveDivisionSnapshot(
     DivisionListQuery,
     'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
   >,
+  resolveReleaseSet: DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'] = resolveApiReleaseSetSnapshotsForRequest,
 ): Promise<ActiveDivisionSnapshot | null> {
   const selection = await runWithD1ReadRetry(() =>
-    resolveApiReleaseSetSnapshotsForRequest(metaDb as never, 'division', {
+    resolveReleaseSet(metaDb as never, 'division', {
       catalogRevision: selectors.catalogRevision,
       cohortKey: selectors.cohort,
       domainCode,
@@ -854,17 +875,19 @@ async function loadDivisionGeometry(args: {
   variants?: { area?: string; boundary?: string }
   includeArea?: boolean
   includeBoundary?: boolean
+  listDivisionAreasCurrentByDivisionIds: DivisionServiceDependencies['listDivisionAreasCurrentByDivisionIds']
+  listDivisionBoundariesCurrentByDivisionIds: DivisionServiceDependencies['listDivisionBoundariesCurrentByDivisionIds']
 }) {
   const [areas, boundaries] = await Promise.all([
     args.includeArea && args.snapshot.areaSnapshotId
-      ? listDivisionAreasCurrentByDivisionIds(args.currentDb, {
+      ? args.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.areaSnapshotId,
           divisionIds: args.divisionIds,
           variant: args.variants?.area,
         })
       : [],
     args.includeBoundary && args.snapshot.boundarySnapshotId
-      ? listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
+      ? args.listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.boundarySnapshotId,
           divisionIds: args.divisionIds,
           variant: args.variants?.boundary,
@@ -920,6 +943,7 @@ async function loadIncludedHierarchyRecords(args: {
   records: DivisionRecord[]
   db: AppEnv['Variables']['currentDb']
   routeState: DivisionRouteState
+  listDivisionRecordsCurrentByIds: DivisionServiceDependencies['listDivisionRecordsCurrentByIds']
 }) {
   if (!args.includeHierarchy) {
     return []
@@ -937,7 +961,7 @@ async function loadIncludedHierarchyRecords(args: {
     ),
   ].filter(id => !primaryIds.has(id))
 
-  return listDivisionRecordsCurrentByIds(args.db, {
+  return args.listDivisionRecordsCurrentByIds(args.db, {
     snapshotId: args.snapshotId,
     divisionIds: hierarchyIds,
     localeSelection: args.routeState.localeSelection,
@@ -952,7 +976,12 @@ export async function listDivisions(args: {
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   query: DivisionListQuery
+  dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionListResult> {
+  const dependencies = {
+    ...defaultDivisionServiceDependencies,
+    ...args.dependencies,
+  }
   const routeState = buildDivisionRouteState({
     requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
@@ -974,6 +1003,7 @@ export async function listDivisions(args: {
     domainCode,
     geometryVariants,
     args.query,
+    dependencies.resolveApiReleaseSetSnapshotsForRequest,
   )
 
   if (!activeDivisionSnapshot) {
@@ -1008,7 +1038,7 @@ export async function listDivisions(args: {
   } satisfies DivisionFilters
   const [records, total] = await runWithD1ReadRetry(() =>
     Promise.all([
-      listDivisionRecordsCurrent(args.currentDb, {
+      dependencies.listDivisionRecordsCurrent(args.currentDb, {
         snapshotId: activeDivisionSnapshot.snapshotId,
         level: filters.level,
         type: filters.divisionType,
@@ -1017,7 +1047,7 @@ export async function listDivisions(args: {
         offset,
         localeSelection: routeState.localeSelection,
       }),
-      countDivisionsCurrent(args.currentDb, {
+      dependencies.countDivisionsCurrent(args.currentDb, {
         snapshotId: activeDivisionSnapshot.snapshotId,
         level: filters.level,
         type: filters.divisionType,
@@ -1033,6 +1063,7 @@ export async function listDivisions(args: {
       records,
       db: args.currentDb,
       routeState,
+      listDivisionRecordsCurrentByIds: dependencies.listDivisionRecordsCurrentByIds,
     }),
   )
   const geometry = await runWithD1ReadRetry(() =>
@@ -1043,6 +1074,10 @@ export async function listDivisions(args: {
       variants: geometryVariants,
       includeArea: requestedGeometry.area,
       includeBoundary: requestedGeometry.boundary,
+      listDivisionAreasCurrentByDivisionIds:
+        dependencies.listDivisionAreasCurrentByDivisionIds,
+      listDivisionBoundariesCurrentByDivisionIds:
+        dependencies.listDivisionBoundariesCurrentByDivisionIds,
     }),
   )
   const includes = requestedIncludes(args.query.include)
@@ -1100,7 +1135,12 @@ export async function getDivisionDetail(args: {
   resolvedApiVersion: ResolvedDivisionApiVersion
   id: string
   query: DivisionDetailQuery
+  dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionDetailResult> {
+  const dependencies = {
+    ...defaultDivisionServiceDependencies,
+    ...args.dependencies,
+  }
   const routeState = buildDivisionRouteState({
     requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
@@ -1120,6 +1160,7 @@ export async function getDivisionDetail(args: {
     domainCode,
     geometryVariants,
     args.query,
+    dependencies.resolveApiReleaseSetSnapshotsForRequest,
   )
 
   if (!activeDivisionSnapshot) {
@@ -1148,7 +1189,7 @@ export async function getDivisionDetail(args: {
   }
 
   const record = await runWithD1ReadRetry(() =>
-    getDivisionRecordCurrent(args.currentDb, {
+    dependencies.getDivisionRecordCurrent(args.currentDb, {
       snapshotId: activeDivisionSnapshot.snapshotId,
       divisionId: args.id,
       localeSelection: routeState.localeSelection,
@@ -1173,6 +1214,7 @@ export async function getDivisionDetail(args: {
       records: [record],
       db: args.currentDb,
       routeState,
+      listDivisionRecordsCurrentByIds: dependencies.listDivisionRecordsCurrentByIds,
     }),
   )
   const geometry = await runWithD1ReadRetry(() =>
@@ -1183,6 +1225,10 @@ export async function getDivisionDetail(args: {
       variants: geometryVariants,
       includeArea: requestedGeometry.area,
       includeBoundary: requestedGeometry.boundary,
+      listDivisionAreasCurrentByDivisionIds:
+        dependencies.listDivisionAreasCurrentByDivisionIds,
+      listDivisionBoundariesCurrentByDivisionIds:
+        dependencies.listDivisionBoundariesCurrentByDivisionIds,
     }),
   )
   const includes = requestedIncludes(args.query.include)
