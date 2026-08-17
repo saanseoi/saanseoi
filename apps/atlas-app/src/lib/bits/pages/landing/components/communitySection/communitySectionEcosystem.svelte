@@ -30,7 +30,12 @@ let {
     <span
       class="newsletter-creature newsletter-creature-orange"
       bind:this={orangeCreature}
-    ></span>
+    >
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-a"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-b"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-c"></span>
+      <span class="newsletter-orange-bearing newsletter-orange-bearing-d"></span>
+    </span>
   </span>
 
   {#each collectors as collector, collectorIndex (collector.id)}
