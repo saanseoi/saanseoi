@@ -1,5 +1,9 @@
 <script lang="ts">
-import type { ReleaseNavOutlineItem, ReleaseNavVersion } from '../releaseNav.types'
+import type {
+  ReleaseNavOutlineItem,
+  ReleaseNavVersion,
+  ReleaseNavVersionPreload,
+} from '../releaseNav.types'
 import ReleaseNavMobilePicker from './releaseNavMobilePicker.svelte'
 import ReleaseNavTableOfContents from './releaseNavTableOfContents.svelte'
 
@@ -7,16 +11,20 @@ type Props = {
   activeOutlineId: string | null
   canShowToc?: boolean
   currentVersionCode: string
+  loading?: boolean
   outline?: ReleaseNavOutlineItem[]
   panel?: HTMLElement
+  onVersionPreload?: ReleaseNavVersionPreload
   versions: ReleaseNavVersion[]
 }
 let {
   activeOutlineId,
   canShowToc = true,
   currentVersionCode,
+  loading = false,
   outline = [],
   panel,
+  onVersionPreload,
   versions,
 }: Props = $props()
 let contentReached = $state(false)
@@ -75,5 +83,10 @@ $effect(() => {
 {#if isTocMode}
   <ReleaseNavTableOfContents {activeOutlineId} items={outline} {panel} />
 {:else}
-  <ReleaseNavMobilePicker {currentVersionCode} {versions} />
+  <ReleaseNavMobilePicker
+    {currentVersionCode}
+    {loading}
+    {onVersionPreload}
+    {versions}
+  />
 {/if}

@@ -7,7 +7,7 @@ type Props = { actions?: ReleaseNavAction[] }
 let { actions = [] }: Props = $props()
 </script>
 
-<div class="ml-auto flex h-10 items-center gap-1 md:gap-0">
+<div class="ml-auto flex h-10 items-center gap-1 md:gap-4">
   {#each actions as action (action.id)}
     {#if action.href && !action.disabled}
       <a

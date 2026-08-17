@@ -1,16 +1,12 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import { tick } from 'svelte'
-import {
-  preconnectChoroplethMapOrigins,
-  preloadChoroplethMapAssets,
-} from '#lib/bits/components/choroplethMap/choroplethMapPreload.js'
 import type {
   ReleaseNavAction,
   ReleaseNavDomain,
   ReleaseNavOutlineItem,
   ReleaseNavTab,
   ReleaseNavVersion,
+  ReleaseNavVersionPreload,
 } from '../releaseNav.types'
 import {
   createNestedContentScroll,
@@ -29,8 +25,10 @@ type Props = {
   activeTab?: string
   children?: Snippet
   hasContent: boolean
+  loading?: boolean
   nestedContent?: boolean
   onTabChange?: (tab: string) => void
+  onVersionPreload?: ReleaseNavVersionPreload
   outline?: ReleaseNavOutlineItem[]
   tabs: ReleaseNavTab[]
   versionTitle: string
@@ -47,8 +45,10 @@ let {
   activeTab = $bindable('notes'),
   children,
   hasContent,
+  loading = false,
   nestedContent = false,
   onTabChange,
+  onVersionPreload,
   outline = [],
   tabs,
   versionTitle,
@@ -61,69 +61,56 @@ let {
 
 let contentPanel = $state<HTMLElement>()
 let observedOutlineId = $state<string | null>(null)
+let optimisticVersionCode = $state<string | null>(null)
+let committedVersionCode = $state<string | null>(null)
 const persistence = createReleaseNavigationPersistence({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   getVersions: () => versions,
+  onVersionSelect: versionCode => (optimisticVersionCode = versionCode),
 })
+let visibleVersionCode = $derived(optimisticVersionCode ?? currentVersionCode)
 const nestedScroll = createNestedContentScroll({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   isEnabled: () => nestedContent,
   onNavigate: persistence.captureNavigation,
 })
 
-async function selectTab(tab: string) {
+function selectTab(tab: string) {
   activeTab = tab
   onTabChange?.(tab)
-  await tick()
-  const content = getReleaseNavContentTarget(contentPanel)
-  if (content && content.getBoundingClientRect().top <= 72) {
-    window.dispatchEvent(new Event('app-header:preserve-visibility'))
-    content.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 }
 
 $effect(() => {
-  currentVersionCode
+  if (committedVersionCode === null) {
+    committedVersionCode = currentVersionCode
+    return
+  }
+
+  if (currentVersionCode !== committedVersionCode) {
+    committedVersionCode = currentVersionCode
+    optimisticVersionCode = null
+  }
+  visibleVersionCode
   void persistence.restore()
 })
 
 $effect(() => {
-  currentVersionCode
+  visibleVersionCode
   observedOutlineId = null
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
 })
-
-$effect(() => {
-  if (activeTab !== 'notes') return
-
-  const controller = new AbortController()
-  const timeout = window.setTimeout(
-    () => preloadChoroplethMapAssets(controller.signal),
-    250,
-  )
-
-  return () => {
-    window.clearTimeout(timeout)
-    controller.abort()
-  }
-})
 </script>
-
-<svelte:head>
-  {#each preconnectChoroplethMapOrigins as origin}
-    <link rel="preconnect" href={origin} crossorigin="anonymous">
-  {/each}
-</svelte:head>
 
 {#snippet navBar()}
   <ReleaseNavBar
     {actions}
     {activeTab}
-    {currentVersionCode}
+    currentVersionCode={visibleVersionCode}
     onSelectTab={selectTab}
     {tabs}
     {versionTitle}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 
@@ -131,10 +118,12 @@ $effect(() => {
   <ReleaseNavMobileSideNav
     activeOutlineId={activeOutlineId ?? observedOutlineId}
     canShowToc={outline.length > 0}
-    {currentVersionCode}
+    currentVersionCode={visibleVersionCode}
+    {loading}
     {outline}
     panel={contentPanel}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 
@@ -142,13 +131,15 @@ $effect(() => {
   <ReleaseNavSideNav
     activeOutlineId={activeOutlineId ?? observedOutlineId}
     canExpand={nestedContent || outline.length > 0}
-    {currentVersionCode}
+    {loading}
+    currentVersionCode={visibleVersionCode}
     {currentDomainCode}
     {domains}
     {domainTitle}
     {outline}
     panel={contentPanel}
     {versions}
+    {onVersionPreload}
   />
 {/snippet}
 
