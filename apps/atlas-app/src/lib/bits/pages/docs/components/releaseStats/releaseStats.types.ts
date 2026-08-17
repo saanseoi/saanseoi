@@ -122,7 +122,9 @@ export type TypeDistributionPresentation = {
 export type GeometryStatisticsPresentation = {
   id: string
   map?: DistrictDistributionPresentation
+  showArea: boolean
   showFeatureCount: boolean
+  showPolygonCount: boolean
   rows: Array<{
     area?: string
     boundaryLength: string

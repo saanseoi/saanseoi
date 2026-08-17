@@ -223,7 +223,9 @@ export function createReleaseStatsPresentation({
               : undefined
           })(),
           rows: result,
+          showArea: result.some(row => row.area !== undefined),
           showFeatureCount: new Set(result.map(row => row.featureCountValue)).size > 1,
+          showPolygonCount: result.some(row => row.polygonCount !== undefined),
         }
       })()
     : undefined

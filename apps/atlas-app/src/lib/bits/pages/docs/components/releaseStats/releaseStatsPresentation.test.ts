@@ -155,7 +155,9 @@ describe('createReleaseStatsPresentation', () => {
     })
     expect(model.geometry?.id).toBe('stats-geometry-statistics')
     expect(model.geometry?.rows.map(row => row.label)).toEqual(['Alpha', 'Beta'])
+    expect(model.geometry?.showArea).toBe(true)
     expect(model.geometry?.showFeatureCount).toBe(false)
+    expect(model.geometry?.showPolygonCount).toBe(true)
     expect(model.geometry?.map).toEqual({
       features: [expect.objectContaining({ id: 'district-b', label: 'Beta' })],
       values: [{ id: 'district-b', value: 1 }],
@@ -211,6 +213,35 @@ describe('createReleaseStatsPresentation', () => {
       },
     ])
     expect(model.geometry?.showFeatureCount).toBe(true)
+  })
+
+  test('hides polygon and area columns when a boundaries release has neither metric', () => {
+    const model = present([
+      {
+        dimension: 'geometry',
+        metric: 'feature_count',
+        value: 1,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_segment_count',
+        value: 4,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+      {
+        dimension: 'geometry',
+        metric: 'boundary_length',
+        value: 1.2,
+        groupBy: 'district',
+        groupValue: 'district-a',
+      },
+    ])
+
+    expect(model.geometry?.showArea).toBe(false)
+    expect(model.geometry?.showPolygonCount).toBe(false)
   })
 
   test('uses the canonical name and marks a non-official district', () => {
