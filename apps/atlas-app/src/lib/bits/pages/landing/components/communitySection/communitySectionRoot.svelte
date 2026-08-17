@@ -84,7 +84,7 @@ let { children, class: className = '' }: Props = $props()
 
   :global(.community-space-card-discord) {
     z-index: 2;
-    left: -2rem;
+    left: -4rem;
     top: calc(2rem + var(--community-discord-offset) - 32px);
     height: calc(var(--community-shape-size) + 48px);
     transform: translateY(calc(var(--community-shape-size) * 0.02)) rotate(0deg)
@@ -123,7 +123,7 @@ let { children, class: className = '' }: Props = $props()
 
   :global(.community-space-card-discussions) {
     z-index: 3;
-    left: 2rem;
+    left: 4rem;
     margin-left: calc(var(--community-shape-size) * -0.109756);
     transform: translateY(calc(var(--community-shape-size) * 0.02))
       translate(
@@ -212,8 +212,7 @@ let { children, class: className = '' }: Props = $props()
   }
 
   .newsletter-panel {
-    /* GOD enters once, then pauses beside the first step. */
-    --newsletter-orange-cycle: 11s;
+    /* GOD's route is paired with live packet launches on each jump. */
     --newsletter-orange-intro-duration: 14s;
     /* Upper-platform hops are deliberately 30% slower, while the spin
      * keyframes still complete one full turn for each hop. */
@@ -747,63 +746,63 @@ let { children, class: className = '' }: Props = $props()
       animation-timing-function: step-end;
     }
 
-    4% {
+    2% {
       top: var(--newsletter-orange-letter-y);
       left: var(--newsletter-orange-letter-x);
       transform: scale(1);
       animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
     }
 
-    8% {
+    6% {
       top: var(--newsletter-orange-title-hop-one-apex-y);
       left: var(--newsletter-orange-title-hop-one-apex-x);
       transform: scale(1.08, 0.9);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
-    12% {
+    10% {
       top: var(--newsletter-orange-title-hop-one-y);
       left: var(--newsletter-orange-title-hop-one-x);
       transform: scale(1);
       animation-timing-function: step-end;
     }
 
-    16% {
+    14% {
       top: var(--newsletter-orange-title-hop-one-y);
       left: var(--newsletter-orange-title-hop-one-x);
       transform: scale(1);
       animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
     }
 
-    20% {
+    18% {
       top: var(--newsletter-orange-title-hop-two-apex-y);
       left: var(--newsletter-orange-title-hop-two-apex-x);
       transform: scale(1.08, 0.9);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
-    24% {
+    22% {
       top: var(--newsletter-orange-title-hop-two-y);
       left: var(--newsletter-orange-title-hop-two-x);
       transform: scale(1);
       animation-timing-function: step-end;
     }
 
-    28% {
+    26% {
       top: var(--newsletter-orange-title-hop-two-y);
       left: var(--newsletter-orange-title-hop-two-x);
       transform: scale(1);
       animation-timing-function: cubic-bezier(0.15, 0, 0.3, 1);
     }
 
-    32% {
+    30% {
       top: var(--newsletter-orange-title-hop-three-apex-y);
       left: var(--newsletter-orange-title-hop-three-apex-x);
       transform: scale(1.08, 0.9);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
 
-    36%,
+    34%,
     100% {
       top: var(--newsletter-orange-title-hop-three-y);
       left: var(--newsletter-orange-title-hop-three-x);
@@ -814,33 +813,33 @@ let { children, class: className = '' }: Props = $props()
 
   @keyframes newsletter-orange-title-spin {
     0%,
-    4% {
+    2% {
       rotate: 5400deg;
     }
 
-    8% {
+    6% {
       rotate: 5580deg;
     }
 
-    12%,
-    16% {
+    10%,
+    14% {
       rotate: 5760deg;
     }
 
-    20% {
+    18% {
       rotate: 5940deg;
     }
 
-    24%,
-    28% {
+    22%,
+    26% {
       rotate: 6120deg;
     }
 
-    32% {
+    30% {
       rotate: 6300deg;
     }
 
-    36%,
+    34%,
     100% {
       rotate: 6480deg;
     }

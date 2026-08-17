@@ -1,9 +1,3 @@
-export type OrangeHop = {
-  progress: number
-  direction: 1 | -1
-  corridor: 'upper' | 'lower'
-}
-
 export type ActiveDataPacket = {
   id: number
   label: string
