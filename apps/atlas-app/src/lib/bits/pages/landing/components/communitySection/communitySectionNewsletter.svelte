@@ -71,6 +71,7 @@ let packetLaunchesEnabled = false
 // `$state` also keeps indexed bindings reactive when the keyed each-block updates.
 const packetElements = $state<Record<number, HTMLSpanElement | undefined>>({})
 const collectorElements = $state<Record<number, HTMLSpanElement | undefined>>({})
+const collectorBearingElements = $state<Record<number, HTMLSpanElement | undefined>>({})
 const startPacketCycles = () => {
   packetLaunchesEnabled = true
 }
@@ -82,10 +83,13 @@ let startCollectors = () => {}
 let stopCollectors = () => {}
 let startOrangeBearingPhysics = () => {}
 let stopOrangeBearingPhysics = () => {}
+let startCollectorBearingPhysics = () => {}
+let stopCollectorBearingPhysics = () => {}
 
 type OrangeBearingState = {
   angle: number
   angularVelocity: number
+  restAngle: number
   element: HTMLSpanElement
 }
 
@@ -105,35 +109,9 @@ function getPacketSafeAreaObstacle(signalRect: DOMRect, padding = 30): Obstacle 
   }
 }
 
-function setPacketSafeAreaGeometry() {
-  if (
-    !newsletterPanel ||
-    !newsletterSignal ||
-    !newsletterHeader ||
-    !newsletterContent
-  ) {
-    return
-  }
-
-  const signalRect = newsletterSignal.getBoundingClientRect()
-  const panelRect = newsletterPanel.getBoundingClientRect()
-  const safeArea = getPacketSafeAreaObstacle(signalRect, 24)
-  const values = {
-    '--newsletter-safe-area-left': `${safeArea.left + signalRect.left - panelRect.left}px`,
-    '--newsletter-safe-area-top': `${safeArea.top + signalRect.top - panelRect.top}px`,
-    '--newsletter-safe-area-width': `${safeArea.right - safeArea.left}px`,
-    '--newsletter-safe-area-height': `${safeArea.bottom - safeArea.top}px`,
-  }
-
-  for (const [property, value] of Object.entries(values)) {
-    newsletterPanel.style.setProperty(property, value)
-  }
-}
-
 function spawnDataPacket(spinDirection: 1 | -1) {
   const signalRect = newsletterSignal.getBoundingClientRect()
   const orangeRect = orangeCreature.getBoundingClientRect()
-  const panelRect = newsletterPanel.getBoundingClientRect()
   const packetWidth = 42
   const packetHeight = 26
   const label =
@@ -160,15 +138,12 @@ function spawnDataPacket(spinDirection: 1 | -1) {
     ((launchCentreInSignal.y - packetHeight / 2) / signalRect.height) * 100
   const safeArea = getPacketSafeAreaObstacle(
     signalRect,
-    24 + Math.max(packetWidth, packetHeight) / 2,
+    12 + Math.max(packetWidth, packetHeight) / 2,
   )
   const minimumTargetX = packetWidth / 2 + 8
   const maximumTargetX = signalRect.width - packetWidth / 2 - 8
-  const minimumTargetY = packetHeight / 2 + 8
-  const maximumTargetY = Math.min(
-    signalRect.height - packetHeight / 2 - 8,
-    panelRect.top - signalRect.top + panelRect.height * 0.5 - packetHeight / 2,
-  )
+  const minimumTargetY = packetHeight / 2 + 32
+  const maximumTargetY = signalRect.height - packetHeight / 2 - 32
   const maximumHorizontalDistance = Math.min(320, signalRect.width - packetWidth)
   const minimumHorizontalDistance = Math.min(
     110,
@@ -209,29 +184,67 @@ function spawnDataPacket(spinDirection: 1 | -1) {
     x: ((landingCentre.x - packetWidth / 2) / signalRect.width) * 100,
     y: ((landingCentre.y - packetHeight / 2) / signalRect.height) * 100,
   }
-  const apexY =
-    ((Math.max(
-      8,
-      Math.min(launchCentreInSignal.y, landingCentre.y) -
-        randomBetween(56, Math.min(150, panelRect.height * 0.22)),
-    ) -
-      packetHeight / 2) /
-      signalRect.height) *
-    100
-  const control = {
-    x: (originX + landing.x) / 2,
-    y: 2 * apexY - (originY + landing.y) / 2,
+  const originPoint = {
+    x: (originX / 100) * signalRect.width,
+    y: (originY / 100) * signalRect.height,
   }
-  const pointOnArc = (progress: number) => ({
+  const landingPoint = {
+    x: (landing.x / 100) * signalRect.width,
+    y: (landing.y / 100) * signalRect.height,
+  }
+  const getControlPoint = (lift: number) => {
+    const apexY = Math.min(originPoint.y, landingPoint.y) - lift
+
+    return {
+      x: (originPoint.x + landingPoint.x) / 2,
+      y: 2 * apexY - (originPoint.y + landingPoint.y) / 2,
+    }
+  }
+  const pointOnArcPixels = (control: { x: number; y: number }, progress: number) => ({
     x:
-      (1 - progress) ** 2 * originX +
+      (1 - progress) ** 2 * originPoint.x +
       2 * (1 - progress) * progress * control.x +
-      progress ** 2 * landing.x,
+      progress ** 2 * landingPoint.x,
     y:
-      (1 - progress) ** 2 * originY +
+      (1 - progress) ** 2 * originPoint.y +
       2 * (1 - progress) * progress * control.y +
-      progress ** 2 * landing.y,
+      progress ** 2 * landingPoint.y,
   })
+  const measureArcLength = (control: { x: number; y: number }) => {
+    let distance = 0
+    let previousPoint = originPoint
+
+    for (let step = 1; step <= 24; step += 1) {
+      const point = pointOnArcPixels(control, step / 24)
+      distance += Math.hypot(point.x - previousPoint.x, point.y - previousPoint.y)
+      previousPoint = point
+    }
+
+    return distance
+  }
+  const desiredArcLength = signalRect.height * 1.4
+  let minimumLift = 0
+  let maximumLift = signalRect.height * 2
+
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const lift = (minimumLift + maximumLift) / 2
+
+    if (measureArcLength(getControlPoint(lift)) < desiredArcLength) {
+      minimumLift = lift
+    } else {
+      maximumLift = lift
+    }
+  }
+
+  const control = getControlPoint((minimumLift + maximumLift) / 2)
+  const pointOnArc = (progress: number) => {
+    const point = pointOnArcPixels(control, progress)
+
+    return {
+      x: (point.x / signalRect.width) * 100,
+      y: (point.y / signalRect.height) * 100,
+    }
+  }
   const eighthPoint = pointOnArc(0.125)
   const quarterPoint = pointOnArc(0.25)
   const threeEighthPoint = pointOnArc(0.375)
@@ -239,17 +252,7 @@ function spawnDataPacket(spinDirection: 1 | -1) {
   const fiveEighthPoint = pointOnArc(0.625)
   const threeQuarterPoint = pointOnArc(0.75)
   const sevenEighthPoint = pointOnArc(0.875)
-  let travelDistance = 0
-  let previousPoint = pointOnArc(0)
-
-  for (let step = 1; step <= 24; step += 1) {
-    const point = pointOnArc(step / 24)
-    travelDistance += Math.hypot(
-      (point.x - previousPoint.x) * (signalRect.width / 100),
-      (point.y - previousPoint.y) * (signalRect.height / 100),
-    )
-    previousPoint = point
-  }
+  const travelDistance = measureArcLength(control)
 
   activeDataPackets = [
     ...activeDataPackets,
@@ -418,7 +421,12 @@ function isInInnerCorridor(origin: { x: number; y: number }) {
   )
 }
 
-type OrangeHopType = 'stair-climbing' | 'upper-platform' | 'jump-off' | 'lower-platform'
+type OrangeHopType =
+  | 'stair-climbing'
+  | 'upper-platform'
+  | 'jump-off'
+  | 'lower-platform'
+  | 'freefall'
 
 type OrangeRoutePoint = { x: number; y: number }
 
@@ -436,19 +444,25 @@ function calculateOrangeHopArc(
     routeHeight *
       ({
         'lower-platform': 0.3,
-        'stair-climbing': 0.18,
+        'stair-climbing': 0.162,
         'upper-platform': 0.13,
         'jump-off': 0.06,
+        freefall: 0.08,
       }[type] ?? 0.1),
     creatureSize *
       ({
         'lower-platform': 2.4,
-        'stair-climbing': 2.4,
+        'stair-climbing': 2.16,
         'upper-platform': 1.8,
         'jump-off': 1,
+        freefall: 0.8,
       }[type] ?? 1.5),
   )
-  const minimumLift = type === 'upper-platform' || type === 'jump-off' ? 320 : 0
+  // The lettering hops should clear the title without leaving the frame. They
+  // previously used a 320px minimum; keep the lower and freefall arcs
+  // unchanged while making these post-second-step hops 25% shorter. The
+  // stair-climbing arc is 10% shorter in both its section and creature caps.
+  const minimumLift = type === 'upper-platform' || type === 'jump-off' ? 240 : 0
   const lift = Math.max(minimumLift, naturalLift)
   const apexY = Math.min(start.y, end.y) - lift
   const control = {
@@ -581,15 +595,35 @@ function setOrangeRouteGeometry() {
     y: firstLetterTop - creatureSize / 2,
   })
   const titleHopSpacing = (inboxLetter.x - firstLetter.x) / 3
+  const titleHopRightShift = 40
   const titleHopOne = {
-    x: firstLetter.x + titleHopSpacing * 0.97,
+    x: firstLetter.x + titleHopSpacing * 0.97 + titleHopRightShift,
     y: firstLetter.y,
   }
   const titleHopTwo = {
-    x: titleHopOne.x + titleHopSpacing * 1.04,
+    x: titleHopOne.x + titleHopSpacing * 1.04 + titleHopRightShift,
     y: firstLetter.y,
   }
-  const titleHopThree = inboxLetter
+  const titleHopThree = {
+    x: inboxLetter.x + titleHopRightShift * 3 - 32,
+    y: firstLetter.y + 6,
+  }
+  const footerLanding = {
+    x: Math.min(titleHopThree.x + creatureSize * 0.9, routeRect.width - creatureSize),
+    y: groundTop,
+  }
+  const lowerPlatformApproach = {
+    x: Math.min(firstStep.x + 80, routeRect.width - creatureSize),
+    y: groundTop,
+  }
+  const returnPoint = (progress: number) => ({
+    x: footerLanding.x + (lowerPlatformApproach.x - footerLanding.x) * progress,
+    y: groundTop,
+  })
+  const returnHopOne = returnPoint(0.25)
+  const returnHopTwo = returnPoint(0.5)
+  const returnHopThree = returnPoint(0.75)
+  const returnHopFour = returnPoint(1)
   const firstArc = calculateOrangeHopArc(
     { x: edgeX, y: groundTop },
     firstGround,
@@ -612,7 +646,15 @@ function setOrangeRouteGeometry() {
     routeRect.width,
     routeHeight,
     creatureSize,
-    'stair-climbing',
+    'lower-platform',
+  )
+  const lowerPlatformApproachArc = calculateOrangeHopArc(
+    lowerPlatformApproach,
+    firstStep,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
   )
   const fourthArc = calculateOrangeHopArc(
     firstStep,
@@ -654,6 +696,46 @@ function setOrangeRouteGeometry() {
     creatureSize,
     'jump-off',
   )
+  const freefallArc = calculateOrangeHopArc(
+    titleHopThree,
+    footerLanding,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'freefall',
+  )
+  const returnArcOne = calculateOrangeHopArc(
+    footerLanding,
+    returnHopOne,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
+  )
+  const returnArcTwo = calculateOrangeHopArc(
+    returnHopOne,
+    returnHopTwo,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
+  )
+  const returnArcThree = calculateOrangeHopArc(
+    returnHopTwo,
+    returnHopThree,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
+  )
+  const returnArcFour = calculateOrangeHopArc(
+    returnHopThree,
+    returnHopFour,
+    routeRect.width,
+    routeHeight,
+    creatureSize,
+    'lower-platform',
+  )
   const values: Record<string, string> = {
     '--newsletter-orange-start-x': `${startX}px`,
     '--newsletter-orange-edge-x': `${edgeX}px`,
@@ -689,6 +771,30 @@ function setOrangeRouteGeometry() {
     '--newsletter-orange-title-hop-three-y': `${titleHopThree.y}px`,
     '--newsletter-orange-title-hop-three-apex-x': `${eighthArc.apex.x}px`,
     '--newsletter-orange-title-hop-three-apex-y': `${eighthArc.apex.y}px`,
+    '--newsletter-orange-freefall-apex-x': `${freefallArc.apex.x}px`,
+    '--newsletter-orange-freefall-apex-y': `${freefallArc.apex.y}px`,
+    '--newsletter-orange-freefall-end-x': `${footerLanding.x}px`,
+    '--newsletter-orange-freefall-end-y': `${footerLanding.y}px`,
+    '--newsletter-orange-lower-platform-approach-x': `${lowerPlatformApproach.x}px`,
+    '--newsletter-orange-lower-platform-approach-y': `${lowerPlatformApproach.y}px`,
+    '--newsletter-orange-lower-platform-approach-apex-x': `${lowerPlatformApproachArc.apex.x}px`,
+    '--newsletter-orange-lower-platform-approach-apex-y': `${lowerPlatformApproachArc.apex.y}px`,
+    '--newsletter-orange-return-one-x': `${returnHopOne.x}px`,
+    '--newsletter-orange-return-one-y': `${returnHopOne.y}px`,
+    '--newsletter-orange-return-one-apex-x': `${returnArcOne.apex.x}px`,
+    '--newsletter-orange-return-one-apex-y': `${returnArcOne.apex.y}px`,
+    '--newsletter-orange-return-two-x': `${returnHopTwo.x}px`,
+    '--newsletter-orange-return-two-y': `${returnHopTwo.y}px`,
+    '--newsletter-orange-return-two-apex-x': `${returnArcTwo.apex.x}px`,
+    '--newsletter-orange-return-two-apex-y': `${returnArcTwo.apex.y}px`,
+    '--newsletter-orange-return-three-x': `${returnHopThree.x}px`,
+    '--newsletter-orange-return-three-y': `${returnHopThree.y}px`,
+    '--newsletter-orange-return-three-apex-x': `${returnArcThree.apex.x}px`,
+    '--newsletter-orange-return-three-apex-y': `${returnArcThree.apex.y}px`,
+    '--newsletter-orange-return-four-x': `${returnHopFour.x}px`,
+    '--newsletter-orange-return-four-y': `${returnHopFour.y}px`,
+    '--newsletter-orange-return-four-apex-x': `${returnArcFour.apex.x}px`,
+    '--newsletter-orange-return-four-apex-y': `${returnArcFour.apex.y}px`,
   }
 
   for (const [property, value] of Object.entries(values)) {
@@ -721,7 +827,13 @@ onMount(() => {
     { x: signalRect.width - 58, y: signalRect.height - 58 },
   ].filter(point => !pointIsBlocked(point, obstacles))
   const timers = new Set<number>()
-  const maximumCollectorSize = orangeCreature.getBoundingClientRect().width
+  // Use the layout width rather than the transformed box while GOD is moving;
+  // the latter can briefly shrink to a few pixels and make the scavengers
+  // render as dots.
+  const maximumCollectorSize = Math.max(
+    orangeCreature.offsetWidth,
+    Number.parseFloat(getComputedStyle(orangeCreature).width) || 0,
+  )
   const initialCollectorSize = Math.min(34, maximumCollectorSize)
 
   greenCreatureStates = startingPoints.map((point, index) => ({
@@ -914,12 +1026,121 @@ onMount(() => {
   let isWindowFocused = document.hasFocus()
   const godMode = new URLSearchParams(window.location.search).get('godMode') === 'true'
   const compactViewport = window.matchMedia('(max-width: 900px)')
+  let activeFreefallSpinStart = 6120
+  let loopFreefallSpinStart = 12600
+  let returnSpinStart = 8640
+  let lowerLandingSpinStart = 8640
+  let returnAdvanceTimer = 0
+  let startOrangeLoop = () => {}
+  const getAnimationName = (animation: Animation) =>
+    'animationName' in animation ? String(animation.animationName) : ''
+
+  const startOrangeFreefall = (spinStart: number) => {
+    if (!isNewsletterActive) return
+
+    activeFreefallSpinStart = spinStart
+    orangeCreature.style.setProperty(
+      '--newsletter-orange-freefall-spin-start',
+      `${spinStart}deg`,
+    )
+
+    orangeCreature.style.animation = `
+      newsletter-orange-freefall var(--newsletter-orange-freefall-duration) linear both,
+      newsletter-orange-freefall-spin var(--newsletter-orange-freefall-duration) linear both
+    `
+  }
+  const startOrangeReturn = (spinStart: number) => {
+    if (!isNewsletterActive) return
+
+    window.clearTimeout(returnAdvanceTimer)
+    returnSpinStart = spinStart
+    orangeCreature.style.setProperty(
+      '--newsletter-orange-return-spin-start',
+      `${spinStart}deg`,
+    )
+    orangeCreature.style.animation = `
+      newsletter-orange-return var(--newsletter-orange-return-duration) linear both,
+      newsletter-orange-return-spin var(--newsletter-orange-return-duration) linear both
+    `
+
+    const returnDuration =
+      Number.parseFloat(
+        getComputedStyle(orangeCreature).getPropertyValue(
+          '--newsletter-orange-return-duration',
+        ),
+      ) * 1000
+    returnAdvanceTimer = window.setTimeout(
+      () => {
+        if (
+          isNewsletterActive &&
+          [...orangeCreature.getAnimations()].some(
+            animation => getAnimationName(animation) === 'newsletter-orange-return',
+          )
+        ) {
+          startOrangeLoop()
+        }
+      },
+      Math.max(0, returnDuration - 2000),
+    )
+  }
+  const startOrangeLowerLanding = (spinStart: number) => {
+    if (!isNewsletterActive) return
+
+    lowerLandingSpinStart = spinStart
+    orangeCreature.style.setProperty(
+      '--newsletter-orange-lower-landing-spin-start',
+      `${spinStart}deg`,
+    )
+    orangeCreature.style.animation = `
+      newsletter-orange-lower-landing
+        var(--newsletter-orange-lower-landing-duration) linear both,
+      newsletter-orange-lower-landing-spin
+        var(--newsletter-orange-lower-landing-duration) linear both
+    `
+  }
+  startOrangeLoop = () => {
+    if (!isNewsletterActive) return
+
+    window.clearTimeout(returnAdvanceTimer)
+    const loopSpinStart = returnSpinStart - 5760
+    loopFreefallSpinStart = loopSpinStart - 360
+    orangeCreature.style.setProperty(
+      '--newsletter-orange-loop-spin-start',
+      `${loopSpinStart}deg`,
+    )
+    orangeCreature.style.animation = `
+      newsletter-orange-loop var(--newsletter-orange-loop-duration) linear both,
+      newsletter-orange-loop-spin var(--newsletter-orange-loop-duration) linear both,
+      newsletter-orange-loop-freefall-trigger
+        var(--newsletter-orange-loop-freefall-trigger-duration) linear both
+    `
+  }
+  const handleOrangeAnimationEnd = (event: AnimationEvent) => {
+    if (event.animationName === 'newsletter-orange-freefall-trigger') {
+      startOrangeFreefall(6120)
+    }
+    if (event.animationName === 'newsletter-orange-loop-freefall-trigger') {
+      startOrangeFreefall(loopFreefallSpinStart)
+    }
+    if (event.animationName === 'newsletter-orange-freefall') {
+      startOrangeLowerLanding(activeFreefallSpinStart + 1080)
+    }
+    if (event.animationName === 'newsletter-orange-lower-landing') {
+      startOrangeReturn(lowerLandingSpinStart)
+    }
+    if (event.animationName === 'newsletter-orange-return') {
+      startOrangeLoop()
+    }
+  }
+  orangeCreature.addEventListener('animationend', handleOrangeAnimationEnd)
   let bearingAnimationFrame = 0
   let bearingPhysicsRunning = false
   let bearingStates: OrangeBearingState[] = []
   let lastBearingFrameTime = 0
   let lastGodTop: number | undefined
+  let lastGodVerticalVelocity = 0
   let lastGodRotation: number | undefined
+  let lastGodRotationDelta = 0
   let godSpinDirection: 1 | -1 = 1
   let godWasAscending = false
 
@@ -933,12 +1154,19 @@ onMount(() => {
     )
     const initialAngles = [0.28, 1.96, 3.72, 5.08]
     const initialVelocities = [1.1, -0.85, 0.72, -1.2]
+    const restAngles = [Math.PI - 0.48, Math.PI - 0.16, Math.PI + 0.16, Math.PI + 0.48]
 
     bearingStates = elements.map((element, index) => ({
       angle: initialAngles[index] ?? index * (Math.PI / 2),
       angularVelocity: initialVelocities[index] ?? 0,
+      restAngle: restAngles[index] ?? Math.PI,
       element,
     }))
+  }
+
+  const readGodTop = () => {
+    const top = Number.parseFloat(getComputedStyle(orangeCreature).top)
+    return Number.isFinite(top) ? top : orangeCreature.offsetTop
   }
 
   const renderBearingPhysics = () => {
@@ -956,6 +1184,25 @@ onMount(() => {
     }
   }
 
+  const isLowerPlatformMotionActive = () =>
+    [...orangeCreature.getAnimations()].some(animation =>
+      ['newsletter-orange-return', 'newsletter-orange-loop'].includes(
+        getAnimationName(animation),
+      ),
+    )
+
+  const kickBearingsOnLanding = (
+    direction: 1 | -1 = godSpinDirection,
+    momentumScale = 1,
+  ) => {
+    for (const [index, bearing] of bearingStates.entries()) {
+      bearing.angularVelocity +=
+        (index % 2 === 0 ? 1 : -1) * (2.8 + index * 0.35) * momentumScale
+      bearing.angularVelocity += direction * (1.5 + index * 0.15) * momentumScale
+      bearing.angle += (index % 2 === 0 ? 1 : -1) * 0.06
+    }
+  }
+
   const stepBearingPhysics = (time: number) => {
     if (!bearingPhysicsRunning) return
 
@@ -964,39 +1211,55 @@ onMount(() => {
       Math.max(0.001, (time - lastBearingFrameTime) / 1000),
     )
     lastBearingFrameTime = time
-    const godTop = orangeCreature.getBoundingClientRect().top
-    const rotationValue = getComputedStyle(orangeCreature).rotate
+    const godStyle = getComputedStyle(orangeCreature)
+    const godTop = readGodTop()
+    const godVerticalVelocity =
+      lastGodTop === undefined ? 0 : (godTop - lastGodTop) / deltaTime
+    const rotationValue = godStyle.rotate
     const rotationMatch = rotationValue.match(/-?\d+(?:\.\d+)?/)
     const godRotation = rotationMatch ? Number(rotationMatch[0]) : undefined
     if (godRotation !== undefined && lastGodRotation !== undefined) {
       const rotationDelta = godRotation - lastGodRotation
       if (Math.abs(rotationDelta) > 0.01) {
+        lastGodRotationDelta = rotationDelta
         godSpinDirection = rotationDelta >= 0 ? 1 : -1
       }
     }
     const godIsAscending = lastGodTop !== undefined && godTop < lastGodTop - 0.15
     const godHasJumped = godIsAscending && !godWasAscending
+    const godHasLanded = lastGodVerticalVelocity > 0.08 && godVerticalVelocity <= 0.02
+    const lowerPlatformMotion = isLowerPlatformMotionActive()
 
     if (godHasJumped) {
       spawnDataPacketsForGodJump(godSpinDirection)
+      const spinKick = lowerPlatformMotion
+        ? Math.min(14, Math.max(5.5, Math.abs(lastGodRotationDelta) * 0.5))
+        : Math.min(6, Math.max(2.2, Math.abs(lastGodRotationDelta) * 0.28))
       for (const [index, bearing] of bearingStates.entries()) {
         bearing.angularVelocity +=
-          (bearingKickDirections[index] ?? 1) * (2.2 + index * 0.25)
+          (bearingKickDirections[index] ?? 1) *
+          (spinKick + index * 0.25) *
+          (lowerPlatformMotion ? 1.7 : 1)
       }
+    }
+    if (godHasLanded) {
+      kickBearingsOnLanding(godSpinDirection, lowerPlatformMotion ? 1.7 : 1)
     }
 
     lastGodTop = godTop
+    lastGodVerticalVelocity = godVerticalVelocity
     lastGodRotation = godRotation
     godWasAscending = godIsAscending
 
     // Gravity points toward the bottom of the ring (pi radians). Damping
     // removes energy on each pass, so a bearing cannot freeze at an arbitrary
     // point in the band as a finite CSS keyframe animation can.
-    const gravity = 7.2
-    const damping = 1.35
+    const gravity = lowerPlatformMotion ? 5.8 : 8.4
+    const damping = lowerPlatformMotion ? 0.16 : 0.55
 
     for (const bearing of bearingStates) {
-      bearing.angularVelocity += Math.sin(bearing.angle) * gravity * deltaTime
+      const angleFromRest = bearing.angle - bearing.restAngle
+      bearing.angularVelocity -= Math.sin(angleFromRest) * gravity * deltaTime
       bearing.angularVelocity *= Math.exp(-damping * deltaTime)
       bearing.angle += bearing.angularVelocity * deltaTime
     }
@@ -1004,7 +1267,7 @@ onMount(() => {
     // Keep the small bearings from occupying the same point while they settle.
     // This is a soft collision: it separates overlapping balls and exchanges a
     // little momentum without making them look mechanically spaced.
-    const minimumGap = 0.2
+    const minimumGap = 0.3
     for (let firstIndex = 0; firstIndex < bearingStates.length; firstIndex += 1) {
       for (
         let secondIndex = firstIndex + 1;
@@ -1041,7 +1304,10 @@ onMount(() => {
     initialiseBearingPhysics()
     bearingPhysicsRunning = true
     lastBearingFrameTime = performance.now()
-    lastGodTop = orangeCreature.getBoundingClientRect().top
+    lastGodTop = readGodTop()
+    lastGodVerticalVelocity = 0
+    lastGodRotation = undefined
+    lastGodRotationDelta = 0
     godWasAscending = false
     renderBearingPhysics()
     bearingAnimationFrame = window.requestAnimationFrame(stepBearingPhysics)
@@ -1052,9 +1318,161 @@ onMount(() => {
     window.cancelAnimationFrame(bearingAnimationFrame)
     bearingAnimationFrame = 0
     lastGodTop = undefined
+    lastGodVerticalVelocity = 0
     lastGodRotation = undefined
+    lastGodRotationDelta = 0
     godSpinDirection = 1
     godWasAscending = false
+  }
+
+  type CollectorBearingState = {
+    angle: number
+    angularVelocity: number
+    restAngle: number
+    collectorId: number
+    element: HTMLSpanElement
+    previousX: number
+    previousY: number
+    previousVelocityX: number
+    previousVelocityY: number
+    previousRotation: number
+  }
+
+  let collectorBearingAnimationFrame = 0
+  let collectorBearingPhysicsRunning = false
+  let lastCollectorBearingFrameTime = 0
+  let collectorBearingStates: CollectorBearingState[] = []
+
+  const shortestAngleDifference = (current: number, previous: number) => {
+    let difference = current - previous
+
+    while (difference > 180) difference -= 360
+    while (difference < -180) difference += 360
+
+    return difference
+  }
+
+  const initialiseCollectorBearingPhysics = () => {
+    if (collectorBearingStates.length > 0) return
+
+    const states = greenCreatureStates.flatMap(collector => {
+      const element = collectorBearingElements[collector.id]
+      const collectorElement = collectorElements[collector.id]
+
+      if (!element || !collectorElement) return []
+
+      const bounds = collectorElement.getBoundingClientRect()
+
+      return [
+        {
+          angle: Math.PI + randomBetween(-0.24, 0.24),
+          angularVelocity: randomBetween(-0.45, 0.45),
+          restAngle: Math.PI,
+          collectorId: collector.id,
+          element,
+          previousX: bounds.left + bounds.width / 2,
+          previousY: bounds.top + bounds.height / 2,
+          previousVelocityX: 0,
+          previousVelocityY: 0,
+          previousRotation: collector.rotation,
+        },
+      ]
+    })
+
+    if (states.length === greenCreatureStates.length) {
+      collectorBearingStates = states
+    }
+  }
+
+  const renderCollectorBearingPhysics = () => {
+    for (const bearing of collectorBearingStates) {
+      const collector = greenCreatureStates.find(
+        state => state.id === bearing.collectorId,
+      )
+
+      if (!collector) continue
+
+      const radius = Math.max(4, collector.size * 0.31)
+      bearing.element.style.transform = `translate(-50%, -50%) rotate(${bearing.angle}rad) translateY(${-radius}px)`
+    }
+  }
+
+  const stepCollectorBearingPhysics = (time: number) => {
+    if (!collectorBearingPhysicsRunning) return
+
+    const deltaTime = Math.min(
+      0.05,
+      Math.max(0.001, (time - lastCollectorBearingFrameTime) / 1000),
+    )
+    lastCollectorBearingFrameTime = time
+
+    initialiseCollectorBearingPhysics()
+
+    for (const bearing of collectorBearingStates) {
+      const collector = greenCreatureStates.find(
+        state => state.id === bearing.collectorId,
+      )
+      const collectorElement = collector && collectorElements[collector.id]
+
+      if (!collector || !collectorElement) continue
+
+      const bounds = collectorElement.getBoundingClientRect()
+      const centreX = bounds.left + bounds.width / 2
+      const centreY = bounds.top + bounds.height / 2
+      const velocityX = (centreX - bearing.previousX) / deltaTime
+      const velocityY = (centreY - bearing.previousY) / deltaTime
+      const accelerationX = (velocityX - bearing.previousVelocityX) / deltaTime
+      const accelerationY = (velocityY - bearing.previousVelocityY) / deltaTime
+      const rotationVelocity =
+        (shortestAngleDifference(collector.rotation, bearing.previousRotation) *
+          Math.PI) /
+        180 /
+        deltaTime
+
+      // The ball is pulled towards the bottom of the shell, while movement and
+      // rotation create the opposing inertial force that makes it roll loose.
+      const tangentX = Math.cos(bearing.angle)
+      const tangentY = Math.sin(bearing.angle)
+      const inertialTorque =
+        ((-accelerationX * tangentX - accelerationY * tangentY) /
+          Math.max(collector.size, 1)) *
+        0.42
+
+      bearing.angularVelocity += inertialTorque * deltaTime
+      bearing.angularVelocity -= rotationVelocity * 0.18
+      bearing.angularVelocity -=
+        Math.sin(bearing.angle - bearing.restAngle) * 8.4 * deltaTime
+      bearing.angularVelocity *= Math.exp(-0.58 * deltaTime)
+      bearing.angle += bearing.angularVelocity * deltaTime
+      bearing.previousX = centreX
+      bearing.previousY = centreY
+      bearing.previousVelocityX = velocityX
+      bearing.previousVelocityY = velocityY
+      bearing.previousRotation = collector.rotation
+    }
+
+    renderCollectorBearingPhysics()
+    collectorBearingAnimationFrame = window.requestAnimationFrame(
+      stepCollectorBearingPhysics,
+    )
+  }
+
+  startCollectorBearingPhysics = () => {
+    if (collectorBearingPhysicsRunning) return
+
+    collectorBearingPhysicsRunning = true
+    lastCollectorBearingFrameTime = performance.now()
+    initialiseCollectorBearingPhysics()
+    renderCollectorBearingPhysics()
+    collectorBearingAnimationFrame = window.requestAnimationFrame(
+      stepCollectorBearingPhysics,
+    )
+  }
+
+  stopCollectorBearingPhysics = () => {
+    collectorBearingPhysicsRunning = false
+    window.cancelAnimationFrame(collectorBearingAnimationFrame)
+    collectorBearingAnimationFrame = 0
   }
 
   const syncAnimationState = () => {
@@ -1068,10 +1486,13 @@ onMount(() => {
 
     if (shouldAnimate) {
       startOrangeBearingPhysics()
+      startCollectorBearingPhysics()
       startPacketCycles()
       startCollectors()
     } else {
+      orangeCreature.style.animation = ''
       stopOrangeBearingPhysics()
+      stopCollectorBearingPhysics()
       stopPacketCycles()
       stopCollectors()
     }
@@ -1118,7 +1539,6 @@ onMount(() => {
   hasOrangeAnimationSpace = false
   const refreshOrangeRoute = () => {
     setOrangeRouteGeometry()
-    setPacketSafeAreaGeometry()
   }
   window.addEventListener('resize', refreshOrangeRoute)
   window.addEventListener('load', refreshOrangeRoute)
@@ -1143,9 +1563,12 @@ onMount(() => {
     window.removeEventListener('focus', handleWindowFocus)
     window.removeEventListener('blur', handleWindowBlur)
     compactViewport.removeEventListener('change', syncAnimationState)
+    orangeCreature?.removeEventListener('animationend', handleOrangeAnimationEnd)
     stopPacketCycles()
     stopCollectors()
     stopOrangeBearingPhysics()
+    stopCollectorBearingPhysics()
+    window.clearTimeout(returnAdvanceTimer)
   }
 })
 </script>
@@ -1157,12 +1580,12 @@ onMount(() => {
     class:newsletter-panel-animation-disabled={!hasOrangeAnimationSpace}
     bind:this={newsletterPanel}
   >
-    <div class="newsletter-packet-safe-area" aria-hidden="true"></div>
     <CommunitySectionEcosystem
       packets={activeDataPackets}
       collectors={greenCreatureStates}
       {packetElements}
       {collectorElements}
+      {collectorBearingElements}
       bind:signal={newsletterSignal}
       bind:orangeCreature
       onpacketsettled={markDataPacketSettled}
@@ -1185,19 +1608,6 @@ onMount(() => {
   margin-inline: auto;
   padding: clamp(1.5rem, 2svh, 2rem) 1.5rem clamp(2rem, 4svh, 4rem);
   isolation: isolate;
-}
-
-.newsletter-packet-safe-area {
-  position: absolute;
-  top: var(--newsletter-safe-area-top, 0px);
-  left: var(--newsletter-safe-area-left, 0px);
-  z-index: 0;
-  width: var(--newsletter-safe-area-width, 0px);
-  height: var(--newsletter-safe-area-height, 0px);
-  border: 1px dashed color-mix(in srgb, var(--secondary) 28%, transparent);
-  border-radius: 1.25rem;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 8%, transparent);
-  pointer-events: none;
 }
 
 .landing-newsletter {
@@ -1338,10 +1748,6 @@ onMount(() => {
 }
 
 @media (max-width: 900px) {
-  .newsletter-packet-safe-area {
-    display: none;
-  }
-
   .landing-newsletter {
     width: calc(100% - 3rem);
     border-radius: 1.6rem;
