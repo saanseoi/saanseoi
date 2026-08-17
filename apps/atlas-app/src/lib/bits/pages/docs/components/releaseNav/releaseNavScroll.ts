@@ -222,7 +222,7 @@ export function scrollToReleaseNavAnchor({
       firstItemPadding -
       24
 
-    void goto(`#${id}`, { noScroll: true, replaceState: true })
+    void goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
 
     return
@@ -239,7 +239,7 @@ export function scrollToReleaseNavAnchor({
 
   const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
 
-  void goto(`#${id}`, { noScroll: true, replaceState: true })
+  void goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
 
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
 
