@@ -255,8 +255,14 @@ const resolveApiReleaseSetSnapshotsForRequestMock = mock(
   async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
 
+// Keep this mock compatible with the @repo/core barrel when Bun evaluates test files in parallel.
 mock.module('@repo/core/db/metaRegistry', () => ({
+  getDatasetById: mock(async () => null),
+  getLatestDatasetForRegionSourceType: mock(async () => null),
+  insertDataset: mock(async () => null),
+  resetFailedDataset: mock(async () => null),
   resolveApiReleaseSetSnapshotsForRequest: resolveApiReleaseSetSnapshotsForRequestMock,
+  upsertIngestRunStatus: mock(async () => null),
 }))
 
 mock.module('../db/divisions', () => ({
