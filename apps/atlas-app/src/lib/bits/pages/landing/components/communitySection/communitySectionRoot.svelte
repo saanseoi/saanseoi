@@ -1129,62 +1129,62 @@ let { children, class: className = '' }: Props = $props()
     }
 
     11% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 720deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 360deg);
     }
 
     16%,
     20% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 720deg);
     }
 
     22% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 720deg);
     }
 
     27% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2160deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1080deg);
     }
 
     32%,
     36% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2880deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
     }
 
     38% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2880deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1440deg);
     }
 
     43% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 3600deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 1800deg);
     }
 
     48%,
     52% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 4320deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2160deg);
     }
 
     54% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 4320deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2160deg);
     }
 
     59% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 5040deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2520deg);
     }
 
     64%,
     68%,
     70% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 5760deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 2880deg);
     }
 
     75% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 6480deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 3240deg);
     }
 
     80%,
     84%,
     100% {
-      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 7200deg);
+      rotate: calc(var(--newsletter-orange-return-spin-start, 8640deg) - 3600deg);
     }
   }
 

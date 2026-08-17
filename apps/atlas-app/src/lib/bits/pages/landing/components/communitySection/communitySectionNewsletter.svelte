@@ -426,6 +426,7 @@ type OrangeHopType =
   | 'upper-platform'
   | 'jump-off'
   | 'lower-platform'
+  | 'first-platform'
   | 'freefall'
 
 type OrangeRoutePoint = { x: number; y: number }
@@ -448,6 +449,7 @@ function calculateOrangeHopArc(
         'upper-platform': 0.0975,
         'jump-off': 0.06,
         freefall: 0.08,
+        'first-platform': 0.225,
       }[type] ?? 0.1),
     creatureSize *
       ({
@@ -456,6 +458,7 @@ function calculateOrangeHopArc(
         'upper-platform': 1.35,
         'jump-off': 1,
         freefall: 0.8,
+        'first-platform': 1.8,
       }[type] ?? 1.5),
   )
   // The second-step-to-lettering hop is 25% shorter than the previous 240px
@@ -647,7 +650,7 @@ function setOrangeRouteGeometry() {
     routeRect.width,
     routeHeight,
     creatureSize,
-    'lower-platform',
+    'first-platform',
   )
   const lowerPlatformApproachArc = calculateOrangeHopArc(
     lowerPlatformApproach,
@@ -655,7 +658,7 @@ function setOrangeRouteGeometry() {
     routeRect.width,
     routeHeight,
     creatureSize,
-    'lower-platform',
+    'first-platform',
   )
   const fourthArc = calculateOrangeHopArc(
     firstStep,
@@ -1115,7 +1118,7 @@ onMount(() => {
     if (!isNewsletterActive) return
 
     window.clearTimeout(returnAdvanceTimer)
-    const loopSpinStart = returnSpinStart - 7200
+    const loopSpinStart = returnSpinStart - 3600
     loopFreefallSpinStart = loopSpinStart - 360
     orangeCreature.style.setProperty(
       '--newsletter-orange-loop-spin-start',
@@ -1156,8 +1159,10 @@ onMount(() => {
   let lastGodRotationDelta = 0
   let godSpinDirection: 1 | -1 = 1
   let godWasAscending = false
+  let landingCoastTime = 0
 
   const bearingKickDirections = [1, -1, 1, -1]
+  const bearingCoastBiases = [0.78, -0.61, 0.93, -0.72]
 
   const initialiseBearingPhysics = () => {
     if (bearingStates.length > 0 || !orangeCreature) return
@@ -1204,14 +1209,21 @@ onMount(() => {
       ),
     )
 
+  const isLowerPlatformLanding = () =>
+    [...orangeCreature.getAnimations()].some(animation =>
+      ['newsletter-orange-lower-landing', 'newsletter-orange-return'].includes(
+        getAnimationName(animation),
+      ),
+    )
+
   const kickBearingsOnLanding = (
     direction: 1 | -1 = godSpinDirection,
     momentumScale = 1,
   ) => {
     for (const [index, bearing] of bearingStates.entries()) {
       bearing.angularVelocity +=
-        (index % 2 === 0 ? 1 : -1) * (2.8 + index * 0.35) * momentumScale
-      bearing.angularVelocity += direction * (1.5 + index * 0.15) * momentumScale
+        (index % 2 === 0 ? 1 : -1) * (3.4 + index * 0.45) * momentumScale
+      bearing.angularVelocity += direction * (1.8 + index * 0.2) * momentumScale
       bearing.angle += (index % 2 === 0 ? 1 : -1) * 0.06
     }
   }
@@ -1256,7 +1268,15 @@ onMount(() => {
       }
     }
     if (godHasLanded) {
-      kickBearingsOnLanding(godSpinDirection, lowerPlatformMotion ? 1.05 : 1)
+      kickBearingsOnLanding(godSpinDirection, lowerPlatformMotion ? 1.2 : 1.15)
+      // Carry the independent impact roll through the lower-platform settle
+      // and into the first leftward return hop. The old 900ms window ended
+      // just as the landing animation handed off to that hop, making the
+      // bearings appear to freeze at the handoff.
+      landingCoastTime = Math.max(
+        landingCoastTime,
+        isLowerPlatformLanding() ? 3.2 : 0.9,
+      )
     }
 
     lastGodTop = godTop
@@ -1264,14 +1284,18 @@ onMount(() => {
     lastGodRotation = godRotation
     godWasAscending = godIsAscending
 
-    // Gravity points toward the bottom of the ring (pi radians). Damping
-    // removes energy on each pass, so a bearing cannot freeze at an arbitrary
-    // point in the band as a finite CSS keyframe animation can.
-    const gravity = lowerPlatformMotion ? 5.8 : 8.4
-    // Keep momentum across every landing. The bearings are still pulled
-    // toward the bottom of the ring, but switching to high damping when GOD
-    // reaches the upper platform made them visibly freeze on impact.
-    const damping = lowerPlatformMotion ? 0.12 : 0.16
+    // Gravity points toward the bottom of the ring (pi radians). Keep one
+    // continuous, low-damping regime across every landing; changing these
+    // values when GOD reached a platform was visibly deleting momentum.
+    const gravity = 5.8
+    const damping = 0.08
+
+    if (landingCoastTime > 0) {
+      for (const [index, bearing] of bearingStates.entries()) {
+        bearing.angularVelocity += (bearingCoastBiases[index] ?? 1) * 0.9 * deltaTime
+      }
+      landingCoastTime = Math.max(0, landingCoastTime - deltaTime)
+    }
 
     for (const bearing of bearingStates) {
       const angleFromRest = bearing.angle - bearing.restAngle
@@ -1280,10 +1304,10 @@ onMount(() => {
       bearing.angle += bearing.angularVelocity * deltaTime
     }
 
-    // Keep the small bearings from occupying the same point while they settle.
-    // This is a soft collision: it separates overlapping balls and exchanges a
-    // little momentum without making them look mechanically spaced.
-    const minimumGap = 0.3
+    // Only resolve visual overlap. The previous 0.3-radian gap was much wider
+    // than the bearings themselves, effectively pinning the four balls into a
+    // strip instead of letting them pass and exchange momentum independently.
+    const minimumGap = 0.12
     for (let firstIndex = 0; firstIndex < bearingStates.length; firstIndex += 1) {
       for (
         let secondIndex = firstIndex + 1;
@@ -1305,8 +1329,13 @@ onMount(() => {
         const correction = (minimumGap - distance) * 0.5
         first.angle -= direction * correction
         second.angle += direction * correction
-        first.angularVelocity -= direction * 0.12
-        second.angularVelocity += direction * 0.12
+
+        const relativeVelocity = second.angularVelocity - first.angularVelocity
+        if (difference * relativeVelocity < 0) {
+          const impulse = relativeVelocity * 0.72
+          first.angularVelocity += impulse
+          second.angularVelocity -= impulse
+        }
       }
     }
 
@@ -1339,6 +1368,7 @@ onMount(() => {
     lastGodRotationDelta = 0
     godSpinDirection = 1
     godWasAscending = false
+    landingCoastTime = 0
   }
 
   type CollectorBearingState = {
