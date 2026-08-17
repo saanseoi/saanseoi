@@ -6,6 +6,8 @@ type Props = {
   version: string
   releaseLabel: string
   release: string
+  domainsLabel: string
+  domains: number
 }
 
 let {
@@ -15,6 +17,8 @@ let {
   version,
   releaseLabel,
   release,
+  domainsLabel,
+  domains,
 }: Props = $props()
 </script>
 
@@ -53,6 +57,23 @@ let {
         >
         <span
           class={`absolute top-0 left-0 h-3 w-full rounded-full bg-[color-mix(in_srgb,var(--api-card-foreground)_54%,transparent)] transition-[filter,opacity] duration-300 ${isLoading ? 'motion-safe:animate-pulse opacity-100 blur-[2px]' : 'pointer-events-none opacity-0'}`}
+          aria-hidden="true"
+        ></span>
+      </dd>
+    </div>
+    <div class="grid min-w-0 gap-0.5">
+      <dt class="whitespace-nowrap font-semibold uppercase opacity-78">
+        {domainsLabel}
+      </dt>
+      <dd
+        class="relative whitespace-nowrap font-mono text-[0.76rem] leading-none font-extrabold"
+      >
+        <span
+          class={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+          >{domains}</span
+        >
+        <span
+          class={`absolute top-0 left-0 h-3 w-10 rounded-full bg-[color-mix(in_srgb,var(--api-card-foreground)_54%,transparent)] transition-[filter,opacity] duration-300 ${isLoading ? 'motion-safe:animate-pulse opacity-100 blur-[2px]' : 'pointer-events-none opacity-0'}`}
           aria-hidden="true"
         ></span>
       </dd>

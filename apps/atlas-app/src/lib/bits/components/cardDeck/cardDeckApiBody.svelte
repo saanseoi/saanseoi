@@ -19,6 +19,8 @@ type Props = {
   version: string
   releaseLabel: string
   release: string
+  domainsLabel: string
+  domains: number
 }
 
 let {
@@ -37,6 +39,8 @@ let {
   version,
   releaseLabel,
   release,
+  domainsLabel,
+  domains,
 }: Props = $props()
 
 const stopCardInteraction = (event: PointerEvent | MouseEvent) =>
@@ -66,6 +70,7 @@ const stopCardInteraction = (event: PointerEvent | MouseEvent) =>
     <span class="mt-7 flex flex-wrap items-center gap-2 font-body text-label-md">
       <a
         class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_38%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_70%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_26%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_70%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_26%,transparent)] focus-visible:outline-none"
+        data-sveltekit-preload-data="hover"
         href={releasesHref}
         onpointerdown={stopCardInteraction}
         onclick={stopCardInteraction}
@@ -73,6 +78,7 @@ const stopCardInteraction = (event: PointerEvent | MouseEvent) =>
       >
       <a
         class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_38%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_70%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_26%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_70%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_26%,transparent)] focus-visible:outline-none"
+        data-sveltekit-preload-data="hover"
         href={docsHref}
         target="_blank"
         rel="noreferrer"
@@ -83,5 +89,14 @@ const stopCardInteraction = (event: PointerEvent | MouseEvent) =>
       >
     </span>
   </span>
-  <ApiFacts {active} {isLoading} {versionLabel} {version} {releaseLabel} {release} />
+  <ApiFacts
+    {active}
+    {isLoading}
+    {versionLabel}
+    {version}
+    {releaseLabel}
+    {release}
+    {domainsLabel}
+    {domains}
+  />
 </span>
