@@ -17,9 +17,11 @@ export const getReleaseNavContentTarget = (panel?: HTMLElement) =>
 export function createReleaseNavigationPersistence({
   getContentTarget,
   getVersions,
+  onVersionSelect,
 }: {
   getContentTarget: ContentTarget
   getVersions: () => ReleaseNavVersion[]
+  onVersionSelect?: (versionCode: string) => void
 }) {
   let pendingScroll: { contentTop: number; pageTop: number } | null = null
 
@@ -41,6 +43,16 @@ export function createReleaseNavigationPersistence({
       )
     )
       return
+
+    const selectedVersion = getVersions().find(
+      version =>
+        new URL(version.href, window.location.origin).pathname === destination.pathname,
+    )
+    if (selectedVersion) {
+      // Let the link's own navigation handler read the original href before
+      // the optimistic version update rerenders the navigation controls.
+      window.setTimeout(() => onVersionSelect?.(selectedVersion.code), 0)
+    }
 
     pendingScroll = {
       contentTop: getContentTarget()?.scrollTop ?? 0,
@@ -210,7 +222,7 @@ export function scrollToReleaseNavAnchor({
       firstItemPadding -
       24
 
-    goto(`#${id}`, { shallow: true, replace: true })
+    void goto(`#${id}`, { noScroll: true, replaceState: true })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
 
     return
@@ -227,7 +239,7 @@ export function scrollToReleaseNavAnchor({
 
   const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
 
-  goto(`#${id}`, { shallow: true, replace: true })
+  void goto(`#${id}`, { noScroll: true, replaceState: true })
 
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
 

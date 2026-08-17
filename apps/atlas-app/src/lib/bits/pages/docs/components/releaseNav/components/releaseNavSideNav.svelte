@@ -4,6 +4,7 @@ import type {
   ReleaseNavDomain,
   ReleaseNavOutlineItem,
   ReleaseNavVersion,
+  ReleaseNavVersionPreload,
 } from '../releaseNav.types'
 import ReleaseNavDomainList from './releaseNavDomainList.svelte'
 import ReleaseNavOutline from './releaseNavOutline.svelte'
@@ -16,8 +17,10 @@ type Props = {
   currentVersionCode: string
   domains?: ReleaseNavDomain[]
   domainTitle?: string
+  loading?: boolean
   outline?: ReleaseNavOutlineItem[]
   panel?: HTMLElement
+  onVersionPreload?: ReleaseNavVersionPreload
   versions: ReleaseNavVersion[]
 }
 let {
@@ -27,8 +30,10 @@ let {
   currentVersionCode,
   domains = [],
   domainTitle = 'Domains',
+  loading = false,
   outline = [],
   panel,
+  onVersionPreload,
   versions,
 }: Props = $props()
 </script>
@@ -41,6 +46,8 @@ let {
   <ReleaseNavVersionList
     {canExpand}
     {currentVersionCode}
+    {loading}
+    {onVersionPreload}
     footer={domainList}
     {versions}
   >
