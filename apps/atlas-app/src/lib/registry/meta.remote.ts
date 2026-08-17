@@ -1,8 +1,11 @@
 import {
   getRegistryApi,
+  getRegistrySourceRelease,
+  getRegistrySourceReleaseShell,
   getRegistrySource,
   getRegistrySourcePublisher,
-  listRegistryApis,
+  listRegistryApiCompositions,
+  listRegistrySourcesPage,
   listRegistrySources,
   getRegistryReleaseLifecycleScope,
   resolveRegistryReleaseDisplayStatus,
@@ -20,11 +23,13 @@ import {
   metaAssets,
   metaDatasets,
   metaReleases,
+  metaSourceReleases,
   ingestRuns,
   stats,
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
+import { dev } from '$app/env'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
@@ -41,6 +46,13 @@ import type {
 } from './types'
 
 const registryCodeSchema = z.string().trim().min(1).max(200)
+const sourceReleaseShellSchema = z.object({
+  datasetCode: registryCodeSchema,
+  releaseCode: registryCodeSchema,
+})
+const sourceReleaseContentSchema = sourceReleaseShellSchema.extend({
+  previousReleaseCode: registryCodeSchema.nullable().optional(),
+})
 const releasePageSchema = z.object({
   offset: z.number().int().min(0).max(10_000),
 })
@@ -246,8 +258,8 @@ function isRegistryBootstrapError(error: unknown) {
 export const getSourcesPageData = query(async () => {
   const db = getMetaDb()
   const [sources, apis] = await Promise.all([
-    listRegistrySources(db, 200),
-    listRegistryApis(db, 100),
+    listRegistrySourcesPage(db, 200),
+    listRegistryApiCompositions(db, 100),
   ])
   const domainsByApiFamily = Object.fromEntries(
     (apis as RegistryApi[]).map(api => {
@@ -267,7 +279,7 @@ export const getSourcesPageData = query(async () => {
 
   return {
     domainsByApiFamily,
-    sources: (sources as RegistrySource[]).map(toSourcesPageSource),
+    sources: (sources as unknown as RegistrySource[]).map(toSourcesPageSource),
   }
 })
 
@@ -286,65 +298,113 @@ export const getSourcePageData = query(registryCodeSchema, async datasetCode => 
   return source
 })
 
-export const getSourceDatasetPageData = query(registryCodeSchema, async datasetCode => {
-  const db = getMetaDb()
-  const source = (await getRegistrySource(db, datasetCode)) as RegistrySource | null
-  if (!source) error(404, 'Source dataset not found.')
-
-  const archives = await db
-    .select({
-      assetId: metaAssets.id,
-      manifest: metaAssets.manifest,
-      sourceReleaseId: metaReleases.sourceReleaseId,
-    })
-    .from(metaAssets)
-    .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
-    .where(
-      and(
-        eq(metaAssets.role, 'sourceArchive'),
-        sql`json_extract(${metaAssets.manifest}, '$.dataset.code') = ${source.code}`,
-      ),
+export const getSourceReleaseShellData = query(
+  sourceReleaseShellSchema,
+  async ({ datasetCode, releaseCode }) => {
+    const startedAt = performance.now()
+    const shell = await getRegistrySourceReleaseShell(
+      getMetaDb(),
+      datasetCode,
+      releaseCode,
     )
-    .orderBy(desc(metaAssets.retrievedAt))
-    .all()
-  const assetIdBySourceReleaseId = new Map(
-    archives.flatMap(archive =>
-      archive.sourceReleaseId
-        ? [[archive.sourceReleaseId, archive.assetId] as const]
-        : [],
-    ),
-  )
-  const assetIdByReleaseSlot = new Map(
-    archives.flatMap(archive => {
-      const releaseSlot = getSourceArchiveReleaseSlot(archive.manifest)
-      return releaseSlot ? [[releaseSlot, archive.assetId] as const] : []
-    }),
-  )
+    if (!shell) error(404, 'Source dataset not found.')
 
-  return {
-    ...source,
-    sourceVersions: source.sourceVersions?.map(version => {
-      const sourceArchiveAssetId =
-        assetIdBySourceReleaseId.get(version.id) ??
-        assetIdByReleaseSlot.get(version.sourceVersion)
-      return sourceArchiveAssetId ? { ...version, sourceArchiveAssetId } : version
-    }),
-  }
-})
+    const version = shell.sourceVersions.find(item => item.code === releaseCode) ?? null
+    if (!version) error(404, 'Source release not found.')
 
-function getSourceArchiveReleaseSlot(manifest: unknown) {
-  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
-    return null
-  }
-  const provenance = (manifest as { provenance?: unknown }).provenance
-  if (!provenance || typeof provenance !== 'object' || Array.isArray(provenance)) {
-    return null
-  }
-  const releaseSlot = (provenance as { releaseSlot?: unknown }).releaseSlot
-  return typeof releaseSlot === 'string' && /^\d{4}-Q[1-4]$/.test(releaseSlot)
-    ? releaseSlot
-    : null
-}
+    const timings = {
+      ...shell.timings,
+      shell: performance.now() - startedAt,
+    }
+    if (dev) console.info('[source-release-shell]', timings)
+
+    const {
+      timings: _timings,
+      selectedReleaseCode: _selectedReleaseCode,
+      ...source
+    } = shell
+    return {
+      source: source as RegistrySource,
+      version: version as SourceVersion,
+      timings,
+    }
+  },
+)
+
+export const getSourceReleaseContentData = query(
+  sourceReleaseContentSchema,
+  async ({ datasetCode, releaseCode, previousReleaseCode }) => {
+    const startedAt = performance.now()
+    const db = getMetaDb()
+    const source = await getRegistrySourceRelease(db, datasetCode, releaseCode)
+    if (!source) error(404, 'Source dataset not found.')
+
+    const version = source.sourceVersions?.[0]
+    if (!version) error(404, 'Source release not found.')
+
+    const previousNotesPromise = previousReleaseCode
+      ? db
+          .select({ notes: metaSourceReleases.notes })
+          .from(metaSourceReleases)
+          .where(
+            and(
+              eq(metaSourceReleases.datasetId, version.datasetId),
+              eq(metaSourceReleases.code, previousReleaseCode),
+            ),
+          )
+          .limit(1)
+          .get()
+          .then(previous => previous?.notes ?? null)
+      : db
+          .select({ code: metaSourceReleases.code, notes: metaSourceReleases.notes })
+          .from(metaSourceReleases)
+          .where(eq(metaSourceReleases.datasetId, version.datasetId))
+          .orderBy(
+            desc(metaSourceReleases.publicationDate),
+            desc(metaSourceReleases.createdAt),
+          )
+          .all()
+          .then(releases => {
+            const currentIndex = releases.findIndex(
+              release => release.code === releaseCode,
+            )
+            return currentIndex >= 0
+              ? (releases[currentIndex + 1]?.notes ?? null)
+              : null
+          })
+
+    const [previousNotes, archive] = await Promise.all([
+      previousNotesPromise,
+      db
+        .select({ assetId: metaAssets.id })
+        .from(metaAssets)
+        .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+        .where(
+          and(
+            eq(metaAssets.role, 'sourceArchive'),
+            eq(metaReleases.sourceReleaseId, version.id),
+          ),
+        )
+        .orderBy(desc(metaAssets.retrievedAt))
+        .limit(1)
+        .get(),
+    ])
+
+    const result = {
+      version: archive
+        ? { ...version, sourceArchiveAssetId: archive.assetId }
+        : version,
+      previousNotes,
+    } as { version: SourceVersion; previousNotes: string | null }
+
+    if (dev)
+      console.info('[source-release-content]', {
+        content: performance.now() - startedAt,
+      })
+
+    return result
+  },
+)
 
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
