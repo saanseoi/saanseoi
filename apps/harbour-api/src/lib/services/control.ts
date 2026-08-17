@@ -74,6 +74,8 @@ type ControlResult = {
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
+  /** Release-set publications that crossed draft -> current in this call. */
+  apiReleaseSetAnnouncements?: ReleaseSetPublication[]
   apiReleaseSetPublications?: ReleaseSetPublication[]
   datasetId: string
   releaseCode: string
@@ -94,6 +96,8 @@ type CleanupSnapshotsResult = {
 export type ReconcileDraftReleaseSetsResult = {
   inspected: number
   pendingReleaseSetCodes: string[]
+  /** Release-set publications that crossed draft -> current in this call. */
+  publishedReleaseSetAnnouncements: ReleaseSetPublication[]
   publishedReleaseSetPublications: ReleaseSetPublication[]
   publishedReleaseSetCodes: string[]
 }
@@ -242,7 +246,7 @@ export async function handlePublishDataset(
   cleanupQueue?: HarbourJobQueue,
   options: {
     reconcileDraftReleaseSet?: boolean
-    releaseSet?: { code: string; id: string }
+    releaseSet?: { code: string; id: string; status?: 'draft' | 'current' | 'archived' }
   } = {},
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
@@ -371,10 +375,15 @@ export async function handlePublishDataset(
     const apiReleaseSetPublications: NonNullable<
       ControlResult['apiReleaseSetPublications']
     > = []
+    const apiReleaseSetAnnouncements: NonNullable<
+      ControlResult['apiReleaseSetAnnouncements']
+    > = []
     const newestReleaseSetIndex = releaseSets.length - 1
     const publishedAtMs = Date.now()
     const publisherName = await resolvePublisherName(db, dataset.source)
     for (const [index, releaseSet] of releaseSets.entries()) {
+      const releaseSetWasDraft =
+        !('status' in releaseSet) || releaseSet.status === 'draft'
       const releaseSetCohortKey =
         parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
       const previousReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
@@ -456,6 +465,12 @@ export async function handlePublishDataset(
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
+        const publishedReleaseSetStatus = await db
+          .select({ status: metaApiReleaseSets.status })
+          .from(metaApiReleaseSets)
+          .where(eq(metaApiReleaseSets.id, releaseSet.id))
+          .limit(1)
+          .get()
         const publishedReleaseSet = await requireReleaseSetPublicationMetadata(
           db,
           releaseSet.id,
@@ -466,7 +481,7 @@ export async function handlePublishDataset(
             regionCode: dataset.regionCode,
           },
         )
-        apiReleaseSetPublications.push({
+        const publication = {
           apiCatalogRevisionCode: apiCatalogRevision?.code,
           apiFamily: publishedReleaseSet.apiFamily,
           apiReleaseSetCode: releaseSet.code,
@@ -478,7 +493,11 @@ export async function handlePublishDataset(
           publisherName,
           regionCode: publishedReleaseSet.regionCode,
           revision: publishedReleaseSet.revision,
-        })
+        }
+        apiReleaseSetPublications.push(publication)
+        if (releaseSetWasDraft && publishedReleaseSetStatus?.status === 'current') {
+          apiReleaseSetAnnouncements.push(publication)
+        }
       }
     }
 
@@ -503,6 +522,7 @@ export async function handlePublishDataset(
       apiReleaseSetId: releaseSets.at(-1)?.id,
       apiReleaseSetCode: releaseSets.at(-1)?.code,
       apiReleaseSetStatus: selectedReleaseSetStatus,
+      apiReleaseSetAnnouncements,
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
@@ -532,6 +552,7 @@ export async function handleReconcileDraftReleaseSets(
       primaryReleases.map(release => [release.apiReleaseSetId, release]),
     )
     const publishedReleaseSetCodes: string[] = []
+    const publishedReleaseSetAnnouncements: ReleaseSetPublication[] = []
     const publishedReleaseSetPublications: ReleaseSetPublication[] = []
     const pendingReleaseSetCodes: string[] = []
 
@@ -554,6 +575,11 @@ export async function handleReconcileDraftReleaseSets(
         )
       ) {
         publishedReleaseSetCodes.push(releaseSet.code)
+        publishedReleaseSetAnnouncements.push(
+          ...(result.apiReleaseSetAnnouncements ?? []).filter(
+            publication => publication.apiReleaseSetCode === releaseSet.code,
+          ),
+        )
         publishedReleaseSetPublications.push(
           ...(result.apiReleaseSetPublications ?? []).filter(
             publication => publication.apiReleaseSetCode === releaseSet.code,
@@ -567,6 +593,7 @@ export async function handleReconcileDraftReleaseSets(
     return {
       inspected: draftReleaseSets.length,
       pendingReleaseSetCodes,
+      publishedReleaseSetAnnouncements,
       publishedReleaseSetPublications,
       publishedReleaseSetCodes,
     }

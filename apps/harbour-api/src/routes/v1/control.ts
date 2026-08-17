@@ -292,8 +292,9 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
-      await announcePublishedReleaseSets(c.env, result.apiReleaseSetPublications)
-      return c.json(result, 200)
+      await announcePublishedReleaseSets(c.env, result.apiReleaseSetAnnouncements)
+      const { apiReleaseSetAnnouncements: _announcements, ...response } = result
+      return c.json(response, 200)
     } catch (error) {
       const response = createControlError(error)
       return c.json(response, response.httpStatus)
@@ -330,8 +331,9 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const result = await handleReconcileDraftReleaseSets(db, c.req.valid('json'))
-      await announcePublishedReleaseSets(c.env, result.publishedReleaseSetPublications)
-      return c.json(result, 200)
+      await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
+      const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
+      return c.json(response, 200)
     } catch (error) {
       const response = createControlError(error)
       return c.json(response, response.httpStatus)
