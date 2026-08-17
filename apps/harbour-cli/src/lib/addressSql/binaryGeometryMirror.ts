@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto'
 
 /** The remote D1 API transports hex as ASCII, never a binary geometry value. */
-export const REMOTE_GEOMETRY_HEX_CHUNK_BYTES = 16 * 1024
+// Keep each ASCII chunk comfortably below D1's row/result limits. Several
+// bounded chunks are requested in one read to avoid one Wrangler process per
+// 16 KiB fragment for large historical geometries.
+export const REMOTE_GEOMETRY_HEX_CHUNK_BYTES = 32 * 1024
+export const REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY = 4
 
 export type BinaryGeometryRow = {
   binaryColumn: string
