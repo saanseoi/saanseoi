@@ -2,14 +2,10 @@
 import GuideWorksWith from '#lib/bits/pages/guides/components/guideWorksWith.svelte'
 import Icon from '@iconify/svelte'
 
-import {
-  Button,
-  Main,
-  PageDescription,
-  PageHeader,
-  PageTitle,
-  Seo,
-} from '#lib/bits/index.js'
+import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 const guides = [

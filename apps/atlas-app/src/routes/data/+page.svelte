@@ -14,7 +14,8 @@ import {
   PageSectionTitle,
   PageTitle,
 } from '#lib/bits/pages/shared/index.js'
-import { Main, Seo } from '#lib/bits/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import {

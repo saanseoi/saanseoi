@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Button } from '#lib/bits/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
 
 import { getBasemapMessage as getMessage } from './basemapMessages'

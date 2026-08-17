@@ -1,5 +1,7 @@
 <script lang="ts">
-import { Button, Main, Seo } from '#lib/bits/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 import MappingIntegration from '#lib/bits/components/mappingIntegration.svelte'
 import { apiIntegrations } from '#lib/bits/components/mappingIntegrations.js'
 </script>

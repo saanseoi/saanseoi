@@ -3,8 +3,14 @@ import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import { Popover } from 'bits-ui'
 
-import { Main, Seo, SourceFlowMap, SourcesHeader } from '#lib/bits/index.js'
-import type { SourceFlowInput, SourceFlowLane } from '#lib/bits/index.js'
+import * as SourceFlowMap from '#lib/bits/pages/sources/components/sourceFlowMap/index.js'
+import * as SourcesHeader from '#lib/bits/pages/sources/components/sourcesHeader/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
+import type {
+  SourceFlowInput,
+  SourceFlowLane,
+} from '#lib/bits/pages/sources/components/sourceFlowMap/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'

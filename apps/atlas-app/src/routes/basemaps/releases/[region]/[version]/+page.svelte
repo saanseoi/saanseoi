@@ -1,13 +1,13 @@
 <script lang="ts">
 import {
-  Main,
   PageDescription,
   PageHeader,
   PageSection,
   PageSectionTitle,
   PageTitle,
-  Seo,
-} from '#lib/bits/index.js'
+} from '#lib/bits/pages/shared/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 
 let { data } = $props()
 const schemaVersion = 'protomaps-v4.0'

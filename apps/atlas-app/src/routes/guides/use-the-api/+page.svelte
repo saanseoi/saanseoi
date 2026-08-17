@@ -1,7 +1,9 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Button, Main, Seo } from '#lib/bits/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 
 let locale = $derived(getCurrentLocale())

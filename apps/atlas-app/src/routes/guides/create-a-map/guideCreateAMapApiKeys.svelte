@@ -1,7 +1,8 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Button, GuideCodeBlock } from '#lib/bits/index.js'
+import { GuideCodeBlock } from '#lib/bits/pages/guides/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 import { createGuideApiKey } from './createAMapApiKeys.remote'

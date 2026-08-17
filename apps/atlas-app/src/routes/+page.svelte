@@ -1,7 +1,9 @@
 <script lang="ts">
 import { onMount, tick, type Component } from 'svelte'
 
-import { Main, Divider, Seo } from '#lib/bits/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Divider } from '#lib/bits/primitives/divider/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 import HeroSection from '#lib/bits/pages/landing/heroSection.svelte'

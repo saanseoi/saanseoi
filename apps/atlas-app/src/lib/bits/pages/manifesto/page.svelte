@@ -1,5 +1,6 @@
 <script lang="ts">
-import { Button, Main } from '#lib/bits/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import topo from '#lib/assets/topo.jpg'
 
 import MarkerOrbit from './components/markerOrbit.svelte'

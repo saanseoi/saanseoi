@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { Main, Seo } from '#lib/bits/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import {
   THEME_CHANGE_EVENT,
