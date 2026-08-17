@@ -852,16 +852,18 @@ async function loadDivisionGeometry(args: {
   snapshot: ActiveDivisionSnapshot
   divisionIds: string[]
   variants?: { area?: string; boundary?: string }
+  includeArea?: boolean
+  includeBoundary?: boolean
 }) {
   const [areas, boundaries] = await Promise.all([
-    args.snapshot.areaSnapshotId
+    args.includeArea && args.snapshot.areaSnapshotId
       ? listDivisionAreasCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.areaSnapshotId,
           divisionIds: args.divisionIds,
           variant: args.variants?.area,
         })
       : [],
-    args.snapshot.boundarySnapshotId
+    args.includeBoundary && args.snapshot.boundarySnapshotId
       ? listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.boundarySnapshotId,
           divisionIds: args.divisionIds,
@@ -1039,6 +1041,8 @@ export async function listDivisions(args: {
       snapshot: activeDivisionSnapshot,
       divisionIds: records.map(record => record.division.id),
       variants: geometryVariants,
+      includeArea: requestedGeometry.area,
+      includeBoundary: requestedGeometry.boundary,
     }),
   )
   const includes = requestedIncludes(args.query.include)
@@ -1177,6 +1181,8 @@ export async function getDivisionDetail(args: {
       snapshot: activeDivisionSnapshot,
       divisionIds: [record.division.id],
       variants: geometryVariants,
+      includeArea: requestedGeometry.area,
+      includeBoundary: requestedGeometry.boundary,
     }),
   )
   const includes = requestedIncludes(args.query.include)
