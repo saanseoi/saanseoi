@@ -7,14 +7,20 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import {
+  REMOTE_GEOMETRY_BATCH_BYTE_LIMIT,
   REMOTE_GEOMETRY_HEX_CHUNK_BYTES,
   REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
   assertBinaryGeometryRow,
   geometrySha256,
+  partitionRemoteGeometryRows,
   reassembleHexChunks,
   rejectReplacementCharacter,
   type BinaryGeometryRow,
 } from './binaryGeometryMirror.ts'
+import {
+  createCloudflareD1QueryClient,
+  type RemoteD1QueryClient,
+} from './remoteD1Client.ts'
 
 import {
   currentSchema,
@@ -53,6 +59,16 @@ type DbCacheManifest = {
   preparedAt: string
   target: 'local' | 'preview' | 'production'
   files: Record<string, string>
+}
+
+type RemoteCachePartialCheckpoint = {
+  bindingName: string
+  cacheScopeKey?: string
+  cacheTableProfile?: CacheTableProfile
+  cacheVersion: number
+  filePath: string
+  target: 'preview' | 'production'
+  validatedAt: string
 }
 
 type RemoteCacheReplayJournal = {
@@ -188,6 +204,8 @@ const REQUIRED_RELEASE_SHARD_ASSIGNMENTS = 2
 const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
 const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
 const REMOTE_GEOMETRY_PAGE_SIZE = 100
+const REMOTE_GEOMETRY_QUERY_CONCURRENCY = 4
+const REMOTE_CACHE_PARTIAL_DIR = '.partial'
 const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'address2d',
   'address2dI18n',
@@ -1436,15 +1454,14 @@ async function ensureRemoteCachePaths(
     )
   }
 
-  const reusableFiles =
-    options.refreshRemoteCache || !existingManifest
-      ? {}
-      : await resolveReusableCachedFiles(
-          cacheDir,
-          existingManifest.files,
-          targets,
-          options.cacheTableProfile,
-        )
+  const reusableFiles = await resolveReusableCachedFiles(
+    cacheDir,
+    options.refreshRemoteCache ? {} : (existingManifest?.files ?? {}),
+    targets,
+    options.cacheTableProfile,
+    target,
+    options.remoteCacheScopeKey,
+  )
   const targetsToMirror = targets.filter(
     targetRecord => !reusableFiles[targetRecord.bindingName],
   )
@@ -1452,6 +1469,7 @@ async function ensureRemoteCachePaths(
     targetsToMirror.length > 0
       ? await mirrorRemoteTargetToLocal(target, targetsToMirror, cacheDir, {
           cacheTableProfile: options.cacheTableProfile,
+          cacheScopeKey: options.remoteCacheScopeKey,
           onProgress: options.onProgress,
           preserveCacheDir: Object.keys(reusableFiles).length > 0,
           totalUnits,
@@ -1478,6 +1496,10 @@ async function ensureRemoteCachePaths(
   }
 
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+  await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR), {
+    force: true,
+    recursive: true,
+  }).catch(() => undefined)
   await rm(invalidatedManifestPath, { force: true }).catch(() => undefined)
   return files
 }
@@ -1487,24 +1509,85 @@ async function resolveReusableCachedFiles(
   files: Record<string, string>,
   targets: D1TargetRecord[],
   cacheTableProfile?: CacheTableProfile,
+  targetEnvironment?: 'preview' | 'production',
+  cacheScopeKey?: string,
 ) {
   const reusableFiles: Record<string, string> = {}
 
-  for (const target of targets) {
+  for (const targetRecord of targets) {
+    const partial = await readRemoteCachePartialCheckpoint(
+      cacheDir,
+      targetRecord.bindingName,
+    )
+    const partialMatches =
+      partial &&
+      partial.cacheVersion === DB_CACHE_MANIFEST_VERSION &&
+      partial.target === targetEnvironment &&
+      partial.cacheTableProfile === cacheTableProfile &&
+      partial.cacheScopeKey === cacheScopeKey
     const candidatePaths = [
-      files[target.bindingName],
-      resolve(cacheDir, `${target.bindingName}.sqlite`),
+      files[targetRecord.bindingName],
+      partialMatches ? partial.filePath : null,
     ].filter(isNonEmptyString)
 
     for (const filePath of candidatePaths) {
-      if (await isValidCachedFile(filePath, target.bindingName, cacheTableProfile)) {
-        reusableFiles[target.bindingName] = filePath
+      if (
+        await isValidCachedFile(filePath, targetRecord.bindingName, cacheTableProfile)
+      ) {
+        reusableFiles[targetRecord.bindingName] = filePath
         break
       }
     }
   }
 
   return reusableFiles
+}
+
+async function readRemoteCachePartialCheckpoint(cacheDir: string, bindingName: string) {
+  try {
+    const raw = await readFile(
+      resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR, `${bindingName}.json`),
+      'utf8',
+    )
+    return JSON.parse(raw) as RemoteCachePartialCheckpoint
+  } catch (error) {
+    if (isMissingFileError(error)) return null
+    throw error
+  }
+}
+
+async function writeRemoteCachePartialCheckpoint(input: {
+  bindingName: string
+  cacheDir: string
+  cacheScopeKey?: string
+  cacheTableProfile?: CacheTableProfile
+  filePath: string
+  target: 'preview' | 'production'
+}) {
+  const partialDir = resolve(input.cacheDir, REMOTE_CACHE_PARTIAL_DIR)
+  await mkdir(partialDir, { recursive: true })
+  const checkpoint: RemoteCachePartialCheckpoint = {
+    bindingName: input.bindingName,
+    ...(input.cacheScopeKey ? { cacheScopeKey: input.cacheScopeKey } : {}),
+    ...(input.cacheTableProfile ? { cacheTableProfile: input.cacheTableProfile } : {}),
+    cacheVersion: DB_CACHE_MANIFEST_VERSION,
+    filePath: input.filePath,
+    target: input.target,
+    validatedAt: new Date().toISOString(),
+  }
+  await writeFile(
+    resolve(partialDir, `${input.bindingName}.json`),
+    JSON.stringify(checkpoint, null, 2),
+  )
+}
+
+async function removeRemoteCachePartialCheckpoint(
+  cacheDir: string,
+  bindingName: string,
+) {
+  await rm(resolve(cacheDir, REMOTE_CACHE_PARTIAL_DIR, `${bindingName}.json`), {
+    force: true,
+  }).catch(() => undefined)
 }
 
 function isNonEmptyString(value: string | null | undefined): value is string {
@@ -1602,11 +1685,13 @@ async function refreshRemoteCacheTables(
           return
         }
 
+        const remoteD1Client = createRemoteD1QueryClient(targetRecord, target)
         const tableImports = await buildRemoteTableImports(
           targetRecord,
           target,
           tables,
           workDir,
+          remoteD1Client,
         )
         const busyTableName = tableImports.at(-1)?.tableName
 
@@ -1661,9 +1746,7 @@ async function refreshRemoteCacheTables(
               bindingName: targetRecord.bindingName,
               cacheTableProfile: options.cacheTableProfile,
               destinationPath,
-              tables,
-              target,
-              targetRecord,
+              binaryTableImports: tableImports,
             }),
         )
         currentUnit += 1
@@ -1764,6 +1847,7 @@ async function mirrorRemoteTargetToLocal(
   targets: D1TargetRecord[],
   cacheDir: string,
   options: {
+    cacheScopeKey?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
     preserveCacheDir?: boolean
@@ -1786,11 +1870,13 @@ async function mirrorRemoteTargetToLocal(
       targets,
       REMOTE_CACHE_BINDING_CONCURRENCY,
       async targetRecord => {
+        await removeRemoteCachePartialCheckpoint(cacheDir, targetRecord.bindingName)
         const tables = resolveMirrorTablesForBinding(
           targetRecord.bindingName,
           options.cacheTableProfile,
         )
         const dumpPaths: string[] = []
+        const remoteD1Client = createRemoteD1QueryClient(targetRecord, target)
         const binaryTableImports: Array<
           Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>
         > = []
@@ -1859,9 +1945,9 @@ async function mirrorRemoteTargetToLocal(
               binaryTableImports.push({
                 ...(await mirrorBinaryGeometryTable(
                   targetRecord,
-                  target,
                   tableName,
                   workDir,
+                  remoteD1Client,
                 )),
                 tableName,
               })
@@ -1926,12 +2012,18 @@ async function mirrorRemoteTargetToLocal(
               bindingName: targetRecord.bindingName,
               cacheTableProfile: options.cacheTableProfile,
               destinationPath,
-              tables,
-              target,
-              targetRecord,
+              binaryTableImports,
             }),
         )
         currentUnit += 1
+        await writeRemoteCachePartialCheckpoint({
+          bindingName: targetRecord.bindingName,
+          cacheDir,
+          cacheScopeKey: options.cacheScopeKey,
+          cacheTableProfile: options.cacheTableProfile,
+          filePath: destinationPath,
+          target,
+        })
         files[targetRecord.bindingName] = destinationPath
       },
     )
@@ -2315,17 +2407,15 @@ function shouldMirrorBinaryGeometryTable(tableName: string) {
 
 async function mirrorBinaryGeometryTable(
   targetRecord: D1TargetRecord,
-  target: 'preview' | 'production',
   tableName: string,
   workDir: string,
+  remoteD1Client: RemoteD1QueryClient,
 ): Promise<Pick<RemoteTableImport, 'binaryRowsPath'>> {
   const binaryColumn = resolveBinaryGeometryColumn(tableName)
   if (!binaryColumn) {
     throw new Error(`No binary geometry column is configured for ${tableName}.`)
   }
-  const columns = await queryRemoteD1(
-    targetRecord,
-    target,
+  const columns = await remoteD1Client.query(
     `PRAGMA table_info(${quoteSqlIdentifier(tableName)})`,
   )
   const columnNames = columns.map(column =>
@@ -2350,9 +2440,7 @@ async function mirrorBinaryGeometryTable(
   const rows: BinaryGeometryRow[] = []
 
   for (let offset = 0; ; offset += REMOTE_GEOMETRY_PAGE_SIZE) {
-    const remoteRows = await queryRemoteD1(
-      targetRecord,
-      target,
+    const remoteRows = await remoteD1Client.query(
       [
         `SELECT ${selectedColumns.join(', ')},`,
         `typeof(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryType",`,
@@ -2363,7 +2451,7 @@ async function mirrorBinaryGeometryTable(
       ].join(' '),
     )
 
-    for (const remoteRow of remoteRows) {
+    const pageRows: BinaryGeometryRow[] = remoteRows.map(remoteRow => {
       const geometryType = requireGeometryType(remoteRow.__geometryType)
       const values = Object.fromEntries(
         columnNames.map(column => [
@@ -2377,28 +2465,8 @@ async function mirrorBinaryGeometryTable(
       const snapshotId =
         typeof values.snapshotId === 'string' ? values.snapshotId : null
       const geometryLength = asOptionalRemoteInteger(remoteRow.__geometryLength)
-      let geometry: Buffer | null = null
-      let geometryDigest: string | null = null
 
-      if (geometryType === 'blob') {
-        const where = primaryKeyColumns
-          .map(
-            column =>
-              `${quoteSqlIdentifier(column)} = ${toSqlLiteral(values[column] ?? null)}`,
-          )
-          .join(' AND ')
-        const chunks = await readRemoteGeometryHexChunks(
-          targetRecord,
-          target,
-          tableName,
-          binaryColumn,
-          where,
-          geometryLength ?? 0,
-        )
-        geometry = reassembleHexChunks(chunks)
-        geometryDigest = geometrySha256(geometry)
-        values[binaryColumn] = null
-      } else if (typeof values[binaryColumn] === 'string') {
+      if (geometryType !== 'blob' && typeof values[binaryColumn] === 'string') {
         try {
           values[binaryColumn] = rejectReplacementCharacter(values[binaryColumn])
         } catch (error) {
@@ -2409,15 +2477,112 @@ async function mirrorBinaryGeometryTable(
         }
       }
 
-      const row: BinaryGeometryRow = {
+      return {
         binaryColumn,
-        geometry,
-        geometryDigest,
+        geometry: null,
+        geometryDigest: null,
         geometryLength,
         geometryType,
+        primaryKeyColumns,
         recordId,
         snapshotId,
         values,
+      } satisfies BinaryGeometryRow
+    })
+
+    const batches = partitionRemoteGeometryRows(
+      pageRows.map(row => ({
+        geometryLength: row.geometryLength,
+        geometryType: row.geometryType,
+      })),
+      REMOTE_GEOMETRY_BATCH_BYTE_LIMIT,
+    )
+    const geometryChunkRows = new Map<string, string[]>()
+    const pageKeys = new Set(
+      pageRows.map(row => remotePrimaryKey(row.values, primaryKeyColumns)),
+    )
+    const chunkTasks = batches.flatMap(batch =>
+      Array.from(
+        {
+          length: Math.ceil(batch.maxChunkCount / REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY),
+        },
+        (_, windowIndex) => ({
+          batch,
+          chunkOffset: windowIndex * REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+        }),
+      ),
+    )
+
+    await mapWithConcurrency(
+      chunkTasks,
+      REMOTE_GEOMETRY_QUERY_CONCURRENCY,
+      async task => {
+        const chunkCount = Math.min(
+          REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+          task.batch.maxChunkCount - task.chunkOffset,
+        )
+        const chunkColumns = Array.from(
+          { length: chunkCount },
+          (_, index) =>
+            `hex(substr(${quoteSqlIdentifier(binaryColumn)}, ${
+              1 + (task.chunkOffset + index) * REMOTE_GEOMETRY_HEX_CHUNK_BYTES
+            }, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "__hex${index}"`,
+        )
+        const chunkRows = await remoteD1Client.query(
+          [
+            `SELECT ${primaryKeyColumns.map(quoteSqlIdentifier).join(', ')},`,
+            chunkColumns.join(', '),
+            `FROM ${quoteSqlIdentifier(tableName)}`,
+            `ORDER BY ${orderBy}`,
+            `LIMIT ${task.batch.count}`,
+            `OFFSET ${offset + task.batch.start}`,
+          ].join(' '),
+        )
+
+        for (const chunkRow of chunkRows) {
+          const key = remotePrimaryKey(chunkRow, primaryKeyColumns)
+          if (!pageKeys.has(key)) {
+            throw new Error(
+              `Remote geometry row changed while mirroring ${targetRecord.bindingName}.${tableName}.`,
+            )
+          }
+          const chunks = geometryChunkRows.get(key) ?? []
+          for (let index = 0; index < chunkCount; index += 1) {
+            const hex = chunkRow[`__hex${index}`]
+            if (typeof hex !== 'string') {
+              throw new Error(
+                `Remote geometry chunk is missing for ${targetRecord.bindingName}.${tableName}.`,
+              )
+            }
+            chunks[task.chunkOffset + index] = hex
+          }
+          geometryChunkRows.set(key, chunks)
+        }
+      },
+    )
+
+    for (const row of pageRows) {
+      if (row.geometryType === 'blob') {
+        const chunkCount = Math.ceil(
+          Math.max(0, row.geometryLength ?? 0) / REMOTE_GEOMETRY_HEX_CHUNK_BYTES,
+        )
+        const chunks = geometryChunkRows.get(
+          remotePrimaryKey(row.values, primaryKeyColumns),
+        )
+        const hexChunks = chunks?.slice(0, chunkCount)
+        if (
+          chunkCount > 0 &&
+          (!hexChunks ||
+            hexChunks.length !== chunkCount ||
+            hexChunks.some(chunk => typeof chunk !== 'string'))
+        ) {
+          throw new Error(
+            `Remote geometry chunks are incomplete for ${targetRecord.bindingName}.${tableName} record=${row.recordId}.`,
+          )
+        }
+        row.geometry = reassembleHexChunks(hexChunks ?? [])
+        row.geometryDigest = geometrySha256(row.geometry)
+        row.values[binaryColumn] = null
       }
       assertBinaryGeometryRow(row)
       rows.push(row)
@@ -2442,57 +2607,11 @@ async function mirrorBinaryGeometryTable(
   return { binaryRowsPath }
 }
 
-async function readRemoteGeometryHexChunks(
-  targetRecord: D1TargetRecord,
-  target: 'preview' | 'production',
-  tableName: string,
-  binaryColumn: string,
-  where: string,
-  byteLength: number,
-) {
-  const chunks: string[] = []
-  for (
-    let offset = 1;
-    offset <= byteLength;
-    offset += REMOTE_GEOMETRY_HEX_CHUNK_BYTES * REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY
-  ) {
-    const chunkCount = Math.min(
-      REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
-      Math.ceil((byteLength - offset + 1) / REMOTE_GEOMETRY_HEX_CHUNK_BYTES),
-    )
-    const chunkColumns = Array.from(
-      { length: chunkCount },
-      (_, index) =>
-        `hex(substr(${quoteSqlIdentifier(binaryColumn)}, ${
-          offset + index * REMOTE_GEOMETRY_HEX_CHUNK_BYTES
-        }, ${REMOTE_GEOMETRY_HEX_CHUNK_BYTES})) AS "hex${index}"`,
-    )
-    const rows = await queryRemoteD1(
-      targetRecord,
-      target,
-      `SELECT ${chunkColumns.join(', ')} FROM ${quoteSqlIdentifier(tableName)} WHERE ${where}`,
-    )
-    const firstRow = rows[0]
-    for (let index = 0; index < chunkCount; index += 1) {
-      const hex = firstRow?.[`hex${index}`]
-      if (typeof hex !== 'string') {
-        throw new Error(
-          `Remote geometry chunk is missing for ${targetRecord.bindingName}.${tableName}.`,
-        )
-      }
-      chunks.push(hex)
-    }
-  }
-  return chunks
-}
-
 async function validateMirroredCacheBinding(input: {
   bindingName: string
   cacheTableProfile?: CacheTableProfile
   destinationPath: string
-  tables: string[]
-  target: 'preview' | 'production'
-  targetRecord: D1TargetRecord
+  binaryTableImports: Array<Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>>
 }) {
   try {
     await validateMirroredCacheBindingUnchecked(input)
@@ -2508,45 +2627,46 @@ async function validateMirroredCacheBindingUnchecked(input: {
   bindingName: string
   cacheTableProfile?: CacheTableProfile
   destinationPath: string
-  tables: string[]
-  target: 'preview' | 'production'
-  targetRecord: D1TargetRecord
+  binaryTableImports: Array<Pick<RemoteTableImport, 'binaryRowsPath' | 'tableName'>>
 }) {
   await assertCachedDatabaseHasExpectedTables(
     input.destinationPath,
     input.bindingName,
     input.cacheTableProfile,
   )
-  for (const tableName of input.tables.filter(shouldMirrorBinaryGeometryTable)) {
-    const binaryColumn = resolveBinaryGeometryColumn(tableName)
-    if (!binaryColumn) continue
-    const remote = await mirrorBinaryGeometryTable(
-      input.targetRecord,
-      input.target,
-      tableName,
-      dirname(input.destinationPath),
-    )
-    const binaryRowsPath = remote.binaryRowsPath
-    if (!binaryRowsPath) {
-      throw new Error(
-        `Binary mirror did not produce rows for ${input.bindingName}.${tableName}.`,
-      )
-    }
-    const rows = JSON.parse(
-      await readFile(binaryRowsPath, 'utf8'),
-    ) as BinaryGeometryRow[]
-    await rm(binaryRowsPath, { force: true })
-    const sqlite = new SQLiteDatabase(input.destinationPath, { readonly: true })
-    try {
+  // The binary rows are the exact remote bytes captured for this import. Keep
+  // validation local to that capture; re-reading every geometry from D1 here
+  // doubles the remote transfer without adding byte-level assurance.
+  const sqlite = new SQLiteDatabase(input.destinationPath, { readonly: true })
+  try {
+    for (const tableImport of input.binaryTableImports) {
+      const tableName = tableImport.tableName
+      if (!shouldMirrorBinaryGeometryTable(tableName)) continue
+      const binaryColumn = resolveBinaryGeometryColumn(tableName)
+      if (!binaryColumn) continue
+      const binaryRowsPath = tableImport.binaryRowsPath
+      if (!binaryRowsPath) {
+        throw new Error(
+          `Binary mirror did not produce rows for ${input.bindingName}.${tableName}.`,
+        )
+      }
+      const rows = JSON.parse(
+        await readFile(binaryRowsPath, 'utf8'),
+      ) as BinaryGeometryRow[]
+      await rm(binaryRowsPath, { force: true })
       for (const row of rows) {
-        const primaryKeys = Object.entries(row.values).filter(
-          ([column]) =>
-            column === 'id' ||
-            column === 'versionHash' ||
-            column === 'snapshotId' ||
-            column === 'sourceRecordId' ||
-            column === 'inputVersionHash' ||
-            column === 'transform',
+        const primaryKeyColumns =
+          row.primaryKeyColumns ??
+          [
+            'id',
+            'versionHash',
+            'snapshotId',
+            'sourceRecordId',
+            'inputVersionHash',
+            'transform',
+          ].filter(column => column in row.values)
+        const primaryKeys = primaryKeyColumns.map(
+          column => [column, row.values[column] ?? null] as const,
         )
         const where = primaryKeys
           .map(([column]) => `${quoteSqlIdentifier(column)} = ?`)
@@ -2572,9 +2692,9 @@ async function validateMirroredCacheBindingUnchecked(input: {
           )
         }
       }
-    } finally {
-      sqlite.close()
     }
+  } finally {
+    sqlite.close()
   }
 }
 
@@ -2583,6 +2703,7 @@ async function buildRemoteTableImports(
   target: 'preview' | 'production',
   tables: string[],
   workDir: string,
+  remoteD1Client: RemoteD1QueryClient,
 ) {
   const imports: RemoteTableImport[] = []
 
@@ -2620,7 +2741,12 @@ async function buildRemoteTableImports(
     const hasRows = importSql.length > 0
 
     const binaryTableImport = shouldMirrorBinaryGeometryTable(tableName)
-      ? await mirrorBinaryGeometryTable(targetRecord, target, tableName, workDir)
+      ? await mirrorBinaryGeometryTable(
+          targetRecord,
+          tableName,
+          workDir,
+          remoteD1Client,
+        )
       : null
 
     await writeFile(
@@ -2777,7 +2903,27 @@ async function runMirrorCommand(command: string[]) {
   }
 }
 
-async function queryRemoteD1(
+function createRemoteD1QueryClient(
+  targetRecord: D1TargetRecord,
+  target: 'preview' | 'production',
+): RemoteD1QueryClient {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
+  const apiToken = process.env.CLOUDFLARE_D1_TOKEN?.trim()
+
+  if (accountId && apiToken && targetRecord.databaseId) {
+    return createCloudflareD1QueryClient({
+      accountId,
+      apiToken,
+      databaseId: targetRecord.databaseId,
+    })
+  }
+
+  return {
+    query: command => queryRemoteD1WithWrangler(targetRecord, target, command),
+  }
+}
+
+async function queryRemoteD1WithWrangler(
   targetRecord: D1TargetRecord,
   target: 'preview' | 'production',
   command: string,
@@ -2859,6 +3005,12 @@ function requireRemoteString(value: unknown, label: string) {
   return value
 }
 
+function remotePrimaryKey(values: Record<string, unknown>, columns: string[]) {
+  return JSON.stringify(
+    columns.map(column => normaliseRemoteSqlValue(values[column] ?? null)),
+  )
+}
+
 function normaliseRemoteSqlValue(value: unknown): null | number | string {
   if (value === null || typeof value === 'number' || typeof value === 'string') {
     return value
@@ -2876,12 +3028,6 @@ function requireGeometryType(value: unknown): 'blob' | 'text' | 'null' {
 
 function asOptionalRemoteInteger(value: unknown) {
   return typeof value === 'number' && Number.isSafeInteger(value) ? value : null
-}
-
-function toSqlLiteral(value: null | number | string) {
-  if (value === null) return 'NULL'
-  if (typeof value === 'number') return String(value)
-  return `'${value.replaceAll("'", "''")}'`
 }
 
 async function mapWithConcurrency<T>(

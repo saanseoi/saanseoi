@@ -23,7 +23,7 @@ import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
   withRemoteCachedMetaDb,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import {
   HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
   prepareHkgovCenstatdDistrictUpload,

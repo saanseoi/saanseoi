@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import {
   resolveShardBindingName,
   type LocalAddressDbContext,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,

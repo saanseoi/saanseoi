@@ -13,7 +13,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
+import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')

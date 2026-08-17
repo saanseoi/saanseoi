@@ -7,6 +7,7 @@ import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 
 import {
+  partitionRemoteGeometryRows,
   assertBinaryGeometryRow,
   geometrySha256,
   reassembleHexChunks,
@@ -36,6 +37,25 @@ function compressedCsndFixture() {
 }
 
 describe('binary geometry cache mirror', () => {
+  test('partitions geometry reads by bounded payload and chunk windows', () => {
+    expect(
+      partitionRemoteGeometryRows(
+        [
+          { geometryLength: 50 * 1024, geometryType: 'blob' },
+          { geometryLength: 50 * 1024, geometryType: 'blob' },
+          { geometryLength: 200 * 1024, geometryType: 'blob' },
+          { geometryLength: 0, geometryType: 'null' },
+        ],
+        96 * 1024,
+      ),
+    ).toEqual([
+      { count: 1, maxChunkCount: 2, start: 0 },
+      { count: 1, maxChunkCount: 2, start: 1 },
+      { count: 1, maxChunkCount: 7, start: 2 },
+      { count: 1, maxChunkCount: 0, start: 3 },
+    ])
+  })
+
   test('reassembles arbitrary ASCII hex chunks byte-exactly', () => {
     const source = Buffer.from([0, 0x7f, 0x80, 0xff, 1, 2, 3])
     expect(reassembleHexChunks(['007f80', 'ff010203'])).toEqual(source)

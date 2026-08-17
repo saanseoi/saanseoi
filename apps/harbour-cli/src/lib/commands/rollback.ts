@@ -51,7 +51,7 @@ import {
   invalidateRemoteDbCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 
 type ReleaseRecord = Awaited<ReturnType<typeof resolveDatasetRecord>>
 type ResolvedReleaseRecord = NonNullable<ReleaseRecord>

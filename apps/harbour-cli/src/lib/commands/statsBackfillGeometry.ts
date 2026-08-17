@@ -15,7 +15,7 @@ import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   replayRemoteCacheWithRetry,
   resolveLocalAddressDbContext,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import { executeSqlText } from '../localPipeline/sqlImport.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'

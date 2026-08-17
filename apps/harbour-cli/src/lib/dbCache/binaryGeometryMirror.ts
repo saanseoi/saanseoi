@@ -6,6 +6,68 @@ import { createHash } from 'node:crypto'
 // 16 KiB fragment for large historical geometries.
 export const REMOTE_GEOMETRY_HEX_CHUNK_BYTES = 32 * 1024
 export const REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY = 4
+export const REMOTE_GEOMETRY_BATCH_BYTE_LIMIT = 96 * 1024
+
+export type RemoteGeometryRowDescriptor = {
+  geometryLength: number | null
+  geometryType: 'blob' | 'text' | 'null'
+}
+
+export type RemoteGeometryBatch = {
+  count: number
+  maxChunkCount: number
+  start: number
+}
+
+/**
+ * Groups consecutive rows into bounded geometry reads. A large geometry stays
+ * alone, while ordinary rows share one query until the safe payload budget is
+ * reached. The chunk count is per row; it lets the caller fetch large rows in
+ * several bounded windows without creating a query for every record.
+ */
+export function partitionRemoteGeometryRows(
+  rows: RemoteGeometryRowDescriptor[],
+  maxBytes = REMOTE_GEOMETRY_BATCH_BYTE_LIMIT,
+) {
+  const batches: RemoteGeometryBatch[] = []
+  let start = 0
+  let byteTotal = 0
+  let maxChunkCount = 0
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index]
+    if (!row) continue
+
+    const geometryLength = Math.max(0, row.geometryLength ?? 0)
+    const requestedBytes = Math.max(
+      1,
+      Math.min(
+        geometryLength,
+        REMOTE_GEOMETRY_HEX_CHUNK_BYTES * REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY,
+      ),
+    )
+    const rowChunkCount =
+      row.geometryType === 'blob'
+        ? Math.ceil(geometryLength / REMOTE_GEOMETRY_HEX_CHUNK_BYTES)
+        : 0
+
+    if (index > start && byteTotal + requestedBytes > maxBytes) {
+      batches.push({ count: index - start, maxChunkCount, start })
+      start = index
+      byteTotal = 0
+      maxChunkCount = 0
+    }
+
+    byteTotal += requestedBytes
+    maxChunkCount = Math.max(maxChunkCount, rowChunkCount)
+  }
+
+  if (start < rows.length) {
+    batches.push({ count: rows.length - start, maxChunkCount, start })
+  }
+
+  return batches
+}
 
 export type BinaryGeometryRow = {
   binaryColumn: string
@@ -13,6 +75,7 @@ export type BinaryGeometryRow = {
   geometryDigest: string | null
   geometryLength: number | null
   geometryType: 'blob' | 'text' | 'null'
+  primaryKeyColumns?: string[]
   recordId: string
   snapshotId: string | null
   values: Record<string, null | number | string>

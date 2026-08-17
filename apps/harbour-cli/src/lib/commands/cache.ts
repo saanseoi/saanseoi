@@ -4,7 +4,7 @@ import {
   rebuildRemoteDbCache,
   updateDbCacheProgress,
   type CacheTableProfile,
-} from '../addressSql/localDbCache.ts'
+} from '../dbCache/localDbCache.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,

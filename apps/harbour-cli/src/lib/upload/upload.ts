@@ -9,7 +9,7 @@ import type { ReleaseStatus } from '@repo/db'
 import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type { CliUploadOptions, UploadTarget } from '../cli/options.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
