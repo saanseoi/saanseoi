@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { goto } from '$app/navigation'
 
 import type { ReleaseHeaderDomainOption } from '../releaseHeaderDomainOptions'

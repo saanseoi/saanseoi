@@ -3,7 +3,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { authClient } from '#lib/auth-client.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { LanguageSelector } from '#lib/bits/components/language-selector/index.js'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { DropdownMenu } from 'bits-ui'
 
 import DarkModeToggle from './darkModeToggle.svelte'

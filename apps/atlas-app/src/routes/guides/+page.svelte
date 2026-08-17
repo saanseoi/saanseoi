@@ -1,6 +1,6 @@
 <script lang="ts">
 import GuideWorksWith from '#lib/bits/pages/guides/components/guideWorksWith.svelte'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'

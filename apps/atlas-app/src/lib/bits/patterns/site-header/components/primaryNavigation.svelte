@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Tooltip } from 'bits-ui'
 
 import { Button } from '#lib/bits/primitives/button/index.js'

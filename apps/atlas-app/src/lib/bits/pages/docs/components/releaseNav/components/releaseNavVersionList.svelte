@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseNavVersion } from '../releaseNav.types'
 import { revealReleaseNavVersion } from '../releaseNavScroll'
 

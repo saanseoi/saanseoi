@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import mapboxCreateAccessToken from '#lib/assets/guides/mapbox-create-access-token.png'
 import mapboxTokenUrlRestrictions from '#lib/assets/guides/mapbox-token-url-restrictions.png'

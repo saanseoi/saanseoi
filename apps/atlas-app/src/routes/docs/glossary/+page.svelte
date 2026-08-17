@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import * as GlossaryEntries from '#lib/bits/pages/docs/components/glossaryEntries/index.js'
 import * as GlossaryHeader from '#lib/bits/pages/docs/components/glossaryHeader/index.js'

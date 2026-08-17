@@ -1,5 +1,5 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Popover } from 'bits-ui'
 import { onMount } from 'svelte'
 
