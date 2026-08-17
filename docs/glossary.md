@@ -209,22 +209,21 @@ set 的发布与变体的已发布规则。它使必要输入、时间规则及�
 
 ### EN
 
-A domain is an independently versioned lineage of records with its own identity and
-hierarchy rules. When data sources aren't strictly compatible (for example, different
-perspectives on a 'division'), sources are made available as a domain within the family.
-For example, the Planning Unit domain in the Divisions API uses different boundaries
-than the Census does, so they are offered as distinct domains within one family. Records
+When data sources aren't strictly compatible (for example, different perspectives on a
+'division'), sources are made available as a <i>domain</i> within the family.<br><br>For
+example, the <i>Planning Unit</i> dataset in the Divisions API uses different boundaries
+than the <i>Census</i> datasets do, so they are treated as distinct domains. Records
 from different domains are never silently combined.
 
 ### ZH-HANT
 
-domain 是具有自身身分及層級規則、可獨立版本化的記錄譜系。當來源資料並不完全相容（例如對「區劃」有不同的界定方式），它們會作為同一 API
+當來源資料並不完全相容（例如對「區劃」有不同的界定方式），它們會作為同一 API
 family 內的 domain 提供。例如，Divisions
 API 的規劃單元 domain 使用的邊界與人口普查不同，因此會在同一 family 中作為不同 domain 提供。不同 domain 的記錄絕不會被靜默合併。
 
 ### ZH-HANS
 
-domain 是具有自身身份及层级规则、可独立版本化的记录谱系。当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API
+当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API
 family 内的 domain 提供。例如，Divisions
 API 的规划单元 domain 使用的边界与人口普查不同，因此会在同一 family 中作为不同 domain 提供。不同 domain 的记录绝不会被静默合并。
 
