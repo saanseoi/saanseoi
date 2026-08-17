@@ -1,5 +1,5 @@
 {
-  "extends": ["../../libs/core/tsconfig.json", "$app/tsconfig"],
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
     "rewriteRelativeImportExtensions": true,
