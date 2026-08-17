@@ -84,7 +84,7 @@ const networkLinks = [
       </p>
     </div>
 
-    <div>
+    <div class="hidden min-[900px]:block">
       <h3
         class="font-body text-[0.84rem] font-bold uppercase tracking-[0.08em] text-foreground-alt"
       >
