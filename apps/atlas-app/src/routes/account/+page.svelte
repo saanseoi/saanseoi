@@ -1,4 +1,5 @@
 <script lang="ts">
+import { refreshAll } from '$app/navigation'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
@@ -11,13 +12,13 @@ import {
   addPasswordForCurrentUser,
   changePasswordForCurrentUser,
   deletePasskeyForCurrentUser,
-  getAccountPageData,
   unlinkAccountForCurrentUser,
 } from './account.remote'
 
-let data = $derived(await getAccountPageData())
-let accounts = $state<typeof data.accounts>([])
-let passkeys = $state<typeof data.passkeys>([])
+let { data } = $props()
+let accountPageData = $derived(data.accountPageData)
+let accounts = $state<typeof accountPageData.accounts>([])
+let passkeys = $state<typeof accountPageData.passkeys>([])
 let error = $state<string | null>(null)
 let unlinkingAccountId = $state<string | null>(null)
 let removingPasskeyId = $state<string | null>(null)
@@ -43,8 +44,8 @@ const handleSignOut = async () => {
 }
 
 $effect(() => {
-  accounts = data.accounts
-  passkeys = data.passkeys
+  accounts = accountPageData.accounts
+  passkeys = accountPageData.passkeys
 })
 
 const link = async (provider: SocialProvider) => {
@@ -69,7 +70,7 @@ const addPasskey = async () => {
   try {
     const result = await authClient.passkey.addPasskey()
     if (result.error) error = result.error.message ?? m.account_passkey_add_error()
-    else await getAccountPageData().refresh()
+    else await refreshAll()
   } catch {
     error = m.account_passkey_add_error()
   } finally {
@@ -87,6 +88,7 @@ const removePasskey = async (id: string) => {
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
+    else await refreshAll()
   } finally {
     removingPasskeyId = null
   }
@@ -103,6 +105,7 @@ const unlink = async (providerId: string, accountId: string) => {
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
+    else await refreshAll()
   } finally {
     unlinkingAccountId = null
   }
@@ -118,6 +121,7 @@ const addPassword = async () => {
   if (result.ok) {
     password = ''
     passwordDialogOpen = false
+    await refreshAll()
   }
 }
 
@@ -156,7 +160,9 @@ const providerDetails = (providerId: string) =>
   >
     {m.account_settings()}
   </h1>
-  <p class="mt-3 font-body text-body-lg text-foreground-alt">{data.user.email}</p>
+  <p class="mt-3 font-body text-body-lg text-foreground-alt">
+    {accountPageData.user.email}
+  </p>
   <div class="mt-8 flex gap-3">
     <Button href="/api-keys" variant="primary">{m.account_manage_api_keys()}</Button>
     <Button onclick={handleSignOut} variant="secondary">{m.account_sign_out()}</Button>

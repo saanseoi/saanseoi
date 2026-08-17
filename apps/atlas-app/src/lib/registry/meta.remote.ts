@@ -915,6 +915,15 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
   return { api, release: null }
 })
 
+export const getApiReleaseShellData = query(registryCodeSchema, async familyType => {
+  const api = (await runWithD1ReadRetry(() =>
+    getRegistryApi(getMetaDb(), familyType),
+  )) as RegistryApi | null
+  if (!api) error(404, 'API family not found.')
+
+  return api
+})
+
 export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
   const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>

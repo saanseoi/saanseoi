@@ -19,8 +19,6 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import {
-  getDataPageApiData,
-  getDataPageBasemapData,
   getDataReleasesPageData,
   type DataPageRelease,
 } from '#lib/registry/meta.remote.js'
@@ -30,12 +28,9 @@ import {
 } from '#lib/registry/referenceDocs.js'
 import BasemapPostcard from '#lib/bits/pages/data/basemapPostcard.svelte'
 
-const apiDataQuery = getDataPageApiData()
-const basemapDataQuery = getDataPageBasemapData()
-let apiData = $derived(apiDataQuery.ready ? apiDataQuery.current : undefined)
-let basemapData = $derived(
-  basemapDataQuery.ready ? basemapDataQuery.current : undefined,
-)
+let { data } = $props()
+let apiData = $derived(data.dataPageApiData)
+let basemapData = $derived(data.dataPageBasemapData)
 let releases = $state<DataPageRelease[]>([])
 let locale = $derived(getCurrentLocale())
 const definitionHref = (id: 'api' | 'basemap') =>
@@ -361,9 +356,7 @@ const allReleaseCarouselItems = $derived(
     return rightDate.localeCompare(leftDate)
   }),
 )
-const isInitialReleaseLoading = $derived(
-  apiDataQuery.loading || basemapDataQuery.loading,
-)
+const isInitialReleaseLoading = false
 
 const loadMoreReleases = async () => {
   if (isLoadingMoreReleases || !hasMoreReleases) return
@@ -714,7 +707,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
               <CardDeck.ApiBody
                 active={activeApiIndex === apiIndex}
                 anotherCardActive={activeApiIndex !== null && activeApiIndex !== apiIndex}
-                isLoading={apiDataQuery.loading}
+                isLoading={false}
                 familyLabel={m.sources_flow_api_family()}
                 accessLabel={api.isPending ? m.data_coming_soon() : m.data_open_access()}
                 name={api.theme.name}
@@ -759,7 +752,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
             <BasemapPostcard
               {...region}
               version={latestBasemapVersion(region.code)}
-              isLoading={basemapDataQuery.loading}
+              isLoading={false}
               intro={{ y: 18, duration: 360, delay: index * 70 }}
               isSelected={activeBasemapCode === region.code}
               isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
