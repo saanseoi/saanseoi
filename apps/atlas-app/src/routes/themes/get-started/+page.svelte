@@ -4,11 +4,12 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import MappingIntegration from '#lib/bits/components/mappingIntegration.svelte'
 import { themeIntegrations } from '#lib/bits/components/mappingIntegrations.js'
+import { m } from '#lib/bits/internal/i18n.js'
 </script>
 
 <Seo
-  title="Use a SaanSeoi map style"
-  description="Apply a SaanSeoi map style with your mapping library."
+  title={m.themes_get_started_title()}
+  description={m.themes_get_started_meta_description()}
 />
 
 <Main

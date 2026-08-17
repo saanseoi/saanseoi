@@ -4,11 +4,12 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import MappingIntegration from '#lib/bits/components/mappingIntegration.svelte'
 import { apiIntegrations } from '#lib/bits/components/mappingIntegrations.js'
+import { m } from '#lib/bits/internal/i18n.js'
 </script>
 
 <Seo
-  title="Add SaanSeoi API data to a map"
-  description="Request SaanSeoi data and render it in the mapping library you use."
+  title={m.api_get_started_title()}
+  description={m.api_get_started_meta_description()}
 />
 
 <Main

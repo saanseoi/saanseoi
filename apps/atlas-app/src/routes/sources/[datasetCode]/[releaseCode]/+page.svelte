@@ -12,6 +12,7 @@ import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import ReleaseHeaderSourceVariant from '#lib/bits/pages/docs/components/releaseHeader/variants/releaseHeaderSourceVariant.svelte'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
@@ -96,6 +97,13 @@ let content = $derived(contentResource.current)
 let contentVersion = $derived(content?.version ?? null)
 let version = $derived(contentVersion ?? shellVersion)
 let isContentLoading = $derived(contentResource.loading)
+let seoTitle = $derived.by(() => {
+  const sourceName =
+    selectLocalisedRow(source?.datasetI18n, locale)?.name ?? params.datasetCode
+  const versionLabel = version?.sourceVersion ?? params.releaseCode
+  return `${sourceName} · ${versionLabel}`
+})
+let seoDescription = $derived(`${seoTitle} — ${m.source_release_notes()}.`)
 
 let notes = $derived(selectReleaseNotesMarkdown(content?.version?.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(content?.previousNotes, locale))
@@ -306,6 +314,15 @@ $effect(() => {
   activeAuditHeadingId = null
 })
 </script>
+
+<Seo
+  title={seoTitle}
+  description={seoDescription}
+  type="article"
+  publishedTime={version?.publicationDate ?? version?.createdAt}
+  modifiedTime={version?.updatedAt}
+  noindex={page.url.searchParams.size > 0}
+/>
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   {#if source && shellVersion && version}

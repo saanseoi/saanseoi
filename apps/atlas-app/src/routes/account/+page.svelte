@@ -5,6 +5,7 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
@@ -148,7 +149,7 @@ const providerDetails = (providerId: string) =>
       })
 </script>
 
-<svelte:head><title>{m.account_title()} | Saanseoi</title></svelte:head>
+<Seo title={m.account_title()} description={m.account_methods_description()} noindex />
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
   ><p
     class="font-body text-label-md font-semibold uppercase tracking-[0.12em] text-secondary"

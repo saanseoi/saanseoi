@@ -13,6 +13,7 @@ import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
@@ -69,6 +70,11 @@ let release = $derived.by(() => {
 
   return selected
 })
+
+let seoTitle = $derived(
+  `${release.apiFamily} API ${getReleaseVersionLabel(release.code, release.apiFamily)}`,
+)
+let seoDescription = $derived(`${m.api_release_notes()}: ${seoTitle}.`)
 
 let locale = $derived(getCurrentLocale())
 let currentDomainCode = $derived(release.domainCode ?? 'default')
@@ -380,6 +386,15 @@ $effect(() => {
   activeAuditHeadingId = null
 })
 </script>
+
+<Seo
+  title={seoTitle}
+  description={seoDescription}
+  type="article"
+  publishedTime={release.publishedAt ?? release.createdAt}
+  modifiedTime={release.updatedAt}
+  noindex={page.url.searchParams.size > 0}
+/>
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   <ReleaseHeader.ApiVariant {api} {release} {locale} />

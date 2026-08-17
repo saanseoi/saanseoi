@@ -318,10 +318,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
 )
 </script>
 
-<Seo
-  title={m.sources_title()}
-  description="Trace the published sources, licences and release history behind SaanSeoi's geospatial data."
-/>
+<Seo title={m.sources_title()} description={m.sources_meta_description()} />
 
 <Main variant="page" class="py-14">
   {#if isNavigatingToRelease}

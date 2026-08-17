@@ -12,8 +12,13 @@ const themeInitScript = '('.concat(
   ')',
 )
 
+const supportedLocales = ['en', 'zh-Hant', 'zh-Hans'] as const
+const getDocumentLocale = (value: string | undefined) =>
+  supportedLocales.includes(value as (typeof supportedLocales)[number]) ? value : 'en'
+
 const handleTheme: Handle = async ({ event, resolve }) => {
   const theme = event.cookies.get(THEME_STORAGE_KEY)
+  const locale = getDocumentLocale(event.cookies.get('PARAGLIDE_LOCALE'))
   const themeAttributes =
     theme === 'light' || theme === 'dark'
       ? theme === 'dark'
@@ -25,7 +30,10 @@ const handleTheme: Handle = async ({ event, resolve }) => {
     transformPageChunk: ({ html }) =>
       html
         .replace('%theme-init%', '<script>'.concat(themeInitScript, '</scr', 'ipt>'))
-        .replace('<html lang="en">', '<html lang="en"'.concat(themeAttributes, '>')),
+        .replace(
+          `<html lang="en">`,
+          `<html lang="${locale}"`.concat(themeAttributes, '>'),
+        ),
   })
 }
 

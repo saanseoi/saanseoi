@@ -5,6 +5,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { m } from '#lib/bits/internal/i18n.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
 import { page } from '$app/state'
 
@@ -66,7 +67,11 @@ const passkeySignIn = async () => {
 }
 </script>
 
-<svelte:head><title>{m.auth_sign_in_title()} | Saanseoi</title></svelte:head>
+<Seo
+  title={m.auth_sign_in_title()}
+  description={m.auth_sign_in_description()}
+  noindex
+/>
 <Main class="mx-auto w-full max-w-xl px-6 py-14 md:py-20"
   ><p
     class="font-body text-label-md font-semibold uppercase tracking-[0.12em] text-secondary"

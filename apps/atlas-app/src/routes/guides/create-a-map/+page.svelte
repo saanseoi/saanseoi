@@ -1622,7 +1622,7 @@ const styleChoices = $derived.by(() =>
         description: m.guide_create_map_meta_description(),
         url: 'https://saanseoi.hk/guides/create-a-map',
         image: 'https://saanseoi.hk/guides/build-a-map-dark.webp',
-        inLanguage: 'en',
+        inLanguage: locale,
         author: {
           '@type': 'Person',
           name: 'Mart van de Ven',
