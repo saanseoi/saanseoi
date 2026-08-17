@@ -8,7 +8,6 @@ import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
 import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
 import maplibreSetupResult from '#lib/assets/guides/maplibre-setup-result.png'
 import {
-  Button,
   CreateAMap,
   GuideAgenticAiPrimer,
   GuideCallout,
@@ -34,9 +33,10 @@ import {
   GuideTerminalIntroduction,
   GuideUrbanDensityExample,
   GuidePromptBlock,
-  Main,
-  Seo,
-} from '#lib/bits/index.js'
+} from '#lib/bits/pages/guides/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Button } from '#lib/bits/primitives/button/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { scrollToElementBelowHeader } from '#lib/bits/utilities/helpers/scrollToElementBelowHeader.js'
 import {

@@ -3,8 +3,9 @@ import './app.css'
 import { dev } from '$app/env'
 import { page } from '$app/state'
 import favicon from '#lib/assets/favicon.svg'
-import { SiteHeader, SiteFooter } from '#lib/bits/index.js'
-import { Page } from '#lib/bits/index.js'
+import { SiteFooter } from '#lib/bits/patterns/site-footer/index.js'
+import { SiteHeader } from '#lib/bits/patterns/site-header/index.js'
+import { Page } from '#lib/bits/primitives/page/index.js'
 let { children, data } = $props()
 let hideNav = $derived(page.url.searchParams.has('hideNav'))
 </script>

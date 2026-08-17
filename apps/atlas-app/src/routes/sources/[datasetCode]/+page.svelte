@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Main } from '#lib/bits/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { getSourcePageData } from '#lib/registry/meta.remote.js'
 

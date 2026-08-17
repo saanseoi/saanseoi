@@ -1,5 +1,7 @@
 <script lang="ts">
-import { Basemap, Main, Seo } from '#lib/bits/index.js'
+import { Basemap } from '#lib/bits/pages/basemaps/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, type MessageKey } from '#lib/bits/internal/i18n.js'
 
 let locale = $derived(getCurrentLocale())

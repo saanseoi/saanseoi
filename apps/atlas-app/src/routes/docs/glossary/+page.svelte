@@ -1,7 +1,10 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { GlossaryEntries, GlossaryHeader, Main, Seo } from '#lib/bits/index.js'
+import * as GlossaryEntries from '#lib/bits/pages/docs/components/glossaryEntries/index.js'
+import * as GlossaryHeader from '#lib/bits/pages/docs/components/glossaryHeader/index.js'
+import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import {
   getMarkdownGlossaryEntries,

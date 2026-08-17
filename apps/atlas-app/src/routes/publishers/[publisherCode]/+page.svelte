@@ -1,7 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
-import { Main } from '#lib/bits/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { getPublisherPageData } from '#lib/registry/meta.remote.js'
 import type { RegistrySource } from '#lib/registry/types.js'

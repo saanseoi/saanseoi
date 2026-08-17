@@ -3,16 +3,14 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { source_geometry_district_fallback } from '@repo/i18n/messages'
-import {
-  Main,
-  ReleaseAudit,
-  ReleaseDiff,
-  ReleaseHeader,
-  ReleaseLinks,
-  ReleaseNav,
-  ReleaseNotes,
-  ReleaseStats,
-} from '#lib/bits/index.js'
+import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
+import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
+import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
+import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
+import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
+import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
+import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
+import { Main } from '#lib/bits/primitives/main/index.js'
 
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import {
