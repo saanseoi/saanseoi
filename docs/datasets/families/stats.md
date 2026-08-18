@@ -31,18 +31,20 @@ and dimension dictionaries. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 
-Every C&SD publisher field requires reviewed measure metadata before publication. The
-Harbour CLI records the curator's display name, definition, and canonical unit code in
-`fixtures/meta/curations/hkgov-censtatd-statistics.json`; an intentionally unmapped unit
-is stored as `publisher-unknown`, never inferred. The source-release Stats tab then
-exposes the release's measure dictionary with its definition, unit, value kind, and
-observation count.
+Every C&SD publisher field takes its display metadata from the registered CSDI
+Simplified Data Specification, not operator entry. The Harbour CLI reads the exact
+publisher field match and materialises its English, Traditional Chinese, and Simplified
+Chinese descriptions into the measure dictionary. Its declared `Null Option` is retained
+as nullable `sourceNullOption` provenance; SaanSeoi's observation-status normalisation
+remains independent. An intentionally unmapped canonical unit is stored as
+`publisher-unknown`, never inferred. The source-release Stats tab then exposes the
+release's measure dictionary with its definition, unit, value kind, and observation
+count.
 
-When native GML has no field definition, the CLI reads the registered CSDI Simplified
-Data Specification from its static publisher host and offers the exact matching field
-description as a curation default. The saved decision records the specification URL and
-SHA-256, but is still explicitly reviewed; retrieval or parsing failure falls back to
-the existing required manual curation and never prevents source-archive preservation.
+If the official schema cannot be retrieved, parsed, or matched unambiguously, the CLI
+falls back to required manual curation in
+`fixtures/meta/curations/hkgov-censtatd-statistics.json`. `--yes` refuses only those
+unresolved fields rather than silently publishing incomplete metadata.
 
 Area/type and HMA are approved source-release fan-outs. Area/type creates the three
 Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area

@@ -57,21 +57,16 @@ superseded values and definitions. A Population and Household compilation can th
 carry annual observations for 2016–2025 without collapsing them to the compilation
 release period.
 
-Before the canonical rows are replayed, the CLI asks the operator to curate every new
-publisher measure field. The saved decision records a display name, a required
-definition, and either a reviewed canonical unit code or the explicit
-`publisher-unknown` status. It is stored in
-`fixtures/meta/curations/hkgov-censtatd-statistics.json` and reused by later releases;
-`--yes` refuses an unresolved field instead of silently publishing incomplete metadata.
-The release page presents this resulting measure dictionary in Stats, while Audit
-remains for processing decisions and their evidence.
-
-For a field not described by the native GML, the CLI resolves the dataset's registered
-CSDI Simplified Data Specification through CSDI's static host and parses its field
-table. An exact publisher-field match is shown as the name and definition default,
-together with the specification URL and SHA-256. It remains a candidate for the curator
-to approve or amend; a failed retrieval, ambiguous field description, or unsupported
-specification format simply leaves the field for required manual curation.
+Before the canonical rows are replayed, the CLI resolves each publisher measure from the
+dataset's registered CSDI Simplified Data Specification through CSDI's static host. An
+unambiguous field match writes the English, Traditional Chinese, and Simplified Chinese
+descriptions to `statsMeasuresI18n`, and retains the exact publisher `Null Option` as
+the measure's nullable `sourceNullOption`. It does not replace SaanSeoi's normalised
+observation status or infer a canonical unit. A failed retrieval, ambiguous field
+description, or unsupported specification format falls back to required manual curation
+in `fixtures/meta/curations/hkgov-censtatd-statistics.json`; `--yes` refuses only that
+fallback case. The release page presents the resulting measure dictionary in Stats,
+while Audit remains for processing decisions and their evidence.
 
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
