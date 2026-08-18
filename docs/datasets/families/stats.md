@@ -65,6 +65,11 @@ statistic kind, aggregation, and denominator measure. Each remains reviewable. S
 statistic-kind defaults recognise explicit terms such as `proportion`, `percentage`, and
 `ratio` before falling back to the canonical key or unit.
 
+Apply the
+[C&SD measure naming policy](../sources/hkgov-censtatd/divisionStatistics.md#measure-naming-policy)
+when reviewing its source fields: human-facing names identify the measure, while
+descriptions and reviewed metadata record its statistical expression.
+
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
 intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.

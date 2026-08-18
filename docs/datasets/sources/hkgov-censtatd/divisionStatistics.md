@@ -94,6 +94,32 @@ The reviewer can still change every value. Explicit English terms including
 `proportion`, `percentage`, and `ratio` determine the initial statistic kind before key-
 and unit-based fallbacks.
 
+## Measure naming policy
+
+Use this policy whenever reviewing C&SD measure metadata. The CSDI field description is
+evidence and an editable proposal, not the canonical display name.
+
+- `measureCode` is a stable lower-camel-case identifier for the measure's semantic
+  subject. Keep it concise and specific enough to distinguish the measure.
+- The English `name` is a clear, accessible noun phrase that a reader can understand
+  without knowing the metadata model. It identifies the population, category, or
+  characteristic being reported.
+- The English `description` defines the statistic in full: population scope, age range,
+  categories, numerator or denominator where relevant, and any publisher-specific
+  qualification. Translate that reviewed English meaning into the Chinese localisations.
+- `statisticKind`, `aggregation`, `unitCode`, and `denominatorMeasureCode` are reviewed
+  independently. Do not mechanically prefix a name with `Proportion of`,
+  `Percentage distribution of`, `Total`, or similar representation language merely
+  because it appears in the publisher's field description.
+- Retain a statistical term in the name only when it is the established public identity
+  of the measure, such as `Sex ratio`, `Population density`, or `Median age`.
+
+For example, use `neverMarriedMalePopulationAged15AndOver` /
+`Never-married male population aged 15 and over` for the CSDI field headed “Proportion
+of never-married population aged 15 and over by sex - male”. Its description should
+state the proportion and its scope; the curation fields record `proportion`, `none`, the
+reviewed unit, and a denominator measure when one is canonical and available.
+
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
 and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA
