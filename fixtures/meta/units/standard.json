@@ -1,5 +1,4 @@
 {
-  "versionHash": "sha256:e7c62d7246bf2a98ef90ec1cfb13f1c2402e08dad416591a5d050049c8f717e4",
   "units": [
     {
       "code": "category",
@@ -16,7 +15,11 @@
           "name": "類別",
           "description": "由發佈者定義的類別值。"
         },
-        { "locale": "zh-Hans", "name": "类别", "description": "由发布者定义的类别值。" }
+        {
+          "locale": "zh-Hans",
+          "name": "类别",
+          "description": "由发布者定义的类别值。"
+        }
       ]
     },
     {
@@ -24,9 +27,43 @@
       "dimension": "household",
       "symbol": "households",
       "i18n": [
-        { "locale": "en", "name": "Households", "description": "Count of households." },
-        { "locale": "zh-Hant", "name": "住戶", "description": "住戶數。" },
-        { "locale": "zh-Hans", "name": "住户", "description": "住户数。" }
+        {
+          "locale": "en",
+          "name": "Households",
+          "description": "Count of households."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶",
+          "description": "住戶數。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户",
+          "description": "住户数。"
+        }
+      ]
+    },
+    {
+      "code": "per-thousand",
+      "dimension": "ratio",
+      "symbol": "‰",
+      "i18n": [
+        {
+          "description": "A ratio expressed per 1,000 units of the denominator",
+          "locale": "en",
+          "name": "Per thousand"
+        },
+        {
+          "description": "一個每1,000個分母單位的比率",
+          "locale": "zh-Hant",
+          "name": "每千人"
+        },
+        {
+          "description": "每1000单位分母的比率表示",
+          "locale": "zh-Hans",
+          "name": "每千人"
+        }
       ]
     },
     {
@@ -34,9 +71,21 @@
       "dimension": "population",
       "symbol": "persons",
       "i18n": [
-        { "locale": "en", "name": "Persons", "description": "Count of people." },
-        { "locale": "zh-Hant", "name": "人", "description": "人數。" },
-        { "locale": "zh-Hans", "name": "人", "description": "人数。" }
+        {
+          "locale": "en",
+          "name": "Persons",
+          "description": "Count of people."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "人",
+          "description": "人數。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "人",
+          "description": "人数。"
+        }
       ]
     },
     {
@@ -83,5 +132,6 @@
         }
       ]
     }
-  ]
+  ],
+  "versionHash": "sha256:7ccc012995a302a054517c684a32d9acd762f52f63594d12a40f70e40fd099c6"
 }
