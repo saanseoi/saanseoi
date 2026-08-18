@@ -60,13 +60,15 @@ release period.
 Before the canonical rows are replayed, the CLI resolves each publisher measure from the
 dataset's registered CSDI Simplified Data Specification through CSDI's static host. An
 unambiguous field match writes the English, Traditional Chinese, and Simplified Chinese
-descriptions to `statsMeasuresI18n`, and retains the exact publisher `Null Option` as
-the measure's nullable `sourceNullOption`. It does not replace SaanSeoi's normalised
-observation status or infer a canonical unit. A failed retrieval, ambiguous field
-description, or unsupported specification format falls back to required manual curation
-in `fixtures/meta/curations/hkgov-censtatd-statistics.json`; `--yes` refuses only that
-fallback case. The release page presents the resulting measure dictionary in Stats,
-while Audit remains for processing decisions and their evidence.
+descriptions to `statsMeasuresI18n`. Official CSDI locale rows have
+`isTranslationVerified=true`; when CSDI omits a Chinese locale, Azure Translator fills
+that locale and it is stored with `isTranslationVerified=false`. The importer retains
+the exact publisher `Null Option` as the measure's nullable `sourceNullOption`. It does
+not replace SaanSeoi's normalised observation status or infer a canonical unit. A failed
+retrieval, ambiguous field description, or unsupported specification format falls back
+to required manual curation in `fixtures/meta/curations/hkgov-censtatd-statistics.json`;
+`--yes` refuses only that fallback case. The release page presents the resulting measure
+dictionary in Stats, while Audit remains for processing decisions and their evidence.
 
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
