@@ -151,11 +151,16 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       }
     })
     let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
+    progress.complete('Prepared C&SD measure metadata for review')
     const measureMetadata = await resolveCenstatdMeasureMetadata({
       measures: canonical.measures,
       promptForCuration: options.promptForCuration,
     })
     canonical = normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata })
+    progress.beginPhase('Process statistic release', {
+      current: 2,
+      max: processingStepCount,
+    })
     const canonicalBatches = buildCanonicalStatsSqlBatches({
       current: canonicalCurrentRows(canonical),
       history: canonicalHistoryRows(canonical, releaseId),

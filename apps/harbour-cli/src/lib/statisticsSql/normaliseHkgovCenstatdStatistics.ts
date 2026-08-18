@@ -5,6 +5,7 @@ import type {
   CenstatdCanonicalMeasure,
   CenstatdCanonicalObservation,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
+import type { StatsMeasurementKind } from '@repo/db'
 
 import type { CenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 
@@ -41,6 +42,7 @@ type CanonicalSeriesDimension = {
 
 type CanonicalMeasure = CenstatdCanonicalMeasure & {
   datasetCode: string
+  measurementKind: StatsMeasurementKind
   sourceField: string
   sourceNullOption: string | null
   valueKind: 'categorical' | 'numeric'
@@ -192,6 +194,7 @@ export function normaliseHkgovCenstatdStatistics(
       const measureKey = [row.datasetCode, measureCode].join('\u0000')
       measures.set(measureKey, {
         datasetCode: row.datasetCode,
+        measurementKind: metadata?.measurementKind ?? 'unreviewed',
         measureCode,
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
