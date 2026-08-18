@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:87b79c662733749cd53cdbb067503b45bd1e93c8e8efc29e79b997631b78240f",
+  "versionHash": "sha256:ba8755aac5d2197ecf9f80ff4d3e2d230bee0ca585939b31d9a775183d76eeb6",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
   "regionCode": "hk",
@@ -13,6 +13,7 @@
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491",
   "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2",
+  "publisherReleaseFrequency": "half-yearly",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -54,7 +55,7 @@
   ],
   "releases": [
     {
-      "sourceVersion": "2021"
+      "sourceVersion": "2023-H2"
     }
   ],
   "i18n": [

@@ -73,7 +73,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the Census source domain', () => {
+  test('registers C&SD statistics under the default Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -103,7 +103,7 @@ describe('fixture version hashes', () => {
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'census' })
+    ).toMatchObject({ defaultDomainCode: 'default' })
     expect(
       censtatdStats.every(dataset =>
         dataset.processingRules?.rulesets.some(

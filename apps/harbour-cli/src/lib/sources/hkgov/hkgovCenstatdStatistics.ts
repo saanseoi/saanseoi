@@ -22,11 +22,11 @@ export const CENSTATD_STATISTIC_PROFILES = {
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': {
     layers: [{ count: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] }],
-    sourceVersions: ['2021'],
+    sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
     layers: [{ count: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] }],
-    sourceVersions: ['2021'],
+    sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
     layers: [{ count: 180, name: 'DC_GHS', required: ['dc', 'dc_class', 'year'] }],
