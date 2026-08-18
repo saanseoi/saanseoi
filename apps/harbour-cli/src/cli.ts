@@ -89,6 +89,7 @@ async function main() {
       await runRollbackReleaseCommand(args, target, {
         dryRun,
         printUsage,
+        skipConfirm,
       })
       return
     case 'version:bump':

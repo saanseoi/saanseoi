@@ -127,6 +127,8 @@ describe('dataset update registry', () => {
         inputFile: '/tmp/mirrored-source.zip',
         kind: 'pu',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/example',
+        sourceArchiveKey: 'by-source/hk/hkgov-csdi/pland/source.zip',
+        sourceArchiveSha256: 'a'.repeat(64),
         sourceVersion: '2021',
         target: { environment: 'production', remote: true },
       }),
@@ -140,6 +142,10 @@ describe('dataset update registry', () => {
         'production',
         '--source-version',
         '2021',
+        '--source-archive-key',
+        'by-source/hk/hkgov-csdi/pland/source.zip',
+        '--source-archive-sha256',
+        'a'.repeat(64),
       ]),
     )
   })

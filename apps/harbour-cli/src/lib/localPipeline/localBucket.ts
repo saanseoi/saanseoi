@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, resolve, sep } from 'node:path'
 
 type RangeOptions = {
   range?: {
@@ -84,7 +84,14 @@ export class LocalPipelineBucket {
   }
 
   resolvePath(key: string) {
-    return resolve(join(this.rootDir, 'objects', key))
+    const objectsRoot = resolve(this.rootDir, 'objects')
+    const filePath = resolve(objectsRoot, key)
+
+    if (!filePath.startsWith(`${objectsRoot}${sep}`)) {
+      throw new Error(`Invalid local pipeline object key: ${key}`)
+    }
+
+    return filePath
   }
 }
 
