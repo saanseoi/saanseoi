@@ -354,18 +354,25 @@ export async function promptForCenstatdMeasureCuration(input: {
     }
 
     const suggestedUnitCode = suggestUnitCode(measureCode, decisions)
+    const seriesMetadata = suggestSeriesMeasureMetadata({
+      decisions,
+      localisations,
+    })
     const statisticKind = await selectStatisticKind({
       localisations,
       measure,
       measureCode,
+      suggestedStatisticKind: seriesMetadata.statisticKind,
       suggestedUnitCode,
     })
     const aggregation = await selectAggregation({
       statisticKind,
-      suggestedAggregation: suggestAggregation(localisations),
+      suggestedAggregation:
+        seriesMetadata.aggregation ?? suggestAggregation(localisations),
     })
     const denominatorMeasureCode = await optionalDenominatorMeasureCode({
       statisticKind,
+      suggestedDenominatorMeasureCode: seriesMetadata.denominatorMeasureCode,
     })
     const resolvedUnitCode = acceptedSchemaCandidate
       ? (suggestedUnitCode ?? measure.unitCode)
@@ -837,10 +844,55 @@ export function suggestStatisticKind(input: {
   return 'quantity'
 }
 
+export function suggestSeriesMeasureMetadata(input: {
+  decisions: readonly CenstatdMeasureCurationEntry[]
+  localisations: readonly CenstatdMeasureLocalisation[]
+}): {
+  aggregation: Exclude<StatsAggregation, 'unreviewed'> | null
+  denominatorMeasureCode: string | null
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'> | null
+} {
+  const signature = measureSeriesSignature(input.localisations)
+  if (!signature)
+    return {
+      aggregation: null,
+      denominatorMeasureCode: null,
+      statisticKind: null,
+    }
+  const peers = input.decisions.filter(
+    decision => measureSeriesSignature(decision.localisations) === signature,
+  )
+  return {
+    aggregation: uniqueSuggestion(peers.map(peer => peer.aggregation)),
+    denominatorMeasureCode: uniqueSuggestion(
+      peers.map(peer => peer.denominatorMeasureCode ?? null),
+    ),
+    statisticKind: uniqueSuggestion(peers.map(peer => peer.statisticKind)),
+  }
+}
+
+function measureSeriesSignature(localisations: readonly CenstatdMeasureLocalisation[]) {
+  const english = localisations.find(localisation => localisation.locale === 'en')
+  if (!english) return null
+  return english.description
+    .toLocaleLowerCase('en')
+    .replace(
+      /\baged?\s+(?:under\s+)?\d+(?:\s*(?:-|to)\s*\d+)?(?:\s+and\s+over)?\b/g,
+      'age-group',
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function uniqueSuggestion<T>(values: readonly T[]): T | null {
+  const distinct = new Set(values)
+  return distinct.size === 1 ? (distinct.values().next().value ?? null) : null
+}
+
 function suggestStatisticKindFromText(
   text: string,
 ): Exclude<StatsStatisticKind, 'unreviewed'> | null {
-  if (/\b(?:percent|percentage|share)\b/i.test(text)) return 'proportion'
+  if (/\b(?:percent|percentage|proportion|share)\b/i.test(text)) return 'proportion'
   if (/\bratio\b/i.test(text)) return 'ratio'
   if (/\bdensity\b/i.test(text)) return 'density'
   if (/\brate\b/i.test(text)) return 'rate'
@@ -853,14 +905,17 @@ async function selectStatisticKind(input: {
   localisations: readonly CenstatdMeasureLocalisation[]
   measure: CenstatdMeasureForCuration
   measureCode: string
+  suggestedStatisticKind: Exclude<StatsStatisticKind, 'unreviewed'> | null
   suggestedUnitCode: string | null
 }): Promise<Exclude<StatsStatisticKind, 'unreviewed'>> {
   const value = await select({
-    initialValue: suggestStatisticKind({
-      localisations: input.localisations,
-      measureCode: input.measureCode,
-      unitCode: input.suggestedUnitCode ?? input.measure.unitCode,
-    }),
+    initialValue:
+      input.suggestedStatisticKind ??
+      suggestStatisticKind({
+        localisations: input.localisations,
+        measureCode: input.measureCode,
+        unitCode: input.suggestedUnitCode ?? input.measure.unitCode,
+      }),
     message: 'Statistic kind',
     options: [
       {
@@ -985,10 +1040,12 @@ async function selectAggregation(input: {
 
 async function optionalDenominatorMeasureCode(input: {
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+  suggestedDenominatorMeasureCode: string | null
 }) {
   if (!['proportion', 'ratio', 'rate', 'density'].includes(input.statisticKind))
     return undefined
   const value = await text({
+    initialValue: input.suggestedDenominatorMeasureCode ?? undefined,
     message:
       'Canonical denominator measure key (leave blank when the base is external)',
   })

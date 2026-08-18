@@ -9,6 +9,7 @@ import {
   resolveUnitLocalisations,
   resolveCenstatdMeasureCuration,
   suggestAggregation,
+  suggestSeriesMeasureMetadata,
   suggestStatisticKind,
   suggestUnitCode,
   suggestMeasureName,
@@ -176,6 +177,21 @@ test('suggests a statistic kind separately from its unit', () => {
       unitCode: 'publisher-unknown',
     }),
   ).toBe('ratio')
+  expect(
+    suggestStatisticKind({
+      localisations: [
+        {
+          description:
+            'Proportion of never-married population aged 15 and over by sex - male.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Never-married male population aged 15 and over',
+        },
+      ],
+      measureCode: 'neverMarriedAged15AndOverBySexMale',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('proportion')
 })
 
 test('suggests an aggregation stated in the proposed English semantic text', () => {
@@ -222,6 +238,44 @@ test('excludes totals from non-additive statistic kinds', () => {
   ] as const) {
     expect(validAggregationsForStatisticKind(statisticKind)).not.toContain('total')
   }
+})
+
+test('reuses a unique reviewed metadata decision for an age-group series', () => {
+  const metadata = suggestSeriesMeasureMetadata({
+    decisions: [
+      {
+        aggregation: 'none',
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        denominatorMeasureCode: 'totalPopulation',
+        localisations: [
+          {
+            description: 'Percentage distribution of population aged under 15',
+            isTranslationVerified: true,
+            locale: 'en',
+            name: 'Population aged under 15',
+          },
+        ],
+        measureCode: 'agedUnder15',
+        sourceField: 'age_1',
+        statisticKind: 'proportion',
+        unitCode: 'percent',
+      },
+    ],
+    localisations: [
+      {
+        description: 'Percentage distribution of population aged 15-39',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Population aged 15-39',
+      },
+    ],
+  })
+
+  expect(metadata).toEqual({
+    aggregation: 'none',
+    denominatorMeasureCode: 'totalPopulation',
+    statisticKind: 'proportion',
+  })
 })
 
 test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {
