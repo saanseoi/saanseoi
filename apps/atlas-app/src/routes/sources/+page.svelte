@@ -21,6 +21,7 @@ import {
   getMarkdownTransclusionDisplayTitle,
 } from '#lib/registry/referenceDocs.js'
 import type { LocalisedRow } from '#lib/registry/types.js'
+import { sourceFlowDomain } from './sourceFlowDomain.js'
 import SourceReleasePageSkeleton from './[datasetCode]/[releaseCode]/sourceReleasePageSkeleton.svelte'
 
 let { data } = $props()
@@ -141,21 +142,6 @@ const publisherAccent = (publisherCode: string) => {
   return sourceAccentColors.overture
 }
 
-const sourceDomain = (source: SourcesPageSource, familyType: string) => {
-  if (familyType === 'stats') return source.sourceVariant
-
-  if (source.theme !== 'divisions') return 'default'
-
-  const publishedDomain = sourceVersion(source)?.releaseAs?.find(
-    release => release.apiFamily === familyType,
-  )?.domainCode
-  if (publishedDomain) return publishedDomain
-
-  return source.sourceVariant === 'default'
-    ? source.publisherCode
-    : source.sourceVariant
-}
-
 const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   selectLocalisedRow(i18n, locale)?.name ??
   {
@@ -229,7 +215,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         const primaryType = primaryTypeByApiFamily[familyType]
         const groupLabel = 'domain'
         const sourceGroup = (source: SourcesPageSource) =>
-          sourceDomain(source, familyType)
+          sourceFlowDomain(source, familyType)
         const domainMetadata = domainsByApiFamily[familyType]
         const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
         const familySources = sources
