@@ -5,12 +5,9 @@ import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import {
   buildHkgovCenstatdDistrictStatisticHistoryRecord,
-  createHkgovCenstatdDistrictResolution,
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
-import { metaSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -31,6 +28,7 @@ import {
   buildCanonicalStatsSqlBatches,
   replayCanonicalStatsSqlBatches,
 } from './canonicalStatsSql.ts'
+import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 
 type Plan = {
@@ -141,7 +139,10 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       releaseCode,
     )
     progress.update(1, { label: 'Resolve canonical districts' })
-    const resolutionBySourceDistrictCode = await resolveCanonicalDistricts(metaDb)
+    const resolutionBySourceDistrictCode = await resolveHkgovCenstatdDistrictBridge(
+      metaDb,
+      '2021',
+    )
     progress.update(2, { label: 'Read 18 publisher statistic rows' })
     const sourceRows = await readSourceRows(
       preparedUpload.filePath,
@@ -385,42 +386,6 @@ function assertUniqueDistrictAssertions(rows: SourceStatisticRow[]) {
   if (sourceRecordIds.size !== rows.length || districtCodes.size !== rows.length) {
     throw new Error('C&SD district statistic input contains duplicate DC assertions.')
   }
-}
-
-async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
-  const [censtatdRows, hadRows] = await Promise.all([
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2021'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-  ])
-  return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
 }
 
 function json(value: unknown, field: string) {

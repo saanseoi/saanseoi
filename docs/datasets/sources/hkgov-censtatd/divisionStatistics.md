@@ -58,6 +58,22 @@ The importer never creates a parallel statistical-geography registry. Native geo
 remains source provenance. If a reviewed statistical geometry must be delivered, it is
 released as a new domain in the Divisions API family instead.
 
+## Canonical division links
+
+The reviewed C&SD district-code bridges for the 2016 and 2021 cohorts each contain all
+18 District Council districts and resolve through the 2022 HAD bridge to SaanSeoi's
+canonical `divisionId`. The importer selects the 2016 bridge for the 2016
+subdivided-units release, the 2021 bridge for the 2021 subdivided-units release, and the
+2021 bridge for the density, district living-quarters, and Population and Household
+datasets. A missing member of one of those bridges stops ingestion; it is never replaced
+by a name or spatial-match guess.
+
+Area/type, housing-market-area, building-group, new-town, and housing-estate
+observations remain without a `divisionId` for now. Their published geometries do not
+correspond to an existing canonical Divisions domain. They will be linked only after
+their respective geographies are reviewed and released as Divisions domains, not by
+assigning an arbitrary district parent.
+
 ## District land area, population and density ingestion
 
 The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
