@@ -22,6 +22,7 @@ export type ReleaseStatsDistrictName = {
 }
 export type ReleaseStatsMeasure = {
   definition: string | null
+  measurementKind: string
   name: string
   observationCount: number
   sourceField: string
