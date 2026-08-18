@@ -189,8 +189,18 @@ export function formatPlan(result: UploadPreviewResult) {
 /**
  * Render the top-level upload summary shown before confirmation.
  */
-export function formatSummary(result: UploadPreviewResult, target: UploadTarget) {
-  return [formatField('target', formatTargetValue(target)), ...formatPlan(result)]
+export function formatSummary(
+  result: UploadPreviewResult,
+  target: UploadTarget,
+  options: { schemaSpecificationUrl?: string | null } = {},
+) {
+  return [
+    formatField('target', formatTargetValue(target)),
+    ...formatPlan(result),
+    ...(options.schemaSpecificationUrl
+      ? [formatField('schema', options.schemaSpecificationUrl)]
+      : []),
+  ]
 }
 
 export function formatUploadResult(

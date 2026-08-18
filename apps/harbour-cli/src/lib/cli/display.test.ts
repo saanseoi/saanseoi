@@ -94,6 +94,17 @@ describe('formatSummary', () => {
     expect(lines.join('\n')).not.toContain('sourceVersion')
     expect(lines.join('\n')).not.toContain('harbourApi')
   })
+
+  test('includes the declared schema specification in the upload plan', () => {
+    const lines = formatSummary(previewResult, localTarget, {
+      schemaSpecificationUrl:
+        'https://static.csdi.gov.hk/csdi-webpage/view/common/test',
+    })
+
+    expect(lines).toHaveLength(6)
+    expect(lines[5]).toContain('schema')
+    expect(lines[5]).toContain('https://static.csdi.gov.hk/')
+  })
 })
 
 describe('formatUploadResult', () => {
