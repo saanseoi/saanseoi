@@ -87,7 +87,28 @@
           "description": "将政府统计处地区年中人口数值由千人转换为人，并保留发布者所述的精确度。"
         }
       ]
+    },
+    {
+      "operationCode": "curate_censtatd_measure_metadata",
+      "type": "bulk",
+      "sourceFieldPath": "raw_properties.<publisher field>",
+      "targetFieldPath": "statsMeasures.measureCode, statisticKind, aggregation, unitCode, denominatorMeasureCode, sourceNullOption",
+      "condition": "Applies once to each reviewed numeric C&SD publisher field used by the release.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records the reviewed mapping from each C&SD publisher field to its canonical measure metadata, including statistic kind, aggregation, unit, denominator and null handling."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄每個政府統計處發布者欄位至其標準量度中繼資料的已審核對應，包括統計種類、彙總、單位、分母及空值處理。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录每个政府统计处发布者字段至其标准度量元数据的已审核映射，包括统计种类、汇总、单位、分母及空值处理。"
+        }
+      ]
     }
   ],
-  "versionHash": "sha256:91369d73814f9ca163587d9da220d01a70d7bffc66199d6b3e009f52aa8d066d"
+  "versionHash": "sha256:2fcafc44ba4b354ebb696b24b1bbbcc98e9ef045f3d875ee393742d4bb51b57f"
 }
