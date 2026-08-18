@@ -120,7 +120,16 @@ export class DiscordBridge extends DurableObject<Env> {
 
   private async pollInternal() {
     const channels = await this.listMessageChannels()
-    for (const channel of channels) await this.pollChannel(channel, channels)
+    const failures: unknown[] = []
+    for (const channel of channels) {
+      try {
+        await this.pollChannel(channel, channels)
+      } catch (error) {
+        failures.push(error)
+      }
+    }
+    if (failures.length > 0)
+      throw new AggregateError(failures, 'One or more Discord channels failed to poll.')
   }
 
   private async pollChannel(channel: DiscordChannel, channels: DiscordChannel[]) {
