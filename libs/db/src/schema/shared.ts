@@ -198,6 +198,23 @@ export const canonicalDivisionStatistic = {
   sources: jsonText('sources').notNull(),
 }
 
+/** Shared feature-level context for a set of statistic observations. */
+export const canonicalStatsSeries = {
+  id: text('id').notNull(),
+  datasetCode: text('datasetCode').notNull(),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  /** `<layerName>:<gml:id>` (or the equivalent stable publisher feature ID). */
+  sourceFeatureId: text('sourceFeatureId').notNull(),
+  /** Present only after a reviewed bridge to a canonical division exists. */
+  divisionId: text('divisionId'),
+  referencePeriodCode: text('referencePeriodCode').notNull(),
+  referencePeriodStart: text('referencePeriodStart'),
+  referencePeriodEnd: text('referencePeriodEnd'),
+  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  /** The source geography cohort used by this series, where applicable. */
+  geographyCohortId: text('geographyCohortId'),
+}
+
 /**
  * A canonical statistic observation. Values are stored as publisher-independent
  * decimal text rather than floating point, so the value presented by the API
@@ -205,18 +222,9 @@ export const canonicalDivisionStatistic = {
  */
 export const canonicalStatsObservation = {
   id: text('id').notNull(),
-  datasetCode: text('datasetCode').notNull(),
-  sourceReleaseId: text('sourceReleaseId').notNull(),
-  /** `<layerName>:<gml:id>` (or the equivalent stable publisher feature ID). */
-  sourceFeatureId: text('sourceFeatureId').notNull(),
+  seriesId: text('seriesId').notNull(),
   /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
   sourceField: text('sourceField').notNull(),
-  /** Present only after a reviewed bridge to a canonical division exists. */
-  divisionId: text('divisionId'),
-  referencePeriodCode: text('referencePeriodCode').notNull(),
-  referencePeriodStart: text('referencePeriodStart'),
-  referencePeriodEnd: text('referencePeriodEnd'),
-  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
   measureCode: text('measureCode').notNull(),
   /** Decimal text, never a floating point approximation. */
   numericValue: text('numericValue'),
@@ -227,8 +235,6 @@ export const canonicalStatsObservation = {
   valuePrecision: text('valuePrecision'),
   observationStatus: text('observationStatus').notNull(),
   sourceValue: text('sourceValue').notNull(),
-  /** The source geography cohort used by this observation, where applicable. */
-  geographyCohortId: text('geographyCohortId'),
 }
 
 export const canonicalStatsMeasure = {
@@ -266,8 +272,8 @@ export const canonicalStatsValueI18n = {
   name: text('name').notNull(),
 }
 
-export const canonicalStatsObservationDimension = {
-  observationId: text('observationId').notNull(),
+export const canonicalStatsSeriesDimension = {
+  seriesId: text('seriesId').notNull(),
   dimensionCode: text('dimensionCode').notNull(),
   valueCode: text('valueCode').notNull(),
 }

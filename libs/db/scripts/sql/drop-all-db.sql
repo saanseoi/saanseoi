@@ -79,6 +79,8 @@ DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `identifierBridges`;
 DROP TABLE IF EXISTS `divisionIdentifierBridges`;
 DROP TABLE IF EXISTS `divisionStatistics`;
+DROP TABLE IF EXISTS `statsSeriesDimensions`;
+DROP TABLE IF EXISTS `statsSeries`;
 DROP TABLE IF EXISTS `statsObservationDimensions`;
 DROP TABLE IF EXISTS `statsValuesI18n`;
 DROP TABLE IF EXISTS `statsValues`;
