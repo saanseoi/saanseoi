@@ -9,6 +9,7 @@ import District from './releaseStatsDistrictSection.svelte'
 import GenericGroups from './releaseStatsGenericGroups.svelte'
 import Geometry from './releaseStatsGeometrySection.svelte'
 import LocaleCoverage from './releaseStatsLocaleCoverageSection.svelte'
+import MeasureCoverage from './releaseStatsMeasureCoverageSection.svelte'
 import Overview from './releaseStatsOverviewSection.svelte'
 import Processing from './releaseStatsProcessingSection.svelte'
 import Quality from './releaseStatsQualitySection.svelte'
@@ -40,6 +41,12 @@ let {
   {/if}
   {#if presentation.componentCoverage}
     <ComponentCoverage rows={presentation.componentCoverage} {labels} />
+  {/if}
+  {#if presentation.sourceLayerDistribution}
+    <TypeDistribution distribution={presentation.sourceLayerDistribution} {labels} />
+  {/if}
+  {#if presentation.measureCoverage}
+    <MeasureCoverage coverage={presentation.measureCoverage} />
   {/if}
   {#each presentation.recordDistributions as distribution}
     <TypeDistribution {distribution} {labels} />
