@@ -2206,7 +2206,10 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'statistics') {
-      return ['hkgovCenstatdStatistics']
+      return [
+        'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        'hkgovCenstatdStatistics',
+      ]
     }
 
     if (cacheTableProfile === 'nativeSource') {

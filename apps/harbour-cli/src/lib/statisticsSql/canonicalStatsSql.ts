@@ -115,8 +115,10 @@ export async function replayCanonicalStatsSqlBatches(
 
 function buildReplaceCurrentStatements(table: CanonicalStatsTable, rows: Row[]) {
   if (!rows.length) return []
-  // Observation dimensions have no datasetCode. They are replaced with the
-  // observations to which they belong, avoiding stale categorical dimensions.
+  // Current data is the newest version of each logical observation, not a
+  // replacement of every period in a dataset. A later compilation may revise
+  // 2016 while the current view must still retain its 2021 census rows.
+  // Observation dimensions are the one child set that must be replaced.
   if (table === 'statsObservationDimensions') {
     const observationIds = uniqueStrings(rows, 'observationId')
     return chunk(observationIds, 250).map(
@@ -124,16 +126,7 @@ function buildReplaceCurrentStatements(table: CanonicalStatsTable, rows: Row[]) 
         `DELETE FROM ${identifier(table)} WHERE "observationId" IN (${ids.map(sqlValue).join(', ')});`,
     )
   }
-  const datasetCodes = uniqueStrings(rows, 'datasetCode')
-  if (table === 'statsObservations') {
-    return [
-      `DELETE FROM "statsObservationDimensions" WHERE "observationId" IN (SELECT "id" FROM "statsObservations" WHERE "datasetCode" IN (${datasetCodes.map(sqlValue).join(', ')}));`,
-      `DELETE FROM ${identifier(table)} WHERE "datasetCode" IN (${datasetCodes.map(sqlValue).join(', ')});`,
-    ]
-  }
-  return [
-    `DELETE FROM ${identifier(table)} WHERE "datasetCode" IN (${datasetCodes.map(sqlValue).join(', ')});`,
-  ]
+  return []
 }
 
 function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {

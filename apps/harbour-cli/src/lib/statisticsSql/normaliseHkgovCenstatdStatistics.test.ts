@@ -1,0 +1,95 @@
+import { describe, expect, test } from 'bun:test'
+
+import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+
+describe('normaliseHkgovCenstatdStatistics', () => {
+  test('retains a compilation row’s own annual reference period', () => {
+    const rows = normaliseHkgovCenstatdStatistics([
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        properties: {
+          dc: '11',
+          dc_chi: '中西區',
+          dc_class: 'A',
+          dc_eng: 'Central and Western',
+          my_lp: '243300',
+          year: '2016',
+        },
+        sourceFeatureId: 'DC_GHS:11-2016',
+        sourceReleaseId: 'release-compilation-2026-q2',
+        sourceVersion: '2026-Q2',
+      },
+    ])
+
+    expect(rows.observations).toEqual([
+      expect.objectContaining({
+        measureCode: 'my_lp',
+        referencePeriodCode: '2016',
+        referencePeriodGranularity: 'year',
+        sourceValue: '243300',
+      }),
+    ])
+  })
+
+  test('uses half-year periods and preserves suppression literals', () => {
+    const rows = normaliseHkgovCenstatdStatistics([
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
+        properties: {
+          DC: '11',
+          DC_CHI: '中西區',
+          DC_ENG: 'Central and Western',
+          LQ: '**',
+          QUARTER: '3',
+          YEAR: '2023',
+        },
+        sourceFeatureId: 'DCD_LQ_Q32023:11',
+        sourceReleaseId: 'release-2023-h2',
+        sourceVersion: '2023-H2',
+      },
+    ])
+
+    expect(rows.observations[0]).toMatchObject({
+      numericValue: null,
+      observationStatus: 'suppressed',
+      referencePeriodCode: '2023-H2',
+      referencePeriodGranularity: 'half-year',
+      sourceValue: '**',
+      valueCode: 'suppressed',
+    })
+  })
+
+  test('stores density population as actual people without a multiplier', () => {
+    const rows = normaliseHkgovCenstatdStatistics([
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        divisionId: 'district-central-western',
+        properties: {
+          DC: '11',
+          DC_CHI: '中西區',
+          DC_ENG: 'Central and Western',
+          LA: '12.4',
+          MYPOPN_LAND: '243.3',
+          PERIOD: '2024',
+          POPN_D: '19620',
+        },
+        sourceFeatureId: 'Density_2024:11',
+        sourceReleaseId: 'release-2024',
+        sourceVersion: '2024',
+      },
+    ])
+
+    expect(rows.observations).toContainEqual(
+      expect.objectContaining({
+        divisionId: 'district-central-western',
+        measureCode: 'MYPOPN_LAND',
+        numericValue: '243300',
+        sourceValue: '243.3',
+        unitCode: 'person',
+      }),
+    )
+  })
+})
