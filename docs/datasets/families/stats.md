@@ -13,7 +13,8 @@ year and measures. This prevents a publisher identifier from being mistaken for 
 SaanSeoi district code.
 
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
-records the mirrored archive's managed key and SHA-256 in source provenance. Remote
+records the mirrored archive's managed key and SHA-256 in source provenance. Only GML
+members are expanded, with explicit entry-count and uncompressed-size limits. Remote
 publication still builds SQL using the corresponding local target-database cache.
 
 The current schema reserves a snapshot-scoped materialisation for the future `/v0/stats`
