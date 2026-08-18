@@ -398,12 +398,21 @@ export const getSourceReleaseContentData = query(
         .get(),
     ])
 
+    const measures = await getSourceReleaseMeasures({
+      datasetCode,
+      releaseId: version.id,
+    })
     const result = {
       version: archive
         ? { ...version, sourceArchiveAssetId: archive.assetId }
         : version,
       previousNotes,
-    } as { version: SourceVersion; previousNotes: string | null }
+      measures,
+    } as {
+      measures: Awaited<ReturnType<typeof getSourceReleaseMeasures>>
+      version: SourceVersion
+      previousNotes: string | null
+    }
 
     if (dev)
       console.info('[source-release-content]', {
@@ -769,6 +778,71 @@ async function loadDataReleasesPage(offset = 0) {
     hasMore: mergedReleases.length > DATA_RELEASES_PAGE_SIZE,
     nextOffset: offset + Math.min(releases.length, DATA_RELEASES_PAGE_SIZE),
   }
+}
+
+async function getSourceReleaseMeasures(input: {
+  datasetCode: string
+  releaseId: string
+}) {
+  const db = getCurrentDb()
+  const observationCounts = await db
+    .select({
+      measureCode: currentSchema.statsObservations.measureCode,
+      observationCount: sql<number>`count(*)`,
+    })
+    .from(currentSchema.statsObservations)
+    .innerJoin(
+      currentSchema.statsSeries,
+      eq(currentSchema.statsObservations.seriesId, currentSchema.statsSeries.id),
+    )
+    .where(eq(currentSchema.statsSeries.sourceReleaseId, input.releaseId))
+    .groupBy(currentSchema.statsObservations.measureCode)
+    .all()
+  if (!observationCounts.length) return []
+
+  const countsByMeasure = new Map(
+    observationCounts.map(row => [row.measureCode, row.observationCount]),
+  )
+  const rows = await db
+    .select({
+      definition: currentSchema.statsMeasuresI18n.description,
+      measureCode: currentSchema.statsMeasures.measureCode,
+      name: currentSchema.statsMeasuresI18n.name,
+      sourceField: currentSchema.statsMeasures.sourceField,
+      unitCode: currentSchema.statsMeasures.unitCode,
+      valueKind: currentSchema.statsMeasures.valueKind,
+    })
+    .from(currentSchema.statsMeasures)
+    .leftJoin(
+      currentSchema.statsMeasuresI18n,
+      and(
+        eq(
+          currentSchema.statsMeasuresI18n.datasetCode,
+          currentSchema.statsMeasures.datasetCode,
+        ),
+        eq(
+          currentSchema.statsMeasuresI18n.measureCode,
+          currentSchema.statsMeasures.measureCode,
+        ),
+        eq(currentSchema.statsMeasuresI18n.locale, 'en'),
+      ),
+    )
+    .where(
+      and(
+        eq(currentSchema.statsMeasures.datasetCode, input.datasetCode),
+        inArray(currentSchema.statsMeasures.measureCode, [...countsByMeasure.keys()]),
+      ),
+    )
+    .orderBy(currentSchema.statsMeasures.sourceField)
+    .all()
+  return rows.map(row => ({
+    definition: row.definition,
+    name: row.name ?? row.sourceField,
+    observationCount: countsByMeasure.get(row.measureCode) ?? 0,
+    sourceField: row.sourceField,
+    unitCode: row.unitCode,
+    valueKind: row.valueKind,
+  }))
 }
 
 async function loadDataPageApis(): Promise<DataPageApi[]> {
