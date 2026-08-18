@@ -1,9 +1,6 @@
-import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-
-import { unzipSync } from 'fflate'
 
 import type {
   ParsedArgs,
@@ -11,6 +8,8 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import { unzipSelected } from '../lib/zip.ts'
 
 const DATASET_CODE =
   'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
@@ -45,10 +44,14 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
     // its local cache directly: R2 is provenance/durability, never an input hop.
     const archiveBytes = await readFile(resolve(sourceArchive))
     assertSourceArchiveIdentity(archiveBytes, sourceArchiveSha256)
-    const archive = unzipSync(new Uint8Array(archiveBytes))
-    const gmlBytes = archive[`Density_${sourceVersion}.gml`]
-    if (!gmlBytes) throw new Error(`CSDI archive has no Density_${sourceVersion}.gml.`)
-    const gmlPath = join(workDir, `Density_${sourceVersion}.gml`)
+    const expectedGml = `Density_${sourceVersion}.gml`
+    const archive = unzipSelected(
+      new Uint8Array(archiveBytes),
+      entry => entry.name === expectedGml,
+    )
+    const gmlBytes = archive[expectedGml]
+    if (!gmlBytes) throw new Error(`CSDI archive has no ${expectedGml}.`)
+    const gmlPath = join(workDir, expectedGml)
     const parquetPath = join(
       workDir,
       `hkgov-censtatd-hk-${sourceVersion}-division-statistic.parquet`,
@@ -71,6 +74,8 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           region: 'hk',
           'release-notes-url': releaseNotesUrl,
           source: 'hkgov-censtatd',
+          'source-archive-key': sourceArchiveKey,
+          'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'stats',
           type: 'divisionStatistic',
@@ -96,19 +101,10 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
   }
 }
 
-function isSha256(value: string | boolean | undefined): value is string {
-  return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value)
-}
-
 /** Ensures provenance names the exact locally prepared archive being parsed. */
 export function assertSourceArchiveIdentity(
   archiveBytes: Uint8Array,
   expectedSha256: string,
 ) {
-  const actualSha256 = createHash('sha256').update(archiveBytes).digest('hex')
-  if (actualSha256 !== expectedSha256) {
-    throw new Error(
-      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${expectedSha256}, found ${actualSha256}.`,
-    )
-  }
+  assertSourceArchiveHash(archiveBytes, expectedSha256, 'Prepared CSDI archive')
 }

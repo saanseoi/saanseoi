@@ -18,6 +18,7 @@ const HKGRO_FIRST_YEAR = 1842
 const HKGRO_LAST_YEAR = 1941
 const HKGRO_MISSING_TOC_YEARS = new Set([1849, 1850, 1851, 1852])
 const HKGRO_REQUEST_TIMEOUT_MS = 45_000
+const HKGRO_MAX_PDF_BYTES = 256 * 1024 * 1024
 const STREET_NAME_PATTERNS: Array<[string, RegExp]> = [
   ['street', /\bstreet\b/i],
   ['road', /\broad\b/i],
@@ -315,7 +316,11 @@ async function retrieveCandidatePdf(input: {
     throw new Error(
       `HKGRO PDF download failed for ${input.candidate.year}/${input.candidate.hkgroPdfId} (${input.candidate.subject}): ${response.status} ${response.statusText}; ${input.candidate.officialUrl}`,
     )
-  const bytes = Buffer.from(await response.arrayBuffer())
+  const bytes = await readResponseBytes(
+    response,
+    HKGRO_MAX_PDF_BYTES,
+    `HKGRO ${input.candidate.year}/${input.candidate.hkgroPdfId} PDF`,
+  )
   if (bytes.byteLength === 0) {
     return {
       failure: `HKGRO returned an empty application/pdf response for ${input.candidate.year}/${input.candidate.hkgroPdfId} (${input.candidate.subject}); ${input.candidate.officialUrl}`,
@@ -343,6 +348,33 @@ async function retrieveCandidatePdf(input: {
     return { ...existing, reused: true, unavailable: false as const }
   }
   return { ...verified, reused: false, unavailable: false as const }
+}
+
+async function readResponseBytes(response: Response, maxBytes: number, label: string) {
+  const contentLength = response.headers.get('content-length')
+  if (
+    contentLength &&
+    /^\d+$/.test(contentLength) &&
+    Number(contentLength) > maxBytes
+  ) {
+    throw new Error(`${label} exceeds the ${maxBytes}-byte download limit.`)
+  }
+  if (!response.body) return Buffer.alloc(0)
+
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let byteLength = 0
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    byteLength += value.byteLength
+    if (byteLength > maxBytes) {
+      await reader.cancel()
+      throw new Error(`${label} exceeds the ${maxBytes}-byte download limit.`)
+    }
+    chunks.push(value)
+  }
+  return Buffer.concat(chunks, byteLength)
 }
 
 function isFileAlreadyExistsError(error: unknown) {

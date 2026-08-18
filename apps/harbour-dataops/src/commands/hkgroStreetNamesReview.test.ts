@@ -101,6 +101,31 @@ describe('HKGRO street-name review', () => {
     expect(context).toContain('OCR excerpt (not source evidence)')
   })
 
+  test('neutralises source-controlled terminal and bidi sequences', () => {
+    const context = formatReviewContext(
+      record({
+        reviewPages: [
+          {
+            excerpt: 'forged\u001B]52;c;Y29weQ==\u0007\u202Etext',
+            pageNumber: 1,
+          },
+        ],
+        tocEntries: [
+          {
+            notificationNumber: '123',
+            publicationDate: '1901-01-01',
+            subject: 'Naming\rforged prompt',
+          },
+        ],
+      }),
+    )
+
+    expect(context).not.toContain('\u001B]52')
+    expect(context).not.toContain('\u0007')
+    expect(context).not.toContain('\u202E')
+    expect(context).not.toContain('\r')
+  })
+
   test('distinguishes absorption into an existing street from a rename', () => {
     const suggestion = suggestHkgroStreetClassification(
       record(),

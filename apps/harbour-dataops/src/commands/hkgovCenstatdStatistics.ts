@@ -1,7 +1,5 @@
-import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { unzipSync } from 'fflate'
 
 import type {
   ParsedArgs,
@@ -13,6 +11,8 @@ import {
   type CenstatdStatisticDatasetCode,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
 import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import { unzipSelected } from '../lib/zip.ts'
 
 export async function runHkgovCenstatdStatisticsIngestCommand(
   args: ParsedArgs,
@@ -33,8 +33,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     typeof sourceVersion !== 'string' ||
     typeof releaseNotesUrl !== 'string' ||
     typeof key !== 'string' ||
-    typeof sha !== 'string' ||
-    !/^[a-f0-9]{64}$/i.test(sha)
+    !isSha256(sha)
   ) {
     printUsage()
     throw new Error(
@@ -42,15 +41,11 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     )
   }
   const bytes = await readFile(resolve(input))
-  const actual = createHash('sha256').update(bytes).digest('hex')
-  if (actual !== sha)
-    throw new Error(
-      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${sha}, found ${actual}.`,
-    )
+  assertSourceArchiveHash(bytes, sha, 'Prepared CSDI archive')
   const inputGml = Object.fromEntries(
-    Object.entries(unzipSync(bytes))
-      .filter(([name]) => name.endsWith('.gml'))
-      .map(([name, content]) => [name, new TextDecoder().decode(content)]),
+    Object.entries(unzipSelected(bytes, entry => entry.name.endsWith('.gml'))).map(
+      ([name, content]) => [name, new TextDecoder().decode(content)],
+    ),
   )
   const rows = readHkgovCenstatdStatisticArchive({
     datasetCode: datasetCode as CenstatdStatisticDatasetCode,

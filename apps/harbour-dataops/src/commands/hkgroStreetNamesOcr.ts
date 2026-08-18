@@ -27,6 +27,7 @@ const PADDLE_OCR_PYTHON =
   join(REPO_ROOT, 'apps/harbour-dataops/.venv/bin/python')
 const OCR_LANGUAGE = 'en'
 const OCR_RENDER_DPI = 300
+const PDF_RENDER_TIMEOUT_MS = 300_000
 const PADDLE_OCR_TIMEOUT_MS = readPositiveDuration(
   process.env.SAANSEOI_PADDLEOCR_TIMEOUT_MS,
   120_000,
@@ -276,13 +277,11 @@ async function ocrHkgroPdf(input: { pdfPath: string }) {
   const temporaryDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-ocr-'))
   try {
     const prefix = join(temporaryDir, 'page')
-    await runCommand('pdftoppm', [
-      '-r',
-      String(OCR_RENDER_DPI),
-      '-png',
-      input.pdfPath,
-      prefix,
-    ])
+    await runCommand(
+      'pdftoppm',
+      ['-r', String(OCR_RENDER_DPI), '-png', input.pdfPath, prefix],
+      PDF_RENDER_TIMEOUT_MS,
+    )
     const images = (await readdir(temporaryDir))
       .filter(file => /^page-\d+\.png$/.test(file))
       .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
@@ -616,8 +615,8 @@ function readYearsOption(value: string | boolean | undefined) {
 function normaliseYears(years: number[]) {
   const unique = [...new Set(years)].sort((left, right) => left - right)
   if (!unique.length) throw new Error('At least one HKGRO year is required.')
-  if (unique.some(year => year < 1842 || year > 1941))
-    throw new Error('HKGRO OCR years must be between 1842 and 1941.')
+  if (unique.some(year => !Number.isInteger(year) || year < 1842 || year > 1941))
+    throw new Error('HKGRO OCR years must be whole years between 1842 and 1941.')
   return unique
 }
 function readPdfIdsOption(value: string | boolean | undefined) {
@@ -638,12 +637,21 @@ function normalisePdfIds(pdfIds: string[]) {
     )
   return unique
 }
-async function runCommand(command: string, args: string[]) {
+async function runCommand(command: string, args: string[], timeoutMs: number) {
   const child = Bun.spawn([command, ...args], { stderr: 'pipe', stdout: 'pipe' })
+  let timedOut = false
+  const timeout = setTimeout(() => {
+    timedOut = true
+    child.kill()
+  }, timeoutMs)
   const [exitCode, stderr] = await Promise.all([
     child.exited,
     new Response(child.stderr).text(),
   ])
+  clearTimeout(timeout)
+  if (timedOut) {
+    throw new Error(`${command} timed out after ${timeoutMs / 1_000} seconds.`)
+  }
   if (exitCode !== 0)
     throw new Error(`${command} failed: ${stderr.trim() || `exit code ${exitCode}`}`)
 }
@@ -674,9 +682,10 @@ async function runCommandStdout(command: string, args: string[], timeoutMs?: num
 
 function readPositiveDuration(value: string | undefined, fallback: number) {
   if (value === undefined) return fallback
-  if (!/^\d+$/.test(value) || Number(value) < 1)
+  const duration = Number(value)
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(duration) || duration < 1)
     throw new Error(
       'SAANSEOI_PADDLEOCR_TIMEOUT_MS must be a positive integer in milliseconds.',
     )
-  return Number(value)
+  return duration
 }
