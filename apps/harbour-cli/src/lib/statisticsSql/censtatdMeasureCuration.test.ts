@@ -2,9 +2,11 @@ import { expect, test } from 'bun:test'
 
 import {
   emptyCenstatdMeasureCuration,
-  formatCenstatdMeasureCandidate,
+  formatCenstatdMeasureProposal,
   parseCsdiSimplifiedDataSpecification,
+  resolveChineseLocalisationProposals,
   resolveCenstatdMeasureCuration,
+  suggestUnitCode,
   suggestMeasureName,
 } from './censtatdMeasureCuration.ts'
 
@@ -61,8 +63,8 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
 })
 
 test('formats every proposed localisation and canonical key for review', () => {
-  expect(
-    formatCenstatdMeasureCandidate({
+  const output = formatCenstatdMeasureProposal({
+    candidate: {
       localisations: [
         {
           description: 'Total population in the area.',
@@ -84,23 +86,76 @@ test('formats every proposed localisation and canonical key for review', () => {
         },
       ],
       measureCode: 'totalPopulation',
-    }),
-  ).toBe(`Proposed measure
-Canonical key: totalPopulation
+    },
+    sourceField: 't_pop',
+    suggestedUnitCode: 'person',
+  })
 
-Proposed localisations
+  expect(output).toContain('\u001B[31mt_pop')
+  expect(output).toContain('totalPopulation')
+  expect(output).toContain('(person)')
+  expect(output).toContain('Total population')
+  expect(output).toContain('總人口')
+  expect(output).toContain('总人口')
+})
 
-en
-  Name: Total population
-  Description: Total population in the area.
+test('suggests a compatible reviewed unit for a similarly named measure', () => {
+  expect(
+    suggestUnitCode('totalPopulation', [
+      { measureCode: 'landArea', unitCode: 'square-kilometre' },
+      { measureCode: 'populationDensity', unitCode: 'person-per-square-kilometre' },
+      { measureCode: 'populationMidYear', unitCode: 'person' },
+    ]),
+  ).toBe('person')
+})
 
-zh-Hant
-  Name: 總人口
-  Description: 區內總人口。
+test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {
+  const proposals = await resolveChineseLocalisationProposals({
+    candidate: {
+      localisations: [
+        {
+          description: 'Total population',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+        {
+          description: '總人口',
+          isTranslationVerified: true,
+          locale: 'zh-Hant',
+          name: '總人口',
+        },
+        {
+          description: '总人口',
+          isTranslationVerified: true,
+          locale: 'zh-Hans',
+          name: '总人口',
+        },
+      ],
+    },
+    englishDescription: 'Population counted at the reference date',
+    englishName: 'Reference population',
+    translate: async (texts, options) =>
+      new Map(
+        [...texts].map(text => [
+          text,
+          `${options.to === 'zh-Hant' ? '繁' : '简'}:${text}`,
+        ]),
+      ),
+  })
 
-zh-Hans
-  Name: 总人口
-  Description: 区内总人口。`)
+  expect(proposals.zhHant).toEqual({
+    description: '繁:Population counted at the reference date',
+    isTranslationVerified: false,
+    locale: 'zh-Hant',
+    name: '繁:Reference population',
+  })
+  expect(proposals.zhHans).toEqual({
+    description: '简:Population counted at the reference date',
+    isTranslationVerified: false,
+    locale: 'zh-Hans',
+    name: '简:Reference population',
+  })
 })
 
 test('parses field definitions from a CSDI simplified data specification', () => {

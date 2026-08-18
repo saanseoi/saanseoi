@@ -5,6 +5,13 @@ import { dirname, resolve } from 'node:path'
 
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { translateAzureTexts } from '../sources/landsd/street/landsdStreetTranslation.ts'
+import { formatField } from '../cli/display.ts'
+import {
+  colorGrey,
+  colorRed,
+  colorTeal,
+  colorYellow,
+} from '../localPipeline/progressFormatting.ts'
 
 export type CenstatdMeasureCurationEntry = {
   datasetCode: string
@@ -45,6 +52,7 @@ export type CenstatdMeasureLocalisation = {
 type CenstatdSchemaMeasureCandidate = {
   localisations: readonly CenstatdMeasureLocalisation[]
   measureCode: string
+  sourceReleaseUrl: string
   schemaSpecification: {
     sha256: string
     url: string
@@ -145,22 +153,29 @@ export async function promptForCenstatdMeasureCuration(input: {
   const decisions = [...input.manifest.measures]
   for (const measure of input.measures) {
     const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
+    const suggestedUnitCode = suggestUnitCode(
+      schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
+      decisions,
+    )
     note(
       [
-        `Dataset: ${measure.datasetCode}`,
-        `Publisher field: ${measure.sourceField}`,
-        `Value kind: ${measure.valueKind}`,
+        formatField('dataset', measure.datasetCode),
+        formatField('value kind', measure.valueKind),
         ...(schemaCandidate
-          ? [
-              `CSDI schema: ${schemaCandidate.schemaSpecification.url}`,
-              '',
-              formatCenstatdMeasureCandidate(schemaCandidate),
-            ]
+          ? [formatField('source release', schemaCandidate.sourceReleaseUrl)]
           : []),
       ].join('\n'),
       'MEASURE METADATA',
     )
     if (schemaCandidate) {
+      note(
+        formatCenstatdMeasureProposal({
+          candidate: schemaCandidate,
+          sourceField: measure.sourceField,
+          suggestedUnitCode,
+        }),
+        'PROPOSALS',
+      )
       const accepted = await confirm({
         initialValue: true,
         message: 'Accept the proposed CSDI measure metadata?',
@@ -174,7 +189,7 @@ export async function promptForCenstatdMeasureCuration(input: {
           schemaSpecification: schemaCandidate.schemaSpecification,
           sourceField: measure.sourceField,
           sourceNullOption: schemaCandidate.sourceNullOption,
-          unitCode: measure.unitCode,
+          unitCode: suggestedUnitCode ?? measure.unitCode,
         })
         continue
       }
@@ -185,21 +200,39 @@ export async function promptForCenstatdMeasureCuration(input: {
     )
     const englishName = await requiredText(
       'English measure name',
-      suggestMeasureName(measure.sourceField),
+      schemaCandidateLocalisation(schemaCandidate, 'en')?.name ??
+        suggestMeasureName(measure.sourceField),
     )
-    const englishDescription = await requiredText('English measure description')
+    const englishDescription = await requiredText(
+      'English measure description',
+      schemaCandidateLocalisation(schemaCandidate, 'en')?.description,
+    )
+    const chineseProposals = await resolveChineseLocalisationProposals({
+      candidate: schemaCandidate,
+      englishDescription,
+      englishName,
+    })
     const traditionalChineseName = await requiredText(
       'Traditional Chinese measure name',
+      chineseProposals.zhHant?.name,
     )
     const traditionalChineseDescription = await requiredText(
       'Traditional Chinese measure description',
+      chineseProposals.zhHant?.description,
     )
-    const simplifiedChineseName = await requiredText('Simplified Chinese measure name')
+    const simplifiedChineseName = await requiredText(
+      'Simplified Chinese measure name',
+      chineseProposals.zhHans?.name,
+    )
     const simplifiedChineseDescription = await requiredText(
       'Simplified Chinese measure description',
+      chineseProposals.zhHans?.description,
     )
     const unitCode = await text({
-      initialValue: measure.unitCode === 'publisher-unknown' ? '' : measure.unitCode,
+      initialValue:
+        measure.unitCode === 'publisher-unknown'
+          ? (suggestedUnitCode ?? '')
+          : measure.unitCode,
       message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
     })
     if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
@@ -214,18 +247,32 @@ export async function promptForCenstatdMeasureCuration(input: {
         },
         {
           description: traditionalChineseDescription,
-          isTranslationVerified: true,
+          isTranslationVerified: isLocalisationVerified(
+            chineseProposals.zhHant,
+            traditionalChineseName,
+            traditionalChineseDescription,
+          ),
           locale: 'zh-Hant',
           name: traditionalChineseName,
         },
         {
           description: simplifiedChineseDescription,
-          isTranslationVerified: true,
+          isTranslationVerified: isLocalisationVerified(
+            chineseProposals.zhHans,
+            simplifiedChineseName,
+            simplifiedChineseDescription,
+          ),
           locale: 'zh-Hans',
           name: simplifiedChineseName,
         },
       ],
       measureCode,
+      ...(schemaCandidate
+        ? {
+            schemaSpecification: schemaCandidate.schemaSpecification,
+            sourceNullOption: schemaCandidate.sourceNullOption,
+          }
+        : {}),
       sourceField: measure.sourceField,
       unitCode: (unitCode ?? '').trim() || 'publisher-unknown',
     })
@@ -369,6 +416,7 @@ export async function resolveCenstatdSchemaMeasureCandidates(
             },
           ],
           measureCode: suggestMeasureName(schema.descriptionEn),
+          sourceReleaseUrl: dataset.sourceUrl ?? specificationUrl,
           schemaSpecification: {
             sha256: schema.sha256,
             url: specificationUrl,
@@ -536,21 +584,142 @@ export function suggestMeasureName(description: string) {
     .join('')
 }
 
-export function formatCenstatdMeasureCandidate(
-  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations' | 'measureCode'>,
-) {
+export function formatCenstatdMeasureProposal(input: {
+  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations' | 'measureCode'>
+  sourceField: string
+  suggestedUnitCode: string | null
+}) {
+  const english = schemaCandidateLocalisation(input.candidate, 'en')
+  const zhHant = schemaCandidateLocalisation(input.candidate, 'zh-Hant')
+  const zhHans = schemaCandidateLocalisation(input.candidate, 'zh-Hans')
+  if (!english || !zhHant || !zhHans)
+    throw new Error('C&SD proposal is missing a required localisation.')
   return [
-    'Proposed measure',
-    `Canonical key: ${candidate.measureCode}`,
+    `${colorRed(input.sourceField)}${colorTeal(' -> ')}${colorYellow(input.candidate.measureCode)}${input.suggestedUnitCode ? colorGrey(` (${input.suggestedUnitCode})`) : ''}`,
     '',
-    'Proposed localisations',
-    ...candidate.localisations.flatMap(localisation => [
-      '',
-      localisation.locale,
-      `  Name: ${localisation.name}`,
-      `  Description: ${localisation.description}`,
-    ]),
+    formatProposalLocalisation('name', english.name, zhHant.name, zhHans.name),
+    formatProposalLocalisation(
+      'description',
+      english.description,
+      zhHant.description,
+      zhHans.description,
+    ),
   ].join('\n')
+}
+
+export function suggestUnitCode(
+  measureCode: string,
+  reviewedMeasures: readonly Pick<
+    CenstatdMeasureCurationEntry,
+    'measureCode' | 'unitCode'
+  >[],
+) {
+  const measureTokens = canonicalMeasureTokens(measureCode)
+  const candidates = reviewedMeasures
+    .filter(entry => entry.unitCode !== 'publisher-unknown')
+    .filter(entry => measureTokens.has('density') || !entry.unitCode.includes('-per-'))
+    .map(entry => ({
+      entry,
+      score: intersectionSize(measureTokens, canonicalMeasureTokens(entry.measureCode)),
+    }))
+    .filter(candidate => candidate.score > 0)
+  const bestScore = Math.max(...candidates.map(candidate => candidate.score), 0)
+  const units = new Set(
+    candidates
+      .filter(candidate => candidate.score === bestScore)
+      .map(candidate => candidate.entry.unitCode),
+  )
+  return units.size === 1 ? (units.values().next().value ?? null) : null
+}
+
+export async function resolveChineseLocalisationProposals(input: {
+  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations'> | undefined
+  englishDescription: string
+  englishName: string
+  translate?: typeof translateAzureTexts
+}) {
+  const officialZhHant = schemaCandidateLocalisation(input.candidate, 'zh-Hant')
+  const officialZhHans = schemaCandidateLocalisation(input.candidate, 'zh-Hans')
+  const officialEnglish = schemaCandidateLocalisation(input.candidate, 'en')
+  if (!officialEnglish || !officialZhHant || !officialZhHans)
+    return { zhHans: null, zhHant: null }
+  if (
+    input.englishName === officialEnglish.name &&
+    input.englishDescription === officialEnglish.description
+  ) {
+    return { zhHans: officialZhHans, zhHant: officialZhHant }
+  }
+  const translate = input.translate ?? translateAzureTexts
+  const texts = [input.englishName, input.englishDescription]
+  const [zhHant, zhHans] = await Promise.all([
+    translate(texts, { from: 'en', to: 'zh-Hant' }),
+    translate(texts, { from: 'en', to: 'zh-Hans' }),
+  ])
+  return {
+    zhHans: machineLocalisation(
+      zhHans,
+      input.englishName,
+      input.englishDescription,
+      'zh-Hans',
+    ),
+    zhHant: machineLocalisation(
+      zhHant,
+      input.englishName,
+      input.englishDescription,
+      'zh-Hant',
+    ),
+  }
+}
+
+function formatProposalLocalisation(
+  label: string,
+  english: string,
+  zhHant: string,
+  zhHans: string,
+) {
+  return `${colorTeal(label)}: ${colorYellow(english)} ${colorGrey('(')}${colorGrey(zhHant)} ${colorTeal('/')} ${colorGrey(zhHans)}${colorGrey(')')}`
+}
+
+function schemaCandidateLocalisation(
+  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations'> | undefined,
+  locale: CenstatdMeasureLocalisation['locale'],
+) {
+  return candidate?.localisations.find(localisation => localisation.locale === locale)
+}
+
+function machineLocalisation(
+  translated: ReadonlyMap<string, string>,
+  englishName: string,
+  englishDescription: string,
+  locale: CenstatdMeasureLocalisation['locale'],
+): CenstatdMeasureLocalisation {
+  const name = translated.get(englishName)
+  const description = translated.get(englishDescription)
+  if (!name || !description)
+    throw new Error(
+      `Azure Translator returned an incomplete ${locale} measure proposal.`,
+    )
+  return { description, isTranslationVerified: false, locale, name }
+}
+
+function isLocalisationVerified(
+  proposal: CenstatdMeasureLocalisation | null,
+  name: string,
+  description: string,
+) {
+  return proposal && proposal.name === name && proposal.description === description
+    ? proposal.isTranslationVerified
+    : true
+}
+
+function canonicalMeasureTokens(value: string) {
+  return new Set(
+    value.match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g)?.map(token => token.toLowerCase()),
+  )
+}
+
+function intersectionSize(left: ReadonlySet<string>, right: ReadonlySet<string>) {
+  return [...left].filter(value => right.has(value)).length
 }
 
 async function requiredMeasureCode(message: string, initialValue: string) {
