@@ -60,7 +60,34 @@
           "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
         }
       ]
+    },
+    {
+      "operationCode": "normalise_censtatd_population_thousands_to_persons",
+      "type": "bulk",
+      "sourceFieldPath": "raw_properties.MYPOPN_LAND",
+      "targetFieldPath": "statistics.observations.numericValue, unitCode, valuePrecision",
+      "condition": "Applies to published numeric MYPOPN_LAND values in the C&SD District Land Area, Population and Density dataset.",
+      "mappings": [
+        {
+          "from": "MYPOPN_LAND in thousand persons",
+          "to": "numericValue in persons (multiply by 1,000)"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Converts C&SD district mid-year population values from thousands to persons while retaining the publisher's stated precision."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將政府統計處地區年中人口數值由千人轉換為人，並保留發布者所述的精確度。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将政府统计处地区年中人口数值由千人转换为人，并保留发布者所述的精确度。"
+        }
+      ]
     }
   ],
-  "versionHash": "sha256:0a3adc02849582bf0b89a8554ec6834031e7987aef6950201081826d52e28ecd"
+  "versionHash": "sha256:91369d73814f9ca163587d9da220d01a70d7bffc66199d6b3e009f52aa8d066d"
 }

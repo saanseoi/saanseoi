@@ -211,6 +211,11 @@ describe('fixture version hashes', () => {
                   }),
                 ]),
               }),
+              expect.objectContaining({
+                operationCode: 'normalise_censtatd_population_thousands_to_persons',
+                sourceFieldPath: 'raw_properties.MYPOPN_LAND',
+                type: 'bulk',
+              }),
             ],
           }),
         ],

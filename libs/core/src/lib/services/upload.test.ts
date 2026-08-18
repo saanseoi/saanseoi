@@ -757,13 +757,26 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query(
-        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
+        'SELECT code AS datasetId, status, rawObjectKey, originalFileName, processingRules FROM releases WHERE code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
       rawObjectKey: string
       originalFileName: string
+      processingRules: string | null
+    } | null
+    const processingRules = sqlite
+      .query(
+        `
+          SELECT d.processingRules
+          FROM datasets d
+          INNER JOIN publishers p ON p.id = d.publisherId
+          WHERE d.code = ? AND p.code = ?
+        `,
+      )
+      .get('ds-hk-overture-division', 'overture') as {
+      processingRules: string | null
     } | null
     const ingestRunCount = sqlite
       .query(
@@ -778,6 +791,7 @@ describe('upload', () => {
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
+    expect(dataset?.processingRules).toBe(processingRules?.processingRules)
     expect(ingestRunCount.count).toBe(2)
   })
 
