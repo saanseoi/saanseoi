@@ -36,6 +36,7 @@ import {
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
   replayReleaseProcessingActionsMetaToRemote,
@@ -142,7 +143,9 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         const properties = object(row.rawProperties, 'rawProperties')
         const sourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
         const divisionId = divisionIdForSourceProperties(
+          datasetCode,
           properties,
+          sourceFeatureId,
           districtsBySourceCode,
         )
         if (bridgeCohort && !divisionId) {
@@ -325,9 +328,28 @@ function object(value: unknown, field: string) {
 }
 
 function divisionIdForSourceProperties(
+  datasetCode: string,
   properties: Record<string, unknown>,
+  sourceFeatureId: string,
   districtsBySourceCode: ReadonlyMap<number, { divisionId: string }> | null,
 ) {
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+  ) {
+    return hkgovCenstatdStatisticDivisionId(
+      datasetCode,
+      sourceFeatureId.split(':').at(-1) ?? '',
+    )
+  }
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+  ) {
+    if (!sourceFeatureId.startsWith('HMA_21C:')) return null
+    const code = typeof properties.hma === 'string' ? properties.hma : ''
+    return hkgovCenstatdStatisticDivisionId(datasetCode, code)
+  }
   if (!districtsBySourceCode) return null
   const rawCode = properties.DC ?? properties.dc
   if (typeof rawCode !== 'string' && typeof rawCode !== 'number') return null

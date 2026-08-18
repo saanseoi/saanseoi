@@ -444,7 +444,10 @@ ${mutedBar}  `)
             regionCode: previewResult.plan.regionCode,
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
-            source: previewResult.plan.source as 'hkgov-landsd' | 'overture',
+            source: previewResult.plan.source as
+              | 'hkgov-censtatd'
+              | 'hkgov-landsd'
+              | 'overture',
             sourceVersion: previewResult.plan.sourceVersion,
             theme: previewResult.plan.theme,
             type: previewResult.plan.type,
@@ -579,6 +582,7 @@ ${mutedBar}  `)
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
+            datasetCode: previewResult.plan.datasetCode,
             regionCode: previewResult.plan.regionCode,
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
@@ -608,6 +612,7 @@ ${mutedBar}  `)
             target,
             {
               cohortKey: previewResult.plan.cohortKey,
+              datasetCode: previewResult.plan.datasetCode,
               regionCode: previewResult.plan.regionCode,
               releaseCode: previewResult.plan.releaseCode,
               rowCount: previewResult.plan.rowCount,
@@ -944,7 +949,8 @@ function resolveUploadProcessingStrategy(
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
-      previewResult.plan.source === 'hkgov-landsd')
+      previewResult.plan.source === 'hkgov-landsd' ||
+      previewResult.plan.source === 'hkgov-censtatd')
   ) {
     return {
       mode: 'local-division-sql' as const,
@@ -1199,9 +1205,9 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const snapshots = target.remote
     ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
     : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
-  const domainCode = resolveDivisionDomainCode(plan.source)
+  const domainCode = resolveDivisionDomainCode(plan.source, plan.datasetCode)
   const cohortIndependentReleases =
-    domainCode === 'overture'
+    domainCode === 'geographic'
       ? target.remote
         ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
         : await resolveLocalCohortIndependentDivisionReleases(target, plan)
@@ -1213,7 +1219,7 @@ export async function resolveDivisionApiReleaseSetReadiness(
   )
   const boundaryAvailable = snapshots.divisionBoundary
   const ready =
-    domainCode === 'overture'
+    domainCode === 'geographic'
       ? divisionAvailable &&
         areaAvailable &&
         cohortIndependentRequirementsAvailable &&
@@ -1231,13 +1237,13 @@ export async function resolveDivisionApiReleaseSetReadiness(
 
 export function formatDivisionApiReleaseSetReadiness(
   plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'> &
-    Partial<Pick<DivisionGeometryPlan, 'source'>>,
+    Partial<Pick<DivisionGeometryPlan, 'datasetCode' | 'source'>>,
   readiness: DivisionReleaseSetReadiness,
 ) {
   const rows = [
     ['division', readiness.divisionAvailable],
     ['divisionArea', readiness.areaAvailable],
-    ...(resolveDivisionDomainCode(plan.source) === 'overture'
+    ...(resolveDivisionDomainCode(plan.source, plan.datasetCode) === 'geographic'
       ? ([['divisionBoundary', readiness.boundaryAvailable]] as const)
       : []),
   ] as const
@@ -1245,7 +1251,7 @@ export function formatDivisionApiReleaseSetReadiness(
 
   return [
     '# EXACT REF',
-    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source)} / ${plan.cohortKey}`,
+    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
         `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
@@ -1375,10 +1381,19 @@ function logApiReleaseSetPublication(
   }
 }
 
-function resolveDivisionDomainCode(source: DivisionGeometryPlan['source'] | undefined) {
+function resolveDivisionDomainCode(
+  source: DivisionGeometryPlan['source'] | undefined,
+  datasetCode?: string,
+) {
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+  ) {
+    return 'hkgov-censtatd-hma'
+  }
   return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
     ? source
-    : 'overture'
+    : 'geographic'
 }
 
 function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefined) {
@@ -1387,9 +1402,9 @@ function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefine
   // The initial Overture division snapshot predates snapshot lineages. Its
   // primary dataset is therefore the durable domain identity until it is
   // superseded by a lineage-backed revision.
-  return domainCode === 'overture'
+  return domainCode === 'geographic'
     ? or(
-        eq(metaSchema.metaSnapshotLineages.variant, domainCode),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
         eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
       )
     : eq(metaSchema.metaSnapshotLineages.variant, domainCode)
