@@ -3,6 +3,7 @@ import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
 import {
   buildCenstatdGeographyLinkAuditActions,
+  buildCenstatdMeasureCurationAuditActions,
   buildCenstatdNormalisationAuditActions,
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
@@ -266,6 +267,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     const materialisedProcessingActions =
       await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
         ...buildCenstatdGeographyLinkAuditActions(statsProfile, sourceRows.length),
+        ...buildCenstatdMeasureCurationAuditActions(canonical),
         ...buildCenstatdNormalisationAuditActions(canonical),
       ])
     await replayReleaseStatsMetaToRemote(target, context, releaseId, materialisedStats)
