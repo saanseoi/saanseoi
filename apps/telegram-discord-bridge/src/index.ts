@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 
+import { needsGitHubMirror } from './delivery.ts'
 import { DiscordClient, type DiscordChannel } from './discord.ts'
 import { GitHubClient } from './github.ts'
 import {
@@ -19,7 +20,6 @@ export type Env = CloudflareBindings & {
 
 type MessageDelivery = {
   admin_logged_at: number | null
-  github_attempted_at: number | null
   github_completed_at: number | null
   github_discussion_url: string | null
   public_completed_at: number | null
@@ -70,7 +70,6 @@ export class DiscordBridge extends DurableObject<Env> {
       CREATE TABLE IF NOT EXISTS message_deliveries (
         message_id TEXT PRIMARY KEY,
         admin_logged_at INTEGER,
-        github_attempted_at INTEGER,
         github_completed_at INTEGER,
         github_discussion_url TEXT,
         public_completed_at INTEGER,
@@ -85,10 +84,6 @@ export class DiscordBridge extends DurableObject<Env> {
     if (!columns.includes('github_completed_at'))
       this.ctx.storage.sql.exec(
         'ALTER TABLE message_deliveries ADD COLUMN github_completed_at INTEGER',
-      )
-    if (!columns.includes('github_attempted_at'))
-      this.ctx.storage.sql.exec(
-        'ALTER TABLE message_deliveries ADD COLUMN github_attempted_at INTEGER',
       )
     if (!columns.includes('github_discussion_url'))
       this.ctx.storage.sql.exec(
@@ -197,7 +192,7 @@ export class DiscordBridge extends DurableObject<Env> {
     publicText: string,
     delivery: MessageDelivery | undefined,
   ) {
-    if (delivery?.github_completed_at || delivery?.github_attempted_at) return
+    if (!needsGitHubMirror(delivery)) return
     if (!publicText || hasTag(message, '#no-github')) {
       this.completeGitHubMirror(message.id)
       return
@@ -209,7 +204,6 @@ export class DiscordBridge extends DurableObject<Env> {
       return
     }
 
-    this.recordGitHubMirrorAttempt(message.id)
     const url = await this.github.createDiscussion(discussion)
     this.completeGitHubMirror(message.id, url)
   }
@@ -236,8 +230,7 @@ export class DiscordBridge extends DurableObject<Env> {
   private getDelivery(messageId: string) {
     return this.ctx.storage.sql
       .exec<MessageDelivery>(
-        `SELECT admin_logged_at, github_attempted_at, github_completed_at,
-                github_discussion_url,
+        `SELECT admin_logged_at, github_completed_at, github_discussion_url,
                 public_completed_at, public_telegram_message_ids
          FROM message_deliveries
          WHERE message_id = ?`,
@@ -279,17 +272,6 @@ export class DiscordBridge extends DurableObject<Env> {
          public_telegram_message_ids = excluded.public_telegram_message_ids`,
       messageId,
       JSON.stringify(telegramMessageIds),
-    )
-  }
-
-  private recordGitHubMirrorAttempt(messageId: string) {
-    this.ctx.storage.sql.exec(
-      `INSERT INTO message_deliveries (message_id, github_attempted_at)
-       VALUES (?, ?)
-       ON CONFLICT(message_id) DO UPDATE SET
-         github_attempted_at = excluded.github_attempted_at`,
-      messageId,
-      Date.now(),
     )
   }
 
