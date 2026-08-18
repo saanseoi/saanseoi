@@ -2136,12 +2136,13 @@ export function buildDeterministicApiFieldProvenanceId(args: {
 }
 
 export async function resetFailedDataset(
-  db: HarbourWritableDb,
+  db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
   rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus,
 ) {
+  const dataset = await requireDatasetDefinition(db, plan)
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2155,6 +2156,7 @@ export async function resetFailedDataset(
       sourceVersion: plan.sourceVersion,
       resourceType: plan.type,
       sourceSchemaVersion,
+      processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,
@@ -2168,6 +2170,31 @@ export async function resetFailedDataset(
       updatedAt: now,
     })
     .where(eq(metaReleases.code, plan.releaseCode))
+    .run()
+
+  await db
+    .update(metaSourceReleases)
+    .set({
+      sourceSchemaVersion,
+      processingRules: dataset.processingRules,
+      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      cohortKey: plan.cohortKey,
+      rawObjectKey,
+      originalFileName: plan.originalFileName,
+      releaseNotesUrl: plan.releaseNotesUrl ?? null,
+      status,
+      ingestedAt: now,
+      revokedAt: null,
+      revocationReason: null,
+      supersededBySourceReleaseId: null,
+      updatedAt: now,
+    })
+    .where(
+      eq(
+        metaSourceReleases.code,
+        buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion),
+      ),
+    )
     .run()
 }
 
