@@ -8,6 +8,7 @@ import {
   resolveChineseLocalisationProposals,
   resolveUnitLocalisations,
   resolveCenstatdMeasureCuration,
+  suggestAggregation,
   suggestStatisticKind,
   suggestUnitCode,
   suggestMeasureName,
@@ -160,6 +161,39 @@ test('suggests a statistic kind separately from its unit', () => {
   expect(
     suggestStatisticKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
   ).toBe('quantity')
+})
+
+test('suggests an aggregation stated in the proposed English semantic text', () => {
+  expect(
+    suggestAggregation([
+      {
+        description: 'Median age of residents.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Median age',
+      },
+    ]),
+  ).toBe('median')
+  expect(
+    suggestAggregation([
+      {
+        description: 'The average household size.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Household size',
+      },
+    ]),
+  ).toBe('mean')
+  expect(
+    suggestAggregation([
+      {
+        description: 'Age of residents.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Age',
+      },
+    ]),
+  ).toBeNull()
 })
 
 test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {

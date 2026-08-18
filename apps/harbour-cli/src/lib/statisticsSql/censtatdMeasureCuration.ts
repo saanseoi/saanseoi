@@ -359,7 +359,10 @@ export async function promptForCenstatdMeasureCuration(input: {
       measureCode,
       suggestedUnitCode,
     })
-    const aggregation = await selectAggregation({ statisticKind })
+    const aggregation = await selectAggregation({
+      statisticKind,
+      suggestedAggregation: suggestAggregation(localisations),
+    })
     const denominatorMeasureCode = await optionalDenominatorMeasureCode({
       statisticKind,
     })
@@ -870,14 +873,41 @@ async function selectStatisticKind(input: {
   return value as Exclude<StatsStatisticKind, 'unreviewed'>
 }
 
+/**
+ * Suggests an aggregation explicitly named in the publisher's proposed English
+ * semantic text. This is deliberately separate from statistic-kind inference:
+ * a quantity can be a total, mean, or median.
+ */
+export function suggestAggregation(
+  localisations: readonly CenstatdMeasureLocalisation[],
+): Exclude<StatsAggregation, 'unreviewed'> | null {
+  const english = localisations.find(localisation => localisation.locale === 'en')
+  if (!english) return null
+
+  const text = `${english.name} ${english.description}`
+  const aggregationTerms: ReadonlyArray<
+    readonly [RegExp, Exclude<StatsAggregation, 'unreviewed'>]
+  > = [
+    [/\bmedian\b/i, 'median'],
+    [/\b(?:mean|average)\b/i, 'mean'],
+    [/\b(?:minimum|min)\b/i, 'minimum'],
+    [/\b(?:maximum|max)\b/i, 'maximum'],
+    [/\b(?:total|sum)\b/i, 'total'],
+    [/\bpercentile\b/i, 'percentile'],
+  ]
+  return aggregationTerms.find(([term]) => term.test(text))?.[1] ?? null
+}
+
 async function selectAggregation(input: {
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+  suggestedAggregation?: Exclude<StatsAggregation, 'unreviewed'> | null
 }): Promise<Exclude<StatsAggregation, 'unreviewed'>> {
   const value = await select({
     initialValue:
-      input.statisticKind === 'count' || input.statisticKind === 'quantity'
+      input.suggestedAggregation ??
+      (input.statisticKind === 'count' || input.statisticKind === 'quantity'
         ? 'total'
-        : 'none',
+        : 'none'),
     message: 'Aggregation',
     options: [
       {
