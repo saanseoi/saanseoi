@@ -94,6 +94,10 @@ The reviewer can still change every value. Explicit English terms including
 `proportion`, `percentage`, and `ratio` determine the initial statistic kind before key-
 and unit-based fallbacks.
 
+The 2021 Census Housing Market Area (`HMA_21C`) and Building Group (`BG_21C`) layers
+share the same 107 statistical fields. Their four Building Group-only fields are
+identifiers, not statistics, so one reviewed measure dictionary applies to both layers.
+
 ## Measure naming policy
 
 Use this policy whenever reviewing C&SD measure metadata. The CSDI field description is
