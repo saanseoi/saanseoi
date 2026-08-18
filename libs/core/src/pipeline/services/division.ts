@@ -1074,6 +1074,9 @@ export function normaliseDivisionRow(
   row: Record<string, unknown>,
   options: DivisionNormaliseOptions = {},
 ) {
+  if (row.source === 'hkgov-censtatd') {
+    return normaliseHkgovCenstatdStatisticDivisionRow(row)
+  }
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
 
@@ -1154,6 +1157,63 @@ export function normaliseDivisionRow(
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
   }
+}
+
+function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>) {
+  const id = asNonEmptyString(row.id)
+  const type = asNonEmptyString(row.canonical_type)
+  const level = Number(row.canonical_level)
+  if (!id || !type || !Number.isInteger(level)) {
+    throw new Error('C&SD statistic geography requires id, canonical_type and level.')
+  }
+  const names = parseJsonRecord(row.names, 'names')
+  const geometry = parseJsonGeometry(row.geometry, 'geometry')
+  const identifiers = parseJsonValue(row.identifiers, 'identifiers')
+  const sources = parseJsonValue(row.sources, 'sources')
+  const sourceProperties = parseJsonValue(row.source_properties, 'source_properties')
+  const now = new Date().toISOString()
+  return {
+    base: {
+      bbox: calculateGeoJsonBbox(geometry),
+      cartography: null,
+      createdAt: now,
+      geometry,
+      hierarchy: [],
+      id,
+      identifiers,
+      level,
+      sourceKeys: { hkgovCenstatd: identifiers },
+      sources: { hkgovCenstatd: { properties: sourceProperties, sources } },
+      type,
+      updatedAt: now,
+      wikidata: null,
+    } satisfies Omit<NewDivisionRow, 'snapshotId'>,
+    i18n: normaliseDivisionI18n(id, names),
+  }
+}
+
+function parseJsonValue(value: unknown, field: string): unknown {
+  if (typeof value !== 'string') return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    throw new Error(`C&SD statistic geography ${field} must be valid JSON.`)
+  }
+}
+
+function parseJsonRecord(value: unknown, field: string) {
+  const parsed = parseJsonValue(value, field)
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`C&SD statistic geography ${field} must be an object.`)
+  }
+  return parsed as Record<string, unknown>
+}
+
+function parseJsonGeometry(value: unknown, field: string): GeoJsonGeometry {
+  const parsed = parseJsonValue(value, field)
+  const geometry = asGeoJsonGeometry(parsed)
+  if (!geometry) throw new Error(`C&SD statistic geography ${field} is invalid.`)
+  return geometry
 }
 
 function asOptionalInteger(value: unknown) {
