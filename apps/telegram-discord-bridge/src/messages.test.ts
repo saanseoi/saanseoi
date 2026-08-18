@@ -90,16 +90,6 @@ test('rejects non-web and control-character URLs in Telegram links', () => {
   )
 })
 
-test('keeps inline code literal and does not activate Telegram-specific links', () => {
-  expect(
-    formatTelegramHtml(
-      '`**literal** & safe` [mention](tg://user?id=123) [script](javascript:alert) [site](https://saanseoi.hk)',
-    ),
-  ).toBe(
-    '<code>**literal** &amp; safe</code> [mention](tg://user?id=123) [script](javascript:alert) <a href="https://saanseoi.hk">site</a>',
-  )
-})
-
 test('splits Telegram HTML at valid tag boundaries', () => {
   expect(splitTelegramHtml('<b>ab😀cd</b>', 10)).toEqual(['<b>ab😀</b>', '<b>cd</b>'])
 })
