@@ -8,8 +8,8 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import {
   CENSTATD_STATISTIC_PROFILES,
+  prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
-  readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
@@ -49,11 +49,6 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       ([name, content]) => [name, new TextDecoder().decode(content)],
     ),
   )
-  const rows = readHkgovCenstatdStatisticArchive({
-    datasetCode: datasetCode as CenstatdStatisticDatasetCode,
-    inputGml,
-    sourceVersion,
-  })
   const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-statistics-'))
   try {
     const inputFiles = Object.fromEntries(
@@ -88,7 +83,10 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           'source-version': sourceVersion,
           theme: 'stats',
           type: 'divisionStatistic',
-          yes: true,
+          // Preserve the caller's explicit automation choice. New publisher
+          // measures must be reviewed interactively before their canonical
+          // metadata is admitted, so this command cannot force --yes.
+          yes: Boolean(args.options.yes),
         },
       },
       target,
@@ -98,11 +96,67 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         forceUpload: true,
         invocationCwd: resolve(import.meta.dir, '../../../..'),
         printUsage: () => undefined,
-        skipConfirm: true,
+        skipConfirm: Boolean(args.options.yes),
         skipSnapshotCleanup: false,
         validateGeometry: false,
       },
     )
+    const geographyDivisionPath = join(
+      workDir,
+      'hkgov-censtatd-geography-division.parquet',
+    )
+    const geographyAreaPath = join(
+      workDir,
+      'hkgov-censtatd-geography-division-area.parquet',
+    )
+    const geography = await prepareHkgovCenstatdStatisticGeographyUploads({
+      areaOutputFile: geographyAreaPath,
+      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+      divisionOutputFile: geographyDivisionPath,
+      inputGml,
+      sourceArchiveKey: key,
+      sourceArchiveSha256: sha,
+      sourceVersion,
+    })
+    if (geography.divisionCount > 0) {
+      for (const [filePath, type] of [
+        [geographyDivisionPath, 'division'],
+        [geographyAreaPath, 'divisionArea'],
+      ] as const) {
+        await runUploadCommand(
+          {
+            command: 'upload',
+            positionals: [filePath],
+            options: {
+              'cohort-key': sourceVersion,
+              'dataset-code': datasetCode,
+              region: 'hk',
+              'release-notes-url': releaseNotesUrl,
+              source: 'hkgov-censtatd',
+              'source-archive-key': key,
+              'source-archive-sha256': sha,
+              'source-version': sourceVersion,
+              theme: 'divisions',
+              type,
+              yes: true,
+            },
+          },
+          target,
+          {
+            allowReprocessPublished: true,
+            dryRun: false,
+            forceUpload: true,
+            invocationCwd: resolve(import.meta.dir, '../../../..'),
+            printUsage: () => undefined,
+            skipConfirm: true,
+            // The area pass resolves the canonical division snapshot created
+            // immediately before it; normal cleanup resumes after publication.
+            skipSnapshotCleanup: type === 'division',
+            validateGeometry: type === 'divisionArea',
+          },
+        )
+      }
+    }
   } finally {
     await rm(workDir, { force: true, recursive: true })
   }

@@ -36,6 +36,7 @@ import {
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
@@ -53,6 +54,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   },
   upload: { releaseCode?: string; releaseId?: string },
   prepared: PreparedUploadFile,
+  options: { promptForCuration: boolean },
 ) {
   const releaseId = required(upload.releaseId, 'releaseId')
   const releaseCode = required(upload.releaseCode, 'releaseCode')
@@ -138,31 +140,35 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     const districtsBySourceCode = bridgeCohort
       ? await resolveHkgovCenstatdDistrictBridge(metaDb, bridgeCohort)
       : null
-    const canonical = normaliseHkgovCenstatdStatistics(
-      rows.map(row => {
-        const properties = object(row.rawProperties, 'rawProperties')
-        const sourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
-        const divisionId = divisionIdForSourceProperties(
-          datasetCode,
-          properties,
-          sourceFeatureId,
-          districtsBySourceCode,
+    const canonicalInput = rows.map(row => {
+      const properties = object(row.rawProperties, 'rawProperties')
+      const sourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
+      const divisionId = divisionIdForSourceProperties(
+        datasetCode,
+        properties,
+        sourceFeatureId,
+        districtsBySourceCode,
+      )
+      if (bridgeCohort && !divisionId) {
+        throw new Error(
+          `C&SD ${datasetCode} feature ${sourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
         )
-        if (bridgeCohort && !divisionId) {
-          throw new Error(
-            `C&SD ${datasetCode} feature ${sourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
-          )
-        }
-        return {
-          datasetCode: requiredString(row.datasetCode, 'datasetCode'),
-          divisionId,
-          properties,
-          sourceFeatureId,
-          sourceReleaseId: releaseId,
-          sourceVersion: plan.sourceVersion,
-        }
-      }),
-    )
+      }
+      return {
+        datasetCode: requiredString(row.datasetCode, 'datasetCode'),
+        divisionId,
+        properties,
+        sourceFeatureId,
+        sourceReleaseId: releaseId,
+        sourceVersion: plan.sourceVersion,
+      }
+    })
+    let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
+    const measureMetadata = await resolveCenstatdMeasureMetadata({
+      measures: canonical.measures,
+      promptForCuration: options.promptForCuration,
+    })
+    canonical = normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata })
     const canonicalBatches = buildCanonicalStatsSqlBatches({
       current: canonicalCurrentRows(canonical),
       history: canonicalHistoryRows(canonical, releaseId),

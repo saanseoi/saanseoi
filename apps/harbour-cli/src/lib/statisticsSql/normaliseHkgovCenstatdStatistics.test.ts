@@ -99,4 +99,47 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       expect.objectContaining({ divisionId: 'district-central-western' }),
     )
   })
+
+  test('uses reviewed measure metadata without changing publisher literals', () => {
+    const rows = normaliseHkgovCenstatdStatistics(
+      [
+        {
+          datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          properties: { AREA: '12' },
+          sourceFeatureId: 'example:1',
+          sourceReleaseId: 'release-example',
+          sourceVersion: '2026',
+        },
+      ],
+      {
+        measureMetadata: new Map([
+          [
+            'ds-hk-hkgov-censtatd-division-statistic-example\u0000AREA',
+            {
+              definition: 'Land area represented by the publisher feature.',
+              name: 'Land area',
+              unitCode: 'square-kilometre',
+            },
+          ],
+        ]),
+      },
+    )
+
+    expect(rows.measures).toContainEqual(
+      expect.objectContaining({
+        measureCode: 'AREA',
+        sourceField: 'AREA',
+        unitCode: 'square-kilometre',
+      }),
+    )
+    expect(rows.measuresI18n).toContainEqual(
+      expect.objectContaining({
+        description: 'Land area represented by the publisher feature.',
+        name: 'Land area',
+      }),
+    )
+    expect(rows.observations).toContainEqual(
+      expect.objectContaining({ sourceValue: '12', unitCode: 'square-kilometre' }),
+    )
+  })
 })

@@ -79,7 +79,8 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           'source-version': sourceVersion,
           theme: 'stats',
           type: 'divisionStatistic',
-          yes: true,
+          // Unreviewed publisher measures must be curated interactively.
+          yes: Boolean(args.options.yes),
         },
       },
       target,
@@ -91,7 +92,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
-        skipConfirm: true,
+        skipConfirm: Boolean(args.options.yes),
         skipSnapshotCleanup: false,
         validateGeometry: false,
       },
