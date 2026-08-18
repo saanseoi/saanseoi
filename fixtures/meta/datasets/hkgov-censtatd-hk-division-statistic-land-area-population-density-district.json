@@ -83,6 +83,13 @@
           "sourceObjectHash": "8abab942b6fddf50cedc732b95f77132eb4ba805b4eed5ffa96d1cc1d2502b07",
           "contentHash": "14ca05cef251be311160ed9e99a9e699ee2a2f505035660933c6bb40cd85e64b"
         }
+      ],
+      "identicalArchiveSlots": [
+        {
+          "contentHash": "14ca05cef251be311160ed9e99a9e699ee2a2f505035660933c6bb40cd85e64b",
+          "releaseSlot": "2025-Q3",
+          "sourceObjectHash": "8abab942b6fddf50cedc732b95f77132eb4ba805b4eed5ffa96d1cc1d2502b07"
+        }
       ]
     }
   ],
