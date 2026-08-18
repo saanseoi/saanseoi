@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:31fb055bc4490016b7f9d466a85582ae9d552de5009e85d2e152ee422a5a9f29",
+  "versionHash": "sha256:c640132921bf4c234cb2c570725147b1b098d3a5f15ffdd019e1ffff1cdeb5e0",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
@@ -50,7 +50,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "map_censtatd_district_code_to_canonical_division"
+      ]
     }
   ],
   "releases": [

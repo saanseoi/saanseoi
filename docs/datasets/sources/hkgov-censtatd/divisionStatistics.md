@@ -2,7 +2,8 @@
 
 The following C&SD datasets are registered as Stats-family sources. They preserve
 publisher releases with their published geography cohort and measures; they never write
-to SaanSeoi's operational release-statistics table.
+an API-release-set statistic. Each source release does write structural release-owned
+facts to `meta.stats` before publication.
 
 | Dataset                                                          | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -58,6 +59,34 @@ The importer never creates a parallel statistical-geography registry. Native geo
 remains source provenance. If a reviewed statistical geometry must be delivered, it is
 released as a new domain in the Divisions API family instead.
 
+## Source-release statistics and geography audit
+
+Every C&SD statistics source release stores only structural release facts: validated
+publisher-feature count and source-layer distribution; canonical-observation count and
+distributions by measure, reference period, status and numeric/categorical kind;
+unique-measure and unit distributions; distinct reference-period count; and canonical
+dimension/value-definition counts. The processor never sums, averages or compares
+publisher values with different units. `records/count/count` remains the
+source-directory primary count.
+
+Reviewed canonical geography resolution is an Audit concern rather than a release-stat
+dimension. District releases record the approved C&SD-to-canonical district bridge as an
+automatic processing action with authority, cohort, domain and source-field evidence. A
+missing required district bridge member stops ingestion. Area/type, HMA and
+building-group, and major-housing-estate geometries are candidate domains, not failed
+district links. C&SD new towns are an existing-domain candidate for review against the
+Planning new-town domain, not an assumed match.
+
+If source geometry is suitable for delivery, it is reviewed and published through a
+separate Divisions-domain workflow. The statistics uploader never creates that domain
+implicitly; after an approved domain and identifier bridge exist, its profile can become
+a reviewed canonical link.
+
+When a comparable earlier source release exists, structural churn is limited to measure
+and dimension-definition/coverage changes. It is a quality-control signal, not a claim
+that publisher values changed incorrectly. Multi-year compilation periods and numeric
+values are not compared as churn, and no baseline produces no churn rows.
+
 ## Canonical division links
 
 The reviewed C&SD district-code bridges for the 2016 and 2021 cohorts each contain all
@@ -107,10 +136,12 @@ The importer verifies the local ZIP against that hash before parsing it; it neve
 reloads the ZIP from object storage. The source assertion retains both archive
 references while the target-aware SQL processor uses its local target-database cache to
 generate and publish the release for local, preview or production. That processor
-mirrors only the identifier bridges, C&SD density assertions, and division-statistics
-history required for this dataset; its console progress identifies the cache and
-processing stage currently in progress. Publish through `saanseoi update`, or invoke the
-importer with the already-prepared archive:
+materialises release facts and audited processing actions locally, then replays the
+exact stored `DB_META` rows to preview or production before publication. It mirrors the
+identifier bridges, C&SD density assertions, and division-statistics history required
+for this dataset; its console progress identifies the cache and processing stage
+currently in progress. Publish through `saanseoi update`, or invoke the importer with
+the already-prepared archive:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \
