@@ -45,15 +45,17 @@ manifest SHA-256, expands only GML members within explicit entry-count and uncom
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
 key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
-assertions, then writes normalised `statsObservations` plus measure, dimension and
-localised-value dictionaries. An observation records its dataset code, source release,
-`<layer>:<feature>` identity, exact source property name and literal, reference-period
-code/granularity, decimal value or categorical code, unit, precision (when known),
-status, and an optional reviewed `divisionId`. The current shard contains the latest
-version of each observation, composed across source compilations; the history shard
-retains superseded values and definitions. A Population and Household compilation can
-therefore carry annual observations for 2016–2025 without collapsing them to the
-compilation release period.
+assertions, then writes one normalised `statsSeries` row for each publisher feature and
+reference period, with its dataset, source release, `<layer>:<feature>` identity,
+optional reviewed `divisionId`, and geography cohort. Dimensions attach to that series
+once, rather than once per measure. `statsObservations` records only the series
+reference, exact source property name and literal, decimal value or categorical code,
+unit, precision (when known), and status. Measure, dimension, and localised-value
+dictionaries remain normalised. The current shard contains the latest version of each
+series and observation, composed across source compilations; the history shard retains
+superseded values and definitions. A Population and Household compilation can therefore
+carry annual observations for 2016–2025 without collapsing them to the compilation
+release period.
 
 The importer never creates a parallel statistical-geography registry. Native geometry
 remains source provenance. If a reviewed statistical geometry must be delivered, it is
