@@ -72,9 +72,10 @@ test('TelegramClient retries rate limits and transient non-JSON failures', async
   expect(delayMock).toHaveBeenNthCalledWith(2, 2000)
 })
 
-test('DiscordClient retries a rate-limited request', async () => {
+test('DiscordClient retries rate limits and server failures', async () => {
   const fetchMock = mock()
     .mockResolvedValueOnce(Response.json({ retry_after: 0.25 }, { status: 429 }))
+    .mockResolvedValueOnce(new Response('upstream failure', { status: 502 }))
     .mockResolvedValueOnce(Response.json([{ id: 'channel', type: 0 }]))
     .mockResolvedValueOnce(Response.json({ threads: [] }))
   const delayMock = mock(async () => undefined)
@@ -86,8 +87,24 @@ test('DiscordClient retries a rate-limited request', async () => {
   await expect(client.listMessageChannels()).resolves.toEqual([
     { id: 'channel', type: 0 },
   ])
-  expect(fetchMock).toHaveBeenCalledTimes(3)
-  expect(delayMock).toHaveBeenCalledWith(250)
+  expect(fetchMock).toHaveBeenCalledTimes(4)
+  expect(delayMock).toHaveBeenNthCalledWith(1, 250)
+  expect(delayMock).toHaveBeenNthCalledWith(2, 2000)
+})
+
+test('DiscordClient rejects other HTTP errors without retrying', async () => {
+  const fetchMock = mock().mockResolvedValue(new Response(null, { status: 401 }))
+  const delayMock = mock(async () => undefined)
+  const client = new DiscordClient('token', 'guild', {
+    delay: delayMock,
+    fetch: fetchMock as unknown as typeof fetch,
+  })
+
+  await expect(client.listMessageChannels()).rejects.toThrow(
+    'Discord API returned HTTP 401 for /guilds/guild/channels.',
+  )
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(delayMock).not.toHaveBeenCalled()
 })
 
 test('GitHubClient resolves the fixed target and creates a discussion', async () => {
