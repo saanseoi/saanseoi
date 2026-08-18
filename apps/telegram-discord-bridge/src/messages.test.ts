@@ -70,6 +70,26 @@ test('converts Discord Markdown to Telegram HTML', () => {
   )
 })
 
+test('keeps inline code literal and does not activate Telegram-specific links', () => {
+  expect(
+    formatTelegramHtml(
+      '`**literal** & safe` [mention](tg://user?id=123) [script](javascript:alert) [site](https://saanseoi.hk)',
+    ),
+  ).toBe(
+    '<code>**literal** &amp; safe</code> [mention](tg://user?id=123) [script](javascript:alert) <a href="https://saanseoi.hk">site</a>',
+  )
+})
+
+test('rejects non-web and control-character URLs in Telegram links', () => {
+  expect(
+    formatTelegramHtml(
+      '[unsafe](javascript:alert(1)) <https://example.com/\u007fpath> <https://safe.example/path>',
+    ),
+  ).toBe(
+    '[unsafe](javascript:alert(1)) &lt;https://example.com/\u007fpath&gt; <a href="https://safe.example/path">https://safe.example/path</a>',
+  )
+})
+
 test('splits Telegram HTML at valid tag boundaries', () => {
   expect(splitTelegramHtml('<b>ab😀cd</b>', 10)).toEqual(['<b>ab😀</b>', '<b>cd</b>'])
 })

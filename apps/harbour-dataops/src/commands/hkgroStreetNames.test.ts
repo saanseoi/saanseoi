@@ -187,4 +187,22 @@ describe('HKGRO street-name retrieval', () => {
       }),
     ).rejects.toThrow('HKGRO PDF is not a valid PDF for 1901/460097')
   })
+
+  test('rejects an oversized candidate before buffering its body', async () => {
+    const archiveDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-test-'))
+    await expect(
+      retrieveHkgroStreetNameArchive({
+        archiveDir,
+        fetcher: async url =>
+          url.includes('browseGa.jsp')
+            ? new Response(
+                `<div>Hong Kong Government Gazette 1901<br> Table of Contents</div>${TOC}`,
+              )
+            : new Response('%PDF-', {
+                headers: { 'content-length': String(257 * 1024 * 1024) },
+              }),
+        years: [1901],
+      }),
+    ).rejects.toThrow('exceeds the 268435456-byte download limit')
+  })
 })

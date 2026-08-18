@@ -2205,10 +2205,12 @@ function isLifecycleCurationNotice(notice: PairedLandsdStreetNotice) {
 }
 
 async function fetchRequired(fetchImplementation: typeof fetch, url: string) {
+  assertLandsdDownloadUrl(url)
   let lastError: unknown
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       const response = await fetchImplementation(url)
+      if (response.url) assertLandsdDownloadUrl(response.url)
       if (response.ok) return response
       lastError = new Error(
         `Source asset download failed with HTTP ${response.status}: ${url}`,
@@ -2223,6 +2225,14 @@ async function fetchRequired(fetchImplementation: typeof fetch, url: string) {
   throw lastError instanceof Error
     ? lastError
     : new Error(`Source download failed: ${url}`)
+}
+
+export function assertLandsdDownloadUrl(value: string) {
+  const url = new URL(value)
+
+  if (url.origin !== new URL(LANDSD_STREET_NAMING_URL).origin) {
+    throw new Error(`Refusing LandsD download outside the official origin: ${value}`)
+  }
 }
 
 async function renderPlanPdfToWebp(pdfPath: string, outputDir: string) {
