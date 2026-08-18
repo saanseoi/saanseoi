@@ -243,6 +243,7 @@ export const canonicalStatsObservation = {
  */
 export const statsStatisticKinds = [
   'count',
+  'quantity',
   'proportion',
   'ratio',
   'rate',

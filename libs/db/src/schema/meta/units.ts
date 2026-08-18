@@ -1,6 +1,6 @@
 import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { primaryUuid, timestamps } from '../../shared'
+import { primaryUuid, timestamps } from '../shared'
 
 /** A reviewed canonical unit, synchronised from the metadata registry fixtures. */
 export const metaUnits = sqliteTable('units', {

@@ -23,8 +23,18 @@ describe('buildCenstatdReleaseStats', () => {
           { dimensionCode: 'building-group' },
         ],
         measures: [
-          { measureCode: 't_pop', unitCode: 'person' },
-          { measureCode: 'status', unitCode: 'category' },
+          {
+            aggregation: 'total',
+            measureCode: 't_pop',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+          {
+            aggregation: 'none',
+            measureCode: 'status',
+            statisticKind: 'quantity',
+            unitCode: 'category',
+          },
         ],
         observations: [
           {
@@ -86,7 +96,14 @@ describe('buildCenstatdReleaseStats', () => {
       [{ featureId: '11', layerName: 'Density_2024' }],
       {
         dimensions: [{ dimensionCode: 'district' }],
-        measures: [{ measureCode: 'MYPOPN_LAND', unitCode: 'person' }],
+        measures: [
+          {
+            aggregation: 'total',
+            measureCode: 'MYPOPN_LAND',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+        ],
         observations: [
           {
             measureCode: 'MYPOPN_LAND',
@@ -153,8 +170,18 @@ describe('buildCenstatdReleaseStats', () => {
           { dimensionCode: 'district-class' },
         ],
         measures: [
-          { measureCode: 'population', unitCode: 'person' },
-          { measureCode: 'households', unitCode: 'household' },
+          {
+            aggregation: 'total',
+            measureCode: 'population',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+          {
+            aggregation: 'total',
+            measureCode: 'households',
+            statisticKind: 'count',
+            unitCode: 'household',
+          },
         ],
         observations: [
           {
