@@ -4,6 +4,7 @@ import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
   ReleaseStatsDistrictName,
+  ReleaseStatsMeasure,
   ReleaseStatsPresentation,
 } from './releaseStats.types'
 
@@ -22,12 +23,14 @@ export function createReleaseStatsPresentation({
   stats,
   districtAreas = [],
   districtNames = [],
+  measures = [],
   locale,
   copy,
 }: {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
   districtNames?: ReleaseStatsDistrictName[]
+  measures?: ReleaseStatsMeasure[]
   locale: string
   copy: ReleaseStatsCopy
 }): ReleaseStatsPresentation {
@@ -360,6 +363,14 @@ export function createReleaseStatsPresentation({
       })()
     : undefined
 
+  const measureDefinitions = measures.length
+    ? {
+        id: addHeading('stats-measures', 'Measures'),
+        rows: measures,
+        title: 'Measures',
+      }
+    : undefined
+
   const distributionRows = matching(
     row =>
       Boolean(row.groupValue) &&
@@ -571,6 +582,7 @@ export function createReleaseStatsPresentation({
     componentCoverage,
     geometry,
     measureCoverage,
+    measures: measureDefinitions,
     recordDistributions: remainingRecordDistributions,
     sourceLayerDistribution,
     processing,

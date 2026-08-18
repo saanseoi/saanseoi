@@ -20,6 +20,14 @@ export type ReleaseStatsDistrictName = {
   name: string | null
   unofficial: boolean
 }
+export type ReleaseStatsMeasure = {
+  definition: string | null
+  name: string
+  observationCount: number
+  sourceField: string
+  unitCode: string
+  valueKind: string
+}
 export type ReleaseStatsCopy = {
   labels: ReleaseStatsLabels
   localeName: (locale: string) => string
@@ -128,6 +136,11 @@ export type ObservationMeasureCoveragePresentation = {
   rows: Array<{ label: string; value: string }>
   title: string
 }
+export type MeasuresPresentation = {
+  id: string
+  rows: ReleaseStatsMeasure[]
+  title: string
+}
 export type GeometryStatisticsPresentation = {
   id: string
   map?: DistrictDistributionPresentation
@@ -174,6 +187,7 @@ export type ReleaseStatsPresentation = {
   componentCoverage?: ComponentCoveragePresentation
   geometry?: GeometryStatisticsPresentation
   measureCoverage?: ObservationMeasureCoveragePresentation
+  measures?: MeasuresPresentation
   recordDistributions: TypeDistributionPresentation[]
   sourceLayerDistribution?: TypeDistributionPresentation
   processing?: ProcessingPresentation
