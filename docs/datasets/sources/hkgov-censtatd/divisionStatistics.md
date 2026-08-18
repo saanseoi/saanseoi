@@ -25,6 +25,13 @@ The fixture records every observed archive slot whose native publisher package i
 byte-identical to the 2016 or 2021 cohort. The updater suppresses only those exact no-op
 object hashes while continuing to check the CSDI archive catalogue for a changed object.
 
+For the two permanent-living-quarters datasets, the reviewed C&SD source release is
+`2023-H2`. The native GML is the primary provenance for layer and statistical-period
+semantics; CSDI's `2023-Q4` archive slot records only when that publisher package was
+made available through the catalogue. The area layer has `PERIOD=2023`, while the
+district layer explicitly retains `YEAR=2023` and `QUARTER=3`; neither value is replaced
+with the archive slot.
+
 District Land Area, Population and Density is an exception: its `Density_2022.gml` and
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
 and `2024.0` source releases rather than archive no-ops.

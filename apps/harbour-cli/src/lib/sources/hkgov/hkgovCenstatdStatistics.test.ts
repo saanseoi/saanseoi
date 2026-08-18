@@ -51,7 +51,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
     rowCount: 3,
-    sourceVersion: '2021',
+    sourceVersion: '2023-H2',
   },
   {
     archive:
@@ -59,7 +59,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
     rowCount: 18,
-    sourceVersion: '2021',
+    sourceVersion: '2023-H2',
   },
   {
     archive:
