@@ -31,22 +31,20 @@ and dimension dictionaries. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 
-Every C&SD publisher field takes its display metadata from the registered CSDI
-Simplified Data Specification, not operator entry. The Harbour CLI reads the exact
-publisher field match and materialises its English, Traditional Chinese, and Simplified
-Chinese descriptions into the measure dictionary, each with
-`isTranslationVerified=true`. If CSDI omits a Chinese locale, the CLI obtains that
-locale from Azure Translator and marks only that dictionary row
-`isTranslationVerified=false`. Its declared `Null Option` is retained as nullable
-`sourceNullOption` provenance; SaanSeoi's observation-status normalisation remains
-independent. An intentionally unmapped canonical unit is stored as `publisher-unknown`,
-never inferred. The source-release Stats tab then exposes the release's measure
-dictionary with its definition, unit, value kind, and observation count.
+Every C&SD publisher field requires a reviewed entry in
+`fixtures/meta/curations/hkgov-censtatd-statistics.json`. The entry assigns its stable
+canonical `measureCode`, retains the publisher `sourceField`, and supplies the English,
+Traditional Chinese, and Simplified Chinese measure dictionary. The registered CSDI
+Simplified Data Specification is a review candidate: the CLI displays its proposed
+canonical key and all localisations before the operator accepts them. Official CSDI
+locale rows are marked `isTranslationVerified=true`; an Azure translation supplied for
+an absent publisher locale is marked `false`. `--yes` refuses every uncurated field.
 
-If the official schema cannot be retrieved, parsed, or matched unambiguously, the CLI
-falls back to required manual curation in
-`fixtures/meta/curations/hkgov-censtatd-statistics.json`. `--yes` refuses only those
-unresolved fields rather than silently publishing incomplete metadata.
+The reviewed schema provenance retains its declared `Null Option` as nullable
+`sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
+intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.
+The source-release Stats tab then exposes the release's measure dictionary with its
+definition, unit, value kind, and observation count.
 
 Area/type and HMA are approved source-release fan-outs. Area/type creates the three
 Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
