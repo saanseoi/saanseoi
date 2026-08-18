@@ -5,22 +5,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
       "localisations": [
         {
-          "description": "Land area of the District Council district, in square kilometres.",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Land area"
+          "name": "Land area",
+          "description": "Land area of the District Council district, in square kilometres.",
+          "isTranslationVerified": true
         },
         {
-          "description": "區議會分區的土地面積，單位為平方公里。",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "土地面積"
+          "name": "土地面積",
+          "description": "區議會分區的土地面積，單位為平方公里。",
+          "isTranslationVerified": false
         },
         {
-          "description": "区议会分区的土地面积，单位为平方公里。",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "土地面积"
+          "name": "土地面积",
+          "description": "区议会分区的土地面积，单位为平方公里。",
+          "isTranslationVerified": false
         }
       ],
       "statisticKind": "quantity",
@@ -33,22 +33,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
       "localisations": [
         {
-          "description": "Mid-year population of the District Council district, expressed in persons.",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Mid-year population"
+          "name": "Mid-year population",
+          "description": "Mid-year population of the District Council district, expressed in persons.",
+          "isTranslationVerified": true
         },
         {
-          "description": "區議會分區的年中人口，以人為單位。",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "年中人口"
+          "name": "年中人口",
+          "description": "區議會分區的年中人口，以人為單位。",
+          "isTranslationVerified": false
         },
         {
-          "description": "区议会分区的年中人口，以人为单位。",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "年中人口"
+          "name": "年中人口",
+          "description": "区议会分区的年中人口，以人为单位。",
+          "isTranslationVerified": false
         }
       ],
       "statisticKind": "count",
@@ -62,22 +62,22 @@
       "denominatorMeasureCode": "landArea",
       "localisations": [
         {
-          "description": "Mid-year population density of the District Council district, in persons per square kilometre.",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Population density"
+          "name": "Population density",
+          "description": "Mid-year population density of the District Council district, in persons per square kilometre.",
+          "isTranslationVerified": true
         },
         {
-          "description": "區議會分區的年中人口密度，單位為每平方公里人數。",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "人口密度"
+          "name": "人口密度",
+          "description": "區議會分區的年中人口密度，單位為每平方公里人數。",
+          "isTranslationVerified": false
         },
         {
-          "description": "区议会分区的年中人口密度，单位为每平方公里人数。",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "人口密度"
+          "name": "人口密度",
+          "description": "区议会分区的年中人口密度，单位为每平方公里人数。",
+          "isTranslationVerified": false
         }
       ],
       "statisticKind": "density",
@@ -90,22 +90,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
       "localisations": [
         {
-          "description": "Total population",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Total population"
+          "name": "Total population",
+          "description": "Total population of the housing market area or building group.",
+          "isTranslationVerified": true
         },
         {
-          "description": "總人口",
-          "isTranslationVerified": true,
           "locale": "zh-Hant",
-          "name": "總人口"
+          "name": "總人口",
+          "description": "房屋市場區或樓宇組群的總人口。",
+          "isTranslationVerified": false
         },
         {
-          "description": "总人口",
-          "isTranslationVerified": true,
           "locale": "zh-Hans",
-          "name": "总人口"
+          "name": "总人口",
+          "description": "房屋市场区或楼宇组群的总人口。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "totalPopulation",
@@ -123,22 +123,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
       "localisations": [
         {
-          "description": "Median age",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Median age"
+          "name": "Median age",
+          "description": "Median age of the population, in years.",
+          "isTranslationVerified": true
         },
         {
-          "description": "年齡中位數",
-          "isTranslationVerified": true,
           "locale": "zh-Hant",
-          "name": "年齡中位數"
+          "name": "年齡中位數",
+          "description": "人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
         },
         {
-          "description": "年龄中位数",
-          "isTranslationVerified": true,
           "locale": "zh-Hans",
-          "name": "年龄中位数"
+          "name": "年龄中位数",
+          "description": "人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "medianAge",
@@ -156,22 +156,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
       "localisations": [
         {
-          "description": "Median age - Male",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Median age - Male"
+          "name": "Median age - Male",
+          "description": "Median age of males, in years.",
+          "isTranslationVerified": true
         },
         {
-          "description": "年齡中位數 - 男性",
-          "isTranslationVerified": true,
           "locale": "zh-Hant",
-          "name": "年齡中位數 - 男性"
+          "name": "年齡中位數 - 男性",
+          "description": "男性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
         },
         {
-          "description": "年龄中位数 - 男性",
-          "isTranslationVerified": true,
           "locale": "zh-Hans",
-          "name": "年龄中位数 - 男性"
+          "name": "年龄中位数 - 男性",
+          "description": "男性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "medianAgeMale",
@@ -189,22 +189,22 @@
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
       "localisations": [
         {
-          "description": "Median age - Female",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Median age - Female"
+          "name": "Median age - Female",
+          "description": "Median age of females, in years.",
+          "isTranslationVerified": true
         },
         {
-          "description": "年齡中位數 - 女性",
-          "isTranslationVerified": true,
           "locale": "zh-Hant",
-          "name": "年齡中位數 - 女性"
+          "name": "年齡中位數 - 女性",
+          "description": "女性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
         },
         {
-          "description": "年龄中位数 - 女性",
-          "isTranslationVerified": true,
           "locale": "zh-Hans",
-          "name": "年龄中位数 - 女性"
+          "name": "年龄中位数 - 女性",
+          "description": "女性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "medianAgeFemale",
@@ -220,25 +220,24 @@
     {
       "aggregation": "none",
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
-      "denominatorMeasureCode": "females",
       "localisations": [
         {
-          "description": "Number of males per 1000 females",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Sex ratio"
+          "name": "Sex ratio",
+          "description": "Number of males per 1,000 females.",
+          "isTranslationVerified": true
         },
         {
-          "description": "每千名女性中男性數量",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "性別比例"
+          "name": "性別比例",
+          "description": "每1,000名女性中男性的人數。",
+          "isTranslationVerified": false
         },
         {
-          "description": "每千名女性中男性数量",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "性别比例"
+          "name": "性别比例",
+          "description": "每1,000名女性中男性的人数。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "sexRatio",
@@ -257,22 +256,22 @@
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
-          "description": "Percentage distribution of population aged under 15",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Population aged under 15"
+          "name": "Population aged under 15",
+          "description": "Percentage of the total population aged under 15.",
+          "isTranslationVerified": true
         },
         {
-          "description": "15歲以下人口百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "15歲以下人口"
+          "name": "15歲以下人口",
+          "description": "15歲以下人口佔總人口的百分比。",
+          "isTranslationVerified": false
         },
         {
-          "description": "15岁以下人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "15岁以下人口"
+          "name": "15岁以下人口",
+          "description": "15岁以下人口占总人口的百分比。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "agedUnder15",
@@ -283,7 +282,7 @@
       "sourceNullOption": "Null",
       "sourceField": "age_1",
       "statisticKind": "proportion",
-      "unitCode": "person"
+      "unitCode": "percent"
     },
     {
       "aggregation": "none",
@@ -291,22 +290,22 @@
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
-          "description": "Percentage distribution of population aged 15-39",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Population aged 15-39"
+          "name": "Population aged 15-39",
+          "description": "Percentage of the total population aged 15–39.",
+          "isTranslationVerified": true
         },
         {
-          "description": "15至39歲人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "15至39歲人口"
+          "name": "15至39歲人口",
+          "description": "15至39歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
         },
         {
-          "description": "15至39岁人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "15至39岁人口"
+          "name": "15至39岁人口",
+          "description": "15至39岁人口占总人口的百分比。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "agedBetween15And39",
@@ -317,7 +316,7 @@
       "sourceNullOption": "Null",
       "sourceField": "age_2",
       "statisticKind": "proportion",
-      "unitCode": "person"
+      "unitCode": "percent"
     },
     {
       "aggregation": "none",
@@ -325,22 +324,22 @@
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
-          "description": "Percentage distribution of population aged 40-64",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Population aged 40-64"
+          "name": "Population aged 40-64",
+          "description": "Percentage of the total population aged 40–64.",
+          "isTranslationVerified": true
         },
         {
-          "description": "40至64歲人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "40至64歲人口"
+          "name": "40至64歲人口",
+          "description": "40至64歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
         },
         {
-          "description": "40至64岁人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "40至64岁人口"
+          "name": "40至64岁人口",
+          "description": "40至64岁人口占总人口的百分比。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "agedBetween40And64",
@@ -351,7 +350,7 @@
       "sourceNullOption": "Null",
       "sourceField": "age_3",
       "statisticKind": "proportion",
-      "unitCode": "person"
+      "unitCode": "percent"
     },
     {
       "aggregation": "none",
@@ -359,22 +358,22 @@
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
-          "description": "Percentage distribution of population aged 65 and over",
-          "isTranslationVerified": true,
           "locale": "en",
-          "name": "Population aged 65 and over"
+          "name": "Population aged 65 and over",
+          "description": "Percentage of the total population aged 65 and over.",
+          "isTranslationVerified": true
         },
         {
-          "description": "65歲及以上人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "65歲及以上人口"
+          "name": "65歲及以上人口",
+          "description": "65歲及以上人口佔總人口的百分比。",
+          "isTranslationVerified": false
         },
         {
-          "description": "65岁及以上人口的百分比分布",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "65岁及以上人口"
+          "name": "65岁及以上人口",
+          "description": "65岁及以上人口占总人口的百分比。",
+          "isTranslationVerified": false
         }
       ],
       "measureCode": "aged65AndOver",
@@ -385,7 +384,175 @@
       "sourceNullOption": "Null",
       "sourceField": "age_4",
       "statisticKind": "proportion",
-      "unitCode": "person"
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Never-married male population aged 15 and over",
+          "description": "Proportion of males aged 15 and over who have never married.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上未婚男性人口",
+          "description": "15歲及以上男性人口中從未結婚者的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上未婚男性人口",
+          "description": "15岁及以上男性人口中从未结婚者的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "neverMarriedMalePopulationAged15AndOver",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "nm_m",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Never-married female population aged 15 and over",
+          "description": "Proportion of females aged 15 and over who have never married.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上未婚女性人口",
+          "description": "15歲及以上女性人口中從未結婚者的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上未婚女性人口",
+          "description": "15岁及以上女性人口中从未结婚者的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "neverMarriedFemalePopulationAged15AndOver",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "nm_f",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Hong Kong",
+          "description": "Percentage of the population born in Hong Kong.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "香港出生人口",
+          "description": "出生於香港的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "香港出生人口",
+          "description": "出生于香港的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInHongKong",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_hk",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Chinese Mainland, Macao, or Taiwan",
+          "description": "Percentage of the population born in Chinese Mainland, Macao, or Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "中國內地、澳門或台灣出生人口",
+          "description": "出生於中國內地、澳門或台灣的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "中国内地、澳门或台湾出生人口",
+          "description": "出生于中国内地、澳门或台湾的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInChineseMainlandMacaoOrTaiwan",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_chi",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born elsewhere",
+          "description": "Percentage of the population born outside Hong Kong, Chinese Mainland, Macao, and Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他地區出生人口",
+          "description": "出生於香港、中國內地、澳門及台灣以外地區的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他地区出生人口",
+          "description": "出生于香港、中国内地、澳门及台湾以外地区的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornElsewhere",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_else",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
     }
   ],
   "schemaVersion": 5
