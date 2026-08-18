@@ -6,7 +6,7 @@ import {
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
   resolveCenstatdMeasureCuration,
-  suggestMeasurementKind,
+  suggestStatisticKind,
   suggestUnitCode,
   suggestMeasureName,
 } from './censtatdMeasureCuration.ts'
@@ -37,13 +37,14 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
               name: 'Total',
             },
           ],
-          measurementKind: 'count',
+          aggregation: 'total',
+          statisticKind: 'count',
           measureCode: 'totalPopulation',
           sourceField: measure.sourceField,
           unitCode: 'person',
         },
       ],
-      schemaVersion: 4,
+      schemaVersion: 5,
     },
     measures: [measure],
   })
@@ -59,8 +60,9 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
         name: 'Total',
       },
     ],
-    measurementKind: 'count',
+    aggregation: 'total',
     measureCode: 'totalPopulation',
+    statisticKind: 'count',
     unitCode: 'person',
   })
 })
@@ -112,21 +114,21 @@ test('suggests a compatible reviewed unit for a similarly named measure', () => 
   ).toBe('person')
 })
 
-test('suggests a semantic measurement kind separately from its unit', () => {
+test('suggests a statistic kind separately from its unit', () => {
   expect(
-    suggestMeasurementKind({
+    suggestStatisticKind({
       measureCode: 'sexRatio',
       unitCode: 'publisher-unknown',
     }),
   ).toBe('ratio')
   expect(
-    suggestMeasurementKind({
+    suggestStatisticKind({
       measureCode: 'populationDensity',
       unitCode: 'person-per-square-kilometre',
     }),
-  ).toBe('rate')
+  ).toBe('density')
   expect(
-    suggestMeasurementKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
+    suggestStatisticKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
   ).toBe('quantity')
 })
 
