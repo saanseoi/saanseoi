@@ -34,12 +34,14 @@ geometry is released through the Divisions family.
 Every C&SD publisher field takes its display metadata from the registered CSDI
 Simplified Data Specification, not operator entry. The Harbour CLI reads the exact
 publisher field match and materialises its English, Traditional Chinese, and Simplified
-Chinese descriptions into the measure dictionary. Its declared `Null Option` is retained
-as nullable `sourceNullOption` provenance; SaanSeoi's observation-status normalisation
-remains independent. An intentionally unmapped canonical unit is stored as
-`publisher-unknown`, never inferred. The source-release Stats tab then exposes the
-release's measure dictionary with its definition, unit, value kind, and observation
-count.
+Chinese descriptions into the measure dictionary, each with
+`isTranslationVerified=true`. If CSDI omits a Chinese locale, the CLI obtains that
+locale from Azure Translator and marks only that dictionary row
+`isTranslationVerified=false`. Its declared `Null Option` is retained as nullable
+`sourceNullOption` provenance; SaanSeoi's observation-status normalisation remains
+independent. An intentionally unmapped canonical unit is stored as `publisher-unknown`,
+never inferred. The source-release Stats tab then exposes the release's measure
+dictionary with its definition, unit, value kind, and observation count.
 
 If the official schema cannot be retrieved, parsed, or matched unambiguously, the CLI
 falls back to required manual curation in
