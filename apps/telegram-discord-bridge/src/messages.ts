@@ -317,7 +317,7 @@ function formatTelegramInline(text: string): string {
           .slice(labelEnd + 2, urlEnd)
           .replace(/^<|>$/g, '')
           .trim()
-        if (url && !containsControlCharacter(url)) {
+        if (isTelegramWebUrl(url)) {
           output += `<a href="${escapeTelegramAttribute(url)}">${formatTelegramInline(text.slice(index + 1, labelEnd))}</a>`
           index = urlEnd + 1
           continue
@@ -328,7 +328,7 @@ function formatTelegramInline(text: string): string {
     if (character === '<') {
       const urlEnd = text.indexOf('>', index + 1)
       const url = urlEnd === -1 ? '' : text.slice(index + 1, urlEnd)
-      if (/^https?:\/\/\S+$/i.test(url)) {
+      if (isTelegramWebUrl(url)) {
         output += `<a href="${escapeTelegramAttribute(url)}">${escapeTelegramHtml(url)}</a>`
         index = urlEnd + 1
         continue
@@ -405,4 +405,8 @@ function containsControlCharacter(value: string) {
     const codePoint = character.codePointAt(0) ?? 0
     return codePoint <= 31 || codePoint === 127
   })
+}
+
+function isTelegramWebUrl(value: string) {
+  return !containsControlCharacter(value) && /^https?:\/\/\S+$/i.test(value)
 }
