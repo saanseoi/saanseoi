@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  normaliseHkgovCenstatdStatistics,
+  persistedCanonicalObservation,
+} from './normaliseHkgovCenstatdStatistics.ts'
 
 describe('normaliseHkgovCenstatdStatistics', () => {
   test('retains a compilation row’s own annual reference period', () => {
@@ -117,7 +120,28 @@ describe('normaliseHkgovCenstatdStatistics', () => {
             'ds-hk-hkgov-censtatd-division-statistic-example\u0000AREA',
             {
               definition: 'Land area represented by the publisher feature.',
+              localisations: [
+                {
+                  description: 'Land area represented by the publisher feature.',
+                  isTranslationVerified: true,
+                  locale: 'en',
+                  name: 'Land area',
+                },
+                {
+                  description: '土地面積。',
+                  isTranslationVerified: true,
+                  locale: 'zh-Hant',
+                  name: '土地面積',
+                },
+                {
+                  description: '土地面积。',
+                  isTranslationVerified: false,
+                  locale: 'zh-Hans',
+                  name: '土地面积',
+                },
+              ],
               name: 'Land area',
+              sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
             },
           ],
@@ -129,6 +153,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       expect.objectContaining({
         measureCode: 'AREA',
         sourceField: 'AREA',
+        sourceNullOption: 'Null',
         unitCode: 'square-kilometre',
       }),
     )
@@ -140,6 +165,42 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     )
     expect(rows.observations).toContainEqual(
       expect.objectContaining({ sourceValue: '12', unitCode: 'square-kilometre' }),
+    )
+    expect(rows.measuresI18n).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Land area' }),
+        expect.objectContaining({ locale: 'zh-Hant', name: '土地面積' }),
+        expect.objectContaining({
+          isTranslationVerified: false,
+          locale: 'zh-Hans',
+          name: '土地面积',
+        }),
+      ]),
+    )
+  })
+
+  test('does not write a series period into an observation row', () => {
+    const [observation] = normaliseHkgovCenstatdStatistics([
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        properties: {
+          DC: '11',
+          DC_CHI: '中西區',
+          DC_ENG: 'Central and Western',
+          LA: '12.4',
+          PERIOD: '2024',
+        },
+        sourceFeatureId: 'Density_2024:11',
+        sourceReleaseId: 'release-2024',
+        sourceVersion: '2024',
+      },
+    ]).observations
+
+    expect(observation?.referencePeriodCode).toBe('2024')
+    if (!observation) throw new Error('Expected a canonical observation.')
+    expect(persistedCanonicalObservation(observation)).not.toHaveProperty(
+      'referencePeriodCode',
     )
   })
 })

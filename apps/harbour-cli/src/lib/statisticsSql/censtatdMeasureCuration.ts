@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
+import { translateAzureTexts } from '../sources/landsd/street/landsdStreetTranslation.ts'
 
 export type CenstatdMeasureCurationEntry = {
   datasetCode: string
@@ -29,15 +30,27 @@ export type CenstatdMeasureForCuration = {
 export type CenstatdMeasureMetadata = Pick<
   CenstatdMeasureCurationEntry,
   'definition' | 'name' | 'unitCode'
->
+> & {
+  localisations?: readonly CenstatdMeasureLocalisation[]
+  sourceNullOption?: string | null
+}
+
+export type CenstatdMeasureLocalisation = {
+  description: string
+  isTranslationVerified: boolean
+  locale: 'en' | 'zh-Hans' | 'zh-Hant'
+  name: string
+}
 
 type CenstatdSchemaMeasureCandidate = {
   definition: string
+  localisations: readonly CenstatdMeasureLocalisation[]
   name: string
   schemaSpecification: {
     sha256: string
     url: string
   }
+  sourceNullOption: string
 }
 
 const DEFAULT_CURATION_PATH = resolve(
@@ -50,25 +63,44 @@ export async function resolveCenstatdMeasureMetadata(input: {
   promptForCuration: boolean
 }) {
   let manifest = await loadCenstatdMeasureCuration(DEFAULT_CURATION_PATH)
-  let resolved = resolveCenstatdMeasureCuration({ manifest, measures: input.measures })
-  if (resolved.unresolved.length && input.promptForCuration) {
-    const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(
-      resolved.unresolved,
-    )
+  const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.measures)
+  const metadata = new Map<string, CenstatdMeasureMetadata>()
+  for (const [key, candidate] of schemaCandidates) {
+    const measure = input.measures.find(item => measureKey(item) === key)
+    if (!measure) continue
+    metadata.set(key, {
+      definition: candidate.definition,
+      localisations: candidate.localisations,
+      name: candidate.name,
+      sourceNullOption: candidate.sourceNullOption,
+      unitCode: measure.unitCode,
+    })
+  }
+  const unresolved = input.measures.filter(
+    measure => !schemaCandidates.has(measureKey(measure)),
+  )
+  const manuallyResolved = resolveCenstatdMeasureCuration({
+    manifest,
+    measures: unresolved,
+  })
+  if (manuallyResolved.unresolved.length && input.promptForCuration) {
     manifest = await promptForCenstatdMeasureCuration({
       manifest,
-      measures: resolved.unresolved,
-      schemaCandidates,
+      measures: manuallyResolved.unresolved,
     })
     await saveCenstatdMeasureCuration(DEFAULT_CURATION_PATH, manifest)
-    resolved = resolveCenstatdMeasureCuration({ manifest, measures: input.measures })
   }
-  if (resolved.unresolved.length) {
+  if (unresolved.length) {
+    const resolved = resolveCenstatdMeasureCuration({ manifest, measures: unresolved })
+    for (const [key, value] of resolved.metadata) metadata.set(key, value)
+  }
+  const remaining = input.measures.filter(measure => !metadata.has(measureKey(measure)))
+  if (remaining.length) {
     throw new Error(
-      `C&SD measure metadata requires curation for ${resolved.unresolved.map(measure => `${measure.datasetCode}/${measure.sourceField}`).join(', ')}. Rerun without --yes to review the measures.`,
+      `C&SD measure metadata requires curation for ${remaining.map(measure => `${measure.datasetCode}/${measure.sourceField}`).join(', ')}. Rerun without --yes to review the measures.`,
     )
   }
-  return resolved.metadata
+  return metadata
 }
 
 export async function loadCenstatdMeasureCuration(path = DEFAULT_CURATION_PATH) {
@@ -124,29 +156,18 @@ export function resolveCenstatdMeasureCuration(input: {
 export async function promptForCenstatdMeasureCuration(input: {
   manifest: CenstatdMeasureCurationManifest
   measures: readonly CenstatdMeasureForCuration[]
-  schemaCandidates?: ReadonlyMap<string, CenstatdSchemaMeasureCandidate>
 }) {
   const decisions = [...input.manifest.measures]
   for (const measure of input.measures) {
-    const schemaCandidate = input.schemaCandidates?.get(measureKey(measure))
     note(
       `Dataset: ${measure.datasetCode}\nPublisher field: ${measure.sourceField}\nValue kind: ${measure.valueKind}`,
       'MEASURE METADATA',
     )
-    if (schemaCandidate) {
-      note(
-        `Name: ${schemaCandidate.name}\nDefinition: ${schemaCandidate.definition}\nSource: ${schemaCandidate.schemaSpecification.url}\nSHA-256: ${schemaCandidate.schemaSpecification.sha256}`,
-        'CSDI SCHEMA CANDIDATE',
-      )
-    }
     const name = await requiredText(
       'Measure name',
-      schemaCandidate?.name ?? measure.sourceField,
+      suggestMeasureName(measure.sourceField),
     )
-    const definition = await requiredText(
-      'Measure definition',
-      schemaCandidate?.definition,
-    )
+    const definition = await requiredText('Measure definition')
     const unitCode = await text({
       initialValue: measure.unitCode === 'publisher-unknown' ? '' : measure.unitCode,
       message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
@@ -156,9 +177,6 @@ export async function promptForCenstatdMeasureCuration(input: {
       datasetCode: measure.datasetCode,
       definition,
       name,
-      ...(schemaCandidate
-        ? { schemaSpecification: schemaCandidate.schemaSpecification }
-        : {}),
       sourceField: measure.sourceField,
       unitCode: (unitCode ?? '').trim() || 'publisher-unknown',
     })
@@ -238,22 +256,54 @@ export async function resolveCenstatdSchemaMeasureCandidates(
       if (!specificationUrl) return
       const fields = await fetchCsdiSpecification(specificationUrl)
       if (!fields.length) return
-      for (const measure of measures) {
-        if (measure.datasetCode !== dataset.code) continue
-        const matches = fields.filter(
-          field => field.sourceField === measure.sourceField,
+      const matches = measures.flatMap(measure => {
+        if (measure.datasetCode !== dataset.code) return []
+        const schema = uniqueSchemaField(
+          fields.filter(field => field.sourceField === measure.sourceField),
         )
-        const descriptions = [...new Set(matches.map(field => field.description))]
-        const [description] = descriptions
-        const schema = fields[0]
-        if (descriptions.length !== 1 || !description || !schema) continue
+        return schema ? [{ measure, schema }] : []
+      })
+      const translations = await resolveMissingCsdiLocalisations(
+        matches.map(match => match.schema),
+      )
+      for (const { measure, schema } of matches) {
+        const name = suggestMeasureName(schema.descriptionEn)
         candidates.set(measureKey(measure), {
-          definition: description,
-          name: description,
+          definition: schema.descriptionEn,
+          localisations: [
+            {
+              description: schema.descriptionEn,
+              isTranslationVerified: true,
+              locale: 'en',
+              name,
+            },
+            {
+              description: resolvedCsdiLocalisation(
+                schema,
+                'zh-Hant',
+                translations.zhHant,
+              ),
+              isTranslationVerified: schema.descriptionZhHant !== null,
+              locale: 'zh-Hant',
+              name,
+            },
+            {
+              description: resolvedCsdiLocalisation(
+                schema,
+                'zh-Hans',
+                translations.zhHans,
+              ),
+              isTranslationVerified: schema.descriptionZhHans !== null,
+              locale: 'zh-Hans',
+              name,
+            },
+          ],
+          name,
           schemaSpecification: {
             sha256: schema.sha256,
             url: specificationUrl,
           },
+          sourceNullOption: schema.nullOption,
         })
       }
     }),
@@ -262,7 +312,11 @@ export async function resolveCenstatdSchemaMeasureCandidates(
 }
 
 type CsdiSpecificationField = {
-  description: string
+  dataType: string
+  descriptionEn: string
+  descriptionZhHans: string | null
+  descriptionZhHant: string | null
+  nullOption: string
   sha256: string
   sourceField: string
 }
@@ -289,20 +343,91 @@ export function parseCsdiSimplifiedDataSpecification(html: string) {
     for (const row of rows) {
       const cells = (row.match(/<td(?:\s[^>]*)?>[\s\S]*?<\/td>/gi) ?? []).map(htmlText)
       const sourceField = cells[0]?.trim()
-      const description = cells[3]?.trim()
-      if (!sourceField || !description) continue
-      fields.push({ description, sha256, sourceField })
+      const dataType = cells[1]?.trim()
+      const nullOption = cells[2]?.trim()
+      const descriptionEn = cells[3]?.trim()
+      const descriptionZhHant = cells[4]?.trim() || null
+      const descriptionZhHans = cells[5]?.trim() || null
+      if (!sourceField || !dataType || !nullOption || !descriptionEn) {
+        continue
+      }
+      fields.push({
+        dataType,
+        descriptionEn,
+        descriptionZhHans,
+        descriptionZhHant,
+        nullOption,
+        sha256,
+        sourceField,
+      })
     }
   }
   return fields
+}
+
+async function resolveMissingCsdiLocalisations(
+  fields: readonly CsdiSpecificationField[],
+) {
+  const zhHant = await translateMissingCsdiLocalisations(fields, 'zh-Hant')
+  const zhHans = await translateMissingCsdiLocalisations(fields, 'zh-Hans')
+  return { zhHans, zhHant }
+}
+
+async function translateMissingCsdiLocalisations(
+  fields: readonly CsdiSpecificationField[],
+  locale: 'zh-Hans' | 'zh-Hant',
+) {
+  const missing = fields
+    .filter(field =>
+      locale === 'zh-Hant'
+        ? field.descriptionZhHant === null
+        : field.descriptionZhHans === null,
+    )
+    .map(field => field.descriptionEn)
+  return missing.length
+    ? translateAzureTexts(missing, { from: 'en', to: locale })
+    : new Map<string, string>()
+}
+
+function resolvedCsdiLocalisation(
+  field: CsdiSpecificationField,
+  locale: 'zh-Hans' | 'zh-Hant',
+  translations: ReadonlyMap<string, string>,
+) {
+  const official =
+    locale === 'zh-Hant' ? field.descriptionZhHant : field.descriptionZhHans
+  const value = official ?? translations.get(field.descriptionEn)
+  if (!value)
+    throw new Error(`Missing ${locale} localisation for ${field.sourceField}.`)
+  return value
+}
+
+function uniqueSchemaField(fields: readonly CsdiSpecificationField[]) {
+  const [candidate] = fields
+  if (!candidate) return null
+  return fields.every(
+    field =>
+      field.dataType === candidate.dataType &&
+      field.descriptionEn === candidate.descriptionEn &&
+      field.descriptionZhHans === candidate.descriptionZhHans &&
+      field.descriptionZhHant === candidate.descriptionZhHant &&
+      field.nullOption === candidate.nullOption,
+  )
+    ? candidate
+    : null
 }
 
 function staticCsdiSpecificationUrl(value: string | null | undefined) {
   if (!value) return null
   try {
     const url = new URL(value)
-    if (url.protocol !== 'https:' || url.hostname !== 'portal.csdi.gov.hk') return null
-    url.hostname = 'static.csdi.gov.hk'
+    if (
+      url.protocol !== 'https:' ||
+      !['portal.csdi.gov.hk', 'static.csdi.gov.hk'].includes(url.hostname)
+    ) {
+      return null
+    }
+    if (url.hostname === 'portal.csdi.gov.hk') url.hostname = 'static.csdi.gov.hk'
     return url.toString()
   } catch {
     return null
@@ -322,12 +447,31 @@ function htmlText(value: string) {
     .trim()
 }
 
+/**
+ * Canonical measure names are stable camelCase identifiers. Publisher
+ * descriptions remain the localised descriptions, including their units.
+ */
+export function suggestMeasureName(description: string) {
+  const withoutParenthetical = description.replace(/\s*\([^)]*\)/g, '').trim()
+  const midYear = withoutParenthetical.match(/^mid[-\s]?year\s+(.+)$/i)
+  const words = midYear ? `${midYear[1]} mid year` : withoutParenthetical
+  const parts = words.match(/[\p{L}\p{N}]+/gu) ?? []
+  return parts
+    .map((part, index) => {
+      const normalised = part.toLocaleLowerCase('en')
+      return index === 0
+        ? normalised
+        : `${normalised.slice(0, 1).toLocaleUpperCase('en')}${normalised.slice(1)}`
+    })
+    .join('')
+}
+
 async function requiredText(message: string, initialValue?: string) {
-  const answer = await text({
-    initialValue,
-    message,
-    validate: value => ((value ?? '').trim() ? undefined : 'Required.'),
-  })
-  if (isCancel(answer)) throw new Error('C&SD measure curation cancelled.')
-  return (answer ?? '').trim()
+  for (;;) {
+    const answer = await text({ initialValue, message })
+    if (isCancel(answer)) throw new Error('C&SD measure curation cancelled.')
+    const value = (answer ?? '').trim()
+    if (value) return value
+    note('A value is required.', 'MEASURE METADATA')
+  }
 }

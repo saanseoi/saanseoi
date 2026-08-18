@@ -38,7 +38,10 @@ import {
   replayCanonicalStatsSqlBatches,
 } from './canonicalStatsSql.ts'
 import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
-import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  normaliseHkgovCenstatdStatistics,
+  persistedCanonicalObservation,
+} from './normaliseHkgovCenstatdStatistics.ts'
 import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
@@ -143,17 +146,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         publishClient: createLocalStatisticPublishClient(metaDb),
       })
 
+  let processingStarted = false
   try {
     const processingStepCount = target.remote ? 8 : 5
     progress.beginPhase('Start district statistic processing', {
       max: processingStepCount,
     })
-    await client.stageRunning(
-      releaseId,
-      'processDataset',
-      { resourceType: plan.type, sourceRows: plan.rowCount },
-      releaseCode,
-    )
     progress.update(1, { label: 'Resolve canonical districts' })
     const resolutionBySourceDistrictCode = await resolveHkgovCenstatdDistrictBridge(
       metaDb,
@@ -187,17 +185,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
       },
     })
-    await replayStatisticSqlBatches(
-      target,
-      context,
-      plan.sourceVersion.slice(0, 4),
-      batches,
-      {
-        onProgress(event) {
-          updateStatisticReplayProgress(progress, event, target.remote)
-        },
-      },
-    )
     const canonicalInput = sourceRows.map(row => ({
       datasetCode:
         'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
@@ -218,6 +205,24 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       current: canonicalCurrentRows(canonical),
       history: canonicalHistoryRows(canonical, releaseId),
     })
+    await client.stageRunning(
+      releaseId,
+      'processDataset',
+      { resourceType: plan.type, sourceRows: plan.rowCount },
+      releaseCode,
+    )
+    processingStarted = true
+    await replayStatisticSqlBatches(
+      target,
+      context,
+      plan.sourceVersion.slice(0, 4),
+      batches,
+      {
+        onProgress(event) {
+          updateStatisticReplayProgress(progress, event, target.remote)
+        },
+      },
+    )
     await replayCanonicalStatsSqlBatches(
       target,
       context,
@@ -294,15 +299,17 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     return published
   } catch (error) {
     progress.fail()
-    await client
-      .stageFailed(
-        releaseId,
-        'processDataset',
-        error instanceof Error ? error.message : String(error),
-        undefined,
-        releaseCode,
-      )
-      .catch(() => undefined)
+    if (processingStarted) {
+      await client
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
     throw error
   } finally {
     context.cleanup()
@@ -509,7 +516,7 @@ function canonicalCurrentRows(
     },
     {
       rows: canonical.observations.map(row => ({
-        ...row,
+        ...persistedCanonicalObservation(row),
         createdAt: now,
         updatedAt: now,
       })),
@@ -575,7 +582,12 @@ function canonicalHistoryRows(
   })
   return [
     { rows: canonical.series.map(version), table: 'statsSeries' as const },
-    { rows: canonical.observations.map(version), table: 'statsObservations' as const },
+    {
+      rows: canonical.observations.map(row =>
+        version(persistedCanonicalObservation(row)),
+      ),
+      table: 'statsObservations' as const,
+    },
     { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
     { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
     { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
