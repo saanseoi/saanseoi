@@ -23,6 +23,50 @@
       ]
     },
     {
+      "code": "hong-kong-dollar",
+      "dimension": "currency",
+      "symbol": "HK$",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Hong Kong dollars",
+          "description": "Amount in Hong Kong dollars."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "港元",
+          "description": "以港元表示的金額。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "港元",
+          "description": "以港元表示的金额。"
+        }
+      ]
+    },
+    {
+      "code": "hour",
+      "dimension": "time",
+      "symbol": "hours",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Hours",
+          "description": "Duration measured in hours."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "小時",
+          "description": "以小時計量的時間。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "小时",
+          "description": "以小时计量的时间。"
+        }
+      ]
+    },
+    {
       "code": "household",
       "dimension": "household",
       "symbol": "households",
@@ -133,6 +177,28 @@
       ]
     },
     {
+      "code": "room",
+      "dimension": "room",
+      "symbol": "rooms",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Rooms",
+          "description": "Count of rooms."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "房間",
+          "description": "房間數目。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "房间",
+          "description": "房间数目。"
+        }
+      ]
+    },
+    {
       "code": "square-kilometre",
       "dimension": "area",
       "symbol": "km²",
@@ -153,7 +219,51 @@
           "description": "以平方公里计量的面积。"
         }
       ]
+    },
+    {
+      "code": "square-metre",
+      "dimension": "area",
+      "symbol": "m²",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Square metres",
+          "description": "Area measured in square metres."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平方米",
+          "description": "以平方米計量的面積。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平方米",
+          "description": "以平方米计量的面积。"
+        }
+      ]
+    },
+    {
+      "code": "year",
+      "dimension": "time",
+      "symbol": "years",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Years",
+          "description": "Duration measured in years."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "歲",
+          "description": "以歲計量的時間。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "岁",
+          "description": "以岁计量的时间。"
+        }
+      ]
     }
   ],
-  "versionHash": "sha256:67decc208ca40d309f645731deb7931bce648ab4a6ec20df3b25e8222f6fe854"
+  "versionHash": "sha256:df7394e10815e66b31f51c8079058241ea00e1bd4d6120ecb653272cb8144771"
 }
