@@ -259,6 +259,8 @@
   "source_code": "代碼",
   "source_schema": "來源綱要",
   "source_release": "發布版本",
+  "source_cohort": "批次",
+  "source_status": "狀態",
   "source_ingested": "匯入日期",
   "source_reference": "參考日期",
   "source_last_revised": "最後修訂",

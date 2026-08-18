@@ -258,6 +258,8 @@
   "source_code": "Code",
   "source_schema": "Source schema",
   "source_release": "Release",
+  "source_cohort": "Cohort",
+  "source_status": "Status",
   "source_ingested": "Ingested",
   "source_reference": "Reference",
   "source_last_revised": "Last revised",

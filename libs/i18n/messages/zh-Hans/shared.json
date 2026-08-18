@@ -259,6 +259,8 @@
   "source_code": "代码",
   "source_schema": "来源架构",
   "source_release": "发布版本",
+  "source_cohort": "批次",
+  "source_status": "状态",
   "source_ingested": "导入日期",
   "source_reference": "参考日期",
   "source_last_revised": "最后修订",
