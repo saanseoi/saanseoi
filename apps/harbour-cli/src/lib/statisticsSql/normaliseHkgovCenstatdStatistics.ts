@@ -79,7 +79,7 @@ export function normaliseHkgovCenstatdStatistics(
       if (profile.identifierFields.has(sourceField)) continue
       const sourceValue = literal(raw)
       if (sourceValue === null) continue
-      const parsed = parseObservationValue(sourceValue)
+      const parsed = parseObservationValue(row.datasetCode, sourceField, sourceValue)
       const measureCode = sourceField
       const observationId = observationIdentifier({
         datasetCode: row.datasetCode,
@@ -266,10 +266,19 @@ function censusProfile(
   }
 }
 
-function parseObservationValue(sourceValue: string) {
+function parseObservationValue(
+  datasetCode: string,
+  sourceField: string,
+  sourceValue: string,
+) {
   if (/^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)) {
     return {
-      numericValue: sourceValue,
+      numericValue:
+        datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
+        sourceField === 'MYPOPN_LAND'
+          ? decimalTimesOneThousand(sourceValue)
+          : sourceValue,
       observationStatus: 'published',
       valueCode: null,
     }
@@ -289,6 +298,13 @@ function parseObservationValue(sourceValue: string) {
     }
   }
   return { numericValue: null, observationStatus: 'published', valueCode: sourceValue }
+}
+
+function decimalTimesOneThousand(value: string) {
+  const [whole, fraction = ''] = value.split('.')
+  const padded = `${fraction}000`.slice(0, 3)
+  const combined = `${whole}${padded}`.replace(/^(-?)0+(?=\d)/, '$1')
+  return combined || '0'
 }
 
 function unitFor(datasetCode: string, sourceField: string) {
@@ -313,7 +329,7 @@ function observationIdentifier(input: {
     datasetCode: input.datasetCode,
     dimensions: input.dimensions
       .map(value => [value.code, value.valueCode])
-      .sort(([left], [right]) => left.localeCompare(right)),
+      .sort(([left], [right]) => (left ?? '').localeCompare(right ?? '')),
     measureCode: input.measureCode,
     referencePeriodCode: input.referencePeriodCode,
   })

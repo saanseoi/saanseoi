@@ -82,10 +82,7 @@ const sourceName = (source: SourcesPageSource) => {
 }
 
 const sourceFrequency = (source: SourcesPageSource) => {
-  if (
-    source.releaseFrequency === 'census' ||
-    source.publisherCode === 'hkgov-censtatd'
-  ) {
+  if (source.releaseFrequency === 'census' || source.sourceVariant === 'census') {
     return '5-yearly'
   }
   return source.releaseFrequency

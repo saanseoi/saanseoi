@@ -187,7 +187,7 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
   const collection = find(parsed, 'FeatureCollection')
   if (!record(collection)) throw new Error('CSDI GML must contain a FeatureCollection.')
   const members = array(find(collection, 'featureMember') ?? find(collection, 'member'))
-  return members.map((member, index) => {
+  const rows = members.map((member, index) => {
     if (!record(member))
       throw new Error(`CSDI ${layerName} member ${index + 1} is invalid.`)
     const feature = find(member, layerName)
@@ -204,14 +204,33 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
         continue
       properties[name] = value
     }
+    const publisherFeatureId =
+      feature['@_gml:id'] ??
+      feature['@_id'] ??
+      feature['@_fid'] ??
+      `${layerName}.${index + 1}`
     return {
-      featureId: `${string(feature['@_gml:id'] ?? feature['@_id'] ?? layerName)}:${index + 1}`,
+      // Preserve the publisher feature identity. The layer is added by the
+      // canonical observation as `<layerName>:<sourceFeatureId>`.
+      featureId: string(publisherFeatureId),
       layerName,
       properties,
       sourceGeometry:
         find(feature, 'SHAPE') ?? find(feature, 'geometryProperty') ?? null,
     }
   })
+  const featureIdCounts = new Map<string, number>()
+  for (const row of rows) {
+    featureIdCounts.set(row.featureId, (featureIdCounts.get(row.featureId) ?? 0) + 1)
+  }
+  // C&SD's DC_GHS layer reuses its `fid` value across many members. Keep that
+  // publisher value, but qualify collisions by their deterministic member
+  // ordinal so source assertions and canonical provenance remain unique.
+  return rows.map((row, index) =>
+    (featureIdCounts.get(row.featureId) ?? 0) > 1
+      ? { ...row, featureId: `${row.featureId}:${index + 1}` }
+      : row,
+  )
 }
 
 function strings(name: string, values: string[]) {

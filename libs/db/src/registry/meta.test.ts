@@ -93,12 +93,23 @@ describe('fixture version hashes', () => {
     expect(
       censtatdStats.every(
         dataset =>
-          dataset.sourceVariant === 'census' &&
-          dataset.sourceCrs === 'EPSG:2326' &&
-          dataset.releaseType === 'static' &&
-          dataset.releaseFrequency === 'five-yearly',
+          dataset.sourceCrs === 'EPSG:2326' && dataset.releaseType === 'static',
       ),
     ).toBe(true)
+    expect(
+      censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
+    ).toHaveLength(4)
+    expect(
+      censtatdStats
+        .filter(dataset => dataset.sourceVariant === 'census')
+        .every(dataset => dataset.releaseFrequency === 'five-yearly'),
+    ).toBe(true)
+    expect(
+      censtatdStats
+        .filter(dataset => dataset.sourceVariant === 'official-statistics')
+        .map(dataset => dataset.releaseFrequency)
+        .sort(),
+    ).toEqual(['half-yearly', 'half-yearly', 'yearly', 'yearly'])
     expect(
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',

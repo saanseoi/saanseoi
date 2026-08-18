@@ -1,4 +1,5 @@
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import { createHash as createNodeHash } from 'node:crypto'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
@@ -26,6 +27,11 @@ import {
   replayStatisticSqlBatches,
   type StatisticSqlReplayProgress,
 } from './statisticSqlReplay.ts'
+import {
+  buildCanonicalStatsSqlBatches,
+  replayCanonicalStatsSqlBatches,
+} from './canonicalStatsSql.ts'
+import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 
 type Plan = {
   cohortKey: string
@@ -101,7 +107,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       plan.regionCode,
       plan.sourceVersion.slice(0, 4),
       {
-        cacheTableProfile: 'divisionStatistic',
+        cacheTableProfile: 'statistics',
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -174,6 +180,28 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           updateStatisticReplayProgress(progress, event, target.remote)
         },
       },
+    )
+    const canonical = normaliseHkgovCenstatdStatistics(
+      sourceRows.map(row => ({
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        divisionId:
+          resolutionBySourceDistrictCode.get(row.districtCode)?.divisionId ?? null,
+        properties: object(row.rawProperties, 'rawProperties'),
+        sourceFeatureId: `Density_${plan.sourceVersion}:${row.districtCode}`,
+        sourceReleaseId: releaseId,
+        sourceVersion: plan.sourceVersion,
+      })),
+    )
+    const canonicalBatches = buildCanonicalStatsSqlBatches({
+      current: canonicalCurrentRows(canonical),
+      history: canonicalHistoryRows(canonical, releaseId),
+    })
+    await replayCanonicalStatsSqlBatches(
+      target,
+      context,
+      plan.sourceVersion.slice(0, 4),
+      canonicalBatches,
     )
 
     progress.update(processingStepCount - 1, {
@@ -424,4 +452,96 @@ function integer(value: unknown, field: string) {
 function required(value: string | undefined, field: string) {
   if (!value) throw new Error(`Expected ${field}.`)
   return value
+}
+
+function object(value: unknown, field: string) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Expected ${field} object.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function canonicalCurrentRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+) {
+  const now = new Date().toISOString()
+  return [
+    {
+      rows: canonical.observations.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsObservations' as const,
+    },
+    {
+      rows: canonical.measures.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsMeasures' as const,
+    },
+    {
+      rows: canonical.measuresI18n.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsMeasuresI18n' as const,
+    },
+    {
+      rows: canonical.dimensions.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsDimensions' as const,
+    },
+    {
+      rows: canonical.values.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsValues' as const,
+    },
+    {
+      rows: canonical.valuesI18n.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsValuesI18n' as const,
+    },
+    {
+      rows: canonical.observationDimensions.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsObservationDimensions' as const,
+    },
+  ]
+}
+
+function canonicalHistoryRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+  sourceReleaseId: string,
+) {
+  const now = new Date().toISOString()
+  const version = (row: Record<string, unknown>) => ({
+    ...row,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: createNodeHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
+  })
+  return [
+    { rows: canonical.observations.map(version), table: 'statsObservations' as const },
+    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
+    { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
+    { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
+    { rows: canonical.values.map(version), table: 'statsValues' as const },
+    { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
+    {
+      rows: canonical.observationDimensions.map(version),
+      table: 'statsObservationDimensions' as const,
+    },
+  ]
 }

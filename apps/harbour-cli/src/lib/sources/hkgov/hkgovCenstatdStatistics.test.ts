@@ -133,7 +133,11 @@ describe('C&SD native statistics archives', () => {
       expect(rows).toHaveLength(entry.rowCount)
       expect(rows[0]).toMatchObject({
         dataset_code: entry.datasetCode,
-        reference_year: entry.sourceVersion,
+        reference_year:
+          entry.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+            ? '2016'
+            : entry.sourceVersion,
       })
       expect(JSON.parse(String(rows[0]?.sources))).toEqual([
         {

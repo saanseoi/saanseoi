@@ -94,6 +94,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       target,
       {
         allowReprocessPublished: true,
+        dryRun: false,
         forceUpload: true,
         invocationCwd: resolve(import.meta.dir, '../../../..'),
         printUsage: () => undefined,
