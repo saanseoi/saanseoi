@@ -62,10 +62,6 @@ let statusLabel = $derived(
         ? m.source_superseded()
         : version.status,
 )
-let primaryRelease = $derived(
-  version.releaseAs?.find(release => release.role === 'primary') ??
-    version.releaseAs?.[0],
-)
 let details = $derived.by((): Detail[] => {
   const codeDetails = [
     { isMonospace: true, label: m.source_version(), value: version.sourceVersion },
@@ -104,29 +100,18 @@ let details = $derived.by((): Detail[] => {
     {
       disclosure: [
         {
-          label: m.api_release_domain(),
-          value: primaryRelease?.domainCode ?? m.api_release_unavailable(),
+          label: m.source_cohort(),
+          value: version.cohortKey ?? m.api_release_unavailable(),
           isMonospace: true,
         },
         {
-          label: m.api_release_cohort(),
-          value: primaryRelease?.cohortKey ?? m.api_release_unavailable(),
-          isMonospace: true,
-        },
-        {
-          label: m.api_release_revision(),
-          value: String(primaryRelease?.revision ?? 0),
-          isMonospace: true,
-        },
-        {
-          label: m.api_release_version(),
-          value: primaryRelease?.apiVersion ?? m.api_release_unavailable(),
-          isMonospace: true,
+          label: m.source_status(),
+          value: statusLabel,
         },
       ],
       isMonospace: true,
       label: m.source_release(),
-      value: primaryRelease?.code ?? m.api_release_unavailable(),
+      value: version.code,
     },
     {
       disclosure: [
