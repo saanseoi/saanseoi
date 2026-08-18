@@ -253,6 +253,10 @@ export const canonicalStatsMeasureI18n = {
   locale: text('locale').notNull(),
   name: text('name').notNull(),
   description: text('description'),
+  /** False only when a machine translation filled a missing publisher locale. */
+  isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
+    .notNull()
+    .default(true),
 }
 
 export const canonicalStatsDimension = {
