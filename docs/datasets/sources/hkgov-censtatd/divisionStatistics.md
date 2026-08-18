@@ -12,7 +12,7 @@ to SaanSeoi's operational release-statistics table.
 | Population and Household Statistics by District Council District | `censtatd_rcd_1635934545173_69201`                                                   | Annual land-based, non-institutional population and socio-economic measures |
 | District Land Area, Population and Density                       | `censtatd_rcd_1635934215448_25451`                                                   | District land area, population and density                                  |
 | 2021 Census: Housing Market Areas and Building Groups            | `censtatd_rcd_1728978338390_76872`                                                   | 173 housing market areas and 3,322 building groups                          |
-| 2021 Census: New Towns                                           | `censtatd_rcd_1695181913136_27614`                                                   | 10 new towns                                                                |
+| 2021 Census: New Towns                                           | `censtatd_rcd_1695181913136_27614`                                                   | 13 new towns                                                                |
 | 2021 Census: Major Housing Estates                               | `censtatd_rcd_1695182015782_79001`                                                   | 540 major housing estates                                                   |
 
 The 2016 By-census and 2021 Census subdivided-unit district releases are retained as one
@@ -43,12 +43,20 @@ datasets. It accepts only its locally prepared publisher ZIP, verifies the updat
 manifest SHA-256, expands only GML members within explicit entry-count and uncompressed-
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
-key/hash are stored in `hkgovCenstatdStatistics`; the distinct measure schemas remain
-publisher assertions rather than being forced into the district-density model. Each
-assertion retains one raw publisher property set and its native geometry; it does not
-duplicate those values in delivery-wrapper columns. The importer normalises those GML
-members directly into SQL for the selected local, preview or production target's local
-SQLite cache; Parquet is not an intake or upload boundary.
+key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
+assertions, then writes normalised `statsObservations` plus measure, dimension and
+localised-value dictionaries. An observation records its dataset code, source release,
+`<layer>:<feature>` identity, exact source property name and literal, reference-period
+code/granularity, decimal value or categorical code, unit, precision (when known),
+status, and an optional reviewed `divisionId`. The current shard contains the latest
+version of each observation, composed across source compilations; the history shard
+retains superseded values and definitions. A Population and Household compilation can
+therefore carry annual observations for 2016–2025 without collapsing them to the
+compilation release period.
+
+The importer never creates a parallel statistical-geography registry. Native geometry
+remains source provenance. If a reviewed statistical geometry must be delivered, it is
+released as a new domain in the Divisions API family instead.
 
 ## District land area, population and density ingestion
 
@@ -70,11 +78,11 @@ Each source assertion retains its publisher labels directly as `districtEn` and
 localisation is materialised only when a consumer needs it.
 
 `MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
-during ingestion, so `midYearPopulation` is the actual number of people. `PERIOD`, land
-area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic
-assertions. The source's labels are exposed with the raw `DC` through
-`sourceKeys.hkgovCenstatd`. The archive quarter is never a dataset version: the
-fixture's `sourceVersion` creates `2022.0` and `2024.0`.
+during canonical ingestion, so `numericValue` is the actual number of people while
+`sourceValue` remains the original literal. No multiplier is stored. `PERIOD`, land area
+(`LA`), and mid-year population density (`POPN_D`) are retained as statistic assertions.
+The archive quarter is never a dataset version: the fixture's `sourceVersion` creates
+`2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then

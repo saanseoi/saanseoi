@@ -147,7 +147,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
           ),
           strings(
             'reference_year',
-            rows.map(() => input.sourceVersion),
+            rows.map(row => referencePeriodFor(row.properties, input.sourceVersion)),
           ),
           strings(
             'raw_properties',
@@ -216,6 +216,21 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
 
 function strings(name: string, values: string[]) {
   return { name, data: values, type: 'STRING' as const }
+}
+
+/**
+ * A compilation can contain observations for many reference years. Keep the
+ * row-level publisher period in the raw source assertion; the source-version
+ * remains the release identity carried by release metadata.
+ */
+function referencePeriodFor(
+  properties: Record<string, unknown>,
+  sourceVersion: string,
+) {
+  const year = properties.year
+  return typeof year === 'string' && /^\d{4}$/.test(year.trim())
+    ? year.trim()
+    : sourceVersion
 }
 function array(value: unknown) {
   return Array.isArray(value) ? value : value === undefined ? [] : [value]

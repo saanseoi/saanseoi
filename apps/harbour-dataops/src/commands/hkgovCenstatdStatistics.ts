@@ -1,5 +1,6 @@
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 import type {
   ParsedArgs,
@@ -7,10 +8,11 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import {
   CENSTATD_STATISTIC_PROFILES,
+  prepareHkgovCenstatdStatisticUpload,
   readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
-import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
+import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { unzipSelected } from '../lib/zip.ts'
 
@@ -52,40 +54,55 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     inputGml,
     sourceVersion,
   })
-  await processNativeSourceSqlRelease(target, {
-    archiveObjectKey: key,
-    archivePath: resolve(input),
-    archiveSha256: sha,
-    cohortKey: sourceVersion,
-    datasetCode,
-    releaseNotesUrl,
-    rowCount: rows.length,
-    source: 'hkgov-censtatd',
-    sourceVersion,
-    tables: [
+  const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-statistics-'))
+  try {
+    const inputFiles = Object.fromEntries(
+      Object.entries(inputGml).map(([name]) => [name, join(workDir, name)]),
+    )
+    await Promise.all(
+      Object.entries(inputGml).map(async ([name, content]) => {
+        await Bun.write(join(workDir, name), content)
+      }),
+    )
+    const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
+    await prepareHkgovCenstatdStatisticUpload({
+      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+      inputFiles,
+      outputFile: parquetPath,
+      sourceArchiveKey: key,
+      sourceArchiveSha256: sha,
+      sourceVersion,
+    })
+    await runUploadCommand(
       {
-        name: 'hkgovCenstatdStatistics',
-        provenance: 'required',
-        rows: rows.map(row => ({
-          datasetCode,
-          featureId: row.featureId,
-          layerName: row.layerName,
-          rawProperties: row.properties,
-          referenceYear: sourceVersion,
-          sourceGeometry: row.sourceGeometry,
-          sourceRecordId: `CENSTATD:${row.layerName}:${row.featureId}`,
-          sources: [
-            {
-              dataset: 'hkgov-censtatd',
-              layerName: row.layerName,
-              sourceArchiveKey: key,
-              sourceArchiveSha256: sha,
-            },
-          ],
-        })),
+        command: 'upload',
+        positionals: [parquetPath],
+        options: {
+          'cohort-key': sourceVersion,
+          'dataset-code': datasetCode,
+          region: 'hk',
+          'release-notes-url': releaseNotesUrl,
+          source: 'hkgov-censtatd',
+          'source-archive-key': key,
+          'source-archive-sha256': sha,
+          'source-version': sourceVersion,
+          theme: 'stats',
+          type: 'divisionStatistic',
+          yes: true,
+        },
       },
-    ],
-    theme: 'stats',
-    type: 'divisionStatistic',
-  })
+      target,
+      {
+        allowReprocessPublished: true,
+        forceUpload: true,
+        invocationCwd: resolve(import.meta.dir, '../../../..'),
+        printUsage: () => undefined,
+        skipConfirm: true,
+        skipSnapshotCleanup: false,
+        validateGeometry: false,
+      },
+    )
+  } finally {
+    await rm(workDir, { force: true, recursive: true })
+  }
 }

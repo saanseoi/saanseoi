@@ -2,8 +2,9 @@
 
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
-metadata database. Its primary record is `divisionStatistic`: an immutable published
-value connected to a reviewed canonical division and reference period.
+metadata database. Its canonical record is `statsObservations`: an immutable published
+observation connected to a source release and reference period, with a nullable reviewed
+canonical `divisionId`.
 
 The initial C&SD District Land Area, Population and Density releases write two distinct
 layers. The source shard preserves C&SD's numeric `DC` and complete assertion. The
@@ -17,10 +18,18 @@ records the mirrored archive's managed key and SHA-256 in source provenance. Onl
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
 publication still builds SQL using the corresponding local target-database cache.
 
-The current schema reserves a snapshot-scoped materialisation for the future `/v0/stats`
-and `/v0.1/stats` collection. Its API composition, series registry and query filters are
-not activated by this initial source/history publication, so this ingestion does not
-claim that a C&SD statistic is an administrative-boundary release.
+The current shard materialises the latest version of each observation across all source
+compilations. The history shard keeps superseded observations and dictionaries, so a
+later compilation may revise historic reference periods without duplicating them in
+current data. This is deliberately not a cohort-based Stats API model: a new optional
+dataset member, or historic dimensions added to an existing member, creates the next
+Stats family revision. It does not require a shared base cohort across datasets.
+
+The generic observation schema stores exact decimal text (not floats), original source
+literals, an optional `valuePrecision`, categorical `valueCode`s, and normalised measure
+and dimension dictionaries. There is no multiplier column and no separate
+statistical-geography registry. Source geometry stays in provenance until a reviewed
+geometry is released through the Divisions family.
 
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).

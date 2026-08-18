@@ -178,6 +178,7 @@ export type CacheTableProfile =
   | 'division'
   | 'divisionGeometry'
   | 'divisionStatistic'
+  | 'statistics'
   | 'planningDivisionGeometry'
   | 'nativeSource'
   | 'street'
@@ -2107,6 +2108,18 @@ function resolveMirrorTablesForBinding(
       return []
     }
 
+    if (cacheTableProfile === 'statistics') {
+      return [
+        'statsDimensions',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsObservationDimensions',
+        'statsObservations',
+        'statsValues',
+        'statsValuesI18n',
+      ]
+    }
+
     if (cacheTableProfile === 'street') {
       return ['divisions', 'divisionsI18n', 'streets', 'streetsI18n']
     }
@@ -2139,6 +2152,18 @@ function resolveMirrorTablesForBinding(
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
       return ['divisionStatistics']
+    }
+
+    if (cacheTableProfile === 'statistics') {
+      return [
+        'statsDimensions',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsObservationDimensions',
+        'statsObservations',
+        'statsValues',
+        'statsValuesI18n',
+      ]
     }
 
     if (cacheTableProfile === 'street') {
@@ -2178,6 +2203,10 @@ function resolveMirrorTablesForBinding(
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
       return ['hkgovCenstatdDistrictLandAreaPopulationDensities']
+    }
+
+    if (cacheTableProfile === 'statistics') {
+      return ['hkgovCenstatdStatistics']
     }
 
     if (cacheTableProfile === 'nativeSource') {
