@@ -59,6 +59,12 @@ The curation prompt permits `none`, `mean`, `median`, `minimum`, `maximum`, and
 `quantity`: summing a proportion, ratio, rate, density, or index does not preserve that
 statistic kind.
 
+When a later field has the same proposed English description after only its age group is
+removed, the CLI reuses a unique prior series decision as the prompt defaults for
+statistic kind, aggregation, and denominator measure. Each remains reviewable. Semantic
+statistic-kind defaults recognise explicit terms such as `proportion`, `percentage`, and
+`ratio` before falling back to the canonical key or unit.
+
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
 intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.

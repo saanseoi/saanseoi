@@ -88,6 +88,12 @@ The curation prompt permits `total` only for counts and quantities. Other statis
 kinds can be direct (`none`) or use a mean, median, minimum, maximum, or percentile, but
 a sum would not preserve a proportion, ratio, rate, density, or index.
 
+For an age-group series with the same English description apart from the age group, a
+unique prior decision pre-fills statistic kind, aggregation, and denominator measure.
+The reviewer can still change every value. Explicit English terms including
+`proportion`, `percentage`, and `ratio` determine the initial statistic kind before key-
+and unit-based fallbacks.
+
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
 and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA
