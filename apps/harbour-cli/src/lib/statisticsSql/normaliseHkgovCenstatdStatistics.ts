@@ -168,10 +168,10 @@ export function normaliseHkgovCenstatdStatistics(
       const sourceValue = literal(raw)
       if (sourceValue === null) continue
       const parsed = parseObservationValue(row.datasetCode, sourceField, sourceValue)
-      const measureCode = sourceField
       const metadata = options.measureMetadata?.get(
         `${row.datasetCode}\u0000${sourceField}`,
       )
+      const measureCode = metadata?.measureCode ?? sourceField
       const observationId = observationIdentifier({
         measureCode,
         seriesId,
