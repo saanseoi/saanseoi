@@ -9,6 +9,8 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { unzipSync } from 'fflate'
 
 import {
+  hkgovCenstatdStatisticDivisionId,
+  prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
   readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
@@ -162,6 +164,46 @@ describe('C&SD native statistics archives', () => {
         sourceVersion: '2021',
       }),
     ).rejects.toThrow('CSDI archive is missing NewTown_21C.gml.')
+  })
+
+  test('fans native Area/type and HMA polygons into reviewed division contracts', async () => {
+    for (const entry of [CASES[0]!, CASES[3]!]) {
+      const dir = await unpack(entry.archive)
+      const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
+      const inputGml = Object.fromEntries(
+        Object.entries(archive)
+          .filter(([name]) => name.endsWith('.gml'))
+          .map(([name, content]) => [name, new TextDecoder().decode(content)]),
+      )
+      const divisionOutputFile = join(dir, 'division.parquet')
+      const areaOutputFile = join(dir, 'division-area.parquet')
+      const result = await prepareHkgovCenstatdStatisticGeographyUploads({
+        areaOutputFile,
+        datasetCode: entry.datasetCode,
+        divisionOutputFile,
+        inputGml,
+        sourceArchiveKey: 'by-source/test/source.zip',
+        sourceArchiveSha256: 'a'.repeat(64),
+        sourceVersion: entry.sourceVersion,
+      })
+      const divisionFile = await asyncBufferFromFile(divisionOutputFile)
+      const divisions = await parquetReadObjects({
+        compressors,
+        file: divisionFile,
+        metadata: await parquetMetadataAsync(divisionFile),
+      })
+      expect(result.divisionCount).toBe(
+        entry.datasetCode.includes('housing-market') ? 173 : 3,
+      )
+      expect(divisions).toHaveLength(result.divisionCount)
+      expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+    }
+    expect(
+      hkgovCenstatdStatisticDivisionId(
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'HK',
+      ),
+    ).toMatch(/^[0-9a-f-]{36}$/)
   })
 })
 

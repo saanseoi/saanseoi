@@ -135,7 +135,7 @@ type UploadPlan = {
   regionCode: 'hk' | 'mo'
   releaseCode: string
   rowCount: number
-  source: 'hkgov-landsd' | 'overture'
+  source: 'hkgov-censtatd' | 'hkgov-landsd' | 'overture'
   sourceVersion: string
   theme: 'divisions'
   type: 'division'

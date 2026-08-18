@@ -86,6 +86,7 @@ type UploadResult = {
 
 type GeometryUploadPlan = {
   cohortKey: string
+  datasetCode?: string
   regionCode: RegionCode
   releaseCode: string
   rowCount: number
@@ -1115,6 +1116,24 @@ function normaliseHkgovCenstatdInputRow(
   row: Record<string, unknown>,
   bridge: Map<string, string> | null,
 ) {
+  const suppliedDivisionId =
+    typeof row.division_id === 'string' ? row.division_id.trim() : ''
+  if (suppliedDivisionId) {
+    return {
+      ...row,
+      geometry: parseJsonGeometryValue(row.geometry, 'geometry'),
+      id:
+        typeof row.id === 'string' && row.id.trim()
+          ? row.id
+          : `CENSTATD:${suppliedDivisionId}`,
+      source_geometry: parseJsonGeometryValue(row.source_geometry, 'source_geometry'),
+      source_properties: parseJsonValue(row.source_properties, 'source_properties'),
+      sources: normaliseJsonArray(row.sources) ?? [
+        { dataset: 'hkgov-censtatd', sourceRecordId: suppliedDivisionId },
+      ],
+      division_id: suppliedDivisionId,
+    }
+  }
   const districtClass =
     typeof row.district_class === 'string' ? row.district_class.trim() : ''
   const divisionId = districtClass ? bridge?.get(districtClass) : undefined
@@ -1136,6 +1155,18 @@ function normaliseHkgovCenstatdInputRow(
 }
 
 function geometryVariant(plan: GeometryUploadPlan) {
+  if (
+    plan.datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+  ) {
+    return 'hkgov-censtatd-area'
+  }
+  if (
+    plan.datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+  ) {
+    return 'hkgov-censtatd-hma'
+  }
   return datasetVariantForSource('divisionArea', plan.source, {
     cohortKey: plan.cohortKey,
     sourceVersion: plan.sourceVersion,
@@ -1185,6 +1216,23 @@ function normaliseJsonArray(value: unknown): unknown[] | null {
   } catch {
     return null
   }
+}
+
+function parseJsonValue(value: unknown, field: string): unknown {
+  if (typeof value !== 'string') return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    throw new Error(`C&SD ${field} must be valid JSON.`)
+  }
+}
+
+function parseJsonGeometryValue(value: unknown, field: string) {
+  const parsed = parseJsonValue(value, field)
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`C&SD ${field} must be a GeoJSON geometry.`)
+  }
+  return parsed
 }
 
 async function assertDivisionReferences(
@@ -1424,6 +1472,20 @@ async function writeGeometryRows(
       : sourceSchema.sourceOvertureDivisionBoundaries
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && version.transform === 'simplified'
+  // Statistics archive geometries are already retained in
+  // hkgovCenstatdStatistics. The district-only source table has mandatory
+  // district columns and must not be misused for Area/HMA assertions.
+  const isCenstatdStatisticGeometry =
+    version.source === 'hkgov-censtatd' &&
+    rows.some(
+      row =>
+        !(
+          row.source.rawProperties &&
+          typeof row.source.rawProperties === 'object' &&
+          !Array.isArray(row.source.rawProperties) &&
+          'dc_class' in row.source.rawProperties
+        ),
+    )
   onProgress?.('clear current rows')
   await context.currentDb
     .delete(currentTable)
@@ -1440,6 +1502,7 @@ async function writeGeometryRows(
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
     if (
       !isCenstatdDerivative &&
+      !isCenstatdStatisticGeometry &&
       version.source !== 'hkgov-pland-pu' &&
       version.source !== 'hkgov-pland-new-town'
     ) {
@@ -1482,6 +1545,7 @@ async function writeGeometryRows(
   onProgress?.('close source rows')
   if (
     !isCenstatdDerivative &&
+    !isCenstatdStatisticGeometry &&
     version.source !== 'hkgov-pland-pu' &&
     version.source !== 'hkgov-pland-new-town'
   ) {
@@ -1525,6 +1589,7 @@ async function writeGeometryRows(
   )
   const sourceRows =
     isCenstatdDerivative ||
+    isCenstatdStatisticGeometry ||
     version.source === 'hkgov-pland-pu' ||
     version.source === 'hkgov-pland-new-town'
       ? []

@@ -6,6 +6,8 @@ import type {
   CenstatdCanonicalObservation,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
 
+import type { CenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
+
 type Row = Record<string, unknown>
 
 type CanonicalObservation = CenstatdCanonicalObservation & {
@@ -79,6 +81,7 @@ export type HkgovCenstatdStatisticSourceRow = {
  */
 export function normaliseHkgovCenstatdStatistics(
   input: HkgovCenstatdStatisticSourceRow[],
+  options: { measureMetadata?: ReadonlyMap<string, CenstatdMeasureMetadata> } = {},
 ): CanonicalStatsRows {
   const observations: CanonicalObservation[] = []
   const measures = new Map<string, CanonicalMeasure>()
@@ -157,6 +160,9 @@ export function normaliseHkgovCenstatdStatistics(
       if (sourceValue === null) continue
       const parsed = parseObservationValue(row.datasetCode, sourceField, sourceValue)
       const measureCode = sourceField
+      const metadata = options.measureMetadata?.get(
+        `${row.datasetCode}\u0000${sourceField}`,
+      )
       const observationId = observationIdentifier({
         measureCode,
         seriesId,
@@ -169,7 +175,7 @@ export function normaliseHkgovCenstatdStatistics(
         measureCode,
         numericValue: parsed.numericValue,
         valueCode: parsed.valueCode,
-        unitCode: unitFor(row.datasetCode, sourceField),
+        unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
         valuePrecision: null,
         observationStatus: parsed.observationStatus,
         sourceValue,
@@ -180,7 +186,7 @@ export function normaliseHkgovCenstatdStatistics(
         measureCode,
         sourceField,
         valueKind: parsed.numericValue === null ? 'categorical' : 'numeric',
-        unitCode: unitFor(row.datasetCode, sourceField),
+        unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
       })
       measuresI18n.set(`${measureKey}\u0000en`, {
         datasetCode: row.datasetCode,
@@ -188,8 +194,8 @@ export function normaliseHkgovCenstatdStatistics(
         locale: 'en',
         // Until a reviewed upstream definition is attached, do not invent a
         // friendlier label than the publisher's exact field code.
-        name: sourceField,
-        description: null,
+        name: metadata?.name ?? sourceField,
+        description: metadata?.definition ?? null,
       })
     }
   }
