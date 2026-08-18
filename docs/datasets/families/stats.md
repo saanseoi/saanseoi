@@ -31,6 +31,13 @@ and dimension dictionaries. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 
+Every C&SD publisher field requires reviewed measure metadata before publication. The
+Harbour CLI records the curator's display name, definition, and canonical unit code in
+`fixtures/meta/curations/hkgov-censtatd-statistics.json`; an intentionally unmapped unit
+is stored as `publisher-unknown`, never inferred. The source-release Stats tab then
+exposes the release's measure dictionary with its definition, unit, value kind, and
+observation count.
+
 Area/type and HMA are approved source-release fan-outs. Area/type creates the three
 Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
 domain. Their observations carry the matching deterministic canonical `divisionId`.

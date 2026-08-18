@@ -57,6 +57,15 @@ superseded values and definitions. A Population and Household compilation can th
 carry annual observations for 2016–2025 without collapsing them to the compilation
 release period.
 
+Before the canonical rows are replayed, the CLI asks the operator to curate every new
+publisher measure field. The saved decision records a display name, a required
+definition, and either a reviewed canonical unit code or the explicit
+`publisher-unknown` status. It is stored in
+`fixtures/meta/curations/hkgov-censtatd-statistics.json` and reused by later releases;
+`--yes` refuses an unresolved field instead of silently publishing incomplete metadata.
+The release page presents this resulting measure dictionary in Stats, while Audit
+remains for processing decisions and their evidence.
+
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
 and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA
