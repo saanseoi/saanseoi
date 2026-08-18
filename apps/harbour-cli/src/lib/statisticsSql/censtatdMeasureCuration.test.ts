@@ -6,6 +6,7 @@ import {
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
   resolveCenstatdMeasureCuration,
+  suggestMeasurementKind,
   suggestUnitCode,
   suggestMeasureName,
 } from './censtatdMeasureCuration.ts'
@@ -36,12 +37,13 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
               name: 'Total',
             },
           ],
+          measurementKind: 'count',
           measureCode: 'totalPopulation',
           sourceField: measure.sourceField,
           unitCode: 'person',
         },
       ],
-      schemaVersion: 3,
+      schemaVersion: 4,
     },
     measures: [measure],
   })
@@ -57,6 +59,7 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
         name: 'Total',
       },
     ],
+    measurementKind: 'count',
     measureCode: 'totalPopulation',
     unitCode: 'person',
   })
@@ -107,6 +110,24 @@ test('suggests a compatible reviewed unit for a similarly named measure', () => 
       { measureCode: 'populationMidYear', unitCode: 'person' },
     ]),
   ).toBe('person')
+})
+
+test('suggests a semantic measurement kind separately from its unit', () => {
+  expect(
+    suggestMeasurementKind({
+      measureCode: 'sexRatio',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('ratio')
+  expect(
+    suggestMeasurementKind({
+      measureCode: 'populationDensity',
+      unitCode: 'person-per-square-kilometre',
+    }),
+  ).toBe('rate')
+  expect(
+    suggestMeasurementKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
+  ).toBe('quantity')
 })
 
 test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {
