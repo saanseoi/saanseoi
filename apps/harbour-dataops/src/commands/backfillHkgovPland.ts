@@ -183,19 +183,35 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
   target: UploadTarget,
   kind: BackfillKind,
   printUsage: () => void,
+  dependencies: BackfillDependencies = {},
 ) {
   const inputFile = args.positionals[0]
   const sourceVersion = args.options['source-version']
   const catalogueUrl = args.options['release-notes-url']
+  const sourceArchiveKey = args.options['source-archive-key']
+  const sourceArchiveSha256 = args.options['source-archive-sha256']
   if (
     !inputFile ||
     args.positionals.length !== 1 ||
     typeof sourceVersion !== 'string' ||
-    typeof catalogueUrl !== 'string'
+    typeof catalogueUrl !== 'string' ||
+    typeof sourceArchiveKey !== 'string' ||
+    sourceArchiveKey.trim().length === 0 ||
+    typeof sourceArchiveSha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/i.test(sourceArchiveSha256)
   ) {
     printUsage()
     throw new Error(
-      'Planning Department native archive intake requires <source.zip>, --source-version, and --release-notes-url.',
+      'Planning Department native archive intake requires <source.zip>, --source-version, --release-notes-url, --source-archive-key, and --source-archive-sha256.',
+    )
+  }
+  const archivePath = resolve(inputFile)
+  const actualArchiveSha256 = createHash('sha256')
+    .update(await readFile(archivePath))
+    .digest('hex')
+  if (actualArchiveSha256 !== sourceArchiveSha256.toLowerCase()) {
+    throw new Error(
+      `Planning Department source archive SHA-256 mismatch: expected ${sourceArchiveSha256.toLowerCase()}, received ${actualArchiveSha256}.`,
     )
   }
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
@@ -216,11 +232,13 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
     )
     const prepare =
       kind === 'pu'
-        ? prepareHkgovPlandTpuNativeShpZip
-        : prepareHkgovPlandNewTownNativeShpZip
+        ? (dependencies.prepareHkgovPlandTpuNativeShpZip ??
+          prepareHkgovPlandTpuNativeShpZip)
+        : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
+          prepareHkgovPlandNewTownNativeShpZip)
     for (const type of ['division', 'divisionArea'] as const) {
       await prepare({
-        inputFile: resolve(inputFile),
+        inputFile: archivePath,
         outputFile: type === 'division' ? divisionFile : divisionAreaFile,
         sourceVersion,
         type,
@@ -236,6 +254,9 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         target,
         type,
         forceUpload: false,
+        runUploadCommand: dependencies.runUploadCommand,
+        sourceArchiveKey,
+        sourceArchiveSha256,
       })
     }
   } finally {
@@ -252,7 +273,17 @@ async function uploadPreparedArtefact(args: {
   type: 'division' | 'divisionArea'
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
+  sourceArchiveKey?: string
+  sourceArchiveSha256?: string
 }) {
+  if (
+    (args.sourceArchiveKey === undefined) !==
+    (args.sourceArchiveSha256 === undefined)
+  ) {
+    throw new Error(
+      'Planning Department uploads must retain both source archive provenance values.',
+    )
+  }
   const uploadArgs: ParsedArgs = {
     command: 'upload',
     positionals: [args.filePath],
@@ -261,6 +292,12 @@ async function uploadPreparedArtefact(args: {
       'release-notes-url': args.release.catalogueUrl,
       region: 'hk',
       source: args.source,
+      ...(args.sourceArchiveKey && args.sourceArchiveSha256
+        ? {
+            'source-archive-key': args.sourceArchiveKey,
+            'source-archive-sha256': args.sourceArchiveSha256,
+          }
+        : {}),
       'source-version': args.release.year,
       theme: 'divisions',
       type: args.type,
