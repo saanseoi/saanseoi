@@ -200,10 +200,10 @@ export function normaliseHkgovCenstatdStatistics(
       })
       for (const localisation of metadata?.localisations ?? [
         {
-          description: metadata?.definition ?? null,
+          description: null,
           isTranslationVerified: true,
           locale: 'en' as const,
-          name: metadata?.name ?? sourceField,
+          name: sourceField,
         },
       ]) {
         measuresI18n.set(`${measureKey}\u0000${localisation.locale}`, {

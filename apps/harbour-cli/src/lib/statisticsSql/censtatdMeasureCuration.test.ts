@@ -25,13 +25,19 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
       measures: [
         {
           datasetCode: measure.datasetCode,
-          definition: 'Total publisher count.',
-          name: 'Total',
+          localisations: [
+            {
+              description: 'Total publisher count.',
+              isTranslationVerified: true,
+              locale: 'en',
+              name: 'Total',
+            },
+          ],
           sourceField: measure.sourceField,
           unitCode: 'person',
         },
       ],
-      schemaVersion: 1,
+      schemaVersion: 2,
     },
     measures: [measure],
   })
@@ -39,8 +45,14 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
   expect(
     resolved.metadata.get(`${measure.datasetCode}\u0000${measure.sourceField}`),
   ).toEqual({
-    definition: 'Total publisher count.',
-    name: 'Total',
+    localisations: [
+      {
+        description: 'Total publisher count.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Total',
+      },
+    ],
     unitCode: 'person',
   })
 })

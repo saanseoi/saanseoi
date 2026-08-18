@@ -119,7 +119,6 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           [
             'ds-hk-hkgov-censtatd-division-statistic-example\u0000AREA',
             {
-              definition: 'Land area represented by the publisher feature.',
               localisations: [
                 {
                   description: 'Land area represented by the publisher feature.',
@@ -140,7 +139,6 @@ describe('normaliseHkgovCenstatdStatistics', () => {
                   name: '土地面积',
                 },
               ],
-              name: 'Land area',
               sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
             },
