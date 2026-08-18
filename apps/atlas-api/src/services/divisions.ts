@@ -199,6 +199,7 @@ type VariantUnavailableResponse = {
 
 type ActiveDivisionSnapshot = {
   snapshotId: string
+  divisionSnapshotIds: string[]
   apiReleaseSet: string
   apiCatalogRevision: string
   catalogPublishedAt: string
@@ -790,6 +791,16 @@ async function getActiveDivisionSnapshot(
       snapshot.snapshotResourceType === 'division' && snapshot.role === 'primary',
   )
   if (!primarySnapshot) return null
+  const divisionSnapshotIds = [
+    primarySnapshot.snapshotId,
+    ...selection.snapshots
+      .filter(
+        snapshot =>
+          snapshot.snapshotResourceType === 'division' &&
+          snapshot.role === 'enrichment',
+      )
+      .map(snapshot => snapshot.snapshotId),
+  ]
   const areaSnapshot = selection.snapshots.find(
     snapshot =>
       snapshot.snapshotResourceType === 'divisionArea' &&
@@ -803,6 +814,7 @@ async function getActiveDivisionSnapshot(
 
   return {
     snapshotId: primarySnapshot.snapshotId,
+    divisionSnapshotIds: [...new Set(divisionSnapshotIds)],
     apiReleaseSet: selection.releaseSet.code,
     apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
     catalogPublishedAt: selection.releaseSet.catalogPublishedAt,
@@ -940,6 +952,7 @@ function createDivisionGeometryResource(args: {
 async function loadIncludedHierarchyRecords(args: {
   includeHierarchy: boolean
   snapshotId: string
+  snapshotIds?: string[]
   records: DivisionRecord[]
   db: AppEnv['Variables']['currentDb']
   routeState: DivisionRouteState
@@ -963,6 +976,7 @@ async function loadIncludedHierarchyRecords(args: {
 
   return args.listDivisionRecordsCurrentByIds(args.db, {
     snapshotId: args.snapshotId,
+    snapshotIds: args.snapshotIds,
     divisionIds: hierarchyIds,
     localeSelection: args.routeState.localeSelection,
   })
@@ -1040,6 +1054,7 @@ export async function listDivisions(args: {
     Promise.all([
       dependencies.listDivisionRecordsCurrent(args.currentDb, {
         snapshotId: activeDivisionSnapshot.snapshotId,
+        snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
         level: filters.level,
         type: filters.divisionType,
         parentId: filters.parent,
@@ -1049,6 +1064,7 @@ export async function listDivisions(args: {
       }),
       dependencies.countDivisionsCurrent(args.currentDb, {
         snapshotId: activeDivisionSnapshot.snapshotId,
+        snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
         level: filters.level,
         type: filters.divisionType,
         parentId: filters.parent,
@@ -1060,6 +1076,7 @@ export async function listDivisions(args: {
     loadIncludedHierarchyRecords({
       includeHierarchy: args.query.include === 'hierarchy',
       snapshotId: activeDivisionSnapshot.snapshotId,
+      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records,
       db: args.currentDb,
       routeState,
@@ -1191,6 +1208,7 @@ export async function getDivisionDetail(args: {
   const record = await runWithD1ReadRetry(() =>
     dependencies.getDivisionRecordCurrent(args.currentDb, {
       snapshotId: activeDivisionSnapshot.snapshotId,
+      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       divisionId: args.id,
       localeSelection: routeState.localeSelection,
     }),
@@ -1211,6 +1229,7 @@ export async function getDivisionDetail(args: {
     loadIncludedHierarchyRecords({
       includeHierarchy: args.query.include === 'hierarchy',
       snapshotId: activeDivisionSnapshot.snapshotId,
+      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records: [record],
       db: args.currentDb,
       routeState,

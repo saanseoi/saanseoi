@@ -259,13 +259,14 @@ let detailRecord: DivisionRecord | null = baseRecord
 const resolveApiReleaseSetSnapshotsForRequestMock = mock(
   async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
+const listDivisionRecordsCurrentMock = mock(async () => listRecords)
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   countDivisionsCurrent: mock(async () => listRecords.length),
   getDivisionRecordCurrent: mock(async () => detailRecord),
-  listDivisionRecordsCurrent: mock(async () => listRecords),
+  listDivisionRecordsCurrent: listDivisionRecordsCurrentMock,
   listDivisionRecordsCurrentByIds: mock(
     async (_db: unknown, lookup: { divisionIds: string[] }) =>
       lookup.divisionIds
@@ -457,6 +458,40 @@ describe('division services', () => {
         })
       }
     }
+  })
+
+  test('includes composition enrichment division snapshots in the Geographic lookup', async () => {
+    resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
+      ...resolvedReleaseSet,
+      snapshots: [
+        ...resolvedReleaseSet.snapshots,
+        {
+          snapshotResourceType: 'division' as const,
+          snapshotId: 'snapshot-censtatd-area',
+          role: 'enrichment' as const,
+          variant: 'hkgov-censtatd-area',
+        },
+      ],
+    }))
+
+    const result = await listDivisions({
+      currentDb: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/v0/divisions?domain=geographic',
+      requestedVersionPath: 'v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { domain: 'geographic' },
+      dependencies: divisionServiceDependencies,
+    })
+
+    expect(result.status).toBe(200)
+    expect(listDivisionRecordsCurrentMock).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        snapshotIds: [activeSnapshot.snapshotId, 'snapshot-censtatd-area'],
+      }),
+    )
   })
 
   test('getDivisionDetail derives hierarchy and included resources from canonical hierarchy', async () => {
