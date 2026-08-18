@@ -31,7 +31,7 @@ export type MaterialisedReleaseProcessingActions = {
   stats: ReleaseStatsRow[]
 }
 
-function declaredRecordOperationCodes(processingRules: unknown) {
+function declaredOperationCodes(processingRules: unknown) {
   if (!processingRules || typeof processingRules !== 'object') return null
   const rulesets = (processingRules as { rulesets?: unknown }).rulesets
   if (!Array.isArray(rulesets)) return null
@@ -47,7 +47,7 @@ function declaredRecordOperationCodes(processingRules: unknown) {
         operationCode?: unknown
         type?: unknown
       }
-      if (type === 'record' && typeof operationCode === 'string') {
+      if ((type === 'record' || type === 'bulk') && typeof operationCode === 'string') {
         operationCodes.add(operationCode)
       }
     }
@@ -99,14 +99,14 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     )
   }
 
-  const recordOperationCodes = declaredRecordOperationCodes(release.processingRules)
-  if (recordOperationCodes) {
+  const operationCodes = declaredOperationCodes(release.processingRules)
+  if (operationCodes) {
     const undeclaredActions = actions
       .map(action => action.action)
-      .filter(action => !recordOperationCodes.has(action))
+      .filter(action => !operationCodes.has(action))
     if (undeclaredActions.length > 0) {
       throw new Error(
-        `Processing actions are not declared as record rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
+        `Processing actions are not declared in processing rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
       )
     }
   }
