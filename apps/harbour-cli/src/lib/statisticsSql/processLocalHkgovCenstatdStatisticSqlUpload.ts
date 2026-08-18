@@ -1,12 +1,6 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
-import {
-  createHkgovCenstatdDistrictResolution,
-  type ResolvedHkgovCenstatdDistrict,
-} from '@repo/core/pipeline/services/divisionStatistics'
-import { metaSchema } from '@repo/db'
 import { createHash } from 'node:crypto'
-import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 
@@ -28,6 +22,10 @@ import {
   buildCanonicalStatsSqlBatches,
   replayCanonicalStatsSqlBatches,
 } from './canonicalStatsSql.ts'
+import {
+  resolveCenstatdDistrictBridgeCohort,
+  resolveHkgovCenstatdDistrictBridge,
+} from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
@@ -113,19 +111,36 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         },
       },
     )
-    const districtsBySourceCode = await resolveCanonicalDistricts(metaDb)
+    const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
+    const bridgeCohort = resolveCenstatdDistrictBridgeCohort(
+      datasetCode,
+      plan.sourceVersion,
+    )
+    const districtsBySourceCode = bridgeCohort
+      ? await resolveHkgovCenstatdDistrictBridge(metaDb, bridgeCohort)
+      : null
     const canonical = normaliseHkgovCenstatdStatistics(
-      rows.map(row => ({
-        datasetCode: requiredString(row.datasetCode, 'datasetCode'),
-        divisionId: divisionIdForSourceProperties(
-          object(row.rawProperties, 'rawProperties'),
+      rows.map(row => {
+        const properties = object(row.rawProperties, 'rawProperties')
+        const sourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
+        const divisionId = divisionIdForSourceProperties(
+          properties,
           districtsBySourceCode,
-        ),
-        properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`,
-        sourceReleaseId: releaseId,
-        sourceVersion: plan.sourceVersion,
-      })),
+        )
+        if (bridgeCohort && !divisionId) {
+          throw new Error(
+            `C&SD ${datasetCode} feature ${sourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
+          )
+        }
+        return {
+          datasetCode: requiredString(row.datasetCode, 'datasetCode'),
+          divisionId,
+          properties,
+          sourceFeatureId,
+          sourceReleaseId: releaseId,
+          sourceVersion: plan.sourceVersion,
+        }
+      }),
     )
     const canonicalBatches = buildCanonicalStatsSqlBatches({
       current: canonicalCurrentRows(canonical),
@@ -249,49 +264,14 @@ function object(value: unknown, field: string) {
 
 function divisionIdForSourceProperties(
   properties: Record<string, unknown>,
-  districtsBySourceCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
+  districtsBySourceCode: ReadonlyMap<number, { divisionId: string }> | null,
 ) {
+  if (!districtsBySourceCode) return null
   const rawCode = properties.DC ?? properties.dc
   if (typeof rawCode !== 'string' && typeof rawCode !== 'number') return null
   const districtCode = Number(rawCode)
   if (!Number.isInteger(districtCode)) return null
   return districtsBySourceCode.get(districtCode)?.divisionId ?? null
-}
-
-async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
-  const [censtatdRows, hadRows] = await Promise.all([
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2021'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-  ])
-  return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
 }
 
 function canonicalCurrentRows(

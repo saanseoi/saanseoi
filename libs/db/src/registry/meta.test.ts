@@ -8,6 +8,7 @@ import {
   initialDatasets,
   initialDatasetResourceTypes,
   initialDataShards,
+  initialIdentifierBridges,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
 
@@ -127,6 +128,28 @@ describe('fixture version hashes', () => {
         ),
       ),
     ).toBe(true)
+  })
+
+  test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
+    const bridgesFor = (cohortKey: string) =>
+      initialIdentifierBridges.filter(
+        bridge =>
+          bridge.authority === 'hkgov-censtatd' &&
+          bridge.cohortKey === cohortKey &&
+          bridge.domain === 'administrative' &&
+          bridge.resourceType === 'division',
+      )
+
+    const bridges2016 = bridgesFor('2016')
+    const bridges2021 = bridgesFor('2021')
+
+    expect(bridges2016).toHaveLength(18)
+    expect(bridges2021).toHaveLength(18)
+    expect(new Set(bridges2016.map(bridge => bridge.externalCode)).size).toBe(18)
+    expect(new Set(bridges2021.map(bridge => bridge.externalCode)).size).toBe(18)
+    expect(new Set(bridges2016.map(bridge => bridge.canonicalId))).toEqual(
+      new Set(bridges2021.map(bridge => bridge.canonicalId)),
+    )
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
