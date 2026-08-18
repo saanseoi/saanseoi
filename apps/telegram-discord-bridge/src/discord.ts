@@ -63,10 +63,14 @@ export class DiscordClient {
         headers: { authorization: `Bot ${this.botToken}` },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
-      if (response.status === 429) {
-        const payload = await jsonOrUndefined<{ retry_after?: number }>(response)
+      const retryable = response.status === 429 || response.status >= 500
+      if (retryable) {
+        const retryAfter =
+          response.status === 429
+            ? (await jsonOrUndefined<{ retry_after?: number }>(response))?.retry_after
+            : undefined
         if (attempt === MAX_RETRIES - 1) break
-        await this.delay(retryDelay(attempt, payload?.retry_after))
+        await this.delay(retryDelay(attempt, retryAfter))
         continue
       }
       if (!response.ok)
