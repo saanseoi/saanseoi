@@ -10,6 +10,7 @@ import GenericGroups from './releaseStatsGenericGroups.svelte'
 import Geometry from './releaseStatsGeometrySection.svelte'
 import LocaleCoverage from './releaseStatsLocaleCoverageSection.svelte'
 import MeasureCoverage from './releaseStatsMeasureCoverageSection.svelte'
+import Measures from './releaseStatsMeasuresSection.svelte'
 import Overview from './releaseStatsOverviewSection.svelte'
 import Processing from './releaseStatsProcessingSection.svelte'
 import Quality from './releaseStatsQualitySection.svelte'
@@ -47,6 +48,9 @@ let {
   {/if}
   {#if presentation.measureCoverage}
     <MeasureCoverage coverage={presentation.measureCoverage} />
+  {/if}
+  {#if presentation.measures}
+    <Measures measures={presentation.measures} />
   {/if}
   {#each presentation.recordDistributions as distribution}
     <TypeDistribution {distribution} {labels} />
