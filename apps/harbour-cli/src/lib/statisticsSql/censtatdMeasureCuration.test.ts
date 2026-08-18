@@ -12,6 +12,7 @@ import {
   suggestStatisticKind,
   suggestUnitCode,
   suggestMeasureName,
+  validAggregationsForStatisticKind,
 } from './censtatdMeasureCuration.ts'
 
 test('shows the proposed name and description before prompting for measure metadata', () => {
@@ -161,6 +162,20 @@ test('suggests a statistic kind separately from its unit', () => {
   expect(
     suggestStatisticKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
   ).toBe('quantity')
+  expect(
+    suggestStatisticKind({
+      localisations: [
+        {
+          description: 'Sex ratio (number of males per 1 000 females).',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Sex ratio (number of males per 1 000 females)',
+        },
+      ],
+      measureCode: 'sexComparison',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('ratio')
 })
 
 test('suggests an aggregation stated in the proposed English semantic text', () => {
@@ -194,6 +209,19 @@ test('suggests an aggregation stated in the proposed English semantic text', () 
       },
     ]),
   ).toBeNull()
+})
+
+test('excludes totals from non-additive statistic kinds', () => {
+  expect(validAggregationsForStatisticKind('count')).toContain('total')
+  for (const statisticKind of [
+    'proportion',
+    'ratio',
+    'rate',
+    'density',
+    'index',
+  ] as const) {
+    expect(validAggregationsForStatisticKind(statisticKind)).not.toContain('total')
+  }
 })
 
 test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {

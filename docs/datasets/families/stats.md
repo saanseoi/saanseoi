@@ -54,6 +54,11 @@ defaults; accepting those machine values unchanged records
 `isTranslationVerified=false`. Official CSDI locale rows remain verified. `--yes`
 refuses every uncurated field.
 
+The curation prompt permits `none`, `mean`, `median`, `minimum`, `maximum`, and
+`percentile` for every statistic kind. It permits `total` only for `count` and
+`quantity`: summing a proportion, ratio, rate, density, or index does not preserve that
+statistic kind.
+
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
 intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.
