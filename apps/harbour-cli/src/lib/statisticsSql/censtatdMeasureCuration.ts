@@ -1,4 +1,4 @@
-import { isCancel, note, text } from '@clack/prompts'
+import { confirm, isCancel, note, text } from '@clack/prompts'
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
@@ -9,16 +9,18 @@ import { translateAzureTexts } from '../sources/landsd/street/landsdStreetTransl
 export type CenstatdMeasureCurationEntry = {
   datasetCode: string
   localisations: readonly CenstatdMeasureLocalisation[]
+  measureCode: string
   schemaSpecification?: {
     sha256: string
     url: string
   }
+  sourceNullOption?: string | null
   sourceField: string
   unitCode: string
 }
 export type CenstatdMeasureCurationManifest = {
   measures: CenstatdMeasureCurationEntry[]
-  schemaVersion: 2
+  schemaVersion: 3
 }
 export type CenstatdMeasureForCuration = {
   datasetCode: string
@@ -28,6 +30,7 @@ export type CenstatdMeasureForCuration = {
 }
 export type CenstatdMeasureMetadata = {
   localisations: readonly CenstatdMeasureLocalisation[]
+  measureCode: string
   sourceNullOption?: string | null
   unitCode: string
 }
@@ -41,6 +44,7 @@ export type CenstatdMeasureLocalisation = {
 
 type CenstatdSchemaMeasureCandidate = {
   localisations: readonly CenstatdMeasureLocalisation[]
+  measureCode: string
   schemaSpecification: {
     sha256: string
     url: string
@@ -59,41 +63,25 @@ export async function resolveCenstatdMeasureMetadata(input: {
 }) {
   let manifest = await loadCenstatdMeasureCuration(DEFAULT_CURATION_PATH)
   const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.measures)
-  const metadata = new Map<string, CenstatdMeasureMetadata>()
-  for (const [key, candidate] of schemaCandidates) {
-    const measure = input.measures.find(item => measureKey(item) === key)
-    if (!measure) continue
-    metadata.set(key, {
-      localisations: candidate.localisations,
-      sourceNullOption: candidate.sourceNullOption,
-      unitCode: measure.unitCode,
-    })
-  }
-  const unresolved = input.measures.filter(
-    measure => !schemaCandidates.has(measureKey(measure)),
-  )
-  const manuallyResolved = resolveCenstatdMeasureCuration({
+  let resolved = resolveCenstatdMeasureCuration({
     manifest,
-    measures: unresolved,
+    measures: input.measures,
   })
-  if (manuallyResolved.unresolved.length && input.promptForCuration) {
+  if (resolved.unresolved.length && input.promptForCuration) {
     manifest = await promptForCenstatdMeasureCuration({
       manifest,
-      measures: manuallyResolved.unresolved,
+      measures: resolved.unresolved,
+      schemaCandidates,
     })
     await saveCenstatdMeasureCuration(DEFAULT_CURATION_PATH, manifest)
+    resolved = resolveCenstatdMeasureCuration({ manifest, measures: input.measures })
   }
-  if (unresolved.length) {
-    const resolved = resolveCenstatdMeasureCuration({ manifest, measures: unresolved })
-    for (const [key, value] of resolved.metadata) metadata.set(key, value)
-  }
-  const remaining = input.measures.filter(measure => !metadata.has(measureKey(measure)))
-  if (remaining.length) {
+  if (resolved.unresolved.length) {
     throw new Error(
-      `C&SD measure metadata requires curation for ${remaining.map(measure => `${measure.datasetCode}/${measure.sourceField}`).join(', ')}. Rerun without --yes to review the measures.`,
+      `C&SD measure metadata requires curation for ${resolved.unresolved.map(measure => `${measure.datasetCode}/${measure.sourceField}`).join(', ')}. Rerun without --yes to review the measures.`,
     )
   }
-  return metadata
+  return resolved.metadata
 }
 
 export async function loadCenstatdMeasureCuration(path = DEFAULT_CURATION_PATH) {
@@ -134,6 +122,10 @@ export function resolveCenstatdMeasureCuration(input: {
                 measureKey(measure),
                 {
                   localisations: decision.localisations,
+                  measureCode: decision.measureCode,
+                  ...(decision.sourceNullOption === undefined
+                    ? {}
+                    : { sourceNullOption: decision.sourceNullOption }),
                   unitCode: decision.unitCode,
                 },
               ] as const,
@@ -148,18 +140,64 @@ export function resolveCenstatdMeasureCuration(input: {
 export async function promptForCenstatdMeasureCuration(input: {
   manifest: CenstatdMeasureCurationManifest
   measures: readonly CenstatdMeasureForCuration[]
+  schemaCandidates: ReadonlyMap<string, CenstatdSchemaMeasureCandidate>
 }) {
   const decisions = [...input.manifest.measures]
   for (const measure of input.measures) {
+    const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
     note(
-      `Dataset: ${measure.datasetCode}\nPublisher field: ${measure.sourceField}\nValue kind: ${measure.valueKind}`,
+      [
+        `Dataset: ${measure.datasetCode}`,
+        `Publisher field: ${measure.sourceField}`,
+        `Value kind: ${measure.valueKind}`,
+        ...(schemaCandidate
+          ? [
+              `CSDI schema: ${schemaCandidate.schemaSpecification.url}`,
+              '',
+              formatCenstatdMeasureCandidate(schemaCandidate),
+            ]
+          : []),
+      ].join('\n'),
       'MEASURE METADATA',
     )
-    const name = await requiredText(
+    if (schemaCandidate) {
+      const accepted = await confirm({
+        initialValue: true,
+        message: 'Accept the proposed CSDI measure metadata?',
+      })
+      if (isCancel(accepted)) throw new Error('C&SD measure curation cancelled.')
+      if (accepted) {
+        decisions.push({
+          datasetCode: measure.datasetCode,
+          localisations: schemaCandidate.localisations,
+          measureCode: schemaCandidate.measureCode,
+          schemaSpecification: schemaCandidate.schemaSpecification,
+          sourceField: measure.sourceField,
+          sourceNullOption: schemaCandidate.sourceNullOption,
+          unitCode: measure.unitCode,
+        })
+        continue
+      }
+    }
+    const measureCode = await requiredMeasureCode(
+      'Canonical measure key',
+      schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
+    )
+    const englishName = await requiredText(
       'English measure name',
       suggestMeasureName(measure.sourceField),
     )
-    const description = await requiredText('English measure description')
+    const englishDescription = await requiredText('English measure description')
+    const traditionalChineseName = await requiredText(
+      'Traditional Chinese measure name',
+    )
+    const traditionalChineseDescription = await requiredText(
+      'Traditional Chinese measure description',
+    )
+    const simplifiedChineseName = await requiredText('Simplified Chinese measure name')
+    const simplifiedChineseDescription = await requiredText(
+      'Simplified Chinese measure description',
+    )
     const unitCode = await text({
       initialValue: measure.unitCode === 'publisher-unknown' ? '' : measure.unitCode,
       message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
@@ -169,21 +207,34 @@ export async function promptForCenstatdMeasureCuration(input: {
       datasetCode: measure.datasetCode,
       localisations: [
         {
-          description,
+          description: englishDescription,
           isTranslationVerified: true,
           locale: 'en',
-          name,
+          name: englishName,
+        },
+        {
+          description: traditionalChineseDescription,
+          isTranslationVerified: true,
+          locale: 'zh-Hant',
+          name: traditionalChineseName,
+        },
+        {
+          description: simplifiedChineseDescription,
+          isTranslationVerified: true,
+          locale: 'zh-Hans',
+          name: simplifiedChineseName,
         },
       ],
+      measureCode,
       sourceField: measure.sourceField,
       unitCode: (unitCode ?? '').trim() || 'publisher-unknown',
     })
   }
-  return { measures: decisions, schemaVersion: 2 as const }
+  return { measures: decisions, schemaVersion: 3 as const }
 }
 
 export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationManifest {
-  return { measures: [], schemaVersion: 2 }
+  return { measures: [], schemaVersion: 3 }
 }
 
 function measureKey(
@@ -196,7 +247,7 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const manifest = value as Partial<CenstatdMeasureCurationManifest>
-  if (manifest.schemaVersion !== 2 || !Array.isArray(manifest.measures))
+  if (manifest.schemaVersion !== 3 || !Array.isArray(manifest.measures))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const measures = manifest.measures.map((measure, index) => {
     if (!measure || typeof measure !== 'object' || Array.isArray(measure))
@@ -205,6 +256,12 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
     for (const field of ['datasetCode', 'sourceField', 'unitCode'] as const)
       if (typeof entry[field] !== 'string' || !entry[field].trim())
         throw new Error(`Invalid C&SD measure curation ${field}: ${path}.`)
+    if (
+      typeof entry.measureCode !== 'string' ||
+      !/^[a-z][A-Za-z0-9]*$/.test(entry.measureCode)
+    ) {
+      throw new Error(`Invalid C&SD canonical measure key: ${path}.`)
+    }
     if (!Array.isArray(entry.localisations) || entry.localisations.length === 0)
       throw new Error(`Missing C&SD measure localisations: ${path}.`)
     const locales = new Set<string>()
@@ -227,6 +284,13 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
     }
     if (!locales.has('en'))
       throw new Error(`Missing English C&SD measure localisation: ${path}.`)
+    if (
+      entry.sourceNullOption !== undefined &&
+      entry.sourceNullOption !== null &&
+      typeof entry.sourceNullOption !== 'string'
+    ) {
+      throw new Error(`Invalid C&SD measure source null option: ${path}.`)
+    }
     if (entry.schemaSpecification !== undefined) {
       const schemaSpecification = entry.schemaSpecification
       if (
@@ -246,7 +310,7 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   const keys = new Set(measures.map(measureKey))
   if (keys.size !== measures.length)
     throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
-  return { measures, schemaVersion: 2 as const }
+  return { measures, schemaVersion: 3 as const }
 }
 
 /**
@@ -304,6 +368,7 @@ export async function resolveCenstatdSchemaMeasureCandidates(
               name: zhHans,
             },
           ],
+          measureCode: suggestMeasureName(schema.descriptionEn),
           schemaSpecification: {
             sha256: schema.sha256,
             url: specificationUrl,
@@ -469,6 +534,34 @@ export function suggestMeasureName(description: string) {
         : `${normalised.slice(0, 1).toLocaleUpperCase('en')}${normalised.slice(1)}`
     })
     .join('')
+}
+
+export function formatCenstatdMeasureCandidate(
+  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations' | 'measureCode'>,
+) {
+  return [
+    'Proposed measure',
+    `Canonical key: ${candidate.measureCode}`,
+    '',
+    'Proposed localisations',
+    ...candidate.localisations.flatMap(localisation => [
+      '',
+      localisation.locale,
+      `  Name: ${localisation.name}`,
+      `  Description: ${localisation.description}`,
+    ]),
+  ].join('\n')
+}
+
+async function requiredMeasureCode(message: string, initialValue: string) {
+  for (;;) {
+    const value = await requiredText(message, initialValue)
+    if (/^[a-z][A-Za-z0-9]*$/.test(value)) return value
+    note(
+      'Use a stable lower-camel-case identifier: begin with a lower-case letter and use only letters and digits.',
+      'MEASURE METADATA',
+    )
+  }
 }
 
 async function requiredText(message: string, initialValue?: string) {

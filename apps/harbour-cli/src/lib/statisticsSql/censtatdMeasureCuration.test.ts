@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 
 import {
   emptyCenstatdMeasureCuration,
+  formatCenstatdMeasureCandidate,
   parseCsdiSimplifiedDataSpecification,
   resolveCenstatdMeasureCuration,
   suggestMeasureName,
@@ -33,11 +34,12 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
               name: 'Total',
             },
           ],
+          measureCode: 'totalPopulation',
           sourceField: measure.sourceField,
           unitCode: 'person',
         },
       ],
-      schemaVersion: 2,
+      schemaVersion: 3,
     },
     measures: [measure],
   })
@@ -53,8 +55,52 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
         name: 'Total',
       },
     ],
+    measureCode: 'totalPopulation',
     unitCode: 'person',
   })
+})
+
+test('formats every proposed localisation and canonical key for review', () => {
+  expect(
+    formatCenstatdMeasureCandidate({
+      localisations: [
+        {
+          description: 'Total population in the area.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+        {
+          description: '區內總人口。',
+          isTranslationVerified: true,
+          locale: 'zh-Hant',
+          name: '總人口',
+        },
+        {
+          description: '区内总人口。',
+          isTranslationVerified: true,
+          locale: 'zh-Hans',
+          name: '总人口',
+        },
+      ],
+      measureCode: 'totalPopulation',
+    }),
+  ).toBe(`Proposed measure
+Canonical key: totalPopulation
+
+Proposed localisations
+
+en
+  Name: Total population
+  Description: Total population in the area.
+
+zh-Hant
+  Name: 總人口
+  Description: 區內總人口。
+
+zh-Hans
+  Name: 总人口
+  Description: 区内总人口。`)
 })
 
 test('parses field definitions from a CSDI simplified data specification', () => {

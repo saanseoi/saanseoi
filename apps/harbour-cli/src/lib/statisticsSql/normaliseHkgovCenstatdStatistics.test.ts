@@ -139,6 +139,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
                   name: '土地面积',
                 },
               ],
+              measureCode: 'landArea',
               sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
             },
@@ -149,7 +150,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(rows.measures).toContainEqual(
       expect.objectContaining({
-        measureCode: 'AREA',
+        measureCode: 'landArea',
         sourceField: 'AREA',
         sourceNullOption: 'Null',
         unitCode: 'square-kilometre',
@@ -162,7 +163,12 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       }),
     )
     expect(rows.observations).toContainEqual(
-      expect.objectContaining({ sourceValue: '12', unitCode: 'square-kilometre' }),
+      expect.objectContaining({
+        measureCode: 'landArea',
+        sourceField: 'AREA',
+        sourceValue: '12',
+        unitCode: 'square-kilometre',
+      }),
     )
     expect(rows.measuresI18n).toEqual(
       expect.arrayContaining([
