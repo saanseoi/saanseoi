@@ -8,8 +8,7 @@ import { translateAzureTexts } from '../sources/landsd/street/landsdStreetTransl
 
 export type CenstatdMeasureCurationEntry = {
   datasetCode: string
-  definition: string
-  name: string
+  localisations: readonly CenstatdMeasureLocalisation[]
   schemaSpecification?: {
     sha256: string
     url: string
@@ -19,7 +18,7 @@ export type CenstatdMeasureCurationEntry = {
 }
 export type CenstatdMeasureCurationManifest = {
   measures: CenstatdMeasureCurationEntry[]
-  schemaVersion: 1
+  schemaVersion: 2
 }
 export type CenstatdMeasureForCuration = {
   datasetCode: string
@@ -27,12 +26,10 @@ export type CenstatdMeasureForCuration = {
   unitCode: string
   valueKind: string
 }
-export type CenstatdMeasureMetadata = Pick<
-  CenstatdMeasureCurationEntry,
-  'definition' | 'name' | 'unitCode'
-> & {
-  localisations?: readonly CenstatdMeasureLocalisation[]
+export type CenstatdMeasureMetadata = {
+  localisations: readonly CenstatdMeasureLocalisation[]
   sourceNullOption?: string | null
+  unitCode: string
 }
 
 export type CenstatdMeasureLocalisation = {
@@ -43,9 +40,7 @@ export type CenstatdMeasureLocalisation = {
 }
 
 type CenstatdSchemaMeasureCandidate = {
-  definition: string
   localisations: readonly CenstatdMeasureLocalisation[]
-  name: string
   schemaSpecification: {
     sha256: string
     url: string
@@ -69,9 +64,7 @@ export async function resolveCenstatdMeasureMetadata(input: {
     const measure = input.measures.find(item => measureKey(item) === key)
     if (!measure) continue
     metadata.set(key, {
-      definition: candidate.definition,
       localisations: candidate.localisations,
-      name: candidate.name,
       sourceNullOption: candidate.sourceNullOption,
       unitCode: measure.unitCode,
     })
@@ -140,8 +133,7 @@ export function resolveCenstatdMeasureCuration(input: {
               [
                 measureKey(measure),
                 {
-                  definition: decision.definition,
-                  name: decision.name,
+                  localisations: decision.localisations,
                   unitCode: decision.unitCode,
                 },
               ] as const,
@@ -164,10 +156,10 @@ export async function promptForCenstatdMeasureCuration(input: {
       'MEASURE METADATA',
     )
     const name = await requiredText(
-      'Measure name',
+      'English measure name',
       suggestMeasureName(measure.sourceField),
     )
-    const definition = await requiredText('Measure definition')
+    const description = await requiredText('English measure description')
     const unitCode = await text({
       initialValue: measure.unitCode === 'publisher-unknown' ? '' : measure.unitCode,
       message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
@@ -175,17 +167,23 @@ export async function promptForCenstatdMeasureCuration(input: {
     if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
     decisions.push({
       datasetCode: measure.datasetCode,
-      definition,
-      name,
+      localisations: [
+        {
+          description,
+          isTranslationVerified: true,
+          locale: 'en',
+          name,
+        },
+      ],
       sourceField: measure.sourceField,
       unitCode: (unitCode ?? '').trim() || 'publisher-unknown',
     })
   }
-  return { measures: decisions, schemaVersion: 1 as const }
+  return { measures: decisions, schemaVersion: 2 as const }
 }
 
 export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationManifest {
-  return { measures: [], schemaVersion: 1 }
+  return { measures: [], schemaVersion: 2 }
 }
 
 function measureKey(
@@ -198,21 +196,37 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const manifest = value as Partial<CenstatdMeasureCurationManifest>
-  if (manifest.schemaVersion !== 1 || !Array.isArray(manifest.measures))
+  if (manifest.schemaVersion !== 2 || !Array.isArray(manifest.measures))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const measures = manifest.measures.map((measure, index) => {
     if (!measure || typeof measure !== 'object' || Array.isArray(measure))
       throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}.`)
     const entry = measure as Partial<CenstatdMeasureCurationEntry>
-    for (const field of [
-      'datasetCode',
-      'definition',
-      'name',
-      'sourceField',
-      'unitCode',
-    ] as const)
+    for (const field of ['datasetCode', 'sourceField', 'unitCode'] as const)
       if (typeof entry[field] !== 'string' || !entry[field].trim())
         throw new Error(`Invalid C&SD measure curation ${field}: ${path}.`)
+    if (!Array.isArray(entry.localisations) || entry.localisations.length === 0)
+      throw new Error(`Missing C&SD measure localisations: ${path}.`)
+    const locales = new Set<string>()
+    for (const localisation of entry.localisations) {
+      if (
+        !localisation ||
+        typeof localisation !== 'object' ||
+        Array.isArray(localisation) ||
+        !['en', 'zh-Hans', 'zh-Hant'].includes(localisation.locale) ||
+        typeof localisation.name !== 'string' ||
+        !localisation.name.trim() ||
+        typeof localisation.description !== 'string' ||
+        !localisation.description.trim() ||
+        typeof localisation.isTranslationVerified !== 'boolean' ||
+        locales.has(localisation.locale)
+      ) {
+        throw new Error(`Invalid C&SD measure localisation: ${path}.`)
+      }
+      locales.add(localisation.locale)
+    }
+    if (!locales.has('en'))
+      throw new Error(`Missing English C&SD measure localisation: ${path}.`)
     if (entry.schemaSpecification !== undefined) {
       const schemaSpecification = entry.schemaSpecification
       if (
@@ -232,7 +246,7 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   const keys = new Set(measures.map(measureKey))
   if (keys.size !== measures.length)
     throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
-  return { measures, schemaVersion: 1 as const }
+  return { measures, schemaVersion: 2 as const }
 }
 
 /**
@@ -267,38 +281,29 @@ export async function resolveCenstatdSchemaMeasureCandidates(
         matches.map(match => match.schema),
       )
       for (const { measure, schema } of matches) {
-        const name = suggestMeasureName(schema.descriptionEn)
+        const zhHant = resolvedCsdiLocalisation(schema, 'zh-Hant', translations.zhHant)
+        const zhHans = resolvedCsdiLocalisation(schema, 'zh-Hans', translations.zhHans)
         candidates.set(measureKey(measure), {
-          definition: schema.descriptionEn,
           localisations: [
             {
               description: schema.descriptionEn,
               isTranslationVerified: true,
               locale: 'en',
-              name,
+              name: schema.descriptionEn,
             },
             {
-              description: resolvedCsdiLocalisation(
-                schema,
-                'zh-Hant',
-                translations.zhHant,
-              ),
+              description: zhHant,
               isTranslationVerified: schema.descriptionZhHant !== null,
               locale: 'zh-Hant',
-              name,
+              name: zhHant,
             },
             {
-              description: resolvedCsdiLocalisation(
-                schema,
-                'zh-Hans',
-                translations.zhHans,
-              ),
+              description: zhHans,
               isTranslationVerified: schema.descriptionZhHans !== null,
               locale: 'zh-Hans',
-              name,
+              name: zhHans,
             },
           ],
-          name,
           schemaSpecification: {
             sha256: schema.sha256,
             url: specificationUrl,
