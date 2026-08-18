@@ -259,114 +259,71 @@ export async function promptForCenstatdMeasureCuration(input: {
     input.persist?.({ measures: decisions, schemaVersion: 5 }) ?? Promise.resolve()
   for (const measure of input.measures) {
     const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
-    const suggestedUnitCode = suggestUnitCode(
-      schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
-      decisions,
-    )
     note(
-      [
-        formatField('dataset', measure.datasetCode),
-        formatField('value kind', measure.valueKind),
-        ...(schemaCandidate
-          ? [formatField('source release', schemaCandidate.sourceReleaseUrl)]
-          : []),
-      ].join('\n'),
+      formatCenstatdMeasureReviewContext({ measure, schemaCandidate }),
       'MEASURE METADATA',
     )
-    const statisticKind = await selectStatisticKind({
-      measure,
-      measureCode:
-        schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
-      suggestedUnitCode,
-    })
-    const aggregation = await selectAggregation({ statisticKind })
-    const denominatorMeasureCode = await optionalDenominatorMeasureCode({
-      statisticKind,
-    })
+
+    let measureCode: string | null = null
+    let localisations: readonly CenstatdMeasureLocalisation[] | null = null
+    let acceptedSchemaCandidate = false
     if (schemaCandidate) {
       note(
         formatCenstatdMeasureProposal({
           candidate: schemaCandidate,
           sourceField: measure.sourceField,
-          suggestedUnitCode,
+          suggestedUnitCode: suggestUnitCode(schemaCandidate.measureCode, decisions),
         }),
         'PROPOSALS',
       )
       const accepted = await confirm({
         initialValue: true,
-        message: 'Accept the proposed CSDI measure metadata?',
+        message: 'Accept the proposed CSDI measure name and description?',
       })
       if (isCancel(accepted)) throw new Error('C&SD measure curation cancelled.')
       if (accepted) {
-        await ensureCenstatdUnit({
-          code: suggestedUnitCode ?? measure.unitCode,
-          path: DEFAULT_UNITS_PATH,
-        })
-        decisions.push({
-          aggregation,
-          datasetCode: measure.datasetCode,
-          ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
-          localisations: schemaCandidate.localisations,
-          measureCode: schemaCandidate.measureCode,
-          schemaSpecification: schemaCandidate.schemaSpecification,
-          sourceField: measure.sourceField,
-          sourceNullOption: schemaCandidate.sourceNullOption,
-          statisticKind,
-          unitCode: suggestedUnitCode ?? measure.unitCode,
-        })
-        await persist()
-        continue
+        acceptedSchemaCandidate = true
+        measureCode = schemaCandidate.measureCode
+        localisations = schemaCandidate.localisations
       }
     }
-    const measureCode = await requiredMeasureCode(
-      'Canonical measure key',
-      schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
-    )
-    const englishName = await requiredText(
-      'English measure name',
-      schemaCandidateLocalisation(schemaCandidate, 'en')?.name ??
-        suggestMeasureName(measure.sourceField),
-    )
-    const englishDescription = await requiredText(
-      'English measure description',
-      schemaCandidateLocalisation(schemaCandidate, 'en')?.description,
-    )
-    const chineseProposals = await resolveChineseLocalisationProposals({
-      candidate: schemaCandidate,
-      englishDescription,
-      englishName,
-    })
-    const traditionalChineseName = await requiredText(
-      'Traditional Chinese measure name',
-      chineseProposals.zhHant?.name,
-    )
-    const traditionalChineseDescription = await requiredText(
-      'Traditional Chinese measure description',
-      chineseProposals.zhHant?.description,
-    )
-    const simplifiedChineseName = await requiredText(
-      'Simplified Chinese measure name',
-      chineseProposals.zhHans?.name,
-    )
-    const simplifiedChineseDescription = await requiredText(
-      'Simplified Chinese measure description',
-      chineseProposals.zhHans?.description,
-    )
-    const unitCode = await text({
-      initialValue:
-        measure.unitCode === 'publisher-unknown'
-          ? (suggestedUnitCode ?? '')
-          : measure.unitCode,
-      message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
-    })
-    if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
-    const resolvedUnitCode = (unitCode ?? '').trim() || 'publisher-unknown'
-    await ensureCenstatdUnit({ code: resolvedUnitCode, path: DEFAULT_UNITS_PATH })
-    decisions.push({
-      aggregation,
-      datasetCode: measure.datasetCode,
-      ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
-      localisations: [
+
+    if (!measureCode || !localisations) {
+      measureCode = await requiredMeasureCode(
+        'Canonical measure key',
+        schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
+      )
+      const englishName = await requiredText(
+        'English measure name',
+        schemaCandidateLocalisation(schemaCandidate, 'en')?.name ??
+          suggestMeasureName(measure.sourceField),
+      )
+      const englishDescription = await requiredText(
+        'English measure description',
+        schemaCandidateLocalisation(schemaCandidate, 'en')?.description,
+      )
+      const chineseProposals = await resolveChineseLocalisationProposals({
+        candidate: schemaCandidate,
+        englishDescription,
+        englishName,
+      })
+      const traditionalChineseName = await requiredText(
+        'Traditional Chinese measure name',
+        chineseProposals.zhHant?.name,
+      )
+      const traditionalChineseDescription = await requiredText(
+        'Traditional Chinese measure description',
+        chineseProposals.zhHant?.description,
+      )
+      const simplifiedChineseName = await requiredText(
+        'Simplified Chinese measure name',
+        chineseProposals.zhHans?.name,
+      )
+      const simplifiedChineseDescription = await requiredText(
+        'Simplified Chinese measure description',
+        chineseProposals.zhHans?.description,
+      )
+      localisations = [
         {
           description: englishDescription,
           isTranslationVerified: true,
@@ -393,7 +350,28 @@ export async function promptForCenstatdMeasureCuration(input: {
           locale: 'zh-Hans',
           name: simplifiedChineseName,
         },
-      ],
+      ]
+    }
+
+    const suggestedUnitCode = suggestUnitCode(measureCode, decisions)
+    const statisticKind = await selectStatisticKind({
+      measure,
+      measureCode,
+      suggestedUnitCode,
+    })
+    const aggregation = await selectAggregation({ statisticKind })
+    const denominatorMeasureCode = await optionalDenominatorMeasureCode({
+      statisticKind,
+    })
+    const resolvedUnitCode = acceptedSchemaCandidate
+      ? (suggestedUnitCode ?? measure.unitCode)
+      : await promptForCenstatdUnitCode(measure.unitCode, suggestedUnitCode)
+    await ensureCenstatdUnit({ code: resolvedUnitCode, path: DEFAULT_UNITS_PATH })
+    decisions.push({
+      aggregation,
+      datasetCode: measure.datasetCode,
+      ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
+      localisations,
       measureCode,
       ...(schemaCandidate
         ? {
@@ -408,6 +386,46 @@ export async function promptForCenstatdMeasureCuration(input: {
     await persist()
   }
   return { measures: decisions, schemaVersion: 5 as const }
+}
+
+async function promptForCenstatdUnitCode(
+  sourceUnitCode: string,
+  suggestedUnitCode: string | null,
+) {
+  const unitCode = await text({
+    initialValue:
+      sourceUnitCode === 'publisher-unknown'
+        ? (suggestedUnitCode ?? '')
+        : sourceUnitCode,
+    message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
+  })
+  if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
+  return (unitCode ?? '').trim() || 'publisher-unknown'
+}
+
+/** Gives enough semantic context to review a measure before choosing its kind. */
+export function formatCenstatdMeasureReviewContext(input: {
+  measure: CenstatdMeasureForCuration
+  schemaCandidate?: Pick<
+    CenstatdSchemaMeasureCandidate,
+    'localisations' | 'sourceReleaseUrl'
+  >
+}) {
+  const proposed = schemaCandidateLocalisation(input.schemaCandidate, 'en')
+  return [
+    formatField('dataset', input.measure.datasetCode),
+    formatField(
+      'proposed name',
+      proposed?.name ?? suggestMeasureName(input.measure.sourceField),
+    ),
+    ...(proposed?.description
+      ? [formatField('proposed description', proposed.description)]
+      : []),
+    formatField('value kind', input.measure.valueKind),
+    ...(input.schemaCandidate
+      ? [formatField('source release', input.schemaCandidate.sourceReleaseUrl)]
+      : []),
+  ].join('\n')
 }
 
 export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationManifest {

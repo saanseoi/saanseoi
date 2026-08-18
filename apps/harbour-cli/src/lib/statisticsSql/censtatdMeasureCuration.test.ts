@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test'
 import {
   emptyCenstatdMeasureCuration,
   formatCenstatdMeasureProposal,
+  formatCenstatdMeasureReviewContext,
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
   resolveUnitLocalisations,
@@ -11,6 +12,34 @@ import {
   suggestUnitCode,
   suggestMeasureName,
 } from './censtatdMeasureCuration.ts'
+
+test('shows the proposed name and description before prompting for measure metadata', () => {
+  const output = formatCenstatdMeasureReviewContext({
+    measure: {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      sourceField: 't_pop',
+      unitCode: 'publisher-unknown',
+      valueKind: 'numeric',
+    },
+    schemaCandidate: {
+      localisations: [
+        {
+          description: 'Total population in the housing market area.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+      ],
+      sourceReleaseUrl: 'https://example.test/release',
+    },
+  })
+
+  expect(output).toContain('proposed name')
+  expect(output).toContain('Total population')
+  expect(output).toContain('proposed description')
+  expect(output).toContain('Total population in the housing market area.')
+  expect(output).not.toContain('source field')
+})
 
 test('identifies C&SD measure fields that require a reviewed decision', () => {
   const measure = {
