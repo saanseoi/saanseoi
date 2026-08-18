@@ -73,6 +73,8 @@ DROP TABLE IF EXISTS `datasetTransforms`;
 DROP TABLE IF EXISTS `datasetI18n`;
 DROP TABLE IF EXISTS `datasetResourceTypes`;
 DROP TABLE IF EXISTS `datasets`;
+DROP TABLE IF EXISTS `unitsI18n`;
+DROP TABLE IF EXISTS `units`;
 DROP TABLE IF EXISTS `licenses`;
 DROP TABLE IF EXISTS `publisherI18n`;
 DROP TABLE IF EXISTS `publishers`;
