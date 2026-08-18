@@ -1,5 +1,8 @@
 import { describe, expect, mock, test } from 'bun:test'
-import { resolve } from 'node:path'
+import { createHash } from 'node:crypto'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
 const preparedInputs: string[] = []
@@ -48,7 +51,10 @@ const runUploadCommandMock = mock(
   },
 )
 
-import { runHkgovPlandBackfillCommand } from './backfillHkgovPland.ts'
+import {
+  runHkgovPlandBackfillCommand,
+  runHkgovPlandNativeArchiveIngestCommand,
+} from './backfillHkgovPland.ts'
 
 describe('Planning Department backfills', () => {
   test('publishes each division before attaching its division area', async () => {
@@ -121,5 +127,75 @@ describe('Planning Department backfills', () => {
     )
 
     expect(completedTarget).toEqual(target)
+  })
+
+  test('rejects an empty managed archive key before preparing or uploading', async () => {
+    const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+    const uploadCalls = runUploadCommandMock.mock.calls.length
+
+    await expect(
+      runHkgovPlandNativeArchiveIngestCommand(
+        {
+          command: 'hkgov-pland:ingest',
+          positionals: ['source.zip'],
+          options: {
+            'release-notes-url': 'https://example.com/catalogue',
+            'source-archive-key': '',
+            'source-archive-sha256': 'a'.repeat(64),
+            'source-version': '2021',
+          },
+        },
+        { environment: 'preview', remote: true },
+        'pu',
+        () => undefined,
+        {
+          prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+          runUploadCommand: runUploadCommandMock,
+        },
+      ),
+    ).rejects.toThrow('requires <source.zip>')
+    expect(prepareHkgovPlandTpuNativeShpZipMock).toHaveBeenCalledTimes(prepareCalls)
+    expect(runUploadCommandMock).toHaveBeenCalledTimes(uploadCalls)
+  })
+
+  test('validates and preserves both managed archive provenance values', async () => {
+    const workDir = await mkdtemp(join(tmpdir(), 'hkgov-pland-ingest-test-'))
+    const archivePath = join(workDir, 'source.zip')
+    const archive = new TextEncoder().encode('test archive')
+    const sourceArchiveSha256 = createHash('sha256').update(archive).digest('hex')
+    const uploads: Array<Record<string, unknown>> = []
+    await writeFile(archivePath, archive)
+
+    try {
+      await runHkgovPlandNativeArchiveIngestCommand(
+        {
+          command: 'hkgov-pland:ingest',
+          positionals: [archivePath],
+          options: {
+            'release-notes-url': 'https://example.com/catalogue',
+            'source-archive-key': 'hkgov/csdi/source.zip',
+            'source-archive-sha256': sourceArchiveSha256,
+            'source-version': '2021',
+          },
+        },
+        { environment: 'preview', remote: true },
+        'pu',
+        () => undefined,
+        {
+          prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+          runUploadCommand: mock(async args => {
+            uploads.push(args.options)
+          }) as typeof runUploadCommandMock,
+        },
+      )
+    } finally {
+      await rm(workDir, { force: true, recursive: true })
+    }
+
+    expect(uploads).toHaveLength(2)
+    for (const options of uploads) {
+      expect(options['source-archive-key']).toBe('hkgov/csdi/source.zip')
+      expect(options['source-archive-sha256']).toBe(sourceArchiveSha256)
+    }
   })
 })
