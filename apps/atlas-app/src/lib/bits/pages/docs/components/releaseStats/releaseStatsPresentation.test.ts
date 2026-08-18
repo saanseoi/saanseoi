@@ -556,6 +556,24 @@ describe('createReleaseStatsPresentation', () => {
         { label: 'Observations per measure', value: '4' },
       ],
     })
+    const withMeasures = createReleaseStatsPresentation({
+      copy,
+      locale: 'en',
+      measures: [
+        {
+          definition: 'Resident population at the reference period.',
+          name: 'Population',
+          observationCount: 4,
+          sourceField: 'POPULATION',
+          unitCode: 'person',
+          valueKind: 'numeric',
+        },
+      ],
+      stats: [],
+    })
+    expect(withMeasures.measures).toMatchObject({
+      rows: [expect.objectContaining({ name: 'Population', observationCount: 4 })],
+    })
     expect(model.recordDistributions.map(distribution => distribution.title)).toEqual([
       'referencePeriod',
       'valueKind',

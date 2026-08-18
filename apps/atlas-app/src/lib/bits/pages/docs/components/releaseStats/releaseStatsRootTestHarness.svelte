@@ -5,14 +5,21 @@ import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
   ReleaseStatsDistrictName,
+  ReleaseStatsMeasure,
 } from './releaseStats.types'
 
 type Props = {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
   districtNames?: ReleaseStatsDistrictName[]
+  measures?: ReleaseStatsMeasure[]
 }
-let { stats = [], districtAreas = [], districtNames = [] }: Props = $props()
+let {
+  stats = [],
+  districtAreas = [],
+  districtNames = [],
+  measures = [],
+}: Props = $props()
 let activeHeadingId = $state<string | null>(null)
 const presentation: ReleaseStatsCopy = {
   labels: {
@@ -75,6 +82,7 @@ const presentation: ReleaseStatsCopy = {
   {stats}
   {districtAreas}
   {districtNames}
+  {measures}
   locale="en"
   {presentation}
   bind:activeHeadingId
