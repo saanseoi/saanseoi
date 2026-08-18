@@ -21,11 +21,12 @@ export type ReleaseStatsDistrictName = {
   unofficial: boolean
 }
 export type ReleaseStatsMeasure = {
+  aggregation: string
   definition: string | null
-  measurementKind: string
   name: string
   observationCount: number
   sourceField: string
+  statisticKind: string
   unitCode: string
   valueKind: string
 }

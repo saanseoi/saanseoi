@@ -13,10 +13,11 @@ test('renders a measure data dictionary with pending metadata visibly marked', a
     measures: [
       {
         definition: null,
-        measurementKind: 'count',
+        aggregation: 'total',
         name: 'Population',
         observationCount: 18,
         sourceField: 'POPULATION',
+        statisticKind: 'count',
         unitCode: 'publisher-unknown',
         valueKind: 'numeric',
       },

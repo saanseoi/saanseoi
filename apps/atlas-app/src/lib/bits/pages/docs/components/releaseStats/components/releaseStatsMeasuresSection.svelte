@@ -8,13 +8,6 @@ const unitLabel = (unitCode: string) =>
   unitCode === 'publisher-unknown'
     ? 'Not mapped'
     : unitCode.replaceAll('-', ' ').replace(/\b\w/g, letter => letter.toUpperCase())
-
-const measurementKindLabel = (measurementKind: string) =>
-  measurementKind === 'unreviewed'
-    ? 'Not reviewed'
-    : measurementKind
-        .replaceAll('-', ' ')
-        .replace(/\b\w/g, letter => letter.toUpperCase())
 </script>
 
 <Section class="overflow-hidden">
@@ -46,11 +39,6 @@ const measurementKindLabel = (measurementKind: string) =>
             Unit
           </th>
           <th
-            class="px-5 py-3 font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
-          >
-            Measurement
-          </th>
-          <th
             class="px-5 py-3 text-right font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
           >
             Observations
@@ -77,9 +65,6 @@ const measurementKindLabel = (measurementKind: string) =>
               class={`px-5 py-4 font-body text-label-md font-semibold ${measure.unitCode === 'publisher-unknown' ? 'text-data-warning' : 'text-primary'}`}
             >
               {unitLabel(measure.unitCode)}
-            </td>
-            <td class="px-5 py-4 font-body text-label-md text-primary">
-              {measurementKindLabel(measure.measurementKind)}
             </td>
             <td
               class="px-5 py-4 text-right font-mono text-label-md font-bold tabular-nums text-primary"

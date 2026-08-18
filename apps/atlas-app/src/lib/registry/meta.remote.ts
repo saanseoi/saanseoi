@@ -806,10 +806,11 @@ async function getSourceReleaseMeasures(input: {
   const rows = await db
     .select({
       definition: currentSchema.statsMeasuresI18n.description,
-      measurementKind: currentSchema.statsMeasures.measurementKind,
+      aggregation: currentSchema.statsMeasures.aggregation,
       measureCode: currentSchema.statsMeasures.measureCode,
       name: currentSchema.statsMeasuresI18n.name,
       sourceField: currentSchema.statsMeasures.sourceField,
+      statisticKind: currentSchema.statsMeasures.statisticKind,
       unitCode: currentSchema.statsMeasures.unitCode,
       valueKind: currentSchema.statsMeasures.valueKind,
     })
@@ -838,10 +839,11 @@ async function getSourceReleaseMeasures(input: {
     .all()
   return rows.map(row => ({
     definition: row.definition,
-    measurementKind: row.measurementKind,
+    aggregation: row.aggregation,
     name: row.name ?? row.sourceField,
     observationCount: countsByMeasure.get(row.measureCode) ?? 0,
     sourceField: row.sourceField,
+    statisticKind: row.statisticKind,
     unitCode: row.unitCode,
     valueKind: row.valueKind,
   }))
