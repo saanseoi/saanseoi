@@ -241,17 +241,30 @@ export const canonicalStatsObservation = {
  * The semantic interpretation of a statistic. This remains independent from
  * whether its source value is numeric and from the unit used to express it.
  */
-export const statsMeasurementKinds = [
+export const statsStatisticKinds = [
   'count',
-  'quantity',
-  'percentage',
+  'proportion',
   'ratio',
   'rate',
+  'density',
   'index',
   'unreviewed',
 ] as const
 
-export type StatsMeasurementKind = (typeof statsMeasurementKinds)[number]
+export type StatsStatisticKind = (typeof statsStatisticKinds)[number]
+
+export const statsAggregations = [
+  'none',
+  'total',
+  'mean',
+  'median',
+  'minimum',
+  'maximum',
+  'percentile',
+  'unreviewed',
+] as const
+
+export type StatsAggregation = (typeof statsAggregations)[number]
 
 export const canonicalStatsMeasure = {
   datasetCode: text('datasetCode').notNull(),
@@ -260,11 +273,17 @@ export const canonicalStatsMeasure = {
   /** Exact publisher nullability declaration, when its schema supplies one. */
   sourceNullOption: text('sourceNullOption'),
   /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
-  measurementKind: text('measurementKind', {
-    enum: statsMeasurementKinds,
+  statisticKind: text('statisticKind', {
+    enum: statsStatisticKinds,
   })
     .notNull()
     .default('unreviewed'),
+  /** Statistical aggregation applied before the publisher supplied this value. */
+  aggregation: text('aggregation', { enum: statsAggregations })
+    .notNull()
+    .default('unreviewed'),
+  /** Canonical measure used as the denominator, when the statistic has one. */
+  denominatorMeasureCode: text('denominatorMeasureCode'),
   valueKind: text('valueKind').notNull(),
   unitCode: text('unitCode').notNull(),
 }

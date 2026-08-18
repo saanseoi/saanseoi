@@ -16,7 +16,8 @@ export {
   streetNameChangeStatuses,
   streetNameChangeStreetRoles,
   streetStatuses,
-  statsMeasurementKinds,
+  statsAggregations,
+  statsStatisticKinds,
   toIsoTimestamp,
   type EvidenceAsset,
   type StreetChangelogKind,
@@ -26,7 +27,8 @@ export {
   type StreetNameChangeStatus,
   type StreetNameChangeStreetRole,
   type StreetStatus,
-  type StatsMeasurementKind,
+  type StatsAggregation,
+  type StatsStatisticKind,
 } from './schema/shared'
 export type {
   LandsdStreetNameChangeScope,
