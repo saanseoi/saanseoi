@@ -15,13 +15,15 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   'apps/harbour-workers/wrangler.jsonc',
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
+const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 
 export type CanonicalStatsTable =
   | 'statsDimensions'
   | 'statsMeasures'
   | 'statsMeasuresI18n'
-  | 'statsObservationDimensions'
   | 'statsObservations'
+  | 'statsSeries'
+  | 'statsSeriesDimensions'
   | 'statsValues'
   | 'statsValuesI18n'
 
@@ -118,12 +120,12 @@ function buildReplaceCurrentStatements(table: CanonicalStatsTable, rows: Row[]) 
   // Current data is the newest version of each logical observation, not a
   // replacement of every period in a dataset. A later compilation may revise
   // 2016 while the current view must still retain its 2021 census rows.
-  // Observation dimensions are the one child set that must be replaced.
-  if (table === 'statsObservationDimensions') {
-    const observationIds = uniqueStrings(rows, 'observationId')
-    return chunk(observationIds, 250).map(
+  // Series dimensions are the one child set that must be replaced.
+  if (table === 'statsSeriesDimensions') {
+    const seriesIds = uniqueStrings(rows, 'seriesId')
+    return chunk(seriesIds, 250).map(
       ids =>
-        `DELETE FROM ${identifier(table)} WHERE "observationId" IN (${ids.map(sqlValue).join(', ')});`,
+        `DELETE FROM ${identifier(table)} WHERE "seriesId" IN (${ids.map(sqlValue).join(', ')});`,
     )
   }
   return []
@@ -148,18 +150,46 @@ function buildUpsertStatements(
   rows: Row[],
   conflictColumns: string[],
 ) {
-  return rows.map(row => {
+  const rowsByColumns = new Map<string, Row[]>()
+  for (const row of rows) {
     const columns = Object.keys(row).sort()
-    const updates = columns.filter(column => !conflictColumns.includes(column))
-    return [
-      `INSERT INTO ${identifier(table)} (${columns.map(identifier).join(', ')})`,
-      `VALUES (${columns.map(column => sqlValue(row[column])).join(', ')})`,
+    const key = columns.join('\u0000')
+    const groupedRows = rowsByColumns.get(key) ?? []
+    groupedRows.push(row)
+    rowsByColumns.set(key, groupedRows)
+  }
+
+  return [...rowsByColumns.entries()].flatMap(([key, groupedRows]) => {
+    const columns = key.split('\u0000')
+    const prefix = `INSERT INTO ${identifier(table)} (${columns.map(identifier).join(', ')}) VALUES `
+    const suffix = [
       `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO UPDATE SET`,
-      updates
+      columns
+        .filter(column => !conflictColumns.includes(column))
         .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
         .join(', '),
       ';',
     ].join(' ')
+    const statements: string[] = []
+    let values: string[] = []
+
+    for (const row of groupedRows) {
+      const value = `(${columns.map(column => sqlValue(row[column])).join(', ')})`
+      const candidate = `${prefix}${[...values, value].join(', ')} ${suffix}`
+      if (Buffer.byteLength(candidate) > SQL_STATEMENT_BYTE_LIMIT) {
+        if (values.length === 0) {
+          throw new Error(
+            `A ${table} canonical statistic row exceeds the D1 SQL statement limit.`,
+          )
+        }
+        statements.push(`${prefix}${values.join(', ')} ${suffix}`)
+        values = [value]
+        continue
+      }
+      values.push(value)
+    }
+    if (values.length) statements.push(`${prefix}${values.join(', ')} ${suffix}`)
+    return statements
   })
 }
 
@@ -171,6 +201,8 @@ function historyIdentityColumns(table: CanonicalStatsTable) {
   switch (table) {
     case 'statsObservations':
       return ['id']
+    case 'statsSeries':
+      return ['id']
     case 'statsMeasures':
       return ['datasetCode', 'measureCode']
     case 'statsMeasuresI18n':
@@ -181,8 +213,8 @@ function historyIdentityColumns(table: CanonicalStatsTable) {
       return ['datasetCode', 'dimensionCode', 'valueCode']
     case 'statsValuesI18n':
       return ['datasetCode', 'dimensionCode', 'valueCode', 'locale']
-    case 'statsObservationDimensions':
-      return ['observationId', 'dimensionCode', 'valueCode']
+    case 'statsSeriesDimensions':
+      return ['seriesId', 'dimensionCode', 'valueCode']
   }
 }
 
@@ -211,6 +243,9 @@ function chunkSql(statements: string[]) {
   const output: string[] = []
   let current = ''
   for (const statement of statements) {
+    if (Buffer.byteLength(statement) > SQL_STATEMENT_BYTE_LIMIT) {
+      throw new Error('A canonical statistic SQL statement exceeds the D1 limit.')
+    }
     if (current && current.length + statement.length + 1 > SQL_CHUNK_BYTE_LIMIT) {
       output.push(current)
       current = ''

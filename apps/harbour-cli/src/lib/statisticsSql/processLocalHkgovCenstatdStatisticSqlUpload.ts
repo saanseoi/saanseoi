@@ -1,10 +1,19 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
+import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
+import {
+  buildCenstatdGeographyLinkAuditActions,
+  buildCenstatdReleaseStats,
+  buildCenstatdStructuralChurnStats,
+  censtatdReleaseStatsProfileFor,
+} from '@repo/core/pipeline/services/censtatdReleaseStats'
 import { createHash } from 'node:crypto'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 
 import {
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
@@ -27,6 +36,11 @@ import {
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
+import {
+  replayReleaseProcessingActionsMetaToRemote,
+  replayReleaseStatsMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
@@ -80,7 +94,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         },
       })
   try {
-    const processingStepCount = target.remote ? 6 : 4
+    const processingStepCount = target.remote ? 8 : 5
     progress.beginPhase('Start statistic processing', { max: processingStepCount })
     await client.stageRunning(
       releaseId,
@@ -112,6 +126,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
     )
     const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
+    const sourceFeatures = rows.map(row => ({
+      featureId: requiredString(row.featureId, 'featureId'),
+      layerName: requiredString(row.layerName, 'layerName'),
+    }))
     const bridgeCohort = resolveCenstatdDistrictBridgeCohort(
       datasetCode,
       plan.sourceVersion,
@@ -152,15 +170,59 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       plan.sourceVersion.slice(0, 4),
       canonicalBatches,
     )
+    progress.update(processingStepCount - 2, {
+      label: 'Materialise release statistics in local metadata',
+    })
+    const statsProfile = censtatdReleaseStatsProfileFor(datasetCode, plan.sourceVersion)
+    const structuralStats = buildCenstatdReleaseStats(
+      sourceFeatures,
+      canonical,
+      statsProfile,
+    )
+    const previousStats = await findPreviousComparableCenstatdReleaseStats(
+      metaDb,
+      releaseId,
+    )
+    const materialisedStats = await replaceDatasetStatsAndReturnRows(
+      metaDb,
+      releaseId,
+      [
+        ...structuralStats,
+        ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+      ],
+    )
+    const materialisedProcessingActions =
+      await replaceReleaseProcessingActionsAndReturnRows(
+        metaDb,
+        releaseId,
+        buildCenstatdGeographyLinkAuditActions(statsProfile, sourceFeatures.length),
+      )
+    await replayReleaseStatsMetaToRemote(target, context, releaseId, materialisedStats)
+    await replayReleaseProcessingActionsMetaToRemote(
+      target,
+      context,
+      releaseId,
+      materialisedProcessingActions,
+    )
     progress.update(processingStepCount - 1, { label: 'Complete statistic replay' })
     await client.stageCompleted(
       releaseId,
       'processDataset',
-      { importedRows: rows.length },
+      {
+        auditActions: materialisedProcessingActions.actions.length,
+        importedRows: rows.length,
+        statsRows: materialisedStats.length,
+      },
       releaseCode,
     )
     progress.update(processingStepCount, { label: 'Publish statistic release' })
     const published = await client.publishDataset(releaseId, releaseCode)
+    if (target.remote) {
+      await refreshRemoteMetaCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+      )
+    }
     progress.complete('Published statistic release')
     return published
   } catch (error) {
@@ -280,6 +342,10 @@ function canonicalCurrentRows(
   const now = new Date().toISOString()
   return [
     {
+      rows: canonical.series.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsSeries' as const,
+    },
+    {
       rows: canonical.observations.map(row => ({
         ...row,
         createdAt: now,
@@ -320,12 +386,12 @@ function canonicalCurrentRows(
       table: 'statsValuesI18n' as const,
     },
     {
-      rows: canonical.observationDimensions.map(row => ({
+      rows: canonical.seriesDimensions.map(row => ({
         ...row,
         createdAt: now,
         updatedAt: now,
       })),
-      table: 'statsObservationDimensions' as const,
+      table: 'statsSeriesDimensions' as const,
     },
   ]
 }
@@ -344,6 +410,7 @@ function canonicalHistoryRows(
     versionHash: createHash('sha256').update(JSON.stringify(row)).digest('hex'),
   })
   return [
+    { rows: canonical.series.map(version), table: 'statsSeries' as const },
     { rows: canonical.observations.map(version), table: 'statsObservations' as const },
     { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
     { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
@@ -351,8 +418,8 @@ function canonicalHistoryRows(
     { rows: canonical.values.map(version), table: 'statsValues' as const },
     { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
     {
-      rows: canonical.observationDimensions.map(version),
-      table: 'statsObservationDimensions' as const,
+      rows: canonical.seriesDimensions.map(version),
+      table: 'statsSeriesDimensions' as const,
     },
   ]
 }

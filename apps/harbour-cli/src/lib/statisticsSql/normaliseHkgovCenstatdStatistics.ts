@@ -1,14 +1,64 @@
 import { createHash } from 'node:crypto'
+import type {
+  CenstatdCanonicalDimension,
+  CenstatdCanonicalDimensionValue,
+  CenstatdCanonicalMeasure,
+  CenstatdCanonicalObservation,
+} from '@repo/core/pipeline/services/censtatdReleaseStats'
 
 type Row = Record<string, unknown>
 
+type CanonicalObservation = CenstatdCanonicalObservation & {
+  id: string
+  seriesId: string
+  sourceField: string
+  sourceValue: string
+  unitCode: string
+  valueCode: string | null
+  valuePrecision: number | null
+}
+
+type CanonicalSeries = {
+  datasetCode: string
+  divisionId: string | null
+  geographyCohortId: string | null
+  id: string
+  referencePeriodCode: string
+  referencePeriodEnd: string | null
+  referencePeriodGranularity: string
+  referencePeriodStart: string | null
+  sourceFeatureId: string
+  sourceReleaseId: string
+}
+
+type CanonicalSeriesDimension = {
+  dimensionCode: string
+  seriesId: string
+  valueCode: string
+}
+
+type CanonicalMeasure = CenstatdCanonicalMeasure & {
+  datasetCode: string
+  sourceField: string
+  valueKind: 'categorical' | 'numeric'
+}
+
+type CanonicalDimension = CenstatdCanonicalDimension & {
+  datasetCode: string
+}
+
+type CanonicalDimensionValue = CenstatdCanonicalDimensionValue & {
+  datasetCode: string
+}
+
 export type CanonicalStatsRows = {
-  dimensions: Row[]
-  measures: Row[]
+  dimensions: CanonicalDimension[]
+  measures: CanonicalMeasure[]
   measuresI18n: Row[]
-  observationDimensions: Row[]
-  observations: Row[]
-  values: Row[]
+  observations: CanonicalObservation[]
+  series: CanonicalSeries[]
+  seriesDimensions: CanonicalSeriesDimension[]
+  values: CanonicalDimensionValue[]
   valuesI18n: Row[]
 }
 
@@ -30,17 +80,35 @@ export type HkgovCenstatdStatisticSourceRow = {
 export function normaliseHkgovCenstatdStatistics(
   input: HkgovCenstatdStatisticSourceRow[],
 ): CanonicalStatsRows {
-  const observations: Row[] = []
-  const measures = new Map<string, Row>()
+  const observations: CanonicalObservation[] = []
+  const measures = new Map<string, CanonicalMeasure>()
   const measuresI18n = new Map<string, Row>()
-  const dimensions = new Map<string, Row>()
-  const values = new Map<string, Row>()
+  const dimensions = new Map<string, CanonicalDimension>()
+  const values = new Map<string, CanonicalDimensionValue>()
   const valuesI18n = new Map<string, Row>()
-  const observationDimensions: Row[] = []
+  const series = new Map<string, CanonicalSeries>()
+  const seriesDimensions = new Map<string, CanonicalSeriesDimension>()
 
   for (const row of input) {
     const profile = profileFor(row.datasetCode, row.properties, row.sourceVersion)
     const dimensionEntries = profile.dimensions
+    const seriesId = seriesIdentifier({
+      datasetCode: row.datasetCode,
+      referencePeriodCode: profile.referencePeriodCode,
+      sourceFeatureId: row.sourceFeatureId,
+    })
+    series.set(seriesId, {
+      datasetCode: row.datasetCode,
+      divisionId: row.divisionId ?? null,
+      geographyCohortId: profile.geographyCohortId,
+      id: seriesId,
+      referencePeriodCode: profile.referencePeriodCode,
+      referencePeriodEnd: null,
+      referencePeriodGranularity: profile.referencePeriodGranularity,
+      referencePeriodStart: null,
+      sourceFeatureId: row.sourceFeatureId,
+      sourceReleaseId: row.sourceReleaseId,
+    })
     for (const dimension of dimensionEntries) {
       const key = [row.datasetCode, dimension.code].join('\u0000')
       dimensions.set(key, {
@@ -53,6 +121,14 @@ export function normaliseHkgovCenstatdStatistics(
       values.set(valueKey, {
         datasetCode: row.datasetCode,
         dimensionCode: dimension.code,
+        valueCode: dimension.valueCode,
+      })
+      const seriesDimensionKey = [seriesId, dimension.code, dimension.valueCode].join(
+        '\u0000',
+      )
+      seriesDimensions.set(seriesDimensionKey, {
+        dimensionCode: dimension.code,
+        seriesId,
         valueCode: dimension.valueCode,
       })
       if (dimension.nameEn) {
@@ -82,22 +158,14 @@ export function normaliseHkgovCenstatdStatistics(
       const parsed = parseObservationValue(row.datasetCode, sourceField, sourceValue)
       const measureCode = sourceField
       const observationId = observationIdentifier({
-        datasetCode: row.datasetCode,
-        dimensions: dimensionEntries,
         measureCode,
-        referencePeriodCode: profile.referencePeriodCode,
+        seriesId,
       })
       observations.push({
         id: observationId,
-        datasetCode: row.datasetCode,
-        sourceReleaseId: row.sourceReleaseId,
-        sourceFeatureId: row.sourceFeatureId,
+        seriesId,
         sourceField,
-        divisionId: row.divisionId ?? null,
         referencePeriodCode: profile.referencePeriodCode,
-        referencePeriodStart: null,
-        referencePeriodEnd: null,
-        referencePeriodGranularity: profile.referencePeriodGranularity,
         measureCode,
         numericValue: parsed.numericValue,
         valueCode: parsed.valueCode,
@@ -105,7 +173,6 @@ export function normaliseHkgovCenstatdStatistics(
         valuePrecision: null,
         observationStatus: parsed.observationStatus,
         sourceValue,
-        geographyCohortId: profile.geographyCohortId,
       })
       const measureKey = [row.datasetCode, measureCode].join('\u0000')
       measures.set(measureKey, {
@@ -124,13 +191,6 @@ export function normaliseHkgovCenstatdStatistics(
         name: sourceField,
         description: null,
       })
-      for (const dimension of dimensionEntries) {
-        observationDimensions.push({
-          observationId,
-          dimensionCode: dimension.code,
-          valueCode: dimension.valueCode,
-        })
-      }
     }
   }
 
@@ -138,8 +198,9 @@ export function normaliseHkgovCenstatdStatistics(
     dimensions: [...dimensions.values()],
     measures: [...measures.values()],
     measuresI18n: [...measuresI18n.values()],
-    observationDimensions,
     observations,
+    series: [...series.values()],
+    seriesDimensions: [...seriesDimensions.values()],
     values: [...values.values()],
     valuesI18n: [...valuesI18n.values()],
   }
@@ -319,21 +380,21 @@ function unitFor(datasetCode: string, sourceField: string) {
   return 'publisher-unknown'
 }
 
-function observationIdentifier(input: {
-  datasetCode: string
-  dimensions: Dimension[]
-  measureCode: string
-  referencePeriodCode: string
-}) {
+function observationIdentifier(input: { measureCode: string; seriesId: string }) {
   const basis = JSON.stringify({
-    datasetCode: input.datasetCode,
-    dimensions: input.dimensions
-      .map(value => [value.code, value.valueCode])
-      .sort(([left], [right]) => (left ?? '').localeCompare(right ?? '')),
     measureCode: input.measureCode,
-    referencePeriodCode: input.referencePeriodCode,
+    seriesId: input.seriesId,
   })
   return `stats:${createHash('sha256').update(basis).digest('hex')}`
+}
+
+function seriesIdentifier(input: {
+  datasetCode: string
+  referencePeriodCode: string
+  sourceFeatureId: string
+}) {
+  const basis = JSON.stringify(input)
+  return `stats-series:${createHash('sha256').update(basis).digest('hex')}`
 }
 
 function literal(value: unknown) {

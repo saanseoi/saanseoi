@@ -26,10 +26,16 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       expect.objectContaining({
         measureCode: 'my_lp',
         referencePeriodCode: '2016',
-        referencePeriodGranularity: 'year',
         sourceValue: '243300',
       }),
     ])
+    expect(rows.series).toEqual([
+      expect.objectContaining({
+        referencePeriodCode: '2016',
+        sourceFeatureId: 'DC_GHS:11-2016',
+      }),
+    ])
+    expect(rows.seriesDimensions).toHaveLength(2)
   })
 
   test('uses half-year periods and preserves suppression literals', () => {
@@ -55,7 +61,6 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       numericValue: null,
       observationStatus: 'suppressed',
       referencePeriodCode: '2023-H2',
-      referencePeriodGranularity: 'half-year',
       sourceValue: '**',
       valueCode: 'suppressed',
     })
@@ -84,12 +89,14 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(rows.observations).toContainEqual(
       expect.objectContaining({
-        divisionId: 'district-central-western',
         measureCode: 'MYPOPN_LAND',
         numericValue: '243300',
         sourceValue: '243.3',
         unitCode: 'person',
       }),
+    )
+    expect(rows.series).toContainEqual(
+      expect.objectContaining({ divisionId: 'district-central-western' }),
     )
   })
 })

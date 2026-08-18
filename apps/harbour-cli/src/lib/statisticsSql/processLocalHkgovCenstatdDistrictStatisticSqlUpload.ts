@@ -1,4 +1,12 @@
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
+import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
+import {
+  buildCenstatdGeographyLinkAuditActions,
+  buildCenstatdReleaseStats,
+  buildCenstatdStructuralChurnStats,
+  censtatdReleaseStatsProfileFor,
+} from '@repo/core/pipeline/services/censtatdReleaseStats'
 import { createHash as createNodeHash } from 'node:crypto'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
@@ -12,6 +20,7 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
@@ -30,6 +39,11 @@ import {
 } from './canonicalStatsSql.ts'
 import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
+import {
+  replayReleaseProcessingActionsMetaToRemote,
+  replayReleaseStatsMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
 
 type Plan = {
   cohortKey: string
@@ -128,7 +142,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       })
 
   try {
-    const processingStepCount = target.remote ? 7 : 5
+    const processingStepCount = target.remote ? 8 : 5
     progress.beginPhase('Start district statistic processing', {
       max: processingStepCount,
     })
@@ -205,19 +219,71 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       canonicalBatches,
     )
 
+    progress.update(processingStepCount - 2, {
+      label: 'Materialise release statistics in local metadata',
+    })
+    const statsProfile = censtatdReleaseStatsProfileFor(
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      plan.sourceVersion,
+    )
+    const structuralStats = buildCenstatdReleaseStats(
+      sourceRows.map(row => ({
+        featureId: String(row.districtCode),
+        layerName: `Density_${plan.sourceVersion}`,
+      })),
+      canonical,
+      statsProfile,
+    )
+    const previousStats = await findPreviousComparableCenstatdReleaseStats(
+      metaDb,
+      releaseId,
+    )
+    const materialisedStats = await replaceDatasetStatsAndReturnRows(
+      metaDb,
+      releaseId,
+      [
+        ...structuralStats,
+        ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+      ],
+    )
+    const materialisedProcessingActions =
+      await replaceReleaseProcessingActionsAndReturnRows(
+        metaDb,
+        releaseId,
+        buildCenstatdGeographyLinkAuditActions(statsProfile, sourceRows.length),
+      )
+    await replayReleaseStatsMetaToRemote(target, context, releaseId, materialisedStats)
+    await replayReleaseProcessingActionsMetaToRemote(
+      target,
+      context,
+      releaseId,
+      materialisedProcessingActions,
+    )
+
     progress.update(processingStepCount - 1, {
       label: 'Complete district statistic replay',
     })
     await client.stageCompleted(
       releaseId,
       'processDataset',
-      { historyRows: historyRows.length, importedRows: sourceRows.length },
+      {
+        historyRows: historyRows.length,
+        importedRows: sourceRows.length,
+        statsRows: materialisedStats.length,
+        auditActions: materialisedProcessingActions.actions.length,
+      },
       releaseCode,
     )
     progress.update(processingStepCount, {
       label: 'Publish district statistic release',
     })
     const published = await client.publishDataset(releaseId, releaseCode)
+    if (target.remote) {
+      await refreshRemoteMetaCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+      )
+    }
     progress.complete('Published district statistic release')
     return published
   } catch (error) {
@@ -432,6 +498,10 @@ function canonicalCurrentRows(
   const now = new Date().toISOString()
   return [
     {
+      rows: canonical.series.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsSeries' as const,
+    },
+    {
       rows: canonical.observations.map(row => ({
         ...row,
         createdAt: now,
@@ -472,12 +542,12 @@ function canonicalCurrentRows(
       table: 'statsValuesI18n' as const,
     },
     {
-      rows: canonical.observationDimensions.map(row => ({
+      rows: canonical.seriesDimensions.map(row => ({
         ...row,
         createdAt: now,
         updatedAt: now,
       })),
-      table: 'statsObservationDimensions' as const,
+      table: 'statsSeriesDimensions' as const,
     },
   ]
 }
@@ -498,6 +568,7 @@ function canonicalHistoryRows(
       .digest('hex'),
   })
   return [
+    { rows: canonical.series.map(version), table: 'statsSeries' as const },
     { rows: canonical.observations.map(version), table: 'statsObservations' as const },
     { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
     { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
@@ -505,8 +576,8 @@ function canonicalHistoryRows(
     { rows: canonical.values.map(version), table: 'statsValues' as const },
     { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
     {
-      rows: canonical.observationDimensions.map(version),
-      table: 'statsObservationDimensions' as const,
+      rows: canonical.seriesDimensions.map(version),
+      table: 'statsSeriesDimensions' as const,
     },
   ]
 }
