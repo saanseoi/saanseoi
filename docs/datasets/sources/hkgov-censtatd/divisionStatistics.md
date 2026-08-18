@@ -66,6 +66,13 @@ definition, and either a reviewed canonical unit code or the explicit
 The release page presents this resulting measure dictionary in Stats, while Audit
 remains for processing decisions and their evidence.
 
+For a field not described by the native GML, the CLI resolves the dataset's registered
+CSDI Simplified Data Specification through CSDI's static host and parses its field
+table. An exact publisher-field match is shown as the name and definition default,
+together with the specification URL and SHA-256. It remains a candidate for the curator
+to approve or amend; a failed retrieval, ambiguous field description, or unsupported
+specification format simply leaves the field for required manual curation.
+
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
 and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA

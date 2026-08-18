@@ -38,6 +38,12 @@ is stored as `publisher-unknown`, never inferred. The source-release Stats tab t
 exposes the release's measure dictionary with its definition, unit, value kind, and
 observation count.
 
+When native GML has no field definition, the CLI reads the registered CSDI Simplified
+Data Specification from its static publisher host and offers the exact matching field
+description as a curation default. The saved decision records the specification URL and
+SHA-256, but is still explicitly reviewed; retrieval or parsing failure falls back to
+the existing required manual curation and never prevents source-archive preservation.
+
 Area/type and HMA are approved source-release fan-outs. Area/type creates the three
 Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
 domain. Their observations carry the matching deterministic canonical `divisionId`.
