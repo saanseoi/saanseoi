@@ -67,6 +67,28 @@
       ]
     },
     {
+      "code": "percent",
+      "dimension": "proportion",
+      "symbol": "%",
+      "i18n": [
+        {
+          "description": "A proportion expressed per 100 units.",
+          "locale": "en",
+          "name": "Percent"
+        },
+        {
+          "description": "以每100個分母單位表示的比例。",
+          "locale": "zh-Hant",
+          "name": "百分比"
+        },
+        {
+          "description": "以每100个分母单位表示的比例。",
+          "locale": "zh-Hans",
+          "name": "百分比"
+        }
+      ]
+    },
+    {
       "code": "person",
       "dimension": "population",
       "symbol": "persons",
@@ -133,5 +155,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:7ccc012995a302a054517c684a32d9acd762f52f63594d12a40f70e40fd099c6"
+  "versionHash": "sha256:67decc208ca40d309f645731deb7931bce648ab4a6ec20df3b25e8222f6fe854"
 }
