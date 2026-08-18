@@ -150,13 +150,13 @@ metadata emitted by the current writer; this does not alter the geometry or reco
 ```sh
 bun run dataops -- hkgov-pland:backfill --kind pu --target preview
 bun run dataops -- hkgov-pland:backfill --kind new-town --target preview
-bun run dataops -- hkgov-pland:ingest --kind pu <mirrored-source.zip> --target preview --source-version 2021 --release-notes-url https://portal.csdi.gov.hk/geoportal/
+bun run dataops -- hkgov-pland:ingest --kind pu <mirrored-source.zip> --target preview --source-version 2021 --release-notes-url https://portal.csdi.gov.hk/geoportal/ --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```
 
 `backfill` accepts no data-path, source-version or confirmation options; use `local`,
 `preview`, or `production` as the target. `ingest` is the updater hand-off: it accepts
-only the source ZIP that was just mirrored, and publishes its division before the
-companion area.
+only the source ZIP that was just mirrored, verifies its managed key and SHA-256, and
+publishes its division before the companion area.
 
 ## Publication lineage
 

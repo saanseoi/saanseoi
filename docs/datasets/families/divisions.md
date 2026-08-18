@@ -32,7 +32,8 @@ release contains only snapshots that can be returned together. Planning-domain c
 rows therefore never need an Overture cohort in order to be published, and a 2006
 planning cohort can be backfilled even when no 2006 Overture divisions exist. New Town
 identities are cohort-scoped; Planning Unit and Overture lineages use persistent
-identity.
+identity. Updater-driven Planning Department intake verifies the mirrored archive's
+managed key and SHA-256 before parsing it.
 
 Published domain releases are immutable. Adding another eligible secondary snapshot to
 an already published cohort creates the next trailing composition revision (`...-0` to
