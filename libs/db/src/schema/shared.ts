@@ -241,6 +241,8 @@ export const canonicalStatsMeasure = {
   datasetCode: text('datasetCode').notNull(),
   measureCode: text('measureCode').notNull(),
   sourceField: text('sourceField').notNull(),
+  /** Exact publisher nullability declaration, when its schema supplies one. */
+  sourceNullOption: text('sourceNullOption'),
   valueKind: text('valueKind').notNull(),
   unitCode: text('unitCode').notNull(),
 }
