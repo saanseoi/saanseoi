@@ -59,24 +59,29 @@ release period.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics.json`. It sets a stable canonical
-`measureCode` and a reviewed `measurementKind`, while preserving the publisher
-`sourceField` in the canonical observation. `measurementKind` identifies whether the
-measure is a count, quantity, percentage, ratio, rate, or index; it is deliberately
-separate from the source value representation and unit. The CLI reads the registered
-CSDI Simplified Data Specification through CSDI's static host only to pre-fill a review
-candidate. It displays compact metadata with the stable source-release portal URL rather
-than the expiring specification link, followed by a `sourceField -> measureCode`
-proposal with any compatible previously reviewed unit suggestion and all three locales
-inline before acceptance. On rejection, the CSDI English name and description are
-editable defaults. Changing either invokes Azure Translator for fresh Chinese defaults;
-accepted machine values are stored with `isTranslationVerified=false`, while official
-CSDI locale rows remain verified. `--yes` refuses every uncurated field. The importer
-retains the exact publisher `Null Option` as the measure's nullable `sourceNullOption`.
-It does not replace SaanSeoi's normalised observation status or automatically admit a
-unit. Each completed measure decision is written immediately to the curation manifest,
-so an interrupted review can be resumed or hand-edited without repeating completed
-measures. The release page presents the resulting measure dictionary in Stats, while
-Audit remains for processing decisions and their evidence.
+`measureCode`, a reviewed `statisticKind`, and a separate reviewed `aggregation`, while
+preserving the publisher `sourceField` in the canonical observation. `statisticKind`
+identifies whether the measure is a count, quantity, proportion, ratio, rate, density,
+or index; a ratio, rate, proportion, or density may also identify a canonical
+`denominatorMeasureCode`. These fields are deliberately separate from the source value
+representation and unit. The CLI reads the registered CSDI Simplified Data Specification
+through CSDI's static host only to pre-fill a review candidate. It displays compact
+metadata with the stable source-release portal URL rather than the expiring
+specification link, followed by a `sourceField -> measureCode` proposal with any
+compatible previously reviewed unit suggestion and all three locales inline before
+acceptance. On rejection, the CSDI English name and description are editable defaults.
+Changing either invokes Azure Translator for fresh Chinese defaults; accepted machine
+values are stored with `isTranslationVerified=false`, while official CSDI locale rows
+remain verified. `--yes` refuses every uncurated field. The importer retains the exact
+publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
+replace SaanSeoi's normalised observation status or automatically admit a unit. When a
+reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
+dimension, symbol, English name, and definition, then writes the unit registry before it
+writes that measure's curation decision. Each completed measure decision is written
+immediately to the curation manifest, so an interrupted review can be resumed or
+hand-edited without repeating completed measures. The release page presents the
+resulting measure dictionary in Stats, while Audit remains for processing decisions and
+their evidence.
 
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
@@ -89,10 +94,10 @@ history for a future buildings projection.
 Every C&SD statistics source release stores only structural release facts: validated
 publisher-feature count and source-layer distribution; canonical-observation count and
 distributions by measure, reference period, status and numeric/categorical kind;
-unique-measure and unit distributions; distinct reference-period count; and canonical
-dimension/value-definition counts. The processor never sums, averages or compares
-publisher values with different units. `records/count/count` remains the
-source-directory primary count.
+unique-measure, unit, statistic-kind, and aggregation distributions; distinct
+reference-period count; and canonical dimension/value-definition counts. The processor
+never sums, averages or compares publisher values with different units.
+`records/count/count` remains the source-directory primary count.
 
 Reviewed canonical geography resolution is an Audit concern rather than a release-stat
 dimension. District releases record the approved C&SD-to-canonical district bridge as an
@@ -149,10 +154,12 @@ localisation is materialised only when a consumer needs it.
 
 `MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
 during canonical ingestion, so `numericValue` is the actual number of people while
-`sourceValue` remains the original literal. No multiplier is stored. `PERIOD`, land area
-(`LA`), and mid-year population density (`POPN_D`) are retained as statistic assertions.
-The archive quarter is never a dataset version: the fixture's `sourceVersion` creates
-`2022.0` and `2024.0`.
+`sourceValue` remains the original literal. `valuePrecision` records the greatest
+significant decimal count from the original value, and the normalisation is recorded as
+one release Audit bulk action with its factor and source/target units. `PERIOD`, land
+area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic
+assertions. The archive quarter is never a dataset version: the fixture's
+`sourceVersion` creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
