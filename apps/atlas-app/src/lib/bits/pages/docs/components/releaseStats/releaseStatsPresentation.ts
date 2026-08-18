@@ -381,7 +381,7 @@ export function createReleaseStatsPresentation({
         (row.dimension === 'records' && row.metric === 'count') ||
         (row.dimension === 'observations' &&
           row.metric === 'count' &&
-          ['referencePeriod', 'valueKind'].includes(row.groupBy ?? ''))),
+          row.groupBy === 'referencePeriod')),
   )
   const recordDistributions = distributionRows.length
     ? (() => {
@@ -539,6 +539,16 @@ export function createReleaseStatsPresentation({
           }
         })()
       : undefined
+
+  // Value representation is an ingestion concern, not a release-page statistic.
+  claim(
+    matching(
+      row =>
+        row.dimension === 'observations' &&
+        row.metric === 'count' &&
+        row.groupBy === 'valueKind',
+    ),
+  )
 
   const generic = new Map<string, Row[]>()
   rows

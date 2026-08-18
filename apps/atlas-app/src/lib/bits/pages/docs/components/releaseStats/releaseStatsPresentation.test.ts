@@ -540,6 +540,27 @@ describe('createReleaseStatsPresentation', () => {
         groupValue: 'publisher-unknown',
         value: 3,
       },
+      {
+        dimension: 'measures',
+        metric: 'count',
+        groupBy: 'statisticKind',
+        groupValue: 'count',
+        value: 2,
+      },
+      {
+        dimension: 'measures',
+        metric: 'count',
+        groupBy: 'statisticKind',
+        groupValue: 'density',
+        value: 1,
+      },
+      {
+        dimension: 'measures',
+        metric: 'count',
+        groupBy: 'aggregation',
+        groupValue: 'total',
+        value: 3,
+      },
       { dimension: 'reference_periods', metric: 'count', value: 1 },
       { dimension: 'dimensions', metric: 'definition_count', value: 2 },
       { dimension: 'dimensions', metric: 'value_definition_count', value: 4 },
@@ -562,10 +583,11 @@ describe('createReleaseStatsPresentation', () => {
       measures: [
         {
           definition: 'Resident population at the reference period.',
-          measurementKind: 'count',
+          aggregation: 'total',
           name: 'Population',
           observationCount: 4,
           sourceField: 'POPULATION',
+          statisticKind: 'count',
           unitCode: 'person',
           valueKind: 'numeric',
         },
@@ -577,8 +599,14 @@ describe('createReleaseStatsPresentation', () => {
     })
     expect(model.recordDistributions.map(distribution => distribution.title)).toEqual([
       'referencePeriod',
-      'valueKind',
     ])
+    expect(model.genericGroups.map(group => group.label)).not.toContain('valueKind')
+    expect(model.genericGroups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'aggregation' }),
+        expect.objectContaining({ label: 'statisticKind' }),
+      ]),
+    )
     expect(model.quality?.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: 'suppressed observations', value: '2' }),
@@ -588,6 +616,5 @@ describe('createReleaseStatsPresentation', () => {
         }),
       ]),
     )
-    expect(model.genericGroups).toEqual([])
   })
 })
