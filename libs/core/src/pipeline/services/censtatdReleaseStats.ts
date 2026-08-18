@@ -27,7 +27,10 @@ export type CenstatdCanonicalObservation = {
 
 export type CenstatdCanonicalMeasure = {
   aggregation: string
+  denominatorMeasureCode?: string | null
   measureCode: string
+  sourceField?: string
+  sourceNullOption?: string | null
   statisticKind: string
   unitCode: string
 }
@@ -260,6 +263,41 @@ export function buildCenstatdNormalisationAuditActions(
         },
       ]
     : []
+}
+
+/**
+ * Makes every reviewed source-field-to-measure decision inspectable alongside the
+ * release that used it. These are manual curation decisions, not value transforms.
+ */
+export function buildCenstatdMeasureCurationAuditActions(
+  canonical: CenstatdCanonicalStatistics,
+): ReleaseProcessingAction[] {
+  const observationCounts = new Map<string, number>()
+  for (const observation of canonical.observations) {
+    if (!observation.sourceField) continue
+    observationCounts.set(
+      observation.sourceField,
+      (observationCounts.get(observation.sourceField) ?? 0) + 1,
+    )
+  }
+  return canonical.measures
+    .filter(measure => measure.sourceField)
+    .sort((left, right) => left.sourceField!.localeCompare(right.sourceField!))
+    .map(measure => ({
+      action: 'curate_censtatd_measure_metadata',
+      affectedRecordCount: observationCounts.get(measure.sourceField!) ?? 0,
+      evidence: {
+        aggregation: measure.aggregation,
+        denominatorMeasureCode: measure.denominatorMeasureCode ?? null,
+        measureCode: measure.measureCode,
+        sourceField: measure.sourceField,
+        sourceNullOption: measure.sourceNullOption ?? null,
+        statisticKind: measure.statisticKind,
+        unitCode: measure.unitCode,
+      },
+      mode: 'manual',
+      summary: `Reviewed C&SD metadata for publisher field ${measure.sourceField}.`,
+    }))
 }
 
 /**
