@@ -57,9 +57,11 @@ superseded values and definitions. A Population and Household compilation can th
 carry annual observations for 2016–2025 without collapsing them to the compilation
 release period.
 
-The importer never creates a parallel statistical-geography registry. Native geometry
-remains source provenance. If a reviewed statistical geometry must be delivered, it is
-released as a new domain in the Divisions API family instead.
+The importer never creates a parallel statistical-geography registry. The Area/type and
+HMA native polygon layers fan out from the same verified source release into `division`
+and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA
+contributes the C&SD Housing Market Area domain. Building Group points remain source
+history for a future buildings projection.
 
 ## Source-release statistics and geography audit
 
@@ -74,15 +76,15 @@ source-directory primary count.
 Reviewed canonical geography resolution is an Audit concern rather than a release-stat
 dimension. District releases record the approved C&SD-to-canonical district bridge as an
 automatic processing action with authority, cohort, domain and source-field evidence. A
-missing required district bridge member stops ingestion. Area/type, HMA and
-building-group, and major-housing-estate geometries are candidate domains, not failed
-district links. C&SD new towns are an existing-domain candidate for review against the
-Planning new-town domain, not an assumed match.
+missing required district bridge member stops ingestion. Building-group and
+major-housing-estate geometries are candidate domains, not failed district links.
+Area/type and HMA use reviewed native source-code identities. C&SD new towns are an
+existing-domain candidate for review against the Planning new-town domain, not an
+assumed match.
 
 If source geometry is suitable for delivery, it is reviewed and published through a
-separate Divisions-domain workflow. The statistics uploader never creates that domain
-implicitly; after an approved domain and identifier bridge exist, its profile can become
-a reviewed canonical link.
+Divisions-domain workflow. Area/type and HMA are the approved exception: their shared
+statistics importer executes that source-release fan-out explicitly.
 
 When a comparable earlier source release exists, structural churn is limited to measure
 and dimension-definition/coverage changes. It is a quality-control signal, not a claim
@@ -99,11 +101,11 @@ subdivided-units release, the 2021 bridge for the 2021 subdivided-units release,
 datasets. A missing member of one of those bridges stops ingestion; it is never replaced
 by a name or spatial-match guess.
 
-Area/type, housing-market-area, building-group, new-town, and housing-estate
-observations remain without a `divisionId` for now. Their published geometries do not
-correspond to an existing canonical Divisions domain. They will be linked only after
-their respective geographies are reviewed and released as Divisions domains, not by
-assigning an arbitrary district parent.
+Area/type and HMA observations resolve only through their deterministic, reviewed C&SD
+source-code identities; no name or spatial matching is used. Building-group, new-town,
+and housing-estate observations remain without a `divisionId` until their respective
+geographies are reviewed and released as Divisions domains, not by assigning an
+arbitrary district parent.
 
 ## District land area, population and density ingestion
 
