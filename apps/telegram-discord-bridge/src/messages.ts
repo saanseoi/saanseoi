@@ -317,7 +317,7 @@ function formatTelegramInline(text: string): string {
           .slice(labelEnd + 2, urlEnd)
           .replace(/^<|>$/g, '')
           .trim()
-        if (url && !containsControlCharacter(url)) {
+        if (isTelegramWebUrl(url)) {
           output += `<a href="${escapeTelegramAttribute(url)}">${formatTelegramInline(text.slice(index + 1, labelEnd))}</a>`
           index = urlEnd + 1
           continue
@@ -342,7 +342,10 @@ function formatTelegramInline(text: string): string {
       const end = text.indexOf(marker, index + marker.length)
       if (end !== -1 && canCloseMarker(text, end, marker)) {
         const tag = markdownTag(marker)
-        output += `<${tag}>${formatTelegramInline(text.slice(index + marker.length, end))}</${tag}>`
+        const contents = text.slice(index + marker.length, end)
+        const rendered =
+          marker === '`' ? escapeTelegramHtml(contents) : formatTelegramInline(contents)
+        output += `<${tag}>${rendered}</${tag}>`
         index = end + marker.length
         continue
       }
@@ -400,9 +403,6 @@ function escapeTelegramAttribute(value: string) {
   return escapeTelegramHtml(value).replaceAll('"', '&quot;')
 }
 
-function containsControlCharacter(value: string) {
-  return Array.from(value).some(character => {
-    const codePoint = character.codePointAt(0) ?? 0
-    return codePoint <= 31 || codePoint === 127
-  })
+function isTelegramWebUrl(value: string) {
+  return /^https?:\/\/\S+$/i.test(value)
 }
