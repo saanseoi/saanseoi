@@ -692,6 +692,7 @@ ${mutedBar}  `)
           },
           uploadResult,
           preparedUploadFile,
+          { promptForCuration: !options.skipConfirm },
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -715,6 +716,7 @@ ${mutedBar}  `)
           },
           uploadResult,
           preparedUploadFile,
+          { promptForCuration: !options.skipConfirm },
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,

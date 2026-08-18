@@ -39,6 +39,7 @@ import {
 } from './canonicalStatsSql.ts'
 import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
   replayReleaseProcessingActionsMetaToRemote,
@@ -106,6 +107,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   plan: Plan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
+  options: { promptForCuration: boolean },
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
@@ -196,18 +198,22 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         },
       },
     )
-    const canonical = normaliseHkgovCenstatdStatistics(
-      sourceRows.map(row => ({
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-        divisionId:
-          resolutionBySourceDistrictCode.get(row.districtCode)?.divisionId ?? null,
-        properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `Density_${plan.sourceVersion}:${row.districtCode}`,
-        sourceReleaseId: releaseId,
-        sourceVersion: plan.sourceVersion,
-      })),
-    )
+    const canonicalInput = sourceRows.map(row => ({
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      divisionId:
+        resolutionBySourceDistrictCode.get(row.districtCode)?.divisionId ?? null,
+      properties: object(row.rawProperties, 'rawProperties'),
+      sourceFeatureId: `Density_${plan.sourceVersion}:${row.districtCode}`,
+      sourceReleaseId: releaseId,
+      sourceVersion: plan.sourceVersion,
+    }))
+    let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
+    const measureMetadata = await resolveCenstatdMeasureMetadata({
+      measures: canonical.measures,
+      promptForCuration: options.promptForCuration,
+    })
+    canonical = normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata })
     const canonicalBatches = buildCanonicalStatsSqlBatches({
       current: canonicalCurrentRows(canonical),
       history: canonicalHistoryRows(canonical, releaseId),
