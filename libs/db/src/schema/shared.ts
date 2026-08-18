@@ -198,6 +198,80 @@ export const canonicalDivisionStatistic = {
   sources: jsonText('sources').notNull(),
 }
 
+/**
+ * A canonical statistic observation. Values are stored as publisher-independent
+ * decimal text rather than floating point, so the value presented by the API
+ * remains exact. `sourceValue` always retains the publisher's literal.
+ */
+export const canonicalStatsObservation = {
+  id: text('id').notNull(),
+  datasetCode: text('datasetCode').notNull(),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  /** `<layerName>:<gml:id>` (or the equivalent stable publisher feature ID). */
+  sourceFeatureId: text('sourceFeatureId').notNull(),
+  /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
+  sourceField: text('sourceField').notNull(),
+  /** Present only after a reviewed bridge to a canonical division exists. */
+  divisionId: text('divisionId'),
+  referencePeriodCode: text('referencePeriodCode').notNull(),
+  referencePeriodStart: text('referencePeriodStart'),
+  referencePeriodEnd: text('referencePeriodEnd'),
+  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  measureCode: text('measureCode').notNull(),
+  /** Decimal text, never a floating point approximation. */
+  numericValue: text('numericValue'),
+  /** Categorical value where no numeric observation exists. */
+  valueCode: text('valueCode'),
+  unitCode: text('unitCode').notNull(),
+  /** Decimal increment, e.g. `100` for a value rounded to the nearest hundred. */
+  valuePrecision: text('valuePrecision'),
+  observationStatus: text('observationStatus').notNull(),
+  sourceValue: text('sourceValue').notNull(),
+  /** The source geography cohort used by this observation, where applicable. */
+  geographyCohortId: text('geographyCohortId'),
+}
+
+export const canonicalStatsMeasure = {
+  datasetCode: text('datasetCode').notNull(),
+  measureCode: text('measureCode').notNull(),
+  sourceField: text('sourceField').notNull(),
+  valueKind: text('valueKind').notNull(),
+  unitCode: text('unitCode').notNull(),
+}
+
+export const canonicalStatsMeasureI18n = {
+  datasetCode: text('datasetCode').notNull(),
+  measureCode: text('measureCode').notNull(),
+  locale: text('locale').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+}
+
+export const canonicalStatsDimension = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+}
+
+export const canonicalStatsValue = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+  valueCode: text('valueCode').notNull(),
+}
+
+export const canonicalStatsValueI18n = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+  valueCode: text('valueCode').notNull(),
+  locale: text('locale').notNull(),
+  name: text('name').notNull(),
+}
+
+export const canonicalStatsObservationDimension = {
+  observationId: text('observationId').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+  valueCode: text('valueCode').notNull(),
+}
+
 export const canonicalAddress2d = {
   id: text('id').notNull(),
   streetId: text('streetId'),
