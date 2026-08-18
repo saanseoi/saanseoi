@@ -70,6 +70,16 @@ test('converts Discord Markdown to Telegram HTML', () => {
   )
 })
 
+test('keeps inline code literal and does not activate Telegram-specific links', () => {
+  expect(
+    formatTelegramHtml(
+      '`**literal** & safe` [mention](tg://user?id=123) [script](javascript:alert) [site](https://saanseoi.hk)',
+    ),
+  ).toBe(
+    '<code>**literal** &amp; safe</code> [mention](tg://user?id=123) [script](javascript:alert) <a href="https://saanseoi.hk">site</a>',
+  )
+})
+
 test('rejects non-web and control-character URLs in Telegram links', () => {
   expect(
     formatTelegramHtml(

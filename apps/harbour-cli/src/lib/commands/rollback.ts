@@ -26,7 +26,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { datasetVariantForSource, type ResourceType } from '@repo/core'
-import { note, outro } from '@clack/prompts'
+import { confirm, isCancel, note, outro } from '@clack/prompts'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 
 import { describeTarget, formatField } from '../cli/display.ts'
@@ -83,6 +83,7 @@ export async function runRollbackReleaseCommand(
   options: {
     dryRun: boolean
     printUsage: () => void
+    skipConfirm: boolean
   },
 ) {
   const releaseSpecifier = getStringOption(args, ['release']) ?? args.positionals[0]
@@ -301,6 +302,17 @@ export async function runRollbackReleaseCommand(
 
     assertRemoteRollbackImportPrerequisites(target, artefactStats, importOptions)
     note('✓ Prerequisites', 'ROLLBACK CHECKS')
+
+    if (!options.dryRun && !options.skipConfirm) {
+      const shouldContinue = await confirm({
+        message: `${operation === 'purge' ? 'Purge' : 'Rollback'} ${release.releaseCode} on ${resolveTargetName(target)}?`,
+        initialValue: false,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        throw new Error('Rollback cancelled.')
+      }
+    }
 
     if (!options.dryRun) {
       try {

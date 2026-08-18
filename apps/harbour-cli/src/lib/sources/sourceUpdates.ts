@@ -1419,6 +1419,8 @@ async function runCsdiArchiveIngestPlaceholder(
         inputFile: prepared.sourcePath,
         kind: plandKind,
         releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
       }),
@@ -1601,6 +1603,8 @@ export function buildHkgovPlandArchiveIngestCommand(input: {
   inputFile: string
   kind: 'new-town' | 'pu'
   releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
   sourceVersion: string
   target: import('../cli/options.ts').UploadTarget
 }) {
@@ -1620,6 +1624,10 @@ export function buildHkgovPlandArchiveIngestCommand(input: {
     input.sourceVersion,
     '--release-notes-url',
     input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
   ]
 }
 

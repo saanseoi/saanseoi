@@ -6,6 +6,7 @@ import {
   resolveUploadTarget,
   type ParsedArgs,
 } from '../../harbour-cli/src/lib/cli/options.ts'
+import { terminalSafeText } from './lib/terminal.ts'
 
 function printUsage() {
   console.log(`  Usage:
@@ -210,6 +211,6 @@ async function main() {
 }
 
 main().catch(error => {
-  cancel(error instanceof Error ? error.message : String(error))
+  cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))
   process.exit(1)
 })

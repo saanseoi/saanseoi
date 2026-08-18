@@ -1,63 +1,20 @@
 import { DurableObject } from 'cloudflare:workers'
 
-import { DiscordClient, TelegramClient } from './clients.ts'
-import { createGitHubAppJwt } from './githubApp.ts'
+import { DiscordClient, type DiscordChannel } from './discord.ts'
+import { GitHubClient } from './github.ts'
 import {
-  collectMessagesAfter,
   formatAdminLog,
   formatBody,
   formatGitHubDiscussion,
-  formatTelegramHtml,
-  splitTelegramHtml,
   type DiscordMessage,
 } from './messages.ts'
-
-const GITHUB_API = 'https://api.github.com'
-const DEFAULT_GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
-const DEFAULT_GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
-const DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
-const GITHUB_USER_AGENT = 'SaanSeoi-Announcements-Relay'
-const MESSAGEABLE_CHANNEL_TYPES = new Set([0, 5, 10, 11, 12])
-const REQUEST_TIMEOUT_MS = 15_000
-const GITHUB_APP_TOKEN_REFRESH_BUFFER_MS = 60_000
+import { TelegramClient } from './telegram.ts'
 
 export type Env = CloudflareBindings & {
   BRIDGE_INITIAL_SYNC?: 'backfill'
   GITHUB_DISCUSSIONS_CATEGORY?: string
   GITHUB_DISCUSSIONS_OWNER?: string
   GITHUB_DISCUSSIONS_REPOSITORY?: string
-}
-
-type GitHubClientOptions = {
-  category: string
-  owner: string
-  repository: string
-}
-
-type GitHubAppAccessToken = {
-  expires_at: string
-  token: string
-}
-
-type GitHubDiscussionTarget = {
-  categoryId: string
-  repositoryId: string
-}
-
-type GitHubGraphqlResponse<T> = {
-  data?: T
-  errors?: Array<{ message: string }>
-}
-
-type DiscordChannel = {
-  id: string
-  name?: string
-  parent_id?: string | null
-  type: number
-}
-
-type TelegramMessage = {
-  message_id: number
 }
 
 type MessageDelivery = {
@@ -73,58 +30,27 @@ type ChannelCursor = {
   last_message_id: string | null
 }
 
+type RelayTag = '#no-github' | '#no-telegram'
+
 export class DiscordBridge extends DurableObject<Env> {
-  private readonly discordClient: DiscordClient
-  private readonly githubOptions: GitHubClientOptions
-  private readonly telegramClient: TelegramClient
-  private githubAccessToken: GitHubAppAccessToken | undefined
-  private githubDiscussionTarget: GitHubDiscussionTarget | undefined
+  private readonly discord: DiscordClient
+  private readonly github: GitHubClient
+  private readonly telegram: TelegramClient
   private pollPromise: Promise<void> | undefined
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env)
-    this.discordClient = new DiscordClient(env.DISCORD_BOT_TOKEN)
-    this.telegramClient = new TelegramClient(env.TELEGRAM_BOT_TOKEN)
-    this.githubOptions = {
-      category: env.GITHUB_DISCUSSIONS_CATEGORY ?? DEFAULT_GITHUB_DISCUSSIONS_CATEGORY,
-      owner: env.GITHUB_DISCUSSIONS_OWNER ?? DEFAULT_GITHUB_DISCUSSIONS_OWNER,
-      repository:
-        env.GITHUB_DISCUSSIONS_REPOSITORY ?? DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY,
-    }
-    ctx.blockConcurrencyWhile(async () => {
-      ctx.storage.sql.exec(`
-        CREATE TABLE IF NOT EXISTS channel_cursors (
-          channel_id TEXT PRIMARY KEY,
-          last_message_id TEXT
-        );
-        CREATE TABLE IF NOT EXISTS message_deliveries (
-          message_id TEXT PRIMARY KEY,
-          admin_logged_at INTEGER,
-          github_attempted_at INTEGER,
-          github_completed_at INTEGER,
-          github_discussion_url TEXT,
-          public_completed_at INTEGER,
-          public_telegram_message_ids TEXT
-        );
-      `)
-
-      const columns = ctx.storage.sql
-        .exec<{ name: string }>('PRAGMA table_info(message_deliveries)')
-        .toArray()
-        .map(column => column.name)
-      if (!columns.includes('github_completed_at'))
-        ctx.storage.sql.exec(
-          'ALTER TABLE message_deliveries ADD COLUMN github_completed_at INTEGER',
-        )
-      if (!columns.includes('github_attempted_at'))
-        ctx.storage.sql.exec(
-          'ALTER TABLE message_deliveries ADD COLUMN github_attempted_at INTEGER',
-        )
-      if (!columns.includes('github_discussion_url'))
-        ctx.storage.sql.exec(
-          'ALTER TABLE message_deliveries ADD COLUMN github_discussion_url TEXT',
-        )
+    this.discord = new DiscordClient(env.DISCORD_BOT_TOKEN, env.DISCORD_GUILD_ID)
+    this.github = new GitHubClient({
+      appId: env.GITHUB_APP_ID,
+      category: env.GITHUB_DISCUSSIONS_CATEGORY,
+      installationId: env.GITHUB_APP_INSTALLATION_ID,
+      owner: env.GITHUB_DISCUSSIONS_OWNER,
+      privateKeyBase64: env.GITHUB_APP_PRIVATE_KEY_BASE64,
+      repository: env.GITHUB_DISCUSSIONS_REPOSITORY,
     })
+    this.telegram = new TelegramClient(env.TELEGRAM_BOT_TOKEN)
+    ctx.blockConcurrencyWhile(async () => this.migrateStorage())
   }
 
   async poll() {
@@ -135,9 +61,53 @@ export class DiscordBridge extends DurableObject<Env> {
     return this.pollPromise
   }
 
+  private migrateStorage() {
+    this.ctx.storage.sql.exec(`
+      CREATE TABLE IF NOT EXISTS channel_cursors (
+        channel_id TEXT PRIMARY KEY,
+        last_message_id TEXT
+      );
+      CREATE TABLE IF NOT EXISTS message_deliveries (
+        message_id TEXT PRIMARY KEY,
+        admin_logged_at INTEGER,
+        github_attempted_at INTEGER,
+        github_completed_at INTEGER,
+        github_discussion_url TEXT,
+        public_completed_at INTEGER,
+        public_telegram_message_ids TEXT
+      );
+    `)
+
+    const columns = this.ctx.storage.sql
+      .exec<{ name: string }>('PRAGMA table_info(message_deliveries)')
+      .toArray()
+      .map(column => column.name)
+    if (!columns.includes('github_completed_at'))
+      this.ctx.storage.sql.exec(
+        'ALTER TABLE message_deliveries ADD COLUMN github_completed_at INTEGER',
+      )
+    if (!columns.includes('github_attempted_at'))
+      this.ctx.storage.sql.exec(
+        'ALTER TABLE message_deliveries ADD COLUMN github_attempted_at INTEGER',
+      )
+    if (!columns.includes('github_discussion_url'))
+      this.ctx.storage.sql.exec(
+        'ALTER TABLE message_deliveries ADD COLUMN github_discussion_url TEXT',
+      )
+  }
+
   private async pollInternal() {
-    const channels = await this.listMessageChannels()
-    for (const channel of channels) await this.pollChannel(channel, channels)
+    const channels = await this.discord.listMessageChannels()
+    const failures: unknown[] = []
+    for (const channel of channels) {
+      try {
+        await this.pollChannel(channel, channels)
+      } catch (error) {
+        failures.push(error)
+      }
+    }
+    if (failures.length > 0)
+      throw new AggregateError(failures, 'One or more Discord channels failed to poll.')
   }
 
   private async pollChannel(channel: DiscordChannel, channels: DiscordChannel[]) {
@@ -147,7 +117,10 @@ export class DiscordBridge extends DurableObject<Env> {
       return
     }
 
-    const messages = await this.fetchMessages(channel.id, cursor.last_message_id)
+    const messages = await this.discord.fetchMessages(
+      channel.id,
+      cursor.last_message_id,
+    )
     for (const message of messages) {
       await this.processMessage(message, channel, channels)
       this.setCursor(channel.id, message.id)
@@ -156,14 +129,14 @@ export class DiscordBridge extends DurableObject<Env> {
 
   private async seedChannel(channel: DiscordChannel, channels: DiscordChannel[]) {
     if (this.env.BRIDGE_INITIAL_SYNC === 'backfill') {
-      const messages = await this.fetchMessages(channel.id, undefined, 100)
+      const messages = await this.discord.fetchMessages(channel.id, undefined, 100)
       for (const message of messages)
         await this.processMessage(message, channel, channels)
       this.setCursor(channel.id, messages.at(-1)?.id ?? null)
       return
     }
 
-    const latest = await this.fetchMessages(channel.id, undefined, 1)
+    const latest = await this.discord.fetchMessages(channel.id, undefined, 1)
     this.setCursor(channel.id, latest.at(-1)?.id ?? null)
   }
 
@@ -173,38 +146,59 @@ export class DiscordBridge extends DurableObject<Env> {
     channels: DiscordChannel[],
   ) {
     const delivery = this.getDelivery(message.id)
-    if (!delivery?.admin_logged_at) {
-      await this.sendTelegramText(
-        this.env.TELEGRAM_LOG_CHAT_ID,
-        formatAdminLog(message, channelLabel(channel, channels)),
-      )
-      this.recordAdminLog(message.id)
-    }
+    await this.ensureAdminLog(message, channel, channels, delivery)
 
     if (message.channel_id !== this.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID) return
     const publicText = formatBody(message)
-    if (!delivery?.public_completed_at) {
-      if (!publicText || message.content?.toLowerCase().includes('#no-telegram')) {
-        this.completePublicMirror(message.id, [])
-      } else {
-        const sentMessageIds = parseTelegramMessageIds(
-          delivery?.public_telegram_message_ids,
-        )
-        await this.sendTelegramText(
-          this.env.TELEGRAM_ANNOUNCEMENTS_CHAT_ID,
-          publicText,
-          sentMessageIds.length,
-          sent => {
-            sentMessageIds.push(sent.message_id)
-            this.recordPublicMirrorProgress(message.id, sentMessageIds)
-          },
-        )
-        this.completePublicMirror(message.id, sentMessageIds)
-      }
+    await this.ensureTelegramMirror(message, publicText, delivery)
+    await this.ensureGitHubMirror(message, publicText, delivery)
+  }
+
+  private async ensureAdminLog(
+    message: DiscordMessage,
+    channel: DiscordChannel,
+    channels: DiscordChannel[],
+    delivery: MessageDelivery | undefined,
+  ) {
+    if (delivery?.admin_logged_at) return
+    await this.telegram.sendText(
+      this.env.TELEGRAM_LOG_CHAT_ID,
+      formatAdminLog(message, channelLabel(channel, channels)),
+    )
+    this.recordAdminLog(message.id)
+  }
+
+  private async ensureTelegramMirror(
+    message: DiscordMessage,
+    publicText: string,
+    delivery: MessageDelivery | undefined,
+  ) {
+    if (delivery?.public_completed_at) return
+    if (!publicText || hasTag(message, '#no-telegram')) {
+      this.completePublicMirror(message.id, [])
+      return
     }
 
+    const sentMessageIds = parseTelegramMessageIds(
+      delivery?.public_telegram_message_ids,
+    )
+    await this.telegram.sendText(this.env.TELEGRAM_ANNOUNCEMENTS_CHAT_ID, publicText, {
+      skip: sentMessageIds.length,
+      onSent: sentMessage => {
+        sentMessageIds.push(sentMessage.message_id)
+        this.recordPublicMirrorProgress(message.id, sentMessageIds)
+      },
+    })
+    this.completePublicMirror(message.id, sentMessageIds)
+  }
+
+  private async ensureGitHubMirror(
+    message: DiscordMessage,
+    publicText: string,
+    delivery: MessageDelivery | undefined,
+  ) {
     if (delivery?.github_completed_at || delivery?.github_attempted_at) return
-    if (!publicText || message.content?.toLowerCase().includes('#no-github')) {
+    if (!publicText || hasTag(message, '#no-github')) {
       this.completeGitHubMirror(message.id)
       return
     }
@@ -215,40 +209,9 @@ export class DiscordBridge extends DurableObject<Env> {
       return
     }
 
-    const target = await this.getGitHubDiscussionTarget()
     this.recordGitHubMirrorAttempt(message.id)
-    const url = await this.createGitHubDiscussion(target, discussion)
+    const url = await this.github.createDiscussion(discussion)
     this.completeGitHubMirror(message.id, url)
-  }
-
-  private async listMessageChannels() {
-    const channels = await this.discordClient.request<DiscordChannel[]>(
-      `/guilds/${this.env.DISCORD_GUILD_ID}/channels`,
-    )
-    const activeThreads = await this.discordClient.request<{
-      threads: DiscordChannel[]
-    }>(`/guilds/${this.env.DISCORD_GUILD_ID}/threads/active`)
-    return [...channels, ...activeThreads.threads].filter(channel =>
-      MESSAGEABLE_CHANNEL_TYPES.has(channel.type),
-    )
-  }
-
-  private async fetchMessages(
-    channelId: string,
-    after?: string | null,
-    maximum?: number,
-  ) {
-    return collectMessagesAfter(
-      async options => {
-        const query = new URLSearchParams({ limit: String(options.limit) })
-        if (options.before) query.set('before', options.before)
-        return this.discordClient.request<DiscordMessage[]>(
-          `/channels/${channelId}/messages?${query.toString()}`,
-        )
-      },
-      after,
-      maximum,
-    )
   }
 
   private getCursor(channelId: string) {
@@ -343,143 +306,10 @@ export class DiscordBridge extends DurableObject<Env> {
       discussionUrl ?? null,
     )
   }
+}
 
-  private async getGitHubDiscussionTarget() {
-    if (this.githubDiscussionTarget) return this.githubDiscussionTarget
-
-    const payload = await this.githubGraphql<{
-      repository: {
-        discussionCategories: {
-          nodes: Array<{ id: string; slug: string }>
-        }
-        id: string
-      } | null
-    }>(
-      `query DiscussionTarget($owner: String!, $name: String!) {
-        repository(owner: $owner, name: $name) {
-          id
-          discussionCategories(first: 25) { nodes { id slug } }
-        }
-      }`,
-      { owner: this.githubOptions.owner, name: this.githubOptions.repository },
-    )
-    const repository = payload.repository
-    const category = repository?.discussionCategories.nodes.find(
-      category => category.slug === this.githubOptions.category,
-    )
-    if (!repository || !category)
-      throw new Error(
-        `GitHub discussion category ${this.githubOptions.category} was not found on ${this.githubOptions.owner}/${this.githubOptions.repository}.`,
-      )
-
-    this.githubDiscussionTarget = {
-      categoryId: category.id,
-      repositoryId: repository.id,
-    }
-    return this.githubDiscussionTarget
-  }
-
-  private async createGitHubDiscussion(
-    target: GitHubDiscussionTarget,
-    discussion: { body: string; title: string },
-  ) {
-    const payload = await this.githubGraphql<{
-      createDiscussion: { discussion: { url: string } | null }
-    }>(
-      `mutation CreateDiscussion($input: CreateDiscussionInput!) {
-        createDiscussion(input: $input) { discussion { url } }
-      }`,
-      {
-        input: {
-          body: discussion.body,
-          categoryId: target.categoryId,
-          repositoryId: target.repositoryId,
-          title: discussion.title,
-        },
-      },
-    )
-    const url = payload.createDiscussion.discussion?.url
-    if (!url) throw new Error('GitHub did not return a discussion URL.')
-    return url
-  }
-
-  private async githubGraphql<T>(query: string, variables: Record<string, unknown>) {
-    const response = await fetch(`${GITHUB_API}/graphql`, {
-      body: JSON.stringify({ query, variables }),
-      headers: {
-        accept: 'application/vnd.github+json',
-        authorization: `Bearer ${await this.getGitHubAccessToken()}`,
-        'content-type': 'application/json',
-        'user-agent': GITHUB_USER_AGENT,
-      },
-      method: 'POST',
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    })
-    const payload = (await response.json()) as GitHubGraphqlResponse<T>
-    if (!response.ok || !payload.data || payload.errors?.length)
-      throw new Error(
-        `GitHub GraphQL request failed${payload.errors?.[0]?.message ? `: ${payload.errors[0].message}` : ` with HTTP ${response.status}`}.`,
-      )
-    return payload.data
-  }
-
-  private async getGitHubAccessToken() {
-    const expiresAt =
-      this.githubAccessToken && Date.parse(this.githubAccessToken.expires_at)
-    if (
-      this.githubAccessToken &&
-      typeof expiresAt === 'number' &&
-      expiresAt > Date.now() + GITHUB_APP_TOKEN_REFRESH_BUFFER_MS
-    )
-      return this.githubAccessToken.token
-
-    const response = await fetch(
-      `${GITHUB_API}/app/installations/${this.env.GITHUB_APP_INSTALLATION_ID}/access_tokens`,
-      {
-        headers: {
-          accept: 'application/vnd.github+json',
-          authorization: `Bearer ${await createGitHubAppJwt(
-            this.env.GITHUB_APP_ID,
-            this.env.GITHUB_APP_PRIVATE_KEY_BASE64,
-          )}`,
-          'user-agent': GITHUB_USER_AGENT,
-        },
-        method: 'POST',
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      },
-    )
-    const payload = (await response.json()) as Partial<GitHubAppAccessToken> & {
-      message?: string
-    }
-    if (!response.ok || !payload.token || !payload.expires_at)
-      throw new Error(payload.message ?? 'GitHub App access-token exchange failed.')
-    this.githubAccessToken = {
-      expires_at: payload.expires_at,
-      token: payload.token,
-    }
-    return payload.token
-  }
-
-  private async sendTelegramText(
-    chatId: string,
-    text: string,
-    completedChunks = 0,
-    onSent?: (message: TelegramMessage) => void,
-  ) {
-    const chunks = splitTelegramHtml(formatTelegramHtml(text))
-    for (const chunk of chunks.slice(completedChunks)) {
-      const message = await this.telegramClient.request<TelegramMessage>(
-        'sendMessage',
-        {
-          chat_id: chatId,
-          link_preview_options: { is_disabled: true },
-          parse_mode: 'HTML',
-          text: chunk,
-        },
-      )
-      onSent?.(message)
-    }
-  }
+function hasTag(message: DiscordMessage, tag: RelayTag) {
+  return message.content?.toLowerCase().includes(tag) ?? false
 }
 
 function channelLabel(channel: DiscordChannel, channels: DiscordChannel[]) {

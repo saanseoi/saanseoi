@@ -183,7 +183,8 @@ Shared behaviour:
 SQL for the active latest release of a supported resourceType. Rollback SQL removes the
 latest release's current snapshot rows, deletes source/history rows inserted for that
 release, reopens rows that were closed by that release, resets previous published
-release metadata, and removes the latest release metadata.
+release metadata, and removes the latest release metadata. A non-dry-run import requires
+confirmation; automation must opt in explicitly with `--yes`.
 
 ## API Metadata
 

@@ -342,7 +342,10 @@ function formatTelegramInline(text: string): string {
       const end = text.indexOf(marker, index + marker.length)
       if (end !== -1 && canCloseMarker(text, end, marker)) {
         const tag = markdownTag(marker)
-        output += `<${tag}>${formatTelegramInline(text.slice(index + marker.length, end))}</${tag}>`
+        const contents = text.slice(index + marker.length, end)
+        const rendered =
+          marker === '`' ? escapeTelegramHtml(contents) : formatTelegramInline(contents)
+        output += `<${tag}>${rendered}</${tag}>`
         index = end + marker.length
         continue
       }
