@@ -471,4 +471,104 @@ describe('createReleaseStatsPresentation', () => {
     const ids = model.headings.map(heading => heading.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  test('summarises uniform measure coverage, hides structural facts, and sends publisher markers to quality checks', () => {
+    const model = present([
+      { dimension: 'records', metric: 'count', value: 2 },
+      {
+        dimension: 'records',
+        metric: 'count',
+        groupBy: 'sourceLayer',
+        groupValue: 'BG 21C',
+        value: 2,
+      },
+      { dimension: 'observations', metric: 'count', value: 12 },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'measure',
+        groupValue: 'age_1',
+        value: 4,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'measure',
+        groupValue: 'age_2',
+        value: 4,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'measure',
+        groupValue: 'age_3',
+        value: 4,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'referencePeriod',
+        groupValue: '2021',
+        value: 12,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'valueKind',
+        groupValue: 'numeric',
+        value: 12,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'observationStatus',
+        groupValue: 'published',
+        value: 10,
+      },
+      {
+        dimension: 'observations',
+        metric: 'count',
+        groupBy: 'observationStatus',
+        groupValue: 'suppressed',
+        value: 2,
+      },
+      { dimension: 'measures', metric: 'count', value: 3 },
+      {
+        dimension: 'measures',
+        metric: 'count',
+        groupBy: 'unitCode',
+        groupValue: 'publisher-unknown',
+        value: 3,
+      },
+      { dimension: 'reference_periods', metric: 'count', value: 1 },
+      { dimension: 'dimensions', metric: 'definition_count', value: 2 },
+      { dimension: 'dimensions', metric: 'value_definition_count', value: 4 },
+    ])
+
+    expect(model.sourceLayerDistribution?.title).toBe('sourceLayer')
+    expect(model.headings).not.toContainEqual(
+      expect.objectContaining({ id: 'stats-structure' }),
+    )
+    expect(model.measureCoverage).toMatchObject({
+      exceptions: [],
+      rows: [
+        { label: 'Measures', value: '3' },
+        { label: 'Observations per measure', value: '4' },
+      ],
+    })
+    expect(model.recordDistributions.map(distribution => distribution.title)).toEqual([
+      'referencePeriod',
+      'valueKind',
+    ])
+    expect(model.quality?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'suppressed observations', value: '2' }),
+        expect.objectContaining({
+          label: 'Measures without a mapped unit',
+          value: '3',
+        }),
+      ]),
+    )
+    expect(model.genericGroups).toEqual([])
+  })
 })

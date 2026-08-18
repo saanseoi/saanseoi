@@ -22,7 +22,7 @@ const legend = $derived([
 <Section
   ><Header
     id={distribution.id}
-    eyebrow={distribution.showChangeLegend ? labels.changeDistribution : labels.records}
+    eyebrow={distribution.showChangeLegend ? labels.changeDistribution : distribution.eyebrow}
     title={distribution.title}
     ><div class="flex items-center gap-3">
       {#if distribution.showChangeLegend}
@@ -43,7 +43,7 @@ const legend = $derived([
         <DistributionBar
           {row}
           maxVolume={distribution.maxVolume}
-          ariaLabel={`${row.label}: ${row.count} ${labels.records}`}
+          ariaLabel={`${row.label}: ${row.count} ${distribution.valueLabel}`}
         />
         <p
           class="font-mono text-right text-label-md font-bold tabular-nums text-primary"

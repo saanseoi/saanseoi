@@ -105,8 +105,11 @@ export type ComponentCoveragePresentation = {
   formattedValue: string
 }[]
 export type TypeDistributionPresentation = {
+  eyebrow: string
+  groupBy: string
   id: string
   title: string
+  valueLabel: string
   showChangeLegend: boolean
   rows: Array<{
     label: string
@@ -118,6 +121,12 @@ export type TypeDistributionPresentation = {
     unchanged: number
   }>
   maxVolume: number
+}
+export type ObservationMeasureCoveragePresentation = {
+  exceptions: Array<{ label: string; value: string }>
+  id: string
+  rows: Array<{ label: string; value: string }>
+  title: string
 }
 export type GeometryStatisticsPresentation = {
   id: string
@@ -164,7 +173,9 @@ export type ReleaseStatsPresentation = {
   localeCoverage?: LocaleCoveragePresentation
   componentCoverage?: ComponentCoveragePresentation
   geometry?: GeometryStatisticsPresentation
+  measureCoverage?: ObservationMeasureCoveragePresentation
   recordDistributions: TypeDistributionPresentation[]
+  sourceLayerDistribution?: TypeDistributionPresentation
   processing?: ProcessingPresentation
   quality?: QualityPresentation
   genericGroups: GenericStatGroupPresentation[]
