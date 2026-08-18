@@ -3,7 +3,10 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { ingestLandsdStreetSource } from './landsdStreetIngest.ts'
+import {
+  assertLandsdDownloadUrl,
+  ingestLandsdStreetSource,
+} from './landsdStreetIngest.ts'
 
 const englishPage = `
   <li>Year 2026 (Last modified: 3.7.2026)</li>
@@ -38,6 +41,18 @@ const traditionalChineseGovernmentNoticeText = [
   '由中環至東區，於2026年7月3日起生效。        中環灣仔繞道                        第4000號',
   '2026 年 7 月 3 日',
 ].join('\n')
+
+test('accepts only the official LandsD HTTPS origin for source downloads', () => {
+  expect(() =>
+    assertLandsdDownloadUrl('https://www.landsd.gov.hk/doc/en/street-name.pdf'),
+  ).not.toThrow()
+  expect(() =>
+    assertLandsdDownloadUrl('http://www.landsd.gov.hk/doc/en/street-name.pdf'),
+  ).toThrow('outside the official origin')
+  expect(() =>
+    assertLandsdDownloadUrl('https://www.landsd.gov.hk.example.test/internal'),
+  ).toThrow('outside the official origin')
+})
 
 test('stages paired notice releases with managed evidence URLs and an operator report', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-landsd-ingest-'))

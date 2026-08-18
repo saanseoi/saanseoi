@@ -16,7 +16,17 @@ type SnapshotCleanupResult = {
   snapshotIds: string[]
 }
 
-async function runStatementsInGroups(_db: unknown, statements: unknown[]) {
+type AtomicWritableDb = HarbourReadableDb &
+  HarbourWritableDb & {
+    batch?: (statements: [unknown, ...unknown[]]) => Promise<unknown>
+  }
+
+async function runStatementsInGroups(db: AtomicWritableDb, statements: unknown[]) {
+  if (statements.length > 0 && typeof db.batch === 'function') {
+    await db.batch(statements as [unknown, ...unknown[]])
+    return
+  }
+
   for (const statement of statements) {
     const runnable = statement as { run?: () => unknown | Promise<unknown> }
 
@@ -47,6 +57,7 @@ export async function cleanupCurrentSnapshots(
     'division',
     'divisionArea',
     'divisionBoundary',
+    'divisionStatistic',
   ] as const) {
     for (const candidate of candidates.filter(
       candidate => candidate.resourceType === resourceType,
@@ -80,8 +91,8 @@ export async function cleanupCurrentSnapshots(
   }
 }
 
-async function cleanupSnapshotByResourceType(
-  db: HarbourReadableDb & HarbourWritableDb,
+export async function cleanupSnapshotByResourceType(
+  db: AtomicWritableDb,
   candidate: SnapshotCleanupCandidate,
 ) {
   switch (candidate.resourceType) {
@@ -116,13 +127,15 @@ async function cleanupSnapshotByResourceType(
         .delete(currentSchema.divisionBoundaries)
         .where(eq(currentSchema.divisionBoundaries.snapshotId, candidate.snapshotId))
       return true
+    case 'divisionStatistic':
+      await db
+        .delete(currentSchema.divisionStatistics)
+        .where(eq(currentSchema.divisionStatistics.snapshotId, candidate.snapshotId))
+      return true
   }
 }
 
-async function deletePlaceSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-) {
+async function deletePlaceSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
     db
       .delete(currentSchema.placesFts)
@@ -142,10 +155,7 @@ async function deletePlaceSnapshot(
   ])
 }
 
-async function deleteAddressSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-) {
+async function deleteAddressSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
     db
       .delete(currentSchema.address3dI18n)
@@ -165,11 +175,17 @@ async function deleteAddressSnapshot(
   ])
 }
 
-async function deleteStreetSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-) {
+async function deleteStreetSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
+    db
+      .delete(currentSchema.streetChangelog)
+      .where(eq(currentSchema.streetChangelog.snapshotId, snapshotId)),
+    db
+      .delete(currentSchema.streetGeometry)
+      .where(eq(currentSchema.streetGeometry.snapshotId, snapshotId)),
+    db
+      .delete(currentSchema.streetNameChanges)
+      .where(eq(currentSchema.streetNameChanges.snapshotId, snapshotId)),
     db
       .delete(currentSchema.streetsAddress)
       .where(eq(currentSchema.streetsAddress.streetSnapshotId, snapshotId)),
@@ -182,10 +198,7 @@ async function deleteStreetSnapshot(
   ])
 }
 
-async function deleteDivisionSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-) {
+async function deleteDivisionSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
     db
       .delete(currentSchema.divisionsI18n)

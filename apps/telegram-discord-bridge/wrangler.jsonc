@@ -20,6 +20,11 @@
   "triggers": {
     "crons": ["*/10 * * * *"]
   },
+  "vars": {
+    "GITHUB_DISCUSSIONS_CATEGORY": "announcements",
+    "GITHUB_DISCUSSIONS_OWNER": "saanseoi",
+    "GITHUB_DISCUSSIONS_REPOSITORY": "saanseoi"
+  },
   "secrets": {
     "required": [
       "DISCORD_ANNOUNCEMENTS_CHANNEL_ID",

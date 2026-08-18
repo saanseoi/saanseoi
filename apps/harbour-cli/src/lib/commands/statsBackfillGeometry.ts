@@ -17,8 +17,10 @@ import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   replayRemoteCacheWithRetry,
   resolveLocalAddressDbContext,
+  updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
 import { executeSqlText } from '../localPipeline/sqlImport.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'
 type BackfillRelease = {
@@ -66,14 +68,36 @@ export async function runGeometryStatsBackfillCommand(
   if (target.environment === 'production' && !dryRun && !args.options.yes) {
     throw new Error('Production geometry-stat backfill requires explicit `--yes`.')
   }
+  const progress = new LocalUploadProgress()
+  const cacheStartedAt = Date.now()
+  progress.beginPhase('Prepare geometry statistics cache', { max: null })
+
   // Geometry releases are currently regional. Open the complete history mirror
   // for every represented region, then select each snapshot's assigned shard.
-  const seedContext = await resolveLocalAddressDbContext(target, 'HK', '2026', {
-    cacheTableProfile: 'divisionGeometry',
-    includePreviousShardYears: true,
-    requireExistingRemoteCache: target.remote && !refreshCache,
-    refreshRemoteCache: refreshCache,
-  })
+  let seedContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  try {
+    seedContext = await resolveLocalAddressDbContext(target, 'HK', '2026', {
+      cacheTableProfile: 'divisionGeometry',
+      includePreviousShardYears: true,
+      onProgress(event) {
+        updateDbCacheProgress(progress, event)
+      },
+      requireExistingRemoteCache: target.remote && !refreshCache,
+      refreshRemoteCache: refreshCache,
+    })
+  } catch (error) {
+    progress.fail()
+    throw error
+  }
+
+  if (progress.hasActivePhase()) {
+    progress.complete(
+      `Prepared geometry statistics cache in ${formatDuration(
+        Date.now() - cacheStartedAt,
+      )}`,
+    )
+  }
+
   try {
     const releases = await listGeometryReleases(seedContext.metaDb, {
       datasetCodes,
@@ -90,7 +114,15 @@ export async function runGeometryStatsBackfillCommand(
       return
     }
 
-    for (const release of releases) {
+    progress.beginPhase('Backfill geometry statistics', {
+      current: 0,
+      max: releases.length,
+    })
+
+    for (const [releaseIndex, release] of releases.entries()) {
+      progress.update(releaseIndex, {
+        label: `Calculate geometry statistics for ${release.code}`,
+      })
       const snapshot = await resolveExactSnapshot(seedContext.metaDb, release)
       const shard = await resolveSnapshotShard(seedContext.metaDb, snapshot.id)
       const historyTarget = seedContext.historyTargets.find(
@@ -213,7 +245,14 @@ export async function runGeometryStatsBackfillCommand(
           `semanticChange=${changed ? 'yes' : 'no'}`,
         ].join(' '),
       )
-      if (dryRun || !changed) continue
+      if (dryRun || !changed) {
+        progress.update(releaseIndex + 1, {
+          label: dryRun
+            ? `Inspected geometry statistics for ${release.code}`
+            : `Geometry statistics already current for ${release.code}`,
+        })
+        continue
+      }
 
       await replaceReleaseStatsDimension(
         seedContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
@@ -222,6 +261,7 @@ export async function runGeometryStatsBackfillCommand(
         rows,
       )
       if (target.remote) {
+        progress.message(`Import geometry statistics for ${release.code}`)
         const sql = buildRemoteStatsSql(seedContext.state.dbCacheDir, release.id)
         await replayRemoteCacheWithRetry(
           target.environment === 'production' ? 'production' : 'preview',
@@ -234,15 +274,34 @@ export async function runGeometryStatsBackfillCommand(
                 name: 'meta',
               },
               sql,
-              { isLocal: false },
+              {
+                accountId: process.env.CLOUDFLARE_ACCOUNT_ID?.trim(),
+                apiToken: process.env.CLOUDFLARE_D1_TOKEN?.trim(),
+                isLocal: false,
+              },
             )
           },
         )
       }
+
+      progress.update(releaseIndex + 1, {
+        label: `Completed geometry statistics for ${release.code}`,
+      })
     }
+
+    progress.complete(
+      dryRun ? 'Inspected geometry statistics' : 'Backfilled geometry statistics',
+    )
+  } catch (error) {
+    progress.fail()
+    throw error
   } finally {
     seedContext.cleanup()
   }
+}
+
+function formatDuration(durationMs: number) {
+  return `${Math.max(0, Math.round(durationMs / 1_000))} s`
 }
 
 async function listGeometryReleases(

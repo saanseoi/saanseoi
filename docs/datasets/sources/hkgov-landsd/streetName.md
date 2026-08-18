@@ -44,7 +44,10 @@ evidence-link representation: every link is role-tagged and includes its publish
 identifier where available, label, original URL, managed URL, media type, content hash,
 and provenance. Plan WebP previews are optional release-note assets and never replace
 the primary PDF evidence. Completed preview page sets are cached in the stage directory
-and reused only when their count matches the source PDF's reported page count.
+and reused only when their count matches the source PDF's reported page count. Live
+LandsD pages and evidence PDFs are fetched only from the documented
+`https://www.landsd.gov.hk` origin. Cross-origin links and redirects are rejected before
+their response bodies can be retained or published as managed evidence.
 
 ## Parsing and application
 
