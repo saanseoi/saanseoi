@@ -31,6 +31,11 @@ and dimension dictionaries. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 
+Area/type and HMA are approved source-release fan-outs. Area/type creates the three
+Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
+domain. Their observations carry the matching deterministic canonical `divisionId`.
+Building Group centroids remain source-only for a future buildings projection.
+
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).
 
