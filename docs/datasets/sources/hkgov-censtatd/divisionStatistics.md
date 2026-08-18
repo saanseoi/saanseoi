@@ -84,6 +84,10 @@ hand-edited without repeating completed measures. The release page presents the
 resulting measure dictionary in Stats, while Audit remains for processing decisions and
 their evidence.
 
+The curation prompt permits `total` only for counts and quantities. Other statistic
+kinds can be direct (`none`) or use a mean, median, minimum, maximum, or percentile, but
+a sum would not preserve a proportion, ratio, rate, density, or index.
+
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
 and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA

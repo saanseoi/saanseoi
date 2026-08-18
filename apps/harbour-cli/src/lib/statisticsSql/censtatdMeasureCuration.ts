@@ -355,6 +355,7 @@ export async function promptForCenstatdMeasureCuration(input: {
 
     const suggestedUnitCode = suggestUnitCode(measureCode, decisions)
     const statisticKind = await selectStatisticKind({
+      localisations,
       measure,
       measureCode,
       suggestedUnitCode,
@@ -806,9 +807,17 @@ export function suggestUnitCode(
 }
 
 export function suggestStatisticKind(input: {
+  localisations?: readonly CenstatdMeasureLocalisation[]
   measureCode: string
   unitCode: string | null
 }): Exclude<StatsStatisticKind, 'unreviewed'> {
+  const english = input.localisations?.find(
+    localisation => localisation.locale === 'en',
+  )
+  const proposedText = `${english?.name ?? ''} ${english?.description ?? ''}`
+  const proposedKind = suggestStatisticKindFromText(proposedText)
+  if (proposedKind) return proposedKind
+
   const name = input.measureCode.toLocaleLowerCase('en')
   const unit = input.unitCode?.toLocaleLowerCase('en') ?? ''
   if (name.includes('percent') || name.includes('percentage') || unit === 'percent')
@@ -828,13 +837,27 @@ export function suggestStatisticKind(input: {
   return 'quantity'
 }
 
+function suggestStatisticKindFromText(
+  text: string,
+): Exclude<StatsStatisticKind, 'unreviewed'> | null {
+  if (/\b(?:percent|percentage|share)\b/i.test(text)) return 'proportion'
+  if (/\bratio\b/i.test(text)) return 'ratio'
+  if (/\bdensity\b/i.test(text)) return 'density'
+  if (/\brate\b/i.test(text)) return 'rate'
+  if (/\bindex\b/i.test(text)) return 'index'
+  if (/\b(?:count|population|number|total)\b/i.test(text)) return 'count'
+  return null
+}
+
 async function selectStatisticKind(input: {
+  localisations: readonly CenstatdMeasureLocalisation[]
   measure: CenstatdMeasureForCuration
   measureCode: string
   suggestedUnitCode: string | null
 }): Promise<Exclude<StatsStatisticKind, 'unreviewed'>> {
   const value = await select({
     initialValue: suggestStatisticKind({
+      localisations: input.localisations,
       measureCode: input.measureCode,
       unitCode: input.suggestedUnitCode ?? input.measure.unitCode,
     }),
@@ -898,30 +921,63 @@ export function suggestAggregation(
   return aggregationTerms.find(([term]) => term.test(text))?.[1] ?? null
 }
 
+const selectableAggregations = [
+  'none',
+  'total',
+  'mean',
+  'median',
+  'minimum',
+  'maximum',
+  'percentile',
+] as const satisfies readonly Exclude<StatsAggregation, 'unreviewed'>[]
+
+/**
+ * Totals preserve additive count and quantity measures only. Summing a ratio,
+ * proportion, rate, density, or index does not retain that statistic kind.
+ */
+export function validAggregationsForStatisticKind(
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>,
+): readonly Exclude<StatsAggregation, 'unreviewed'>[] {
+  return statisticKind === 'count' || statisticKind === 'quantity'
+    ? selectableAggregations
+    : selectableAggregations.filter(aggregation => aggregation !== 'total')
+}
+
 async function selectAggregation(input: {
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
   suggestedAggregation?: Exclude<StatsAggregation, 'unreviewed'> | null
 }): Promise<Exclude<StatsAggregation, 'unreviewed'>> {
+  const validAggregations = validAggregationsForStatisticKind(input.statisticKind)
+  const fallbackAggregation =
+    input.statisticKind === 'count' || input.statisticKind === 'quantity'
+      ? 'total'
+      : 'none'
+  const suggestedAggregation = input.suggestedAggregation
+  const initialValue =
+    suggestedAggregation && validAggregations.includes(suggestedAggregation)
+      ? suggestedAggregation
+      : fallbackAggregation
+  const options: ReadonlyArray<{
+    hint: string
+    label: string
+    value: Exclude<StatsAggregation, 'unreviewed'>
+  }> = [
+    {
+      hint: 'No aggregation; the publisher supplies a direct value.',
+      label: 'None',
+      value: 'none',
+    },
+    { hint: 'The values are summed.', label: 'Total', value: 'total' },
+    { hint: 'Arithmetic average.', label: 'Mean', value: 'mean' },
+    { hint: 'Middle value.', label: 'Median', value: 'median' },
+    { hint: 'Smallest value.', label: 'Minimum', value: 'minimum' },
+    { hint: 'Largest value.', label: 'Maximum', value: 'maximum' },
+    { hint: 'A named percentile.', label: 'Percentile', value: 'percentile' },
+  ]
   const value = await select({
-    initialValue:
-      input.suggestedAggregation ??
-      (input.statisticKind === 'count' || input.statisticKind === 'quantity'
-        ? 'total'
-        : 'none'),
+    initialValue,
     message: 'Aggregation',
-    options: [
-      {
-        hint: 'No aggregation; the publisher supplies a direct value.',
-        label: 'None',
-        value: 'none',
-      },
-      { hint: 'The values are summed.', label: 'Total', value: 'total' },
-      { hint: 'Arithmetic average.', label: 'Mean', value: 'mean' },
-      { hint: 'Middle value.', label: 'Median', value: 'median' },
-      { hint: 'Smallest value.', label: 'Minimum', value: 'minimum' },
-      { hint: 'Largest value.', label: 'Maximum', value: 'maximum' },
-      { hint: 'A named percentile.', label: 'Percentile', value: 'percentile' },
-    ],
+    options: options.filter(option => validAggregations.includes(option.value)),
   })
   if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
   return value as Exclude<StatsAggregation, 'unreviewed'>
