@@ -1,3 +1,17 @@
+DELETE FROM `statsObservationDimensions`;
+--> statement-breakpoint
+DELETE FROM `statsValuesI18n`;
+--> statement-breakpoint
+DELETE FROM `statsValues`;
+--> statement-breakpoint
+DELETE FROM `statsDimensions`;
+--> statement-breakpoint
+DELETE FROM `statsMeasuresI18n`;
+--> statement-breakpoint
+DELETE FROM `statsMeasures`;
+--> statement-breakpoint
+DELETE FROM `statsObservations`;
+--> statement-breakpoint
 CREATE TABLE `statsSeries` (
 	`id` text NOT NULL,
 	`datasetCode` text NOT NULL,
