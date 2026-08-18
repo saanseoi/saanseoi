@@ -155,8 +155,9 @@ bun run dataops -- hkgov-pland:ingest --kind pu <mirrored-source.zip> --target p
 
 `backfill` accepts no data-path, source-version or confirmation options; use `local`,
 `preview`, or `production` as the target. `ingest` is the updater hand-off: it accepts
-only the source ZIP that was just mirrored, verifies its managed key and SHA-256, and
-publishes its division before the companion area.
+only the source ZIP that was just mirrored, requires and records its managed archive
+key, validates the local ZIP against the supplied SHA-256, and publishes its division
+before the companion area.
 
 ## Publication lineage
 
