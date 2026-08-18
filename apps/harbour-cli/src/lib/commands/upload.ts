@@ -30,6 +30,7 @@ import {
 } from '../sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../sources/hkgov/hkgovHad.ts'
 import { prepareLandsdPlaceNameDivisionUpload } from '../sources/landsd/landsdPlaceName.ts'
+import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import {
   describeTarget,
   formatMutedValue,
@@ -195,9 +196,14 @@ ${mutedBar}  `)
       registerOptions.filePath,
       previewResult,
     )
+    const [datasetFixture] = await loadDatasetFixtures(
+      new Set([previewResult.plan.datasetCode]),
+    )
 
     note(
-      formatSummary(previewResult, target).join('\n'),
+      formatSummary(previewResult, target, {
+        schemaSpecificationUrl: datasetFixture?.schemaSpecificationURL,
+      }).join('\n'),
       options.dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
     )
 
