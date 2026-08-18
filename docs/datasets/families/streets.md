@@ -25,7 +25,8 @@ candidates are not lifecycle events and are neither uploaded to R2 nor materiali
 this family until parsed facts and a reviewed identity/lifecycle decision are available.
 Their local PaddleOCR output is explicitly marked as English `method: "ocr"` derived
 evidence and bound to the exact HKGRO source-PDF SHA-256; it is not publisher-native
-text or a source of canonical street identity.
+text or a source of canonical street identity. Retrieval caps each PDF at 256 MiB, and
+whole-document PDF rendering has a five-minute timeout before page-level OCR begins.
 
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every
@@ -70,6 +71,10 @@ PaddleOCR (`chinese_cht`, rendered at 300 DPI). The English PDF remains authorit
 for Government Notice identity, lifecycle kind, dates, and `Previous G.N.` values; OCR
 is explicitly retained as an extraction method, model and engine version in parser
 provenance.
+
+Live LandsD evidence downloads are restricted to the publisher's documented HTTPS
+origin, including redirect targets. Historical e-Gazette files are read from the curated
+local archive rather than followed from publisher HTML.
 
 # Streets
 

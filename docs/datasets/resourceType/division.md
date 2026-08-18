@@ -199,7 +199,8 @@ against the API release set. The standard rows are:
 SQL for the active latest division release only. The rollback SQL removes the latest
 release's current snapshot rows, deletes source/history rows inserted for that release,
 reopens rows that were closed by that release, resets the previous published release
-metadata, and removes the latest release metadata.
+metadata, and removes the latest release metadata. A non-dry-run import requires
+confirmation; automation must opt in explicitly with `--yes`.
 
 ## API Support
 

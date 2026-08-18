@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -9,6 +8,7 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { readHkgovCenstatdDistrictGmlArchive } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
@@ -81,18 +81,9 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
   }
 }
 
-function isSha256(value: string | boolean | undefined): value is string {
-  return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value)
-}
-
 export function assertSourceArchiveIdentity(
   archiveBytes: Uint8Array,
   expectedSha256: string,
 ) {
-  const actualSha256 = createHash('sha256').update(archiveBytes).digest('hex')
-  if (actualSha256 !== expectedSha256) {
-    throw new Error(
-      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${expectedSha256}, found ${actualSha256}.`,
-    )
-  }
+  assertSourceArchiveHash(archiveBytes, expectedSha256, 'Prepared CSDI archive')
 }

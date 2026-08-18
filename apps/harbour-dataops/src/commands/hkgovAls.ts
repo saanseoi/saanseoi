@@ -26,6 +26,7 @@ import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
+import { terminalSafeText } from '../lib/terminal.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
@@ -137,7 +138,7 @@ export async function runHkgovAlsIngestCommand(
   if (!sourceRoot || !cohortKey) {
     printUsage()
     throw new Error(
-      'Pass <ALS-source-root> and --cohort-key (used to choose the default start year) to `hkgov-dpo:backfill-local`.',
+      `Pass <ALS-source-root> and --cohort-key (used to choose the default start year) to \`${args.command}\`.`,
     )
   }
   const historyFile = resolveInvocationPath(
@@ -528,11 +529,12 @@ const IDENTITY_SUMMARY_FIELDS = [
 const ADDRESS_ELEMENT_COLOURS = [196, 202, 220, 46, 48, 51, 39, 69, 93, 129, 201, 213]
 
 function colorAddressElement(value: string, field: string) {
+  const safeValue = terminalSafeText(value)
   const index = IDENTITY_SUMMARY_FIELDS.indexOf(
     field as (typeof IDENTITY_SUMMARY_FIELDS)[number],
   )
-  if (index < 0) return value
-  return `\u001B[38;5;${ADDRESS_ELEMENT_COLOURS[index]}m${value}\u001B[39m`
+  if (index < 0) return safeValue
+  return `\u001B[38;5;${ADDRESS_ELEMENT_COLOURS[index]}m${safeValue}\u001B[39m`
 }
 
 async function listAlsReleaseDirectories(sourceRoot: string) {

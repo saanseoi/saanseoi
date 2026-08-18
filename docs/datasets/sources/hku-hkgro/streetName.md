@@ -24,10 +24,10 @@ The manifest retains every HKGRO PDF row with its publication date, notification
 title, canonical HKU URL and deterministic local path. A deliberately broad, auditable
 title matcher marks possible street-name notices (for example `street`, `road`, `lane`,
 `naming` and `change of name`) and records the matched reasons. Only those candidates
-are downloaded initially. Each source file is checked for a PDF header, byte length and
-SHA-256; existing validated files are resumed without a second download. A bad response,
-changed local byte length or changed SHA-256 stops the command with the year, HKGRO PDF
-identifier, title and exact path/URL.
+are downloaded initially. Each download is capped at 256 MiB. Each source file is
+checked for a PDF header, byte length and SHA-256; existing validated files are resumed
+without a second download. A bad response, changed local byte length or changed SHA-256
+stops the command with the year, HKGRO PDF identifier, title and exact path/URL.
 
 HKGRO sometimes serves a zero-byte `application/pdf` response for a TOC-linked PDF. The
 command records that candidate as `assetStatus: "unavailable"` with the explicit failed
@@ -61,8 +61,9 @@ results are resumed only when their stored provenance matches those same source 
 An unreadable PDF, failed rendering, unavailable runtime/model, malformed PaddleOCR
 output, or no recognised text records an `unparseable` attempt with the source path and
 full failure detail in `ocr-manifest.json`, then stops immediately. Once corrected, a
-rerun retries that record. Use `--year 1901,1902` for a bounded OCR or repair run. Use
-`--hkgro-pdf-id 460097` to inspect or repair a specific retrieved scan.
+rerun retries that record. Whole-document rendering also stops after five minutes. Use
+`--year 1901,1902` for a bounded OCR or repair run. Use `--hkgro-pdf-id 460097` to
+inspect or repair a specific retrieved scan.
 
 The OCR environment remains UV-managed:
 

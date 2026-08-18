@@ -1,6 +1,6 @@
 import { createHash, createHmac } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { readFile, mkdtemp, rm } from 'node:fs/promises'
+import { readFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
@@ -15,6 +15,7 @@ import type {
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
@@ -197,23 +198,19 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
     typeof catalogueUrl !== 'string' ||
     typeof sourceArchiveKey !== 'string' ||
     sourceArchiveKey.trim().length === 0 ||
-    typeof sourceArchiveSha256 !== 'string' ||
-    !/^[a-f0-9]{64}$/i.test(sourceArchiveSha256)
+    !isSha256(sourceArchiveSha256)
   ) {
     printUsage()
     throw new Error(
       'Planning Department native archive intake requires <source.zip>, --source-version, --release-notes-url, --source-archive-key, and --source-archive-sha256.',
     )
   }
-  const archivePath = resolve(inputFile)
-  const actualArchiveSha256 = createHash('sha256')
-    .update(await readFile(archivePath))
-    .digest('hex')
-  if (actualArchiveSha256 !== sourceArchiveSha256.toLowerCase()) {
-    throw new Error(
-      `Planning Department source archive SHA-256 mismatch: expected ${sourceArchiveSha256.toLowerCase()}, received ${actualArchiveSha256}.`,
-    )
-  }
+  const sourceArchiveBytes = await readFile(resolve(inputFile))
+  assertSourceArchiveHash(
+    sourceArchiveBytes,
+    sourceArchiveSha256,
+    'Prepared Planning Department archive',
+  )
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
   const release: BackfillRelease = {
     archiveDatasetId: '',
@@ -222,6 +219,8 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
   }
   const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-archive-`))
   try {
+    const sourceArchivePath = join(outputDir, 'verified-source.zip')
+    await writeFile(sourceArchivePath, sourceArchiveBytes, { flag: 'wx' })
     const divisionFile = join(
       outputDir,
       `${source}-hk-${sourceVersion}-division.parquet`,
@@ -238,7 +237,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
           prepareHkgovPlandNewTownNativeShpZip)
     for (const type of ['division', 'divisionArea'] as const) {
       await prepare({
-        inputFile: archivePath,
+        inputFile: sourceArchivePath,
         outputFile: type === 'division' ? divisionFile : divisionAreaFile,
         sourceVersion,
         type,
@@ -251,12 +250,12 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         invocationCwd,
         release,
         source,
+        sourceArchiveKey,
+        sourceArchiveSha256,
         target,
         type,
         forceUpload: false,
         runUploadCommand: dependencies.runUploadCommand,
-        sourceArchiveKey,
-        sourceArchiveSha256,
       })
     }
   } finally {
@@ -269,12 +268,12 @@ async function uploadPreparedArtefact(args: {
   invocationCwd: string
   release: BackfillRelease
   source: string
+  sourceArchiveKey?: string
+  sourceArchiveSha256?: string
   target: UploadTarget
   type: 'division' | 'divisionArea'
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
-  sourceArchiveKey?: string
-  sourceArchiveSha256?: string
 }) {
   if (
     (args.sourceArchiveKey === undefined) !==

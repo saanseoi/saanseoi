@@ -9,6 +9,7 @@ import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
+import { terminalSafeText } from '../lib/terminal.ts'
 import {
   loadHkgroStreetDiscoveryReview,
   saveHkgroStreetDiscoveryReview,
@@ -375,11 +376,12 @@ function reviewValue(
   index: number,
   style: ReviewValueStyle = 'default',
 ) {
-  if (style === 'muted') return reviewMuted(value)
-  if (style === 'warning') return reviewYellow(value)
-  if (style === 'error') return reviewRed(value)
+  const safeValue = terminalSafeText(value)
+  if (style === 'muted') return reviewMuted(safeValue)
+  if (style === 'warning') return reviewYellow(safeValue)
+  if (style === 'error') return reviewRed(safeValue)
   const colours = [33, 32, 35]
-  return `\u001B[${colours[index % colours.length]}m${value}\u001B[39m`
+  return `\u001B[${colours[index % colours.length]}m${safeValue}\u001B[39m`
 }
 
 function reviewSeparator() {
@@ -387,7 +389,7 @@ function reviewSeparator() {
 }
 
 function reviewMuted(value: string) {
-  return `\u001B[90m${value}\u001B[39m`
+  return `\u001B[90m${terminalSafeText(value)}\u001B[39m`
 }
 
 function reviewGreen(value: string) {
