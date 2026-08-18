@@ -22,10 +22,13 @@ export type CenstatdCanonicalObservation = {
   numericValue: string | null
   observationStatus: string
   referencePeriodCode: string
+  sourceField?: string
 }
 
 export type CenstatdCanonicalMeasure = {
+  aggregation: string
   measureCode: string
+  statisticKind: string
   unitCode: string
 }
 
@@ -175,6 +178,16 @@ export function buildCenstatdReleaseStats(
   add('measures', 'count', canonical.measures.length)
   distribution(
     'measures',
+    'statisticKind',
+    canonical.measures.map(row => row.statisticKind),
+  )
+  distribution(
+    'measures',
+    'aggregation',
+    canonical.measures.map(row => row.aggregation),
+  )
+  distribution(
+    'measures',
     'unitCode',
     canonical.measures.map(row => row.unitCode),
   )
@@ -220,6 +233,33 @@ export function buildCenstatdGeographyLinkAuditActions(
         'Resolved C&SD District Council district codes through the reviewed canonical district bridge.',
     },
   ]
+}
+
+/** Records every source-wide numeric normalisation as one inspectable audit action. */
+export function buildCenstatdNormalisationAuditActions(
+  canonical: CenstatdCanonicalStatistics,
+): ReleaseProcessingAction[] {
+  const affectedRecordCount = canonical.observations.filter(
+    observation =>
+      observation.sourceField === 'MYPOPN_LAND' && observation.numericValue !== null,
+  ).length
+  return affectedRecordCount
+    ? [
+        {
+          action: 'normalise_censtatd_population_thousands_to_persons',
+          affectedRecordCount,
+          evidence: {
+            sourceField: 'MYPOPN_LAND',
+            sourceUnit: 'thousand persons',
+            targetUnit: 'person',
+            factor: 1000,
+          },
+          mode: 'automatic',
+          summary:
+            'Converted C&SD population values expressed in thousands to persons without changing their source precision.',
+        },
+      ]
+    : []
 }
 
 /**
