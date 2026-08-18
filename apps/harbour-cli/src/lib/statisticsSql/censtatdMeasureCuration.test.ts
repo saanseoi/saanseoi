@@ -5,6 +5,7 @@ import {
   formatCenstatdMeasureProposal,
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
+  resolveUnitLocalisations,
   resolveCenstatdMeasureCuration,
   suggestStatisticKind,
   suggestUnitCode,
@@ -179,6 +180,38 @@ test('uses Azure Chinese suggestions after an English schema proposal is edited'
     locale: 'zh-Hans',
     name: '简:Reference population',
   })
+})
+
+test('fills a new unit’s Chinese localisations through Azure Translator', async () => {
+  const localisations = await resolveUnitLocalisations({
+    description: 'Area measured in square kilometres.',
+    name: 'Square kilometres',
+    translate: async (texts, options) =>
+      new Map(
+        [...texts].map(text => [
+          text,
+          `${options.to === 'zh-Hant' ? '繁' : '简'}:${text}`,
+        ]),
+      ),
+  })
+
+  expect(localisations).toEqual([
+    {
+      description: 'Area measured in square kilometres.',
+      locale: 'en',
+      name: 'Square kilometres',
+    },
+    {
+      description: '繁:Area measured in square kilometres.',
+      locale: 'zh-Hant',
+      name: '繁:Square kilometres',
+    },
+    {
+      description: '简:Area measured in square kilometres.',
+      locale: 'zh-Hans',
+      name: '简:Square kilometres',
+    },
+  ])
 })
 
 test('parses field definitions from a CSDI simplified data specification', () => {

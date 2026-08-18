@@ -1,0 +1,87 @@
+{
+  "versionHash": "sha256:e7c62d7246bf2a98ef90ec1cfb13f1c2402e08dad416591a5d050049c8f717e4",
+  "units": [
+    {
+      "code": "category",
+      "dimension": "categorical",
+      "symbol": "",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Category",
+          "description": "A publisher-defined categorical value."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "類別",
+          "description": "由發佈者定義的類別值。"
+        },
+        { "locale": "zh-Hans", "name": "类别", "description": "由发布者定义的类别值。" }
+      ]
+    },
+    {
+      "code": "household",
+      "dimension": "household",
+      "symbol": "households",
+      "i18n": [
+        { "locale": "en", "name": "Households", "description": "Count of households." },
+        { "locale": "zh-Hant", "name": "住戶", "description": "住戶數。" },
+        { "locale": "zh-Hans", "name": "住户", "description": "住户数。" }
+      ]
+    },
+    {
+      "code": "person",
+      "dimension": "population",
+      "symbol": "persons",
+      "i18n": [
+        { "locale": "en", "name": "Persons", "description": "Count of people." },
+        { "locale": "zh-Hant", "name": "人", "description": "人數。" },
+        { "locale": "zh-Hans", "name": "人", "description": "人数。" }
+      ]
+    },
+    {
+      "code": "person-per-square-kilometre",
+      "dimension": "population-density",
+      "symbol": "persons/km²",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Persons per square kilometre",
+          "description": "Population density per square kilometre."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每平方公里人數",
+          "description": "以每平方公里人數表示的人口密度。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每平方公里人数",
+          "description": "以每平方公里人数表示的人口密度。"
+        }
+      ]
+    },
+    {
+      "code": "square-kilometre",
+      "dimension": "area",
+      "symbol": "km²",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Square kilometres",
+          "description": "Area measured in square kilometres."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平方公里",
+          "description": "以平方公里計量的面積。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平方公里",
+          "description": "以平方公里计量的面积。"
+        }
+      ]
+    }
+  ]
+}

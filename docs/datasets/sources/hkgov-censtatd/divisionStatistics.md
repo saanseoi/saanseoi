@@ -76,7 +76,8 @@ remain verified. `--yes` refuses every uncurated field. The importer retains the
 publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
 replace SaanSeoi's normalised observation status or automatically admit a unit. When a
 reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
-dimension, symbol, English name, and definition, then writes the unit registry before it
+dimension, symbol, English name, and definition, then writes the unit registry with
+Azure-generated Traditional and Simplified Chinese names and definitions before it
 writes that measure's curation decision. Each completed measure decision is written
 immediately to the curation manifest, so an interrupted review can be resumed or
 hand-edited without repeating completed measures. The release page presents the

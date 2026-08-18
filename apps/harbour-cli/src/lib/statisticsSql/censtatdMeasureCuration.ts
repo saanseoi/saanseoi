@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path'
 import {
   statsAggregations,
   statsStatisticKinds,
+  computeVersionHash,
   type StatsAggregation,
   type StatsStatisticKind,
 } from '@repo/db'
@@ -87,7 +88,11 @@ type UnitRegistryFixture = {
     code: string
     dimension: string
     symbol: string
-    i18n: Array<{ locale: 'en'; name: string; description?: string }>
+    i18n: Array<{
+      locale: 'en' | 'zh-Hans' | 'zh-Hant'
+      name: string
+      description?: string
+    }>
   }>
 }
 
@@ -146,16 +151,17 @@ async function ensureCenstatdUnit(input: { code: string; path: string }) {
   const symbol = await requiredText('Unit symbol', undefined)
   const name = await requiredText('English unit name', undefined)
   const description = await requiredText('English unit description', undefined)
+  const i18n = await resolveUnitLocalisations({ description, name })
   const units = [
     ...fixture.units,
     {
       code: input.code,
       dimension,
       symbol,
-      i18n: [{ description, locale: 'en' as const, name }],
+      i18n,
     },
   ].sort((left, right) => left.code.localeCompare(right.code))
-  const versionHash = createHash('sha256').update(JSON.stringify(units)).digest('hex')
+  const versionHash = computeVersionHash({ units })
   await writeFile(
     input.path,
     `${JSON.stringify({ units, versionHash }, null, 2)}\n`,
@@ -170,6 +176,36 @@ async function loadUnitRegistryFixture(path: string): Promise<UnitRegistryFixtur
   if (!Array.isArray(fixture.units) || typeof fixture.versionHash !== 'string')
     throw new Error(`Invalid unit registry fixture: ${path}.`)
   return fixture as UnitRegistryFixture
+}
+
+export async function resolveUnitLocalisations(input: {
+  description: string
+  name: string
+  translate?: typeof translateAzureTexts
+}) {
+  const translate = input.translate ?? translateAzureTexts
+  const texts = [input.name, input.description]
+  const [zhHant, zhHans] = await Promise.all([
+    translate(texts, { from: 'en', to: 'zh-Hant' }),
+    translate(texts, { from: 'en', to: 'zh-Hans' }),
+  ])
+  return [
+    { description: input.description, locale: 'en' as const, name: input.name },
+    unitLocalisationFromTranslation(zhHant, input, 'zh-Hant'),
+    unitLocalisationFromTranslation(zhHans, input, 'zh-Hans'),
+  ]
+}
+
+function unitLocalisationFromTranslation(
+  translated: ReadonlyMap<string, string>,
+  english: { description: string; name: string },
+  locale: 'zh-Hans' | 'zh-Hant',
+) {
+  const name = translated.get(english.name)
+  const description = translated.get(english.description)
+  if (!name || !description)
+    throw new Error(`Azure Translator returned an incomplete ${locale} unit proposal.`)
+  return { description, locale, name }
 }
 
 export function resolveCenstatdMeasureCuration(input: {

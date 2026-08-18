@@ -41,16 +41,18 @@ dictionary. A proportion, ratio, rate, or density can also name its canonical
 `denominatorMeasureCode`. These semantics are independent of `valueKind` (numeric or
 categorical) and `unitCode`. Units are registered metadata in `fixtures/meta/units`; an
 unrecognised unit prompts for its dimension, symbol, English name, and definition before
-it is persisted and synchronised. The registered CSDI Simplified Data Specification is a
-review candidate retained as provenance. The CLI first displays compact metadata with
-the stable source-release portal URL, then a proposal of `sourceField -> measureCode`,
-its reviewed-unit suggestion, and the English/Traditional Chinese/Simplified Chinese
-name and description together. The unit suggestion is drawn only from compatible,
-previously reviewed canonical measure names; it is never admitted without review. On
-rejection, CSDI's English name and description become the editable defaults. If either
-changes, Azure Translator supplies new Chinese defaults; accepting those machine values
-unchanged records `isTranslationVerified=false`. Official CSDI locale rows remain
-verified. `--yes` refuses every uncurated field.
+it is persisted and synchronised. Azure Translator fills Traditional and Simplified
+Chinese unit names and definitions from those English prompt values. The registered CSDI
+Simplified Data Specification is a review candidate retained as provenance. The CLI
+first displays compact metadata with the stable source-release portal URL, then a
+proposal of `sourceField -> measureCode`, its reviewed-unit suggestion, and the
+English/Traditional Chinese/Simplified Chinese name and description together. The unit
+suggestion is drawn only from compatible, previously reviewed canonical measure names;
+it is never admitted without review. On rejection, CSDI's English name and description
+become the editable defaults. If either changes, Azure Translator supplies new Chinese
+defaults; accepting those machine values unchanged records
+`isTranslationVerified=false`. Official CSDI locale rows remain verified. `--yes`
+refuses every uncurated field.
 
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
