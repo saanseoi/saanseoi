@@ -237,12 +237,34 @@ export const canonicalStatsObservation = {
   sourceValue: text('sourceValue').notNull(),
 }
 
+/**
+ * The semantic interpretation of a statistic. This remains independent from
+ * whether its source value is numeric and from the unit used to express it.
+ */
+export const statsMeasurementKinds = [
+  'count',
+  'quantity',
+  'percentage',
+  'ratio',
+  'rate',
+  'index',
+  'unreviewed',
+] as const
+
+export type StatsMeasurementKind = (typeof statsMeasurementKinds)[number]
+
 export const canonicalStatsMeasure = {
   datasetCode: text('datasetCode').notNull(),
   measureCode: text('measureCode').notNull(),
   sourceField: text('sourceField').notNull(),
   /** Exact publisher nullability declaration, when its schema supplies one. */
   sourceNullOption: text('sourceNullOption'),
+  /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
+  measurementKind: text('measurementKind', {
+    enum: statsMeasurementKinds,
+  })
+    .notNull()
+    .default('unreviewed'),
   valueKind: text('valueKind').notNull(),
   unitCode: text('unitCode').notNull(),
 }
