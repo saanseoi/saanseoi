@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 
+import { DiscordClient, TelegramClient } from './clients.ts'
 import { createGitHubAppJwt } from './githubApp.ts'
 import {
   collectMessagesAfter,
@@ -11,20 +12,26 @@ import {
   type DiscordMessage,
 } from './messages.ts'
 
-const DISCORD_API = 'https://discord.com/api/v10'
 const GITHUB_API = 'https://api.github.com'
-const GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
-const GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
-const GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
+const DEFAULT_GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
+const DEFAULT_GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
+const DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
 const GITHUB_USER_AGENT = 'SaanSeoi-Announcements-Relay'
-const TELEGRAM_API = 'https://api.telegram.org/bot'
 const MESSAGEABLE_CHANNEL_TYPES = new Set([0, 5, 10, 11, 12])
 const REQUEST_TIMEOUT_MS = 15_000
-const TELEGRAM_MAX_RETRIES = 3
 const GITHUB_APP_TOKEN_REFRESH_BUFFER_MS = 60_000
 
 export type Env = CloudflareBindings & {
   BRIDGE_INITIAL_SYNC?: 'backfill'
+  GITHUB_DISCUSSIONS_CATEGORY?: string
+  GITHUB_DISCUSSIONS_OWNER?: string
+  GITHUB_DISCUSSIONS_REPOSITORY?: string
+}
+
+type GitHubClientOptions = {
+  category: string
+  owner: string
+  repository: string
 }
 
 type GitHubAppAccessToken = {
@@ -53,15 +60,9 @@ type TelegramMessage = {
   message_id: number
 }
 
-type TelegramResponse<T> = {
-  ok: boolean
-  description?: string
-  parameters?: { retry_after?: number }
-  result?: T
-}
-
 type MessageDelivery = {
   admin_logged_at: number | null
+  github_attempted_at: number | null
   github_completed_at: number | null
   github_discussion_url: string | null
   public_completed_at: number | null
@@ -73,12 +74,23 @@ type ChannelCursor = {
 }
 
 export class DiscordBridge extends DurableObject<Env> {
+  private readonly discordClient: DiscordClient
+  private readonly githubOptions: GitHubClientOptions
+  private readonly telegramClient: TelegramClient
   private githubAccessToken: GitHubAppAccessToken | undefined
   private githubDiscussionTarget: GitHubDiscussionTarget | undefined
   private pollPromise: Promise<void> | undefined
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env)
+    this.discordClient = new DiscordClient(env.DISCORD_BOT_TOKEN)
+    this.telegramClient = new TelegramClient(env.TELEGRAM_BOT_TOKEN)
+    this.githubOptions = {
+      category: env.GITHUB_DISCUSSIONS_CATEGORY ?? DEFAULT_GITHUB_DISCUSSIONS_CATEGORY,
+      owner: env.GITHUB_DISCUSSIONS_OWNER ?? DEFAULT_GITHUB_DISCUSSIONS_OWNER,
+      repository:
+        env.GITHUB_DISCUSSIONS_REPOSITORY ?? DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY,
+    }
     ctx.blockConcurrencyWhile(async () => {
       ctx.storage.sql.exec(`
         CREATE TABLE IF NOT EXISTS channel_cursors (
@@ -88,6 +100,7 @@ export class DiscordBridge extends DurableObject<Env> {
         CREATE TABLE IF NOT EXISTS message_deliveries (
           message_id TEXT PRIMARY KEY,
           admin_logged_at INTEGER,
+          github_attempted_at INTEGER,
           github_completed_at INTEGER,
           github_discussion_url TEXT,
           public_completed_at INTEGER,
@@ -102,6 +115,10 @@ export class DiscordBridge extends DurableObject<Env> {
       if (!columns.includes('github_completed_at'))
         ctx.storage.sql.exec(
           'ALTER TABLE message_deliveries ADD COLUMN github_completed_at INTEGER',
+        )
+      if (!columns.includes('github_attempted_at'))
+        ctx.storage.sql.exec(
+          'ALTER TABLE message_deliveries ADD COLUMN github_attempted_at INTEGER',
         )
       if (!columns.includes('github_discussion_url'))
         ctx.storage.sql.exec(
@@ -125,7 +142,7 @@ export class DiscordBridge extends DurableObject<Env> {
 
   private async pollChannel(channel: DiscordChannel, channels: DiscordChannel[]) {
     const cursor = this.getCursor(channel.id)
-    if (!cursor) {
+    if (!cursor || cursor.last_message_id === null) {
       await this.seedChannel(channel, channels)
       return
     }
@@ -170,18 +187,23 @@ export class DiscordBridge extends DurableObject<Env> {
       if (!publicText || message.content?.toLowerCase().includes('#no-telegram')) {
         this.completePublicMirror(message.id, [])
       } else {
-        const sent = await this.sendTelegramText(
+        const sentMessageIds = parseTelegramMessageIds(
+          delivery?.public_telegram_message_ids,
+        )
+        await this.sendTelegramText(
           this.env.TELEGRAM_ANNOUNCEMENTS_CHAT_ID,
           publicText,
+          sentMessageIds.length,
+          sent => {
+            sentMessageIds.push(sent.message_id)
+            this.recordPublicMirrorProgress(message.id, sentMessageIds)
+          },
         )
-        this.completePublicMirror(
-          message.id,
-          sent.map(message => message.message_id),
-        )
+        this.completePublicMirror(message.id, sentMessageIds)
       }
     }
 
-    if (delivery?.github_completed_at) return
+    if (delivery?.github_completed_at || delivery?.github_attempted_at) return
     if (!publicText || message.content?.toLowerCase().includes('#no-github')) {
       this.completeGitHubMirror(message.id)
       return
@@ -194,17 +216,18 @@ export class DiscordBridge extends DurableObject<Env> {
     }
 
     const target = await this.getGitHubDiscussionTarget()
+    this.recordGitHubMirrorAttempt(message.id)
     const url = await this.createGitHubDiscussion(target, discussion)
     this.completeGitHubMirror(message.id, url)
   }
 
   private async listMessageChannels() {
-    const channels = await this.discord<DiscordChannel[]>(
+    const channels = await this.discordClient.request<DiscordChannel[]>(
       `/guilds/${this.env.DISCORD_GUILD_ID}/channels`,
     )
-    const activeThreads = await this.discord<{ threads: DiscordChannel[] }>(
-      `/guilds/${this.env.DISCORD_GUILD_ID}/threads/active`,
-    )
+    const activeThreads = await this.discordClient.request<{
+      threads: DiscordChannel[]
+    }>(`/guilds/${this.env.DISCORD_GUILD_ID}/threads/active`)
     return [...channels, ...activeThreads.threads].filter(channel =>
       MESSAGEABLE_CHANNEL_TYPES.has(channel.type),
     )
@@ -219,7 +242,7 @@ export class DiscordBridge extends DurableObject<Env> {
       async options => {
         const query = new URLSearchParams({ limit: String(options.limit) })
         if (options.before) query.set('before', options.before)
-        return this.discord<DiscordMessage[]>(
+        return this.discordClient.request<DiscordMessage[]>(
           `/channels/${channelId}/messages?${query.toString()}`,
         )
       },
@@ -250,7 +273,8 @@ export class DiscordBridge extends DurableObject<Env> {
   private getDelivery(messageId: string) {
     return this.ctx.storage.sql
       .exec<MessageDelivery>(
-        `SELECT admin_logged_at, github_completed_at, github_discussion_url,
+        `SELECT admin_logged_at, github_attempted_at, github_completed_at,
+                github_discussion_url,
                 public_completed_at, public_telegram_message_ids
          FROM message_deliveries
          WHERE message_id = ?`,
@@ -280,6 +304,29 @@ export class DiscordBridge extends DurableObject<Env> {
       messageId,
       Date.now(),
       JSON.stringify(telegramMessageIds),
+    )
+  }
+
+  private recordPublicMirrorProgress(messageId: string, telegramMessageIds: number[]) {
+    this.ctx.storage.sql.exec(
+      `INSERT INTO message_deliveries
+       (message_id, public_telegram_message_ids)
+       VALUES (?, ?)
+       ON CONFLICT(message_id) DO UPDATE SET
+         public_telegram_message_ids = excluded.public_telegram_message_ids`,
+      messageId,
+      JSON.stringify(telegramMessageIds),
+    )
+  }
+
+  private recordGitHubMirrorAttempt(messageId: string) {
+    this.ctx.storage.sql.exec(
+      `INSERT INTO message_deliveries (message_id, github_attempted_at)
+       VALUES (?, ?)
+       ON CONFLICT(message_id) DO UPDATE SET
+         github_attempted_at = excluded.github_attempted_at`,
+      messageId,
+      Date.now(),
     )
   }
 
@@ -314,15 +361,15 @@ export class DiscordBridge extends DurableObject<Env> {
           discussionCategories(first: 25) { nodes { id slug } }
         }
       }`,
-      { owner: GITHUB_DISCUSSIONS_OWNER, name: GITHUB_DISCUSSIONS_REPOSITORY },
+      { owner: this.githubOptions.owner, name: this.githubOptions.repository },
     )
     const repository = payload.repository
     const category = repository?.discussionCategories.nodes.find(
-      category => category.slug === GITHUB_DISCUSSIONS_CATEGORY,
+      category => category.slug === this.githubOptions.category,
     )
     if (!repository || !category)
       throw new Error(
-        `GitHub discussion category ${GITHUB_DISCUSSIONS_CATEGORY} was not found on ${GITHUB_DISCUSSIONS_OWNER}/${GITHUB_DISCUSSIONS_REPOSITORY}.`,
+        `GitHub discussion category ${this.githubOptions.category} was not found on ${this.githubOptions.owner}/${this.githubOptions.repository}.`,
       )
 
     this.githubDiscussionTarget = {
@@ -413,56 +460,25 @@ export class DiscordBridge extends DurableObject<Env> {
     return payload.token
   }
 
-  private async discord<T>(path: string) {
-    const response = await fetch(`${DISCORD_API}${path}`, {
-      headers: { authorization: `Bot ${this.env.DISCORD_BOT_TOKEN}` },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    })
-    if (!response.ok) {
-      throw new Error(`Discord API returned HTTP ${response.status} for ${path}.`)
-    }
-    return (await response.json()) as T
-  }
-
-  private async sendTelegramText(chatId: string, text: string) {
-    const messages: TelegramMessage[] = []
-    for (const chunk of splitTelegramHtml(formatTelegramHtml(text))) {
-      messages.push(
-        await this.telegram<TelegramMessage>('sendMessage', {
+  private async sendTelegramText(
+    chatId: string,
+    text: string,
+    completedChunks = 0,
+    onSent?: (message: TelegramMessage) => void,
+  ) {
+    const chunks = splitTelegramHtml(formatTelegramHtml(text))
+    for (const chunk of chunks.slice(completedChunks)) {
+      const message = await this.telegramClient.request<TelegramMessage>(
+        'sendMessage',
+        {
           chat_id: chatId,
           link_preview_options: { is_disabled: true },
           parse_mode: 'HTML',
           text: chunk,
-        }),
-      )
-    }
-    return messages
-  }
-
-  private async telegram<T>(method: string, body: Record<string, unknown>): Promise<T> {
-    for (let attempt = 0; attempt < TELEGRAM_MAX_RETRIES; attempt += 1) {
-      const response = await fetch(
-        `${TELEGRAM_API}${this.env.TELEGRAM_BOT_TOKEN}/${method}`,
-        {
-          body: JSON.stringify(body),
-          headers: { 'content-type': 'application/json' },
-          method: 'POST',
-          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         },
       )
-      const payload = (await response.json()) as TelegramResponse<T>
-      const retryAfter = payload.parameters?.retry_after
-      if (response.status === 429 && retryAfter && attempt < TELEGRAM_MAX_RETRIES - 1) {
-        await delay(Math.min(retryAfter * 1000, 30_000))
-        continue
-      }
-      if (!response.ok || !payload.ok || payload.result === undefined) {
-        throw new Error(payload.description ?? `Telegram ${method} failed.`)
-      }
-      return payload.result
+      onSent?.(message)
     }
-
-    throw new Error(`Telegram ${method} exhausted its retry budget.`)
   }
 }
 
@@ -474,8 +490,16 @@ function channelLabel(channel: DiscordChannel, channels: DiscordChannel[]) {
   return parent ? `#${parent} / #${name}` : `#${name}`
 }
 
-function delay(milliseconds: number) {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
+function parseTelegramMessageIds(value: string | null | undefined) {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) && parsed.every(id => typeof id === 'number')
+      ? parsed
+      : []
+  } catch {
+    return []
+  }
 }
 
 export default {
