@@ -13,6 +13,7 @@ test('renders a measure data dictionary with pending metadata visibly marked', a
     measures: [
       {
         definition: null,
+        measurementKind: 'count',
         name: 'Population',
         observationCount: 18,
         sourceField: 'POPULATION',

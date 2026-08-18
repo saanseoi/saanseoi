@@ -562,6 +562,7 @@ describe('createReleaseStatsPresentation', () => {
       measures: [
         {
           definition: 'Resident population at the reference period.',
+          measurementKind: 'count',
           name: 'Population',
           observationCount: 4,
           sourceField: 'POPULATION',
