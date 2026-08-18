@@ -5,7 +5,8 @@ import {
   canonicalStatsMeasure,
   canonicalStatsMeasureI18n,
   canonicalStatsObservation,
-  canonicalStatsObservationDimension,
+  canonicalStatsSeries,
+  canonicalStatsSeriesDimension,
   canonicalStatsValue,
   canonicalStatsValueI18n,
   timestamps,
@@ -17,12 +18,20 @@ export const statsObservations = sqliteTable(
   { ...canonicalStatsObservation, ...timestamps },
   table => [
     primaryKey({ columns: [table.id] }),
-    index('statsObservations_dataset_period_measure_idx').on(
+    index('statsObservations_series_measure_idx').on(table.seriesId, table.measureCode),
+  ],
+)
+
+export const statsSeries = sqliteTable(
+  'statsSeries',
+  { ...canonicalStatsSeries, ...timestamps },
+  table => [
+    primaryKey({ columns: [table.id] }),
+    index('statsSeries_dataset_period_idx').on(
       table.datasetCode,
       table.referencePeriodCode,
-      table.measureCode,
     ),
-    index('statsObservations_division_period_idx').on(
+    index('statsSeries_division_period_idx').on(
       table.divisionId,
       table.referencePeriodCode,
     ),
@@ -67,13 +76,13 @@ export const statsValuesI18n = sqliteTable(
   ],
 )
 
-export const statsObservationDimensions = sqliteTable(
-  'statsObservationDimensions',
-  { ...canonicalStatsObservationDimension, ...timestamps },
+export const statsSeriesDimensions = sqliteTable(
+  'statsSeriesDimensions',
+  { ...canonicalStatsSeriesDimension, ...timestamps },
   table => [
     primaryKey({
-      columns: [table.observationId, table.dimensionCode, table.valueCode],
+      columns: [table.seriesId, table.dimensionCode, table.valueCode],
     }),
-    index('statsObservationDimensions_observation_idx').on(table.observationId),
+    index('statsSeriesDimensions_series_idx').on(table.seriesId),
   ],
 )

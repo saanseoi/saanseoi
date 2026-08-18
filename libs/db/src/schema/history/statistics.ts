@@ -5,7 +5,8 @@ import {
   canonicalStatsMeasure,
   canonicalStatsMeasureI18n,
   canonicalStatsObservation,
-  canonicalStatsObservationDimension,
+  canonicalStatsSeries,
+  canonicalStatsSeriesDimension,
   canonicalStatsValue,
   canonicalStatsValueI18n,
 } from '../shared'
@@ -18,16 +19,25 @@ export const statsObservations = sqliteTable(
   table => [
     primaryKey({ columns: [table.id, table.versionHash] }),
     index('statsObservations_current_lookup_idx').on(table.id, table.isCurrent),
-    index('statsObservations_dataset_period_measure_idx').on(
+    index('statsObservations_series_measure_idx').on(table.seriesId, table.measureCode),
+  ],
+)
+
+export const statsSeries = sqliteTable(
+  'statsSeries',
+  { ...canonicalStatsSeries, ...historyStatisticVersioning },
+  table => [
+    primaryKey({ columns: [table.id, table.versionHash] }),
+    index('statsSeries_current_lookup_idx').on(table.id, table.isCurrent),
+    index('statsSeries_dataset_period_idx').on(
       table.datasetCode,
       table.referencePeriodCode,
-      table.measureCode,
     ),
-    index('statsObservations_division_period_idx').on(
+    index('statsSeries_division_period_idx').on(
       table.divisionId,
       table.referencePeriodCode,
     ),
-    index('statsObservations_source_release_idx').on(table.sourceReleaseId),
+    index('statsSeries_source_release_idx').on(table.sourceReleaseId),
   ],
 )
 
@@ -95,21 +105,18 @@ export const statsValuesI18n = sqliteTable(
   ],
 )
 
-export const statsObservationDimensions = sqliteTable(
-  'statsObservationDimensions',
-  { ...canonicalStatsObservationDimension, ...historyStatisticVersioning },
+export const statsSeriesDimensions = sqliteTable(
+  'statsSeriesDimensions',
+  { ...canonicalStatsSeriesDimension, ...historyStatisticVersioning },
   table => [
     primaryKey({
       columns: [
-        table.observationId,
+        table.seriesId,
         table.dimensionCode,
         table.valueCode,
         table.versionHash,
       ],
     }),
-    index('statsObservationDimensions_observation_idx').on(
-      table.observationId,
-      table.isCurrent,
-    ),
+    index('statsSeriesDimensions_series_idx').on(table.seriesId, table.isCurrent),
   ],
 )
