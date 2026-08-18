@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1b5fc104ae6a80f180424acd8070fbe2da0d66dbcfad185931e92b7770cd4cd7",
+  "versionHash": "sha256:505cf5d8eeaa2512fdece6aa977344521bbb14b088cea9b9097170437a881ceb",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
   "regionCode": "hk",
@@ -49,7 +49,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1ad4ed86f10c999efbbd7055c81188d7c8e7015a4b324db97478540acdabab4d",
+  "versionHash": "sha256:b2348494a37978d5d83cd8d2615b5db7e18dfe44968d7a39e4fc3056236ae37e",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -51,7 +51,8 @@
       "rulesetVersion": "rs-division-statistic-merge-v1",
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
-        "map_censtatd_district_code_to_canonical_division"
+        "map_censtatd_district_code_to_canonical_division",
+        "curate_censtatd_measure_metadata"
       ]
     }
   ],
