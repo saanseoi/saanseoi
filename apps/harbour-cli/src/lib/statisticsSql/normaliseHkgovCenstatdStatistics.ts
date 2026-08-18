@@ -5,7 +5,7 @@ import type {
   CenstatdCanonicalMeasure,
   CenstatdCanonicalObservation,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
-import type { StatsMeasurementKind } from '@repo/db'
+import type { StatsAggregation, StatsStatisticKind } from '@repo/db'
 
 import type { CenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 
@@ -18,7 +18,7 @@ type CanonicalObservation = CenstatdCanonicalObservation & {
   sourceValue: string
   unitCode: string
   valueCode: string | null
-  valuePrecision: number | null
+  valuePrecision: string | null
 }
 
 type CanonicalSeries = {
@@ -41,10 +41,12 @@ type CanonicalSeriesDimension = {
 }
 
 type CanonicalMeasure = CenstatdCanonicalMeasure & {
+  aggregation: StatsAggregation
   datasetCode: string
-  measurementKind: StatsMeasurementKind
+  denominatorMeasureCode: string | null
   sourceField: string
   sourceNullOption: string | null
+  statisticKind: StatsStatisticKind
   valueKind: 'categorical' | 'numeric'
 }
 
@@ -187,17 +189,19 @@ export function normaliseHkgovCenstatdStatistics(
         numericValue: parsed.numericValue,
         valueCode: parsed.valueCode,
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
-        valuePrecision: null,
+        valuePrecision: parsed.valuePrecision,
         observationStatus: parsed.observationStatus,
         sourceValue,
       })
       const measureKey = [row.datasetCode, measureCode].join('\u0000')
       measures.set(measureKey, {
+        aggregation: metadata?.aggregation ?? 'unreviewed',
         datasetCode: row.datasetCode,
-        measurementKind: metadata?.measurementKind ?? 'unreviewed',
+        denominatorMeasureCode: metadata?.denominatorMeasureCode ?? null,
         measureCode,
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
+        statisticKind: metadata?.statisticKind ?? 'unreviewed',
         valueKind: parsed.numericValue === null ? 'categorical' : 'numeric',
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
       })
@@ -219,6 +223,26 @@ export function normaliseHkgovCenstatdStatistics(
         })
       }
     }
+  }
+
+  const scaledPrecisionByMeasure = new Map<string, number>()
+  for (const observation of observations) {
+    if (!isPopulationThousands(observation.sourceField, observation.sourceValue))
+      continue
+    const key = `${observation.sourceField}\u0000${observation.measureCode}`
+    scaledPrecisionByMeasure.set(
+      key,
+      Math.max(
+        scaledPrecisionByMeasure.get(key) ?? 0,
+        decimalPlaces(observation.sourceValue),
+      ),
+    )
+  }
+  for (const observation of observations) {
+    const key = `${observation.sourceField}\u0000${observation.measureCode}`
+    const decimalCount = scaledPrecisionByMeasure.get(key)
+    if (decimalCount !== undefined)
+      observation.valuePrecision = precisionAfterScaling(3, decimalCount)
   }
 
   return {
@@ -360,15 +384,14 @@ function parseObservationValue(
   sourceValue: string,
 ) {
   if (/^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)) {
+    const isScaledPopulation = isPopulationThousands(sourceField, sourceValue)
     return {
-      numericValue:
-        datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
-        sourceField === 'MYPOPN_LAND'
-          ? decimalTimesOneThousand(sourceValue)
-          : sourceValue,
+      numericValue: isScaledPopulation
+        ? decimalTimesOneThousand(sourceValue)
+        : sourceValue,
       observationStatus: 'published',
       valueCode: null,
+      valuePrecision: null,
     }
   }
   if (sourceValue === '**') {
@@ -376,6 +399,7 @@ function parseObservationValue(
       numericValue: null,
       observationStatus: 'suppressed',
       valueCode: 'suppressed',
+      valuePrecision: null,
     }
   }
   if (['-', 'N.A.', 'NA'].includes(sourceValue)) {
@@ -383,9 +407,30 @@ function parseObservationValue(
       numericValue: null,
       observationStatus: 'unavailable',
       valueCode: 'unavailable',
+      valuePrecision: null,
     }
   }
-  return { numericValue: null, observationStatus: 'published', valueCode: sourceValue }
+  return {
+    numericValue: null,
+    observationStatus: 'published',
+    valueCode: sourceValue,
+    valuePrecision: null,
+  }
+}
+
+function decimalPlaces(value: string) {
+  return value.split('.')[1]?.length ?? 0
+}
+
+function precisionAfterScaling(scaleExponent: number, decimalCount: number) {
+  const exponent = scaleExponent - decimalCount
+  return exponent >= 0
+    ? `1${'0'.repeat(exponent)}`
+    : `0.${'0'.repeat(Math.abs(exponent) - 1)}1`
+}
+
+function isPopulationThousands(sourceField: string, sourceValue: string) {
+  return sourceField === 'MYPOPN_LAND' && /^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)
 }
 
 function decimalTimesOneThousand(value: string) {

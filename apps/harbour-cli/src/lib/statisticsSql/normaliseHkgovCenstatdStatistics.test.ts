@@ -96,6 +96,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
         numericValue: '243300',
         sourceValue: '243.3',
         unitCode: 'person',
+        valuePrecision: '100',
       }),
     )
     expect(rows.series).toContainEqual(
@@ -139,7 +140,8 @@ describe('normaliseHkgovCenstatdStatistics', () => {
                   name: '土地面积',
                 },
               ],
-              measurementKind: 'quantity',
+              aggregation: 'total',
+              statisticKind: 'quantity',
               measureCode: 'landArea',
               sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
@@ -152,7 +154,8 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.measures).toContainEqual(
       expect.objectContaining({
         measureCode: 'landArea',
-        measurementKind: 'quantity',
+        aggregation: 'total',
+        statisticKind: 'quantity',
         sourceField: 'AREA',
         sourceNullOption: 'Null',
         unitCode: 'square-kilometre',

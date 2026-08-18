@@ -2,7 +2,12 @@ import { confirm, isCancel, note, select, text } from '@clack/prompts'
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { statsMeasurementKinds, type StatsMeasurementKind } from '@repo/db'
+import {
+  statsAggregations,
+  statsStatisticKinds,
+  type StatsAggregation,
+  type StatsStatisticKind,
+} from '@repo/db'
 
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { translateAzureTexts } from '../sources/landsd/street/landsdStreetTranslation.ts'
@@ -15,9 +20,11 @@ import {
 } from '../localPipeline/progressFormatting.ts'
 
 export type CenstatdMeasureCurationEntry = {
+  aggregation: Exclude<StatsAggregation, 'unreviewed'>
   datasetCode: string
+  denominatorMeasureCode?: string | null
   localisations: readonly CenstatdMeasureLocalisation[]
-  measurementKind: Exclude<StatsMeasurementKind, 'unreviewed'>
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
   measureCode: string
   schemaSpecification?: {
     sha256: string
@@ -29,7 +36,7 @@ export type CenstatdMeasureCurationEntry = {
 }
 export type CenstatdMeasureCurationManifest = {
   measures: CenstatdMeasureCurationEntry[]
-  schemaVersion: 4
+  schemaVersion: 5
 }
 export type CenstatdMeasureForCuration = {
   datasetCode: string
@@ -38,8 +45,10 @@ export type CenstatdMeasureForCuration = {
   valueKind: string
 }
 export type CenstatdMeasureMetadata = {
+  aggregation: Exclude<StatsAggregation, 'unreviewed'>
+  denominatorMeasureCode?: string | null
   localisations: readonly CenstatdMeasureLocalisation[]
-  measurementKind: Exclude<StatsMeasurementKind, 'unreviewed'>
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
   measureCode: string
   sourceNullOption?: string | null
   unitCode: string
@@ -67,6 +76,20 @@ const DEFAULT_CURATION_PATH = resolve(
   import.meta.dir,
   '../../../../../fixtures/meta/curations/hkgov-censtatd-statistics.json',
 )
+const DEFAULT_UNITS_PATH = resolve(
+  import.meta.dir,
+  '../../../../../fixtures/meta/units/standard.json',
+)
+
+type UnitRegistryFixture = {
+  versionHash: string
+  units: Array<{
+    code: string
+    dimension: string
+    symbol: string
+    i18n: Array<{ locale: 'en'; name: string; description?: string }>
+  }>
+}
 
 export async function resolveCenstatdMeasureMetadata(input: {
   measures: readonly CenstatdMeasureForCuration[]
@@ -113,6 +136,42 @@ export async function saveCenstatdMeasureCuration(
   await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
 }
 
+/** Prompts for and persists a registry record before a new unit is referenced. */
+async function ensureCenstatdUnit(input: { code: string; path: string }) {
+  if (input.code === 'publisher-unknown') return
+  const fixture = await loadUnitRegistryFixture(input.path)
+  if (fixture.units.some(unit => unit.code === input.code)) return
+  note(formatField('unit code', input.code), 'NEW UNIT')
+  const dimension = await requiredText('Unit dimension', undefined)
+  const symbol = await requiredText('Unit symbol', undefined)
+  const name = await requiredText('English unit name', undefined)
+  const description = await requiredText('English unit description', undefined)
+  const units = [
+    ...fixture.units,
+    {
+      code: input.code,
+      dimension,
+      symbol,
+      i18n: [{ description, locale: 'en' as const, name }],
+    },
+  ].sort((left, right) => left.code.localeCompare(right.code))
+  const versionHash = createHash('sha256').update(JSON.stringify(units)).digest('hex')
+  await writeFile(
+    input.path,
+    `${JSON.stringify({ units, versionHash }, null, 2)}\n`,
+    'utf8',
+  )
+}
+
+async function loadUnitRegistryFixture(path: string): Promise<UnitRegistryFixture> {
+  const fixture = JSON.parse(
+    await readFile(path, 'utf8'),
+  ) as Partial<UnitRegistryFixture>
+  if (!Array.isArray(fixture.units) || typeof fixture.versionHash !== 'string')
+    throw new Error(`Invalid unit registry fixture: ${path}.`)
+  return fixture as UnitRegistryFixture
+}
+
 export function resolveCenstatdMeasureCuration(input: {
   manifest: CenstatdMeasureCurationManifest
   measures: readonly CenstatdMeasureForCuration[]
@@ -132,12 +191,16 @@ export function resolveCenstatdMeasureCuration(input: {
               [
                 measureKey(measure),
                 {
+                  aggregation: decision.aggregation,
+                  ...(decision.denominatorMeasureCode === undefined
+                    ? {}
+                    : { denominatorMeasureCode: decision.denominatorMeasureCode }),
                   localisations: decision.localisations,
-                  measurementKind: decision.measurementKind,
                   measureCode: decision.measureCode,
                   ...(decision.sourceNullOption === undefined
                     ? {}
                     : { sourceNullOption: decision.sourceNullOption }),
+                  statisticKind: decision.statisticKind,
                   unitCode: decision.unitCode,
                 },
               ] as const,
@@ -157,7 +220,7 @@ export async function promptForCenstatdMeasureCuration(input: {
 }) {
   const decisions = [...input.manifest.measures]
   const persist = () =>
-    input.persist?.({ measures: decisions, schemaVersion: 4 }) ?? Promise.resolve()
+    input.persist?.({ measures: decisions, schemaVersion: 5 }) ?? Promise.resolve()
   for (const measure of input.measures) {
     const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
     const suggestedUnitCode = suggestUnitCode(
@@ -174,11 +237,15 @@ export async function promptForCenstatdMeasureCuration(input: {
       ].join('\n'),
       'MEASURE METADATA',
     )
-    const measurementKind = await selectMeasurementKind({
+    const statisticKind = await selectStatisticKind({
       measure,
       measureCode:
         schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
       suggestedUnitCode,
+    })
+    const aggregation = await selectAggregation({ statisticKind })
+    const denominatorMeasureCode = await optionalDenominatorMeasureCode({
+      statisticKind,
     })
     if (schemaCandidate) {
       note(
@@ -195,14 +262,20 @@ export async function promptForCenstatdMeasureCuration(input: {
       })
       if (isCancel(accepted)) throw new Error('C&SD measure curation cancelled.')
       if (accepted) {
+        await ensureCenstatdUnit({
+          code: suggestedUnitCode ?? measure.unitCode,
+          path: DEFAULT_UNITS_PATH,
+        })
         decisions.push({
+          aggregation,
           datasetCode: measure.datasetCode,
+          ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
           localisations: schemaCandidate.localisations,
-          measurementKind,
           measureCode: schemaCandidate.measureCode,
           schemaSpecification: schemaCandidate.schemaSpecification,
           sourceField: measure.sourceField,
           sourceNullOption: schemaCandidate.sourceNullOption,
+          statisticKind,
           unitCode: suggestedUnitCode ?? measure.unitCode,
         })
         await persist()
@@ -251,8 +324,12 @@ export async function promptForCenstatdMeasureCuration(input: {
       message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
     })
     if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
+    const resolvedUnitCode = (unitCode ?? '').trim() || 'publisher-unknown'
+    await ensureCenstatdUnit({ code: resolvedUnitCode, path: DEFAULT_UNITS_PATH })
     decisions.push({
+      aggregation,
       datasetCode: measure.datasetCode,
+      ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
       localisations: [
         {
           description: englishDescription,
@@ -281,7 +358,6 @@ export async function promptForCenstatdMeasureCuration(input: {
           name: simplifiedChineseName,
         },
       ],
-      measurementKind,
       measureCode,
       ...(schemaCandidate
         ? {
@@ -290,15 +366,16 @@ export async function promptForCenstatdMeasureCuration(input: {
           }
         : {}),
       sourceField: measure.sourceField,
-      unitCode: (unitCode ?? '').trim() || 'publisher-unknown',
+      statisticKind,
+      unitCode: resolvedUnitCode,
     })
     await persist()
   }
-  return { measures: decisions, schemaVersion: 4 as const }
+  return { measures: decisions, schemaVersion: 5 as const }
 }
 
 export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationManifest {
-  return { measures: [], schemaVersion: 4 }
+  return { measures: [], schemaVersion: 5 }
 }
 
 function measureKey(
@@ -311,7 +388,7 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const manifest = value as Partial<CenstatdMeasureCurationManifest>
-  if (manifest.schemaVersion !== 4 || !Array.isArray(manifest.measures))
+  if (manifest.schemaVersion !== 5 || !Array.isArray(manifest.measures))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const measures = manifest.measures.map((measure, index) => {
     if (!measure || typeof measure !== 'object' || Array.isArray(measure))
@@ -327,12 +404,15 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
       throw new Error(`Invalid C&SD canonical measure key: ${path}.`)
     }
     if (
-      typeof entry.measurementKind !== 'string' ||
-      (entry.measurementKind as string) === 'unreviewed' ||
-      !statsMeasurementKinds.includes(entry.measurementKind as StatsMeasurementKind)
-    ) {
-      throw new Error(`Invalid C&SD measurement kind: ${path}.`)
-    }
+      typeof entry.statisticKind !== 'string' ||
+      !statsStatisticKinds.includes(entry.statisticKind as StatsStatisticKind)
+    )
+      throw new Error(`Invalid C&SD statistic kind: ${path}.`)
+    if (
+      typeof entry.aggregation !== 'string' ||
+      !statsAggregations.includes(entry.aggregation as StatsAggregation)
+    )
+      throw new Error(`Invalid C&SD aggregation: ${path}.`)
     if (!Array.isArray(entry.localisations) || entry.localisations.length === 0)
       throw new Error(`Missing C&SD measure localisations: ${path}.`)
     const locales = new Set<string>()
@@ -362,6 +442,13 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
     ) {
       throw new Error(`Invalid C&SD measure source null option: ${path}.`)
     }
+    if (
+      entry.denominatorMeasureCode !== undefined &&
+      entry.denominatorMeasureCode !== null &&
+      (typeof entry.denominatorMeasureCode !== 'string' ||
+        !/^[a-z][A-Za-z0-9]*$/.test(entry.denominatorMeasureCode))
+    )
+      throw new Error(`Invalid C&SD denominator measure key: ${path}.`)
     if (entry.schemaSpecification !== undefined) {
       const schemaSpecification = entry.schemaSpecification
       if (
@@ -381,7 +468,12 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   const keys = new Set(measures.map(measureKey))
   if (keys.size !== measures.length)
     throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
-  return { measures, schemaVersion: 4 as const }
+  const measureCodes = new Set(
+    measures.map(measure => `${measure.datasetCode}\u0000${measure.measureCode}`),
+  )
+  if (measureCodes.size !== measures.length)
+    throw new Error(`Duplicate C&SD canonical measure key: ${path}.`)
+  return { measures, schemaVersion: 5 as const }
 }
 
 /**
@@ -541,7 +633,7 @@ function resolvedCsdiLocalisation(
   const value = official ?? translations.get(field.descriptionEn)
   if (!value)
     throw new Error(`Missing ${locale} localisation for ${field.sourceField}.`)
-  return value
+  return value as Exclude<StatsAggregation, 'unreviewed'>
 }
 
 function uniqueSchemaField(fields: readonly CsdiSpecificationField[]) {
@@ -656,17 +748,17 @@ export function suggestUnitCode(
   return units.size === 1 ? (units.values().next().value ?? null) : null
 }
 
-export function suggestMeasurementKind(input: {
+export function suggestStatisticKind(input: {
   measureCode: string
   unitCode: string | null
-}): Exclude<StatsMeasurementKind, 'unreviewed'> {
+}): Exclude<StatsStatisticKind, 'unreviewed'> {
   const name = input.measureCode.toLocaleLowerCase('en')
   const unit = input.unitCode?.toLocaleLowerCase('en') ?? ''
   if (name.includes('percent') || name.includes('percentage') || unit === 'percent')
-    return 'percentage'
+    return 'proportion'
   if (name.includes('ratio')) return 'ratio'
-  if (name.includes('rate') || name.includes('density') || unit.includes('-per-'))
-    return 'rate'
+  if (name.includes('density')) return 'density'
+  if (name.includes('rate') || unit.includes('-per-')) return 'rate'
   if (
     name.includes('count') ||
     name.includes('population') ||
@@ -679,17 +771,17 @@ export function suggestMeasurementKind(input: {
   return 'quantity'
 }
 
-async function selectMeasurementKind(input: {
+async function selectStatisticKind(input: {
   measure: CenstatdMeasureForCuration
   measureCode: string
   suggestedUnitCode: string | null
-}): Promise<Exclude<StatsMeasurementKind, 'unreviewed'>> {
+}): Promise<Exclude<StatsStatisticKind, 'unreviewed'>> {
   const value = await select({
-    initialValue: suggestMeasurementKind({
+    initialValue: suggestStatisticKind({
       measureCode: input.measureCode,
       unitCode: input.suggestedUnitCode ?? input.measure.unitCode,
     }),
-    message: 'Measurement kind',
+    message: 'Statistic kind',
     options: [
       {
         hint: 'Discrete entities, such as people or dwellings.',
@@ -702,21 +794,70 @@ async function selectMeasurementKind(input: {
         value: 'quantity',
       },
       {
-        hint: 'A proportion expressed in percent.',
-        label: 'Percentage',
-        value: 'percentage',
+        hint: 'A share of a whole, whether stored as a fraction or percentage.',
+        label: 'Proportion',
+        value: 'proportion',
       },
       { hint: 'A comparison between two quantities.', label: 'Ratio', value: 'ratio' },
       {
-        hint: 'A quantity per population, area, or time.',
-        label: 'Rate or density',
+        hint: 'A quantity per population or time.',
+        label: 'Rate',
         value: 'rate',
+      },
+      {
+        hint: 'A quantity per unit area.',
+        label: 'Density',
+        value: 'density',
       },
       { hint: 'An indexed value relative to a base.', label: 'Index', value: 'index' },
     ],
   })
   if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
-  return value
+  return value as Exclude<StatsStatisticKind, 'unreviewed'>
+}
+
+async function selectAggregation(input: {
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+}): Promise<Exclude<StatsAggregation, 'unreviewed'>> {
+  const value = await select({
+    initialValue:
+      input.statisticKind === 'count' || input.statisticKind === 'quantity'
+        ? 'total'
+        : 'none',
+    message: 'Aggregation',
+    options: [
+      {
+        hint: 'No aggregation; the publisher supplies a direct value.',
+        label: 'None',
+        value: 'none',
+      },
+      { hint: 'The values are summed.', label: 'Total', value: 'total' },
+      { hint: 'Arithmetic average.', label: 'Mean', value: 'mean' },
+      { hint: 'Middle value.', label: 'Median', value: 'median' },
+      { hint: 'Smallest value.', label: 'Minimum', value: 'minimum' },
+      { hint: 'Largest value.', label: 'Maximum', value: 'maximum' },
+      { hint: 'A named percentile.', label: 'Percentile', value: 'percentile' },
+    ],
+  })
+  if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
+  return value as Exclude<StatsAggregation, 'unreviewed'>
+}
+
+async function optionalDenominatorMeasureCode(input: {
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+}) {
+  if (!['proportion', 'ratio', 'rate', 'density'].includes(input.statisticKind))
+    return undefined
+  const value = await text({
+    message:
+      'Canonical denominator measure key (leave blank when the base is external)',
+  })
+  if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
+  const denominatorMeasureCode = value.trim()
+  if (!denominatorMeasureCode) return undefined
+  if (!/^[a-z][A-Za-z0-9]*$/.test(denominatorMeasureCode))
+    throw new Error('C&SD denominator measure key must be lower camel case.')
+  return denominatorMeasureCode
 }
 
 export async function resolveChineseLocalisationProposals(input: {
