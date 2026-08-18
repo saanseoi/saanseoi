@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:fc9cb5c38c8a05e22f8ea25c5ed187e1086681081a73db0bba76289b0d1bb1d1",
+  "versionHash": "sha256:430bca6583fac1fc7be331c42d76b01f3d2c58882d896568d5536d198a652284",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
   "regionCode": "hk",
@@ -49,7 +49,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:380986098cbfa48348618566fec3b1016a9ea0fbe8c92f3532908fb54d1c86d9",
+  "versionHash": "sha256:7620aa4c5c529e1138c4435f75a0ff80a2795c36d7049b28f3981245eb943bbc",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
   "regionCode": "hk",
@@ -50,7 +50,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [
