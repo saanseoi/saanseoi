@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:59ca4d6617fd8df09777776c44dc4c8ae66a5f125adce92f48d8d89404d14e4f",
+  "versionHash": "sha256:a006c083736a08e7337f161635df395fdea2c2fa74d70a9463e228083b1c3c19",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -50,7 +50,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "map_censtatd_district_code_to_canonical_division"
+      ]
     }
   ],
   "releases": [
