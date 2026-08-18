@@ -184,6 +184,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
   target: UploadTarget,
   kind: BackfillKind,
   printUsage: () => void,
+  dependencies: BackfillDependencies = {},
 ) {
   const inputFile = args.positionals[0]
   const sourceVersion = args.options['source-version']
@@ -196,6 +197,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
     typeof sourceVersion !== 'string' ||
     typeof catalogueUrl !== 'string' ||
     typeof sourceArchiveKey !== 'string' ||
+    sourceArchiveKey.trim().length === 0 ||
     !isSha256(sourceArchiveSha256)
   ) {
     printUsage()
@@ -229,8 +231,10 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
     )
     const prepare =
       kind === 'pu'
-        ? prepareHkgovPlandTpuNativeShpZip
-        : prepareHkgovPlandNewTownNativeShpZip
+        ? (dependencies.prepareHkgovPlandTpuNativeShpZip ??
+          prepareHkgovPlandTpuNativeShpZip)
+        : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
+          prepareHkgovPlandNewTownNativeShpZip)
     for (const type of ['division', 'divisionArea'] as const) {
       await prepare({
         inputFile: sourceArchivePath,
@@ -251,6 +255,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         target,
         type,
         forceUpload: false,
+        runUploadCommand: dependencies.runUploadCommand,
       })
     }
   } finally {
@@ -270,6 +275,14 @@ async function uploadPreparedArtefact(args: {
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
 }) {
+  if (
+    (args.sourceArchiveKey === undefined) !==
+    (args.sourceArchiveSha256 === undefined)
+  ) {
+    throw new Error(
+      'Planning Department uploads must retain both source archive provenance values.',
+    )
+  }
   const uploadArgs: ParsedArgs = {
     command: 'upload',
     positionals: [args.filePath],
