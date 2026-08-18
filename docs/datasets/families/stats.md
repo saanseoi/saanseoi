@@ -33,24 +33,27 @@ geometry is released through the Divisions family.
 
 Every C&SD publisher field requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics.json`. The entry assigns its stable
-canonical `measureCode`, retains the publisher `sourceField`, and supplies the English,
-Traditional Chinese, and Simplified Chinese measure dictionary. The registered CSDI
-Simplified Data Specification is a review candidate retained as provenance. The CLI
-first displays compact metadata with the stable source-release portal URL, then a
-proposal of `sourceField -> measureCode`, its reviewed-unit suggestion, and the
-English/Traditional Chinese/Simplified Chinese name and description together. The unit
-suggestion is drawn only from compatible, previously reviewed canonical measure names;
-it is never admitted without review. On rejection, CSDI's English name and description
-become the editable defaults. If either changes, Azure Translator supplies new Chinese
-defaults; accepting those machine values unchanged records
-`isTranslationVerified=false`. Official CSDI locale rows remain verified. `--yes`
-refuses every uncurated field.
+canonical `measureCode`, retains the publisher `sourceField`, assigns a reviewed
+`measurementKind` (`count`, `quantity`, `percentage`, `ratio`, `rate`, or `index`), and
+supplies the English, Traditional Chinese, and Simplified Chinese measure dictionary.
+This semantic kind is independent of `valueKind` (numeric or categorical) and
+`unitCode`: it distinguishes, for example, a percentage from a ratio even when a
+publisher has not mapped the unit. The registered CSDI Simplified Data Specification is
+a review candidate retained as provenance. The CLI first displays compact metadata with
+the stable source-release portal URL, then a proposal of `sourceField -> measureCode`,
+its reviewed-unit suggestion, and the English/Traditional Chinese/Simplified Chinese
+name and description together. The unit suggestion is drawn only from compatible,
+previously reviewed canonical measure names; it is never admitted without review. On
+rejection, CSDI's English name and description become the editable defaults. If either
+changes, Azure Translator supplies new Chinese defaults; accepting those machine values
+unchanged records `isTranslationVerified=false`. Official CSDI locale rows remain
+verified. `--yes` refuses every uncurated field.
 
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
 intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.
 The source-release Stats tab then exposes the release's measure dictionary with its
-definition, unit, value kind, and observation count.
+definition, unit, measurement kind, and observation count.
 
 Area/type and HMA are approved source-release fan-outs. Area/type creates the three
 Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area

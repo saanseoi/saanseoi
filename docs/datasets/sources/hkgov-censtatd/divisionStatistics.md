@@ -59,20 +59,24 @@ release period.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics.json`. It sets a stable canonical
-`measureCode`, while preserving the publisher `sourceField` in the canonical
-observation. The CLI reads the registered CSDI Simplified Data Specification through
-CSDI's static host only to pre-fill a review candidate. It displays compact metadata
-with the stable source-release portal URL rather than the expiring specification link,
-followed by a `sourceField -> measureCode` proposal with any compatible previously
-reviewed unit suggestion and all three locales inline before acceptance. On rejection,
-the CSDI English name and description are editable defaults. Changing either invokes
-Azure Translator for fresh Chinese defaults; accepted machine values are stored with
-`isTranslationVerified=false`, while official CSDI locale rows remain verified. `--yes`
-refuses every uncurated field. The importer retains the exact publisher `Null Option` as
-the measure's nullable `sourceNullOption`. It does not replace SaanSeoi's normalised
-observation status or automatically admit a unit. The release page presents the
-resulting measure dictionary in Stats, while Audit remains for processing decisions and
-their evidence.
+`measureCode` and a reviewed `measurementKind`, while preserving the publisher
+`sourceField` in the canonical observation. `measurementKind` identifies whether the
+measure is a count, quantity, percentage, ratio, rate, or index; it is deliberately
+separate from the source value representation and unit. The CLI reads the registered
+CSDI Simplified Data Specification through CSDI's static host only to pre-fill a review
+candidate. It displays compact metadata with the stable source-release portal URL rather
+than the expiring specification link, followed by a `sourceField -> measureCode`
+proposal with any compatible previously reviewed unit suggestion and all three locales
+inline before acceptance. On rejection, the CSDI English name and description are
+editable defaults. Changing either invokes Azure Translator for fresh Chinese defaults;
+accepted machine values are stored with `isTranslationVerified=false`, while official
+CSDI locale rows remain verified. `--yes` refuses every uncurated field. The importer
+retains the exact publisher `Null Option` as the measure's nullable `sourceNullOption`.
+It does not replace SaanSeoi's normalised observation status or automatically admit a
+unit. Each completed measure decision is written immediately to the curation manifest,
+so an interrupted review can be resumed or hand-edited without repeating completed
+measures. The release page presents the resulting measure dictionary in Stats, while
+Audit remains for processing decisions and their evidence.
 
 The importer never creates a parallel statistical-geography registry. The Area/type and
 HMA native polygon layers fan out from the same verified source release into `division`
