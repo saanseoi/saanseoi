@@ -35,10 +35,16 @@ Every C&SD publisher field requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics.json`. The entry assigns its stable
 canonical `measureCode`, retains the publisher `sourceField`, and supplies the English,
 Traditional Chinese, and Simplified Chinese measure dictionary. The registered CSDI
-Simplified Data Specification is a review candidate: the CLI displays its proposed
-canonical key and all localisations before the operator accepts them. Official CSDI
-locale rows are marked `isTranslationVerified=true`; an Azure translation supplied for
-an absent publisher locale is marked `false`. `--yes` refuses every uncurated field.
+Simplified Data Specification is a review candidate retained as provenance. The CLI
+first displays compact metadata with the stable source-release portal URL, then a
+proposal of `sourceField -> measureCode`, its reviewed-unit suggestion, and the
+English/Traditional Chinese/Simplified Chinese name and description together. The unit
+suggestion is drawn only from compatible, previously reviewed canonical measure names;
+it is never admitted without review. On rejection, CSDI's English name and description
+become the editable defaults. If either changes, Azure Translator supplies new Chinese
+defaults; accepting those machine values unchanged records
+`isTranslationVerified=false`. Official CSDI locale rows remain verified. `--yes`
+refuses every uncurated field.
 
 The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
