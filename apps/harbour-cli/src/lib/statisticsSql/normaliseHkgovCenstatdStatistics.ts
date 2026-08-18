@@ -42,6 +42,7 @@ type CanonicalSeriesDimension = {
 type CanonicalMeasure = CenstatdCanonicalMeasure & {
   datasetCode: string
   sourceField: string
+  sourceNullOption: string | null
   valueKind: 'categorical' | 'numeric'
 }
 
@@ -71,6 +72,14 @@ export type HkgovCenstatdStatisticSourceRow = {
   sourceFeatureId: string
   sourceReleaseId: string
   sourceVersion: string
+}
+
+/** The period is retained for release statistics but belongs to the series table. */
+export function persistedCanonicalObservation(
+  observation: CanonicalStatsRows['observations'][number],
+) {
+  const { referencePeriodCode: _referencePeriodCode, ...row } = observation
+  return row
 }
 
 /**
@@ -185,18 +194,27 @@ export function normaliseHkgovCenstatdStatistics(
         datasetCode: row.datasetCode,
         measureCode,
         sourceField,
+        sourceNullOption: metadata?.sourceNullOption ?? null,
         valueKind: parsed.numericValue === null ? 'categorical' : 'numeric',
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
       })
-      measuresI18n.set(`${measureKey}\u0000en`, {
-        datasetCode: row.datasetCode,
-        measureCode,
-        locale: 'en',
-        // Until a reviewed upstream definition is attached, do not invent a
-        // friendlier label than the publisher's exact field code.
-        name: metadata?.name ?? sourceField,
-        description: metadata?.definition ?? null,
-      })
+      for (const localisation of metadata?.localisations ?? [
+        {
+          description: metadata?.definition ?? null,
+          isTranslationVerified: true,
+          locale: 'en' as const,
+          name: metadata?.name ?? sourceField,
+        },
+      ]) {
+        measuresI18n.set(`${measureKey}\u0000${localisation.locale}`, {
+          datasetCode: row.datasetCode,
+          measureCode,
+          locale: localisation.locale,
+          name: localisation.name,
+          description: localisation.description,
+          isTranslationVerified: localisation.isTranslationVerified,
+        })
+      }
     }
   }
 

@@ -35,7 +35,10 @@ import {
   resolveCenstatdDistrictBridgeCohort,
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
-import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  normaliseHkgovCenstatdStatistics,
+  persistedCanonicalObservation,
+} from './normaliseHkgovCenstatdStatistics.ts'
 import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
@@ -96,15 +99,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           async stageRunning() {},
         },
       })
+  let processingStarted = false
   try {
     const processingStepCount = target.remote ? 8 : 5
     progress.beginPhase('Start statistic processing', { max: processingStepCount })
-    await client.stageRunning(
-      releaseId,
-      'processDataset',
-      { resourceType: 'divisionStatistic', sourceRows: plan.rowCount },
-      releaseCode,
-    )
     progress.update(1, { label: 'Read publisher statistic rows' })
     const rows = await readRows(prepared.filePath, releaseId, releaseCode)
     if (rows.length !== plan.rowCount)
@@ -117,17 +115,6 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       releaseId,
       source: { rows, table: 'hkgovCenstatdStatistics' },
     })
-    await replayStatisticSqlBatches(
-      target,
-      context,
-      plan.sourceVersion.slice(0, 4),
-      batches,
-      {
-        onProgress(event) {
-          updateStatisticReplayProgress(progress, event, target.remote)
-        },
-      },
-    )
     const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
     const sourceFeatures = rows.map(row => ({
       featureId: requiredString(row.featureId, 'featureId'),
@@ -173,6 +160,24 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       current: canonicalCurrentRows(canonical),
       history: canonicalHistoryRows(canonical, releaseId),
     })
+    await client.stageRunning(
+      releaseId,
+      'processDataset',
+      { resourceType: 'divisionStatistic', sourceRows: plan.rowCount },
+      releaseCode,
+    )
+    processingStarted = true
+    await replayStatisticSqlBatches(
+      target,
+      context,
+      plan.sourceVersion.slice(0, 4),
+      batches,
+      {
+        onProgress(event) {
+          updateStatisticReplayProgress(progress, event, target.remote)
+        },
+      },
+    )
     await replayCanonicalStatsSqlBatches(
       target,
       context,
@@ -236,15 +241,17 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     return published
   } catch (error) {
     progress.fail()
-    await client
-      .stageFailed(
-        releaseId,
-        'processDataset',
-        error instanceof Error ? error.message : String(error),
-        undefined,
-        releaseCode,
-      )
-      .catch(() => undefined)
+    if (processingStarted) {
+      await client
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
     throw error
   } finally {
     context.cleanup()
@@ -375,7 +382,7 @@ function canonicalCurrentRows(
     },
     {
       rows: canonical.observations.map(row => ({
-        ...row,
+        ...persistedCanonicalObservation(row),
         createdAt: now,
         updatedAt: now,
       })),
@@ -439,7 +446,12 @@ function canonicalHistoryRows(
   })
   return [
     { rows: canonical.series.map(version), table: 'statsSeries' as const },
-    { rows: canonical.observations.map(version), table: 'statsObservations' as const },
+    {
+      rows: canonical.observations.map(row =>
+        version(persistedCanonicalObservation(row)),
+      ),
+      table: 'statsObservations' as const,
+    },
     { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
     { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
     { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
