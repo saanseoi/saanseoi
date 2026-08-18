@@ -3,9 +3,9 @@ import type { GitHubDiscussion } from './messages.ts'
 
 const GITHUB_API = 'https://api.github.com'
 const GITHUB_APP_TOKEN_REFRESH_BUFFER_MS = 60_000
-const GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
-const GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
-const GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
+const DEFAULT_GITHUB_DISCUSSIONS_CATEGORY = 'announcements'
+const DEFAULT_GITHUB_DISCUSSIONS_OWNER = 'saanseoi'
+const DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY = 'saanseoi'
 const GITHUB_USER_AGENT = 'SaanSeoi-Announcements-Relay'
 const REQUEST_TIMEOUT_MS = 15_000
 
@@ -26,8 +26,11 @@ type GitHubGraphqlResponse<T> = {
 
 type GitHubClientOptions = {
   appId: string
+  category?: string
   installationId: string
+  owner?: string
   privateKeyBase64: string
+  repository?: string
 }
 
 export class GitHubClient {
@@ -75,15 +78,19 @@ export class GitHubClient {
           discussionCategories(first: 25) { nodes { id slug } }
         }
       }`,
-      { owner: GITHUB_DISCUSSIONS_OWNER, name: GITHUB_DISCUSSIONS_REPOSITORY },
+      {
+        owner: this.options.owner ?? DEFAULT_GITHUB_DISCUSSIONS_OWNER,
+        name: this.options.repository ?? DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY,
+      },
     )
     const repository = payload.repository
+    const categorySlug = this.options.category ?? DEFAULT_GITHUB_DISCUSSIONS_CATEGORY
     const category = repository?.discussionCategories.nodes.find(
-      category => category.slug === GITHUB_DISCUSSIONS_CATEGORY,
+      category => category.slug === categorySlug,
     )
     if (!repository || !category)
       throw new Error(
-        `GitHub discussion category ${GITHUB_DISCUSSIONS_CATEGORY} was not found on ${GITHUB_DISCUSSIONS_OWNER}/${GITHUB_DISCUSSIONS_REPOSITORY}.`,
+        `GitHub discussion category ${categorySlug} was not found on ${this.options.owner ?? DEFAULT_GITHUB_DISCUSSIONS_OWNER}/${this.options.repository ?? DEFAULT_GITHUB_DISCUSSIONS_REPOSITORY}.`,
       )
 
     this.discussionTarget = {
