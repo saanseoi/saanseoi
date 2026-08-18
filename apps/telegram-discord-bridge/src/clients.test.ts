@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, mock, test } from 'bun:test'
 
 import { DiscordClient } from './discord.ts'
 import { GitHubClient } from './github.ts'
@@ -48,6 +48,46 @@ test('TelegramClient formats and sends message text', async () => {
     parse_mode: 'HTML',
     text: '<b>hello</b>',
   })
+})
+
+test('TelegramClient retries rate limits and transient non-JSON failures', async () => {
+  const fetchMock = mock()
+    .mockResolvedValueOnce(
+      Response.json(
+        { description: 'Too Many Requests', ok: false, parameters: { retry_after: 1 } },
+        { status: 429 },
+      ),
+    )
+    .mockResolvedValueOnce(new Response('upstream failure', { status: 502 }))
+    .mockResolvedValueOnce(Response.json({ ok: true, result: { message_id: 42 } }))
+  const delayMock = mock(async () => undefined)
+  const client = new TelegramClient('token', {
+    delay: delayMock,
+    fetch: fetchMock as unknown as typeof fetch,
+  })
+
+  await expect(client.sendText('chat', 'hello')).resolves.toEqual([{ message_id: 42 }])
+  expect(fetchMock).toHaveBeenCalledTimes(3)
+  expect(delayMock).toHaveBeenNthCalledWith(1, 1000)
+  expect(delayMock).toHaveBeenNthCalledWith(2, 2000)
+})
+
+test('DiscordClient retries a rate-limited request', async () => {
+  const fetchMock = mock()
+    .mockResolvedValueOnce(Response.json({ retry_after: 0.25 }, { status: 429 }))
+    .mockResolvedValueOnce(Response.json([{ id: 'channel', type: 0 }]))
+    .mockResolvedValueOnce(Response.json({ threads: [] }))
+  const delayMock = mock(async () => undefined)
+  const client = new DiscordClient('token', 'guild', {
+    delay: delayMock,
+    fetch: fetchMock as unknown as typeof fetch,
+  })
+
+  await expect(client.listMessageChannels()).resolves.toEqual([
+    { id: 'channel', type: 0 },
+  ])
+  expect(fetchMock).toHaveBeenCalledTimes(3)
+  expect(delayMock).toHaveBeenCalledWith(250)
 })
 
 test('GitHubClient resolves the fixed target and creates a discussion', async () => {
