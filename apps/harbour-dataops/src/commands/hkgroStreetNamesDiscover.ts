@@ -17,7 +17,6 @@ import { hkgroOcrOutputPath } from './hkgroStreetNamesOcr.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const DEFAULT_ARCHIVE_DIR = join(REPO_ROOT, 'data/hku/hkgro/street-name')
-const DEFAULT_REVIEW_PATH = join(DEFAULT_ARCHIVE_DIR, 'discovery/review.json')
 
 export type HkgroStreetChangeKind =
   | 'absorption'
@@ -99,7 +98,9 @@ export async function discoverHkgroStreetNames(input: {
   reviewPath: string
 }> {
   const archiveDir = resolve(input.archiveDir)
-  const reviewPath = input.reviewPath ? resolve(input.reviewPath) : DEFAULT_REVIEW_PATH
+  const reviewPath = input.reviewPath
+    ? resolve(input.reviewPath)
+    : join(archiveDir, 'discovery/review.json')
   const sourceManifest = await loadHkgroStreetNameManifest(
     join(archiveDir, 'manifest.json'),
   )

@@ -1,4 +1,3 @@
-import { createHash as createNodeHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
@@ -18,6 +17,7 @@ import {
   processNativeSourceSqlRelease,
   type NativeSourceRow,
 } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const DATASETS = {
   'ds-hk-hkgov-hyd-street': {
@@ -210,16 +210,7 @@ function hydLayer(kind: HkgovHydStreetArchiveKind) {
 }
 
 function assertArchiveHash(bytes: Uint8Array, expected: string) {
-  const actual = createNodeHash('sha256').update(bytes).digest('hex')
-  if (actual !== expected) {
-    throw new Error(
-      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${expected}, found ${actual}.`,
-    )
-  }
-}
-
-function isSha256(value: string | boolean | undefined): value is string {
-  return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value)
+  assertSourceArchiveHash(bytes, expected, 'Prepared CSDI archive')
 }
 
 function requiredText(value: unknown, field: string) {

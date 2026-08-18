@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { retrieveHkgroStreetNameArchive } from './hkgroStreetNames.ts'
+import { discoverHkgroStreetNames } from './hkgroStreetNamesDiscover.ts'
 import { hkgroOcrOutputPath, ocrHkgroStreetNameArchive } from './hkgroStreetNamesOcr.ts'
 
 const TOC = `
@@ -106,5 +107,34 @@ describe('HKGRO street-name OCR', () => {
         status: 'unparseable',
       }),
     ])
+  })
+
+  test('keeps the default discovery review beside a custom archive', async () => {
+    const archiveDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-ocr-test-'))
+    await retrieveHkgroStreetNameArchive({
+      archiveDir,
+      fetcher: async url =>
+        url.includes('browseGa.jsp')
+          ? new Response(
+              `<div>Hong Kong Government Gazette 1901<br> Table of Contents</div>${TOC}`,
+            )
+          : new Response('%PDF-1.7 test evidence'),
+      years: [1901],
+    })
+    await ocrHkgroStreetNameArchive({
+      archiveDir,
+      runner: async () => ocrResult,
+      years: [1901],
+    })
+
+    await expect(discoverHkgroStreetNames({ archiveDir })).resolves.toMatchObject({
+      reviewPath: join(archiveDir, 'discovery', 'review.json'),
+    })
+  })
+
+  test('rejects non-integer API year filters', async () => {
+    await expect(
+      ocrHkgroStreetNameArchive({ archiveDir: '/tmp', years: [1901.5] }),
+    ).rejects.toThrow('HKGRO OCR years must be whole years between 1842 and 1941.')
   })
 })

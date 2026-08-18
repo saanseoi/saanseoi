@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
@@ -21,6 +20,7 @@ import {
   type RoadCentrelineDistrict,
   type RoadCentrelineStreet,
 } from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
+import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const PLACE_NAME_DATASET = 'ds-hk-hkgov-landsd-division'
 const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
@@ -319,8 +319,7 @@ function requireArchiveArguments(
     typeof sourceVersion !== 'string' ||
     typeof releaseNotesUrl !== 'string' ||
     typeof key !== 'string' ||
-    typeof sha256 !== 'string' ||
-    !/^[a-f0-9]{64}$/i.test(sha256)
+    !isSha256(sha256)
   ) {
     printUsage()
     throw new Error(
@@ -349,12 +348,7 @@ function provenance(
 }
 
 function assertArchiveHash(bytes: Uint8Array, expected: string) {
-  const actual = createHash('sha256').update(bytes).digest('hex')
-  if (actual !== expected) {
-    throw new Error(
-      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${expected}, found ${actual}.`,
-    )
-  }
+  assertSourceArchiveHash(bytes, expected, 'Prepared CSDI archive')
 }
 
 function requiredText(value: unknown, field: string) {
