@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6fee6ee85b2a17d0e59f7206c5fff3d704adbad270105d3569465397d65083d9",
+  "versionHash": "sha256:d555006237be35077f45d9da61050e4c05da596c255bfd1648b3255683d76632",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -112,7 +112,7 @@
       ]
     },
     {
-      "code": "hkgov-censtatd-housing-market-area",
+      "code": "hkgov-censtatd-hma",
       "i18n": [
         {
           "locale": "en",
@@ -133,7 +133,7 @@
       "members": [
         {
           "resourceType": "division",
-          "variant": "hkgov-censtatd-housing-market-area",
+          "variant": "hkgov-censtatd-hma",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
@@ -141,7 +141,7 @@
         },
         {
           "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd-housing-market-area",
+          "variant": "hkgov-censtatd-hma",
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
@@ -149,7 +149,7 @@
           "ingestDependencies": [
             {
               "resourceType": "division",
-              "variant": "hkgov-censtatd-housing-market-area"
+              "variant": "hkgov-censtatd-hma"
             }
           ]
         }
