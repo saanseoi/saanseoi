@@ -181,6 +181,7 @@ describe('dataset update registry', () => {
       sourceArchiveSha256: 'b'.repeat(64),
       sourceVersion: '2024',
       target: { environment: 'preview', remote: true },
+      yes: true,
     })
 
     expect(command).toEqual(
@@ -193,6 +194,7 @@ describe('dataset update registry', () => {
         'by-source/hk/hkgov-csdi/density/archive-source.zip',
         '--source-archive-sha256',
         'b'.repeat(64),
+        '--yes',
       ]),
     )
   })
@@ -275,6 +277,7 @@ describe('dataset update registry', () => {
         sourceArchiveSha256: 'c'.repeat(64),
         sourceVersion: '2022',
         target: { environment: 'production', remote: true },
+        yes: false,
       }),
     ).toContain('production')
   })
