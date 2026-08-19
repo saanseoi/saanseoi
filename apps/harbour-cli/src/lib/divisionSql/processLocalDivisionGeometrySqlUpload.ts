@@ -2441,14 +2441,17 @@ function buildSyntheticOvertureHongKongAreaRows(
         `Cannot synthesise ${area.code}: expected ${area.districtDivisionIds.length} district land geometries, found ${geometries.length}.`,
       )
     }
-    return normaliseDivisionAreaGeometryRow(
+    const normalisedArea = normaliseDivisionAreaGeometryRow(
       syntheticOvertureHongKongAreaSourceRow(
         area,
         unionHongKongAreaGeometries(geometries),
       ),
       'overture',
       { variant: 'overture' },
-    )!
+    )
+    if (!normalisedArea)
+      throw new Error(`Failed to normalise synthetic ${area.code} area.`)
+    return normalisedArea
   })
 }
 
@@ -2487,7 +2490,7 @@ async function buildSyntheticOvertureHongKongBoundaryRows(
       )
     }
     const boundary = geoJsonBoundary(areaGeometry)
-    return normaliseDivisionBoundaryGeometryRow(
+    const normalisedBoundary = normaliseDivisionBoundaryGeometryRow(
       {
         class: 'land',
         division_ids: [area.divisionId, 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'],
@@ -2506,7 +2509,11 @@ async function buildSyntheticOvertureHongKongBoundaryRows(
       },
       'overture',
       { variant: 'overture' },
-    )!
+    )
+    if (!normalisedBoundary) {
+      throw new Error(`Failed to normalise synthetic ${area.code} boundary.`)
+    }
+    return normalisedBoundary
   })
 }
 
@@ -2570,13 +2577,16 @@ function unionBalanced(geometries: Geometry[]) {
   while (current.length > 1) {
     const next: Geometry[] = []
     for (let index = 0; index < current.length; index += 2) {
-      const left = current[index]!
+      const left = current[index]
+      if (!left) throw new Error('Overture geometry union lost its left operand.')
       const right = current[index + 1]
       next.push(right ? UnionOp.union(left, right) : left)
     }
     current = next
   }
-  return current[0]!
+  const result = current[0]
+  if (!result) throw new Error('Overture geometry union has no result.')
+  return result
 }
 
 function isGeoJsonPolygon(value: unknown): value is GeoJsonGeometry {

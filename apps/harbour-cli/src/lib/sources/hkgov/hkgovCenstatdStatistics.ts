@@ -83,11 +83,8 @@ export function hkgovCenstatdStatisticDivisionId(
   const geography = statisticGeographyIdentity(datasetCode, sourceCode)
   if (!geography) return null
   if (geography.type === 'area') {
-    return overtureHongKongAreaForCenstatdCode(geography.code)
-      ? overtureHongKongAreaDivisionId(
-          overtureHongKongAreaForCenstatdCode(geography.code)!.code,
-        )
-      : null
+    const area = overtureHongKongAreaForCenstatdCode(geography.code)
+    return area ? overtureHongKongAreaDivisionId(area.code) : null
   }
   return buildDeterministicUuidV5(
     CANONICAL_DIVISION_ID_NAMESPACE,
