@@ -1480,6 +1480,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
@@ -1650,6 +1651,7 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
   sourceArchiveSha256: string
   sourceVersion: '2022' | '2024'
   target: import('../cli/options.ts').UploadTarget
+  yes: boolean
 }) {
   return [
     process.execPath,
@@ -1669,6 +1671,7 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.yes ? ['--yes'] : []),
   ]
 }
 
