@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
+  listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey,
   recordSnapshotLookupDependency,
   recordSnapshotAssemblyRun,
-  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
@@ -614,13 +614,6 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - statsStartedAt,
       ),
     )
-    if (options.deferPublish) {
-      return {
-        snapshotId: snapshot.id,
-        importedRows: normalised.length,
-        publishResult: undefined,
-      }
-    }
     if (target.remote) {
       await replayGeometryIntoRemote(
         target,
@@ -632,6 +625,13 @@ export async function processLocalDivisionGeometrySqlUpload(
         (subject, operation) =>
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
       )
+    }
+    if (options.deferPublish) {
+      return {
+        snapshotId: snapshot.id,
+        importedRows: normalised.length,
+        publishResult: undefined,
+      }
     }
     await runGeometryProgressPhase(
       progress,
@@ -1307,24 +1307,42 @@ async function assertDivisionReferences(
   rows: Array<NonNullable<NormalisedGeometry>>,
 ) {
   const lookup = await resolveDivisionReferenceLookup(metaDb, plan)
-  const divisionSnapshot = lookup.snapshot
-  if (!divisionSnapshot) {
+  if (lookup.snapshots.length === 0) {
     throw new Error(
       isCenstatdAreaTypePlan(plan)
         ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD area/type references cannot be validated.`
         : `No published division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; geometry references cannot be validated.`,
     )
   }
-  let divisionRows = await listCurrentDivisionIds(currentDb, divisionSnapshot.id)
-  if (divisionRows.length === 0) {
-    await restoreDivisionSnapshotFromHistory(
-      currentDb as unknown as HarbourWritableDb,
-      historyDb,
-      divisionSnapshot.id,
-    )
-    divisionRows = await listCurrentDivisionIds(currentDb, divisionSnapshot.id)
+  const initialDivisionSnapshot = lookup.snapshots.at(0)
+  if (!initialDivisionSnapshot) {
+    throw new Error('Division reference lookup returned no snapshots.')
   }
-  const knownIds = new Set(divisionRows.map(row => row.id))
+  const referenceIds = new Set(
+    rows.flatMap(row => divisionReferenceIds(plan.type, row)),
+  )
+  let divisionSnapshot = initialDivisionSnapshot
+  let knownIds = new Set<string>()
+  let selectionIndex = 0
+  for (const [index, candidate] of lookup.snapshots.entries()) {
+    let divisionRows = await listCurrentDivisionIds(currentDb, candidate.id)
+    if (divisionRows.length === 0) {
+      await restoreDivisionSnapshotFromHistory(
+        currentDb as unknown as HarbourWritableDb,
+        historyDb,
+        candidate.id,
+      )
+      divisionRows = await listCurrentDivisionIds(currentDb, candidate.id)
+    }
+    const candidateIds = new Set(divisionRows.map(row => row.id))
+    if (hasDivisionReferences(candidateIds, referenceIds)) {
+      divisionSnapshot = candidate
+      knownIds = candidateIds
+      selectionIndex = index
+      break
+    }
+    if (index === 0) knownIds = candidateIds
+  }
   const missingReferences = rows.flatMap(row => {
     const missingIds = divisionReferenceIds(plan.type, row).filter(
       id => !knownIds.has(id),
@@ -1344,7 +1362,7 @@ async function assertDivisionReferences(
   if (missingIds.length > 0) {
     throw new Error(
       [
-        `Division geometry references ${missingIds.length} division IDs absent from the ${plan.cohortKey} division snapshot.`,
+        `Division geometry references ${missingIds.length} division IDs absent from ${divisionSnapshot.code}.`,
         ...formatMissingDivisionReferenceRecords(missingReferences),
       ].join('\n'),
     )
@@ -1353,8 +1371,18 @@ async function assertDivisionReferences(
   return {
     id: divisionSnapshot.id,
     selectedByRule: lookup.selectedByRule,
-    selectionMode: lookup.selectionMode,
+    selectionMode:
+      selectionIndex === 0
+        ? lookup.selectionMode
+        : 'nearest_snapshot_containing_references',
   }
+}
+
+export function hasDivisionReferences(
+  knownIds: ReadonlySet<string>,
+  referenceIds: ReadonlySet<string>,
+) {
+  return [...referenceIds].every(id => knownIds.has(id))
 }
 
 async function resolveDivisionReferenceLookup(
@@ -1370,30 +1398,37 @@ async function resolveDivisionReferenceLookup(
         plan.cohortKey,
         { publisherCode: 'overture' },
       )
-    const snapshot =
-      prior ??
-      (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+    const laterSnapshots =
+      await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
         metaDb,
         'division',
         plan.regionCode,
         plan.cohortKey,
         { publisherCode: 'overture' },
-      ))
+      )
+    const snapshots = [prior, ...laterSnapshots].filter(
+      (snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot),
+    )
+    const uniqueSnapshots = [
+      ...new Map(snapshots.map(snapshot => [snapshot.id, snapshot])).values(),
+    ]
     return {
-      snapshot,
+      snapshots: uniqueSnapshots,
       selectedByRule: 'api-composition:divisions:censtatd-area-type->overture-division',
       selectionMode: prior ? 'latest_at_or_before' : 'earliest_at_or_after',
     }
   }
 
   return {
-    snapshot: await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-      metaDb,
-      'division',
-      plan.regionCode,
-      plan.cohortKey,
-      { variant: geometryVariant(plan) },
-    ),
+    snapshots: [
+      await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        metaDb,
+        'division',
+        plan.regionCode,
+        plan.cohortKey,
+        { variant: geometryVariant(plan) },
+      ),
+    ].filter((snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot)),
     selectedByRule: 'api-composition:divisions:division-geometry->division',
     selectionMode: 'exact_ref',
   }

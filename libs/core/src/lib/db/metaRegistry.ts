@@ -2679,6 +2679,53 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
 }
 
 /**
+ * Lists published canonical snapshots on or after a source cohort in chronological
+ * order. Callers which need a particular referenced identity can inspect later
+ * candidates without weakening the normal nearest-snapshot policy.
+ */
+export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  options: { publisherCode?: string } = {},
+) {
+  return db
+    .select({
+      id: metaSnapshots.id,
+      code: metaSnapshots.code,
+      cohortKey: metaSnapshots.cohortKey,
+      resourceType: metaSnapshots.resourceType,
+      status: metaSnapshots.status,
+    })
+    .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+    )
+    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(
+      and(
+        eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshots.status, 'published'),
+        sql`${metaSnapshots.cohortKey} >= ${cohortKey}`,
+        eq(metaDatasets.regionCode, regionCode),
+        eq(metaSnapshotSources.role, 'primary'),
+        options.publisherCode
+          ? eq(metaPublishers.code, options.publisherCode)
+          : undefined,
+      ),
+    )
+    .orderBy(
+      asc(metaSnapshots.cohortKey),
+      asc(metaSnapshots.publishedAt),
+      asc(metaSnapshots.createdAt),
+    )
+    .all()
+}
+
+/**
  * Resolves the first published canonical snapshot on or after a source cohort.
  * This is used to give historical, provider-specific geometry a stable canonical
  * identity and naming anchor when no same-cohort canonical snapshot exists.
@@ -2690,42 +2737,15 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
   cohortKey: string,
   options: { publisherCode?: string } = {},
 ) {
-  return (
-    (await db
-      .select({
-        id: metaSnapshots.id,
-        code: metaSnapshots.code,
-        cohortKey: metaSnapshots.cohortKey,
-        resourceType: metaSnapshots.resourceType,
-        status: metaSnapshots.status,
-      })
-      .from(metaSnapshots)
-      .innerJoin(
-        metaSnapshotSources,
-        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
-      )
-      .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
-      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-      .where(
-        and(
-          eq(metaSnapshots.resourceType, resourceType),
-          eq(metaSnapshots.status, 'published'),
-          sql`${metaSnapshots.cohortKey} >= ${cohortKey}`,
-          eq(metaDatasets.regionCode, regionCode),
-          eq(metaSnapshotSources.role, 'primary'),
-          options.publisherCode
-            ? eq(metaPublishers.code, options.publisherCode)
-            : undefined,
-        ),
-      )
-      .orderBy(
-        metaSnapshots.cohortKey,
-        metaSnapshots.publishedAt,
-        metaSnapshots.createdAt,
-      )
-      .limit(1)
-      .get()) ?? null
-  )
+  const [snapshot] =
+    await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
+      db,
+      resourceType,
+      regionCode,
+      cohortKey,
+      options,
+    )
+  return snapshot ?? null
 }
 
 /**
@@ -2855,6 +2875,7 @@ export async function ensureDraftSnapshotForRelease(
     variant?: string
   },
 ) {
+  const variant = args.variant ?? 'default'
   const snapshotForSourceRelease = await db
     .select({
       id: metaSnapshots.id,
@@ -2867,10 +2888,15 @@ export async function ensureDraftSnapshotForRelease(
     })
     .from(metaSnapshotSources)
     .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(
       and(
         eq(metaSnapshotSources.sourceReleaseId, args.sourceReleaseId),
         eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshotLineages.variant, variant),
       ),
     )
     .orderBy(desc(metaSnapshots.revision))
@@ -2881,7 +2907,6 @@ export async function ensureDraftSnapshotForRelease(
     return snapshotForSourceRelease
   }
 
-  const variant = args.variant ?? 'default'
   const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
   const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
@@ -3132,6 +3157,7 @@ export async function resolveSnapshotForRelease(
   db: HarbourReadableDb,
   sourceReleaseId: string,
   resourceType: ResourceType,
+  options: { variant?: string } = {},
 ) {
   return (
     (await db
@@ -3143,10 +3169,17 @@ export async function resolveSnapshotForRelease(
       })
       .from(metaSnapshotSources)
       .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
       .where(
         and(
           eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
           eq(metaSnapshots.resourceType, resourceType),
+          ...(options.variant
+            ? [eq(metaSnapshotLineages.variant, options.variant)]
+            : []),
         ),
       )
       .orderBy(desc(metaSnapshots.createdAt))
@@ -4194,6 +4227,26 @@ export async function publishReleaseArtefacts(
     .where(inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds))
     .all()
   const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
+  const sourceReleaseSnapshotIds = [
+    ...new Set(
+      (
+        await db
+          .select({ id: metaSnapshots.id })
+          .from(metaSnapshotSources)
+          .innerJoin(
+            metaSnapshots,
+            eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+          )
+          .where(
+            and(
+              eq(metaSnapshotSources.sourceReleaseId, args.dataset.releaseId),
+              eq(metaSnapshots.resourceType, args.type),
+            ),
+          )
+          .all()
+      ).map(row => row.id),
+    ),
+  ]
 
   const sourceSchemas = new Map<string, string>()
 
@@ -4315,7 +4368,7 @@ export async function publishReleaseArtefacts(
           validTo: null,
           updatedAt: publishedAt,
         })
-        .where(eq(metaSnapshots.id, args.snapshotId)),
+        .where(inArray(metaSnapshots.id, sourceReleaseSnapshotIds)),
     ]
 
     statements.push(

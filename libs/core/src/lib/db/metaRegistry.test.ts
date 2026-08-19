@@ -12,6 +12,7 @@ import {
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
+  listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey,
   markDatasetCurrent,
   listRegistryReleases,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
@@ -27,6 +28,7 @@ import {
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
+  resolveSnapshotForRelease,
   resolveShardForTypeRegionYear,
   updateDatasetStatus,
 } from './metaRegistry'
@@ -1436,6 +1438,72 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
+  test('keeps exact and transformed C&SD geometry in separate snapshots of one release', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const base = {
+      cohortKey: '2021',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      datasetId: 'dataset-censtatd-division-area',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-censtatd-2021',
+    }
+
+    const exact = await ensureDraftSnapshotForRelease(db as never, 'divisionArea', {
+      ...base,
+      variant: 'hkgov-censtatd:2021',
+    })
+    sqlite
+      .query(
+        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+      )
+      .run(exact.id, base.datasetId, base.sourceReleaseId)
+    const simplified = await ensureDraftSnapshotForRelease(
+      db as never,
+      'divisionArea',
+      {
+        ...base,
+        variant: 'hkgov-censtatd:2021:simplified',
+      },
+    )
+    sqlite
+      .query(
+        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+      )
+      .run(simplified.id, base.datasetId, base.sourceReleaseId)
+
+    expect(simplified.id).not.toBe(exact.id)
+    expect(simplified.snapshotLineageId).not.toBe(exact.snapshotLineageId)
+    await expect(
+      resolveSnapshotForRelease(db as never, base.sourceReleaseId, 'divisionArea', {
+        variant: 'hkgov-censtatd:2021',
+      }),
+    ).resolves.toMatchObject({ id: exact.id })
+    await expect(
+      resolveSnapshotForRelease(db as never, base.sourceReleaseId, 'divisionArea', {
+        variant: 'hkgov-censtatd:2021:simplified',
+      }),
+    ).resolves.toMatchObject({ id: simplified.id })
+    expect(
+      sqlite
+        .query(
+          `
+            SELECT sl.variant
+            FROM snapshots s
+            INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
+            INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
+            WHERE ss.sourceReleaseId = ?
+            ORDER BY sl.variant
+          `,
+        )
+        .all(base.sourceReleaseId),
+    ).toEqual([
+      { variant: 'hkgov-censtatd:2021' },
+      { variant: 'hkgov-censtatd:2021:simplified' },
+    ])
+
+    sqlite.close()
+  })
+
   test('parents revisions and later cohorts to the exact published lineage state', async () => {
     const { db, sqlite } = createDraftSnapshotDb()
     const args = {
@@ -2502,6 +2570,43 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
       resourceType: 'division',
       status: 'published',
     })
+
+    sqlite.close()
+  })
+})
+
+describe('listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey', () => {
+  test('keeps later eligible Overture snapshots available in chronological order', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'hk');
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-first', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+        ('overture-second', 'division', 'ss-hk-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
+        ('overture-second', 'dataset-overture-division', 'release-overture-second', 'primary');
+    `)
+
+    await expect(
+      listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2023-H2',
+        { publisherCode: 'overture' },
+      ),
+    ).resolves.toMatchObject([
+      { id: 'overture-first', cohortKey: '2025-09-24.0' },
+      { id: 'overture-second', cohortKey: '2026-01-21.0' },
+    ])
 
     sqlite.close()
   })
