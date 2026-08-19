@@ -145,7 +145,7 @@ describe('fixture version hashes', () => {
     expect(hmaMembers).toContainEqual(
       expect.objectContaining({
         resourceType: 'division',
-        variant: 'hkgov-censtatd:2021',
+        variant: 'hkgov-censtatd-hma',
         role: 'primary',
         isRequired: true,
       }),
