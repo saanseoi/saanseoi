@@ -190,7 +190,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween15And39",
+      "measureCode": "aged15To39",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -224,7 +224,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween40And64",
+      "measureCode": "aged40To64",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -2871,7 +2871,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "firstQuartileMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "firstQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -2904,7 +2904,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "medianMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -2937,7 +2937,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -2970,7 +2970,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk2000029999MearnXfdhfw4",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK20000To29999ExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3003,7 +3003,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk3000039999MearnXfdhfw5",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK30000To39999ExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3036,7 +3036,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk4000059999MearnXfdhfw6",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK40000To59999ExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3069,7 +3069,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk60000AndOverMearnXfdhfw7",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK60000AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3102,7 +3102,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationTMmearnXfdh",
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3135,7 +3135,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationMaleMmearnXfdhM",
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfMaleWorkingPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"
@@ -3168,7 +3168,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationFemaleMmearnXfdhF",
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfFemaleWorkingPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "43548d6622b0706db25bf250f45961ffd2e27358d51a660f541bbbf3dae8192e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295"

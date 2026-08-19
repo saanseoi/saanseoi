@@ -1409,7 +1409,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianMonthlyDomesticHouseholdIncomeOfEconomicallyActiveHouseholdsBeingEconomicallyActiveMaEconhhXfdh",
+      "measureCode": "medianMonthlyDomesticHouseholdIncomeOfEconomicallyActiveHouseholdsExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1574,7 +1574,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged1524",
+      "measureCode": "landBasedNonInstitutionalPopulationAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1607,7 +1607,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged2564",
+      "measureCode": "landBasedNonInstitutionalPopulationAged25To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1640,7 +1640,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged2534",
+      "measureCode": "landBasedNonInstitutionalPopulationAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1673,7 +1673,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged3544",
+      "measureCode": "landBasedNonInstitutionalPopulationAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1706,7 +1706,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged4554",
+      "measureCode": "landBasedNonInstitutionalPopulationAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1739,7 +1739,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged5564",
+      "measureCode": "landBasedNonInstitutionalPopulationAged55To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1838,7 +1838,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged1524InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged15To24InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1871,7 +1871,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged2564InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged25To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1904,7 +1904,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged2534InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged25To34InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1937,7 +1937,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged3544InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged35To44InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -1970,7 +1970,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged4554InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged45To54InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2003,7 +2003,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged5564InRespectiveDistrict",
+      "measureCode": "percentageShareOfLandBasedNonInstitutionalPopulationAged55To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2102,7 +2102,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged1524",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2135,7 +2135,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged2564",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged25To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2168,7 +2168,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged2534",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2201,7 +2201,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged3544",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2234,7 +2234,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged4554",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2267,7 +2267,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLandBasedNonInstitutionalPopulationAged5564",
+      "measureCode": "maleLandBasedNonInstitutionalPopulationAged55To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2366,7 +2366,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged1524InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged15To24InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2399,7 +2399,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged2564InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged25To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2432,7 +2432,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged2534InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged25To34InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2465,7 +2465,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged3544InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged35To44InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2498,7 +2498,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged4554InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged45To54InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2531,7 +2531,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged5564InRespectiveDistrict",
+      "measureCode": "percentageShareOfMaleLandBasedNonInstitutionalPopulationAged55To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2630,7 +2630,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged1524",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2663,7 +2663,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged2564",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged25To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2696,7 +2696,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged2534",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2729,7 +2729,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged3544",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2762,7 +2762,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged4554",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2795,7 +2795,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged5564",
+      "measureCode": "femaleLandBasedNonInstitutionalPopulationAged55To64",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2894,7 +2894,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged1524InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged15To24InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2927,7 +2927,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged2564InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged25To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2960,7 +2960,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged2534InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged25To34InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -2993,7 +2993,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged3544InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged35To44InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -3026,7 +3026,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged4554InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged45To54InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -3059,7 +3059,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged5564InRespectiveDistrict",
+      "measureCode": "percentageShareOfFemaleLandBasedNonInstitutionalPopulationAged55To64InRespectiveDistrict",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4445,7 +4445,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged1524WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged15To24WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4478,7 +4478,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged2544WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged25To44WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4511,7 +4511,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged2534WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged25To34WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4544,7 +4544,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged3544WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged35To44WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4577,7 +4577,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged4564WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged45To64WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4610,7 +4610,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged4554WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged45To54WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -4643,7 +4643,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "landBasedNonInstitutionalPopulationAged5564WithSecondaryEducationAndAbove",
+      "measureCode": "landBasedNonInstitutionalPopulationAged55To64WithSecondaryEducationAndAbove",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -5930,7 +5930,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfLandBasedNonInstitutionalPopulationLbnpMaTXfdh",
+      "measureCode": "medianAgeOfLandBasedNonInstitutionalPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -5963,7 +5963,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfMaleLandBasedNonInstitutionalPopulationLbnpMaMXfdh",
+      "measureCode": "medianAgeOfMaleLandBasedNonInstitutionalPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -5996,7 +5996,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfFemaleLandBasedNonInstitutionalPopulationLbnpMaFXfdh",
+      "measureCode": "medianAgeOfFemaleLandBasedNonInstitutionalPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6128,7 +6128,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfLabourForceLfMaTXfdh",
+      "measureCode": "medianAgeOfLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6161,7 +6161,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfMaleLabourForceLfMaMXfdh",
+      "measureCode": "medianAgeOfMaleLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6194,7 +6194,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianAgeOfFemaleLabourForceLfMaFXfdh",
+      "measureCode": "medianAgeOfFemaleLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6260,7 +6260,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "sexRatioOfLandBasedNonInstitutionalPopulationLbnpSrXfdh",
+      "measureCode": "sexRatioOfLandBasedNonInstitutionalPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6326,7 +6326,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "sexRatioOfLabourForceLfSrXfdh",
+      "measureCode": "sexRatioOfLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6392,7 +6392,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "overallDependencyRatioLbnpOdrXfdh",
+      "measureCode": "overallDependencyRatioOfLandBasedNonInstitutionalPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6557,7 +6557,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged1524",
+      "measureCode": "labourForceAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6590,7 +6590,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged2554",
+      "measureCode": "labourForceAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6623,7 +6623,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged2534",
+      "measureCode": "labourForceAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6656,7 +6656,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged3544",
+      "measureCode": "labourForceAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6689,7 +6689,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged4554",
+      "measureCode": "labourForceAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6755,7 +6755,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged1524",
+      "measureCode": "maleLabourForceAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6788,7 +6788,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged2554",
+      "measureCode": "maleLabourForceAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6821,7 +6821,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged2534",
+      "measureCode": "maleLabourForceAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6854,7 +6854,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged3544",
+      "measureCode": "maleLabourForceAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6887,7 +6887,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged4554",
+      "measureCode": "maleLabourForceAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6953,7 +6953,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged1524",
+      "measureCode": "femaleLabourForceAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -6986,7 +6986,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged2554",
+      "measureCode": "femaleLabourForceAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7019,7 +7019,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged2534",
+      "measureCode": "femaleLabourForceAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7052,7 +7052,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged3544",
+      "measureCode": "femaleLabourForceAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7085,7 +7085,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged4554",
+      "measureCode": "femaleLabourForceAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7250,7 +7250,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged1524",
+      "measureCode": "labourForceParticipationRateAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7283,7 +7283,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged2554",
+      "measureCode": "labourForceParticipationRateAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7316,7 +7316,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged2534",
+      "measureCode": "labourForceParticipationRateAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7349,7 +7349,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged3544",
+      "measureCode": "labourForceParticipationRateAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7382,7 +7382,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged4554",
+      "measureCode": "labourForceParticipationRateAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7448,7 +7448,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged1524",
+      "measureCode": "maleLabourForceParticipationRateAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7481,7 +7481,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged2554",
+      "measureCode": "maleLabourForceParticipationRateAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7514,7 +7514,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged2534",
+      "measureCode": "maleLabourForceParticipationRateAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7547,7 +7547,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged3544",
+      "measureCode": "maleLabourForceParticipationRateAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7580,7 +7580,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged4554",
+      "measureCode": "maleLabourForceParticipationRateAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7646,7 +7646,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged1524",
+      "measureCode": "femaleLabourForceParticipationRateAged15To24",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7679,7 +7679,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged2554",
+      "measureCode": "femaleLabourForceParticipationRateAged25To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7712,7 +7712,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged2534",
+      "measureCode": "femaleLabourForceParticipationRateAged25To34",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7745,7 +7745,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged3544",
+      "measureCode": "femaleLabourForceParticipationRateAged35To44",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7778,7 +7778,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged4554",
+      "measureCode": "femaleLabourForceParticipationRateAged45To54",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7844,7 +7844,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceTLfXfdh",
+      "measureCode": "labourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7877,7 +7877,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceLfMXfdh",
+      "measureCode": "maleLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7910,7 +7910,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceLfFXfdh",
+      "measureCode": "femaleLabourForceExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7943,7 +7943,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged1524LfAge1Xfdh",
+      "measureCode": "labourForceAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -7976,7 +7976,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged2554LfAge2Xfdh",
+      "measureCode": "labourForceAged25To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8009,7 +8009,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged2534LfAge3Xfdh",
+      "measureCode": "labourForceAged25To34ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8042,7 +8042,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged3544LfAge4Xfdh",
+      "measureCode": "labourForceAged35To44ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8075,7 +8075,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged4554LfAge5Xfdh",
+      "measureCode": "labourForceAged45To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8108,7 +8108,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceAged55AndOverLfAge6Xfdh",
+      "measureCode": "labourForceAged55AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8141,7 +8141,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged1524LfAge1MXfdh",
+      "measureCode": "maleLabourForceAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8174,7 +8174,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged2554LfAge2MXfdh",
+      "measureCode": "maleLabourForceAged25To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8207,7 +8207,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged2534LfAge3MXfdh",
+      "measureCode": "maleLabourForceAged25To34ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8240,7 +8240,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged3544LfAge4MXfdh",
+      "measureCode": "maleLabourForceAged35To44ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8273,7 +8273,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged4554LfAge5MXfdh",
+      "measureCode": "maleLabourForceAged45To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8306,7 +8306,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceAged55AndOverLfAge6MXfdh",
+      "measureCode": "maleLabourForceAged55AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8339,7 +8339,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged1524LfAge1FXfdh",
+      "measureCode": "femaleLabourForceAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8372,7 +8372,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged2554LfAge2FXfdh",
+      "measureCode": "femaleLabourForceAged25To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8405,7 +8405,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged2534LfAge3FXfdh",
+      "measureCode": "femaleLabourForceAged25To34ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8438,7 +8438,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged3544LfAge4FXfdh",
+      "measureCode": "femaleLabourForceAged35To44ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8471,7 +8471,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged4554LfAge5FXfdh",
+      "measureCode": "femaleLabourForceAged45To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8504,7 +8504,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceAged55AndOverLfAge6FXfdh",
+      "measureCode": "femaleLabourForceAged55AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8537,7 +8537,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateTLfprXfdh",
+      "measureCode": "labourForceParticipationRateExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8570,7 +8570,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateLfprMXfdh",
+      "measureCode": "maleLabourForceParticipationRateExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8603,7 +8603,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateLfprFXfdh",
+      "measureCode": "femaleLabourForceParticipationRateExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8636,7 +8636,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged1524LfprAge1Xfdh",
+      "measureCode": "labourForceParticipationRateAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8669,7 +8669,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged2554LfprAge2Xfdh",
+      "measureCode": "labourForceParticipationRateAged25To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8702,7 +8702,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged2534LfprAge3Xfdh",
+      "measureCode": "labourForceParticipationRateAged25To34ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8735,7 +8735,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged3544LfprAge4Xfdh",
+      "measureCode": "labourForceParticipationRateAged35To44ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8768,7 +8768,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged4554LfprAge5Xfdh",
+      "measureCode": "labourForceParticipationRateAged45To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8801,7 +8801,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "labourForceParticipationRateAged55AndOverLfprAge6Xfdh",
+      "measureCode": "labourForceParticipationRateAged55AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8834,7 +8834,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged1524LfprAge1MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8867,7 +8867,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged2554LfprAge2MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged25To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8900,7 +8900,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged2534LfprAge3MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged25To34ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8933,7 +8933,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged3544LfprAge4MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged35To44ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8966,7 +8966,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged4554LfprAge5MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged45To54ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -8999,7 +8999,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "maleLabourForceParticipationRateAged55AndOverLfprAge6MXfdh",
+      "measureCode": "maleLabourForceParticipationRateAged55AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"
@@ -9032,7 +9032,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "femaleLabourForceParticipationRateAged1524LfprAge1FXfdh",
+      "measureCode": "femaleLabourForceParticipationRateAged15To24ExclFDH",
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af"

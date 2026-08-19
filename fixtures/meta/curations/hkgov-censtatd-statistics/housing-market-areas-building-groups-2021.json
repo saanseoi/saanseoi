@@ -223,7 +223,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween15And39",
+      "measureCode": "aged15To39",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -257,7 +257,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween40And64",
+      "measureCode": "aged40To64",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1428,7 +1428,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "firstQuartileMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "firstQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1461,7 +1461,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "medianMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1494,7 +1494,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExcludingForeignDomesticHelpersAndUnpaidFamilyWorkers",
+      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1626,7 +1626,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "firstQuartileWeeklyWorkingHoursExcludingForeignDomesticHelpers",
+      "measureCode": "firstQuartileWeeklyWorkingHoursExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1659,7 +1659,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianWeeklyWorkingHoursExcludingForeignDomesticHelpers",
+      "measureCode": "medianWeeklyWorkingHoursExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -1692,7 +1692,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "thirdQuartileWeeklyWorkingHoursExcludingForeignDomesticHelpers",
+      "measureCode": "thirdQuartileWeeklyWorkingHoursExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -2354,7 +2354,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "firstQuartileMonthlyHouseholdIncomeExcludingForeignDomesticHelpers",
+      "measureCode": "firstQuartileMonthlyHouseholdIncomeExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -2387,7 +2387,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianMonthlyHouseholdIncomeExcludingForeignDomesticHelpers",
+      "measureCode": "medianMonthlyHouseholdIncomeExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
@@ -2420,7 +2420,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "thirdQuartileMonthlyHouseholdIncomeExcludingForeignDomesticHelpers",
+      "measureCode": "thirdQuartileMonthlyHouseholdIncomeExclFDH",
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
