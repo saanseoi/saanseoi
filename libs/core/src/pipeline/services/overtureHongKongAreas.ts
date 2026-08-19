@@ -88,73 +88,88 @@ export function missingOvertureHongKongAreaRows(
     return []
   }
 
-  const sourceAreaNames = new Set(
-    sourceRows.flatMap(row => collectNames(row.names)).map(name => name.toLowerCase()),
-  )
-  return overtureHongKongAreas
-    .filter(area => !sourceAreaNames.has(area.names.en.toLowerCase()))
-    .map(area => {
-      const districtIds = area.districtNames.map(name => {
-        const division = sourceRows.find(row =>
-          collectNames(row.names).some(candidate => candidate === name),
+  return (
+    overtureHongKongAreas
+      // An Overture locality point is an identity record, not an area record. Add
+      // our corrective row unless that exact canonical identity has an actual
+      // polygonal geometry. The supplemental row is emitted after source rows,
+      // so it deliberately replaces an identically keyed point record such as
+      // historic Kowloon while retaining its established Overture ID.
+      .filter(area => {
+        const id = overtureHongKongAreaDivisionId(area.code)
+        return !sourceRows.some(
+          row => row.id === id && hasOvertureAreaGeometry(row.geometry),
         )
-        const id = typeof division?.id === 'string' ? division.id : null
-        if (!id) {
-          throw new Error(
-            `Cannot synthesise ${area.names.en}: Overture does not contain ${name}.`,
-          )
-        }
-        return id
       })
-      const id = overtureHongKongAreaDivisionId(area.code)
-      if (!id) throw new Error(`No canonical ID configured for ${area.code}.`)
-      return {
-        country: 'HK',
-        geometry: null,
-        hierarchies: [
-          [
-            { division_id: PRC_DIVISION_ID, name: 'China', subtype: 'country' },
-            {
-              division_id: HONG_KONG_SAR_DIVISION_ID,
-              name: 'Hong Kong SAR',
-              subtype: 'dependency',
+      .map(area => {
+        const districtIds = area.districtNames.map(name => {
+          const division = sourceRows.find(row =>
+            collectNames(row.names).some(candidate => candidate === name),
+          )
+          const id = typeof division?.id === 'string' ? division.id : null
+          if (!id) {
+            throw new Error(
+              `Cannot synthesise ${area.names.en}: Overture does not contain ${name}.`,
+            )
+          }
+          return id
+        })
+        const id = overtureHongKongAreaDivisionId(area.code)
+        if (!id) throw new Error(`No canonical ID configured for ${area.code}.`)
+        return {
+          country: 'HK',
+          geometry: null,
+          hierarchies: [
+            [
+              { division_id: PRC_DIVISION_ID, name: 'China', subtype: 'country' },
+              {
+                division_id: HONG_KONG_SAR_DIVISION_ID,
+                name: 'Hong Kong SAR',
+                subtype: 'dependency',
+              },
+              {
+                division_id: id,
+                name: area.names.en,
+                subtype: 'locality',
+              },
+            ],
+          ],
+          id,
+          identifiers: {
+            saanseoiCorrection: {
+              code: area.code,
+              districtDivisionIds: districtIds,
+              method: 'union-overture-district-areas',
             },
+          },
+          names: {
+            common: [
+              { language: 'en', value: area.names.en },
+              { language: 'zh-Hant', value: area.names['zh-hant'] },
+              { language: 'zh-Hans', value: area.names['zh-hans'] },
+            ],
+            primary: area.names.en,
+          },
+          parent_division_id: HONG_KONG_SAR_DIVISION_ID,
+          sources: [
             {
-              division_id: id,
-              name: area.names.en,
-              subtype: 'locality',
+              dataset: 'SaanSeoi corrective processing',
+              property: 'synthetic:missing-overture-hong-kong-area',
+              record_id: `overture:hk:area:${area.code}`,
             },
           ],
-        ],
-        id,
-        identifiers: {
-          saanseoiCorrection: {
-            code: area.code,
-            districtDivisionIds: districtIds,
-            method: 'union-overture-district-areas',
-          },
-        },
-        names: {
-          common: [
-            { language: 'en', value: area.names.en },
-            { language: 'zh-Hant', value: area.names['zh-hant'] },
-            { language: 'zh-Hans', value: area.names['zh-hans'] },
-          ],
-          primary: area.names.en,
-        },
-        parent_division_id: HONG_KONG_SAR_DIVISION_ID,
-        sources: [
-          {
-            dataset: 'SaanSeoi corrective processing',
-            property: 'synthetic:missing-overture-hong-kong-area',
-            record_id: `overture:hk:area:${area.code}`,
-          },
-        ],
-        subtype: 'locality',
-        type: 'division',
-        wikidata: area.wikidata,
-      }
-    })
+          subtype: 'locality',
+          type: 'division',
+          wikidata: area.wikidata,
+        }
+      })
+  )
+}
+
+function hasOvertureAreaGeometry(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const type = (value as Record<string, unknown>).type
+  return type === 'Polygon' || type === 'MultiPolygon'
 }
 
 function collectNames(value: unknown): string[] {

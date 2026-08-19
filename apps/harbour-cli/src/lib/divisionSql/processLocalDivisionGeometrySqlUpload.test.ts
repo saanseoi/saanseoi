@@ -5,6 +5,7 @@ import {
   asOptionalInteger,
   calculateHousingMarketAreaDistrictCoverage,
   createGeometryChurnCounts,
+  decodeStoredGeoJsonGeometry,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   hasDivisionReferences,
@@ -16,6 +17,7 @@ import {
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -99,13 +101,25 @@ describe('C&SD area/type division references', () => {
 })
 
 describe('Overture Hong Kong area geometry', () => {
-  test('derives geometry for a native area identity when Overture omits its area row', () => {
+  test('derives geometry for every configured area identity missing an Overture area row', () => {
     const areas = [
       {
-        code: 'kowloon',
+        code: 'hong-kong-island',
         districtDivisionIds: ['district-1'],
+        divisionId: 'hong-kong-island-id',
+        isSynthetic: true,
+      },
+      {
+        code: 'kowloon',
+        districtDivisionIds: ['district-2'],
         divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
         isSynthetic: false,
+      },
+      {
+        code: 'new-territories',
+        districtDivisionIds: ['district-3'],
+        divisionId: 'new-territories-id',
+        isSynthetic: true,
       },
     ]
 
@@ -118,7 +132,7 @@ describe('Overture Hong Kong area geometry', () => {
           },
         } as never,
       ]),
-    ).toEqual([])
+    ).toEqual([areas[0]!, areas[2]!])
   })
 })
 
@@ -211,6 +225,18 @@ describe('exact geometry release statistics', () => {
 })
 
 describe('Housing Market Area district coverage', () => {
+  test('decodes Brotli-compressed exact C&SD district geometry from current storage', () => {
+    const geometry = polygon([
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+      [0, 0],
+    ])
+
+    expect(decodeStoredGeoJsonGeometry(compressJsonBrotli(geometry))).toEqual(geometry)
+  })
+
   test('increments every district with a positive-area intersection', () => {
     const coverage = calculateHousingMarketAreaDistrictCoverage(
       [
