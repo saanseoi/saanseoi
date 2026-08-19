@@ -34,6 +34,16 @@ export type CanonicalStatsSqlBatches = {
   history: string[]
 }
 
+export type CanonicalStatsSqlReplayProgress = {
+  completedBatches: number
+  phase:
+    | 'local-current-replay'
+    | 'local-history-replay'
+    | 'remote-current-replay'
+    | 'remote-history-replay'
+  totalBatches: number
+}
+
 export function buildCanonicalStatsSqlBatches(input: {
   current: Array<{ rows: Row[]; table: CanonicalStatsTable }>
   history: Array<{ rows: Row[]; table: CanonicalStatsTable }>
@@ -72,17 +82,28 @@ export async function replayCanonicalStatsSqlBatches(
   batches: CanonicalStatsSqlBatches,
   options: {
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
+    onProgress?: (event: CanonicalStatsSqlReplayProgress) => Promise<void> | void
   } = {},
 ) {
+  const localBatchCount = batches.current.length + batches.history.length
+  const totalBatches = localBatchCount * (target.remote ? 2 : 1)
   await replay(
     { binding: context.currentBinding, databaseId: null, name: 'current' },
     batches.current,
     { isLocal: true },
+    'local-current-replay',
+    options.onProgress,
+    0,
+    totalBatches,
   )
   await replay(
     { binding: context.historyBinding, databaseId: null, name: 'history' },
     batches.history,
     { isLocal: true },
+    'local-history-replay',
+    options.onProgress,
+    batches.current.length,
+    totalBatches,
   )
   if (!target.remote) return
 
@@ -107,11 +128,19 @@ export async function replayCanonicalStatsSqlBatches(
     { databaseId: currentDatabaseId ?? null, name: 'current' },
     batches.current,
     { accountId, apiToken, isLocal: false },
+    'remote-current-replay',
+    options.onProgress,
+    localBatchCount,
+    totalBatches,
   )
   await replay(
     { databaseId: historyDatabaseId ?? null, name: 'history' },
     batches.history,
     { accountId, apiToken, isLocal: false },
+    'remote-history-replay',
+    options.onProgress,
+    localBatchCount + batches.current.length,
+    totalBatches,
   )
 }
 
@@ -222,8 +251,28 @@ async function replay(
   destination: SqlImportTargetContext,
   batches: string[],
   options: SqlImportExecutionOptions,
+  phase: CanonicalStatsSqlReplayProgress['phase'],
+  onProgress: (event: CanonicalStatsSqlReplayProgress) => Promise<void> | void = () =>
+    undefined,
+  completedBefore = 0,
+  totalBatches = batches.length,
 ) {
-  for (const sql of batches) await executeSqlText(destination, sql, options)
+  if (batches.length === 0) return
+  for (let index = 0; index < batches.length; index += 1) {
+    const sql = batches[index]
+    if (!sql) continue
+    await onProgress({
+      completedBatches: completedBefore + index,
+      phase,
+      totalBatches,
+    })
+    await executeSqlText(destination, sql, options)
+  }
+  await onProgress({
+    completedBatches: completedBefore + batches.length,
+    phase,
+    totalBatches,
+  })
 }
 
 function uniqueStrings(rows: Row[], column: string) {

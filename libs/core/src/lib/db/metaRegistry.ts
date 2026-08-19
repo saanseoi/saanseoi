@@ -2729,6 +2729,57 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
 }
 
 /**
+ * Resolves the newest published snapshot at or before a source cohort. Together
+ * with the forward lookup above, this lets historical provider geometry anchor
+ * itself to the closest available canonical snapshot without assuming that the
+ * two publishers release on the same cadence.
+ */
+export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  options: { publisherCode?: string } = {},
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        cohortKey: metaSnapshots.cohortKey,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotSources,
+        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+      .where(
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.status, 'published'),
+          sql`${metaSnapshots.cohortKey} <= ${cohortKey}`,
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaSnapshotSources.role, 'primary'),
+          options.publisherCode
+            ? eq(metaPublishers.code, options.publisherCode)
+            : undefined,
+        ),
+      )
+      .orderBy(
+        desc(metaSnapshots.cohortKey),
+        desc(metaSnapshots.publishedAt),
+        desc(metaSnapshots.createdAt),
+      )
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+/**
  * Resolves the newest published snapshot at or before a release-set cohort for
  * each primary source dataset. Provider variants therefore stay independent.
  */

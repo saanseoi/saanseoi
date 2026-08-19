@@ -13,6 +13,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import {
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
+} from '@repo/core/db/metaRegistry'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -1189,7 +1193,11 @@ export async function assertDivisionGeometryUploadPrerequisites(
   }
 
   // HAD and C&SD district areas are independently bridged to canonical divisions.
-  if (plan.source === 'hkgov-had' || plan.source === 'hkgov-censtatd') {
+  if (
+    plan.source === 'hkgov-had' ||
+    (plan.source === 'hkgov-censtatd' &&
+      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+  ) {
     return
   }
 
@@ -1467,6 +1475,12 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   )
   try {
     const db = dbContext.metaDb
+    if (isCenstatdAreaTypePlan(plan)) {
+      return resolveCenstatdAreaTypeDivisionSnapshot(
+        db as unknown as HarbourReadableDb,
+        plan,
+      )
+    }
     return (
       (await db
         .select({
@@ -1511,9 +1525,14 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ) {
-  return withRemoteCachedMetaDb(
-    target,
-    async db =>
+  return withRemoteCachedMetaDb(target, async db => {
+    if (isCenstatdAreaTypePlan(plan)) {
+      return resolveCenstatdAreaTypeDivisionSnapshot(
+        db as unknown as HarbourReadableDb,
+        plan,
+      )
+    }
+    return (
       (await db
         .select({
           resourceType: metaSchema.metaSnapshots.resourceType,
@@ -1546,7 +1565,38 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
           ),
         )
         .limit(1)
-        .get()) ?? null,
+        .get()) ?? null
+    )
+  })
+}
+
+async function resolveCenstatdAreaTypeDivisionSnapshot(
+  db: HarbourReadableDb,
+  plan: DivisionGeometryPlan,
+) {
+  return (
+    (await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+      db,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { publisherCode: 'overture' },
+    )) ??
+    (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+      db,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { publisherCode: 'overture' },
+    ))
+  )
+}
+
+function isCenstatdAreaTypePlan(plan: DivisionGeometryPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
   )
 }
 
