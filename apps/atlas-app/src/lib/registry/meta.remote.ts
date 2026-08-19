@@ -21,10 +21,8 @@ import {
   metaApiReleaseSets,
   metaApiVersions,
   metaAssets,
-  metaDatasets,
   metaReleases,
   metaSourceReleases,
-  ingestRuns,
   metaApiComposition,
   metaApiCompositionMembers,
   stats,
@@ -584,7 +582,7 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
 
 async function loadDataReleasesPage(offset = 0) {
   const db = getMetaDb()
-  const [lifecycleRows, releases, sourceOnlyReleases] = await Promise.all([
+  const [lifecycleRows, releases] = await Promise.all([
     db
       .select({
         apiFamily: metaApiVersions.familyType,
@@ -628,36 +626,6 @@ async function loadDataReleasesPage(offset = 0) {
       )
       .limit(DATA_RELEASES_PAGE_SIZE + 1)
       .offset(offset)
-      .all(),
-    db
-      .select({
-        code: metaReleases.code,
-        cohortKey: metaReleases.cohortKey,
-        createdAt: metaReleases.createdAt,
-        datasetCode: metaDatasets.code,
-        id: metaReleases.id,
-        primaryRecordCount: sql<
-          number | null
-        >`cast(json_extract(${ingestRuns.stats}, '$.importedRows') as integer)`,
-        publishedAt: metaReleases.ingestedAt,
-      })
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-      .leftJoin(
-        ingestRuns,
-        and(
-          eq(ingestRuns.releaseId, metaReleases.id),
-          eq(ingestRuns.phase, 'processDataset'),
-          eq(ingestRuns.status, 'completed'),
-        ),
-      )
-      .where(
-        and(
-          eq(metaReleases.resourceType, 'divisionStatistic'),
-          eq(metaReleases.status, 'published'),
-        ),
-      )
-      .orderBy(desc(metaReleases.ingestedAt), desc(metaReleases.id))
       .all(),
   ])
   const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
@@ -733,48 +701,9 @@ async function loadDataReleasesPage(offset = 0) {
       status: release.status,
     }
   }) satisfies DataPageRelease[]
-  const sourceOnlyCohorts = new Set(
-    sourceOnlyReleases.flatMap(release =>
-      release.cohortKey ? [release.cohortKey] : [],
-    ),
-  )
-  const sourceOnlyDataReleases = sourceOnlyReleases.map(
-    release =>
-      ({
-        apiFamily: 'stats',
-        code: release.code,
-        cohortKey: release.cohortKey,
-        createdAt: release.createdAt,
-        displayCode: release.cohortKey ?? release.code,
-        displayStatus: 'current',
-        href: `/sources/${release.datasetCode}/${release.code}`,
-        id: release.id,
-        primaryRecordCount: release.primaryRecordCount,
-        publishedAt: release.publishedAt,
-        schemaVersion: 'sv-division-v1',
-        status: 'published',
-      }) satisfies DataPageRelease,
-  )
-  const mergedReleases = [
-    ...apiReleases.filter(
-      release =>
-        !(
-          release.apiFamily === 'stats' &&
-          release.status === 'draft' &&
-          sourceOnlyCohorts.has(release.cohortKey ?? '')
-        ),
-    ),
-    ...sourceOnlyDataReleases,
-  ].sort(
-    (left, right) =>
-      (right.publishedAt ?? right.createdAt).localeCompare(
-        left.publishedAt ?? left.createdAt,
-      ) || right.id.localeCompare(left.id),
-  )
-
   return {
-    releases: mergedReleases.slice(0, DATA_RELEASES_PAGE_SIZE),
-    hasMore: mergedReleases.length > DATA_RELEASES_PAGE_SIZE,
+    releases: apiReleases.slice(0, DATA_RELEASES_PAGE_SIZE),
+    hasMore: releases.length > DATA_RELEASES_PAGE_SIZE,
     nextOffset: offset + Math.min(releases.length, DATA_RELEASES_PAGE_SIZE),
   }
 }
