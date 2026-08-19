@@ -226,7 +226,17 @@ export async function runHkgovAlsIngestCommand(
       await writeDriftReport(reportFile, sourceVersion, result.driftCandidates)
       if (args.options.yes) {
         throw new Error(
-          `ALS identity drift requires review. Wrote ${reportFile}; add decisions and run again.`,
+          [
+            'ALS identity drift requires interactive review; --yes cannot choose premise identities.',
+            `Wrote ${reportFile}.`,
+            'Review this release with:',
+            formatAlsReviewCommand({
+              cohortKey: addressCohortKey,
+              sourceVersion,
+              target,
+            }),
+            'After the decisions are saved, rerun the update with --yes.',
+          ].join('\n'),
         )
       }
       decisions = await promptForDriftDecisions(
@@ -299,6 +309,20 @@ export async function runHkgovAlsIngestCommand(
       await writeJson(historyFile, history)
     }
   }
+}
+
+function formatAlsReviewCommand(input: {
+  cohortKey: string
+  sourceVersion: string
+  target: UploadTarget
+}) {
+  return [
+    'bun run dataops -- hkgov-dpo:ingest',
+    'data/hkgov/dpo/ALS',
+    `--target ${input.target.environment === 'dev' ? 'local' : input.target.environment}`,
+    `--cohort-key ${input.cohortKey}`,
+    `--from-source-version ${input.sourceVersion}`,
+  ].join(' ')
 }
 
 /** Keep the legacy command deliberately local; updater intake uses :ingest. */
