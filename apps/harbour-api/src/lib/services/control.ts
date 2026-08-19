@@ -362,7 +362,12 @@ export async function handlePublishDataset(
                 domainCode,
               })),
           ]
-    const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
+    const snapshot = await waitForSnapshotForRelease(
+      db,
+      dataset.releaseId,
+      datasetType,
+      datasetVariant,
+    )
 
     if (!snapshot) {
       throw new ControlRequestError(
@@ -912,9 +917,12 @@ async function waitForSnapshotForRelease(
   db: HarbourReadableDb,
   releaseId: string,
   datasetType: ResourceType,
+  variant: string,
 ) {
   for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
-    const snapshot = await resolveSnapshotForRelease(db, releaseId, datasetType)
+    const snapshot = await resolveSnapshotForRelease(db, releaseId, datasetType, {
+      variant,
+    })
 
     if (snapshot) {
       return snapshot

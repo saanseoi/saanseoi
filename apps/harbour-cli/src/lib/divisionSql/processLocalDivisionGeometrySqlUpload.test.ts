@@ -7,6 +7,7 @@ import {
   createGeometryChurnCounts,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
+  hasDivisionReferences,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   shouldCompressCanonicalGeometry,
   supportsDistrictGeometryStatistics,
@@ -78,6 +79,21 @@ describe('asOptionalInteger', () => {
 
   test('rejects non-integral decimal codes', () => {
     expect(asOptionalInteger('11.5')).toBeNull()
+  })
+})
+
+describe('C&SD area/type division references', () => {
+  test('skips an older Overture snapshot until all synthetic Hong Kong area IDs exist', () => {
+    const references = new Set([
+      'hong-kong-island-id',
+      'kowloon-id',
+      'new-territories-id',
+    ])
+    const preSyntheticSnapshot = new Set(['hong-kong-island-id'])
+    const firstSyntheticSnapshot = new Set(references)
+
+    expect(hasDivisionReferences(preSyntheticSnapshot, references)).toBeFalse()
+    expect(hasDivisionReferences(firstSyntheticSnapshot, references)).toBeTrue()
   })
 })
 
