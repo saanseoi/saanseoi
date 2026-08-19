@@ -1257,14 +1257,16 @@ function selectCsdiBootstrapUpdates(
       compareVersions(left[0]?.version ?? '', right[0]?.version ?? ''),
     )
     .map(updates => {
-      const representative =
-        dataset.releasePolicy?.series === 'rolling'
-          ? (updates
-              .toSorted((left, right) =>
-                compareVersions(left.version ?? '', right.version ?? ''),
-              )
-              .at(-1) as DatasetUpdate)
-          : (updates[0] as DatasetUpdate)
+      // A target that has no release for this cohort must be rebuilt from its
+      // newest available publisher archive. Static cohorts still receive
+      // revised archive slots: selecting their earliest slot can replay an
+      // incomplete historical extract or an archive the publisher no longer
+      // serves.
+      const representative = updates
+        .toSorted((left, right) =>
+          compareVersions(left.version ?? '', right.version ?? ''),
+        )
+        .at(-1) as DatasetUpdate
 
       return {
         ...representative,

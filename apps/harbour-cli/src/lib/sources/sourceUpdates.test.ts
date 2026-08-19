@@ -648,6 +648,74 @@ describe('dataset update registry', () => {
     }
   })
 
+  test('rebuilds a missing static CSDI cohort from its latest archive slot', async () => {
+    const originalFetch = globalThis.fetch
+    const olderObjectHash = 'a'.repeat(64)
+    const newerObjectHash = 'b'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${olderObjectHash}`,
+                },
+              ],
+              quarter: 4,
+              year: 2023,
+            },
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${newerObjectHash}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const sourceUrl =
+        'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd-static-series'
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          releases: [{ sourceUrl, sourceVersion: '2021' }],
+          theme: 'stats',
+          resourceTypes: ['divisionStatistic'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+        },
+        undefined,
+        new Map([['2021', null]]),
+        true,
+      )
+
+      expect(updates).toEqual([
+        expect.objectContaining({
+          sourceKey: 'archive:censtatd-static-series:2026-Q2',
+          status: 'new',
+          targetSourceKey: '2021',
+          version: '2021.0',
+        }),
+      ])
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('selects CSDI source-format downloads from the archive catalogue', () => {
     expect(
       readCsdiArchivedSources({
