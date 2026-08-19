@@ -33,6 +33,14 @@ domain publishes C&SD's 173 polygonal Housing Market Areas. Building Groups are 
 divisions: their source centroids remain source history for a future buildings
 projection.
 
+The 2023-H2 C&SD Area/type statistics output is an optional division enrichment in the
+Geographic domain. Its cohort-qualified canonical-division variant
+(`hkgov-censtatd:2023-H2`) is deliberately distinct from the native geometry variant;
+the composition selects its latest published snapshot at or before the API-release
+cohort. The 2021 HMA statistics output instead supplies that domain's required primary
+canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
+`hkgov-censtatd-hma` geometry.
+
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset
 exposes both `division` and `divisionArea` from the same upstream layer and cohort. Each
