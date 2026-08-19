@@ -1409,8 +1409,11 @@ function resolveDivisionDomainCode(
     : 'geographic'
 }
 
-function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefined) {
-  const domainCode = resolveDivisionDomainCode(source)
+function matchesDivisionDomain(
+  source: DivisionGeometryPlan['source'] | undefined,
+  datasetCode?: string,
+) {
+  const domainCode = resolveDivisionDomainCode(source, datasetCode)
 
   // The initial Overture division snapshot predates snapshot lineages. Its
   // primary dataset is therefore the durable domain identity until it is
@@ -1492,7 +1495,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-            matchesDivisionDomain(plan.source),
+            matchesDivisionDomain(plan.source, plan.datasetCode),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )
@@ -1537,7 +1540,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-            matchesDivisionDomain(plan.source),
+            matchesDivisionDomain(plan.source, plan.datasetCode),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
@@ -1597,7 +1600,7 @@ async function resolveLocalDivisionReleaseSetSnapshots(
                     eq(metaSchema.metaSnapshots.status, 'published'),
                     eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
                     eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-                    matchesDivisionDomain(plan.source),
+                    matchesDivisionDomain(plan.source, plan.datasetCode),
                     eq(metaSchema.metaSnapshotSources.role, 'primary'),
                   ),
                 )
@@ -1648,7 +1651,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
           inArray(metaSchema.metaSnapshots.resourceType, resourceTypes),
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          matchesDivisionDomain(plan.source),
+          matchesDivisionDomain(plan.source, plan.datasetCode),
           eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
           eq(metaSchema.metaSnapshotSources.role, 'primary'),
         ),
