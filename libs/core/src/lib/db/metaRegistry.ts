@@ -3363,7 +3363,7 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
   type: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  domainCode = 'overture',
+  domainCode = 'geographic',
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
   const rows = await db
