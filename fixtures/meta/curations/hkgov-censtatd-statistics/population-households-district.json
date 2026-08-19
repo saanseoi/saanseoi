@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -35,7 +35,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -68,7 +67,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -101,7 +99,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -134,7 +131,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -167,7 +163,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -200,7 +195,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -233,7 +227,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -266,7 +259,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -299,7 +291,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -332,7 +323,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -365,7 +355,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -398,7 +387,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -431,7 +419,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -464,7 +451,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -497,7 +483,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -530,7 +515,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -563,7 +547,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -596,7 +579,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -629,7 +611,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -662,7 +643,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -695,7 +675,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -728,7 +707,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -761,7 +739,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -794,7 +771,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -827,7 +803,6 @@
     },
     {
       "aggregation": "percentile",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -860,7 +835,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -893,7 +867,6 @@
     },
     {
       "aggregation": "percentile",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -926,7 +899,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -959,7 +931,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -992,7 +963,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1025,7 +995,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1058,7 +1027,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1091,7 +1059,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1124,7 +1091,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1157,7 +1123,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1190,7 +1155,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1223,7 +1187,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1256,7 +1219,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1289,7 +1251,6 @@
     },
     {
       "aggregation": "mean",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1322,7 +1283,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1355,7 +1315,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1388,7 +1347,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1421,7 +1379,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1454,7 +1411,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1487,7 +1443,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1520,7 +1475,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1553,7 +1507,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1586,7 +1539,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1619,7 +1571,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1652,7 +1603,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1685,7 +1635,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1718,7 +1667,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1751,7 +1699,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1784,7 +1731,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1817,7 +1763,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1850,7 +1795,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1883,7 +1827,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1916,7 +1859,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1949,7 +1891,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -1982,7 +1923,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2015,7 +1955,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2048,7 +1987,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2081,7 +2019,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2114,7 +2051,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2147,7 +2083,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2180,7 +2115,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2213,7 +2147,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2246,7 +2179,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2279,7 +2211,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2312,7 +2243,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2345,7 +2275,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2378,7 +2307,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2411,7 +2339,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2444,7 +2371,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2477,7 +2403,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2510,7 +2435,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2543,7 +2467,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2576,7 +2499,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2609,7 +2531,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2642,7 +2563,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2675,7 +2595,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2708,7 +2627,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2741,7 +2659,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2774,7 +2691,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2807,7 +2723,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2840,7 +2755,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2873,7 +2787,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2906,7 +2819,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2939,7 +2851,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -2972,7 +2883,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3005,7 +2915,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3038,7 +2947,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3071,7 +2979,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3104,7 +3011,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3137,7 +3043,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3170,7 +3075,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3203,7 +3107,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3236,7 +3139,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3269,7 +3171,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3302,7 +3203,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3335,7 +3235,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3368,7 +3267,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3401,7 +3299,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3434,7 +3331,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3467,7 +3363,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3500,7 +3395,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3533,7 +3427,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3566,7 +3459,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3599,7 +3491,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3632,7 +3523,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3665,7 +3555,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3698,7 +3587,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3731,7 +3619,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3764,7 +3651,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3797,7 +3683,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3830,7 +3715,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3863,7 +3747,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3896,7 +3779,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3929,7 +3811,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3962,7 +3843,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -3995,7 +3875,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4028,7 +3907,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4061,7 +3939,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4094,7 +3971,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4127,7 +4003,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4160,7 +4035,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4193,7 +4067,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4226,7 +4099,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4259,7 +4131,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4292,7 +4163,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4325,7 +4195,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4358,7 +4227,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4391,7 +4259,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4424,7 +4291,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4457,7 +4323,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4490,7 +4355,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4523,7 +4387,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4556,7 +4419,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4589,7 +4451,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4622,7 +4483,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4655,7 +4515,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4688,7 +4547,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4721,7 +4579,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4754,7 +4611,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4787,7 +4643,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4820,7 +4675,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4853,7 +4707,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4886,7 +4739,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4919,7 +4771,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4952,7 +4803,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -4985,7 +4835,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5018,7 +4867,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5051,7 +4899,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5084,7 +4931,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5117,7 +4963,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5150,7 +4995,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5183,7 +5027,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5216,7 +5059,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5249,7 +5091,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5282,7 +5123,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5315,7 +5155,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5348,7 +5187,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5381,7 +5219,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5414,7 +5251,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5447,7 +5283,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5480,7 +5315,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5513,7 +5347,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5546,7 +5379,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5579,7 +5411,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5612,7 +5443,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5645,7 +5475,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5678,7 +5507,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5711,7 +5539,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5744,7 +5571,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5777,7 +5603,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5810,7 +5635,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5843,7 +5667,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5876,7 +5699,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5909,7 +5731,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5942,7 +5763,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -5975,7 +5795,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6008,7 +5827,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6041,7 +5859,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6074,7 +5891,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6107,7 +5923,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6140,7 +5955,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6173,7 +5987,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6206,7 +6019,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6239,7 +6051,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6272,7 +6083,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6305,7 +6115,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6338,7 +6147,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6371,7 +6179,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6404,7 +6211,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6437,7 +6243,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6470,7 +6275,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6503,7 +6307,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6536,7 +6339,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6569,7 +6371,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6602,7 +6403,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6635,7 +6435,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6668,7 +6467,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6701,7 +6499,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6734,7 +6531,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6767,7 +6563,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6800,7 +6595,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6833,7 +6627,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6866,7 +6659,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6899,7 +6691,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6932,7 +6723,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6965,7 +6755,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -6998,7 +6787,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7031,7 +6819,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7064,7 +6851,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7097,7 +6883,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7130,7 +6915,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7163,7 +6947,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7196,7 +6979,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7229,7 +7011,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7262,7 +7043,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7295,7 +7075,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7328,7 +7107,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7361,7 +7139,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7394,7 +7171,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7427,7 +7203,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7460,7 +7235,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7493,7 +7267,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7526,7 +7299,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7559,7 +7331,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7592,7 +7363,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7625,7 +7395,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7658,7 +7427,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7691,7 +7459,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7724,7 +7491,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7757,7 +7523,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7790,7 +7555,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7823,7 +7587,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7856,7 +7619,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7889,7 +7651,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7922,7 +7683,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7955,7 +7715,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -7988,7 +7747,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8021,7 +7779,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8054,7 +7811,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8087,7 +7843,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8120,7 +7875,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8153,7 +7907,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8186,7 +7939,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8219,7 +7971,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8252,7 +8003,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8285,7 +8035,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8318,7 +8067,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8351,7 +8099,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8384,7 +8131,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8417,7 +8163,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8450,7 +8195,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8483,7 +8227,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8516,7 +8259,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8549,7 +8291,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8582,7 +8323,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8615,7 +8355,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8648,7 +8387,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8681,7 +8419,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8714,7 +8451,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8747,7 +8483,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8780,7 +8515,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8813,7 +8547,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8846,7 +8579,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8879,7 +8611,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8912,7 +8643,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8945,7 +8675,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -8978,7 +8707,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9011,7 +8739,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9044,7 +8771,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9077,7 +8803,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9110,7 +8835,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9143,7 +8867,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9176,7 +8899,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "localisations": [
         {
           "locale": "en",
@@ -9208,5 +8930,5 @@
       "unitCode": "percent"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

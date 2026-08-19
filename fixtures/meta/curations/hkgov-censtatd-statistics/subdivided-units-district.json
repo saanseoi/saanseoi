@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "localisations": [
         {
           "locale": "en",
@@ -35,7 +35,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "localisations": [
         {
           "locale": "en",
@@ -68,7 +67,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "localisations": [
         {
           "locale": "en",
@@ -101,7 +99,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "localisations": [
         {
           "locale": "en",
@@ -133,5 +130,5 @@
       "unitCode": "publisher-unknown"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

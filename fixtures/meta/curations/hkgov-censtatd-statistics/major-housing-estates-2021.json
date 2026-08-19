@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -35,7 +35,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -68,7 +67,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -101,7 +99,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -134,7 +131,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -168,7 +164,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -202,7 +197,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -236,7 +230,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -270,7 +263,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -303,7 +295,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -336,7 +327,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -369,7 +359,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -402,7 +391,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -436,7 +424,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -470,7 +457,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "totalPopulation",
       "localisations": [
         {
@@ -504,7 +490,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -537,7 +522,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -570,7 +554,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -603,7 +586,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -636,7 +618,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -669,7 +650,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -702,7 +682,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -735,7 +714,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -768,7 +746,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -801,7 +778,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -834,7 +810,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -867,7 +842,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -900,7 +874,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -933,7 +906,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -966,7 +938,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -999,7 +970,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1032,7 +1002,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1065,7 +1034,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1098,7 +1066,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1131,7 +1098,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1164,7 +1130,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1197,7 +1162,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1230,7 +1194,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1263,7 +1226,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1296,7 +1258,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1329,7 +1290,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1362,7 +1322,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1395,7 +1354,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1428,7 +1386,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1461,7 +1418,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -1495,7 +1451,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -1529,7 +1484,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1562,7 +1516,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1595,7 +1548,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1628,7 +1580,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1661,7 +1612,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "nonWorkingPopulation",
       "localisations": [
         {
@@ -1695,7 +1645,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1728,7 +1677,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1761,7 +1709,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1794,7 +1741,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1827,7 +1773,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1860,7 +1805,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1893,7 +1837,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1926,7 +1869,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1959,7 +1901,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -1992,7 +1933,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2025,7 +1965,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2058,7 +1997,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2091,7 +2029,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2124,7 +2061,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2157,7 +2093,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2190,7 +2125,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2223,7 +2157,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2256,7 +2189,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2289,7 +2221,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2322,7 +2253,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2356,7 +2286,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2390,7 +2319,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2424,7 +2352,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2458,7 +2385,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2492,7 +2418,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2526,7 +2451,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2560,7 +2484,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2594,7 +2517,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "denominatorMeasureCode": "workingPopulation",
       "localisations": [
         {
@@ -2628,7 +2550,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2661,7 +2582,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2694,7 +2614,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2727,7 +2646,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2760,7 +2678,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2793,7 +2710,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2826,7 +2742,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2859,7 +2774,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2892,7 +2806,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2925,7 +2838,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2958,7 +2870,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -2991,7 +2902,6 @@
     },
     {
       "aggregation": "percentile",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3024,7 +2934,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3057,7 +2966,6 @@
     },
     {
       "aggregation": "percentile",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3090,7 +2998,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3123,7 +3030,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3156,7 +3062,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3189,7 +3094,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3222,7 +3126,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3255,7 +3158,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3288,7 +3190,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3321,7 +3222,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3354,7 +3254,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3387,7 +3286,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3420,7 +3318,6 @@
     },
     {
       "aggregation": "mean",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3453,7 +3350,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3486,7 +3382,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3519,7 +3414,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3552,7 +3446,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3585,7 +3478,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3618,7 +3510,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3651,7 +3542,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3684,7 +3574,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3717,7 +3606,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3750,7 +3638,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3783,7 +3670,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3816,7 +3702,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3849,7 +3734,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3882,7 +3766,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3915,7 +3798,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3948,7 +3830,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -3981,7 +3862,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -4014,7 +3894,6 @@
     },
     {
       "aggregation": "median",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -4047,7 +3926,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
       "localisations": [
         {
           "locale": "en",
@@ -4079,5 +3957,5 @@
       "unitCode": "publisher-unknown"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

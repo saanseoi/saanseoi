@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
       "localisations": [
         {
           "locale": "en",
@@ -30,7 +30,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
       "localisations": [
         {
           "locale": "en",
@@ -58,7 +57,6 @@
     },
     {
       "aggregation": "none",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
       "denominatorMeasureCode": "landArea",
       "localisations": [
         {
@@ -86,5 +84,5 @@
       "unitCode": "person-per-square-kilometre"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

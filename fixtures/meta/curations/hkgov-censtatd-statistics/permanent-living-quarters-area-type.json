@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -35,7 +35,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -68,7 +67,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -101,7 +99,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -134,7 +131,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -167,7 +163,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -200,7 +195,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -233,7 +227,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -266,7 +259,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -299,7 +291,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -332,7 +323,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -365,7 +355,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -398,7 +387,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -431,7 +419,6 @@
     },
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
       "localisations": [
         {
           "locale": "en",
@@ -463,5 +450,5 @@
       "unitCode": "publisher-unknown"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

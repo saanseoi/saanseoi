@@ -1,8 +1,8 @@
 {
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "measures": [
     {
       "aggregation": "total",
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
       "localisations": [
         {
           "locale": "en",
@@ -34,5 +34,5 @@
       "unitCode": "publisher-unknown"
     }
   ],
-  "schemaVersion": 5
+  "schemaVersion": 6
 }
