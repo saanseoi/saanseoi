@@ -534,7 +534,9 @@ function ensureChronologicalUpload(
   latestDataset: DatasetRecord | null,
   sourceVersion: string,
   releaseCode: string,
+  allowHistoricalCohort = false,
 ) {
+  if (allowHistoricalCohort) return
   if (!latestDataset) {
     return
   }
@@ -843,7 +845,12 @@ export async function planUpload(
   )
 
   await ensureSourcePrerequisites(db, preparedUpload.plan)
-  ensureChronologicalUpload(latestDataset, sourceVersion, releaseCode)
+  ensureChronologicalUpload(
+    latestDataset,
+    sourceVersion,
+    releaseCode,
+    options.allowHistoricalCohort,
+  )
   await ensureSchemaCompatible(
     latestDataset,
     preparedUpload.plan,
@@ -855,7 +862,9 @@ export async function planUpload(
     ...preparedUpload,
     plan: {
       ...preparedUpload.plan,
-      supersedesDatasetId: latestDataset?.releaseCode ?? null,
+      supersedesDatasetId: options.allowHistoricalCohort
+        ? null
+        : (latestDataset?.releaseCode ?? null),
     },
   }
 }

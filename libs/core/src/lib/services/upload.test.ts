@@ -540,6 +540,19 @@ describe('upload', () => {
         rawObjectKey: 'hk/overture/2026-04-15.0/division.parquet',
       }),
     ).rejects.toThrow('strictly newer source versions')
+
+    const historicalCohort = await registerUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2026-04',
+      source: 'overture',
+      sourceVersion: '2026-04-15.0',
+      inspection: fixtureInspection,
+      rawObjectKey: 'hk/overture/2026-04-15.0/division.parquet',
+      allowHistoricalCohort: true,
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+    })
+
+    expect(historicalCohort.plan.supersedesDatasetId).toBeNull()
     sqlite.close()
   })
 
