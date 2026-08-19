@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:430bca6583fac1fc7be331c42d76b01f3d2c58882d896568d5536d198a652284",
+  "versionHash": "sha256:de484a68bb44bfe1d914874c285e4705d22bb3319aecc1368d20b5edab78ff55",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
   "regionCode": "hk",
@@ -58,6 +58,7 @@
   "releases": [
     {
       "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
       "identicalArchiveSlots": [
         {
           "releaseSlot": "2024-Q4",
