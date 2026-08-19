@@ -403,62 +403,90 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       progress,
       'Materialise',
       'current Planning divisions',
-      () =>
+      reportProgress =>
         replaceCurrentSnapshot(
           context.currentDb as unknown as HarbourWritableDb,
           snapshot.id,
           records,
           currentHistoryRows.map(row => row.id),
           now,
+          reportProgress,
         ),
+      { totalUnits: records.length },
+    )
+    const currentI18nRowCount = records.reduce(
+      (count, record) => count + record.i18n.length,
+      0,
     )
     await runPlandProgressPhase(
       progress,
       'Materialise',
       'Planning division names',
-      () =>
+      reportProgress =>
         replaceCurrentI18n(
           context.currentDb as unknown as HarbourWritableDb,
           snapshot.id,
           records,
           currentHistoryRows.map(row => row.id),
           now,
+          reportProgress,
         ),
+      { totalUnits: currentI18nRowCount },
+    )
+    const changedHistoryRecords = records.filter(record =>
+      changedHistoryIds.includes(record.base.id),
     )
     await runPlandProgressPhase(
       progress,
       'Record',
       'Planning division history',
-      async () => {
+      async reportProgress => {
         await insertHistoryRows(
           context.historyDb as unknown as HarbourWritableDb,
           snapshot.id,
           releaseId,
           previewPlan.cohortKey,
-          records.filter(record => changedHistoryIds.includes(record.base.id)),
+          changedHistoryRecords,
           now,
+          reportProgress,
         )
         await insertHistoryI18nRows(
           context.historyDb as unknown as HarbourWritableDb,
           snapshot.id,
           releaseId,
           previewPlan.cohortKey,
-          records.filter(record => changedHistoryIds.includes(record.base.id)),
+          changedHistoryRecords,
           now,
+          reportProgress,
         )
       },
+      {
+        totalUnits:
+          changedHistoryRecords.length +
+          changedHistoryRecords.reduce(
+            (count, record) => count + record.i18n.length,
+            0,
+          ),
+      },
     )
-    await runPlandProgressPhase(progress, 'Store', 'Planning source records', () =>
-      insertSourceRows(
-        context.sourceDb as unknown as HarbourWritableDb,
-        releaseId,
-        releaseCode,
-        nativeRecords.filter(record =>
-          changedNativeIds.includes(record.sourceRecordId),
+    const changedNativeRecords = nativeRecords.filter(record =>
+      changedNativeIds.includes(record.sourceRecordId),
+    )
+    await runPlandProgressPhase(
+      progress,
+      'Store',
+      'Planning source records',
+      reportProgress =>
+        insertSourceRows(
+          context.sourceDb as unknown as HarbourWritableDb,
+          releaseId,
+          releaseCode,
+          changedNativeRecords,
+          previewPlan.source,
+          now,
+          reportProgress,
         ),
-        previewPlan.source,
-        now,
-      ),
+      { totalUnits: changedNativeRecords.length },
     )
     await runPlandProgressPhase(
       progress,
@@ -782,6 +810,7 @@ async function replaceCurrentSnapshot(
   records: PreparedDivision[],
   previousProviderIds: string[],
   now: string,
+  reportProgress: (current: number) => void,
 ) {
   const providerIds = [
     ...new Set([...previousProviderIds, ...records.map(record => record.base.id)]),
@@ -798,6 +827,7 @@ async function replaceCurrentSnapshot(
       )
       .run()
   }
+  let processedRecords = 0
   for (const chunk of chunkArray(records, 6)) {
     await db
       .insert(currentSchema.divisions)
@@ -811,6 +841,8 @@ async function replaceCurrentSnapshot(
         })),
       )
       .run()
+    processedRecords += chunk.length
+    reportProgress(processedRecords)
   }
 }
 
@@ -820,6 +852,7 @@ async function replaceCurrentI18n(
   records: PreparedDivision[],
   previousProviderIds: string[],
   now: string,
+  reportProgress: (current: number) => void,
 ) {
   const ids = [
     ...new Set([...previousProviderIds, ...records.map(record => record.base.id)]),
@@ -850,8 +883,11 @@ async function replaceCurrentI18n(
       updatedAt: now,
     })),
   )
+  let processedRows = 0
   for (const chunk of chunkArray(rows, 8)) {
     await db.insert(currentSchema.divisionsI18n).values(chunk).run()
+    processedRows += chunk.length
+    reportProgress(processedRows)
   }
 }
 
@@ -862,7 +898,9 @@ async function insertHistoryRows(
   _cohortKey: string,
   records: PreparedDivision[],
   now: string,
+  reportProgress: (current: number) => void,
 ) {
+  let processedRecords = 0
   for (const chunk of chunkArray(records, 4)) {
     await db
       .insert(historySchema.divisions)
@@ -888,6 +926,8 @@ async function insertHistoryRows(
         },
       })
       .run()
+    processedRecords += chunk.length
+    reportProgress(processedRecords)
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
@@ -908,6 +948,7 @@ async function insertHistoryI18nRows(
   _cohortKey: string,
   records: PreparedDivision[],
   now: string,
+  reportProgress: (current: number) => void,
 ) {
   const rows = records.flatMap(record =>
     record.i18n.map(item => ({
@@ -926,6 +967,7 @@ async function insertHistoryI18nRows(
       updatedAt: now,
     })),
   )
+  let processedRows = 0
   for (const chunk of chunkArray(rows, 6)) {
     await db
       .insert(historySchema.divisionsI18n)
@@ -944,6 +986,8 @@ async function insertHistoryI18nRows(
         },
       })
       .run()
+    processedRows += chunk.length
+    reportProgress(records.length + processedRows)
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
@@ -967,6 +1011,7 @@ async function insertSourceRows(
   >,
   source: HkgovPlandDivisionUploadPlan['source'],
   now: string,
+  reportProgress: (current: number) => void,
 ) {
   if (source === 'hkgov-pland-pu') {
     const cells = records as PreparedDivision['cells']
@@ -986,6 +1031,7 @@ async function insertSourceRows(
         updatedAt: now,
       })),
     )
+    let processedRows = 0
     for (const chunk of chunkArray(rows, 4)) {
       await db
         .insert(sourceSchema.sourceHkgovPlandPlanningCells)
@@ -998,6 +1044,8 @@ async function insertSourceRows(
           set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
         })
         .run()
+      processedRows += chunk.length
+      reportProgress(processedRows)
     }
     return
   }
@@ -1018,6 +1066,7 @@ async function insertSourceRows(
       updatedAt: now,
     })),
   )
+  let processedRows = 0
   for (const chunk of chunkArray(rows, 4)) {
     await db
       .insert(sourceSchema.sourceHkgovPlandNewTowns)
@@ -1030,6 +1079,8 @@ async function insertSourceRows(
         set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
       })
       .run()
+    processedRows += chunk.length
+    reportProgress(processedRows)
   }
 }
 
@@ -1795,16 +1846,29 @@ async function runPlandProgressPhase<T>(
   progress: LocalUploadProgress,
   action: string,
   subject: string,
-  operation: () => Promise<T>,
+  operation: (reportProgress: (current: number) => void) => Promise<T>,
+  options: { totalUnits?: number } = {},
 ) {
   const startedAt = Date.now()
-  progress.beginPhase(formatRunningPhaseLabel(colorTeal(action), colorRed(subject)), {
+  const totalUnits =
+    typeof options.totalUnits === 'number' && options.totalUnits > 0
+      ? Math.floor(options.totalUnits)
+      : undefined
+  const labelForProgress = (current?: number) =>
+    formatRunningPhaseLabel(colorTeal(action), colorRed(subject), current, totalUnits)
+  progress.beginPhase(labelForProgress(0), {
     current: 0,
-    max: null,
+    max: totalUnits ?? null,
   })
 
   try {
-    const result = await operation()
+    const result = await operation(current => {
+      if (totalUnits === undefined) return
+      const resolvedCurrent = Math.min(Math.max(0, current), totalUnits)
+      progress.update(resolvedCurrent, {
+        label: labelForProgress(resolvedCurrent),
+      })
+    })
     progress.complete(
       appendPhaseDetails(
         formatCompletedPhaseLabel(colorTeal(action), colorRed(subject)),
