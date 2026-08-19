@@ -1,6 +1,6 @@
 import {
   getDatasetById,
-  getLatestDatasetForRegionSourceType,
+  getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
   resetFailedDataset,
   upsertIngestRunStatus,
@@ -550,8 +550,8 @@ function ensureChronologicalUpload(
     throw new Error(
       [
         `Release ${releaseCode} is not uploadable.\n\n`,
-        `Latest registered release for this region/type is ${latestDataset.releaseCode}.\n`,
-        'Harbour currently only accepts strictly newer source versions per region/source/type.\n',
+        `Latest registered release for this dataset/type is ${latestDataset.releaseCode}.\n`,
+        'Harbour currently only accepts strictly newer source versions per dataset/resource type.\n',
         'Corrected releases and backfills must sort after the currently registered sourceVersion.\n',
       ].join(' '),
     )
@@ -826,7 +826,7 @@ export async function planUpload(
   })
 
   const {
-    plan: { releaseCode, regionCode, source, sourceVersion, type },
+    plan: { datasetCode, releaseCode, regionCode, source, sourceVersion, type },
   } = preparedUpload
   const existingDataset = await getDatasetById(db, releaseCode)
 
@@ -834,10 +834,11 @@ export async function planUpload(
     assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
   }
 
-  const { latestDataset } = await getLatestDatasetForRegionSourceType(
+  const { latestDataset } = await getLatestDatasetForRegionSourceDatasetType(
     db,
     regionCode,
     source,
+    datasetCode,
     type,
   )
 
