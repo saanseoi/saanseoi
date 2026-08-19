@@ -118,44 +118,46 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       sourceArchiveSha256: sha,
       sourceVersion,
     })
-    if (geography.divisionCount > 0) {
-      for (const [filePath, type] of [
-        [geographyDivisionPath, 'division'],
-        [geographyAreaPath, 'divisionArea'],
-      ] as const) {
-        await runUploadCommand(
-          {
-            command: 'upload',
-            positionals: [filePath],
-            options: {
-              'cohort-key': sourceVersion,
-              'dataset-code': datasetCode,
-              region: 'hk',
-              'release-notes-url': releaseNotesUrl,
-              source: 'hkgov-censtatd',
-              'source-archive-key': key,
-              'source-archive-sha256': sha,
-              'source-version': sourceVersion,
-              theme: 'divisions',
-              type,
-              yes: true,
-            },
+    for (const [filePath, type] of [
+      ...(geography.divisionCount > 0
+        ? ([[geographyDivisionPath, 'division']] as const)
+        : []),
+      ...(geography.areaCount > 0
+        ? ([[geographyAreaPath, 'divisionArea']] as const)
+        : []),
+    ] as const) {
+      await runUploadCommand(
+        {
+          command: 'upload',
+          positionals: [filePath],
+          options: {
+            'cohort-key': sourceVersion,
+            'dataset-code': datasetCode,
+            region: 'hk',
+            'release-notes-url': releaseNotesUrl,
+            source: 'hkgov-censtatd',
+            'source-archive-key': key,
+            'source-archive-sha256': sha,
+            'source-version': sourceVersion,
+            theme: 'divisions',
+            type,
+            yes: true,
           },
-          target,
-          {
-            allowReprocessPublished: true,
-            dryRun: false,
-            forceUpload: true,
-            invocationCwd: resolve(import.meta.dir, '../../../..'),
-            printUsage: () => undefined,
-            skipConfirm: true,
-            // The area pass resolves the canonical division snapshot created
-            // immediately before it; normal cleanup resumes after publication.
-            skipSnapshotCleanup: type === 'division',
-            validateGeometry: type === 'divisionArea',
-          },
-        )
-      }
+        },
+        target,
+        {
+          allowReprocessPublished: true,
+          dryRun: false,
+          forceUpload: true,
+          invocationCwd: resolve(import.meta.dir, '../../../..'),
+          printUsage: () => undefined,
+          skipConfirm: true,
+          // The area pass resolves the canonical division snapshot created
+          // immediately before it; normal cleanup resumes after publication.
+          skipSnapshotCleanup: type === 'division',
+          validateGeometry: type === 'divisionArea',
+        },
+      )
     }
   } finally {
     await rm(workDir, { force: true, recursive: true })
