@@ -46,6 +46,12 @@ import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
+import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
+import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
+import type Geometry from 'jsts/org/locationtech/jts/geom/Geometry.js'
+import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
+import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
@@ -66,6 +72,10 @@ import {
   type SqlImportExecutionOptions,
 } from '../localPipeline/sqlImport.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import {
+  overtureHongKongAreaDivisionId,
+  overtureHongKongAreas,
+} from '@repo/core/pipeline/services/overtureHongKongAreas'
 import {
   appendPhaseDetails,
   colorRed,
@@ -446,6 +456,24 @@ export async function processLocalDivisionGeometrySqlUpload(
       })
     }
 
+    const syntheticAreas = await resolveSyntheticOvertureHongKongAreas(
+      dbContext.currentDb,
+      metaDb,
+      previewPlan,
+    )
+    if (previewPlan.source === 'overture' && syntheticAreas.length > 0) {
+      const syntheticRows =
+        previewPlan.type === 'divisionArea'
+          ? buildSyntheticOvertureHongKongAreaRows(syntheticAreas, normalised)
+          : await buildSyntheticOvertureHongKongBoundaryRows(
+              dbContext.currentDb,
+              metaDb,
+              previewPlan,
+              syntheticAreas,
+            )
+      normalised.push(...syntheticRows)
+    }
+
     progress.complete(
       formatGeometryCompletedLabel(
         'Normalise source',
@@ -548,11 +576,13 @@ export async function processLocalDivisionGeometrySqlUpload(
         ),
       )
     }
-    await replaceReleaseProcessingActions(
-      metaDb,
-      releaseId,
-      buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
-    )
+    await replaceReleaseProcessingActions(metaDb, releaseId, [
+      ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
+      ...buildSyntheticOvertureHongKongAreaProcessingActions(
+        previewPlan,
+        syntheticAreas,
+      ),
+    ])
     progress.complete(
       formatGeometryCompletedLabel(
         'Calculate',
@@ -2326,6 +2356,262 @@ function buildOvertureGeometryProcessingActions(
         'Excluded Guangdong spillover geometry from the Hong Kong Overture release.',
     },
   ]
+}
+
+type SyntheticOvertureHongKongArea = {
+  code: string
+  districtDivisionIds: string[]
+  divisionId: string
+}
+
+const SHENZHEN_BAY_PORT_EXCLUSION = {
+  coordinates: [
+    [
+      [113.935, 22.485],
+      [113.96, 22.485],
+      [113.96, 22.51],
+      [113.935, 22.51],
+      [113.935, 22.485],
+    ],
+  ],
+  type: 'Polygon',
+} as const satisfies GeoJsonGeometry
+
+async function resolveSyntheticOvertureHongKongAreas(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  metaDb: HarbourReadableDb,
+  plan: GeometryUploadPlan,
+): Promise<SyntheticOvertureHongKongArea[]> {
+  if (plan.source !== 'overture' || plan.regionCode !== 'hk') return []
+  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+    metaDb,
+    'division',
+    plan.regionCode,
+    plan.cohortKey,
+    { variant: 'overture' },
+  )
+  if (!snapshot) return []
+  const rows = await currentDb
+    .select({
+      id: currentSchema.divisions.id,
+      identifiers: currentSchema.divisions.identifiers,
+    })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+    .all()
+  const byId = new Map(rows.map(row => [row.id, row.identifiers]))
+  return overtureHongKongAreas.flatMap(area => {
+    const divisionId = overtureHongKongAreaDivisionId(area.code)
+    if (!divisionId) return []
+    const identifiers = byId.get(divisionId)
+    const correction =
+      identifiers && typeof identifiers === 'object' && !Array.isArray(identifiers)
+        ? (identifiers as Record<string, unknown>).saanseoiCorrection
+        : null
+    const districtDivisionIds =
+      correction && typeof correction === 'object' && !Array.isArray(correction)
+        ? (correction as Record<string, unknown>).districtDivisionIds
+        : null
+    if (!Array.isArray(districtDivisionIds) || !districtDivisionIds.every(isString)) {
+      return []
+    }
+    return [{ code: area.code, districtDivisionIds, divisionId }]
+  })
+}
+
+function buildSyntheticOvertureHongKongAreaRows(
+  areas: readonly SyntheticOvertureHongKongArea[],
+  normalised: readonly NonNullable<NormalisedGeometry>[],
+) {
+  return areas.map(area => {
+    const geometries = normalised.flatMap(row => {
+      if (!('divisionId' in row.canonical)) return []
+      if (!isGeoJsonPolygon(row.canonical.geometry)) {
+        throw new Error(
+          `Overture district ${row.canonical.divisionId} is not polygonal.`,
+        )
+      }
+      return area.districtDivisionIds.includes(row.canonical.divisionId) &&
+        row.canonical.isLand === true
+        ? [row.canonical.geometry]
+        : []
+    })
+    if (geometries.length !== area.districtDivisionIds.length) {
+      throw new Error(
+        `Cannot synthesise ${area.code}: expected ${area.districtDivisionIds.length} district land geometries, found ${geometries.length}.`,
+      )
+    }
+    return normaliseDivisionAreaGeometryRow(
+      syntheticOvertureHongKongAreaSourceRow(
+        area,
+        unionHongKongAreaGeometries(geometries),
+      ),
+      'overture',
+      { variant: 'overture' },
+    )!
+  })
+}
+
+async function buildSyntheticOvertureHongKongBoundaryRows(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  metaDb: HarbourReadableDb,
+  plan: GeometryUploadPlan,
+  areas: readonly SyntheticOvertureHongKongArea[],
+) {
+  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+    metaDb,
+    'divisionArea',
+    plan.regionCode,
+    plan.cohortKey,
+    { variant: 'overture' },
+  )
+  if (!snapshot) {
+    throw new Error(
+      `Cannot synthesise Overture boundaries: no published Overture divisionArea snapshot exists for ${plan.cohortKey}.`,
+    )
+  }
+  const rows = await currentDb
+    .select({
+      divisionId: currentSchema.divisionAreas.divisionId,
+      geometry: currentSchema.divisionAreas.geometry,
+    })
+    .from(currentSchema.divisionAreas)
+    .where(eq(currentSchema.divisionAreas.snapshotId, snapshot.id))
+    .all()
+  const geometryByDivisionId = new Map(rows.map(row => [row.divisionId, row.geometry]))
+  return areas.map(area => {
+    const areaGeometry = geometryByDivisionId.get(area.divisionId)
+    if (!isGeoJsonPolygon(areaGeometry)) {
+      throw new Error(
+        `Cannot synthesise ${area.code} boundary: its synthetic divisionArea is absent.`,
+      )
+    }
+    const boundary = geoJsonBoundary(areaGeometry)
+    return normaliseDivisionBoundaryGeometryRow(
+      {
+        class: 'land',
+        division_ids: [area.divisionId, 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'],
+        geometry: boundary,
+        id: `SAANSEOI:OVERTURE:HK:AREA:${area.code}:boundary`,
+        is_land: true,
+        is_territorial: false,
+        perspectives: null,
+        sources: [
+          {
+            dataset: 'SaanSeoi corrective processing',
+            property: 'synthetic:boundary-from-unioned-overture-district-areas',
+            record_id: `overture:hk:area:${area.code}`,
+          },
+        ],
+      },
+      'overture',
+      { variant: 'overture' },
+    )!
+  })
+}
+
+function syntheticOvertureHongKongAreaSourceRow(
+  area: SyntheticOvertureHongKongArea,
+  geometry: GeoJsonGeometry,
+) {
+  return {
+    class: 'land',
+    division_id: area.divisionId,
+    geometry,
+    id: `SAANSEOI:OVERTURE:HK:AREA:${area.code}`,
+    is_land: true,
+    is_territorial: false,
+    sources: [
+      {
+        dataset: 'SaanSeoi corrective processing',
+        property: 'synthetic:union-overture-district-areas',
+        record_id: `overture:hk:area:${area.code}`,
+      },
+    ],
+  }
+}
+
+function unionHongKongAreaGeometries(geometries: readonly GeoJsonGeometry[]) {
+  const reader = new GeoJSONReader(new GeometryFactory())
+  const writer = new GeoJSONWriter()
+  const unioned = unionBalanced(
+    geometries
+      .map(geometry => reader.read(JSON.stringify(geometry)))
+      .sort((left, right) =>
+        left.getEnvelopeInternal().compareTo(right.getEnvelopeInternal()),
+      ),
+  )
+  const corrected = OverlayOp.difference(
+    unioned,
+    reader.read(JSON.stringify(SHENZHEN_BAY_PORT_EXCLUSION)),
+  )
+  const geometry = writer.write(corrected) as GeoJsonGeometry
+  if (!isGeoJsonPolygon(geometry)) {
+    throw new Error('Synthetic Overture Hong Kong area union is not polygonal.')
+  }
+  return geometry
+}
+
+function geoJsonBoundary(geometry: GeoJsonGeometry) {
+  const reader = new GeoJSONReader(new GeometryFactory())
+  const writer = new GeoJSONWriter()
+  const boundary = writer.write(
+    reader.read(JSON.stringify(geometry)).getBoundary(),
+  ) as GeoJsonGeometry
+  if (boundary.type !== 'LineString' && boundary.type !== 'MultiLineString') {
+    throw new Error('Synthetic Overture Hong Kong area boundary is not linear.')
+  }
+  return boundary
+}
+
+function unionBalanced(geometries: Geometry[]) {
+  if (geometries.length === 0) throw new Error('Cannot union empty Overture geometry.')
+  let current = geometries
+  while (current.length > 1) {
+    const next: Geometry[] = []
+    for (let index = 0; index < current.length; index += 2) {
+      const left = current[index]!
+      const right = current[index + 1]
+      next.push(right ? UnionOp.union(left, right) : left)
+    }
+    current = next
+  }
+  return current[0]!
+}
+
+function isGeoJsonPolygon(value: unknown): value is GeoJsonGeometry {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    ((value as GeoJsonGeometry).type === 'Polygon' ||
+      (value as GeoJsonGeometry).type === 'MultiPolygon')
+  )
+}
+
+function buildSyntheticOvertureHongKongAreaProcessingActions(
+  plan: GeometryUploadPlan,
+  areas: readonly SyntheticOvertureHongKongArea[],
+): ReleaseProcessingAction[] {
+  if (plan.source !== 'overture' || areas.length === 0) return []
+  return areas.map(area => ({
+    action: 'overture_hong_kong_area_synthesised',
+    affectedRecordCount: 1,
+    evidence: {
+      area: area.code,
+      districtDivisionIds: area.districtDivisionIds,
+      geometryRule: {
+        include: 'Lok Ma Chau Loop',
+        exclude: 'Shenzhen Bay Port border-crossing enclave',
+        exclusionBbox: [113.935, 22.485, 113.96, 22.51],
+        method: 'union-district-land-geometries-then-difference-exclusion-bbox',
+      },
+      resourceType: plan.type,
+      sourceVersion: plan.sourceVersion,
+      syntheticDivisionId: area.divisionId,
+    },
+    mode: 'automatic',
+    summary: `Synthesised the missing Overture Hong Kong ${area.code} area from its district geometries.`,
+  }))
 }
 
 function asOptionalString(value: unknown) {

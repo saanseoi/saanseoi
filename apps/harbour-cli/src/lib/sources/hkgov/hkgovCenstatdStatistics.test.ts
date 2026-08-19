@@ -186,17 +186,22 @@ describe('C&SD native statistics archives', () => {
         sourceArchiveSha256: 'a'.repeat(64),
         sourceVersion: entry.sourceVersion,
       })
-      const divisionFile = await asyncBufferFromFile(divisionOutputFile)
-      const divisions = await parquetReadObjects({
-        compressors,
-        file: divisionFile,
-        metadata: await parquetMetadataAsync(divisionFile),
-      })
       expect(result.divisionCount).toBe(
+        entry.datasetCode.includes('housing-market') ? 173 : 0,
+      )
+      expect(result.areaCount).toBe(
         entry.datasetCode.includes('housing-market') ? 173 : 3,
       )
-      expect(divisions).toHaveLength(result.divisionCount)
-      expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+      if (result.divisionCount > 0) {
+        const divisionFile = await asyncBufferFromFile(divisionOutputFile)
+        const divisions = await parquetReadObjects({
+          compressors,
+          file: divisionFile,
+          metadata: await parquetMetadataAsync(divisionFile),
+        })
+        expect(divisions).toHaveLength(result.divisionCount)
+        expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+      }
     }
     expect(
       hkgovCenstatdStatisticDivisionId(
