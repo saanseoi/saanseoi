@@ -951,7 +951,8 @@ function createPublishReleaseArtefactsDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL
+      sourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'primary'
     );
 
     CREATE TABLE apiReleaseSetSnapshots (
@@ -2982,6 +2983,103 @@ describe('publishReleaseArtefacts', () => {
         statusTo: 'published',
       },
     ])
+  })
+
+  test('does not treat a lookup dependency as a conflicting release-set source schema', async () => {
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-overture', 'overture'),
+        ('publisher-hkgov-censtatd', 'hkgov-censtatd');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division'),
+        ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-1', 'api-divisions-v0.1');
+
+      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-overture', 'ss-hk-division-2025-09-24.0', 'draft', null, null, null, 1760000000000),
+        ('snapshot-censtatd', 'ss-hk-division-area-hkgov-censtatd-2016', 'draft', null, null, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, regionCode, domainCode, cohortKey, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-1',
+        'api-version-1',
+        'hk',
+        'overture',
+        '2025-09-24.0',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO releases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      ) VALUES
+        ('release-overture-2025', '2025-09-24.0', '1.12.0', 'published', null, null, null, 1760000000000),
+        ('release-overture-2026', '2026-07-22.0', '1.18.0', 'published', null, null, null, 1760000000000),
+        ('release-censtatd', '2016', '1.0', 'staged', null, null, null, 1760000000000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('snapshot-overture', 'dataset-overture-division', 'release-overture-2025', 'primary'),
+        ('snapshot-censtatd', 'dataset-hkgov-censtatd-district', 'release-censtatd', 'primary'),
+        ('snapshot-censtatd', 'dataset-overture-division', 'release-overture-2026', 'lookup');
+
+      INSERT INTO apiReleaseSetSnapshots (
+        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
+      ) VALUES (
+        'release-set-1',
+        'snapshot-overture',
+        'overture',
+        'primary',
+        1,
+        'exact_ref',
+        null,
+        1760000000000
+      );
+    `)
+
+    await expect(
+      publishReleaseArtefacts(db, {
+        carriedSnapshots: [],
+        currentRelease: null,
+        currentReleaseIsCorrected: false,
+        dataset: {
+          cohortKey: '2016',
+          datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+          datasetId: 'dataset-hkgov-censtatd-district',
+          releaseCode: 'release-censtatd',
+          releaseId: 'release-censtatd',
+          source: 'hkgov-censtatd',
+          sourceVersion: '2016',
+        },
+        deferApiReleaseSet: true,
+        publishedAt: '2026-08-20T00:00:00.000Z',
+        releaseSetId: 'release-set-1',
+        snapshotId: 'snapshot-censtatd',
+        type: 'divisionArea',
+        updateDatasetRelease: false,
+      }),
+    ).resolves.toBeNull()
+
+    expect(
+      sqlite
+        .query(
+          `SELECT role FROM snapshotSources
+           WHERE snapshotId = ? AND sourceReleaseId = ?`,
+        )
+        .get('snapshot-censtatd', 'release-overture-2026'),
+    ).toEqual({ role: 'lookup' })
+
+    sqlite.close()
   })
 
   test('fails before publishing when a supported api family has no compatible bundled fixture', async () => {

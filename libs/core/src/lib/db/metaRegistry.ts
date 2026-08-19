@@ -4250,7 +4250,15 @@ export async function publishReleaseArtefacts(
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
-    .where(inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds))
+    .where(
+      and(
+        inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds),
+        // Lookup dependencies identify the source used to resolve a snapshot,
+        // rather than an API release-set input. Their schema must not override
+        // the primary source selected for the same dataset in this release set.
+        ne(metaSnapshotSources.role, 'lookup'),
+      ),
+    )
     .all()
   const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
   const sourceReleaseSnapshotIds = [
