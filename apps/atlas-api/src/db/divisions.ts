@@ -55,11 +55,13 @@ export type DivisionRecord = {
 type DivisionLookup = {
   divisionId: string
   snapshotId: string
+  snapshotIds?: string[]
   localeSelection: DivisionLocaleSelection
 }
 
 type DivisionListLookup = {
   snapshotId: string
+  snapshotIds?: string[]
   limit?: number
   offset?: number
   level?: number
@@ -70,6 +72,7 @@ type DivisionListLookup = {
 
 type DivisionIdsLookup = {
   snapshotId: string
+  snapshotIds?: string[]
   divisionIds: string[]
   localeSelection: DivisionLocaleSelection
 }
@@ -362,10 +365,13 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
 }
 
 function buildDivisionConditions(
-  lookup: Pick<DivisionListLookup, 'snapshotId' | 'level' | 'type' | 'parentId'>,
+  lookup: Pick<
+    DivisionListLookup,
+    'snapshotId' | 'snapshotIds' | 'level' | 'type' | 'parentId'
+  >,
 ) {
   return [
-    eq(divisions.snapshotId, lookup.snapshotId),
+    inArray(divisions.snapshotId, lookup.snapshotIds ?? [lookup.snapshotId]),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.type ? eq(divisions.type, lookup.type) : undefined,
     lookup.parentId
@@ -381,6 +387,7 @@ export async function getDivisionRecordCurrent(
 ): Promise<DivisionRecord | null> {
   const records = await listDivisionRecordsCurrentByIds(db, {
     snapshotId: lookup.snapshotId,
+    snapshotIds: lookup.snapshotIds,
     divisionIds: [lookup.divisionId],
     localeSelection: lookup.localeSelection,
   })
@@ -395,6 +402,7 @@ export async function listDivisionRecordsCurrent(
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
   const pagedDivisions = db
     .select({
+      snapshotId: divisions.snapshotId,
       id: divisions.id,
     })
     .from(divisions)
@@ -426,7 +434,7 @@ export async function listDivisionRecordsCurrent(
     .innerJoin(
       divisions,
       and(
-        eq(divisions.snapshotId, lookup.snapshotId),
+        eq(divisions.snapshotId, pagedDivisions.snapshotId),
         eq(divisions.id, pagedDivisions.id),
       ),
     )
@@ -462,9 +470,12 @@ export async function listDivisionRecordsCurrentByIds(
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
   const uniqueIds = [...new Set(lookup.divisionIds)]
-  // D1 permits at most 100 bound variables. One is the snapshot id.
-  const chunks = Array.from({ length: Math.ceil(uniqueIds.length / 99) }, (_, index) =>
-    uniqueIds.slice(index * 99, (index + 1) * 99),
+  // D1 permits at most 100 bound variables. Reserve one for every selected
+  // division snapshot as well as the requested canonical IDs.
+  const maxDivisionIds = Math.max(1, 100 - (lookup.snapshotIds?.length ?? 1))
+  const chunks = Array.from(
+    { length: Math.ceil(uniqueIds.length / maxDivisionIds) },
+    (_, index) => uniqueIds.slice(index * maxDivisionIds, (index + 1) * maxDivisionIds),
   )
   const rows = (
     await Promise.all(
@@ -490,7 +501,7 @@ export async function listDivisionRecordsCurrentByIds(
           .from(divisions)
           .where(
             and(
-              eq(divisions.snapshotId, lookup.snapshotId),
+              inArray(divisions.snapshotId, lookup.snapshotIds ?? [lookup.snapshotId]),
               inArray(divisions.id, divisionIds),
             ),
           )

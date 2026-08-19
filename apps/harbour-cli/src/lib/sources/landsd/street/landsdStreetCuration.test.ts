@@ -77,6 +77,56 @@ test('includes Gazette descriptions and exact English baseline candidates in rev
   ])
 })
 
+test('requires a reviewed affected street before a deletion can be materialised', () => {
+  const notice = {
+    governmentNoticeType: 'deletion',
+    governmentNotices: {
+      en: { url: 'https://example.com/en.pdf' },
+      zhHant: { url: 'https://example.com/zh.pdf' },
+    },
+    id: 'notice-deletion',
+    names: { en: 'Tak Wo Street', zhHant: '德和街' },
+    noticeIdentity: 'gn427',
+    publicationDate: '2016-01-22',
+  } as PairedLandsdStreetNotice
+  const baselineCandidate = {
+    districtCodes: ['kt'],
+    names: { en: 'TAK WO STREET', zhHant: '德和街' },
+    recordKey: 'baseline-tak-wo',
+    streetId: '018f0b41-1a00-7000-8000-000000000001',
+  }
+
+  const unresolved = resolveLandsdStreetCuration({
+    baselineCandidates: [baselineCandidate],
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map(),
+  })
+  expect(unresolved.unresolved).toHaveLength(1)
+
+  const resolved = resolveLandsdStreetCuration({
+    baselineCandidates: [baselineCandidate],
+    manifest: {
+      schemaVersion: 2,
+      decisions: [
+        {
+          affectedStreetId: baselineCandidate.streetId,
+          disposition: 'apply',
+          sourceRecordId: notice.id,
+        },
+      ],
+    },
+    notices: [notice],
+    parsedEntries: new Map(),
+  })
+  expect(resolved.unresolved).toEqual([])
+  expect(resolved.applied.get(notice.id)).toMatchObject({
+    affectedStreetId: baselineCandidate.streetId,
+    disposition: 'apply',
+    method: 'manual',
+  })
+})
+
 test('automatically applies a parseable Chinese-name-and-description corrigendum', () => {
   const notice = {
     governmentNoticeType: 'corrigendum',

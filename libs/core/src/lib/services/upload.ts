@@ -1,6 +1,6 @@
 import {
   getDatasetById,
-  getLatestDatasetForRegionSourceType,
+  getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
   resetFailedDataset,
   upsertIngestRunStatus,
@@ -534,7 +534,9 @@ function ensureChronologicalUpload(
   latestDataset: DatasetRecord | null,
   sourceVersion: string,
   releaseCode: string,
+  allowHistoricalCohort = false,
 ) {
+  if (allowHistoricalCohort) return
   if (!latestDataset) {
     return
   }
@@ -550,8 +552,8 @@ function ensureChronologicalUpload(
     throw new Error(
       [
         `Release ${releaseCode} is not uploadable.\n\n`,
-        `Latest registered release for this region/type is ${latestDataset.releaseCode}.\n`,
-        'Harbour currently only accepts strictly newer source versions per region/source/type.\n',
+        `Latest registered release for this dataset/type is ${latestDataset.releaseCode}.\n`,
+        'Harbour currently only accepts strictly newer source versions per dataset/resource type.\n',
         'Corrected releases and backfills must sort after the currently registered sourceVersion.\n',
       ].join(' '),
     )
@@ -826,7 +828,7 @@ export async function planUpload(
   })
 
   const {
-    plan: { releaseCode, regionCode, source, sourceVersion, type },
+    plan: { datasetCode, releaseCode, regionCode, source, sourceVersion, type },
   } = preparedUpload
   const existingDataset = await getDatasetById(db, releaseCode)
 
@@ -834,15 +836,21 @@ export async function planUpload(
     assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
   }
 
-  const { latestDataset } = await getLatestDatasetForRegionSourceType(
+  const { latestDataset } = await getLatestDatasetForRegionSourceDatasetType(
     db,
     regionCode,
     source,
+    datasetCode,
     type,
   )
 
   await ensureSourcePrerequisites(db, preparedUpload.plan)
-  ensureChronologicalUpload(latestDataset, sourceVersion, releaseCode)
+  ensureChronologicalUpload(
+    latestDataset,
+    sourceVersion,
+    releaseCode,
+    options.allowHistoricalCohort,
+  )
   await ensureSchemaCompatible(
     latestDataset,
     preparedUpload.plan,
@@ -854,7 +862,9 @@ export async function planUpload(
     ...preparedUpload,
     plan: {
       ...preparedUpload.plan,
-      supersedesDatasetId: latestDataset?.releaseCode ?? null,
+      supersedesDatasetId: options.allowHistoricalCohort
+        ? null
+        : (latestDataset?.releaseCode ?? null),
     },
   }
 }

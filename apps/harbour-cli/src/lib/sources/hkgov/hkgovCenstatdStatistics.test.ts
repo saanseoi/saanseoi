@@ -9,6 +9,13 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { unzipSync } from 'fflate'
 
 import {
+  overtureHongKongAreaDivisionId,
+  overtureHongKongAreas,
+} from '@repo/core/pipeline/services/overtureHongKongAreas'
+
+import {
+  hkgovCenstatdStatisticDivisionId,
+  prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
   readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
@@ -27,21 +34,21 @@ const CASES: Array<{
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1728978338390_76872/2026-Q2/source.zip',
     datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
     rowCount: 3495,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695182015782_79001/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
     rowCount: 540,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695181913136_27614/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
     rowCount: 13,
     sourceVersion: '2021',
   },
@@ -51,7 +58,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
     rowCount: 3,
-    sourceVersion: '2021',
+    sourceVersion: '2023-H2',
   },
   {
     archive:
@@ -59,7 +66,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
     rowCount: 18,
-    sourceVersion: '2021',
+    sourceVersion: '2023-H2',
   },
   {
     archive:
@@ -133,7 +140,11 @@ describe('C&SD native statistics archives', () => {
       expect(rows).toHaveLength(entry.rowCount)
       expect(rows[0]).toMatchObject({
         dataset_code: entry.datasetCode,
-        reference_year: entry.sourceVersion,
+        reference_year:
+          entry.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+            ? '2016'
+            : entry.sourceVersion,
       })
       expect(JSON.parse(String(rows[0]?.sources))).toEqual([
         {
@@ -158,6 +169,53 @@ describe('C&SD native statistics archives', () => {
         sourceVersion: '2021',
       }),
     ).rejects.toThrow('CSDI archive is missing NewTown_21C.gml.')
+  })
+
+  test('fans native Area/type and HMA polygons into reviewed division contracts', async () => {
+    for (const entry of [CASES[0]!, CASES[3]!]) {
+      const dir = await unpack(entry.archive)
+      const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
+      const inputGml = Object.fromEntries(
+        Object.entries(archive)
+          .filter(([name]) => name.endsWith('.gml'))
+          .map(([name, content]) => [name, new TextDecoder().decode(content)]),
+      )
+      const divisionOutputFile = join(dir, 'division.parquet')
+      const areaOutputFile = join(dir, 'division-area.parquet')
+      const result = await prepareHkgovCenstatdStatisticGeographyUploads({
+        areaOutputFile,
+        datasetCode: entry.datasetCode,
+        divisionOutputFile,
+        inputGml,
+        sourceArchiveKey: 'by-source/test/source.zip',
+        sourceArchiveSha256: 'a'.repeat(64),
+        sourceVersion: entry.sourceVersion,
+      })
+      expect(result.divisionCount).toBe(
+        entry.datasetCode.includes('housing-market') ? 173 : 0,
+      )
+      expect(result.areaCount).toBe(
+        entry.datasetCode.includes('housing-market') ? 173 : 3,
+      )
+      if (result.divisionCount > 0) {
+        const divisionFile = await asyncBufferFromFile(divisionOutputFile)
+        const divisions = await parquetReadObjects({
+          compressors,
+          file: divisionFile,
+          metadata: await parquetMetadataAsync(divisionFile),
+        })
+        expect(divisions).toHaveLength(result.divisionCount)
+        expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+      }
+    }
+    for (const area of overtureHongKongAreas) {
+      expect(
+        hkgovCenstatdStatisticDivisionId(
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+          area.censtatdCode,
+        ),
+      ).toBe(overtureHongKongAreaDivisionId(area.code))
+    }
   })
 })
 

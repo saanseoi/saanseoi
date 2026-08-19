@@ -82,6 +82,18 @@ describe('registry code construction', () => {
         transform: 'simplified',
       }),
     ).toBe('hkgov-censtatd:2021:simplified')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2021',
+        sourceVariant: 'census',
+      }),
+    ).toBe('hkgov-censtatd:2021')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2021',
+        sourceVariant: 'hkgov-censtatd-hma',
+      }),
+    ).toBe('hkgov-censtatd-hma')
   })
 
   test('rejects non-canonical owned code segments', () => {

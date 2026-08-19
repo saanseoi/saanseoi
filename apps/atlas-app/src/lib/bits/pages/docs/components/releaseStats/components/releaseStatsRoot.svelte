@@ -6,6 +6,7 @@ import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
   ReleaseStatsDistrictName,
+  ReleaseStatsMeasure,
 } from '../releaseStats.types'
 import type { ReleaseContentHeading } from '../../releaseContentOutline'
 import OutlineTracker from '../../releaseContentOutline/releaseContentOutlineTracker.svelte'
@@ -17,6 +18,7 @@ type Props = {
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
   districtNames?: ReleaseStatsDistrictName[]
+  measures?: ReleaseStatsMeasure[]
   locale: 'en' | 'zh-Hant' | 'zh-Hans'
   presentation: ReleaseStatsCopy
   headings?: ReleaseContentHeading[]
@@ -26,6 +28,7 @@ let {
   stats = [],
   districtAreas = [],
   districtNames,
+  measures = [],
   locale,
   presentation: copy,
   headings = $bindable<ReleaseContentHeading[]>([]),
@@ -36,6 +39,7 @@ let model = $derived(
     stats,
     districtAreas,
     districtNames: districtNames ?? [],
+    measures,
     locale,
     copy,
   }),

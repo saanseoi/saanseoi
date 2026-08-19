@@ -36,10 +36,12 @@ export type AddressApiReleaseSetStatsInput = {
   address2dI18nCount: number
   address3dCount: number
   address3dI18nCount: number
-  divisionLinkedCount: number
-  streetLinkedCount: number
-  missingDivisionCount: number
+  areaLinkedCount?: number
+  byDistrict?: Map<string, number> | Record<string, number>
+  componentCounts?: Record<string, number>
+  districtLinkedCount?: number
   missingStreetCount: number
+  streetLinkedCount?: number
   localeStats?: LocaleStatsAccumulator
   churn?: {
     address2d?: ChurnCounts
@@ -591,17 +593,6 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'records',
-      'count',
-      'count',
-      input.address3dCount,
-      createdAt,
-      {
-        groupBy: 'table',
-        groupValue: 'address3d',
-      },
-    ),
-    buildApiReleaseSetStatsRow(
       'localised_records',
       'count',
       'count',
@@ -610,17 +601,6 @@ export function buildAddressApiReleaseSetStatsRows(
       {
         groupBy: 'table',
         groupValue: 'address2dI18n',
-      },
-    ),
-    buildApiReleaseSetStatsRow(
-      'localised_records',
-      'count',
-      'count',
-      input.address3dI18nCount,
-      createdAt,
-      {
-        groupBy: 'table',
-        groupValue: 'address3dI18n',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -646,27 +626,6 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'division_linked_count',
-      'quality',
-      'count',
-      input.divisionLinkedCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
-      'street_linked_count',
-      'quality',
-      'count',
-      input.streetLinkedCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
-      'missing_division_count',
-      'quality',
-      'count',
-      input.missingDivisionCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
       'missing_street_count',
       'quality',
       'count',
@@ -674,6 +633,29 @@ export function buildAddressApiReleaseSetStatsRows(
       createdAt,
     ),
   ]
+
+  rows.push(
+    ...buildAddressApiReleaseSetComponentStatsRows(
+      input.componentCounts,
+      input.address2dCount,
+      createdAt,
+    ),
+    ...buildApiReleaseSetDistrictDistributionStatsRows(input.byDistrict ?? {}),
+  )
+
+  for (const [level, value] of [
+    ['area', input.areaLinkedCount],
+    ['district', input.districtLinkedCount],
+    ['street', input.streetLinkedCount],
+  ] as const) {
+    if (value !== undefined)
+      rows.push(
+        buildApiReleaseSetStatsRow('records', 'linkage', 'count', value, createdAt, {
+          groupBy: 'divisionLevel',
+          groupValue: level,
+        }),
+      )
+  }
 
   if (input.localeStats) {
     rows.push(...buildApiReleaseSetLocaleStatsRows(input.localeStats, createdAt))
@@ -720,6 +702,27 @@ export function buildAddressApiReleaseSetStatsRows(
   }
 
   return rows
+}
+
+function buildAddressApiReleaseSetComponentStatsRows(
+  componentCounts: Record<string, number> | undefined,
+  total: number,
+  createdAt: string,
+) {
+  if (!componentCounts) return []
+
+  return Object.entries(componentCounts)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([component, count]) =>
+      buildApiReleaseSetStatsRow(
+        'component_coverage',
+        'completeness',
+        'percentage',
+        percentage(count, total),
+        createdAt,
+        { groupBy: 'addressComponent', groupValue: component },
+      ),
+    )
 }
 
 export function buildDivisionApiReleaseSetStatsRows(

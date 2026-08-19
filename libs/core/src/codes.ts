@@ -150,13 +150,19 @@ export function datasetVariantForSource(
     return 'default'
   }
 
+  const isCenstatdProductVariant =
+    source === 'hkgov-censtatd' && options.sourceVariant?.startsWith('hkgov-censtatd-')
+  if (
+    options.sourceVariant &&
+    options.sourceVariant !== 'default' &&
+    (source !== 'hkgov-censtatd' || isCenstatdProductVariant)
+  ) {
+    return options.sourceVariant
+  }
+
   if (source === 'hkgov-censtatd' && options.cohortKey) {
     const transform = options.transform
     return [source, options.cohortKey, transform].filter(Boolean).join(':')
-  }
-
-  if (options.sourceVariant && options.sourceVariant !== 'default') {
-    return options.sourceVariant
   }
 
   // The Planning Department owns both planning datasets under one publisher

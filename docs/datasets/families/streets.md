@@ -5,6 +5,12 @@ The LandsD gazetted register is the baseline materialisation. Each later LandsD 
 is an append-only source event that may create a street, change its description, rename
 all or part of it, delete it, or make no materialised change.
 
+The baseline's historic source-version anchor is `2016-01-01.0`. It is intentionally
+earlier than the 22 January 2016 LandsD notice-feed boundary and identifies the initial
+present-state reconciliation input; it is not the publication date of the current
+gazetted-register PDF. A later release version such as `2026-08-14.0` identifies the
+latest notice included in an assembled payload, not a new baseline.
+
 The street backfill uses three non-overlapping inputs: the LandsD gazetted-list PDF;
 LandsD bilingual notice PDFs from 22 January 2016 onward; and official e-Gazette notice
 PDFs from 19 May 2000 through 21 January 2016. Each input is staged separately, then the

@@ -100,10 +100,12 @@ describe('stats rows', () => {
       address2dI18nCount: 18,
       address3dCount: 4,
       address3dI18nCount: 6,
-      divisionLinkedCount: 9,
-      missingDivisionCount: 1,
+      byDistrict: { 'district-id': 10 },
+      componentCounts: { building_name: 4, street_name: 8 },
+      districtLinkedCount: 10,
+      areaLinkedCount: 10,
       missingStreetCount: 3,
-      streetLinkedCount: 7,
+      streetLinkedCount: 0,
       churn: {
         address2d: churnCounts,
         totals: churnCounts,
@@ -122,10 +124,47 @@ describe('stats rows', () => {
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
+        dimension: 'component_coverage',
+        groupBy: 'addressComponent',
+        groupValue: 'street_name',
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        value: 80,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'district',
+        groupValue: 'district-id',
+        metric: 'distribution',
+        value: 10,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'divisionLevel',
+        groupValue: 'district',
+        metric: 'linkage',
+        value: 10,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
         dimension: 'detail_records',
         groupBy: 'table',
         groupValue: 'address3d',
         value: 4,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'divisionLevel',
+        groupValue: 'street',
+        metric: 'linkage',
+        value: 0,
       }),
     )
     expect(rows).toContainEqual(

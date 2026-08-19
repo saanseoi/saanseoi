@@ -12,9 +12,14 @@ import ReleaseNavVersionControls from './releaseNavVersionControls.svelte'
 type Props = {
   actions?: ReleaseNavAction[]
   activeTab: string
+  currentVersionCohortKey?: string | null
   currentVersionCode: string
+  navigationVersions?: ReleaseNavVersion[]
+  onToggleRevisions?: () => void
   onSelectTab: (tab: string) => void
   onVersionPreload?: ReleaseNavVersionPreload
+  showAllRevisions?: boolean
+  showRevisionToggle?: boolean
   tabs: ReleaseNavTab[]
   versionTitle: string
   versions: ReleaseNavVersion[]
@@ -22,12 +27,17 @@ type Props = {
 let {
   actions,
   activeTab,
+  currentVersionCohortKey,
   currentVersionCode,
+  versions,
+  navigationVersions = versions,
+  onToggleRevisions,
   onSelectTab,
   onVersionPreload,
+  showAllRevisions = false,
+  showRevisionToggle = false,
   tabs,
   versionTitle,
-  versions,
 }: Props = $props()
 </script>
 
@@ -40,11 +50,29 @@ let {
     <ReleaseNavActions {actions} />
   </div>
   <div class="hidden h-10 items-center justify-between xl:flex">
-    <h2
-      class="font-body text-label-md font-semibold uppercase tracking-[0.14em] text-primary"
-    >
-      {versionTitle}
-    </h2>
-    <ReleaseNavVersionControls {currentVersionCode} {onVersionPreload} {versions} />
+    <div class="flex items-center gap-2">
+      <h2
+        class="font-body text-label-md font-semibold uppercase tracking-[0.14em] text-primary"
+      >
+        {versionTitle}
+      </h2>
+      {#if showRevisionToggle}
+        <button
+          class={`inline-flex h-6 items-center rounded-default border px-1.5 font-mono text-label-sm font-semibold transition ${showAllRevisions ? 'border-data-primary bg-data-secondary-container text-data-primary' : 'border-data-outline-variant/60 bg-data-surface-container-lowest text-foreground-alt hover:border-data-primary hover:text-data-primary'}`}
+          type="button"
+          aria-pressed={showAllRevisions}
+          title={showAllRevisions ? 'Show latest revisions only' : 'Show all revisions'}
+          onclick={onToggleRevisions}
+        >
+          REV
+        </button>
+      {/if}
+    </div>
+    <ReleaseNavVersionControls
+      currentCohortKey={currentVersionCohortKey}
+      {currentVersionCode}
+      {onVersionPreload}
+      versions={navigationVersions}
+    />
   </div>
 </div>

@@ -132,7 +132,7 @@ export type DatasetRelease = {
     releaseSlot: string
     sourceObjectHash: string
   }>
-  identicalArchiveSlots?: Array<{
+  verifiedIdenticalArchiveSlots?: Array<{
     contentHash: string
     releaseSlot: string
     sourceObjectHash: string
@@ -203,12 +203,20 @@ export type UpdateUpload = {
   options: Record<string, string | boolean>
 }
 
+export type DatasetIngestProgress = {
+  current?: number
+  message: string
+  total?: number
+  waitingForInput?: boolean
+}
+
 export type DatasetUpdate = {
   archive?: CsdiSourceArchive
   /** Runs only after a native CSDI archive has been mirrored successfully. */
   postArchiveIngest?: (
     target: import('../cli/options.ts').UploadTarget,
     prepared: PreparedSourceArchive,
+    skipConfirm: boolean,
   ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase
@@ -227,7 +235,14 @@ export type DatasetUpdate = {
   downloadUrl?: string
   downloadPath?: string
   download?: () => Promise<string>
-  ingest?: (target: import('../cli/options.ts').UploadTarget) => Promise<void>
+  ingest?: (
+    target: import('../cli/options.ts').UploadTarget,
+    options?: {
+      forceUpload?: boolean
+      onProgress?: (progress: DatasetIngestProgress) => void
+      skipPrompts?: boolean
+    },
+  ) => Promise<void>
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
   /** Persists a proven byte-identical publisher archive after it is downloaded. */
@@ -926,7 +941,7 @@ async function lookupLandsdStreet({
       checkedAt,
       dataset,
       deferStateUntilProcessed: true,
-      ingest: async target => {
+      ingest: async (target, options = {}) => {
         const result = await ingestLandsdStreetSource({
           // Ingestion always downloads the baseline and uses its content hash
           // to avoid duplicating an unchanged baseline source version.
@@ -939,11 +954,19 @@ async function lookupLandsdStreet({
           ),
           sourceUrl,
           target,
-          promptForCuration: true,
+          promptForCuration: options.skipPrompts !== true,
+          onProgress: options.onProgress,
         })
         await publishLandsdStreetReleasePayloads(target, result.releases, {
           invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
+          onProgress: ({ current, sourceVersion, total }) =>
+            options.onProgress?.({
+              current,
+              message: `Publishing street release ${current + 1}/${total}: v${sourceVersion}`,
+              total,
+            }),
           releaseNotesUrl: sourceUrl,
+          forceUpload: options.forceUpload === true,
         })
       },
       message: `${newNotices.length} paired LandsD notice row(s) through ${latestDate}; evidence and a single active-only street snapshot will be published together.`,
@@ -1184,12 +1207,18 @@ async function runOverturist(version: string, theme: string) {
   try {
     const child = Bun.spawn(buildOverturistCommand(version, theme), {
       cwd: stagingRoot,
-      stdout: 'inherit',
-      stderr: 'inherit',
+      stdout: 'pipe',
+      stderr: 'pipe',
     })
-    const exitCode = await child.exited
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ])
     if (exitCode !== 0) {
-      throw new Error(`Overturist failed with exit code ${exitCode}.`)
+      throw new Error(
+        `Overturist failed with exit code ${exitCode}: ${formatChildProcessOutput(stderr || stdout)}`,
+      )
     }
 
     await cp(stagedRelease, targetRelease, { recursive: true, force: true })
@@ -1197,6 +1226,11 @@ async function runOverturist(version: string, theme: string) {
   } finally {
     await rm(stagingRoot, { recursive: true, force: true })
   }
+}
+
+function formatChildProcessOutput(output: string) {
+  const singleLine = output.replace(/\s+/g, ' ').trim()
+  return singleLine ? singleLine.slice(0, 500) : 'no diagnostic output'
 }
 
 async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
@@ -1257,14 +1291,16 @@ function selectCsdiBootstrapUpdates(
       compareVersions(left[0]?.version ?? '', right[0]?.version ?? ''),
     )
     .map(updates => {
-      const representative =
-        dataset.releasePolicy?.series === 'rolling'
-          ? (updates
-              .toSorted((left, right) =>
-                compareVersions(left.version ?? '', right.version ?? ''),
-              )
-              .at(-1) as DatasetUpdate)
-          : (updates[0] as DatasetUpdate)
+      // A target that has no release for this cohort must be rebuilt from its
+      // newest available publisher archive. Static cohorts still receive
+      // revised archive slots: selecting their earliest slot can replay an
+      // incomplete historical extract or an archive the publisher no longer
+      // serves.
+      const representative = updates
+        .toSorted((left, right) =>
+          compareVersions(left.version ?? '', right.version ?? ''),
+        )
+        .at(-1) as DatasetUpdate
 
       return {
         ...representative,
@@ -1346,7 +1382,7 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         dataset,
         downloadPath: sourcePath,
         downloadUrl: source.sourceUrl,
-        isKnownIdenticalArchive: isKnownIdenticalCsdiArchive(
+        isKnownIdenticalArchive: isVerifiedIdenticalCsdiArchive(
           release,
           source.releaseSlot,
           versionKey,
@@ -1381,12 +1417,18 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
-        postArchiveIngest: async (target, prepared) =>
-          runCsdiArchiveIngestPlaceholder(dataset, release, target, prepared),
+        postArchiveIngest: async (target, prepared, skipConfirm) =>
+          runCsdiArchiveIngestPlaceholder(
+            dataset,
+            release,
+            target,
+            prepared,
+            skipConfirm,
+          ),
         ...(release
           ? {
               recordIdenticalArchive: async (contentHash: string) => {
-                await recordIdenticalCsdiArchiveSlot({
+                await recordVerifiedIdenticalCsdiArchiveSlot({
                   contentHash,
                   datasetCode: dataset.code,
                   release,
@@ -1406,6 +1448,7 @@ async function runCsdiArchiveIngestPlaceholder(
   release: DatasetRelease | undefined,
   target: import('../cli/options.ts').UploadTarget,
   prepared: PreparedSourceArchive,
+  skipConfirm: boolean,
 ): Promise<'ingested' | 'not-implemented'> {
   const plandKind =
     dataset.code === 'ds-hk-hkgov-pland-division-pu'
@@ -1470,6 +1513,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
@@ -1495,6 +1539,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
@@ -1639,6 +1684,7 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
   sourceArchiveSha256: string
   sourceVersion: '2022' | '2024'
   target: import('../cli/options.ts').UploadTarget
+  yes: boolean
 }) {
   return [
     process.execPath,
@@ -1658,6 +1704,7 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.yes ? ['--yes'] : []),
   ]
 }
 
@@ -1691,9 +1738,9 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
 }
 
 const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021',
-  'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+  'ds-hk-hkgov-censtatd-division-statistic-new-towns',
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
@@ -1812,6 +1859,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
   sourceArchiveSha256: string
   sourceVersion: string
   target: import('../cli/options.ts').UploadTarget
+  yes: boolean
 }) {
   return [
     process.execPath,
@@ -1833,6 +1881,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.yes ? ['--yes'] : []),
   ]
 }
 
@@ -1916,19 +1965,19 @@ function findCsdiDatasetRelease(
   )
 }
 
-function isKnownIdenticalCsdiArchive(
+function isVerifiedIdenticalCsdiArchive(
   release: DatasetRelease | undefined,
   releaseSlot: string,
   sourceObjectHash: string,
 ) {
-  return release?.identicalArchiveSlots?.some(
+  return release?.verifiedIdenticalArchiveSlots?.some(
     archive =>
       archive.releaseSlot === releaseSlot &&
       `sha256:${archive.sourceObjectHash}` === sourceObjectHash,
   )
 }
 
-async function recordIdenticalCsdiArchiveSlot(input: {
+async function recordVerifiedIdenticalCsdiArchiveSlot(input: {
   contentHash: string
   datasetCode: string
   release: DatasetRelease
@@ -1943,7 +1992,7 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     return
   }
   if (
-    input.release.identicalArchiveSlots?.some(
+    input.release.verifiedIdenticalArchiveSlots?.some(
       slot =>
         slot.releaseSlot === input.releaseSlot &&
         slot.sourceObjectHash === input.sourceObjectHash,
@@ -1970,7 +2019,7 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     sourceObjectHash: input.sourceObjectHash,
   }
   if (
-    release.identicalArchiveSlots?.some(
+    release.verifiedIdenticalArchiveSlots?.some(
       candidate =>
         candidate.releaseSlot === slot.releaseSlot &&
         candidate.sourceObjectHash === slot.sourceObjectHash,
@@ -1979,12 +2028,13 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     return
   }
 
-  release.identicalArchiveSlots = [...(release.identicalArchiveSlots ?? []), slot].sort(
-    (left, right) => left.releaseSlot.localeCompare(right.releaseSlot),
-  )
+  release.verifiedIdenticalArchiveSlots = [
+    ...(release.verifiedIdenticalArchiveSlots ?? []),
+    slot,
+  ].sort((left, right) => left.releaseSlot.localeCompare(right.releaseSlot))
   await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8')
-  input.release.identicalArchiveSlots = [
-    ...(input.release.identicalArchiveSlots ?? []),
+  input.release.verifiedIdenticalArchiveSlots = [
+    ...(input.release.verifiedIdenticalArchiveSlots ?? []),
     slot,
   ]
 }
@@ -2045,9 +2095,27 @@ async function downloadCsdiArchive(url: string, targetPath: string) {
   const response = await fetch(url)
   if (!response.ok)
     throw new Error(`Download failed with HTTP ${response.status}: ${url}`)
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  assertCsdiArchiveDownload(bytes, response.headers.get('content-type'), url)
   await mkdir(dirname(targetPath), { recursive: true })
-  await writeFile(targetPath, new Uint8Array(await response.arrayBuffer()))
+  await writeFile(targetPath, bytes)
   return readContentDispositionFileName(response.headers.get('content-disposition'))
+}
+
+export function assertCsdiArchiveDownload(
+  bytes: Uint8Array,
+  contentType: string | null,
+  url: string,
+) {
+  const prefix = new TextDecoder().decode(bytes.subarray(0, 512)).trimStart()
+  const isHtml =
+    contentType?.toLowerCase().includes('text/html') ||
+    /^<!doctype\s+html\b|^<html\b/i.test(prefix)
+  if (isHtml) {
+    throw new Error(
+      `CSDI archive download returned an HTML failure page instead of the source file: ${url}`,
+    )
+  }
 }
 
 function readContentDispositionFileName(value: string | null) {
@@ -2228,14 +2296,9 @@ function createDataGovHkUpdate({
     `${safeFilePart(version)}-ALS.zip`,
   )
   return {
-    ...(phase
-      ? {
-          deferStateUntilProcessed: true,
-          phase,
-          sourceKey: version,
-          targetSourceKey: version,
-        }
-      : {}),
+    sourceKey: version,
+    targetSourceKey: version,
+    ...(phase ? { deferStateUntilProcessed: true, phase } : {}),
     dataset,
     status: resolveDatasetStatus({
       dataset,
@@ -2252,10 +2315,14 @@ function createDataGovHkUpdate({
     releaseLastRevisedAt: timestamp,
     ...(ingest
       ? {
-          ingest: async (target: import('../cli/options.ts').UploadTarget) =>
+          ingest: async (
+            target: import('../cli/options.ts').UploadTarget,
+            options = {},
+          ) =>
             ingestDataGovHkAlsRelease({
               downloadPath,
               downloadUrl: downloadUrl.toString(),
+              skipPrompts: options.skipPrompts === true,
               target,
               timestamp,
               version,
@@ -2286,12 +2353,14 @@ function resolveDataGovArchiveVersions(timestamps: readonly string[]) {
 async function ingestDataGovHkAlsRelease({
   downloadPath,
   downloadUrl,
+  skipPrompts,
   target,
   timestamp,
   version,
 }: {
   downloadPath: string
   downloadUrl: string
+  skipPrompts: boolean
   target: import('../cli/options.ts').UploadTarget
   timestamp: string
   version: string
@@ -2309,11 +2378,13 @@ async function ingestDataGovHkAlsRelease({
     throw new Error(`Could not unpack ALS release ${timestamp}.`)
   }
   const dataops = Bun.spawn(
-    buildHkgovAlsIngestCommand({ sourceRoot, target, version }),
+    buildHkgovAlsIngestCommand({ sourceRoot, target, version, skipPrompts }),
     { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
   )
   if ((await dataops.exited) !== 0) {
-    throw new Error(`DPO ALS backfill failed for ${version}.`)
+    throw new Error(
+      `DPO ALS intake stopped for ${version}; resolve the release-specific instruction in the preceding output.`,
+    )
   }
 }
 
@@ -2321,6 +2392,7 @@ export function buildHkgovAlsIngestCommand(input: {
   sourceRoot: string
   target: import('../cli/options.ts').UploadTarget
   version: string
+  skipPrompts?: boolean
 }) {
   return [
     process.execPath,
@@ -2336,6 +2408,7 @@ export function buildHkgovAlsIngestCommand(input: {
     input.version,
     '--from-source-version',
     input.version,
+    ...(input.skipPrompts ? ['--yes'] : []),
   ]
 }
 

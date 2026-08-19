@@ -119,6 +119,8 @@ export type RegisterUploadOptions = {
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
   allowExistingDatasetStatuses?: ReleaseStatus[]
+  /** Allows an independent historical cohort to be registered after a newer cohort. */
+  allowHistoricalCohort?: boolean
 }
 
 export type PreparedUploadResult = {

@@ -13,18 +13,22 @@ import {
 import {
   and,
   createCurrentDb,
+  createHistoryDb,
   createMetaDb,
   currentSchema,
   desc,
   eq,
+  historySchema,
   inArray,
   metaApiReleaseSets,
   metaApiVersions,
   metaAssets,
-  metaDatasets,
+  metaDataShards,
   metaReleases,
+  metaSnapshotLineages,
+  metaSnapshotShardAssignments,
+  metaSnapshots,
   metaSourceReleases,
-  ingestRuns,
   metaApiComposition,
   metaApiCompositionMembers,
   stats,
@@ -241,6 +245,18 @@ function getCurrentDb() {
   return createCurrentDb(binding)
 }
 
+function getHistoryDb(bindingName: string) {
+  const env = getRequestEvent().platform?.env
+  const bindings = {
+    DB_HISTORY_HK_BEFORE: env?.DB_HISTORY_HK_BEFORE,
+    DB_HISTORY_HK_2025: env?.DB_HISTORY_HK_2025,
+    DB_HISTORY_HK_2026: env?.DB_HISTORY_HK_2026,
+  }
+  const binding = bindings[bindingName as keyof typeof bindings]
+  if (!binding) throw new Error(`History D1 binding "${bindingName}" not found.`)
+  return createHistoryDb(binding)
+}
+
 function isRegistryBootstrapError(error: unknown) {
   const seen = new Set<unknown>()
   let current = error
@@ -324,7 +340,6 @@ export const getSourceReleaseShellData = query(
       ...shell.timings,
       shell: performance.now() - startedAt,
     }
-    if (dev) console.info('[source-release-shell]', timings)
 
     const {
       timings: _timings,
@@ -398,12 +413,21 @@ export const getSourceReleaseContentData = query(
         .get(),
     ])
 
+    const measures = await getSourceReleaseMeasures({
+      datasetCode,
+      releaseId: version.id,
+    })
     const result = {
       version: archive
         ? { ...version, sourceArchiveAssetId: archive.assetId }
         : version,
       previousNotes,
-    } as { version: SourceVersion; previousNotes: string | null }
+      measures,
+    } as {
+      measures: Awaited<ReturnType<typeof getSourceReleaseMeasures>>
+      version: SourceVersion
+      previousNotes: string | null
+    }
 
     if (dev)
       console.info('[source-release-content]', {
@@ -428,26 +452,76 @@ const UNOFFICIAL_DISTRICT_IDS = new Set([
 ])
 
 /**
- * The district-coverage map uses the C&SD 2021 Census District Boundary's
- * simplified display geometry. Do not substitute HAD or source-precision
- * geometry here: the choropleth must remain a lightweight Census map.
+ * The district-coverage map prefers the C&SD 2021 Census District Boundary's
+ * simplified display geometry. Its immutable snapshot can live in a history
+ * shard, so resolve the published snapshot and read its assigned shard rather
+ * than substituting Overture geometry.
  */
 export const getDistrictCoverageMapData = query(
   districtMapLocaleSchema,
   async locale => {
     const { divisionAreas, divisionsI18n } = currentSchema
     const i18nLocale = locale.toLowerCase()
-    const rows = await getCurrentDb()
-      .select({
-        divisionId: divisionAreas.divisionId,
-        geometry: divisionAreas.geometry,
-        updatedAt: divisionAreas.updatedAt,
-        variant: divisionAreas.variant,
-      })
-      .from(divisionAreas)
-      .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
-      .orderBy(desc(divisionAreas.updatedAt))
-      .all()
+    const selectCurrentDistrictAreas = () =>
+      getCurrentDb()
+        .select({
+          divisionId: divisionAreas.divisionId,
+          geometry: divisionAreas.geometry,
+          updatedAt: divisionAreas.updatedAt,
+          variant: divisionAreas.variant,
+        })
+        .from(divisionAreas)
+        .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
+        .orderBy(desc(divisionAreas.updatedAt))
+        .all()
+    const currentRows = await selectCurrentDistrictAreas()
+    const snapshot =
+      currentRows.length > 0
+        ? null
+        : await getMetaDb()
+            .select({
+              bindingName: metaDataShards.bindingName,
+              snapshotId: metaSnapshots.id,
+            })
+            .from(metaSnapshots)
+            .innerJoin(
+              metaSnapshotLineages,
+              eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+            )
+            .innerJoin(
+              metaSnapshotShardAssignments,
+              eq(metaSnapshots.id, metaSnapshotShardAssignments.snapshotId),
+            )
+            .innerJoin(
+              metaDataShards,
+              eq(metaSnapshotShardAssignments.dataShardId, metaDataShards.id),
+            )
+            .where(
+              and(
+                eq(metaSnapshots.resourceType, 'divisionArea'),
+                eq(metaSnapshots.status, 'published'),
+                eq(metaSnapshotLineages.variant, DISTRICT_COVERAGE_MAP_VARIANT),
+              ),
+            )
+            .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+            .limit(1)
+            .get()
+    const rows =
+      currentRows.length > 0
+        ? currentRows
+        : snapshot
+          ? await getHistoryDb(snapshot.bindingName)
+              .select({
+                divisionId: historySchema.divisionAreas.divisionId,
+                geometry: historySchema.divisionAreas.geometry,
+                updatedAt: historySchema.divisionAreas.updatedAt,
+                variant: historySchema.divisionAreas.variant,
+              })
+              .from(historySchema.divisionAreas)
+              .where(eq(historySchema.divisionAreas.snapshotId, snapshot.snapshotId))
+              .orderBy(desc(historySchema.divisionAreas.updatedAt))
+              .all()
+          : []
 
     const latestByDistrict = new Map<string, (typeof rows)[number]>()
     for (const row of rows) {
@@ -576,7 +650,7 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
 
 async function loadDataReleasesPage(offset = 0) {
   const db = getMetaDb()
-  const [lifecycleRows, releases, sourceOnlyReleases] = await Promise.all([
+  const [lifecycleRows, releases] = await Promise.all([
     db
       .select({
         apiFamily: metaApiVersions.familyType,
@@ -620,36 +694,6 @@ async function loadDataReleasesPage(offset = 0) {
       )
       .limit(DATA_RELEASES_PAGE_SIZE + 1)
       .offset(offset)
-      .all(),
-    db
-      .select({
-        code: metaReleases.code,
-        cohortKey: metaReleases.cohortKey,
-        createdAt: metaReleases.createdAt,
-        datasetCode: metaDatasets.code,
-        id: metaReleases.id,
-        primaryRecordCount: sql<
-          number | null
-        >`cast(json_extract(${ingestRuns.stats}, '$.importedRows') as integer)`,
-        publishedAt: metaReleases.ingestedAt,
-      })
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-      .leftJoin(
-        ingestRuns,
-        and(
-          eq(ingestRuns.releaseId, metaReleases.id),
-          eq(ingestRuns.phase, 'processDataset'),
-          eq(ingestRuns.status, 'completed'),
-        ),
-      )
-      .where(
-        and(
-          eq(metaReleases.resourceType, 'divisionStatistic'),
-          eq(metaReleases.status, 'published'),
-        ),
-      )
-      .orderBy(desc(metaReleases.ingestedAt), desc(metaReleases.id))
       .all(),
   ])
   const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
@@ -725,50 +769,75 @@ async function loadDataReleasesPage(offset = 0) {
       status: release.status,
     }
   }) satisfies DataPageRelease[]
-  const sourceOnlyCohorts = new Set(
-    sourceOnlyReleases.flatMap(release =>
-      release.cohortKey ? [release.cohortKey] : [],
-    ),
-  )
-  const sourceOnlyDataReleases = sourceOnlyReleases.map(
-    release =>
-      ({
-        apiFamily: 'stats',
-        code: release.code,
-        cohortKey: release.cohortKey,
-        createdAt: release.createdAt,
-        displayCode: release.cohortKey ?? release.code,
-        displayStatus: 'current',
-        href: `/sources/${release.datasetCode}/${release.code}`,
-        id: release.id,
-        primaryRecordCount: release.primaryRecordCount,
-        publishedAt: release.publishedAt,
-        schemaVersion: 'sv-division-v1',
-        status: 'published',
-      }) satisfies DataPageRelease,
-  )
-  const mergedReleases = [
-    ...apiReleases.filter(
-      release =>
-        !(
-          release.apiFamily === 'stats' &&
-          release.status === 'draft' &&
-          sourceOnlyCohorts.has(release.cohortKey ?? '')
-        ),
-    ),
-    ...sourceOnlyDataReleases,
-  ].sort(
-    (left, right) =>
-      (right.publishedAt ?? right.createdAt).localeCompare(
-        left.publishedAt ?? left.createdAt,
-      ) || right.id.localeCompare(left.id),
-  )
-
   return {
-    releases: mergedReleases.slice(0, DATA_RELEASES_PAGE_SIZE),
-    hasMore: mergedReleases.length > DATA_RELEASES_PAGE_SIZE,
+    releases: apiReleases.slice(0, DATA_RELEASES_PAGE_SIZE),
+    hasMore: releases.length > DATA_RELEASES_PAGE_SIZE,
     nextOffset: offset + Math.min(releases.length, DATA_RELEASES_PAGE_SIZE),
   }
+}
+
+async function getSourceReleaseMeasures(input: {
+  datasetCode: string
+  releaseId: string
+}) {
+  const db = getCurrentDb()
+  const records = await db
+    .select({ values: currentSchema.statsRecords.values })
+    .from(currentSchema.statsRecords)
+    .where(eq(currentSchema.statsRecords.sourceReleaseId, input.releaseId))
+    .all()
+  if (!records.length) return []
+
+  const countsByMeasure = new Map<string, number>()
+  for (const record of records) {
+    for (const measureCode of Object.keys(record.values)) {
+      countsByMeasure.set(measureCode, (countsByMeasure.get(measureCode) ?? 0) + 1)
+    }
+  }
+  const rows = await db
+    .select({
+      definition: currentSchema.statsMeasuresI18n.description,
+      aggregation: currentSchema.statsMeasures.aggregation,
+      measureCode: currentSchema.statsMeasures.measureCode,
+      name: currentSchema.statsMeasuresI18n.name,
+      sourceField: currentSchema.statsMeasures.sourceField,
+      statisticKind: currentSchema.statsMeasures.statisticKind,
+      unitCode: currentSchema.statsMeasures.unitCode,
+      valueKind: currentSchema.statsMeasures.valueKind,
+    })
+    .from(currentSchema.statsMeasures)
+    .leftJoin(
+      currentSchema.statsMeasuresI18n,
+      and(
+        eq(
+          currentSchema.statsMeasuresI18n.datasetCode,
+          currentSchema.statsMeasures.datasetCode,
+        ),
+        eq(
+          currentSchema.statsMeasuresI18n.measureCode,
+          currentSchema.statsMeasures.measureCode,
+        ),
+        eq(currentSchema.statsMeasuresI18n.locale, 'en'),
+      ),
+    )
+    .where(
+      and(
+        eq(currentSchema.statsMeasures.datasetCode, input.datasetCode),
+        inArray(currentSchema.statsMeasures.measureCode, [...countsByMeasure.keys()]),
+      ),
+    )
+    .orderBy(currentSchema.statsMeasures.sourceField)
+    .all()
+  return rows.map(row => ({
+    definition: row.definition,
+    aggregation: row.aggregation,
+    name: row.name ?? row.sourceField,
+    observationCount: countsByMeasure.get(row.measureCode) ?? 0,
+    sourceField: row.sourceField,
+    statisticKind: row.statisticKind,
+    unitCode: row.unitCode,
+    valueKind: row.valueKind,
+  }))
 }
 
 async function loadDataPageApis(): Promise<DataPageApi[]> {

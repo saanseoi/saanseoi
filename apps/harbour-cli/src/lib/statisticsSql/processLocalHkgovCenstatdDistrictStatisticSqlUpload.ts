@@ -1,19 +1,28 @@
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
+import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
+import {
+  buildCenstatdGeographyLinkAuditActions,
+  buildCenstatdMeasureCurationAuditActions,
+  buildCenstatdNormalisationAuditActions,
+  buildCenstatdReleaseStats,
+  buildCenstatdStructuralChurnStats,
+  censtatdReleaseStatsProfileFor,
+} from '@repo/core/pipeline/services/censtatdReleaseStats'
+import { createHash as createNodeHash } from 'node:crypto'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import {
   buildHkgovCenstatdDistrictStatisticHistoryRecord,
-  createHkgovCenstatdDistrictResolution,
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
-import { metaSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
@@ -24,8 +33,23 @@ import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   buildStatisticSqlBatches,
   replayStatisticSqlBatches,
-  type StatisticSqlReplayProgress,
 } from './statisticSqlReplay.ts'
+import {
+  buildCanonicalStatsSqlBatches,
+  replayCanonicalStatsSqlBatches,
+} from './canonicalStatsSql.ts'
+import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
+import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
+import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
+import {
+  replayReleaseProcessingActionsMetaToRemote,
+  replayReleaseStatsMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
+import {
+  completeStatisticCache,
+  runStatisticProgressStep,
+} from './statisticProgress.ts'
 
 type Plan = {
   cohortKey: string
@@ -88,6 +112,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   plan: Plan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
+  options: { promptForCuration: boolean },
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
@@ -101,7 +126,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       plan.regionCode,
       plan.sourceVersion.slice(0, 4),
       {
-        cacheTableProfile: 'divisionStatistic',
+        cacheTableProfile: 'statistics',
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -112,9 +137,10 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     throw error
   }
   if (progress.hasActivePhase()) {
-    progress.complete(
-      `Prepared statistic cache in ${formatDuration(Date.now() - cacheStartedAt)}`,
-    )
+    completeStatisticCache(progress, {
+      durationMs: Date.now() - cacheStartedAt,
+      remote: target.remote,
+    })
   }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
@@ -123,25 +149,23 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         publishClient: createLocalStatisticPublishClient(metaDb),
       })
 
+  let processingStarted = false
   try {
-    const processingStepCount = target.remote ? 7 : 5
-    progress.beginPhase('Start district statistic processing', {
-      max: processingStepCount,
-    })
-    await client.stageRunning(
-      releaseId,
-      'processDataset',
-      { resourceType: plan.type, sourceRows: plan.rowCount },
-      releaseCode,
+    const resolutionBySourceDistrictCode = await runStatisticProgressStep(
+      progress,
+      { action: 'Prepare', count: 18, subject: 'canonical districts' },
+      () => resolveHkgovCenstatdDistrictBridge(metaDb, '2021'),
     )
-    progress.update(1, { label: 'Resolve canonical districts' })
-    const resolutionBySourceDistrictCode = await resolveCanonicalDistricts(metaDb)
-    progress.update(2, { label: 'Read 18 publisher statistic rows' })
-    const sourceRows = await readSourceRows(
-      preparedUpload.filePath,
-      releaseId,
-      releaseCode,
-      plan.sourceVersion,
+    const sourceRows = await runStatisticProgressStep(
+      progress,
+      { action: 'Prepare', count: plan.rowCount, subject: 'statistic rows' },
+      () =>
+        readSourceRows(
+          preparedUpload.filePath,
+          releaseId,
+          releaseCode,
+          plan.sourceVersion,
+        ),
     )
     if (sourceRows.length !== 18 || sourceRows.length !== plan.rowCount) {
       throw new Error(
@@ -149,85 +173,228 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       )
     }
     assertUniqueDistrictAssertions(sourceRows)
-    progress.update(3, { label: 'Normalise district statistics' })
-    const historyRows = await Promise.all(
-      sourceRows.map(row =>
-        normaliseHistoryRow(row, resolutionBySourceDistrictCode, releaseId),
-      ),
+    const historyRows = await runStatisticProgressStep(
+      progress,
+      { action: 'Normalise', count: sourceRows.length, subject: 'records' },
+      () =>
+        Promise.all(
+          sourceRows.map(row =>
+            normaliseHistoryRow(row, resolutionBySourceDistrictCode, releaseId),
+          ),
+        ),
     )
-    const batches = buildStatisticSqlBatches({
-      history: { rows: historyRows, table: 'divisionStatistics' },
-      releaseCode,
-      releaseId,
-      source: {
-        rows: sourceRows,
-        table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
-      },
-    })
-    await replayStatisticSqlBatches(
-      target,
-      context,
-      plan.sourceVersion.slice(0, 4),
-      batches,
+    const canonicalInput = sourceRows.map(row => ({
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      divisionId:
+        resolutionBySourceDistrictCode.get(row.districtCode)?.divisionId ?? null,
+      properties: object(row.rawProperties, 'rawProperties'),
+      sourceFeatureId: `Density_${plan.sourceVersion}:${row.districtCode}`,
+      sourceReleaseId: releaseId,
+      sourceVersion: plan.sourceVersion,
+    }))
+    let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
+    const measureMetadata = await runStatisticProgressStep(
+      progress,
+      { action: 'Review', count: canonical.measures.length, subject: 'measures' },
+      () =>
+        resolveCenstatdMeasureMetadata({
+          measures: canonical.measures,
+          promptForCuration: options.promptForCuration,
+        }),
+    )
+    canonical = await runStatisticProgressStep(
+      progress,
+      { action: 'Curate', count: canonical.measures.length, subject: 'measures' },
+      () => normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata }),
+    )
+    const batches = await runStatisticProgressStep(
+      progress,
+      { action: 'Generate SQL', count: sourceRows.length, subject: 'source' },
+      () =>
+        buildStatisticSqlBatches({
+          history: { rows: historyRows, table: 'divisionStatistics' },
+          releaseCode,
+          releaseId,
+          source: {
+            rows: sourceRows,
+            table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+          },
+        }),
+    )
+    const canonicalHistoryBatches = await runStatisticProgressStep(
+      progress,
       {
-        onProgress(event) {
-          updateStatisticReplayProgress(progress, event, target.remote)
-        },
+        action: 'Generate SQL',
+        count: canonical.records.length,
+        subject: 'history',
       },
+      () =>
+        buildCanonicalStatsSqlBatches({
+          current: [],
+          history: canonicalHistoryRows(canonical, releaseId),
+        }),
     )
-
-    progress.update(processingStepCount - 1, {
-      label: 'Complete district statistic replay',
-    })
+    const canonicalCurrentBatches = await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Generate SQL',
+        count: canonical.records.length,
+        subject: 'current',
+      },
+      () =>
+        buildCanonicalStatsSqlBatches({
+          current: canonicalCurrentRows(canonical),
+          history: [],
+        }),
+    )
+    const canonicalBatches = {
+      current: canonicalCurrentBatches.current,
+      history: canonicalHistoryBatches.history,
+    }
+    await client.stageRunning(
+      releaseId,
+      'processDataset',
+      { resourceType: plan.type, sourceRows: plan.rowCount },
+      releaseCode,
+    )
+    processingStarted = true
+    await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Import SQL',
+        count:
+          (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
+        subject: 'batches',
+      },
+      () =>
+        replayStatisticSqlBatches(
+          target,
+          context,
+          plan.sourceVersion.slice(0, 4),
+          batches,
+        ),
+    )
+    await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Import canonical SQL',
+        count:
+          (canonicalBatches.current.length + canonicalBatches.history.length) *
+          (target.remote ? 2 : 1),
+        subject: 'batches',
+      },
+      () =>
+        replayCanonicalStatsSqlBatches(
+          target,
+          context,
+          plan.sourceVersion.slice(0, 4),
+          canonicalBatches,
+          {
+            onProgress(event) {
+              progress.update(event.completedBatches, {
+                label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+              })
+            },
+          },
+        ),
+    )
+    const statsProfile = censtatdReleaseStatsProfileFor(
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      plan.sourceVersion,
+    )
+    const structuralStats = buildCenstatdReleaseStats(
+      sourceRows.map(row => ({
+        featureId: String(row.districtCode),
+        layerName: `Density_${plan.sourceVersion}`,
+      })),
+      canonical,
+      statsProfile,
+    )
+    const previousStats = await findPreviousComparableCenstatdReleaseStats(
+      metaDb,
+      releaseId,
+    )
+    const { materialisedProcessingActions, materialisedStats } =
+      await runStatisticProgressStep(
+        progress,
+        { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
+        async () => {
+          const materialisedStats = await replaceDatasetStatsAndReturnRows(
+            metaDb,
+            releaseId,
+            [
+              ...structuralStats,
+              ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+            ],
+          )
+          const materialisedProcessingActions =
+            await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
+              ...buildCenstatdGeographyLinkAuditActions(
+                statsProfile,
+                sourceRows.length,
+              ),
+              ...buildCenstatdMeasureCurationAuditActions(canonical),
+              ...buildCenstatdNormalisationAuditActions(canonical),
+            ])
+          await replayReleaseStatsMetaToRemote(
+            target,
+            context,
+            releaseId,
+            materialisedStats,
+          )
+          await replayReleaseProcessingActionsMetaToRemote(
+            target,
+            context,
+            releaseId,
+            materialisedProcessingActions,
+          )
+          return { materialisedProcessingActions, materialisedStats }
+        },
+      )
     await client.stageCompleted(
       releaseId,
       'processDataset',
-      { historyRows: historyRows.length, importedRows: sourceRows.length },
+      {
+        historyRows: historyRows.length,
+        importedRows: sourceRows.length,
+        statsRows: materialisedStats.length,
+        auditActions: materialisedProcessingActions.actions.length,
+      },
       releaseCode,
     )
-    progress.update(processingStepCount, {
-      label: 'Publish district statistic release',
-    })
-    const published = await client.publishDataset(releaseId, releaseCode)
-    progress.complete('Published district statistic release')
+    const published = await runStatisticProgressStep(
+      progress,
+      { action: 'Publish', subject: 'statistic release' },
+      async () => {
+        const published = await client.publishDataset(releaseId, releaseCode)
+        if (target.remote) {
+          await refreshRemoteMetaCache(
+            target.environment === 'production' ? 'production' : 'preview',
+            context.state.dbCacheDir,
+          )
+        }
+        return published
+      },
+    )
     return published
   } catch (error) {
     progress.fail()
-    await client
-      .stageFailed(
-        releaseId,
-        'processDataset',
-        error instanceof Error ? error.message : String(error),
-        undefined,
-        releaseCode,
-      )
-      .catch(() => undefined)
+    if (processingStarted) {
+      await client
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
     throw error
   } finally {
     context.cleanup()
   }
-}
-
-function formatDuration(durationMs: number) {
-  return `${Math.max(0, Math.round(durationMs / 1_000))} s`
-}
-
-function updateStatisticReplayProgress(
-  progress: LocalUploadProgress,
-  event: StatisticSqlReplayProgress,
-  isRemote: boolean,
-) {
-  const phaseLabels = {
-    'local-replay': 'Replay source and history in local cache',
-    'remote-history-replay': 'Replay history into remote D1',
-    'remote-source-replay': 'Replay source into remote D1',
-  } as const
-  const phaseStep =
-    event.phase === 'local-replay' ? 4 : event.phase === 'remote-source-replay' ? 5 : 6
-  if (!isRemote && event.phase !== 'local-replay') return
-  progress.update(phaseStep, {
-    label: `${phaseLabels[event.phase]} (${event.completedBatches}/${event.totalBatches})`,
-  })
 }
 
 /**
@@ -359,42 +526,6 @@ function assertUniqueDistrictAssertions(rows: SourceStatisticRow[]) {
   }
 }
 
-async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
-  const [censtatdRows, hadRows] = await Promise.all([
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2021'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-  ])
-  return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
-}
-
 function json(value: unknown, field: string) {
   if (typeof value !== 'string') throw new Error(`Expected ${field} JSON string.`)
   try {
@@ -424,4 +555,84 @@ function integer(value: unknown, field: string) {
 function required(value: string | undefined, field: string) {
   if (!value) throw new Error(`Expected ${field}.`)
   return value
+}
+
+function object(value: unknown, field: string) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Expected ${field} object.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function canonicalCurrentRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+) {
+  const now = new Date().toISOString()
+  return [
+    {
+      rows: canonical.records.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsRecords' as const,
+    },
+    {
+      rows: canonical.measures.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsMeasures' as const,
+    },
+    {
+      rows: canonical.measuresI18n.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsMeasuresI18n' as const,
+    },
+    {
+      rows: canonical.dimensions.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsDimensions' as const,
+    },
+    {
+      rows: canonical.values.map(row => ({ ...row, createdAt: now, updatedAt: now })),
+      table: 'statsValues' as const,
+    },
+    {
+      rows: canonical.valuesI18n.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsValuesI18n' as const,
+    },
+  ]
+}
+
+function canonicalHistoryRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+  sourceReleaseId: string,
+) {
+  const now = new Date().toISOString()
+  const version = (row: Record<string, unknown>) => ({
+    ...row,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: createNodeHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
+  })
+  return [
+    { rows: canonical.records.map(version), table: 'statsRecords' as const },
+    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
+    { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
+    { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
+    { rows: canonical.values.map(version), table: 'statsValues' as const },
+    { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
+  ]
 }

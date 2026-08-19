@@ -191,10 +191,16 @@ export const DivisionsListQuerySchema = z
       description: 'Exact effective cohort to select within the chosen catalogue.',
     }),
     domain: z
-      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
+      .enum([
+        'geographic',
+        'hkgov-censtatd-hma',
+        'hkgov-pland-pu',
+        'hkgov-pland-new-town',
+        'hkgov-landsd',
+      ])
       .optional()
       .openapi({
-        description: 'Division domain to query. Defaults to the Overture domain.',
+        description: 'Division domain to query. Defaults to the Geographic domain.',
       }),
     effectiveAt: z.iso.datetime().optional().openapi({
       description: 'Select the domain release effective at this instant.',
@@ -210,7 +216,7 @@ export const DivisionsListQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
@@ -248,10 +254,16 @@ export const DivisionDetailQuerySchema = z
       description: 'Exact effective cohort to select within the chosen catalogue.',
     }),
     domain: z
-      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
+      .enum([
+        'geographic',
+        'hkgov-censtatd-hma',
+        'hkgov-pland-pu',
+        'hkgov-pland-new-town',
+        'hkgov-landsd',
+      ])
       .optional()
       .openapi({
-        description: 'Division domain to query. Defaults to the Overture domain.',
+        description: 'Division domain to query. Defaults to the Geographic domain.',
       }),
     effectiveAt: z.iso.datetime().optional().openapi({
       description: 'Select the domain release effective at this instant.',
@@ -267,7 +279,7 @@ export const DivisionDetailQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({

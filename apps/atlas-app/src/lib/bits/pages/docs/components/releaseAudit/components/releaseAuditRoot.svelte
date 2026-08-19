@@ -317,6 +317,26 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
   const identity = asRecord(canonical?.identity)
   const normalisedAction = normaliseActionName(action)
 
+  if (action === 'curate_censtatd_measure_metadata') {
+    const sourceField = asText(record?.sourceField) ?? '—'
+    const measureCode = asText(record?.measureCode) ?? '—'
+    const rawMetadata: ReadonlyArray<readonly [string, string | null]> = [
+      ['Statistic kind', asText(record?.statisticKind)],
+      ['Aggregation', asText(record?.aggregation)],
+      ['Unit', asText(record?.unitCode)],
+      ['Denominator', asText(record?.denominatorMeasureCode)],
+      ['Null option', asText(record?.sourceNullOption)],
+    ]
+    const metadata = rawMetadata.flatMap(([label, value]) =>
+      value ? [{ label, value }] : [],
+    )
+    return {
+      leftLabel: 'Publisher field',
+      leftValue: sourceField,
+      rightItems: [{ label: 'Canonical measure', value: measureCode }, ...metadata],
+    }
+  }
+
   if (
     normalisedAction === 'als_building_name_roman_numeral_normalised' ||
     normalisedAction === 'als_premise_number_roman_numeral_normalised'

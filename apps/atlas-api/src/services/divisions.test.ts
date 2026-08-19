@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 
 import type { DivisionRecord } from '../db/divisions'
+import { DivisionsListQuerySchema } from '../schema/divisions'
 import {
   getDivisionDetail,
   listDivisions,
@@ -13,7 +14,7 @@ const activeSnapshot = {
   apiCatalogRevision: 'catalog-hk-divisions-v0.1-2026-06-29.0',
   catalogPublishedAt: '2026-06-29T00:00:00.000Z',
   cohortKey: '2026-06-17.0',
-  domainCode: 'overture',
+  domainCode: 'geographic',
   effectiveFrom: '2026-06-17T00:00:00.000Z',
   schemaVersion: 'sv-division-v1',
   rulesetVersion: 'rs-division-merge-v1',
@@ -259,13 +260,14 @@ let detailRecord: DivisionRecord | null = baseRecord
 const resolveApiReleaseSetSnapshotsForRequestMock = mock(
   async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
+const listDivisionRecordsCurrentMock = mock(async () => listRecords)
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   countDivisionsCurrent: mock(async () => listRecords.length),
   getDivisionRecordCurrent: mock(async () => detailRecord),
-  listDivisionRecordsCurrent: mock(async () => listRecords),
+  listDivisionRecordsCurrent: listDivisionRecordsCurrentMock,
   listDivisionRecordsCurrentByIds: mock(
     async (_db: unknown, lookup: { divisionIds: string[] }) =>
       lookup.divisionIds
@@ -282,6 +284,20 @@ describe('division services', () => {
     detailRecord = baseRecord
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(
       async () => resolvedReleaseSet,
+    )
+  })
+
+  test('accepts the configured domains and C&SD area alternatives', () => {
+    for (const query of [
+      { domain: 'geographic', include: 'areas:hkgov-censtatd-area' },
+      { domain: 'hkgov-censtatd-hma', include: 'areas:hkgov-censtatd-hma' },
+      { domain: 'hkgov-landsd' },
+    ]) {
+      expect(DivisionsListQuerySchema.safeParse(query).success).toBe(true)
+    }
+
+    expect(DivisionsListQuerySchema.safeParse({ domain: 'overture' }).success).toBe(
+      false,
     )
   })
 
@@ -457,6 +473,40 @@ describe('division services', () => {
         })
       }
     }
+  })
+
+  test('includes composition enrichment division snapshots in the Geographic lookup', async () => {
+    resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
+      ...resolvedReleaseSet,
+      snapshots: [
+        ...resolvedReleaseSet.snapshots,
+        {
+          snapshotResourceType: 'division' as const,
+          snapshotId: 'snapshot-censtatd-area',
+          role: 'enrichment' as const,
+          variant: 'hkgov-censtatd-area',
+        },
+      ],
+    }))
+
+    const result = await listDivisions({
+      currentDb: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/v0/divisions?domain=geographic',
+      requestedVersionPath: 'v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { domain: 'geographic' },
+      dependencies: divisionServiceDependencies,
+    })
+
+    expect(result.status).toBe(200)
+    expect(listDivisionRecordsCurrentMock).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        snapshotIds: [activeSnapshot.snapshotId, 'snapshot-censtatd-area'],
+      }),
+    )
   })
 
   test('getDivisionDetail derives hierarchy and included resources from canonical hierarchy', async () => {

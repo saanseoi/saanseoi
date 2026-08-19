@@ -12,6 +12,7 @@ import {
 } from '../sources/sourceArchives.ts'
 import {
   type DatasetFixture,
+  type DatasetIngestProgress,
   type UpdateStateEntry,
   getDueUpdatePhases,
   loadCurrentCompositionIngestDependencies,
@@ -47,6 +48,12 @@ type UpdateProcessingResult =
   | 'skipped'
   | 'uploaded'
 
+type PublishedSourceRelease = {
+  dataset: DatasetFixture
+  sourceKey: string
+  version: string
+}
+
 export type ScheduledUpdateSummary = {
   added: Array<{
     datasetCode: string
@@ -77,11 +84,17 @@ export async function runUpdateCommand(
   target: UploadTarget,
   printUsage: () => void,
 ) {
+  validateUpdateArguments(args, printUsage)
   const requested = readDatasetOption(args)
-  if (args.positionals.length > 0) {
-    printUsage()
-    throw new Error('`update` accepts dataset selection through --dataset only.')
+  const releaseNotesUrl =
+    typeof args.options['release-notes-url'] === 'string'
+      ? args.options['release-notes-url']
+      : undefined
+  if (releaseNotesUrl && requested?.size !== 1) {
+    throw new Error('--release-notes-url requires exactly one --dataset CODE.')
   }
+  const releaseNotesDatasetCode =
+    releaseNotesUrl && requested?.size === 1 ? [...requested][0] : undefined
 
   const datasets = await loadDatasetFixtures()
   const requestedDatasets = requested
@@ -115,10 +128,10 @@ export async function runUpdateCommand(
   const shouldDownload = args.options.download === true || forceDownload
   const skipUpload = args.options['no-upload'] === true
   const skipPrompts = args.options.yes === true
-  const forceCheck =
-    args.options.force === true || args.options['check-now'] === true || forceDownload
+  const forceCheck = args.options['check-now'] === true || forceDownload
+  const forceUpload = args.options['force-upload'] === true
   const errors: string[] = []
-  const added = new Map<string, string | undefined>()
+  const added = new Map<string, PublishedSourceRelease>()
   let reportedTargetLookupFailure = false
   const planned: PlannedDatasetUpdates[] = []
 
@@ -238,7 +251,10 @@ export async function runUpdateCommand(
         added,
         errors,
         forceDownload,
+        forceUpload,
         printUsage,
+        releaseNotesDatasetCode,
+        releaseNotesUrl,
         shouldDownload,
         skipPrompts,
         skipUpload,
@@ -249,6 +265,20 @@ export async function runUpdateCommand(
   }
 
   await writeUpdateState(state)
+  if (added.size > 0) {
+    log.message(['PUBLISHED SOURCE RELEASES', ''].join('\n'), {
+      secondarySymbol: dim('│'),
+      spacing: 1,
+      symbol: dim('├'),
+      withGuide: true,
+    })
+    for (const release of added.values()) {
+      log.success(formatPublishedSourceRelease(release), {
+        spacing: 0,
+        withGuide: true,
+      })
+    }
+  }
   if (errors.length > 0) {
     log.error(
       ['Update errors:', ...errors.flatMap(error => wrapUpdateMessage(error))].join(
@@ -260,9 +290,9 @@ export async function runUpdateCommand(
     )
   }
   await writeScheduledUpdateSummary({
-    added: [...added.entries()].map(([datasetCode, version]) => ({
-      datasetCode,
-      ...(version ? { version } : {}),
+    added: [...added.values()].map(({ dataset, version }) => ({
+      datasetCode: dataset.code,
+      version,
     })),
     errors,
   })
@@ -278,8 +308,69 @@ function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
   return {
     'new-releases': 'NEW RELEASES',
     revisions: 'NEW REVISIONS',
-    archives: 'ARCHIVES',
+    archives: 'SOURCE ARCHIVES TO MIRROR',
   }[phase]
+}
+
+export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void) {
+  const supportedOptions = new Set([
+    'api-family',
+    'check-now',
+    'dataset',
+    'download',
+    'force-download',
+    'force-upload',
+    'no-upload',
+    'release-notes-url',
+    'scope',
+    'target',
+    'yes',
+  ])
+  const invalidOptions = Object.keys(args.options).filter(
+    option => !supportedOptions.has(option),
+  )
+  const booleanOptions = [
+    'check-now',
+    'download',
+    'force-download',
+    'force-upload',
+    'no-upload',
+    'yes',
+  ]
+  const invalidBooleanOptions = booleanOptions.filter(
+    option => args.options[option] !== undefined && args.options[option] !== true,
+  )
+  const releaseNotesUrlMissingValue = args.options['release-notes-url'] === true
+
+  if (
+    args.positionals.length === 0 &&
+    invalidOptions.length === 0 &&
+    invalidBooleanOptions.length === 0 &&
+    !releaseNotesUrlMissingValue
+  ) {
+    return
+  }
+
+  printUsage()
+  if (args.positionals.length > 0) {
+    throw new Error('`update` accepts dataset selection through --dataset only.')
+  }
+  if (invalidOptions.includes('force')) {
+    throw new Error(
+      '`update` does not support --force. Use --check-now to ignore the scheduled delay, --force-download to fetch again, or --force-upload with --check-now to reprocess a staged release.',
+    )
+  }
+  if (invalidOptions.length > 0) {
+    throw new Error(
+      `Unsupported update option(s): ${invalidOptions.map(option => `--${option}`).join(', ')}.`,
+    )
+  }
+  if (releaseNotesUrlMissingValue) {
+    throw new Error('--release-notes-url requires an absolute HTTP(S) URL.')
+  }
+  throw new Error(
+    `Update flags do not take values: ${invalidBooleanOptions.map(option => `--${option}`).join(', ')}.`,
+  )
 }
 
 function logPhaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
@@ -356,13 +447,38 @@ function updateVersionBase(version: string | null | undefined) {
   return version?.replace(/\.\d+$/, '')
 }
 
+/**
+ * A native importer exiting successfully is not publication evidence. Confirm
+ * the exact release is visible on the upload target before reporting it.
+ */
+export function requirePublishedTargetVersion(
+  update: Pick<DatasetUpdate, 'sourceKey' | 'targetSourceKey' | 'version'>,
+  targetVersions: ReadonlyMap<string, string | null>,
+) {
+  const targetSourceKey = update.targetSourceKey ?? update.sourceKey
+  const publishedVersion = targetSourceKey
+    ? targetVersions.get(targetSourceKey)
+    : undefined
+
+  if (!update.version || publishedVersion !== update.version) {
+    throw new Error(
+      `Ingestion completed, but ${targetSourceKey ?? 'the source release'} is not published on the target at v${update.version ?? 'unknown'} (target reports ${publishedVersion ? `v${publishedVersion}` : 'no release'}).`,
+    )
+  }
+
+  return publishedVersion
+}
+
 async function processPlannedUpdates(
   plan: PlannedDatasetUpdates,
   options: {
-    added: Map<string, string | undefined>
+    added: Map<string, PublishedSourceRelease>
     errors: string[]
     forceDownload: boolean
+    forceUpload: boolean
     printUsage: () => void
+    releaseNotesDatasetCode?: string
+    releaseNotesUrl?: string
     shouldDownload: boolean
     skipPrompts: boolean
     skipUpload: boolean
@@ -382,7 +498,12 @@ async function processPlannedUpdates(
     try {
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
+        forceUpload: options.forceUpload,
         printUsage: options.printUsage,
+        releaseNotesUrl:
+          options.releaseNotesDatasetCode === plan.dataset.code
+            ? options.releaseNotesUrl
+            : undefined,
         row,
         shouldDownload: options.shouldDownload,
         skipPrompts: options.skipPrompts,
@@ -392,11 +513,29 @@ async function processPlannedUpdates(
         updateIndex,
         updateTotal: plan.updates.length,
       })
-      if (result === 'ingested' && update.version) {
-        plan.targetVersions.set(sourceKey, update.version)
-      }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
-        options.added.set(plan.dataset.code, update.version)
+        const publishedVersion = requirePublishedTargetVersion(
+          update,
+          await fetchTargetVersions(options.target, plan.dataset),
+        )
+        plan.targetVersions.set(
+          update.targetSourceKey ?? plan.dataset.code,
+          publishedVersion,
+        )
+        recordPublishedSourceRelease(options.added, {
+          dataset: plan.dataset,
+          sourceKey,
+          version: update.version,
+        })
+        // Native archive intake emits its own detailed upload plan. End the
+        // dataset row with an explicit result as well, rather than leaving the
+        // final summary to describe the target as it was before processing.
+        row.finish(
+          result === 'ingested' ? 'INGESTED' : 'UPLOADED',
+          update.version,
+          update.version,
+        )
+        renderedUpdates.add(update)
       }
       if (update.mirroredArchive) {
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
@@ -421,6 +560,8 @@ async function processPlannedUpdates(
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
       }
       const message = error instanceof Error ? error.message : String(error)
+      update.message = message
+      update.status = 'error'
       options.errors.push(`${plan.dataset.code}: ${message}`)
     }
   }
@@ -429,6 +570,20 @@ async function processPlannedUpdates(
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
+}
+
+export function recordPublishedSourceRelease(
+  releases: Map<string, PublishedSourceRelease>,
+  release: PublishedSourceRelease,
+) {
+  releases.set(
+    `${release.dataset.code}:${release.sourceKey}:${release.version}`,
+    release,
+  )
+}
+
+export function formatPublishedSourceRelease(release: PublishedSourceRelease) {
+  return `${formatDatasetPromptLabel(release.dataset)}  v${ownVersion(release.version)}`
 }
 
 async function writeScheduledUpdateSummary(summary: ScheduledUpdateSummary) {
@@ -573,17 +728,18 @@ async function fetchTargetVersions(target: UploadTarget, dataset: DatasetFixture
 
 export function targetVersionsFromReport(
   dataset: DatasetFixture,
-  rows: ReadonlyArray<Pick<ReleaseReportRow, 'sourceVersion'>>,
+  rows: ReadonlyArray<Pick<ReleaseReportRow, 'sourceVersion' | 'status'>>,
 ) {
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
-  const targetHasNoReleases = rows.length === 0
+  const publishedRows = rows.filter(row => isPublishedTargetRelease(row.status))
+  const targetHasNoReleases = publishedRows.length === 0
 
   // A successful target report is authoritative. Missing manifest cohorts are
   // absent from the target too, even when this operator has saved local state.
   if (targetHasNoReleases) targetVersions.set(dataset.code, null)
 
-  for (const sourceVersion of rows
+  for (const sourceVersion of publishedRows
     .map(row => row.sourceVersion)
     .filter((version): version is string => Boolean(version))) {
     targetVersions.set(sourceVersion, normaliseDatasetVersion(dataset, sourceVersion))
@@ -594,9 +750,10 @@ export function targetVersionsFromReport(
     const sourceKey = releaseSourceVersion ?? dataset.code
     const matchingVersions = releaseSourceVersion
       ? rows
+          .filter(row => isPublishedTargetRelease(row.status))
           .map(row => row.sourceVersion)
           .filter(version => versionMatchesSourceRelease(version, releaseSourceVersion))
-      : rows.map(row => row.sourceVersion)
+      : publishedRows.map(row => row.sourceVersion)
     const resolvedTargetVersion = latestVersion(matchingVersions)
     const targetVersion = resolvedTargetVersion
       ? normaliseDatasetVersion(dataset, resolvedTargetVersion)
@@ -606,6 +763,10 @@ export function targetVersionsFromReport(
   }
 
   return targetVersions
+}
+
+function isPublishedTargetRelease(status: string) {
+  return status === 'published' || status === 'superseded'
 }
 
 function versionMatchesSourceRelease(version: string, sourceVersion: string) {
@@ -622,9 +783,11 @@ async function processUpdate(
   update: DatasetUpdate,
   options: {
     printUsage: () => void
+    releaseNotesUrl?: string
     row: UpdateRow
     shouldDownload: boolean
     forceDownload: boolean
+    forceUpload: boolean
     skipPrompts: boolean
     skipUpload: boolean
     target: UploadTarget
@@ -657,7 +820,11 @@ async function processUpdate(
       return 'skipped' as const
     }
     if (promptForIngest) replaceResolvedDecision()
-    await update.ingest(options.target)
+    await update.ingest(options.target, {
+      forceUpload: options.forceUpload,
+      onProgress: progress => options.row.ingesting(progress, options.target),
+      skipPrompts: options.skipPrompts,
+    })
     return 'ingested' as const
   }
   if (!shouldDownloadUpdate(update, options.forceDownload)) return 'skipped' as const
@@ -713,7 +880,11 @@ async function processUpdate(
       return 'mirrored' as const
     }
     if (promptForIngest) replaceResolvedDecision()
-    const result = await update.postArchiveIngest(options.target, prepared)
+    const result = await update.postArchiveIngest(
+      options.target,
+      prepared,
+      options.skipPrompts,
+    )
     return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }
 
@@ -728,13 +899,23 @@ async function processUpdate(
   if (promptForUpload) replaceResolvedDecision()
 
   await runUploadCommand(
-    { command: 'upload', positionals: [path], options: update.upload.options },
+    {
+      command: 'upload',
+      positionals: [path],
+      options: {
+        ...update.upload.options,
+        ...(options.releaseNotesUrl
+          ? { 'release-notes-url': options.releaseNotesUrl }
+          : {}),
+      },
+    },
     options.target,
     {
       dryRun: false,
-      forceUpload: false,
+      forceUpload: options.forceUpload,
       invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
       printUsage: options.printUsage,
+      releaseNotesRetryCommand: `./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${update.dataset.code} --download --check-now`,
       skipConfirm: true,
       skipSnapshotCleanup: false,
       quiet: true,
@@ -934,6 +1115,22 @@ export function formatUpdateProgressLine(dataset: DatasetFixture, stage: string)
   return `${label}${' '.repeat(padding)}${stage}`
 }
 
+export function formatIngestProgressLine(
+  dataset: DatasetFixture,
+  progress: DatasetIngestProgress,
+  target: UploadTarget,
+) {
+  const position =
+    progress.current !== undefined && progress.total !== undefined
+      ? ` ${progress.current + 1}/${progress.total}`
+      : ''
+  const targetLabel = describeTarget(target).label
+  return formatUpdateProgressLine(
+    dataset,
+    `ingesting${position} · ${targetLabel} · ${progress.message}`,
+  )
+}
+
 export function formatDownloadProgressLine(
   dataset: DatasetFixture,
   index: number,
@@ -1066,10 +1263,20 @@ function targetVersionForUpdate(
   dataset: DatasetFixture,
   targetVersions: ReadonlyMap<string, string | null>,
 ) {
-  return Object.hasOwn(update, 'targetVersion')
-    ? update.targetVersion
-    : (targetVersions.get(update.sourceKey ?? dataset.code) ??
-        targetVersions.get(update.targetSourceKey ?? dataset.code))
+  if (Object.hasOwn(update, 'targetVersion')) {
+    if (update.targetVersion !== null) return update.targetVersion
+
+    // `processPlannedUpdates` records a successful native archive ingest under
+    // its archive source key. An update begins with a null target version, so
+    // use that now-current map entry for its completion summary. Keep null when
+    // the archive has not yet been processed.
+    return targetVersions.get(update.sourceKey ?? dataset.code) ?? null
+  }
+
+  return (
+    targetVersions.get(update.sourceKey ?? dataset.code) ??
+    targetVersions.get(update.targetSourceKey ?? dataset.code)
+  )
 }
 
 function formatUpdateLine(
@@ -1224,11 +1431,16 @@ function datasetLabelParts(dataset: DatasetFixture) {
         ? 'Nameplate'
         : '',
     type:
-      resourceTypes.length === 2 &&
+      resourceTypes.length === 3 &&
+      resourceTypes.includes('divisionStatistic') &&
       resourceTypes.includes('division') &&
       resourceTypes.includes('divisionArea')
-        ? 'Division(Area)'
-        : resourceTypes.map(formatResourceTypeLabel).join(' + '),
+        ? 'Stat + Div(Area)'
+        : resourceTypes.length === 2 &&
+            resourceTypes.includes('division') &&
+            resourceTypes.includes('divisionArea')
+          ? 'Division(Area)'
+          : resourceTypes.map(formatResourceTypeLabel).join(' + '),
   }
 }
 
@@ -1291,6 +1503,10 @@ class UpdateRow {
       this.progress.start(message)
       this.active = true
     }
+  }
+
+  ingesting(progress: DatasetIngestProgress, target: UploadTarget) {
+    this.message(formatIngestProgressLine(this.dataset, progress, target))
   }
 
   downloading(update: DatasetUpdate, index: number, total: number) {

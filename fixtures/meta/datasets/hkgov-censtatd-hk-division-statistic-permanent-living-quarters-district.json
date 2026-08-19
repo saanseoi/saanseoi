@@ -1,18 +1,19 @@
 {
-  "versionHash": "sha256:cf8ab28b4476f4a21292224f0049ac1ceff6b5eca871a80cbc1f4cb85a1d5c03",
+  "versionHash": "sha256:053af96625f617e095a278e47fd8cf44d95105f89ffdc312e1defa83e3d0a3fa",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "five-yearly",
+  "releaseFrequency": "half-yearly",
   "theme": "stats",
-  "sourceVariant": "census",
+  "sourceVariant": "official-statistics",
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203",
   "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/b3f0372efef6e9b26d05f13d02d52fd631e1767f0d88f763b8bd86d500ed7bf4",
+  "publisherReleaseFrequency": "half-yearly",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -49,12 +50,17 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "map_censtatd_district_code_to_canonical_division",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [
     {
-      "sourceVersion": "2021"
+      "sourceVersion": "2023-H2",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
     }
   ],
   "i18n": [

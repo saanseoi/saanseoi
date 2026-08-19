@@ -77,6 +77,12 @@ releases dr-hk-hkgov-censtatd-division-area-district-2016
          dr-hk-hkgov-censtatd-division-area-district-2021
 ```
 
+The publisher's 2021 `CENSTATD:T` feature has a self-intersecting ring. The C&SD adapter
+retains that exact source geometry without a topology repair; full topology validation
+is therefore not enabled for this provider profile. Structural validation, feature-count
+checks and source-archive SHA-256 verification still apply. The same policy applies to
+direct archive intake and `saanseoi update`.
+
 ## Land-clipped display transformation
 
 Both detailed source geometries are land-clipped already. For Hong Kong-wide preview
@@ -108,6 +114,36 @@ new publisher or dataset.
 The Atlas source-release Stats choropleth uses only the 2021 simplified variant
 (`hkgov-censtatd:2021:simplified`) from this dataset. It intentionally does not fall
 back to Home Affairs Department boundaries or the unsimplified C&SD source geometry.
+
+## Statistical area companions
+
+The C&SD Permanent Living Quarters by Area and Type release supplies three Area/type
+polygons (`HK`, `KLN`, and `NT`). They are a selectable Geographic area variant,
+`hkgov-censtatd-area`, rather than a second division collection: each polygon is linked
+to the corresponding canonical Overture division ID, including the deterministic
+synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
+them with `include=areas:hkgov-censtatd-area`.
+
+During ingestion, the three references are checked against the closest published
+canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
+used first; only an absent earlier cohort permits the earliest later Overture cohort.
+The selection is retained as a snapshot lookup dependency. Area/type must not create a
+second C&SD division snapshot merely to satisfy its geometry validation.
+
+The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
+Market Area polygons have their own deterministic canonical division IDs and therefore
+form the separate `hkgov-censtatd-hma` domain. Its native area variant is
+`hkgov-censtatd-hma`; Building Groups remain source-only because their upstream geometry
+is point-like. A Housing Market Area is not presented as a District Council district.
+The source-release fan-out publishes its HMA `division` snapshot before the companion
+`divisionArea` snapshot; the latter validates against that exact HMA snapshot. For the
+source-release Records by district map only, each HMA is spatially associated with every
+official exact 2021 C&SD district polygon with which it has a positive-area
+intersection. A boundary-only touch does not count. Consequently, an HMA spanning a
+district boundary increments each intersected district and the map total can exceed the
+number of HMA records. The association does not alter HMA canonical division IDs and it
+does not emit Geometry by District measurements: whole-HMA area or perimeter must never
+be attributed to every district it crosses.
 
 ## Ingestion
 

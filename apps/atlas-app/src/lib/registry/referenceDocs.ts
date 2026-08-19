@@ -2,6 +2,9 @@ import overtureLocalisation from '../../../../../docs/datasets/sources/overture/
 import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/overture/divisionHierarchy.md?raw'
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
 import censtatdTerms from '../../../../../docs/datasets/sources/hkgov-censtatd/terms.md?raw'
+import censtatdMeasureNaming from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureNaming.md?raw'
+import censtatdMeasureOfferings from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureOfferings.md?raw'
+import censtatdMeasureCurationManifest from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureCurationManifest.md?raw'
 import glossary from '../../../../../docs/glossary.md?raw'
 
 import {
@@ -115,6 +118,21 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     displayTitleKey: 'reference_csdi',
     glossary: true,
     source: censtatdTerms,
+  },
+  'hkgov-censtatd-measure-naming': {
+    title: 'Statistic measure naming',
+    displayTitleKey: 'reference_censtatd_measure_naming',
+    source: censtatdMeasureNaming,
+  },
+  'hkgov-censtatd-measure-offerings': {
+    title: 'Statistic measure offerings',
+    displayTitleKey: 'reference_censtatd_measure_offerings',
+    source: censtatdMeasureOfferings,
+  },
+  'hkgov-censtatd-measure-curation-manifest': {
+    title: 'Measure curation manifest',
+    displayTitleKey: 'reference_censtatd_measure_curation_manifest',
+    source: censtatdMeasureCurationManifest,
   },
   'catalogue-revision': {
     title: 'Catalogue revision',

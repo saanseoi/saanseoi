@@ -1,0 +1,88 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "measures": [
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Land area",
+          "description": "Land area of the District Council district, in square kilometres.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "土地面積",
+          "description": "區議會分區的土地面積，單位為平方公里。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "土地面积",
+          "description": "区议会分区的土地面积，单位为平方公里。",
+          "isTranslationVerified": false
+        }
+      ],
+      "statisticKind": "quantity",
+      "measureCode": "landArea",
+      "sourceField": "LA",
+      "unitCode": "square-kilometre"
+    },
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Mid-year population",
+          "description": "Mid-year population of the District Council district, expressed in persons.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年中人口",
+          "description": "區議會分區的年中人口，以人為單位。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年中人口",
+          "description": "区议会分区的年中人口，以人为单位。",
+          "isTranslationVerified": false
+        }
+      ],
+      "statisticKind": "count",
+      "measureCode": "populationMidYear",
+      "sourceField": "MYPOPN_LAND",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "landArea",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population density",
+          "description": "Mid-year population density of the District Council district, in persons per square kilometre.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "人口密度",
+          "description": "區議會分區的年中人口密度，單位為每平方公里人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "人口密度",
+          "description": "区议会分区的年中人口密度，单位为每平方公里人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "statisticKind": "density",
+      "measureCode": "populationDensity",
+      "sourceField": "POPN_D",
+      "unitCode": "person-per-square-kilometre"
+    }
+  ],
+  "schemaVersion": 6
+}

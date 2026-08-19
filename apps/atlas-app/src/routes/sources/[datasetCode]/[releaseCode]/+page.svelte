@@ -399,6 +399,7 @@ $effect(() => {
             </div>
           {:else if activeTab === 'stats'}
             <ReleaseStats.Root
+              measures={content?.measures ?? []}
               stats={version.stats}
               {districtAreas}
               {locale}

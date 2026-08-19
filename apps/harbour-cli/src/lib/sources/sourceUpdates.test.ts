@@ -19,6 +19,7 @@ import {
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
+  assertCsdiArchiveDownload,
   datasetCorrectionSuffixSources,
   datasetName,
   getDueUpdatePhases,
@@ -40,6 +41,28 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('rejects CSDI HTML error pages before caching them as source archives', () => {
+    const url = 'https://static.csdi.gov.hk/csdi-webpage/download/common/missing?a=1'
+
+    expect(() =>
+      assertCsdiArchiveDownload(
+        new TextEncoder().encode('<!DOCTYPE html><html><title>Download Failed</title>'),
+        'text/html; charset=UTF-8',
+        url,
+      ),
+    ).toThrow(
+      `CSDI archive download returned an HTML failure page instead of the source file: ${url}`,
+    )
+
+    expect(() =>
+      assertCsdiArchiveDownload(
+        new TextEncoder().encode('<gml:FeatureCollection />'),
+        'application/gml+xml',
+        url,
+      ),
+    ).not.toThrow()
+  })
+
   test('hands the exact mirrored LandsD archives to their native importers', () => {
     const common = {
       inputFile: '/tmp/landsd-source.zip',
@@ -95,7 +118,7 @@ describe('dataset update registry', () => {
     )
   })
 
-  test('starts target-neutral DPO ingestion with the selected publication target', () => {
+  test('passes --yes to DPO ingestion only when the parent update is non-interactive', () => {
     const common = {
       sourceRoot: '/tmp/als',
       version: '2026-07-26.0',
@@ -113,12 +136,19 @@ describe('dataset update registry', () => {
         target: { environment: 'production', remote: true },
       }),
     ).toContain('production')
+    const local = buildHkgovAlsIngestCommand({
+      ...common,
+      target: { environment: 'dev', remote: false },
+    })
+    expect(local).toContain('local')
+    expect(local).not.toContain('--yes')
     expect(
       buildHkgovAlsIngestCommand({
         ...common,
+        skipPrompts: true,
         target: { environment: 'dev', remote: false },
       }),
-    ).toContain('local')
+    ).toContain('--yes')
   })
 
   test('starts PlanD native archive intake with the mirrored source package', () => {
@@ -158,6 +188,7 @@ describe('dataset update registry', () => {
       sourceArchiveSha256: 'b'.repeat(64),
       sourceVersion: '2024',
       target: { environment: 'preview', remote: true },
+      yes: true,
     })
 
     expect(command).toEqual(
@@ -170,6 +201,7 @@ describe('dataset update registry', () => {
         'by-source/hk/hkgov-csdi/density/archive-source.zip',
         '--source-archive-sha256',
         'b'.repeat(64),
+        '--yes',
       ]),
     )
   })
@@ -199,13 +231,14 @@ describe('dataset update registry', () => {
   test('starts each remaining C&SD statistic from the prepared archive', () => {
     expect(
       buildHkgovCenstatdStatisticsArchiveIngestCommand({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
         inputFile: '/tmp/new-towns.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/new-towns',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/new-towns/source.zip',
         sourceArchiveSha256: 'e'.repeat(64),
         sourceVersion: '2021',
         target: { environment: 'preview', remote: true },
+        yes: true,
       }),
     ).toEqual(
       expect.arrayContaining([
@@ -214,7 +247,8 @@ describe('dataset update registry', () => {
         '--target',
         'preview',
         '--dataset-code',
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        '--yes',
       ]),
     )
   })
@@ -250,6 +284,7 @@ describe('dataset update registry', () => {
         sourceArchiveSha256: 'c'.repeat(64),
         sourceVersion: '2022',
         target: { environment: 'production', remote: true },
+        yes: false,
       }),
     ).toContain('production')
   })
@@ -648,6 +683,74 @@ describe('dataset update registry', () => {
     }
   })
 
+  test('rebuilds a missing static CSDI cohort from its latest archive slot', async () => {
+    const originalFetch = globalThis.fetch
+    const olderObjectHash = 'a'.repeat(64)
+    const newerObjectHash = 'b'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${olderObjectHash}`,
+                },
+              ],
+              quarter: 4,
+              year: 2023,
+            },
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${newerObjectHash}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const sourceUrl =
+        'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd-static-series'
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          releases: [{ sourceUrl, sourceVersion: '2021' }],
+          theme: 'stats',
+          resourceTypes: ['divisionStatistic'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+        },
+        undefined,
+        new Map([['2021', null]]),
+        true,
+      )
+
+      expect(updates).toEqual([
+        expect.objectContaining({
+          sourceKey: 'archive:censtatd-static-series:2026-Q2',
+          status: 'new',
+          targetSourceKey: '2021',
+          version: '2021.0',
+        }),
+      ])
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('selects CSDI source-format downloads from the archive catalogue', () => {
     expect(
       readCsdiArchivedSources({
@@ -719,7 +822,7 @@ describe('dataset update registry', () => {
               sourceVersion: '2021',
               sourceUrl:
                 'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635933617052_68946',
-              identicalArchiveSlots: [
+              verifiedIdenticalArchiveSlots: [
                 {
                   contentHash: 'b'.repeat(64),
                   releaseSlot: '2025-Q4',
@@ -731,7 +834,7 @@ describe('dataset update registry', () => {
               sourceVersion: '2016',
               sourceUrl:
                 'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635932488538_10765',
-              identicalArchiveSlots: [
+              verifiedIdenticalArchiveSlots: [
                 {
                   contentHash: 'c'.repeat(64),
                   releaseSlot: '2025-Q4',
@@ -1181,6 +1284,8 @@ describe('dataset update registry', () => {
 
       expect(updates).toHaveLength(2)
       expect(updates[0]?.version).toBe('2026-07-23.0')
+      expect(updates[0]?.sourceKey).toBe('2026-07-23.0')
+      expect(updates[0]?.targetSourceKey).toBe('2026-07-23.0')
       expect(updates[0]?.phase).toBeUndefined()
       expect(updates[1]?.version).toBe('2026-07-22.0')
       expect(updates[1]?.phase).toBe('archives')

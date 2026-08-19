@@ -1,0 +1,3293 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+  "measures": [
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Total population",
+          "description": "Total population of the housing market area or building group.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "總人口",
+          "description": "房屋市場區或樓宇組群的總人口。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "总人口",
+          "description": "房屋市场区或楼宇组群的总人口。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "totalPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "t_pop",
+      "sourceNullOption": "Null",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age",
+          "description": "Median age of the population, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數",
+          "description": "人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数",
+          "description": "人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAge",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "t_ma",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age - Male",
+          "description": "Median age of males, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數 - 男性",
+          "description": "男性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数 - 男性",
+          "description": "男性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAgeMale",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "ma_m",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age - Female",
+          "description": "Median age of females, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數 - 女性",
+          "description": "女性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数 - 女性",
+          "description": "女性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAgeFemale",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "ma_f",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Sex ratio",
+          "description": "Number of males per 1,000 females.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "性別比例",
+          "description": "每1,000名女性中男性的人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "性别比例",
+          "description": "每1,000名女性中男性的人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "sexRatio",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "sr",
+      "statisticKind": "ratio",
+      "unitCode": "per-thousand"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged under 15",
+          "description": "Percentage of the total population aged under 15.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲以下人口",
+          "description": "15歲以下人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁以下人口",
+          "description": "15岁以下人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "agedUnder15",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 15-39",
+          "description": "Percentage of the total population aged 15–39.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15至39歲人口",
+          "description": "15至39歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15至39岁人口",
+          "description": "15至39岁人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "aged15To39",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 40-64",
+          "description": "Percentage of the total population aged 40–64.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "40至64歲人口",
+          "description": "40至64歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "40至64岁人口",
+          "description": "40至64岁人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "aged40To64",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 65 and over",
+          "description": "Percentage of the total population aged 65 and over.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "65歲及以上人口佔總人口的比例",
+          "description": "65歲及以上人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "65岁及以上人口占总人口的比例",
+          "description": "65岁及以上人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "aged65AndOver",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_4",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Never-married male population aged 15 and over",
+          "description": "Proportion of males aged 15 and over who have never married.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上未婚男性人口",
+          "description": "15歲及以上男性人口中從未結婚者的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上未婚男性人口",
+          "description": "15岁及以上男性人口中从未结婚者的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "neverMarriedMalePopulationAged15AndOver",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "nm_m",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Never-married female population aged 15 and over",
+          "description": "Proportion of females aged 15 and over who have never married.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上未婚女性人口",
+          "description": "15歲及以上女性人口中從未結婚者的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上未婚女性人口",
+          "description": "15岁及以上女性人口中从未结婚者的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "neverMarriedFemalePopulationAged15AndOver",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "nm_f",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Hong Kong",
+          "description": "Percentage of the population born in Hong Kong.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "香港出生人口",
+          "description": "出生於香港的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "香港出生人口",
+          "description": "出生于香港的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInHongKong",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_hk",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Chinese Mainland, Macao, or Taiwan",
+          "description": "Percentage of the population born in Chinese Mainland, Macao, or Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "中國內地、澳門或台灣出生人口",
+          "description": "出生於中國內地、澳門或台灣的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "中国内地、澳门或台湾出生人口",
+          "description": "出生于中国内地、澳门或台湾的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInChineseMainlandMacaoOrTaiwan",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_chi",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born elsewhere",
+          "description": "Percentage of the population born outside Hong Kong, Chinese Mainland, Macao, and Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他地區出生人口",
+          "description": "出生於香港、中國內地、澳門及台灣以外地區的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他地区出生人口",
+          "description": "出生于香港、中国内地、澳门及台湾以外地区的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornElsewhere",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceField": "born_else",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Cantonese-speaking population",
+          "description": "Percentage of people aged 5 and over, excluding mute people, whose usual spoken language is Cantonese.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以粵語為常用語言的人口",
+          "description": "5歲及以上人口百分比分布（不包括失去語言能力的人士） - 慣用交談語言：廣州話",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以粤语为常用语言的人口",
+          "description": "5岁及以上人口百分比分布（不包括失去语言能力的人士） - 惯用交谈语言：广州话",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "cantoneseSpeakingPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_can",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Putonghua- or other Chinese dialect-speaking population",
+          "description": "Percentage of people aged 5 and over, excluding mute people, whose usual spoken language is Putonghua or another Chinese dialect.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以普通話或其他中國方言為常用語言的人口",
+          "description": "5歲及以上人口百分比分布（不包括失去語言能力的人士） - 慣用交談語言：普通話及其他中國方言",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以普通话或其他中国方言为常用语言的人口",
+          "description": "5岁及以上人口百分比分布（不包括失去语言能力的人士） - 惯用交谈语言：普通话及其他中国方言",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "putonghuaOrOtherChineseDialectSpeakingPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_put_othchi",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "English- or other language-speaking population",
+          "description": "Percentage of people aged 5 and over, excluding mute people, whose usual spoken language is English or another language.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以英語或其他語言為常用語言的人口",
+          "description": "5歲及以上人口百分比分布（不包括失去語言能力的人士） - 慣用交談語言：英語及其他語言",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以英语或其他语言为常用语言的人口",
+          "description": "5岁及以上人口百分比分布（不包括失去语言能力的人士） - 惯用交谈语言：英语及其他语言",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "englishOrOtherLanguageSpeakingPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_eng_oth",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population with primary education or below",
+          "description": "Percentage of people aged 15 and over whose highest educational attainment is primary education or below.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "具小學或以下教育程度的人口",
+          "description": "15歲及以上人口百分比分布 - 教育程度（最高就讀程度）：小學及以下",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "具小学或以下教育程度的人口",
+          "description": "15岁及以上人口百分比分布 - 教育程度（最高就读程度）：小学及以下",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationWithPrimaryEducationOrBelow",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_pri_prepri",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population with secondary education",
+          "description": "Percentage of people aged 15 and over whose highest educational attainment is secondary education.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "具中學教育程度的人口",
+          "description": "15歲及以上人口百分比分布 - 教育程度（最高就讀程度）：中學",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "具中学教育程度的人口",
+          "description": "15岁及以上人口百分比分布 - 教育程度（最高就读程度）：中学",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationWithSecondaryEducation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_sec",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population with post-secondary education",
+          "description": "Percentage of people aged 15 and over whose highest educational attainment is post-secondary education.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "具專上教育程度的人口",
+          "description": "15歲及以上人口百分比分布 - 教育程度（最高就讀程度）：專上教育",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "具专上教育程度的人口",
+          "description": "15岁及以上人口百分比分布 - 教育程度（最高就读程度）：专上教育",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationWithPostSecondaryEducation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_ter",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students studying in their district of residence",
+          "description": "Percentage of people attending full-time courses in Hong Kong who study in their District Council district of residence.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "在居住區議會分區就讀的學生",
+          "description": "在居住的區議會分區同區就讀的人士佔於香港院校就讀學前教育、小學、中學及專上教育院校全日制課程的人口的比例",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "在居住区议会分区就读的学生",
+          "description": "在居住的区议会分区同区就读的人士占于香港院校就读学前教育、小学、中学及专上教育院校全日制课程的人口的比例",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsStudyingInDistrictOfResidence",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_dc",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students travelling by bus",
+          "description": "Percentage of full-time students in Hong Kong whose main mode of transport to their place of study is bus.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭巴士上學的學生",
+          "description": "按前赴上課地點的主要交通方式劃分的於香港院校就讀全日制課程的人口百分比分布 - 巴士",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭巴士上学的学生",
+          "description": "按前赴上课地点的主要交通方式划分的于香港院校就读全日制课程的人口百分比分布 - 巴士",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsTravellingByBus",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_bus",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students travelling by MTR",
+          "description": "Percentage of full-time students in Hong Kong whose main mode of transport to their place of study is MTR.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭港鐵上學的學生",
+          "description": "按前赴上課地點的主要交通方式劃分的於香港院校就讀全日制課程的人口百分比分布 - 香港鐵路",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭港铁上学的学生",
+          "description": "按前赴上课地点的主要交通方式划分的于香港院校就读全日制课程的人口百分比分布 - 香港铁路",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsTravellingByMtr",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_mtr",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students travelling on foot",
+          "description": "Percentage of full-time students in Hong Kong whose main mode of transport to their place of study is walking only.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "步行上學的學生",
+          "description": "按前赴上課地點的主要交通方式劃分的於香港院校就讀全日制課程的人口百分比分布 - 步行",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "步行上学的学生",
+          "description": "按前赴上课地点的主要交通方式划分的于香港院校就读全日制课程的人口百分比分布 - 步行",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsTravellingOnFoot",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_foot",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students travelling by school bus",
+          "description": "Percentage of full-time students in Hong Kong whose main mode of transport to their place of study is school bus or school private light bus.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭校巴或校車上學的學生",
+          "description": "按前赴上課地點的主要交通方式劃分的於香港院校就讀全日制課程的人口百分比分布 - 校車／學校私家小巴",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭校巴或校车上学的学生",
+          "description": "按前赴上课地点的主要交通方式划分的于香港院校就读全日制课程的人口百分比分布 - 校车／学校私家小巴",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsTravellingBySchoolBus",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_sb",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students travelling by other modes",
+          "description": "Percentage of full-time students in Hong Kong whose main mode of transport to their place of study is another mode.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以其他方式上學的學生",
+          "description": "按前赴上課地點的主要交通方式劃分的於香港院校就讀全日制課程的人口百分比分布 - 其他",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以其他方式上学的学生",
+          "description": "按前赴上课地点的主要交通方式划分的于香港院校就读全日制课程的人口百分比分布 - 其他",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "studentsTravellingByOtherModes",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_oth",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population",
+          "description": "Number of people in the working population.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_wp",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Employees",
+          "description": "Percentage of the working population who are employees, including outworkers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "僱員",
+          "description": "按經濟活動身分劃分的工作人口百分比分布 — 僱員（包括外發工）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "雇员",
+          "description": "按经济活动身分划分的工作人口百分比分布 — 雇员（包括外发工）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationEmployees",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_ee",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Employers",
+          "description": "Percentage of the working population who are employers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "僱主",
+          "description": "按經濟活動身分劃分的工作人口百分比分布 — 僱主",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "雇主",
+          "description": "按经济活动身分划分的工作人口百分比分布 — 雇主",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationEmployers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_er",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Self-employed and unpaid family workers",
+          "description": "Percentage of the working population who are self-employed or unpaid family workers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "自僱人士及無酬家庭從業員",
+          "description": "按經濟活動身分劃分的工作人口百分比分布 — 自營作業者及無酬家庭從業員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "自雇人士及无酬家庭从业员",
+          "description": "按经济活动身分划分的工作人口百分比分布 — 自营作业者及无酬家庭从业员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationSelfEmployedOrUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_se_fw",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Managers",
+          "description": "Percentage of the working population employed as managers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "經理及行政級人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：經理",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "经理及行政级人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：经理",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationManagers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_a",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Professionals and associate professionals",
+          "description": "Percentage of the working population employed as professionals or associate professionals.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "專業人員及輔助專業人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：專業人員及輔助專業人員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "专业人员及辅助专业人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：专业人员及辅助专业人员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationProfessionalsAndAssociateProfessionals",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_b",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Clerical, service and sales workers",
+          "description": "Percentage of the working population employed as clerical support workers or service and sales workers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "文書支援、服務及銷售人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：文書支援人員、服務及銷售人員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "文书支援、服务及销售人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：文书支援人员、服务及销售人员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationClericalServiceAndSalesWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_c",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Craft, plant and machine workers",
+          "description": "Percentage of the working population employed in craft and related occupations, or as plant and machine operators or assemblers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工藝及有關人員、機台及機器操作員和裝配員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：工藝及有關人員、機台及機器操作員及裝配員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工艺及有关人员、机台及机器操作员和装配员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：工艺及有关人员、机台及机器操作员及装配员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationCraftPlantAndMachineWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_d",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Elementary, agricultural and unclassified workers",
+          "description": "Percentage of the working population in elementary occupations, skilled agricultural and fishery work, or occupations that cannot be classified.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非技術工人、農林漁業熟練工人及不能分類的職業",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：非技術工人、漁農業熟練工人及不能分類的職業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非技术工人、农林渔业熟练工人及不能分类的职业",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：非技术工人、渔农业熟练工人及不能分类的职业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationElementaryAgriculturalOrUnclassifiedWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_e",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in manufacturing, construction and other industries",
+          "description": "Percentage of the working population in manufacturing, construction, or other industries.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事製造、建造及其他行業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：製造業、建造業及其他行業（包括「農業、林業及漁業」、「採礦及採石業」、「電力及燃氣供應」、「自來水供應；污水處理、廢棄物管理及污染防治服務業」等行業，及報稱的行業不能辨別或描述不足）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事制造、建造及其他行业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：制造业、建造业及其他行业（包括「农业、林业及渔业」、「采矿及采石业」、「电力及燃气供应」、「自来水供应;污水处理、废弃物管理及污染防治服务业」等行业，及报称的行业不能辨别或描述不足）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationManufacturingConstructionAndOtherIndustries",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_f",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in trade and hospitality industries",
+          "description": "Percentage of the working population in import/export, wholesale and retail trades, accommodation, or food services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事貿易及酒店餐飲業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：進出口、批發及零售業、住宿及膳食服務業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事贸易及酒店餐饮业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：进出口、批发及零售业、住宿及膳食服务业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationTradeAndHospitalityIndustries",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_g",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in transport, information, finance and business services",
+          "description": "Percentage of the working population in transportation, storage, postal and courier services, information and communications, financing and insurance, real estate, professional, or business services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事運輸、資訊、金融及商業服務業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：運輸、倉庫、郵政及速遞服務業、資訊及通訊業、金融及保險業、地產、專業及商用服務業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事运输、资讯、金融及商业服务业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：运输、仓库、邮政及速递服务业、资讯及通讯业、金融及保险业、地产、专业及商用服务业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationTransportInformationFinanceAndBusinessServices",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_h",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in public, education, health and personal services",
+          "description": "Percentage of the working population in public administration, education, human health and social work, or social and personal services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事公共、教育、醫療及個人服務業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：公共行政、教育、人類醫療保健及社工活動、雜項社會及個人服務",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事公共、教育、医疗及个人服务业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：公共行政、教育、人类医疗保健及社工活动、杂项社会及个人服务",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationPublicEducationHealthAndPersonalServices",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_i",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly employment income",
+          "description": "First quartile of monthly income from main employment, excluding unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入第一四分位數",
+          "description": "每月主要職業收入（不包括無酬家庭從業員）：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入第一四分位数",
+          "description": "每月主要职业收入（不包括无酬家庭从业员）：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyEmploymentIncomeExcludingUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_1",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly employment income",
+          "description": "Median monthly income from main employment, excluding unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入中位數",
+          "description": "每月主要職業收入（不包括無酬家庭從業員）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入中位数",
+          "description": "每月主要职业收入（不包括无酬家庭从业员）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyEmploymentIncomeExcludingUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_2",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly employment income",
+          "description": "Third quartile of monthly income from main employment, excluding unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入第三四分位數",
+          "description": "每月主要職業收入（不包括無酬家庭從業員）：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入第三四分位数",
+          "description": "每月主要职业收入（不包括无酬家庭从业员）：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExcludingUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_3",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly employment income excluding foreign domestic helpers",
+          "description": "First quartile of monthly income from main employment, excluding foreign domestic helpers and unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月主要職業收入第一四分位數",
+          "description": "每月主要職業收入（不包括外籍家庭傭工及無酬家庭從業員）：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月主要职业收入第一四分位数",
+          "description": "每月主要职业收入（不包括外籍家庭佣工及无酬家庭从业员）：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_1",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly employment income excluding foreign domestic helpers",
+          "description": "Median monthly income from main employment, excluding foreign domestic helpers and unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月主要職業收入中位數",
+          "description": "每月主要職業收入（不包括外籍家庭傭工及無酬家庭從業員）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月主要职业收入中位数",
+          "description": "每月主要职业收入（不包括外籍家庭佣工及无酬家庭从业员）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_2",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly employment income excluding foreign domestic helpers",
+          "description": "Third quartile of monthly income from main employment, excluding foreign domestic helpers and unpaid family workers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月主要職業收入第三四分位數",
+          "description": "每月主要職業收入（不包括外籍家庭傭工及無酬家庭從業員）：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月主要职业收入第三四分位数",
+          "description": "每月主要职业收入（不包括外籍家庭佣工及无酬家庭从业员）：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_3",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of weekly working hours",
+          "description": "First quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第一四分位數",
+          "description": "所有工作的每周通常工作時數：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第一四分位数",
+          "description": "所有工作的每周通常工作时数：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_1",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median weekly working hours",
+          "description": "Median usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數中位數",
+          "description": "所有工作的每周通常工作時數：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数中位数",
+          "description": "所有工作的每周通常工作时数：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_2",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of weekly working hours",
+          "description": "Third quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第三四分位數",
+          "description": "所有工作的每周通常工作時數：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第三四分位数",
+          "description": "所有工作的每周通常工作时数：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_3",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of weekly working hours excluding foreign domestic helpers",
+          "description": "First quartile of usual weekly working hours across all employment, excluding foreign domestic helpers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每周通常工作時數第一四分位數",
+          "description": "所有工作的每周通常工作時數（不包括外籍家庭傭工）：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每周通常工作时数第一四分位数",
+          "description": "所有工作的每周通常工作时数（不包括外籍家庭佣工）：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileWeeklyWorkingHoursExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_xfdh_1",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median weekly working hours excluding foreign domestic helpers",
+          "description": "Median usual weekly working hours across all employment, excluding foreign domestic helpers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每周通常工作時數中位數",
+          "description": "所有工作的每周通常工作時數（不包括外籍家庭傭工）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每周通常工作时数中位数",
+          "description": "所有工作的每周通常工作时数（不包括外籍家庭佣工）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianWeeklyWorkingHoursExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_xfdh_2",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of weekly working hours excluding foreign domestic helpers",
+          "description": "Third quartile of usual weekly working hours across all employment, excluding foreign domestic helpers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每周通常工作時數第三四分位數",
+          "description": "所有工作的每周通常工作時數（不包括外籍家庭傭工）：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每周通常工作时数第三四分位数",
+          "description": "所有工作的每周通常工作时数（不包括外籍家庭佣工）：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileWeeklyWorkingHoursExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_xfdh_3",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in their district of residence",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong who work in their District Council district of residence, including people who work at home.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "在居住區議會分區工作的工作人口",
+          "description": "在居住的區議會分區同區工作（包括於家中工作）的工作人口佔在香港有固定工作地點的工作人口的比例",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "在居住区议会分区工作的工作人口",
+          "description": "在居住的区议会分区同区工作（包括于家中工作）的工作人口占在香港有固定工作地点的工作人口的比例",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationWorkingInDistrictOfResidence",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_dc",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers travelling by bus",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong whose main mode of transport to work is bus.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭巴士上班的工作人口",
+          "description": "按前赴工作地點的主要交通方式劃分的在港有固定工作地點的工作人口百分比分布：巴士",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭巴士上班的工作人口",
+          "description": "按前赴工作地点的主要交通方式划分的在港有固定工作地点的工作人口百分比分布：巴士",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workersTravellingByBus",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_bus",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers travelling by MTR",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong whose main mode of transport to work is MTR.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭港鐵上班的工作人口",
+          "description": "按前赴工作地點的主要交通方式劃分的在港有固定工作地點的工作人口百分比分布：香港鐵路",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭港铁上班的工作人口",
+          "description": "按前赴工作地点的主要交通方式划分的在港有固定工作地点的工作人口百分比分布：香港铁路",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workersTravellingByMtr",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_mtr",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers travelling on foot",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong whose main mode of transport to work is walking only.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "步行上班的工作人口",
+          "description": "按前赴工作地點的主要交通方式劃分的在港有固定工作地點的工作人口百分比分布：步行",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "步行上班的工作人口",
+          "description": "按前赴工作地点的主要交通方式划分的在港有固定工作地点的工作人口百分比分布：步行",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workersTravellingOnFoot",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_foot",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers travelling by public light bus",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong whose main mode of transport to work is public light bus.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "乘搭公共小型巴士上班的工作人口",
+          "description": "按前赴工作地點的主要交通方式劃分的在港有固定工作地點的工作人口百分比分布：公共小巴",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "乘搭公共小型巴士上班的工作人口",
+          "description": "按前赴工作地点的主要交通方式划分的在港有固定工作地点的工作人口百分比分布：公共小巴",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workersTravellingByPublicLightBus",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_plb",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers travelling by other modes",
+          "description": "Percentage of workers with a fixed place of work in Hong Kong whose main mode of transport to work is another mode.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以其他方式上班的工作人口",
+          "description": "按前赴工作地點的主要交通方式劃分的在港有固定工作地點的工作人口百分比分布：其他",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以其他方式上班的工作人口",
+          "description": "按前赴工作地点的主要交通方式划分的在港有固定工作地点的工作人口百分比分布：其他",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workersTravellingByOtherModes",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_oth",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population",
+          "description": "Number of people not in the working population.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulation",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_nwp",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "nonWorkingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students outside the working population",
+          "description": "Percentage of the non-working population who are students.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口中的學生",
+          "description": "非工作人口百分比分布：學生",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口中的学生",
+          "description": "非工作人口百分比分布：学生",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulationStudents",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_st",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "nonWorkingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-students outside the working population",
+          "description": "Percentage of the non-working population who are not students.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口中的非學生",
+          "description": "非工作人口百分比分布：非學生",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口中的非学生",
+          "description": "非工作人口百分比分布：非学生",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulationNonStudents",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_nonstu",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 1–3 people",
+          "description": "Percentage of domestic households with 1–3 people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "1至3人的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：1 - 3人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "1至3人的住户",
+          "description": "家庭住户百分比分布 - 住户人数：1 - 3人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithOneToThreePeople",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 4 people",
+          "description": "Percentage of domestic households with 4 people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "4人的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：4人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "4人的住户",
+          "description": "家庭住户百分比分布 - 住户人数：4人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFourPeople",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 5 or more people",
+          "description": "Percentage of domestic households with 5 or more people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5人或以上的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：5人及以上",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5人或以上的住户",
+          "description": "家庭住户百分比分布 - 住户人数：5人及以上",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFiveOrMorePeople",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "mean",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average household size",
+          "description": "Average number of people in a domestic household.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平均住戶人數",
+          "description": "家庭住戶平均人數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平均住户人数",
+          "description": "家庭住户平均人数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageDomesticHouseholdSize",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "adhz",
+      "statisticKind": "quantity",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Nuclear family households",
+          "description": "Percentage of domestic households that are nuclear family households.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "核心家庭住戶",
+          "description": "家庭住戶百分比分布 - 家庭住戶結構：核心家庭住戶",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "核心家庭住户",
+          "description": "家庭住户百分比分布 - 家庭住户结构：核心家庭住户",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nuclearFamilyHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Relative households",
+          "description": "Percentage of domestic households that are relative households.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "親屬住戶",
+          "description": "家庭住戶百分比分布 - 家庭住戶結構：親屬關係住戶",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "亲属住户",
+          "description": "家庭住户百分比分布 - 家庭住户结构：亲属关系住户",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "relativeHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Other households",
+          "description": "Percentage of domestic households with another composition.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他住戶",
+          "description": "家庭住戶百分比分布 - 家庭住戶結構：其他住戶",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他住户",
+          "description": "家庭住户百分比分布 - 家庭住户结构：其他住户",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "otherHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly household income",
+          "description": "First quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第一四分位數",
+          "description": "家庭住戶每月收入：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第一四分位数",
+          "description": "家庭住户每月收入：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyHouseholdIncome",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_1",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household income",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入中位數",
+          "description": "家庭住戶每月收入：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入中位数",
+          "description": "家庭住户每月收入：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdIncome",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_2",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly household income",
+          "description": "Third quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第三四分位數",
+          "description": "家庭住戶每月收入：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第三四分位数",
+          "description": "家庭住户每月收入：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyHouseholdIncome",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_3",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly household income excluding foreign domestic helpers",
+          "description": "First quartile of monthly domestic household income, excluding foreign domestic helpers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月住戶收入第一四分位數",
+          "description": "家庭住戶每月收入（不包括外籍家庭傭工）：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月住户收入第一四分位数",
+          "description": "家庭住户每月收入（不包括外籍家庭佣工）：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyHouseholdIncomeExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_xfdh_1",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household income excluding foreign domestic helpers",
+          "description": "Median monthly domestic household income, excluding foreign domestic helpers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月住戶收入中位數",
+          "description": "家庭住戶每月收入（不包括外籍家庭傭工）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月住户收入中位数",
+          "description": "家庭住户每月收入（不包括外籍家庭佣工）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdIncomeExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_xfdh_2",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly household income excluding foreign domestic helpers",
+          "description": "Third quartile of monthly domestic household income, excluding foreign domestic helpers, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "不包括外籍家庭傭工的每月住戶收入第三四分位數",
+          "description": "家庭住戶每月收入（不包括外籍家庭傭工）：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "不包括外籍家庭佣工的每月住户收入第三四分位数",
+          "description": "家庭住户每月收入（不包括外籍家庭佣工）：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyHouseholdIncomeExclFDH",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_xfdh_3",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Chinese household heads",
+          "description": "Percentage of all reported domestic-household heads who are Chinese. A household may report more than one head.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "華人住戶戶主",
+          "description": "按國籍劃分的家庭住戶戶主（住戶可申報多於一位成員為戶主。數字包括家庭住戶中的所有戶主）百分比分布：中國籍",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "华人住户户主",
+          "description": "按国籍划分的家庭住户户主（住户可申报多于一位成员为户主。数字包括家庭住户中的所有户主）百分比分布：中国籍",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "chineseDomesticHouseholdHeads",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhn_c",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-Chinese household heads",
+          "description": "Percentage of all reported domestic-household heads who are non-Chinese. A household may report more than one head.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非華人住戶戶主",
+          "description": "按國籍劃分的家庭住戶戶主（住戶可申報多於一位成員為戶主。數字包括家庭住戶中的所有戶主）百分比分布：非中國籍",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非华人住户户主",
+          "description": "按国籍划分的家庭住户户主（住户可申报多于一位成员为户主。数字包括家庭住户中的所有户主）百分比分布：非中国籍",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonChineseDomesticHouseholdHeads",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhn_nc",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age of household heads",
+          "description": "Median age of all reported domestic-household heads, in years. A household may report more than one head.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶戶主年齡中位數",
+          "description": "家庭住戶戶主（住戶可申報多於一位成員為戶主。數字包括家庭住戶中的所有戶主）年齡中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户户主年龄中位数",
+          "description": "家庭住户户主（住户可申报多于一位成员为户主。数字包括家庭住户中的所有户主）年龄中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAgeOfDomesticHouseholdHeads",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ma_dhn",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 1–2 rooms",
+          "description": "Percentage of domestic households with 1–2 rooms for exclusive use, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有1至2間房的住戶",
+          "description": "家庭住戶百分比分布 - 自用廳房數目（不包括廚房及浴室／廁所）：1 - 2 個",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有1至2间房的住户",
+          "description": "家庭住户百分比分布 - 自用厅房数目（不包括厨房及浴室／厕所）：1 - 2 个",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithOneToTwoRooms",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_r1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 3 rooms",
+          "description": "Percentage of domestic households with 3 rooms for exclusive use, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有3間房的住戶",
+          "description": "家庭住戶百分比分布 - 自用廳房數目（不包括廚房及浴室／廁所）：3 個",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有3间房的住户",
+          "description": "家庭住户百分比分布 - 自用厅房数目（不包括厨房及浴室／厕所）：3 个",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithThreeRooms",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_r3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 4 rooms",
+          "description": "Percentage of domestic households with 4 rooms for exclusive use, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有4間房的住戶",
+          "description": "家庭住戶百分比分布 - 自用廳房數目（不包括廚房及浴室／廁所）：4 個",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有4间房的住户",
+          "description": "家庭住户百分比分布 - 自用厅房数目（不包括厨房及浴室／厕所）：4 个",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFourRooms",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_r4",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 5 or more rooms",
+          "description": "Percentage of domestic households with 5 or more rooms for exclusive use, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有5間或以上房的住戶",
+          "description": "家庭住戶百分比分布 - 自用廳房數目（不包括廚房及浴室／廁所）：5 個及以上",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有5间或以上房的住户",
+          "description": "家庭住户百分比分布 - 自用厅房数目（不包括厨房及浴室／厕所）：5 个及以上",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFiveOrMoreRooms",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_r5",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households without exclusive rooms",
+          "description": "Percentage of domestic households without rooms for exclusive use, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "沒有專用房間的住戶",
+          "description": "家庭住戶百分比分布 - 沒有自用廳房（不包括廚房及浴室／廁所）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "没有专用房间的住户",
+          "description": "家庭住户百分比分布 - 没有自用厅房（不包括厨房及浴室／厕所）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithoutExclusiveRooms",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_r0",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "mean",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average rooms per household",
+          "description": "Average number of rooms for exclusive use per domestic household, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每戶平均房間數目",
+          "description": "平均廳房（不包括廚房及浴室／廁所）數目：每個家庭住戶",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每户平均房间数目",
+          "description": "平均厅房（不包括厨房及浴室／厕所）数目：每个家庭住户",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageRoomsPerDomesticHousehold",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "anr_h",
+      "statisticKind": "quantity",
+      "unitCode": "room"
+    },
+    {
+      "aggregation": "mean",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average rooms per person",
+          "description": "Average number of rooms for exclusive use per person, excluding kitchens and bathrooms or toilets.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每人平均房間數目",
+          "description": "平均廳房（不包括廚房及浴室／廁所）數目：每人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每人平均房间数目",
+          "description": "平均厅房（不包括厨房及浴室／厕所）数目：每人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageRoomsPerPerson",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "anr_p",
+      "statisticKind": "quantity",
+      "unitCode": "room"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of household floor area",
+          "description": "First quartile of domestic household accommodation floor area, excluding common areas and households living in unsheltered accommodation or on board vessels, in square metres.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶居所樓面面積第一四分位數",
+          "description": "家庭住戶的居所樓面面積（平方米）（不包括居於非屋宇單位或船艇的家庭住戶。與其他住戶共同佔用的樓面面積不包括在內。）：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户居所楼面面积第一四分位数",
+          "description": "家庭住户的居所楼面面积（平方米）（不包括居于非屋宇单位或船艇的家庭住户。与其他住户共同占用的楼面面积不包括在内。）：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileHouseholdFloorArea",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "fa_1",
+      "statisticKind": "quantity",
+      "unitCode": "square-metre"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median household floor area",
+          "description": "Median domestic household accommodation floor area, excluding common areas and households living in unsheltered accommodation or on board vessels, in square metres.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶居所樓面面積中位數",
+          "description": "家庭住戶的居所樓面面積（平方米）（不包括居於非屋宇單位或船艇的家庭住戶。與其他住戶共同佔用的樓面面積不包括在內。）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户居所楼面面积中位数",
+          "description": "家庭住户的居所楼面面积（平方米）（不包括居于非屋宇单位或船艇的家庭住户。与其他住户共同占用的楼面面积不包括在内。）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianHouseholdFloorArea",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "fa_2",
+      "statisticKind": "quantity",
+      "unitCode": "square-metre"
+    },
+    {
+      "aggregation": "percentile",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of household floor area",
+          "description": "Third quartile of domestic household accommodation floor area, excluding common areas and households living in unsheltered accommodation or on board vessels, in square metres.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶居所樓面面積第三四分位數",
+          "description": "家庭住戶的居所樓面面積（平方米）（不包括居於非屋宇單位或船艇的家庭住戶。與其他住戶共同佔用的樓面面積不包括在內。）：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户居所楼面面积第三四分位数",
+          "description": "家庭住户的居所楼面面积（平方米）（不包括居于非屋宇单位或船艇的家庭住户。与其他住户共同占用的楼面面积不包括在内。）：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileHouseholdFloorArea",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "fa_3",
+      "statisticKind": "quantity",
+      "unitCode": "square-metre"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Owner-occupied households with a mortgage or loan",
+          "description": "Percentage of domestic households that are owner-occupiers with a mortgage or loan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有按揭或貸款的自置住戶",
+          "description": "家庭住戶百分比分布 - 居所租主權：自置，有按揭供款或借貸還款",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有按揭或贷款的自置住户",
+          "description": "家庭住户百分比分布 - 居所租主权：自置，有按揭供款或借贷还款",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "ownerOccupiedHouseholdsWithMortgage",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_ocm",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Owner-occupied households without a mortgage or loan",
+          "description": "Percentage of domestic households that are owner-occupiers without a mortgage or loan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "沒有按揭或貸款的自置住戶",
+          "description": "家庭住戶百分比分布 - 居所租主權：自置，沒有按揭供款及借貸還款",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "没有按揭或贷款的自置住户",
+          "description": "家庭住户百分比分布 - 居所租主权：自置，没有按揭供款及借贷还款",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "ownerOccupiedHouseholdsWithoutMortgage",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_ocwm",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Sole-tenant households",
+          "description": "Percentage of domestic households that are sole tenants.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "全租戶",
+          "description": "家庭住戶百分比分布 - 居所租主權：全租",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "全租户",
+          "description": "家庭住户百分比分布 - 居所租主权：全租",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "soleTenantHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_st",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with other tenure arrangements",
+          "description": "Percentage of domestic households with another tenure arrangement, including co-tenancy, main tenancy, sub-tenancy, rent-free accommodation, or employer-provided accommodation.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他租住權安排的住戶",
+          "description": "家庭住戶百分比分布 - 居所租主權：其他（包括合租、二房東、三房客、免交租金或居所由僱主提供）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他租住权安排的住户",
+          "description": "家庭住户百分比分布 - 居所租主权：其他（包括合租、二房东、三房客、免交租金或居所由雇主提供）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "otherTenureHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_oth",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly mortgage or loan repayment",
+          "description": "Median monthly domestic household mortgage payment or loan repayment, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月按揭或貸款還款額中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月按揭或贷款还款额中位数",
+          "description": "家庭住户每月按揭供款及借贷还款中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyMortgageOrLoanRepayment",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhm_loan",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median mortgage or loan repayment-to-income ratio",
+          "description": "Median ratio of monthly domestic household mortgage payment or loan repayment to income.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "按揭或貸款還款與收入比率中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "按揭或贷款还款与收入比率中位数",
+          "description": "家庭住户每月按揭供款及借贷还款与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMortgageOrLoanRepaymentToIncomeRatio",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhm_lr",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median outstanding mortgage or loan period",
+          "description": "Median outstanding period of domestic household mortgage payment or loan repayment, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "按揭或貸款尚餘年期中位數",
+          "description": "尚餘按揭供款或借貸還款年期中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "按揭或贷款尚余年期中位数",
+          "description": "尚余按揭供款或借贷还款年期中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianOutstandingMortgageOrLoanPeriod",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhm_lp",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household rent",
+          "description": "Median monthly domestic household rent, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶租金中位數",
+          "description": "家庭住戶每月租金中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户租金中位数",
+          "description": "家庭住户每月租金中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdRent",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dm_r",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median rent-to-income ratio",
+          "description": "Median ratio of monthly domestic household rent to income.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶租金與收入比率中位數",
+          "description": "家庭住戶每月租金與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户租金与收入比率中位数",
+          "description": "家庭住户每月租金与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianHouseholdRentToIncomeRatio",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dmr_ir",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Single-head households remaining at the same address",
+          "description": "Percentage of domestic households with one household head whose household head remained at the same address five years earlier.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "五年前住址相同的單人戶主住戶",
+          "description": "家庭住戶百分比分布 - 5年前居住地區：仍居舊址",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "五年前住址相同的单人户主住户",
+          "description": "家庭住户百分比分布 - 5年前居住地区：仍居旧址",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "singleHeadHouseholdsRemainingAtSameAddress",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pm_r1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Single-head households moving within the same district",
+          "description": "Percentage of domestic households with one household head whose household head lived in the same District Council district five years earlier, having migrated.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "五年前在同一區議會分區居住的單人戶主住戶",
+          "description": "家庭住戶百分比分布 - 5年前居住地區：居於同一區議會分區（曾遷移）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "五年前在同一区议会分区居住的单人户主住户",
+          "description": "家庭住户百分比分布 - 5年前居住地区：居于同一区议会分区（曾迁移）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "singleHeadHouseholdsMovingWithinSameDistrict",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pm_r2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Single-head households moving from another district",
+          "description": "Percentage of domestic households with one household head whose household head lived in a different District Council district five years earlier, having migrated.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "五年前在另一區議會分區居住的單人戶主住戶",
+          "description": "家庭住戶百分比分布 - 5年前居住地區：居於不同區議會分區（曾遷移）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "五年前在另一区议会分区居住的单人户主住户",
+          "description": "家庭住户百分比分布 - 5年前居住地区：居于不同区议会分区（曾迁移）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "singleHeadHouseholdsMovingFromAnotherDistrict",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pm_r3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Single-head households with a head previously outside Hong Kong",
+          "description": "Percentage of domestic households with one household head whose household head lived outside Hong Kong five years earlier.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "五年前居於香港以外地區的單人戶主住戶",
+          "description": "家庭住戶百分比分布 - 5年前居住地區：居於香港以外地方",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "五年前居于香港以外地区的单人户主住户",
+          "description": "家庭住户百分比分布 - 5年前居住地区：居于香港以外地方",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "singleHeadHouseholdsWithHeadPreviouslyOutsideHongKong",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pm_r4",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Older-only households",
+          "description": "Number of domestic households with older people only, including households in which every member other than foreign domestic helpers is aged 65 or over.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "僅有長者的住戶",
+          "description": "只有長者居住的家庭住戶數目（包括所有除外籍家庭傭工以外的成員皆為65 歲及以上的家庭住戶）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "仅有长者的住户",
+          "description": "只有长者居住的家庭住户数目（包括所有除外籍家庭佣工以外的成员皆为65 岁及以上的家庭住户）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "olderOnlyHouseholds",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_old",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "olderOnlyHouseholds",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Older-only households with one older person",
+          "description": "Percentage of older-only households with one person aged 65 or over.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有1名長者的僅有長者住戶",
+          "description": "只有長者居住的家庭住戶百分比分布 - 住戶中的65歲及以上長者人數：1人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有1名长者的仅有长者住户",
+          "description": "只有长者居住的家庭住户百分比分布 - 住户中的65岁及以上长者人数：1人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "olderOnlyHouseholdsWithOneOlderPerson",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_old_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "denominatorMeasureCode": "olderOnlyHouseholds",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Older-only households with two or more older people",
+          "description": "Percentage of older-only households with two or more people aged 65 or over.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有2名或以上長者的僅有長者住戶",
+          "description": "只有長者居住的家庭住戶百分比分布 - 住戶中的65歲及以上長者人數：2人及以上",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有2名或以上长者的仅有长者住户",
+          "description": "只有长者居住的家庭住户百分比分布 - 住户中的65岁及以上长者人数：2人及以上",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "olderOnlyHouseholdsWithTwoOrMoreOlderPeople",
+      "schemaSpecification": {
+        "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh_old_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    }
+  ],
+  "schemaVersion": 6
+}

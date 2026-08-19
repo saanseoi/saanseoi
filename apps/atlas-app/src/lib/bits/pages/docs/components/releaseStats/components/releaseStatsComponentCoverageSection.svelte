@@ -3,6 +3,7 @@ import type {
   ComponentCoveragePresentation,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
+import InfoTooltip from './releaseStatsInfoTooltip.svelte'
 import Section from './releaseStatsSection.svelte'
 let {
   rows,
@@ -13,14 +14,20 @@ let {
   ><p
     class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
   >
-    {labels.coverage}
+    Availability
   </p>
-  <h2
-    id="stats-address-components"
-    class="mt-1 font-display text-title-lg font-bold text-primary"
-  >
-    {labels.addressComponents}
-  </h2>
+  <div class="flex items-start justify-between gap-3">
+    <h2
+      id="stats-address-components"
+      class="mt-1 font-display text-title-lg font-bold text-primary"
+    >
+      {labels.addressComponents}
+    </h2>
+    <InfoTooltip
+      label="About address component availability"
+      description="The share of addresses whose formatted labels include each optional component. A missing component does not mean the address is incomplete."
+    />
+  </div>
   <div class="mt-5 grid gap-3">
     {#each rows as row}
       <div class="grid grid-cols-[minmax(0,1fr)_max-content] items-center gap-3">

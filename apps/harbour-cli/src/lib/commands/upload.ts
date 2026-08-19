@@ -13,6 +13,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import {
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
+} from '@repo/core/db/metaRegistry'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -30,6 +34,7 @@ import {
 } from '../sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../sources/hkgov/hkgovHad.ts'
 import { prepareLandsdPlaceNameDivisionUpload } from '../sources/landsd/landsdPlaceName.ts'
+import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import {
   describeTarget,
   formatMutedValue,
@@ -52,6 +57,7 @@ import {
 import { checkOvertureUploadAssumptions } from '../upload/overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
+import { createApiReleaseSetRevisionDraft } from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
@@ -76,12 +82,16 @@ export async function runUploadCommand(
     forceUpload: boolean
     /** Allows a source-specific local repair to reprocess a published release. */
     allowReprocessPublished?: boolean
+    /** Allows a native importer to register an independent older cohort. */
+    allowHistoricalCohort?: boolean
     invocationCwd: string
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
     divisionCohortKey?: string
     processingActions?: ReleaseProcessingAction[]
     quiet?: boolean
+    /** Interactive command to offer when a non-interactive run lacks release notes. */
+    releaseNotesRetryCommand?: string
     skipConfirm: boolean
     skipSnapshotCleanup: boolean
     validateGeometry: boolean
@@ -117,6 +127,9 @@ ${mutedBar}  `)
   let divisionGeometryTransform: 'simplified' | undefined
   try {
     const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
+    if (options.allowHistoricalCohort) {
+      registerOptions.allowHistoricalCohort = true
+    }
     const hkgovHadPreparation = await prepareHkgovHadGeoJsonUpload(
       registerOptions.filePath,
       registerOptions.source,
@@ -195,9 +208,22 @@ ${mutedBar}  `)
       registerOptions.filePath,
       previewResult,
     )
+    const [datasetFixture] = await loadDatasetFixtures(
+      new Set([previewResult.plan.datasetCode]),
+    )
+    const revisionDraft = () => ({
+      datasetName:
+        datasetFixture?.i18n?.find(entry => entry.locale === 'en')?.name ??
+        previewResult.plan.datasetCode,
+      prompt: !options.skipConfirm,
+      publisherCode: datasetFixture?.publisherCode ?? previewResult.plan.source,
+      sourceVersion: previewResult.plan.sourceVersion,
+    })
 
     note(
-      formatSummary(previewResult, target).join('\n'),
+      formatSummary(previewResult, target, {
+        schemaSpecificationUrl: datasetFixture?.schemaSpecificationURL,
+      }).join('\n'),
       options.dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
     )
 
@@ -216,6 +242,7 @@ ${mutedBar}  `)
 
     const releaseNotesUrl = await resolveReleaseNotesUrl(previewResult.plan, {
       explicitUrl: registerOptions.releaseNotesUrl,
+      interactiveRetryCommand: options.releaseNotesRetryCommand,
       skipPrompt: options.skipConfirm,
     })
     registerOptions.releaseNotesUrl = releaseNotesUrl
@@ -415,7 +442,10 @@ ${mutedBar}  `)
           ),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -444,7 +474,10 @@ ${mutedBar}  `)
             regionCode: previewResult.plan.regionCode,
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
-            source: previewResult.plan.source as 'hkgov-landsd' | 'overture',
+            source: previewResult.plan.source as
+              | 'hkgov-censtatd'
+              | 'hkgov-landsd'
+              | 'overture',
             sourceVersion: previewResult.plan.sourceVersion,
             theme: previewResult.plan.theme,
             type: previewResult.plan.type,
@@ -464,7 +497,10 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -487,7 +523,7 @@ ${mutedBar}  `)
         if (!preparedUploadFile) {
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
-        await processLocalStreetSqlUpload(
+        const processingResult = await processLocalStreetSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -502,6 +538,10 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -545,7 +585,10 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult ?? undefined,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -579,6 +622,7 @@ ${mutedBar}  `)
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
+            datasetCode: previewResult.plan.datasetCode,
             regionCode: previewResult.plan.regionCode,
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
@@ -608,6 +652,7 @@ ${mutedBar}  `)
             target,
             {
               cohortKey: previewResult.plan.cohortKey,
+              datasetCode: previewResult.plan.datasetCode,
               regionCode: previewResult.plan.regionCode,
               releaseCode: previewResult.plan.releaseCode,
               rowCount: previewResult.plan.rowCount,
@@ -648,8 +693,9 @@ ${mutedBar}  `)
           ),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(
+        await logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
+          revisionDraft(),
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -673,21 +719,24 @@ ${mutedBar}  `)
             'C&SD statistic SQL processing requires its district statistic dataset.',
           )
         }
-        await processLocalHkgovCenstatdDistrictStatisticSqlUpload(
-          target,
-          {
-            cohortKey: previewResult.plan.cohortKey,
-            regionCode: 'hk',
-            releaseCode: previewResult.plan.releaseCode,
-            rowCount: previewResult.plan.rowCount,
-            source: 'hkgov-censtatd',
-            sourceVersion: previewResult.plan.sourceVersion,
-            theme: 'stats',
-            type: 'divisionStatistic',
-          },
-          uploadResult,
-          preparedUploadFile,
-        )
+        const processingResult =
+          await processLocalHkgovCenstatdDistrictStatisticSqlUpload(
+            target,
+            {
+              cohortKey: previewResult.plan.cohortKey,
+              regionCode: 'hk',
+              releaseCode: previewResult.plan.releaseCode,
+              rowCount: previewResult.plan.rowCount,
+              source: 'hkgov-censtatd',
+              sourceVersion: previewResult.plan.sourceVersion,
+              theme: 'stats',
+              type: 'divisionStatistic',
+            },
+            uploadResult,
+            preparedUploadFile,
+            { promptForCuration: !options.skipConfirm },
+          )
+        await logApiReleaseSetPublication(processingResult, revisionDraft())
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -700,7 +749,7 @@ ${mutedBar}  `)
       if (processingStrategy.mode === 'local-hkgov-censtatd-generic-statistic-sql') {
         if (!preparedUploadFile)
           throw new Error('Expected a prepared upload file for local SQL processing.')
-        await processLocalHkgovCenstatdStatisticSqlUpload(
+        const processingResult = await processLocalHkgovCenstatdStatisticSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -710,7 +759,9 @@ ${mutedBar}  `)
           },
           uploadResult,
           preparedUploadFile,
+          { promptForCuration: !options.skipConfirm },
         )
+        await logApiReleaseSetPublication(processingResult, revisionDraft())
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -944,7 +995,8 @@ function resolveUploadProcessingStrategy(
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
-      previewResult.plan.source === 'hkgov-landsd')
+      previewResult.plan.source === 'hkgov-landsd' ||
+      previewResult.plan.source === 'hkgov-censtatd')
   ) {
     return {
       mode: 'local-division-sql' as const,
@@ -1170,7 +1222,11 @@ export async function assertDivisionGeometryUploadPrerequisites(
   }
 
   // HAD and C&SD district areas are independently bridged to canonical divisions.
-  if (plan.source === 'hkgov-had' || plan.source === 'hkgov-censtatd') {
+  if (
+    plan.source === 'hkgov-had' ||
+    (plan.source === 'hkgov-censtatd' &&
+      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+  ) {
     return
   }
 
@@ -1199,9 +1255,9 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const snapshots = target.remote
     ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
     : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
-  const domainCode = resolveDivisionDomainCode(plan.source)
+  const domainCode = resolveDivisionDomainCode(plan.source, plan.datasetCode)
   const cohortIndependentReleases =
-    domainCode === 'overture'
+    domainCode === 'geographic'
       ? target.remote
         ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
         : await resolveLocalCohortIndependentDivisionReleases(target, plan)
@@ -1213,7 +1269,7 @@ export async function resolveDivisionApiReleaseSetReadiness(
   )
   const boundaryAvailable = snapshots.divisionBoundary
   const ready =
-    domainCode === 'overture'
+    domainCode === 'geographic'
       ? divisionAvailable &&
         areaAvailable &&
         cohortIndependentRequirementsAvailable &&
@@ -1231,13 +1287,13 @@ export async function resolveDivisionApiReleaseSetReadiness(
 
 export function formatDivisionApiReleaseSetReadiness(
   plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'> &
-    Partial<Pick<DivisionGeometryPlan, 'source'>>,
+    Partial<Pick<DivisionGeometryPlan, 'datasetCode' | 'source'>>,
   readiness: DivisionReleaseSetReadiness,
 ) {
   const rows = [
     ['division', readiness.divisionAvailable],
     ['divisionArea', readiness.areaAvailable],
-    ...(resolveDivisionDomainCode(plan.source) === 'overture'
+    ...(resolveDivisionDomainCode(plan.source, plan.datasetCode) === 'geographic'
       ? ([['divisionBoundary', readiness.boundaryAvailable]] as const)
       : []),
   ] as const
@@ -1245,7 +1301,7 @@ export function formatDivisionApiReleaseSetReadiness(
 
   return [
     '# EXACT REF',
-    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source)} / ${plan.cohortKey}`,
+    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
         `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
@@ -1335,7 +1391,7 @@ async function resolveAddressApiReleaseSetReadiness(
   }
 }
 
-function logApiReleaseSetPublication(
+async function logApiReleaseSetPublication(
   result:
     | {
         apiCatalogRevisionCode?: string
@@ -1349,6 +1405,12 @@ function logApiReleaseSetPublication(
     | void
     | null
     | undefined,
+  revisionDraft?: {
+    datasetName: string
+    prompt: boolean
+    publisherCode: string
+    sourceVersion: string
+  },
 ) {
   if (result?.apiReleaseSetPublications?.length) {
     for (const publication of result.apiReleaseSetPublications) {
@@ -1373,23 +1435,59 @@ function logApiReleaseSetPublication(
   } else if (releaseSetCode) {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
+
+  if (!revisionDraft) return
+
+  const releaseSetCodes = [
+    ...(result?.apiReleaseSetPublications?.map(
+      publication => publication.apiReleaseSetCode,
+    ) ?? []),
+    ...(releaseSetCode ? [releaseSetCode] : []),
+  ]
+
+  for (const apiReleaseSetCode of new Set(releaseSetCodes)) {
+    try {
+      const draft = await createApiReleaseSetRevisionDraft(
+        { apiReleaseSetCode, ...revisionDraft },
+        { prompt: revisionDraft.prompt },
+      )
+      if (draft?.status === 'created') {
+        log.info(`Drafted revision notes: ${draft.path}`)
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error)
+      log.warn(`API revision notes were not drafted: ${reason}`)
+    }
+  }
 }
 
-function resolveDivisionDomainCode(source: DivisionGeometryPlan['source'] | undefined) {
+function resolveDivisionDomainCode(
+  source: DivisionGeometryPlan['source'] | undefined,
+  datasetCode?: string,
+) {
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+  ) {
+    return 'hkgov-censtatd-hma'
+  }
   return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
     ? source
-    : 'overture'
+    : 'geographic'
 }
 
-function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefined) {
-  const domainCode = resolveDivisionDomainCode(source)
+function matchesDivisionDomain(
+  source: DivisionGeometryPlan['source'] | undefined,
+  datasetCode?: string,
+) {
+  const domainCode = resolveDivisionDomainCode(source, datasetCode)
 
   // The initial Overture division snapshot predates snapshot lineages. Its
   // primary dataset is therefore the durable domain identity until it is
   // superseded by a lineage-backed revision.
-  return domainCode === 'overture'
+  return domainCode === 'geographic'
     ? or(
-        eq(metaSchema.metaSnapshotLineages.variant, domainCode),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
         eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
       )
     : eq(metaSchema.metaSnapshotLineages.variant, domainCode)
@@ -1436,6 +1534,12 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   )
   try {
     const db = dbContext.metaDb
+    if (isCenstatdAreaTypePlan(plan)) {
+      return await resolveCenstatdAreaTypeDivisionSnapshot(
+        db as unknown as HarbourReadableDb,
+        plan,
+      )
+    }
     return (
       (await db
         .select({
@@ -1464,7 +1568,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-            matchesDivisionDomain(plan.source),
+            matchesDivisionDomain(plan.source, plan.datasetCode),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )
@@ -1480,9 +1584,14 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ) {
-  return withRemoteCachedMetaDb(
-    target,
-    async db =>
+  return withRemoteCachedMetaDb(target, async db => {
+    if (isCenstatdAreaTypePlan(plan)) {
+      return resolveCenstatdAreaTypeDivisionSnapshot(
+        db as unknown as HarbourReadableDb,
+        plan,
+      )
+    }
+    return (
       (await db
         .select({
           resourceType: metaSchema.metaSnapshots.resourceType,
@@ -1509,13 +1618,44 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-            matchesDivisionDomain(plan.source),
+            matchesDivisionDomain(plan.source, plan.datasetCode),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )
         .limit(1)
-        .get()) ?? null,
+        .get()) ?? null
+    )
+  })
+}
+
+async function resolveCenstatdAreaTypeDivisionSnapshot(
+  db: HarbourReadableDb,
+  plan: DivisionGeometryPlan,
+) {
+  return (
+    (await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+      db,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { publisherCode: 'overture' },
+    )) ??
+    (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+      db,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { publisherCode: 'overture' },
+    ))
+  )
+}
+
+function isCenstatdAreaTypePlan(plan: DivisionGeometryPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
   )
 }
 
@@ -1569,7 +1709,7 @@ async function resolveLocalDivisionReleaseSetSnapshots(
                     eq(metaSchema.metaSnapshots.status, 'published'),
                     eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
                     eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-                    matchesDivisionDomain(plan.source),
+                    matchesDivisionDomain(plan.source, plan.datasetCode),
                     eq(metaSchema.metaSnapshotSources.role, 'primary'),
                   ),
                 )
@@ -1620,7 +1760,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
           inArray(metaSchema.metaSnapshots.resourceType, resourceTypes),
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          matchesDivisionDomain(plan.source),
+          matchesDivisionDomain(plan.source, plan.datasetCode),
           eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
           eq(metaSchema.metaSnapshotSources.role, 'primary'),
         ),

@@ -228,9 +228,11 @@ Interactive imports show the old and new relevant details and require one choice
 - **Generate a new ID** — record that the later row is a different premise.
 
 With `--yes`, the command does not guess: it stops before that release's database write
-and writes `.local/hkgov-dpo/identity-drift/{source-version}.json` for review. A changed
-CSU/GeoAddress, route/name or number, district, coordinate movement, or several possible
-historic candidates does not automatically link records.
+and writes `.local/hkgov-dpo/identity-drift/{source-version}.json` for review. It prints
+the exact interactive command for that source version; after its decisions are saved, a
+later `update --yes` can continue non-interactively. A changed CSU/GeoAddress,
+route/name or number, district, coordinate movement, or several possible historic
+candidates does not automatically link records.
 
 ## Commands
 

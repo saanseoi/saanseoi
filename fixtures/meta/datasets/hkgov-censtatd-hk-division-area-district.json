@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d683b1dbe0358b13cbada590e2d80f493aec38319bdf5af594a43883e4e009d3",
+  "versionHash": "sha256:41385ac18d1ff3d355017cdffbcd26511621b139d859f34f6b802073e4fe8e9d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -51,7 +51,7 @@
     {
       "sourceVersion": "2016",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765",
-      "identicalArchiveSlots": [
+      "verifiedIdenticalArchiveSlots": [
         {
           "releaseSlot": "2023-Q3",
           "sourceObjectHash": "218c737610e0ae91cdfa67fb6e80ff9c98e55143abe8f72ff2b1c8bd1396760b",
@@ -83,7 +83,7 @@
       "sourceVersion": "2021",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
       "publisherLastRevisedAt": "2026-06-05",
-      "identicalArchiveSlots": [
+      "verifiedIdenticalArchiveSlots": [
         {
           "releaseSlot": "2023-Q3",
           "sourceObjectHash": "07a4cd854c5a5f9c2d920a615804b68a2f06a79c9c604338a8cfc8b504b6676c",

@@ -198,6 +198,128 @@ export const canonicalDivisionStatistic = {
   sources: jsonText('sources').notNull(),
 }
 
+/**
+ * One publisher feature and reference period, with its complete statistic
+ * payload. Keeping values together avoids one D1 write per measure.
+ */
+export type CanonicalStatsRecordValue = {
+  /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
+  sourceField: string
+  /** Decimal text, never a floating point approximation. */
+  numericValue: string | null
+  /** Categorical value where no numeric observation exists. */
+  valueCode: string | null
+  /** Decimal increment, e.g. `100` for a value rounded to the nearest hundred. */
+  valuePrecision: string | null
+  observationStatus: string
+  /** Original publisher literal, retained even when the numeric value is scaled. */
+  sourceValue: string
+}
+
+/** Shared feature-level context and packed values for a statistic record. */
+export const canonicalStatsRecord = {
+  id: text('id').notNull(),
+  datasetCode: text('datasetCode').notNull(),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  /** `<layerName>:<gml:id>` (or the equivalent stable publisher feature ID). */
+  sourceFeatureId: text('sourceFeatureId').notNull(),
+  /** Present only after a reviewed bridge to a canonical division exists. */
+  divisionId: text('divisionId'),
+  referencePeriodCode: text('referencePeriodCode').notNull(),
+  referencePeriodStart: text('referencePeriodStart'),
+  referencePeriodEnd: text('referencePeriodEnd'),
+  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  /** The source geography cohort used by this series, where applicable. */
+  geographyCohortId: text('geographyCohortId'),
+  /** Dimension values for this publisher feature, keyed by dimension code. */
+  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Values keyed by stable reviewed measure code. */
+  values: jsonText<Record<string, CanonicalStatsRecordValue>>('values').notNull(),
+}
+
+/**
+ * The semantic interpretation of a statistic. This remains independent from
+ * whether its source value is numeric and from the unit used to express it.
+ */
+export const statsStatisticKinds = [
+  'count',
+  'quantity',
+  'proportion',
+  'ratio',
+  'rate',
+  'density',
+  'index',
+  'unreviewed',
+] as const
+
+export type StatsStatisticKind = (typeof statsStatisticKinds)[number]
+
+export const statsAggregations = [
+  'none',
+  'total',
+  'mean',
+  'median',
+  'minimum',
+  'maximum',
+  'percentile',
+  'unreviewed',
+] as const
+
+export type StatsAggregation = (typeof statsAggregations)[number]
+
+export const canonicalStatsMeasure = {
+  datasetCode: text('datasetCode').notNull(),
+  measureCode: text('measureCode').notNull(),
+  sourceField: text('sourceField').notNull(),
+  /** Exact publisher nullability declaration, when its schema supplies one. */
+  sourceNullOption: text('sourceNullOption'),
+  /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
+  statisticKind: text('statisticKind', {
+    enum: statsStatisticKinds,
+  })
+    .notNull()
+    .default('unreviewed'),
+  /** Statistical aggregation applied before the publisher supplied this value. */
+  aggregation: text('aggregation', { enum: statsAggregations })
+    .notNull()
+    .default('unreviewed'),
+  /** Canonical measure used as the denominator, when the statistic has one. */
+  denominatorMeasureCode: text('denominatorMeasureCode'),
+  valueKind: text('valueKind').notNull(),
+  unitCode: text('unitCode').notNull(),
+}
+
+export const canonicalStatsMeasureI18n = {
+  datasetCode: text('datasetCode').notNull(),
+  measureCode: text('measureCode').notNull(),
+  locale: text('locale').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  /** False only when a machine translation filled a missing publisher locale. */
+  isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+}
+
+export const canonicalStatsDimension = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+}
+
+export const canonicalStatsValue = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+  valueCode: text('valueCode').notNull(),
+}
+
+export const canonicalStatsValueI18n = {
+  datasetCode: text('datasetCode').notNull(),
+  dimensionCode: text('dimensionCode').notNull(),
+  valueCode: text('valueCode').notNull(),
+  locale: text('locale').notNull(),
+  name: text('name').notNull(),
+}
+
 export const canonicalAddress2d = {
   id: text('id').notNull(),
   streetId: text('streetId'),

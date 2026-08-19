@@ -16,6 +16,21 @@ Chinese labels stay paired on their parent source row (`nameEn` and `nameZhHant`
 notices retain paired `descriptionEn` and `descriptionZhHant` there too, rather than
 using source locale rows.
 
+## Historic baseline version
+
+The historic source-version anchor for the gazetted baseline is **`2016-01-01.0`**. The
+initial local bootstrap runs `hkgov-landsd-streets:baseline` before
+`hkgov-landsd-streets:landsd-notices`, and stages the baseline payload at that version.
+It deliberately predates the LandsD notice-feed boundary of 22 January 2016. This is a
+source-version anchor for a present-state reconciliation list, not a claim that the
+publisher PDF itself was issued on 1 January 2016.
+
+`2026-08-14.0` is not a replacement baseline: it is the latest Government Notice date
+included in the current assembled release. When a complete notice ledger is present, the
+assembler versions the combined payload by that latest notice date; it falls back to
+`2016-01-01.0` only when there are no notice records. Consequently, the normal complete
+ingest does not create a separate published `2016-01-01.0` snapshot release.
+
 ## Notice ledger and evidence
 
 The append-only source ledger retains the notice event ID, LandsD-listed `gazetteDate`
@@ -94,8 +109,8 @@ publisher provenance, not a canonical-street lookup key. A deletion updates the
 application’s explicit affected street and sets `deletedAt` only for a confidently
 parsed legal effective date.
 
-Declarations may create a new street automatically. Other existing-street changes
-require a versioned application fixture in
+Declarations may create a new street automatically. Other existing-street changes and
+deletions require a versioned application fixture in
 [`fixtures/meta/curations/hkgov-landsd-street.json`](../../../../fixtures/meta/curations/hkgov-landsd-street.json).
 It is a schema-version 2 manifest; an empty `decisions` array is valid until a
 reviewable notice needs a manual disposition. The first blocked run writes
@@ -154,9 +169,12 @@ name. Its later declaration is where the corresponding whole or partial name-cha
 application is recorded.
 
 Each updater run emits one source release and canonical snapshot for the newly observed
-batch of notices. Current snapshots contain active streets only. Historic deleted states
-and the replay projection remain in history, while every current street includes its own
-`attributes.changelog`; the full replay is available at `GET /v0/hk/streets/changelog`.
+batch of notices. The source-release notes enumerate only subsequent Government Notice
+events; the complete gazetted baseline is retained in the release payload, not written
+as changelog entries. Current snapshots contain active streets only. Historic deleted
+states and the replay projection remain in history, while every current street includes
+its own `attributes.changelog`; the full replay is available at
+`GET /v0/hk/streets/changelog`.
 
 ## Names and districts
 
@@ -168,7 +186,9 @@ Translation failures block publication; Traditional Chinese is never a silent fa
 Publisher district labels and baseline district codes stay in the source ledger. During
 canonical materialisation they are resolved against the published district snapshot and
 stored as canonical `districtIds`; those IDs never leak back into source storage. An
-unresolved district blocks publication and is reported as a quality error.
+unresolved district blocks publication and is reported as a quality error. The gazetted
+baseline's `Is` and `K&T` codes resolve respectively to Islands and Kwai Tsing through
+the versioned bridge; mixed codes retain every applicable district.
 
 ## Upstream
 

@@ -57,4 +57,24 @@ describe('Overture release notes', () => {
       'https://docs.overturemaps.org/blog/2025/09/24/release-notes/#divisions',
     )
   })
+
+  test('offers an interactive updater retry when release notes are missing', async () => {
+    const plan = buildOvertureDivisionPlan('division')
+    plan.releaseCode = buildDatasetReleaseCode(
+      'hk',
+      'overture',
+      '2026-08-19.0',
+      'division',
+    )
+
+    await expect(
+      resolveReleaseNotesUrl(plan, {
+        interactiveRetryCommand:
+          './bin/saanseoi update --target local --dataset ds-hk-overture-division --download --check-now',
+        skipPrompt: true,
+      }),
+    ).rejects.toThrow(
+      'No upstream release-notes URL is cached for dr-hk-overture-division-2026-08-19.0. Pass --release-notes-url URL.\n\nRun interactively with:\n./bin/saanseoi update --target local --dataset ds-hk-overture-division --download --check-now',
+    )
+  })
 })

@@ -5,6 +5,8 @@ import { dirname, resolve } from 'node:path'
 export const AZURE_TRANSLATION_MACHINE = 'azure-translator-v3'
 export const AZURE_TRANSLATION_REGION = 'eastasia'
 
+type AzureTranslationLocale = 'en' | 'yue' | 'zh-Hans' | 'zh-Hant'
+
 export type LandsdStreetTranslationProvenance = {
   machine: typeof AZURE_TRANSLATION_MACHINE
   sourceLocale: 'zh-Hant'
@@ -21,6 +23,42 @@ export type LandsdStreetTranslatedName = {
 type TranslationFetch = (input: string | URL, init?: RequestInit) => Promise<Response>
 
 type TranslationCache = Record<string, { name: string; translatedAt: string }>
+
+/** Translate a small set of distinct schema labels when no publisher locale exists. */
+export async function translateAzureTexts(
+  texts: Iterable<string>,
+  options: {
+    apiKey?: string
+    fetch?: TranslationFetch
+    from: AzureTranslationLocale
+    region?: string
+    to: AzureTranslationLocale
+  },
+) {
+  const apiKey = options.apiKey ?? process.env.AZURE_TRANSLATION_KEY
+  if (!apiKey) {
+    throw new Error('AZURE_TRANSLATION_KEY is required for missing publisher locales.')
+  }
+  const uniqueTexts = [...new Set([...texts].map(text => text.trim()).filter(Boolean))]
+  const translated = new Map<string, string>()
+  for (const batch of chunk(uniqueTexts, 50)) {
+    const values = await translateAzureBatch(batch, apiKey, {
+      fetch: options.fetch ?? globalThis.fetch,
+      from: options.from,
+      region: options.region ?? AZURE_TRANSLATION_REGION,
+      to: options.to,
+    })
+    if (values.length !== batch.length || values.some(value => !value?.trim())) {
+      throw new Error('Azure Translator returned an incomplete schema-label batch.')
+    }
+    for (const [index, source] of batch.entries()) {
+      const value = values[index]
+      if (!value) throw new Error('Azure Translator returned an empty schema label.')
+      translated.set(source, value.trim())
+    }
+  }
+  return translated
+}
 
 /**
  * Translate distinct Traditional Chinese street names once and cache successful
@@ -55,7 +93,9 @@ export async function translateLandsdStreetNames(
   for (const batch of chunk(untranslated, 50)) {
     const translated = await translateAzureBatch(batch, apiKey, {
       fetch: fetchImplementation,
+      from: 'yue',
       region: options.region ?? AZURE_TRANSLATION_REGION,
+      to: 'zh-Hans',
     })
     if (translated.length !== batch.length) {
       throw new Error('Azure Translator returned an incomplete LandsD name batch.')
@@ -102,15 +142,18 @@ export async function translateLandsdStreetNames(
 async function translateAzureBatch(
   names: string[],
   apiKey: string,
-  options: { fetch: TranslationFetch; region: string },
+  options: {
+    fetch: TranslationFetch
+    from: AzureTranslationLocale
+    region: string
+    to: AzureTranslationLocale
+  },
 ) {
   const endpoint = new URL('https://api.cognitive.microsofttranslator.com/translate')
   endpoint.search = new URLSearchParams({
     'api-version': '3.0',
-    // Match the existing Hype integration: LandsD's Traditional Chinese
-    // names are Cantonese/Hong Kong source text, which Azure denotes as yue.
-    from: 'yue',
-    to: 'zh-Hans',
+    from: options.from,
+    to: options.to,
   }).toString()
   const response = await options.fetch(endpoint.toString(), {
     body: JSON.stringify(names.map(text => ({ text }))),

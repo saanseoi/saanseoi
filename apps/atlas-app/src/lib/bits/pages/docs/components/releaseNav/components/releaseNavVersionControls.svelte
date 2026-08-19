@@ -3,13 +3,19 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseNavVersion, ReleaseNavVersionPreload } from '../releaseNav.types'
 
 type Props = {
+  currentCohortKey?: string | null
   currentVersionCode: string
   onVersionPreload?: ReleaseNavVersionPreload
   versions: ReleaseNavVersion[]
 }
-let { currentVersionCode, onVersionPreload, versions }: Props = $props()
+let { currentCohortKey, currentVersionCode, onVersionPreload, versions }: Props =
+  $props()
 let currentVersionIndex = $derived(
-  versions.findIndex(version => version.code === currentVersionCode),
+  versions.findIndex(
+    version =>
+      version.code === currentVersionCode ||
+      (currentCohortKey !== undefined && version.cohortKey === currentCohortKey),
+  ),
 )
 let controls = $derived([
   {

@@ -27,11 +27,14 @@ const API_VERSION_ID_NAMESPACE = 'c289d557-af8a-59ef-a7d0-2861a00fc8bc'
 const API_COMPOSITION_ID_NAMESPACE = 'ba6a345f-d57a-51d8-9256-bcda2275e6d3'
 const API_ENDPOINT_ID_NAMESPACE = 'f27eaf73-6d20-578d-80d7-5e515447aa62'
 const DATA_SHARD_ID_NAMESPACE = 'e7956160-6b36-521f-a0cb-ac3c0769b5c7'
+const UNIT_ID_NAMESPACE = 'f78a7f44-3e21-54f4-a6e1-56c021bb7c29'
 
 export const metaRegistryRequiredTables = [
   'publishers',
   'publisherI18n',
   'licenses',
+  'units',
+  'unitsI18n',
   'datasets',
   'datasetResourceTypes',
   'datasetI18n',
@@ -81,6 +84,20 @@ type LicenseFixture = {
   code: string
   name: string
   url?: string
+}
+
+type UnitFixture = {
+  versionHash: string
+  units: Array<{
+    code: string
+    dimension: string
+    symbol: string
+    i18n: Array<{
+      locale: Locale
+      name: string
+      description?: string
+    }>
+  }>
 }
 
 type DatasetFixture = {
@@ -244,6 +261,20 @@ type InitialPublisherI18nSeed = {
 
 type InitialLicenseSeed = VersionedFixture<LicenseFixture>
 
+type InitialUnitSeed = {
+  code: string
+  dimension: string
+  symbol: string
+  versionHash: string
+}
+
+type InitialUnitI18nSeed = {
+  code: string
+  locale: Locale
+  name: string
+  description?: string
+}
+
 type InitialDatasetSeed = VersionedFixture<
   Omit<
     DatasetFixture,
@@ -394,6 +425,7 @@ function sqlTimestampMs(value: string) {
 }
 
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
+const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
 const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions')
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
@@ -436,6 +468,16 @@ export const initialPublisherI18n: InitialPublisherI18nSeed[] =
   )
 
 export const initialLicenses = readFixtureDir<InitialLicenseSeed>('dataLicenses')
+
+export const initialUnits: InitialUnitSeed[] = unitFixtures.flatMap(fixture =>
+  fixture.units.map(unit => ({ ...unit, versionHash: fixture.versionHash })),
+)
+
+export const initialUnitsI18n: InitialUnitI18nSeed[] = unitFixtures.flatMap(fixture =>
+  fixture.units.flatMap(unit =>
+    unit.i18n.map(translation => ({ code: unit.code, ...translation })),
+  ),
+)
 
 export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture => ({
   versionHash: fixture.versionHash,
@@ -699,6 +741,49 @@ WHERE licenses.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
+  for (const unit of initialUnits) {
+    statements.push(
+      `
+INSERT INTO units (
+  id, code, dimension, symbol, versionHash, createdAt, updatedAt
+) VALUES (
+  ${sqlDeterministicId(UNIT_ID_NAMESPACE, unit.code)},
+  ${sqlString(unit.code)},
+  ${sqlString(unit.dimension)},
+  ${sqlString(unit.symbol)},
+  ${sqlString(unit.versionHash)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(code) DO UPDATE SET
+  dimension = excluded.dimension,
+  symbol = excluded.symbol,
+  versionHash = excluded.versionHash,
+  updatedAt = excluded.updatedAt
+WHERE units.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  for (const translation of initialUnitsI18n) {
+    statements.push(
+      `
+INSERT INTO unitsI18n (
+  unitId, locale, name, description, createdAt, updatedAt
+) VALUES (
+  (SELECT id FROM units WHERE code = ${sqlString(translation.code)}),
+  ${sqlString(translation.locale)},
+  ${sqlString(translation.name)},
+  ${sqlNullable(translation.description)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(unitId, locale) DO UPDATE SET
+  name = excluded.name,
+  description = excluded.description,
+  updatedAt = excluded.updatedAt;`.trim(),
+    )
+  }
+
   for (const bridge of initialIdentifierBridges) {
     statements.push(
       `
@@ -916,6 +1001,35 @@ ON CONFLICT(code) DO UPDATE SET
 WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     )
   }
+
+  // The pre-release Divisions API originally named its default Geographic
+  // domain after its Overture primary member. The domain is broader than that
+  // publisher: it can carry optional C&SD enrichments. Reconcile existing
+  // local/preview release sets in place so their immutable cohort/revision
+  // identity is retained without keeping an obsolete domain alias.
+  statements.push(
+    `
+UPDATE apiReleaseSets
+SET domainCode = 'geographic',
+    updatedAt = ${nowSql}
+WHERE apiCompositionId = ${sqlDeterministicId(
+      API_COMPOSITION_ID_NAMESPACE,
+      'comp-divisions-v1',
+    )}
+  AND domainCode = 'overture';`.trim(),
+  )
+
+  // A composition fixture declares the complete current set of member slots.
+  // Replacing a variant must not leave its previous slot active alongside it.
+  statements.push(
+    `
+DELETE FROM apiCompositionMembers
+WHERE apiCompositionId IN (
+  SELECT id
+  FROM apiComposition
+  WHERE code IN (${initialApiCompositions.map(composition => sqlString(composition.code)).join(', ')})
+);`.trim(),
+  )
 
   for (const member of initialApiCompositionMembers) {
     statements.push(

@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { cancel, isCancel, note, outro, select } from '@clack/prompts'
+import { cancel, isCancel, note, outro, select, text } from '@clack/prompts'
 import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
@@ -65,6 +65,73 @@ type PublishDocsScope = DocsScope | 'all'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const API_RELEASE_SET_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiReleaseSets')
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
+const CENSTATD_CURATION_ROOT = resolve(
+  REPO_ROOT,
+  'fixtures/meta/curations/hkgov-censtatd-statistics',
+)
+
+type ApiReleaseSetRevisionDraft = {
+  apiReleaseSetCode: string
+  datasetName: string
+  message?: string
+  publisherCode: string
+  sourceVersion: string
+}
+
+/**
+ * Creates an editable English revision note after a new immutable API release
+ * revision has been published. Publication never depends on this local draft.
+ */
+export async function createApiReleaseSetRevisionDraft(
+  input: ApiReleaseSetRevisionDraft,
+  options: { prompt: boolean },
+) {
+  const parsedCode = parseReleaseSetCode(input.apiReleaseSetCode)
+  if (!parsedCode || parsedCode.sequence === 0) return null
+
+  const targetPath = resolveDocsFixturePath(
+    parsedCode.apiFamily,
+    input.apiReleaseSetCode,
+  )
+  if (existsSync(targetPath)) return { path: targetPath, status: 'existing' as const }
+
+  const previousCode = input.apiReleaseSetCode.replace(/-r\d+(?=--|$)/, '')
+  const previousFixture = await readFixtureIfExists(parsedCode.apiFamily, previousCode)
+  if (!previousFixture) {
+    throw new Error(
+      `Cannot draft revision notes for ${input.apiReleaseSetCode}: no prior fixture exists for ${previousCode}.`,
+    )
+  }
+
+  const publisherName = await resolvePublisherName(input.publisherCode)
+  const defaultMessage = `Added **${input.datasetName}** \`${input.sourceVersion}\` by _${publisherName}_ to this API Family Release.`
+  let message = input.message?.trim() || defaultMessage
+
+  if (options.prompt && !input.message) {
+    const answer = await text({
+      initialValue: defaultMessage,
+      message: `Revision note for ${input.apiReleaseSetCode}`,
+      validate: value => (value?.trim() ? undefined : 'Enter a revision note.'),
+    })
+    if (isCancel(answer)) return { status: 'cancelled' as const }
+    message = answer.trim()
+  }
+
+  const now = new Date().toISOString()
+  const body = appendEnglishRevisionLog(previousFixture.body, message)
+  const frontmatter = {
+    ...previousFixture.frontmatter,
+    apiReleaseSet: input.apiReleaseSetCode,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await mkdir(resolve(API_RELEASE_SET_DOCS_ROOT, parsedCode.apiFamily), {
+    recursive: true,
+  })
+  await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
+  return { path: targetPath, status: 'created' as const }
+}
 
 export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
   if ((await resolveDocsNewScope(args)) === 'releases') {
@@ -208,7 +275,7 @@ async function runApiReleaseSetDocsPublishCommand(
 
       const previousNotes = row.notes ?? ''
 
-      const notes = renderMarkdownFixtureBody(
+      const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForApiReleaseSetRow(row),
       )
@@ -371,7 +438,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
 
       const previousNotes = row.notes ?? ''
 
-      const notes = renderMarkdownFixtureBody(
+      const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForReleaseRow(row),
       )
@@ -739,7 +806,40 @@ function compareReleaseRows(left: ReleaseDocsRow, right: ReleaseDocsRow) {
 }
 
 function resolveDocsFixturePath(apiFamily: string, code: string) {
-  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}-r0.md`)
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+  )
+}
+
+async function resolvePublisherName(publisherCode: string) {
+  const path = resolve(
+    REPO_ROOT,
+    'fixtures/meta/dataPublishers',
+    `${publisherCode}.json`,
+  )
+  const fixture = JSON.parse(await readFile(path, 'utf8')) as {
+    i18n?: Array<{ locale?: string; name?: string }>
+  }
+  return fixture.i18n?.find(entry => entry.locale === 'en')?.name ?? publisherCode
+}
+
+function appendEnglishRevisionLog(body: string, message: string) {
+  const englishEnd = body.indexOf('\n# ZH-HANT')
+  const english = englishEnd === -1 ? body : body.slice(0, englishEnd)
+  const remainder = englishEnd === -1 ? '' : body.slice(englishEnd)
+  const heading = '## Revision log'
+  const entry = `- ${message}`
+  const existingHeading = english.indexOf(heading)
+
+  if (existingHeading !== -1) {
+    const nextHeading = english.indexOf('\n## ', existingHeading + heading.length)
+    const insertionPoint = nextHeading === -1 ? english.length : nextHeading
+    return `${english.slice(0, insertionPoint).trimEnd()}\n${entry}\n${english.slice(insertionPoint)}${remainder}`
+  }
+
+  return `${english.trimEnd()}\n\n${heading}\n\n${entry}\n${remainder}`
 }
 
 function resolveReleaseDocsFixturePath(datasetCode: string, code: string) {
@@ -884,7 +984,7 @@ function serialiseMarkdownFixture(frontmatter: Record<string, string>, body: str
     .join('\n')}\n---\n${ensureTrailingNewline(body)}`
 }
 
-export function renderMarkdownFixtureBody(
+export async function renderMarkdownFixtureBody(
   fixture: {
     body: string
     frontmatter: Record<string, string>
@@ -896,7 +996,7 @@ export function renderMarkdownFixtureBody(
     ...frontmatterOverride,
   }
 
-  return fixture.body.replace(
+  const markdown = fixture.body.replace(
     /\{\{\s*([a-z][A-Za-z0-9_-]*)\s*\}\}/g,
     (tag, key: string) => {
       const value = frontmatter[key]
@@ -908,6 +1008,155 @@ export function renderMarkdownFixtureBody(
       return value
     },
   )
+
+  return renderCenstatdMeasureTables(markdown, frontmatter)
+}
+
+/**
+ * Expands a reviewed C&SD measure curation into the release-note table for one
+ * locale. This keeps the notes coupled to the names and descriptions actually
+ * published by the statistics processor, rather than maintaining a second
+ * hand-written copy in Markdown.
+ */
+async function renderCenstatdMeasureTables(
+  markdown: string,
+  frontmatter: Record<string, string>,
+) {
+  const directive = /\{\{hkgovCenstatdMeasureTable:(en|zh-Hant|zh-Hans)\}\}/g
+
+  if (!directive.test(markdown)) return markdown
+
+  const curationPath = frontmatter.hkgovCenstatdCuration
+  if (!curationPath) {
+    throw new Error(
+      'C&SD measure-table directives require hkgovCenstatdCuration in fixture frontmatter.',
+    )
+  }
+
+  const path = resolve(REPO_ROOT, curationPath)
+  if (!path.startsWith(`${CENSTATD_CURATION_ROOT}/`) || !path.endsWith('.json')) {
+    throw new Error(`Invalid C&SD measure curation path: ${curationPath}`)
+  }
+
+  const manifest = parseCenstatdMeasureTableManifest(
+    JSON.parse(await readFile(path, 'utf8')),
+    path,
+  )
+
+  return markdown.replace(directive, (_tag, locale: CenstatdMeasureTableLocale) =>
+    renderCenstatdMeasureTable(manifest, locale),
+  )
+}
+
+type CenstatdMeasureTableLocale = 'en' | 'zh-Hant' | 'zh-Hans'
+
+type CenstatdMeasureTableManifest = {
+  measures: Array<{
+    localisations: Array<{
+      description: string
+      locale: CenstatdMeasureTableLocale
+      name: string
+    }>
+    measureCode: string
+    sourceField: string
+  }>
+}
+
+function parseCenstatdMeasureTableManifest(
+  value: unknown,
+  path: string,
+): CenstatdMeasureTableManifest {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !Array.isArray((value as { measures?: unknown }).measures)
+  ) {
+    throw new Error(`Invalid C&SD measure curation manifest: ${path}`)
+  }
+
+  const measures = (value as { measures: unknown[] }).measures.map((measure, index) => {
+    if (!measure || typeof measure !== 'object') {
+      throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
+    }
+
+    const entry = measure as {
+      localisations?: unknown
+      measureCode?: unknown
+      sourceField?: unknown
+    }
+    if (
+      typeof entry.measureCode !== 'string' ||
+      typeof entry.sourceField !== 'string' ||
+      !Array.isArray(entry.localisations)
+    ) {
+      throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
+    }
+
+    const localisations = entry.localisations.map((localisation, localisationIndex) => {
+      if (!localisation || typeof localisation !== 'object') {
+        throw new Error(
+          `Invalid C&SD measure localisation ${index + 1}.${localisationIndex + 1}: ${path}`,
+        )
+      }
+      const value = localisation as {
+        description?: unknown
+        locale?: unknown
+        name?: unknown
+      }
+      if (
+        typeof value.description !== 'string' ||
+        typeof value.name !== 'string' ||
+        !isCenstatdMeasureTableLocale(value.locale)
+      ) {
+        throw new Error(
+          `Invalid C&SD measure localisation ${index + 1}.${localisationIndex + 1}: ${path}`,
+        )
+      }
+      return value as CenstatdMeasureTableManifest['measures'][number]['localisations'][number]
+    })
+
+    return {
+      localisations,
+      measureCode: entry.measureCode,
+      sourceField: entry.sourceField,
+    }
+  })
+
+  return { measures }
+}
+
+function isCenstatdMeasureTableLocale(
+  value: unknown,
+): value is CenstatdMeasureTableLocale {
+  return value === 'en' || value === 'zh-Hant' || value === 'zh-Hans'
+}
+
+function renderCenstatdMeasureTable(
+  manifest: CenstatdMeasureTableManifest,
+  locale: CenstatdMeasureTableLocale,
+) {
+  const lines = [
+    '| sourceField | measureCode | name | description |',
+    '| --- | --- | --- | --- |',
+  ]
+
+  for (const measure of manifest.measures) {
+    const localisation = measure.localisations.find(entry => entry.locale === locale)
+    if (!localisation) {
+      throw new Error(
+        `C&SD measure ${measure.sourceField} has no ${locale} localisation for the release-note table.`,
+      )
+    }
+    lines.push(
+      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
+    )
+  }
+
+  return lines.join('\n')
+}
+
+function escapeMarkdownTableCell(value: string) {
+  return value.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>')
 }
 
 function frontmatterForApiReleaseSetRow(

@@ -4,7 +4,7 @@
  * the current canonical-division names so this bridge never embeds unstable
  * canonical IDs.
  */
-export const LANDSD_STREET_DISTRICT_BRIDGE_VERSION = '2026-07-26.1'
+export const LANDSD_STREET_DISTRICT_BRIDGE_VERSION = '2026-08-20.1'
 
 export type LandsdStreetCanonicalDistrict = {
   id: string
@@ -29,6 +29,8 @@ const districtCodeNames: Record<string, string> = {
   'c&w': 'central and western',
   e: 'eastern',
   i: 'islands',
+  is: 'islands',
+  'k&t': 'kwai tsing',
   kc: 'kowloon city',
   kt: 'kwun tong',
   n: 'north',
