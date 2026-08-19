@@ -124,6 +124,7 @@ export async function runUpdateCommand(
   const skipPrompts = args.options.yes === true
   const forceCheck =
     args.options.force === true || args.options['check-now'] === true || forceDownload
+  const forceUpload = args.options.force === true
   const errors: string[] = []
   const added = new Map<string, PublishedSourceRelease>()
   let reportedTargetLookupFailure = false
@@ -245,6 +246,7 @@ export async function runUpdateCommand(
         added,
         errors,
         forceDownload,
+        forceUpload,
         printUsage,
         shouldDownload,
         skipPrompts,
@@ -299,7 +301,7 @@ function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
   return {
     'new-releases': 'NEW RELEASES',
     revisions: 'NEW REVISIONS',
-    archives: 'ARCHIVES',
+    archives: 'SOURCE ARCHIVES TO MIRROR',
   }[phase]
 }
 
@@ -405,6 +407,7 @@ async function processPlannedUpdates(
     added: Map<string, PublishedSourceRelease>
     errors: string[]
     forceDownload: boolean
+    forceUpload: boolean
     printUsage: () => void
     shouldDownload: boolean
     skipPrompts: boolean
@@ -425,6 +428,7 @@ async function processPlannedUpdates(
     try {
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
+        forceUpload: options.forceUpload,
         printUsage: options.printUsage,
         row,
         shouldDownload: options.shouldDownload,
@@ -708,6 +712,7 @@ async function processUpdate(
     row: UpdateRow
     shouldDownload: boolean
     forceDownload: boolean
+    forceUpload: boolean
     skipPrompts: boolean
     skipUpload: boolean
     target: UploadTarget
@@ -741,7 +746,9 @@ async function processUpdate(
     }
     if (promptForIngest) replaceResolvedDecision()
     await update.ingest(options.target, {
+      forceUpload: options.forceUpload,
       onProgress: progress => options.row.ingesting(progress, options.target),
+      skipPrompts: options.skipPrompts,
     })
     return 'ingested' as const
   }
@@ -821,7 +828,7 @@ async function processUpdate(
     options.target,
     {
       dryRun: false,
-      forceUpload: false,
+      forceUpload: options.forceUpload,
       invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
       printUsage: options.printUsage,
       skipConfirm: true,

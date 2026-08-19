@@ -118,7 +118,7 @@ describe('dataset update registry', () => {
     )
   })
 
-  test('starts target-neutral DPO ingestion with the selected publication target', () => {
+  test('passes --yes to DPO ingestion only when the parent update is non-interactive', () => {
     const common = {
       sourceRoot: '/tmp/als',
       version: '2026-07-26.0',
@@ -136,12 +136,19 @@ describe('dataset update registry', () => {
         target: { environment: 'production', remote: true },
       }),
     ).toContain('production')
+    const local = buildHkgovAlsIngestCommand({
+      ...common,
+      target: { environment: 'dev', remote: false },
+    })
+    expect(local).toContain('local')
+    expect(local).not.toContain('--yes')
     expect(
       buildHkgovAlsIngestCommand({
         ...common,
+        skipPrompts: true,
         target: { environment: 'dev', remote: false },
       }),
-    ).toContain('local')
+    ).toContain('--yes')
   })
 
   test('starts PlanD native archive intake with the mirrored source package', () => {
@@ -1277,6 +1284,8 @@ describe('dataset update registry', () => {
 
       expect(updates).toHaveLength(2)
       expect(updates[0]?.version).toBe('2026-07-23.0')
+      expect(updates[0]?.sourceKey).toBe('2026-07-23.0')
+      expect(updates[0]?.targetSourceKey).toBe('2026-07-23.0')
       expect(updates[0]?.phase).toBeUndefined()
       expect(updates[1]?.version).toBe('2026-07-22.0')
       expect(updates[1]?.phase).toBe('archives')
