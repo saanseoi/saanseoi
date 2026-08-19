@@ -74,14 +74,6 @@
           "priority": 13
         },
         {
-          "resourceType": "division",
-          "variant": "hkgov-censtatd-area",
-          "role": "enrichment",
-          "isRequired": false,
-          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
-          "priority": 14
-        },
-        {
           "resourceType": "divisionArea",
           "variant": "hkgov-censtatd-area",
           "role": "geometry",
@@ -91,17 +83,9 @@
           "ingestDependencies": [
             {
               "resourceType": "division",
-              "variant": "hkgov-censtatd-area"
+              "variant": "overture"
             }
           ]
-        },
-        {
-          "resourceType": "division",
-          "variant": "hkgov-censtatd:2023-H2",
-          "role": "enrichment",
-          "isRequired": false,
-          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
-          "priority": 16
         },
         {
           "resourceType": "divisionBoundary",

@@ -124,19 +124,18 @@ of never-married population aged 15 and over by sex - male”. Its description s
 state the proportion and its scope; the curation fields record `proportion`, `none`, the
 reviewed unit, and a denominator measure when one is canonical and available.
 
-The importer never creates a parallel statistical-geography registry. The Area/type and
-HMA native polygon layers fan out from the same verified source release into `division`
-and `divisionArea`: Area/type contributes the three level-1 Geographic areas, and HMA
-contributes the C&SD Housing Market Area domain. Building Group points remain source
-history for a future buildings projection.
+The importer never creates a parallel statistical-geography registry. Area/type maps its
+three C&SD source codes to the Overture Hong Kong Island, Kowloon, and New Territories
+identities, then publishes only its source-specific `divisionArea` geometry. HMA
+continues to fan out into its own `division` and `divisionArea` records for the C&SD
+Housing Market Area domain. Building Group points remain source history for a future
+buildings projection.
 
-The statistical `division` output has a cohort-qualified C&SD variant, independent of
-the native-geometry variant: the reviewed 2023-H2 Area/type release is
-`hkgov-censtatd:2023-H2`, and the reviewed 2021 HMA release is `hkgov-censtatd:2021`.
-Area/type is an optional Geographic enrichment selected at the latest compatible cohort.
+The statistical `division` output is therefore limited to the reviewed 2021 HMA variant
+(`hkgov-censtatd:2021`). Area/type is optional source-specific Geographic geometry
+selected at the latest compatible cohort and linked to the Overture identity snapshot.
 HMA is its domain's primary canonical division input, paired with the required native
-`hkgov-censtatd-hma` geometry. In both cases the `divisionArea` snapshot is the
-published geometry; its linked `division` snapshot supplies the canonical identity.
+`hkgov-censtatd-hma` geometry.
 
 ## Source-release statistics and geography audit
 
@@ -176,11 +175,12 @@ subdivided-units release, the 2021 bridge for the 2021 subdivided-units release,
 datasets. A missing member of one of those bridges stops ingestion; it is never replaced
 by a name or spatial-match guess.
 
-Area/type and HMA observations resolve only through their deterministic, reviewed C&SD
-source-code identities; no name or spatial matching is used. Building-group, new-town,
-and housing-estate observations remain without a `divisionId` until their respective
-geographies are reviewed and released as Divisions domains, not by assigning an
-arbitrary district parent.
+Area/type observations resolve through the reviewed mapping to deterministic Overture
+area identities; HMA observations use their deterministic C&SD source-code identities.
+No name or spatial matching is used. Building-group, new-town, and housing-estate
+observations remain without a `divisionId` until their respective geographies are
+reviewed and released as Divisions domains, not by assigning an arbitrary district
+parent.
 
 ## District land area, population and density ingestion
 
