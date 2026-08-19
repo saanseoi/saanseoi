@@ -8,6 +8,11 @@ import {
   normaliseDivisionRow,
 } from './division'
 import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
+import {
+  missingOvertureHongKongAreaRows,
+  overtureHongKongAreas,
+  overtureHongKongAreaDivisionId,
+} from './overtureHongKongAreas'
 
 const hierarchyLookup: DivisionHierarchyLookup = new Map([
   [
@@ -222,6 +227,44 @@ describe('getSupplementalDivisionFixtureRows', () => {
         regionCode: 'hk',
       }),
     ).toEqual([])
+  })
+})
+
+describe('missingOvertureHongKongAreaRows', () => {
+  const sourceRows = overtureHongKongAreas.flatMap(area =>
+    area.districtNames.map((name, index) => ({
+      id: `${area.code}-district-${index}`,
+      names: { common: { en: name }, primary: name },
+      subtype: 'region',
+    })),
+  )
+
+  test('synthesises each missing Hong Kong level-1 area from its district members', () => {
+    const rows = missingOvertureHongKongAreaRows(
+      { regionCode: 'hk', source: 'overture', type: 'division' },
+      sourceRows,
+    )
+
+    expect(rows).toHaveLength(3)
+    for (const area of overtureHongKongAreas) {
+      const row = rows.find(row => row.id === overtureHongKongAreaDivisionId(area.code))
+      expect(row?.names.primary).toBe(area.names.en)
+      expect(row?.identifiers.saanseoiCorrection.districtDivisionIds).toHaveLength(
+        area.districtNames.length,
+      )
+    }
+  })
+
+  test('does not replace an Overture-provided area record', () => {
+    const rows = missingOvertureHongKongAreaRows(
+      { regionCode: 'hk', source: 'overture', type: 'division' },
+      [
+        ...sourceRows,
+        { id: 'source-kowloon', names: { primary: 'Kowloon' }, subtype: 'locality' },
+      ],
+    )
+
+    expect(rows.map(row => row.names.primary)).not.toContain('Kowloon')
   })
 })
 
