@@ -109,7 +109,7 @@ export async function calculateAndStoreApiReleaseSetStats(
   try {
     const rows =
       options.family === 'address'
-        ? await buildAddressStatsRows(options.currentDb, snapshotId)
+        ? await buildAddressApiReleaseSetStatsForSnapshot(options.currentDb, snapshotId)
         : await buildDivisionStatsRows(options.currentDb, snapshotId)
 
     options.progress.update(1, {
@@ -180,7 +180,7 @@ export async function calculateAndStoreApiReleaseSetStats(
   }
 }
 
-async function buildAddressStatsRows(
+export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
@@ -191,6 +191,11 @@ async function buildAddressStatsRows(
     address3dI18nCount,
     divisionLinkedCount,
     streetLinkedCount,
+    districtLinkedCount,
+    areaLinkedCount,
+    geocodedCount,
+    componentCounts,
+    byDistrict,
   ] = await Promise.all([
     countRows(
       db,
@@ -232,6 +237,38 @@ async function buildAddressStatsRows(
         sql`${currentSchema.address2d.streetId} IS NOT NULL`,
       ),
     ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.districtId} IS NOT NULL`,
+      ),
+    ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.areaId} IS NOT NULL`,
+      ),
+    ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.geometry} IS NOT NULL`,
+      ),
+    ),
+    buildAddressComponentCounts(db, snapshotId),
+    countGrouped(
+      db,
+      currentSchema.address2d,
+      currentSchema.address2d.snapshotId,
+      snapshotId,
+      currentSchema.address2d.districtId,
+    ),
   ])
   const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
 
@@ -240,12 +277,54 @@ async function buildAddressStatsRows(
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
+    areaLinkedCount,
+    byDistrict,
+    componentCounts,
+    districtLinkedCount,
     divisionLinkedCount,
+    geocodedCount,
     localeStats,
+    missingAreaCount: Math.max(0, address2dCount - areaLinkedCount),
+    missingDistrictCount: Math.max(0, address2dCount - districtLinkedCount),
     missingDivisionCount: Math.max(0, address2dCount - divisionLinkedCount),
+    missingGeometryCount: Math.max(0, address2dCount - geocodedCount),
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
     streetLinkedCount,
   })
+}
+
+async function buildAddressComponentCounts(db: HarbourReadableDb, snapshotId: string) {
+  const row = await db
+    .select({
+      block: countDistinctAddressComponent(currentSchema.address2dI18n.blockExpression),
+      building_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.buildingName,
+      ),
+      building_number: countDistinctAddressComponent(
+        currentSchema.address2dI18n.buildingNumberExpression,
+      ),
+      estate_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.estateName,
+      ),
+      phase: countDistinctAddressComponent(currentSchema.address2dI18n.phaseExpression),
+      street_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.streetName,
+      ),
+    })
+    .from(currentSchema.address2dI18n)
+    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .get()
+
+  return Object.fromEntries(
+    Object.entries(row ?? {}).map(([component, count]) => [
+      component,
+      Number(count ?? 0),
+    ]),
+  )
+}
+
+function countDistinctAddressComponent(column: unknown) {
+  return sql<number>`count(distinct case when ${column} is not null then ${currentSchema.address2dI18n.addressId} end)`
 }
 
 async function buildDivisionStatsRows(
