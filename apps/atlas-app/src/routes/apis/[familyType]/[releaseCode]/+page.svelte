@@ -23,6 +23,10 @@ import {
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
+import {
+  compareApiReleaseVersions,
+  getVisibleApiReleaseVersions,
+} from '#lib/registry/apiReleaseVersions.js'
 import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
 import {
   buildReleaseNotesPresentation,
@@ -79,9 +83,14 @@ let seoDescription = $derived(`${m.api_release_notes()}: ${seoTitle}.`)
 let locale = $derived(getCurrentLocale())
 let currentDomainCode = $derived(release.domainCode ?? 'default')
 let domainReleases = $derived(
-  (api.releases ?? []).filter(
-    item => (item.domainCode ?? 'default') === currentDomainCode,
-  ),
+  (api.releases ?? [])
+    .filter(item => (item.domainCode ?? 'default') === currentDomainCode)
+    .sort((left, right) =>
+      compareApiReleaseVersions(
+        { label: getReleaseVersionLabel(left.code, api.familyType) },
+        { label: getReleaseVersionLabel(right.code, api.familyType) },
+      ),
+    ),
 )
 
 let previousRelease = $derived.by(() => {
@@ -111,6 +120,7 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
     : 'notes'
 }
 let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
+let showAllRevisions = $state(false)
 let activeHeadingId = $state<string | null>(null)
 let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
@@ -248,9 +258,10 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
   },
   qualityDescription: humaniseStat,
 })
-let versions = $derived(
+let allVersions = $derived(
   domainReleases.map((item, index, releases) => ({
     code: item.code,
+    cohortKey: item.cohortKey,
     href: (() => {
       const searchParams = new URLSearchParams()
       if (activeTab !== 'notes') searchParams.set('tab', activeTab)
@@ -261,7 +272,14 @@ let versions = $derived(
       return `/apis/${api.familyType}/${item.code}${search ? `?${search}` : ''}`
     })(),
     label: getReleaseVersionLabel(item.code, api.familyType),
+    revision: item.revision,
   })),
+)
+let versions = $derived(
+  getVisibleApiReleaseVersions(allVersions, showAllRevisions, release.code),
+)
+let navigationVersions = $derived(
+  getVisibleApiReleaseVersions(allVersions, showAllRevisions),
 )
 
 let currentComposition = $derived(
@@ -412,6 +430,11 @@ $effect(() => {
 
   <ReleaseNav.Root
     {versions}
+    {navigationVersions}
+    currentVersionCohortKey={release.cohortKey}
+    onToggleRevisions={() => (showAllRevisions = !showAllRevisions)}
+    {showAllRevisions}
+    showRevisionToggle={allVersions.some(version => (version.revision ?? 0) > 0)}
     {domains}
     domainTitle="Domains"
     {currentDomainCode}
