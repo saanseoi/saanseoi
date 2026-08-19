@@ -1705,9 +1705,9 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
 }
 
 const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021',
-  'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+  'ds-hk-hkgov-censtatd-division-statistic-new-towns',
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district',

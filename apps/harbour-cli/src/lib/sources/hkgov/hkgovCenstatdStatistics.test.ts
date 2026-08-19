@@ -29,21 +29,21 @@ const CASES: Array<{
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1728978338390_76872/2026-Q2/source.zip',
     datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
     rowCount: 3495,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695182015782_79001/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
     rowCount: 540,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695181913136_27614/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
     rowCount: 13,
     sourceVersion: '2021',
   },

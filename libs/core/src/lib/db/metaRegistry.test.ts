@@ -1795,7 +1795,7 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
       INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-district-area', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'divisions', 'divisionArea'),
-        ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021', 'hk', 'divisions', 'divisionArea');
+        ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
       INSERT INTO releases (
         id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey,
         originalFileName, status, ingestedAt, createdAt, updatedAt
@@ -1808,7 +1808,7 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
       db as never,
       'hk',
       'hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
       'divisionArea',
     )
 

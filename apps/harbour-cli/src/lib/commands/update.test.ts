@@ -477,7 +477,7 @@ test('shows the matching target version for a CSDI archive release', () => {
 
 test('shows an ingested archive release as current in the completion summary', () => {
   const dataset = {
-    code: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+    code: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
     publisherCode: 'hkgov-censtatd',
     regionCode: 'hk',
     theme: 'stats',
@@ -640,14 +640,14 @@ test('formats division statistics and identifies the HyD nameplate source', () =
   ).toBe('CenstatD ∷ Statistic ∷ Land Area')
   expect(
     formatDatasetPromptLabel({
-      code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-2021',
+      code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas',
       publisherCode: 'hkgov-censtatd',
       regionCode: 'hk',
       theme: 'stats',
       resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
       versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
     }),
-  ).toBe('CenstatD ∷ Stat + Div + DivArea ∷ Housing Market Areas 2021')
+  ).toBe('CenstatD ∷ Stat + Div(Area) ∷ Housing Market Areas')
   expect(
     formatDatasetPromptLabel({
       code: 'ds-hk-hkgov-pland-division-pu',

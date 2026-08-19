@@ -224,7 +224,7 @@ describe('dataset update registry', () => {
   test('starts each remaining C&SD statistic from the prepared archive', () => {
     expect(
       buildHkgovCenstatdStatisticsArchiveIngestCommand({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
         inputFile: '/tmp/new-towns.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/new-towns',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/new-towns/source.zip',
@@ -240,7 +240,7 @@ describe('dataset update registry', () => {
         '--target',
         'preview',
         '--dataset-code',
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
         '--yes',
       ]),
     )

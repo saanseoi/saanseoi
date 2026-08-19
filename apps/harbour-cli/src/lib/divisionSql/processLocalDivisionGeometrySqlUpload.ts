@@ -545,10 +545,28 @@ export async function processLocalDivisionGeometrySqlUpload(
         cohortKey: previewPlan.cohortKey,
         transform: previewPlan.transform,
       },
-      (label, current, total) =>
-        progress.message(
-          formatGeometryProgressLabel('Materialise', label, current, total),
-        ),
+      (() => {
+        let counterLabel: string | undefined
+        return (label, current, total) => {
+          const progressLabel = formatGeometryProgressLabel(
+            'Materialise',
+            label,
+            current,
+            total,
+          )
+          if (current === undefined || total === undefined) {
+            counterLabel = undefined
+            progress.message(progressLabel)
+            return
+          }
+          progress.update(current, {
+            label: progressLabel,
+            max: total,
+            reset: counterLabel !== label,
+          })
+          counterLabel = label
+        }
+      })(),
     )
 
     progress.complete(
@@ -1199,7 +1217,7 @@ function geometryVariant(plan: GeometryUploadPlan) {
   }
   if (
     plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
     return 'hkgov-censtatd-hma'
   }
@@ -1680,15 +1698,19 @@ async function writeGeometryRows(
           }),
         )
 
-  onProgress?.('write current rows')
+  let writtenCurrentRows = 0
+  onProgress?.('write current rows', writtenCurrentRows, currentRows.length)
   for (const chunk of chunkRows(currentRows)) {
     await context.currentDb
       .insert(currentTable)
       .values(chunk as never)
       .run()
+    writtenCurrentRows += chunk.length
+    onProgress?.('write current rows', writtenCurrentRows, currentRows.length)
   }
   if (historyRows.length) {
-    onProgress?.('write history rows')
+    let writtenHistoryRows = 0
+    onProgress?.('write history rows', writtenHistoryRows, historyRows.length)
     for (const chunk of chunkRows(historyRows)) {
       await context.historyDb
         .insert(historyTable)
@@ -1703,6 +1725,8 @@ async function writeGeometryRows(
           },
         })
         .run()
+      writtenHistoryRows += chunk.length
+      onProgress?.('write history rows', writtenHistoryRows, historyRows.length)
     }
     await recordSnapshotVersionChanges(
       context.historyDb as unknown as HarbourWritableDb,
@@ -1719,7 +1743,8 @@ async function writeGeometryRows(
     )
   }
   if (sourceRows.length) {
-    onProgress?.('write source rows')
+    let writtenSourceRows = 0
+    onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     for (const chunk of chunkRows(sourceRows)) {
       await context.sourceDb
         .insert(sourceTable)
@@ -1735,6 +1760,8 @@ async function writeGeometryRows(
           },
         })
         .run()
+      writtenSourceRows += chunk.length
+      onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }
   }
   if (isCenstatdDerivative) {
@@ -2245,7 +2272,7 @@ function isHousingMarketAreaPlan(plan: GeometryUploadPlan) {
     plan.type === 'divisionArea' &&
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   )
 }
 
