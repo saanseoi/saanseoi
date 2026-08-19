@@ -2,6 +2,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
+import { stableJsonStringify } from '@repo/core/pipeline/utils'
 import {
   buildCenstatdGeographyLinkAuditActions,
   buildCenstatdMeasureCurationAuditActions,
@@ -36,10 +37,7 @@ import {
   resolveCenstatdDistrictBridgeCohort,
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
-import {
-  normaliseHkgovCenstatdStatistics,
-  persistedCanonicalObservation,
-} from './normaliseHkgovCenstatdStatistics.ts'
+import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
@@ -184,7 +182,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       {
         action: 'Generate SQL',
-        count: canonical.observations.length,
+        count: canonical.records.length,
         subject: 'history',
       },
       () =>
@@ -197,7 +195,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       {
         action: 'Generate SQL',
-        count: canonical.observations.length,
+        count: canonical.records.length,
         subject: 'current',
       },
       () =>
@@ -445,16 +443,12 @@ function canonicalCurrentRows(
   const now = new Date().toISOString()
   return [
     {
-      rows: canonical.series.map(row => ({ ...row, createdAt: now, updatedAt: now })),
-      table: 'statsSeries' as const,
-    },
-    {
-      rows: canonical.observations.map(row => ({
-        ...persistedCanonicalObservation(row),
+      rows: canonical.records.map(row => ({
+        ...row,
         createdAt: now,
         updatedAt: now,
       })),
-      table: 'statsObservations' as const,
+      table: 'statsRecords' as const,
     },
     {
       rows: canonical.measures.map(row => ({ ...row, createdAt: now, updatedAt: now })),
@@ -488,14 +482,6 @@ function canonicalCurrentRows(
       })),
       table: 'statsValuesI18n' as const,
     },
-    {
-      rows: canonical.seriesDimensions.map(row => ({
-        ...row,
-        createdAt: now,
-        updatedAt: now,
-      })),
-      table: 'statsSeriesDimensions' as const,
-    },
   ]
 }
 
@@ -510,24 +496,16 @@ function canonicalHistoryRows(
     isCurrent: true,
     sourceReleaseId,
     updatedAt: now,
-    versionHash: createHash('sha256').update(JSON.stringify(row)).digest('hex'),
+    versionHash: createHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
   })
   return [
-    { rows: canonical.series.map(version), table: 'statsSeries' as const },
-    {
-      rows: canonical.observations.map(row =>
-        version(persistedCanonicalObservation(row)),
-      ),
-      table: 'statsObservations' as const,
-    },
+    { rows: canonical.records.map(version), table: 'statsRecords' as const },
     { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
     { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
     { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
     { rows: canonical.values.map(version), table: 'statsValues' as const },
     { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
-    {
-      rows: canonical.seriesDimensions.map(version),
-      table: 'statsSeriesDimensions' as const,
-    },
   ]
 }

@@ -5,7 +5,11 @@ import type {
   CenstatdCanonicalMeasure,
   CenstatdCanonicalObservation,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
-import type { StatsAggregation, StatsStatisticKind } from '@repo/db'
+import type {
+  CanonicalStatsRecordValue,
+  StatsAggregation,
+  StatsStatisticKind,
+} from '@repo/db'
 
 import type { CenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
 
@@ -40,6 +44,11 @@ type CanonicalSeriesDimension = {
   valueCode: string
 }
 
+type CanonicalRecord = CanonicalSeries & {
+  dimensions: Record<string, string>
+  values: Record<string, CanonicalStatsRecordValue>
+}
+
 type CanonicalMeasure = CenstatdCanonicalMeasure & {
   aggregation: StatsAggregation
   datasetCode: string
@@ -63,6 +72,7 @@ export type CanonicalStatsRows = {
   measures: CanonicalMeasure[]
   measuresI18n: Row[]
   observations: CanonicalObservation[]
+  records: CanonicalRecord[]
   series: CanonicalSeries[]
   seriesDimensions: CanonicalSeriesDimension[]
   values: CanonicalDimensionValue[]
@@ -78,16 +88,8 @@ export type HkgovCenstatdStatisticSourceRow = {
   sourceVersion: string
 }
 
-/** The period is retained for release statistics but belongs to the series table. */
-export function persistedCanonicalObservation(
-  observation: CanonicalStatsRows['observations'][number],
-) {
-  const { referencePeriodCode: _referencePeriodCode, ...row } = observation
-  return row
-}
-
 /**
- * Converts publisher-native C&SD properties into canonical observations
+ * Converts publisher-native C&SD properties into compact canonical records
  * without guessing semantic labels or discarding source literals. Geometry is
  * deliberately excluded: it remains a source assertion until it is reviewed
  * into the Divisions family.
@@ -104,6 +106,8 @@ export function normaliseHkgovCenstatdStatistics(
   const valuesI18n = new Map<string, Row>()
   const series = new Map<string, CanonicalSeries>()
   const seriesDimensions = new Map<string, CanonicalSeriesDimension>()
+  const recordDimensions = new Map<string, Record<string, string>>()
+  const observationsBySeries = new Map<string, CanonicalObservation[]>()
 
   for (const row of input) {
     const profile = profileFor(row.datasetCode, row.properties, row.sourceVersion)
@@ -147,6 +151,9 @@ export function normaliseHkgovCenstatdStatistics(
         seriesId,
         valueCode: dimension.valueCode,
       })
+      const recordDimensionValues = recordDimensions.get(seriesId) ?? {}
+      recordDimensionValues[dimension.code] = dimension.valueCode
+      recordDimensions.set(seriesId, recordDimensionValues)
       if (dimension.nameEn) {
         valuesI18n.set(`${valueKey}\u0000en`, {
           datasetCode: row.datasetCode,
@@ -180,7 +187,7 @@ export function normaliseHkgovCenstatdStatistics(
         measureCode,
         seriesId,
       })
-      observations.push({
+      const observation = {
         id: observationId,
         seriesId,
         sourceField,
@@ -192,7 +199,11 @@ export function normaliseHkgovCenstatdStatistics(
         valuePrecision: parsed.valuePrecision,
         observationStatus: parsed.observationStatus,
         sourceValue,
-      })
+      } satisfies CanonicalObservation
+      observations.push(observation)
+      const recordObservations = observationsBySeries.get(seriesId) ?? []
+      recordObservations.push(observation)
+      observationsBySeries.set(seriesId, recordObservations)
       const measureKey = [row.datasetCode, measureCode].join('\u0000')
       measures.set(measureKey, {
         aggregation: metadata?.aggregation ?? 'unreviewed',
@@ -250,6 +261,29 @@ export function normaliseHkgovCenstatdStatistics(
     measures: [...measures.values()],
     measuresI18n: [...measuresI18n.values()],
     observations,
+    records: [...series.values()].map(seriesRow => {
+      const packedValues: Record<string, CanonicalStatsRecordValue> = {}
+      for (const observation of observationsBySeries.get(seriesRow.id) ?? []) {
+        if (packedValues[observation.measureCode]) {
+          throw new Error(
+            `C&SD ${seriesRow.datasetCode} series ${seriesRow.id} has duplicate measure ${observation.measureCode}.`,
+          )
+        }
+        packedValues[observation.measureCode] = {
+          numericValue: observation.numericValue,
+          observationStatus: observation.observationStatus,
+          sourceField: observation.sourceField,
+          sourceValue: observation.sourceValue,
+          valueCode: observation.valueCode,
+          valuePrecision: observation.valuePrecision,
+        }
+      }
+      return {
+        ...seriesRow,
+        dimensions: recordDimensions.get(seriesRow.id) ?? {},
+        values: packedValues,
+      }
+    }),
     series: [...series.values()],
     seriesDimensions: [...seriesDimensions.values()],
     values: [...values.values()],
