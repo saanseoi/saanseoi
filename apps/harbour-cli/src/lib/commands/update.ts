@@ -12,6 +12,7 @@ import {
 } from '../sources/sourceArchives.ts'
 import {
   type DatasetFixture,
+  type DatasetIngestProgress,
   type UpdateStateEntry,
   getDueUpdatePhases,
   loadCurrentCompositionIngestDependencies,
@@ -739,7 +740,9 @@ async function processUpdate(
       return 'skipped' as const
     }
     if (promptForIngest) replaceResolvedDecision()
-    await update.ingest(options.target)
+    await update.ingest(options.target, {
+      onProgress: progress => options.row.ingesting(progress, options.target),
+    })
     return 'ingested' as const
   }
   if (!shouldDownloadUpdate(update, options.forceDownload)) return 'skipped' as const
@@ -1018,6 +1021,22 @@ export function formatUpdateProgressLine(dataset: DatasetFixture, stage: string)
   const stageColumn = updateLineWidth() - 5 - VERSION_COLUMN_WIDTH * 2
   const padding = Math.max(1, stageColumn - visibleWidth(label))
   return `${label}${' '.repeat(padding)}${stage}`
+}
+
+export function formatIngestProgressLine(
+  dataset: DatasetFixture,
+  progress: DatasetIngestProgress,
+  target: UploadTarget,
+) {
+  const position =
+    progress.current !== undefined && progress.total !== undefined
+      ? ` ${progress.current + 1}/${progress.total}`
+      : ''
+  const targetLabel = describeTarget(target).label
+  return formatUpdateProgressLine(
+    dataset,
+    `ingesting${position} · ${targetLabel} · ${progress.message}`,
+  )
 }
 
 export function formatDownloadProgressLine(
@@ -1392,6 +1411,10 @@ class UpdateRow {
       this.progress.start(message)
       this.active = true
     }
+  }
+
+  ingesting(progress: DatasetIngestProgress, target: UploadTarget) {
+    this.message(formatIngestProgressLine(this.dataset, progress, target))
   }
 
   downloading(update: DatasetUpdate, index: number, total: number) {
