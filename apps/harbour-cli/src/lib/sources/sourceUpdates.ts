@@ -203,6 +203,13 @@ export type UpdateUpload = {
   options: Record<string, string | boolean>
 }
 
+export type DatasetIngestProgress = {
+  current?: number
+  message: string
+  total?: number
+  waitingForInput?: boolean
+}
+
 export type DatasetUpdate = {
   archive?: CsdiSourceArchive
   /** Runs only after a native CSDI archive has been mirrored successfully. */
@@ -228,7 +235,10 @@ export type DatasetUpdate = {
   downloadUrl?: string
   downloadPath?: string
   download?: () => Promise<string>
-  ingest?: (target: import('../cli/options.ts').UploadTarget) => Promise<void>
+  ingest?: (
+    target: import('../cli/options.ts').UploadTarget,
+    options?: { onProgress?: (progress: DatasetIngestProgress) => void },
+  ) => Promise<void>
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
   /** Persists a proven byte-identical publisher archive after it is downloaded. */
@@ -927,7 +937,7 @@ async function lookupLandsdStreet({
       checkedAt,
       dataset,
       deferStateUntilProcessed: true,
-      ingest: async target => {
+      ingest: async (target, options = {}) => {
         const result = await ingestLandsdStreetSource({
           // Ingestion always downloads the baseline and uses its content hash
           // to avoid duplicating an unchanged baseline source version.
@@ -941,9 +951,16 @@ async function lookupLandsdStreet({
           sourceUrl,
           target,
           promptForCuration: true,
+          onProgress: options.onProgress,
         })
         await publishLandsdStreetReleasePayloads(target, result.releases, {
           invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
+          onProgress: ({ current, sourceVersion, total }) =>
+            options.onProgress?.({
+              current,
+              message: `Publishing street release ${current + 1}/${total}: v${sourceVersion}`,
+              total,
+            }),
           releaseNotesUrl: sourceUrl,
         })
       },

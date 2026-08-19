@@ -7,6 +7,7 @@ import {
   formatDownloadProgressLine,
   formatDatasetCheckLine,
   formatDatasetPromptLabel,
+  formatIngestProgressLine,
   formatLandsdIngestPrompt,
   formatPublishedSourceRelease,
   formatUpdateProgressLine,
@@ -50,6 +51,29 @@ test('formats the high-signal Clack dataset label without version noise', () => 
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ DivisionArea ∷ District')
+})
+
+test('shows ingestion progress and target while a native importer is working', () => {
+  expect(
+    formatIngestProgressLine(
+      {
+        code: 'ds-hk-hkgov-landsd-street',
+        publisherCode: 'hkgov-landsd',
+        regionCode: 'hk',
+        theme: 'streets',
+        resourceTypes: ['street'],
+        versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+      },
+      {
+        current: 127,
+        message: 'Reusing cached source PDF; registering evidence asset',
+        total: 356,
+      },
+      { environment: 'dev', remote: false },
+    ),
+  ).toContain(
+    'ingesting 128/356 · local-dev · Reusing cached source PDF; registering evidence asset',
+  )
 })
 
 test('retains and identifies every published cohort in the update summary', () => {
