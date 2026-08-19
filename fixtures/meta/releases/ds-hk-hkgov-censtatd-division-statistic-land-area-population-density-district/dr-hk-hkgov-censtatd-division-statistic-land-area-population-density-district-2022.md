@@ -25,9 +25,8 @@ hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/land-a
 ## Versioning
 
 This release is derived from the native <black>Density_{{ sourceVersion }}.gml</black>
-layer in [CSDI](saanseoi:en:definition/hkgov-csdi/v1) archive slot
-<black>2023-Q4</black>. The archive slot records _when_ the publisher package was
-archived, _not_ when the source was released. As such, we use
+layer in CSDI archive slot <black>2023-Q4</black>. The archive slot records _when_ the
+publisher package was archived, _not_ when the source was released. As such, we use
 <black>{{ releaseVersion }}</black> to version this source dataset; which is based on
 the source's reference year.
 
@@ -63,10 +62,11 @@ These source values are converted before being returned through
 
 ## Measure mapping
 
-The [measure-code naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
-and [measure-offering convention](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1)
-separate a readable statistical name from its exact definition. The reviewed mapping
-below is generated from this release's curation manifest.
+The measureCode [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
+and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
+readable statistical name from its exact definition. The mapping below is generated from
+this release's C&SD
+[measure curation manifest](saanseoi:en:definition/hkgov-censtatd-measure-curation-manifest/v1).
 
 {{hkgovCenstatdMeasureTable:en}}
 
@@ -117,7 +117,9 @@ below is generated from this release's curation manifest.
 
 [指標代碼命名慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-naming/v1) 及
 [指標 offering 慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-offerings/v1)
-把易讀的統計名稱與其精確定義分開。以下經審核的對應表由此發布的整理清單產生。
+把易讀的統計名稱與其精確定義分開。以下經審核的對應表由此發布的
+[C&SD 指標整理清單](saanseoi:zh-hant:definition/hkgov-censtatd-measure-curation-manifest/v1)
+產生。
 
 {{hkgovCenstatdMeasureTable:zh-Hant}}
 
@@ -168,6 +170,8 @@ below is generated from this release's curation manifest.
 
 [指标代码命名惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-naming/v1) 及
 [指标 offering 惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-offerings/v1)
-把易读的统计名称与其精确定义分开。以下经审核的对应表由此发布的整理清单产生。
+把易读的统计名称与其精确定义分开。以下经审核的对应表由此发布的
+[C&SD 指标整理清单](saanseoi:zh-hans:definition/hkgov-censtatd-measure-curation-manifest/v1)
+产生。
 
 {{hkgovCenstatdMeasureTable:zh-Hans}}
