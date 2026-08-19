@@ -10,7 +10,7 @@ import {
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   getLatestNewerDatasetRelease,
-  getLatestDatasetForRegionSourceType,
+  getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
   markDatasetCurrent,
   listRegistryReleases,
@@ -1712,7 +1712,7 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () =>
   })
 })
 
-describe('getLatestDatasetForRegionSourceType', () => {
+describe('getLatestDatasetForRegionSourceDatasetType', () => {
   test('keeps Planning Department upload variants in separate product lineages', async () => {
     const { sqlite, db } = createLatestDatasetLookupDb()
     sqlite.exec(`
@@ -1763,10 +1763,11 @@ describe('getLatestDatasetForRegionSourceType', () => {
 
     expect(
       (
-        await getLatestDatasetForRegionSourceType(
+        await getLatestDatasetForRegionSourceDatasetType(
           db as never,
           'hk',
           'hkgov-pland-pu',
+          'ds-hk-hkgov-pland-division-pu',
           'division',
         )
       ).latestDataset?.releaseCode,
@@ -1774,15 +1775,45 @@ describe('getLatestDatasetForRegionSourceType', () => {
 
     expect(
       (
-        await getLatestDatasetForRegionSourceType(
+        await getLatestDatasetForRegionSourceDatasetType(
           db as never,
           'hk',
           'hkgov-pland-new-town',
+          'ds-hk-hkgov-pland-division-new-town',
           'division',
         )
       ).latestDataset?.releaseCode,
     ).toBe('dr-hk-hkgov-pland-division-new-town-2006')
 
+    sqlite.close()
+  })
+
+  test('does not compare C&SD products that share a resource type and source version', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
+      INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
+        ('dataset-district-area', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'divisions', 'divisionArea'),
+        ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021', 'hk', 'divisions', 'divisionArea');
+      INSERT INTO releases (
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey,
+        originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES
+        ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', '2021', '2021', 'district-area.parquet', 'district-area.parquet', 'published', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
+        ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', '2021', '2021', 'hma.parquet', 'hma.parquet', 'published', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z');
+    `)
+
+    const result = await getLatestDatasetForRegionSourceDatasetType(
+      db as never,
+      'hk',
+      'hkgov-censtatd',
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+      'divisionArea',
+    )
+
+    expect(result.latestDataset?.releaseCode).toBe(
+      'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021',
+    )
     sqlite.close()
   })
 
@@ -1834,10 +1865,11 @@ describe('getLatestDatasetForRegionSourceType', () => {
         );
     `)
 
-    const result = await getLatestDatasetForRegionSourceType(
+    const result = await getLatestDatasetForRegionSourceDatasetType(
       db as never,
       'hk',
       'overture',
+      'ds-hk-overture-division',
       'division',
     )
 

@@ -1002,6 +1002,18 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
+  // A composition fixture declares the complete current set of member slots.
+  // Replacing a variant must not leave its previous slot active alongside it.
+  statements.push(
+    `
+DELETE FROM apiCompositionMembers
+WHERE apiCompositionId IN (
+  SELECT id
+  FROM apiComposition
+  WHERE code IN (${initialApiCompositions.map(composition => sqlString(composition.code)).join(', ')})
+);`.trim(),
+  )
+
   for (const member of initialApiCompositionMembers) {
     statements.push(
       `

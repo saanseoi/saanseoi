@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildMetaRegistrySyncStatements,
   initialApiCompositions,
+  initialApiCompositionMembers,
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
@@ -128,6 +129,52 @@ describe('fixture version hashes', () => {
         ),
       ),
     ).toBe(true)
+  })
+
+  test('pairs C&SD HMA geometry with its canonical division and keeps Area/type optional', () => {
+    const divisionsComposition = initialApiCompositions.find(
+      composition => composition.code === 'comp-divisions-v1',
+    )
+    expect(divisionsComposition).toBeDefined()
+
+    const hmaMembers = initialApiCompositionMembers.filter(
+      member =>
+        member.apiCompositionCode === 'comp-divisions-v1' &&
+        member.domainCode === 'hkgov-censtatd-hma',
+    )
+    expect(hmaMembers).toContainEqual(
+      expect.objectContaining({
+        resourceType: 'division',
+        variant: 'hkgov-censtatd:2021',
+        role: 'primary',
+        isRequired: true,
+      }),
+    )
+    expect(hmaMembers).toContainEqual(
+      expect.objectContaining({
+        resourceType: 'divisionArea',
+        variant: 'hkgov-censtatd-hma',
+        role: 'geometry',
+        isRequired: true,
+      }),
+    )
+
+    expect(initialApiCompositionMembers).toContainEqual(
+      expect.objectContaining({
+        apiCompositionCode: 'comp-divisions-v1',
+        domainCode: 'geographic',
+        resourceType: 'division',
+        variant: 'hkgov-censtatd:2023-H2',
+        role: 'enrichment',
+        isRequired: false,
+        cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
+      }),
+    )
+  })
+
+  test('reconciles composition members as complete fixture declarations', () => {
+    const statements = buildMetaRegistrySyncStatements('preview').join('\n')
+    expect(statements).toContain('DELETE FROM apiCompositionMembers')
   })
 
   test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {

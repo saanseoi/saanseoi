@@ -1712,10 +1712,11 @@ async function runAtomicWriteStatements(
   }
 }
 
-export async function getLatestDatasetForRegionSourceType(
+export async function getLatestDatasetForRegionSourceDatasetType(
   db: HarbourReadableDb,
   regionCode: RegionCode,
   source: string,
+  datasetCode: string,
   type: ResourceType,
 ): Promise<LatestDatasetLookup> {
   const datasetRows = (await db
@@ -1727,10 +1728,10 @@ export async function getLatestDatasetForRegionSourceType(
       and(
         eq(metaDatasets.regionCode, regionCode),
         eq(metaPublishers.code, publisherCodeForSource(source)),
-        // A publisher can publish more than one product. In particular, the
-        // Planning Department TPU and New Town feeds share `hkgov-pland` but
-        // are independent dataset lineages with incompatible upload schemas.
-        eq(metaDatasets.code, buildDatasetCode(regionCode, source, type)),
+        // A publisher can publish more than one product in the same resource
+        // type and cohort. Upload chronology and schema compatibility belong
+        // to that product's dataset lineage, never to the publisher broadly.
+        eq(metaDatasets.code, datasetCode),
         eq(metaReleases.resourceType, type),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),
