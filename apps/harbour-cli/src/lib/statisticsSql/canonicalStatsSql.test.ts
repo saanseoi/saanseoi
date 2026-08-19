@@ -7,26 +7,28 @@ import {
 
 describe('buildCanonicalStatsSqlBatches', () => {
   test('keeps unrelated reference periods in the current view', () => {
-    const observation = {
+    const record = {
       createdAt: '2026-08-18T00:00:00.000Z',
       id: 'stats:2016',
-      measureCode: 'population',
-      numericValue: '100',
-      observationStatus: 'published',
-      sourceField: 'population',
-      sourceValue: '100',
-      seriesId: 'stats-series:2016:feature',
-      unitCode: 'person',
+      datasetCode: 'stats',
+      dimensions: {},
+      geographyCohortId: null,
+      divisionId: null,
+      referencePeriodCode: '2016',
+      referencePeriodEnd: null,
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureId: 'feature',
+      sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
-      valueCode: null,
-      valuePrecision: null,
+      values: {},
     }
     const batches = buildCanonicalStatsSqlBatches({
-      current: [{ rows: [observation], table: 'statsObservations' }],
+      current: [{ rows: [record], table: 'statsRecords' }],
       history: [],
     })
 
-    expect(batches.current.join('\n')).not.toContain('DELETE FROM "statsObservations"')
+    expect(batches.current.join('\n')).not.toContain('DELETE FROM "statsRecords"')
     expect(batches.current.join('\n')).toContain('ON CONFLICT ("id") DO UPDATE SET')
   })
 
@@ -34,19 +36,21 @@ describe('buildCanonicalStatsSqlBatches', () => {
     const rows = Array.from({ length: 100 }, (_, index) => ({
       createdAt: '2026-08-18T00:00:00.000Z',
       id: `stats:${index}`,
-      measureCode: 'population',
-      numericValue: String(index),
-      observationStatus: 'published',
-      seriesId: 'stats-series:feature',
-      sourceField: 'population',
-      sourceValue: String(index),
-      unitCode: 'person',
+      datasetCode: 'stats',
+      dimensions: {},
+      geographyCohortId: null,
+      divisionId: null,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureId: `feature:${index}`,
+      sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
-      valueCode: null,
-      valuePrecision: null,
+      values: { population: { numericValue: String(index) } },
     }))
     const batches = buildCanonicalStatsSqlBatches({
-      current: [{ rows, table: 'statsObservations' }],
+      current: [{ rows, table: 'statsRecords' }],
       history: [],
     })
 

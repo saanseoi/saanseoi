@@ -1,9 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import {
-  normaliseHkgovCenstatdStatistics,
-  persistedCanonicalObservation,
-} from './normaliseHkgovCenstatdStatistics.ts'
+import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 
 describe('normaliseHkgovCenstatdStatistics', () => {
   test('retains a compilation row’s own annual reference period', () => {
@@ -188,8 +185,8 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     )
   })
 
-  test('does not write a series period into an observation row', () => {
-    const [observation] = normaliseHkgovCenstatdStatistics([
+  test('packs a feature’s values and dimensions into one canonical record', () => {
+    const [record] = normaliseHkgovCenstatdStatistics([
       {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
@@ -204,12 +201,18 @@ describe('normaliseHkgovCenstatdStatistics', () => {
         sourceReleaseId: 'release-2024',
         sourceVersion: '2024',
       },
-    ]).observations
+    ]).records
 
-    expect(observation?.referencePeriodCode).toBe('2024')
-    if (!observation) throw new Error('Expected a canonical observation.')
-    expect(persistedCanonicalObservation(observation)).not.toHaveProperty(
-      'referencePeriodCode',
-    )
+    expect(record).toMatchObject({
+      referencePeriodCode: '2024',
+      dimensions: { district: '11' },
+      values: {
+        LA: {
+          numericValue: '12.4',
+          sourceField: 'LA',
+          sourceValue: '12.4',
+        },
+      },
+    })
   })
 })

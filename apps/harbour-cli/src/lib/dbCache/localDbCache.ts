@@ -2113,9 +2113,7 @@ function resolveMirrorTablesForBinding(
         'statsDimensions',
         'statsMeasures',
         'statsMeasuresI18n',
-        'statsObservations',
-        'statsSeries',
-        'statsSeriesDimensions',
+        'statsRecords',
         'statsValues',
         'statsValuesI18n',
       ]
@@ -2160,9 +2158,7 @@ function resolveMirrorTablesForBinding(
         'statsDimensions',
         'statsMeasures',
         'statsMeasuresI18n',
-        'statsObservations',
-        'statsSeries',
-        'statsSeriesDimensions',
+        'statsRecords',
         'statsValues',
         'statsValuesI18n',
       ]

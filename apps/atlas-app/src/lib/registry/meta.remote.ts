@@ -784,24 +784,19 @@ async function getSourceReleaseMeasures(input: {
   releaseId: string
 }) {
   const db = getCurrentDb()
-  const observationCounts = await db
-    .select({
-      measureCode: currentSchema.statsObservations.measureCode,
-      observationCount: sql<number>`count(*)`,
-    })
-    .from(currentSchema.statsObservations)
-    .innerJoin(
-      currentSchema.statsSeries,
-      eq(currentSchema.statsObservations.seriesId, currentSchema.statsSeries.id),
-    )
-    .where(eq(currentSchema.statsSeries.sourceReleaseId, input.releaseId))
-    .groupBy(currentSchema.statsObservations.measureCode)
+  const records = await db
+    .select({ values: currentSchema.statsRecords.values })
+    .from(currentSchema.statsRecords)
+    .where(eq(currentSchema.statsRecords.sourceReleaseId, input.releaseId))
     .all()
-  if (!observationCounts.length) return []
+  if (!records.length) return []
 
-  const countsByMeasure = new Map(
-    observationCounts.map(row => [row.measureCode, row.observationCount]),
-  )
+  const countsByMeasure = new Map<string, number>()
+  for (const record of records) {
+    for (const measureCode of Object.keys(record.values)) {
+      countsByMeasure.set(measureCode, (countsByMeasure.get(measureCode) ?? 0) + 1)
+    }
+  }
   const rows = await db
     .select({
       definition: currentSchema.statsMeasuresI18n.description,

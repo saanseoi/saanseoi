@@ -21,9 +21,7 @@ export type CanonicalStatsTable =
   | 'statsDimensions'
   | 'statsMeasures'
   | 'statsMeasuresI18n'
-  | 'statsObservations'
-  | 'statsSeries'
-  | 'statsSeriesDimensions'
+  | 'statsRecords'
   | 'statsValues'
   | 'statsValuesI18n'
 
@@ -51,7 +49,6 @@ export function buildCanonicalStatsSqlBatches(input: {
   return {
     current: chunkSql(
       input.current.flatMap(group => [
-        ...buildReplaceCurrentStatements(group.table, group.rows),
         ...buildUpsertStatements(
           group.table,
           group.rows,
@@ -144,22 +141,6 @@ export async function replayCanonicalStatsSqlBatches(
   )
 }
 
-function buildReplaceCurrentStatements(table: CanonicalStatsTable, rows: Row[]) {
-  if (!rows.length) return []
-  // Current data is the newest version of each logical observation, not a
-  // replacement of every period in a dataset. A later compilation may revise
-  // 2016 while the current view must still retain its 2021 census rows.
-  // Series dimensions are the one child set that must be replaced.
-  if (table === 'statsSeriesDimensions') {
-    const seriesIds = uniqueStrings(rows, 'seriesId')
-    return chunk(seriesIds, 250).map(
-      ids =>
-        `DELETE FROM ${identifier(table)} WHERE "seriesId" IN (${ids.map(sqlValue).join(', ')});`,
-    )
-  }
-  return []
-}
-
 function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {
   if (!rows.length) return []
   const identity = historyIdentityColumns(table)
@@ -228,9 +209,7 @@ function currentConflictColumns(table: CanonicalStatsTable) {
 
 function historyIdentityColumns(table: CanonicalStatsTable) {
   switch (table) {
-    case 'statsObservations':
-      return ['id']
-    case 'statsSeries':
+    case 'statsRecords':
       return ['id']
     case 'statsMeasures':
       return ['datasetCode', 'measureCode']
@@ -242,8 +221,6 @@ function historyIdentityColumns(table: CanonicalStatsTable) {
       return ['datasetCode', 'dimensionCode', 'valueCode']
     case 'statsValuesI18n':
       return ['datasetCode', 'dimensionCode', 'valueCode', 'locale']
-    case 'statsSeriesDimensions':
-      return ['seriesId', 'dimensionCode', 'valueCode']
   }
 }
 
@@ -273,10 +250,6 @@ async function replay(
     phase,
     totalBatches,
   })
-}
-
-function uniqueStrings(rows: Row[], column: string) {
-  return [...new Set(rows.map(row => requiredString(row[column], column)))].sort()
 }
 
 function uniqueTuples(rows: Row[], columns: string[]) {
