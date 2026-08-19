@@ -28,7 +28,9 @@ Home Affairs Department profiles are kept in the provider source folders:
 The default `geographic` domain retains Overture as its primary provider variant, rather
 than using the provider name as the domain identity. If Overture omits Hong Kong Island,
 Kowloon, or the New Territories, ingestion synthesises their level-1 `area` identities
-and geometry from the configured district members. Those reviewed identities retain
+from the configured district members. Every one of those recognised areas receives a
+derived Overture `divisionArea` union when Overture omits its own area geometry, even if
+Overture does provide the division identity itself. Those reviewed identities retain
 their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
 New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
 `17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
