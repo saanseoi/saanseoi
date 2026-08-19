@@ -1400,7 +1400,7 @@ function resolveDivisionDomainCode(
 ) {
   if (
     datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
     return 'hkgov-censtatd-hma'
   }

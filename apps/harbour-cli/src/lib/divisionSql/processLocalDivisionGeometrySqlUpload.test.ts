@@ -139,10 +139,10 @@ describe('exact geometry release statistics', () => {
       supportsDistrictGeometryStatistics({
         cohortKey: '2021',
         datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
         regionCode: 'hk',
         releaseCode:
-          'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021-2021',
+          'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
         rowCount: 173,
         source: 'hkgov-censtatd',
         sourceVersion: '2021',

@@ -4,6 +4,7 @@ import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sourc
 import censtatdTerms from '../../../../../docs/datasets/sources/hkgov-censtatd/terms.md?raw'
 import censtatdMeasureNaming from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureNaming.md?raw'
 import censtatdMeasureOfferings from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureOfferings.md?raw'
+import censtatdMeasureCurationManifest from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureCurationManifest.md?raw'
 import glossary from '../../../../../docs/glossary.md?raw'
 
 import {
@@ -127,6 +128,11 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     title: 'Statistic measure offerings',
     displayTitleKey: 'reference_censtatd_measure_offerings',
     source: censtatdMeasureOfferings,
+  },
+  'hkgov-censtatd-measure-curation-manifest': {
+    title: 'C&SD measure curation manifest',
+    displayTitleKey: 'reference_censtatd_measure_curation_manifest',
+    source: censtatdMeasureCurationManifest,
   },
   'catalogue-revision': {
     title: 'Catalogue revision',

@@ -364,7 +364,7 @@ function divisionIdForSourceProperties(
   }
   if (
     datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
     if (!sourceFeatureId.startsWith('HMA_21C:')) return null
     const code = typeof properties.hma === 'string' ? properties.hma : ''

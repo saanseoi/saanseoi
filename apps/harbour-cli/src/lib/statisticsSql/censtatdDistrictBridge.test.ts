@@ -35,7 +35,7 @@ describe('C&SD statistic district bridge selection', () => {
   test('does not fabricate district IDs for unmatched statistical geographies', () => {
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
         '2021',
       ),
     ).toBeNull()

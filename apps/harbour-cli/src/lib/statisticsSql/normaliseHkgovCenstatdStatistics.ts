@@ -292,15 +292,15 @@ function profileFor(
   const reference = (field: string) => identifierFields.add(field)
 
   switch (datasetCode) {
-    case 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021':
+    case 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups':
       add('housing-market-area', 'hma', 'hma_eng', 'hma_chi')
       if (properties.bg !== undefined) add('building-group', 'bg', 'bg_eng', 'bg_chi')
       if (properties.bg_ind !== undefined) add('building-group-class', 'bg_ind')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021':
+    case 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates':
       add('housing-estate', 'estate', 'estate_eng', 'estate_chi')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021':
+    case 'ds-hk-hkgov-censtatd-division-statistic-new-towns':
       add('new-town', 'newtown', 'newtown_eng', 'newtown_chi')
       reference('gml_id')
       return censusProfile(sourceVersion, dimensions, identifierFields)

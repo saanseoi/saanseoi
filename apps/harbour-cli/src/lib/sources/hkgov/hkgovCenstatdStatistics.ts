@@ -19,21 +19,21 @@ const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 const AREA_TYPE_DATASET =
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
 const HMA_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
 
 export const CENSTATD_STATISTIC_PROFILES = {
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021': {
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
     layers: [
       { count: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
       { count: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
     ],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021': {
+  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates': {
     layers: [{ count: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021': {
+  'ds-hk-hkgov-censtatd-division-statistic-new-towns': {
     layers: [{ count: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] }],
     sourceVersions: ['2021'],
   },
