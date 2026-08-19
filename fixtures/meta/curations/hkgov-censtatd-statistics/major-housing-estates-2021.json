@@ -1,0 +1,4083 @@
+{
+  "measures": [
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Total population",
+          "description": "Total population of the housing market area or building group.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "總人口",
+          "description": "房屋市場區或樓宇組群的總人口。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "总人口",
+          "description": "房屋市场区或楼宇组群的总人口。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "totalPopulation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "t_pop",
+      "sourceNullOption": "Null",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population: Male",
+          "description": "Total population - Male",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "總人口 - 男性",
+          "description": "總人口 - 男性",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "总人口 - 男性",
+          "description": "总人口 - 男性",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationMale",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pop_m",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population: Female",
+          "description": "Total population - Female",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "總人口 - 女性",
+          "description": "總人口 - 女性",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "总人口 - 女性",
+          "description": "总人口 - 女性",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationFemale",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pop_f",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Sex ratio",
+          "description": "Number of males per 1,000 females.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "性別比例",
+          "description": "每1,000名女性中男性的人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "性别比例",
+          "description": "每1,000名女性中男性的人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "sexRatio",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "sr",
+      "statisticKind": "ratio",
+      "unitCode": "per-thousand"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged under 15",
+          "description": "Percentage of the total population aged under 15.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲以下人口",
+          "description": "15歲以下人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁以下人口",
+          "description": "15岁以下人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "agedUnder15",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 15-39",
+          "description": "Percentage of the total population aged 15–39.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15至39歲人口",
+          "description": "15至39歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15至39岁人口",
+          "description": "15至39岁人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "agedBetween15And39",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 40-64",
+          "description": "Percentage of the total population aged 40–64.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "40至64歲人口",
+          "description": "40至64歲人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "40至64岁人口",
+          "description": "40至64岁人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "agedBetween40And64",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Share of population aged 65 and over",
+          "description": "Percentage of the total population aged 65 and over.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "65歲及以上人口佔總人口的比例",
+          "description": "65歲及以上人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "65岁及以上人口占总人口的比例",
+          "description": "65岁及以上人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "aged65AndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_4",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 65 and over",
+          "description": "Population aged 65 and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "65歲及以上人口",
+          "description": "65歲及以上人口",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "65岁及以上人口",
+          "description": "65岁及以上人口",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged65AndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "age_5",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age",
+          "description": "Median age of the population, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數",
+          "description": "人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数",
+          "description": "人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAge",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "t_ma",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age - Male",
+          "description": "Median age of males, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數 - 男性",
+          "description": "男性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数 - 男性",
+          "description": "男性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAgeMale",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "ma_m",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age - Female",
+          "description": "Median age of females, in years.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數 - 女性",
+          "description": "女性人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数 - 女性",
+          "description": "女性人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAgeFemale",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "ma_f",
+      "sourceNullOption": "Null",
+      "statisticKind": "quantity",
+      "unitCode": "year"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Hong Kong",
+          "description": "Percentage of the population born in Hong Kong.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "香港出生人口",
+          "description": "出生於香港的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "香港出生人口",
+          "description": "出生于香港的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInHongKong",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "born_hk",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born in Chinese Mainland, Macao, or Taiwan",
+          "description": "Percentage of the population born in Chinese Mainland, Macao, or Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "中國內地、澳門或台灣出生人口",
+          "description": "出生於中國內地、澳門或台灣的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "中国内地、澳门或台湾出生人口",
+          "description": "出生于中国内地、澳门或台湾的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornInChineseMainlandMacaoOrTaiwan",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "born_chi",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "totalPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population born elsewhere",
+          "description": "Percentage of the population born outside Hong Kong, Chinese Mainland, Macao, and Taiwan.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他地區出生人口",
+          "description": "出生於香港、中國內地、澳門及台灣以外地區的人口佔總人口的百分比。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他地区出生人口",
+          "description": "出生于香港、中国内地、澳门及台湾以外地区的人口占总人口的百分比。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationBornElsewhere",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceField": "born_else",
+      "sourceNullOption": "Null",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population of Chinese ethnicity",
+          "description": "Population of Chinese ethnicity",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "種族為華人的人口",
+          "description": "種族為華人的人口",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "种族为华人的人口",
+          "description": "种族为华人的人口",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationOfChineseEthnicity",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ethn_chi",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population of Filipino ethnicity",
+          "description": "Population of Filipino ethnicity",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "種族為菲律賓人的人口",
+          "description": "種族為菲律賓人的人口",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "种族为菲律宾人的人口",
+          "description": "种族为菲律宾人的人口",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationOfFilipinoEthnicity",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ethn_phi",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population of Indonesian ethnicity",
+          "description": "Population of Indonesian ethnicity",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "種族為印尼人的人口",
+          "description": "種族為印尼人的人口",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "种族为印尼人的人口",
+          "description": "种族为印尼人的人口",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationOfIndonesianEthnicity",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ethn_ind",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population of White ethnicity",
+          "description": "Population of White ethnicity",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "種族為白人的人口",
+          "description": "種族為白人的人口",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "种族为白人的人口",
+          "description": "种族为白人的人口",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationOfWhiteEthnicity",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ethn_wh",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population of other ethnicities",
+          "description": "Population of other ethnicities (including persons who reported more than one ethnicity)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "其他種族的人口（包括報稱有多過一個種族的人士）",
+          "description": "其他種族的人口（包括報稱有多過一個種族的人士）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "其他种族的人口（包括报称有多过一个种族的人士）",
+          "description": "其他种族的人口（包括报称有多过一个种族的人士）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationOfOtherEthnicities",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ethn_oth",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "males aged 15 and over: Never married",
+          "description": "Number of males aged 15 and over - Never married",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上男性人口 - 從未結婚",
+          "description": "15歲及以上男性人口 - 從未結婚",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上男性人口 - 从未结婚",
+          "description": "15岁及以上男性人口 - 从未结婚",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "malesAged15AndOverNeverMarried",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_nm_m",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "males aged 15 and over: Married",
+          "description": "Number of males aged 15 and over - Married",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上男性人口 - 已婚",
+          "description": "15歲及以上男性人口 - 已婚",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上男性人口 - 已婚",
+          "description": "15岁及以上男性人口 - 已婚",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "malesAged15AndOverMarried",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_ma_m",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "males aged 15 and over: Widowed/ Divorced/ Separated",
+          "description": "Number of males aged 15 and over - Widowed/ Divorced/ Separated",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上男性人口 - 喪偶／離婚／分居",
+          "description": "15歲及以上男性人口 - 喪偶／離婚／分居",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上男性人口 - 丧偶／离婚／分居",
+          "description": "15岁及以上男性人口 - 丧偶／离婚／分居",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "malesAged15AndOverWidowedDivorcedSeparated",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_wds_m",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "females aged 15 and over: Never married",
+          "description": "Number of females aged 15 and over - Never married",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上女性人口 - 從未結婚",
+          "description": "15歲及以上女性人口 - 從未結婚",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上女性人口 - 从未结婚",
+          "description": "15岁及以上女性人口 - 从未结婚",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "femalesAged15AndOverNeverMarried",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_nm_f",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "females aged 15 and over: Married",
+          "description": "Number of females aged 15 and over - Married",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上女性人口 - 已婚",
+          "description": "15歲及以上女性人口 - 已婚",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上女性人口 - 已婚",
+          "description": "15岁及以上女性人口 - 已婚",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "femalesAged15AndOverMarried",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_m_f",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "females aged 15 and over: Widowed/ Divorced/ Separated",
+          "description": "Number of females aged 15 and over - Widowed/ Divorced/ Separated",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上女性人口 - 喪偶／離婚／分居",
+          "description": "15歲及以上女性人口 - 喪偶／離婚／分居",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上女性人口 - 丧偶／离婚／分居",
+          "description": "15岁及以上女性人口 - 丧偶／离婚／分居",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "femalesAged15AndOverWidowedDivorcedSeparated",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ms_wds_f",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Cantonese-speaking population",
+          "description": "Percentage of people aged 5 and over, excluding mute people, whose usual spoken language is Cantonese.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "以粵語為常用語言的人口",
+          "description": "5歲及以上人口百分比分布（不包括失去語言能力的人士） - 慣用交談語言：廣州話",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "以粤语为常用语言的人口",
+          "description": "5岁及以上人口百分比分布（不包括失去语言能力的人士） - 惯用交谈语言：广州话",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "cantoneseSpeakingPopulation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_can",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 5 and over: Usual spoken language: Putonghua",
+          "description": "Population aged 5 and over (excluding mute persons) - Usual spoken language: Putonghua",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：普通話",
+          "description": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：普通話",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：普通话",
+          "description": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：普通话",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverUsualSpokenLanguagePutonghua",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_put",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 5 and over: Usual spoken language: Other Chinese dialects",
+          "description": "Population aged 5 and over (excluding mute persons) - Usual spoken language: Other Chinese dialects",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：其他中國方言",
+          "description": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：其他中國方言",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：其他中国方言",
+          "description": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：其他中国方言",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverUsualSpokenLanguageOtherChineseDialects",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_othchi",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 5 and over: Usual spoken language: English",
+          "description": "Population aged 5 and over (excluding mute persons) - Usual spoken language: English",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：英語",
+          "description": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：英語",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：英语",
+          "description": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：英语",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverUsualSpokenLanguageEnglish",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_eng",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 5 and over: Usual spoken language: Other languages",
+          "description": "Population aged 5 and over (excluding mute persons) - Usual spoken language: Other languages",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：其他語言",
+          "description": "5歲及以上人口（不包括失去語言能力的人士） - 慣用交談語言：其他語言",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：其他语言",
+          "description": "5岁及以上人口（不包括失去语言能力的人士） - 惯用交谈语言：其他语言",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverUsualSpokenLanguageOtherLanguages",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ul_oth",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population aged 5 and over able to read Chinese",
+          "description": "Proportion of population aged 5 and over able to read Chinese",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "能閱讀中文的5歲及以上人口比例",
+          "description": "能閱讀中文的5歲及以上人口比例",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "能阅读中文的5岁及以上人口比例",
+          "description": "能阅读中文的5岁及以上人口比例",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverAbleToReadChinese",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "readchi_ablepctn",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population aged 5 and over able to read English",
+          "description": "Proportion of population aged 5 and over able to read English",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "能閱讀英文的5歲及以上人口比例",
+          "description": "能閱讀英文的5歲及以上人口比例",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "能阅读英文的5岁及以上人口比例",
+          "description": "能阅读英文的5岁及以上人口比例",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverAbleToReadEnglish",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "readeng_ablepctn",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population aged 5 and over able to write Chinese",
+          "description": "Proportion of population aged 5 and over able to write Chinese",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "能書寫中文的5歲及以上人口比例",
+          "description": "能書寫中文的5歲及以上人口比例",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "能书写中文的5岁及以上人口比例",
+          "description": "能书写中文的5岁及以上人口比例",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverAbleToWriteChinese",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "writechi_ablepctn",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "population aged 5 and over able to write English",
+          "description": "Proportion of population aged 5 and over able to write English",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "能書寫英文的5歲及以上人口比例",
+          "description": "能書寫英文的5歲及以上人口比例",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "能书写英文的5岁及以上人口比例",
+          "description": "能书写英文的5岁及以上人口比例",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged5AndOverAbleToWriteEnglish",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "writeeng_ablepctn",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 15 and over: Educational attainment: Primary and below",
+          "description": "Population aged 15 and over - Educational attainment (highest level attended): Primary and below",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上人口 - 教育程度（最高就讀程度）：小學及以下",
+          "description": "15歲及以上人口 - 教育程度（最高就讀程度）：小學及以下",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上人口 - 教育程度（最高就读程度）：小学及以下",
+          "description": "15岁及以上人口 - 教育程度（最高就读程度）：小学及以下",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged15AndOverEducationalAttainmentPrimaryAndBelow",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_pri_be",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population with secondary education",
+          "description": "Percentage of people aged 15 and over whose highest educational attainment is secondary education.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "具中學教育程度的人口",
+          "description": "15歲及以上人口百分比分布 - 教育程度（最高就讀程度）：中學",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "具中学教育程度的人口",
+          "description": "15岁及以上人口百分比分布 - 教育程度（最高就读程度）：中学",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationWithSecondaryEducation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_sec",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population aged 15 and over: Educational attainment: Post-secondary",
+          "description": "Population aged 15 and over - Educational attainment (highest level attended): Post-secondary",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "15歲及以上人口 - 教育程度（最高就讀程度）：專上教育",
+          "description": "15歲及以上人口 - 教育程度（最高就讀程度）：專上教育",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "15岁及以上人口 - 教育程度（最高就读程度）：专上教育",
+          "description": "15岁及以上人口 - 教育程度（最高就读程度）：专上教育",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "populationAged15AndOverEducationalAttainmentPostSecondary",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "edu_psec",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the same district&#160;those who live on Hong Kong Island or in Kowloon and study in the same District Council district; those who live in a new town and study in the same new town; and those who live in other areas in the New Territories and study in areas other than new town areas of the same District Council district)",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the same district (including (a)&#160;those who live on Hong Kong Island or in Kowloon and study in the same District Council district; (b) those who live in a new town and study in the same new town; and (c) those who live in other areas in the New Territories and study in areas other than new town areas of the same District Council district)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口 - 同區就讀（包括（a）在香港島或九龍居住並在同一區議會分區內上課的人士，（b）在新市鎮居住並在同一新市鎮上課的人士，及（c）在新界其他地方居住並在同一區議會分區非新市鎮地區內上課的人士）",
+          "description": "於香港院校就讀全日制課程的人口 - 同區就讀（包括（a）在香港島或九龍居住並在同一區議會分區內上課的人士，（b）在新市鎮居住並在同一新市鎮上課的人士，及（c）在新界其他地方居住並在同一區議會分區非新市鎮地區內上課的人士）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口 - 同区就读（包括（a）在香港岛或九龙居住并在同一区议会分区内上课的人士，（b）在新市镇居住并在同一新市镇上课的人士，及（c）在新界其他地方居住并在同一区议会分区非新市镇地区内上课的人士）",
+          "description": "于香港院校就读全日制课程的人口 - 同区就读（包括（a）在香港岛或九龙居住并在同一区议会分区内上课的人士，（b）在新市镇居住并在同一新市镇上课的人士，及（c）在新界其他地方居住并在同一区议会分区非新市镇地区内上课的人士）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "personsStudyingFullTimeCoursesInEducationalInstitutionsInHongKongStudyInTheSameDistrict160ThoseWhoLiveOnHongKongIslandOrInKowloonAndStudyInTheSameDistrictCouncilDistrictThoseWhoLiveInANewTownAndStudyInTheSameNewTownAndThoseWhoLiveInOtherAreasInTheNewTerritoriesAndStudyInAreasOtherThanNewTownAreasOfTheSameDistrictCouncilDistrict",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pls_same",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district on Hong Kong Island",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district on Hong Kong Island",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為香港島）",
+          "description": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為香港島）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为香港岛）",
+          "description": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为香港岛）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "personsStudyingFullTimeCoursesInEducationalInstitutionsInHongKongStudyInTheAnotherDistrictOnHongKongIsland",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pls_diff_hk",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in Kowloon",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in Kowloon",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為九龍）",
+          "description": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為九龍）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为九龙）",
+          "description": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为九龙）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "personsStudyingFullTimeCoursesInEducationalInstitutionsInHongKongStudyInTheAnotherDistrictInKowloon",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pls_diff_kln",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in new towns",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in new towns",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為新市鎮）",
+          "description": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為新市鎮）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为新市镇）",
+          "description": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为新市镇）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "personsStudyingFullTimeCoursesInEducationalInstitutionsInHongKongStudyInTheAnotherDistrictInNewTowns",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "pls_diff_nt",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in other areas in the New Territories",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in other areas in the New Territories",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為新界其他地區）",
+          "description": "於香港院校就讀全日制課程的人口 - 跨區就讀（上課地點為新界其他地區）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为新界其他地区）",
+          "description": "于香港院校就读全日制课程的人口 - 跨区就读（上课地点为新界其他地区）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "personsStudyingFullTimeCoursesInEducationalInstitutionsInHongKongStudyInTheAnotherDistrictInOtherAreasInTheNewTerritories",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "s_diff_oth",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population",
+          "description": "Number of people in the working population.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_wp",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Employees",
+          "description": "Percentage of the working population who are employees, including outworkers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "僱員",
+          "description": "按經濟活動身分劃分的工作人口百分比分布 — 僱員（包括外發工）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "雇员",
+          "description": "按经济活动身分划分的工作人口百分比分布 — 雇员（包括外发工）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationEmployees",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_ee",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Employers",
+          "description": "Percentage of the working population who are employers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "僱主",
+          "description": "按經濟活動身分劃分的工作人口百分比分布 — 僱主",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "雇主",
+          "description": "按经济活动身分划分的工作人口百分比分布 — 雇主",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationEmployers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_er",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Self-employed",
+          "description": "Working population - Self-employed",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 自營作業者",
+          "description": "工作人口 - 自營作業者",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 自营作业者",
+          "description": "工作人口 - 自营作业者",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationSelfEmployed",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_se",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Unpaid family workers",
+          "description": "Working population - Unpaid family workers",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 無酬家庭從業員",
+          "description": "工作人口 - 無酬家庭從業員",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 无酬家庭从业员",
+          "description": "工作人口 - 无酬家庭从业员",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationUnpaidFamilyWorkers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_fw",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population",
+          "description": "Number of people not in the working population.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_nwp",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Home-makers",
+          "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Home-makers",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意）- 料理家務者",
+          "description": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意）- 料理家務者",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意）- 料理家务者",
+          "description": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意）- 料理家务者",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "nonWorkingPopulationSlightlyDiffersFromThatAdoptedInThe2011PopulationCensusAnd2016PopulationByCensusThereforeCautionShouldBeTakenWhenComparingFiguresFor2021WithThoseFor2011AndOr2016HomeMakers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_hm",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "nonWorkingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Students outside the working population",
+          "description": "Percentage of the non-working population who are students.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口中的學生",
+          "description": "非工作人口百分比分布：學生",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口中的学生",
+          "description": "非工作人口百分比分布：学生",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulationStudents",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_st",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Retired",
+          "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Retired",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 退休人士",
+          "description": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 退休人士",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 退休人士",
+          "description": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 退休人士",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "nonWorkingPopulationSlightlyDiffersFromThatAdoptedInThe2011PopulationCensusAnd2016PopulationByCensusThereforeCautionShouldBeTakenWhenComparingFiguresFor2021WithThoseFor2011AndOr2016Retired",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_re",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Unpaid carers)",
+          "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Unpaid carers (persons who are engaged in unpaid care to family members or other persons (including persons with chronic diseases/disability and old/young persons))",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 無酬照顧者（須無酬照顧親人或其他人士（包括長期病患、殘疾或年長／年幼的人士）的人）",
+          "description": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 無酬照顧者（須無酬照顧親人或其他人士（包括長期病患、殘疾或年長／年幼的人士）的人）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 无酬照顾者（须无酬照顾亲人或其他人士（包括长期病患、残疾或年长／年幼的人士）的人）",
+          "description": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 无酬照顾者（须无酬照顾亲人或其他人士（包括长期病患、残疾或年长／年幼的人士）的人）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "nonWorkingPopulationSlightlyDiffersFromThatAdoptedInThe2011PopulationCensusAnd2016PopulationByCensusThereforeCautionShouldBeTakenWhenComparingFiguresFor2021WithThoseFor2011AndOr2016UnpaidCarers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_care",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Others",
+          "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Others",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 其他",
+          "description": "非工作人口（2021年人口普查所採用非從事經濟活動人口的經濟活動身分分類（即「料理家務者」、「學生」、「退休人士」、「無酬照顧者」及「其他」），跟2011年人口普查及2016年中期人口統計所採用的分類（即「料理家務者」、「學生」、「退休人士」及「其他」）稍有分別，因此2021年統計數字與2011年及／或2016年統計數字作比較時須加以留意） - 其他",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 其他",
+          "description": "非工作人口（2021年人口普查所采用非从事经济活动人口的经济活动身分分类（即「料理家务者」、「学生」、「退休人士」、「无酬照顾者」及「其他」），跟2011年人口普查及2016年中期人口统计所采用的分类（即「料理家务者」、「学生」、「退休人士」及「其他」）稍有分别，因此2021年统计数字与2011年及／或2016年统计数字作比较时须加以留意） - 其他",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "nonWorkingPopulationSlightlyDiffersFromThatAdoptedInThe2011PopulationCensusAnd2016PopulationByCensusThereforeCautionShouldBeTakenWhenComparingFiguresFor2021WithThoseFor2011AndOr2016Others",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "nwp_oth",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in the same district those who live on Hong Kong Island or in Kowloon and work in the same District Council district; those who live in a new town and work in the same new town; and those who live in other areas in the New Territories and work in areas other than new town areas of the same District Council district, but excluding persons who work at home)",
+          "description": "Working population - Work in the same district (including (a) those who live on Hong Kong Island or in Kowloon and work in the same District Council district; (b) those who live in a new town and work in the same new town; and (c) those who live in other areas in the New Territories and work in areas other than new town areas of the same District Council district, but excluding persons who work at home)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 同區工作（包括（a）在香港島或九龍居住並在同一區議會分區內工作的人士，（b）在新市鎮居住並在同一新市鎮工作的人士，及（c）在新界其他地方居住並在同一區議會分區非新市鎮地區內工作的人士，但不包括於家中工作的人士）",
+          "description": "工作人口 - 同區工作（包括（a）在香港島或九龍居住並在同一區議會分區內工作的人士，（b）在新市鎮居住並在同一新市鎮工作的人士，及（c）在新界其他地方居住並在同一區議會分區非新市鎮地區內工作的人士，但不包括於家中工作的人士）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 同区工作（包括（a）在香港岛或九龙居住并在同一区议会分区内工作的人士，（b）在新市镇居住并在同一新市镇工作的人士，及（c）在新界其他地方居住并在同一区议会分区非新市镇地区内工作的人士，但不包括于家中工作的人士）",
+          "description": "工作人口 - 同区工作（包括（a）在香港岛或九龙居住并在同一区议会分区内工作的人士，（b）在新市镇居住并在同一新市镇工作的人士，及（c）在新界其他地方居住并在同一区议会分区非新市镇地区内工作的人士，但不包括于家中工作的人士）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInTheSameDistrictThoseWhoLiveOnHongKongIslandOrInKowloonAndWorkInTheSameDistrictCouncilDistrictThoseWhoLiveInANewTownAndWorkInTheSameNewTownAndThoseWhoLiveInOtherAreasInTheNewTerritoriesAndWorkInAreasOtherThanNewTownAreasOfTheSameDistrictCouncilDistrictButExcludingPersonsWhoWorkAtHome",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_same",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in the another district on Hong Kong Island",
+          "description": "Working population - Work in the another district on Hong Kong Island",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 跨區工作（工作地點為香港島）",
+          "description": "工作人口 - 跨區工作（工作地點為香港島）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 跨区工作（工作地点为香港岛）",
+          "description": "工作人口 - 跨区工作（工作地点为香港岛）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInTheAnotherDistrictOnHongKongIsland",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_diff_hk",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in the another district in Kowloon",
+          "description": "Working population - Work in the another district in Kowloon",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 跨區工作（工作地點為九龍）",
+          "description": "工作人口 - 跨區工作（工作地點為九龍）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 跨区工作（工作地点为九龙）",
+          "description": "工作人口 - 跨区工作（工作地点为九龙）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInTheAnotherDistrictInKowloon",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_diff_kln",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in the another district in new towns",
+          "description": "Working population - Work in the another district in new towns",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 跨區工作（工作地點為新市鎮）",
+          "description": "工作人口 - 跨區工作（工作地點為新市鎮）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 跨区工作（工作地点为新市镇）",
+          "description": "工作人口 - 跨区工作（工作地点为新市镇）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInTheAnotherDistrictInNewTowns",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_diff_nt",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in the another district in other areas in the New Territories",
+          "description": "Working population - Work in the another district in other areas in the New Territories",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 跨區工作（工作地點為新界其他地區）",
+          "description": "工作人口 - 跨區工作（工作地點為新界其他地區）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 跨区工作（工作地点为新界其他地区）",
+          "description": "工作人口 - 跨区工作（工作地点为新界其他地区）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInTheAnotherDistrictInOtherAreasInTheNewTerritories",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_diff_oth",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: No fixed place of work/ Marine",
+          "description": "Working population - No fixed place of work/ Marine",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 無固定地點／水上",
+          "description": "工作人口 - 無固定地點／水上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 无固定地点／水上",
+          "description": "工作人口 - 无固定地点／水上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationNoFixedPlaceOfWorkMarine",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_nofix",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work at home",
+          "description": "Working population - Work at home",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 於家中工作",
+          "description": "工作人口 - 於家中工作",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 于家中工作",
+          "description": "工作人口 - 于家中工作",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkAtHome",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_hm",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Work in places outside Hong Kong",
+          "description": "Working population - Work in places outside Hong Kong",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 香港以外地方工作",
+          "description": "工作人口 - 香港以外地方工作",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 香港以外地方工作",
+          "description": "工作人口 - 香港以外地方工作",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWorkInPlacesOutsideHongKong",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "plw_out",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: Less than HK$10,000",
+          "description": "Working population (excluding unpaid family workers) - Monthly income from main employment: Less than HK$10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：少於港元10,000",
+          "description": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：少於港元10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：少于港元10,000",
+          "description": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：少于港元10,000",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentLessThanHk10000",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_sb_1",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: HK$10,000-19,999",
+          "description": "Working population (excluding unpaid family workers) - Monthly income from main employment: HK$10,000-19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：港元10,000 - 19,999",
+          "description": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：港元10,000 - 19,999",
+          "description": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk1000019999",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_sb_2",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: HK$20,000 and over",
+          "description": "Working population (excluding unpaid family workers) - Monthly income from main employment: HK$20,000 and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：港元20,000 及以上",
+          "description": "工作人口（不包括無酬家庭從業員） - 每月主要職業收入：港元20,000 及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：港元20,000 及以上",
+          "description": "工作人口（不包括无酬家庭从业员） - 每月主要职业收入：港元20,000 及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk20000AndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfw_sb_3",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly income from main employment of working population",
+          "description": "Median monthly income from main employment of working population (excluding unpaid family workers) (HK$)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員）的每月主要職業收入中位數（港元）",
+          "description": "工作人口（不包括無酬家庭從業員）的每月主要職業收入中位數（港元）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员）的每月主要职业收入中位数（港元）",
+          "description": "工作人口（不包括无酬家庭从业员）的每月主要职业收入中位数（港元）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulation",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_mmearn",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: Less than HK$10,000 (excl. FDH)",
+          "description": "Working population (excluding unpaid family workers and foreign domestic helpers) - Monthly income from main employment: Less than HK$10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：少於港元10,000",
+          "description": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：少於港元10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：少于港元10,000",
+          "description": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：少于港元10,000",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentLessThanHk10000MearnXfdhfwSb1",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_sb_1",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: HK$10,000-19,999 (excl. FDH)",
+          "description": "Working population (excluding unpaid family workers and foreign domestic helpers) - Monthly income from main employment: HK$10,000-19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：港元10,000 - 19,999",
+          "description": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：港元10,000 - 19,999",
+          "description": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk1000019999MearnXfdhfwSb2",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_sb_2",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Monthly income from main employment: HK$20,000 and over (excl. FDH)",
+          "description": "Working population (excluding unpaid family workers and foreign domestic helpers) - Monthly income from main employment: HK$20,000 and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：港元20,000 及以上",
+          "description": "工作人口（不包括無酬家庭從業員及外籍家庭傭工） - 每月主要職業收入：港元20,000 及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：港元20,000 及以上",
+          "description": "工作人口（不包括无酬家庭从业员及外籍家庭佣工） - 每月主要职业收入：港元20,000 及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk20000AndOverMearnXfdhfwSb3",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "mearn_xfdhfw_sb_3",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly income from main employment of working population (excl. FDH)",
+          "description": "Median monthly income from main employment of working population (excluding unpaid family workers and foreign domestic helpers) (HK$)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口（不包括無酬家庭從業員及外籍家庭傭工）的每月主要職業收入中位數（港元）",
+          "description": "工作人口（不包括無酬家庭從業員及外籍家庭傭工）的每月主要職業收入中位數（港元）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口（不包括无酬家庭从业员及外籍家庭佣工）的每月主要职业收入中位数（港元）",
+          "description": "工作人口（不包括无酬家庭从业员及外籍家庭佣工）的每月主要职业收入中位数（港元）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationTMmearnXfdh",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "t_mmearn_xfdh",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Managers",
+          "description": "Percentage of the working population employed as managers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "經理及行政級人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：經理",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "经理及行政级人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：经理",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationManagers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_a",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Professionals and associate professionals",
+          "description": "Percentage of the working population employed as professionals or associate professionals.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "專業人員及輔助專業人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：專業人員及輔助專業人員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "专业人员及辅助专业人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：专业人员及辅助专业人员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationProfessionalsAndAssociateProfessionals",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_b",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Clerical, service and sales workers",
+          "description": "Percentage of the working population employed as clerical support workers or service and sales workers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "文書支援、服務及銷售人員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：文書支援人員、服務及銷售人員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "文书支援、服务及销售人员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：文书支援人员、服务及销售人员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationClericalServiceAndSalesWorkers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_c",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Craft, plant and machine workers",
+          "description": "Percentage of the working population employed in craft and related occupations, or as plant and machine operators or assemblers.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工藝及有關人員、機台及機器操作員和裝配員",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：工藝及有關人員、機台及機器操作員及裝配員",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工艺及有关人员、机台及机器操作员和装配员",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：工艺及有关人员、机台及机器操作员及装配员",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationCraftPlantAndMachineWorkers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_d",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Elementary, agricultural and unclassified workers",
+          "description": "Percentage of the working population in elementary occupations, skilled agricultural and fishery work, or occupations that cannot be classified.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非技術工人、農林漁業熟練工人及不能分類的職業",
+          "description": "工作人口百分比分布 - 職業（2021 年人口普查採用了新的職業分類方法，此職業分類方法更為貼近「國際標準職業分類法2008 年版」）：非技術工人、漁農業熟練工人及不能分類的職業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非技术工人、农林渔业熟练工人及不能分类的职业",
+          "description": "工作人口百分比分布 - 职业（2021 年人口普查采用了新的职业分类方法，此职业分类方法更为贴近「国际标准职业分类法2008 年版」）：非技术工人、渔农业熟练工人及不能分类的职业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationElementaryAgriculturalOrUnclassifiedWorkers",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_e",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in manufacturing, construction and other industries",
+          "description": "Percentage of the working population in manufacturing, construction, or other industries.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事製造、建造及其他行業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：製造業、建造業及其他行業（包括「農業、林業及漁業」、「採礦及採石業」、「電力及燃氣供應」、「自來水供應；污水處理、廢棄物管理及污染防治服務業」等行業，及報稱的行業不能辨別或描述不足）",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事制造、建造及其他行业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：制造业、建造业及其他行业（包括「农业、林业及渔业」、「采矿及采石业」、「电力及燃气供应」、「自来水供应;污水处理、废弃物管理及污染防治服务业」等行业，及报称的行业不能辨别或描述不足）",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationManufacturingConstructionAndOtherIndustries",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_f",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in trade and hospitality industries",
+          "description": "Percentage of the working population in import/export, wholesale and retail trades, accommodation, or food services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事貿易及酒店餐飲業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：進出口、批發及零售業、住宿及膳食服務業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事贸易及酒店餐饮业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：进出口、批发及零售业、住宿及膳食服务业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationTradeAndHospitalityIndustries",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_g",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in transport, information, finance and business services",
+          "description": "Percentage of the working population in transportation, storage, postal and courier services, information and communications, financing and insurance, real estate, professional, or business services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事運輸、資訊、金融及商業服務業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：運輸、倉庫、郵政及速遞服務業、資訊及通訊業、金融及保險業、地產、專業及商用服務業",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事运输、资讯、金融及商业服务业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：运输、仓库、邮政及速递服务业、资讯及通讯业、金融及保险业、地产、专业及商用服务业",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationTransportInformationFinanceAndBusinessServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_h",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "denominatorMeasureCode": "workingPopulation",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Workers in public, education, health and personal services",
+          "description": "Percentage of the working population in public administration, education, human health and social work, or social and personal services.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事公共、教育、醫療及個人服務業的工作人口",
+          "description": "工作人口百分比分布 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：公共行政、教育、人類醫療保健及社工活動、雜項社會及個人服務",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事公共、教育、医疗及个人服务业的工作人口",
+          "description": "工作人口百分比分布 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：公共行政、教育、人类医疗保健及社工活动、杂项社会及个人服务",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulationPublicEducationHealthAndPersonalServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_i",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Manufacturing",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Manufacturing",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：製造業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：製造業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：制造业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：制造业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryManufacturing",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_j",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Construction",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Construction",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：建造業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：建造業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：建造业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：建造业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryConstruction",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_k",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Import/export, wholesale and retail trades",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Import/export, wholesale and retail trades",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：進出口、批發及零售業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：進出口、批發及零售業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：进出口、批发及零售业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：进出口、批发及零售业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryImportExportWholesaleAndRetailTrades",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_l",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Transportation, storage, postal and courier services",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Transportation, storage, postal and courier services",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：運輸、倉庫、郵政及速遞服務業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：運輸、倉庫、郵政及速遞服務業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：运输、仓库、邮政及速递服务业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：运输、仓库、邮政及速递服务业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryTransportationStoragePostalAndCourierServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_m",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Accommodation and food services",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Accommodation and food services",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：住宿及膳食服務業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：住宿及膳食服務業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：住宿及膳食服务业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：住宿及膳食服务业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryAccommodationAndFoodServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_n",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Information and communications",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Information and communications",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：資訊及通訊業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：資訊及通訊業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：资讯及通讯业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：资讯及通讯业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryInformationAndCommunications",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_o",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Financing and insurance",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Financing and insurance",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：金融及保險業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：金融及保險業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：金融及保险业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：金融及保险业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryFinancingAndInsurance",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_p",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Real estate, professional and business services",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Real estate, professional and business services",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：地產、專業及商用服務業",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：地產、專業及商用服務業",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：地产、专业及商用服务业",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：地产、专业及商用服务业",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryRealEstateProfessionalAndBusinessServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_q",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Public administration, education, human health and social work activities",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Public administration, education, human health and social work activities",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：公共行政、教育、人類醫療保健及社工活動",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：公共行政、教育、人類醫療保健及社工活動",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：公共行政、教育、人类医疗保健及社工活动",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：公共行政、教育、人类医疗保健及社工活动",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryPublicAdministrationEducationHumanHealthAndSocialWorkActivities",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_r",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Miscellaneous social and personal services",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Miscellaneous social and personal services",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：雜項社會及個人服務",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：雜項社會及個人服務",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：杂项社会及个人服务",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：杂项社会及个人服务",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryMiscellaneousSocialAndPersonalServices",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_s",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Industry: Other industries",
+          "description": "Working population - Industry (based on the industry classification modelled on the Hong Kong Standard Industrial Classification Version 2.0): Other industries (including \"Agriculture; forestry and fishing\"; \"Mining and quarrying\"; \"Electricity and gas supply\"; \"Water supply; sewerage, waste management and remediation activities\" and industrial activities unidentifiable or inadequately described)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：其他行業（包括「農業、林業及漁業」、「採礦及採石業」、「電力及燃氣供應」、「自來水供應；污水處理、廢棄物管理及污染防治服務業」等行業，及報稱的行業不能辨別或描述不足）",
+          "description": "工作人口 - 行業（「香港標準行業分類2.0 版」為藍本的行業分類）：其他行業（包括「農業、林業及漁業」、「採礦及採石業」、「電力及燃氣供應」、「自來水供應；污水處理、廢棄物管理及污染防治服務業」等行業，及報稱的行業不能辨別或描述不足）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：其他行业（包括「农业、林业及渔业」、「采矿及采石业」、「电力及燃气供应」、「自来水供应；污水处理、废弃物管理及污染防治服务业」等行业，及报称的行业不能辨别或描述不足）",
+          "description": "工作人口 - 行业（「香港标准行业分类2.0 版」为蓝本的行业分类）：其他行业（包括「农业、林业及渔业」、「采矿及采石业」、「电力及燃气供应」、「自来水供应；污水处理、废弃物管理及污染防治服务业」等行业，及报称的行业不能辨别或描述不足）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationIndustryOtherIndustries",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "wp_t",
+      "statisticKind": "count",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "percentile",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of weekly working hours",
+          "description": "First quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第一四分位數",
+          "description": "所有工作的每周通常工作時數：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第一四分位数",
+          "description": "所有工作的每周通常工作时数：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_1",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median weekly working hours",
+          "description": "Median usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數中位數",
+          "description": "所有工作的每周通常工作時數：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数中位数",
+          "description": "所有工作的每周通常工作时数：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_2",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "percentile",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of weekly working hours",
+          "description": "Third quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第三四分位數",
+          "description": "所有工作的每周通常工作時數：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第三四分位数",
+          "description": "所有工作的每周通常工作时数：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileWeeklyWorkingHours",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_3",
+      "statisticKind": "quantity",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Weekly usual hours of work of all employment: 45-54 hours",
+          "description": "Working population - Weekly usual hours of work of all employment: 45-54 hours",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 所有工作的每周通常工作時數：45-54小時",
+          "description": "工作人口 - 所有工作的每周通常工作時數：45-54小時",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 所有工作的每周通常工作时数：45-54小时",
+          "description": "工作人口 - 所有工作的每周通常工作时数：45-54小时",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWeeklyUsualHoursOfWorkOfAllEmployment4554Hours",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_4",
+      "statisticKind": "count",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Weekly usual hours of work of all employment: 55-64 hours",
+          "description": "Working population - Weekly usual hours of work of all employment: 55-64 hours",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 所有工作的每周通常工作時數：55-64小時",
+          "description": "工作人口 - 所有工作的每周通常工作時數：55-64小時",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 所有工作的每周通常工作时数：55-64小时",
+          "description": "工作人口 - 所有工作的每周通常工作时数：55-64小时",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWeeklyUsualHoursOfWorkOfAllEmployment5564Hours",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_5",
+      "statisticKind": "count",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population: Weekly usual hours of work of all employment: 65 hours and over",
+          "description": "Working population - Weekly usual hours of work of all employment: 65 hours and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口 - 所有工作的每周通常工作時數：65 小時及以上",
+          "description": "工作人口 - 所有工作的每周通常工作時數：65 小時及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口 - 所有工作的每周通常工作时数：65 小时及以上",
+          "description": "工作人口 - 所有工作的每周通常工作时数：65 小时及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "workingPopulationWeeklyUsualHoursOfWorkOfAllEmployment65HoursAndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "whr_6",
+      "statisticKind": "count",
+      "unitCode": "hour"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households",
+          "description": "Number of domestic households",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目",
+          "description": "家庭住戶數目",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目",
+          "description": "家庭住户数目",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholds",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dh",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 1–3 people",
+          "description": "Percentage of domestic households with 1–3 people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "1至3人的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：1 - 3人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "1至3人的住户",
+          "description": "家庭住户百分比分布 - 住户人数：1 - 3人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithOneToThreePeople",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_1",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 4 people",
+          "description": "Percentage of domestic households with 4 people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "4人的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：4人",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "4人的住户",
+          "description": "家庭住户百分比分布 - 住户人数：4人",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFourPeople",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_2",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "none",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households with 5 or more people",
+          "description": "Percentage of domestic households with 5 or more people.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "5人或以上的住戶",
+          "description": "家庭住戶百分比分布 - 住戶人數：5人及以上",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "5人或以上的住户",
+          "description": "家庭住户百分比分布 - 住户人数：5人及以上",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholdsWithFiveOrMorePeople",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_3",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household size: 4 persons",
+          "description": "Number of domestic households - Household size: 4 persons",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 住戶人數：4人",
+          "description": "家庭住戶數目 - 住戶人數：4人",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 住户人数：4人",
+          "description": "家庭住户数目 - 住户人数：4人",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdSize4Persons",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_4",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household size: 5 persons",
+          "description": "Number of domestic households - Household size: 5 persons",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 住戶人數：5人",
+          "description": "家庭住戶數目 - 住戶人數：5人",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 住户人数：5人",
+          "description": "家庭住户数目 - 住户人数：5人",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdSize5Persons",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_5",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household size: 6 persons and over",
+          "description": "Number of domestic households - Household size: 6 persons and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 住戶人數：6 人及以上",
+          "description": "家庭住戶數目 - 住戶人數：6 人及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 住户人数：6 人及以上",
+          "description": "家庭住户数目 - 住户人数：6 人及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdSize6PersonsAndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhz_6",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "mean",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average household size",
+          "description": "Average number of people in a domestic household.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平均住戶人數",
+          "description": "家庭住戶平均人數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平均住户人数",
+          "description": "家庭住户平均人数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageDomesticHouseholdSize",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "adhz",
+      "statisticKind": "quantity",
+      "unitCode": "person"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household composition: Nuclear family households without any other related persons; and households comprising a father or mother and his/ her unmarried child without any other related persons. These households may or may not include other unrelated persons.)",
+          "description": "Number of domestic households - Household composition: Nuclear family households (i.e. comprising a married couple without any other related persons; households comprising a couple and their unmarried child(ren) without any other related persons; and households comprising a father or mother and his/ her unmarried child(ren) without any other related persons. These households may or may not include other unrelated persons (e.g. domestic helpers).)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶結構：由夫婦所組成（由一對已婚夫婦而並無其他親屬所組成的住戶；由一對夫婦及其未婚子女而並無其他親屬所組成的住戶；及由父／母一方及其未婚子女而並無其他親屬所組成的住戶。這類住戶可包括或不包括其他無親屬關係的同住人士，例如家庭傭工。）",
+          "description": "家庭住戶數目 - 家庭住戶結構：由夫婦所組成（由一對已婚夫婦而並無其他親屬所組成的住戶；由一對夫婦及其未婚子女而並無其他親屬所組成的住戶；及由父／母一方及其未婚子女而並無其他親屬所組成的住戶。這類住戶可包括或不包括其他無親屬關係的同住人士，例如家庭傭工。）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目- 家庭住户结构：由夫妇所组成（由一对已婚夫妇而并无其他亲属所组成的住户；由一对夫妇及其未婚子女而并无其他亲属所组成的住户；及由父／母一方及其未婚子女而并无其他亲属所组成的住户。这类住户可包括或不包括其他无亲属关系的同住人士，例如家庭佣工。）",
+          "description": "家庭住户数目- 家庭住户结构：由夫妇所组成（由一对已婚夫妇而并无其他亲属所组成的住户；由一对夫妇及其未婚子女而并无其他亲属所组成的住户；及由父／母一方及其未婚子女而并无其他亲属所组成的住户。这类住户可包括或不包括其他无亲属关系的同住人士，例如家庭佣工。）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdCompositionNuclearFamilyHouseholdsWithoutAnyOtherRelatedPersonsAndHouseholdsComprisingAFatherOrMotherAndHisHerUnmarriedChildWithoutAnyOtherRelatedPersonsTheseHouseholdsMayOrMayNotIncludeOtherUnrelatedPersons",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_nc",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household composition: Relative households of the wife and/ or husband) without any other related persons; households comprising a couple, at least one of their parents of the wife and/ or husband) and their unmarried children without any other related persons; and households comprising a group of related persons but not being classified in the other categories. These households may or may not include other unrelated persons.)",
+          "description": "Number of domestic households - Household composition: Relative households (i.e. comprising a couple and at least one of their parents (including the parent(s) of the wife and/ or husband) without any other related persons; households comprising a couple, at least one of their parents (including the parent(s) of the wife and/ or husband) and their unmarried children without any other related persons; and households comprising a group of related persons but not being classified in the other categories. These households may or may not include other unrelated persons (e.g. domestic helpers).)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶結構：親屬關係住戶（由一對夫婦及其至少一個父或母親（包括夫婦雙方的父母親）而並無其他親屬所組成的住戶；由一對夫婦、至少一個父或母親（包括夫婦雙方的父母親）及其未婚子女而並無其他親屬所組成的住戶；及由一羣有親屬關係人士所組成但未能歸入其他類別的住戶。這類住戶可包括或不包括其他無親屬關係的同住人士，例如家庭傭工。）",
+          "description": "家庭住戶數目 - 家庭住戶結構：親屬關係住戶（由一對夫婦及其至少一個父或母親（包括夫婦雙方的父母親）而並無其他親屬所組成的住戶；由一對夫婦、至少一個父或母親（包括夫婦雙方的父母親）及其未婚子女而並無其他親屬所組成的住戶；及由一羣有親屬關係人士所組成但未能歸入其他類別的住戶。這類住戶可包括或不包括其他無親屬關係的同住人士，例如家庭傭工。）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目- 家庭住户结构：亲属关系住户（由一对夫妇及其至少一个父或母亲（包括夫妇双方的父母亲）而并无其他亲属所组成的住户；由一对夫妇、至少一个父或母亲（包括夫妇双方的父母亲）及其未婚子女而并无其他亲属所组成的住户；及由一群有亲属关系人士所组成但未能归入其他类别的住户。这类住户可包括或不包括其他无亲属关系的同住人士，例如家庭佣工。）",
+          "description": "家庭住户数目- 家庭住户结构：亲属关系住户（由一对夫妇及其至少一个父或母亲（包括夫妇双方的父母亲）而并无其他亲属所组成的住户；由一对夫妇、至少一个父或母亲（包括夫妇双方的父母亲）及其未婚子女而并无其他亲属所组成的住户；及由一群有亲属关系人士所组成但未能归入其他类别的住户。这类住户可包括或不包括其他无亲属关系的同住人士，例如家庭佣工。）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdCompositionRelativeHouseholdsOfTheWifeAndOrHusbandWithoutAnyOtherRelatedPersonsHouseholdsComprisingACoupleAtLeastOneOfTheirParentsOfTheWifeAndOrHusbandAndTheirUnmarriedChildrenWithoutAnyOtherRelatedPersonsAndHouseholdsComprisingAGroupOfRelatedPersonsButNotBeingClassifiedInTheOtherCategoriesTheseHouseholdsMayOrMayNotIncludeOtherUnrelatedPersons",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_re",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Household composition: Other households.)",
+          "description": "Number of domestic households - Household composition: Other households (i.e. comprising only one person and households comprising unrelated person(s).)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶結構：其他住戶（由只有一個人的住戶及由一羣無親屬關係人士所組成的住戶。）",
+          "description": "家庭住戶數目 - 家庭住戶結構：其他住戶（由只有一個人的住戶及由一羣無親屬關係人士所組成的住戶。）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 家庭住户结构：其他住户（由只有一个人的住户及由一群无亲属关系人士所组成的住户。）",
+          "description": "家庭住户数目 - 家庭住户结构：其他住户（由只有一个人的住户及由一群无亲属关系人士所组成的住户。）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsHouseholdCompositionOtherHouseholds",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhc_oth",
+      "statisticKind": "count",
+      "unitCode": "household"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Monthly domestic household income: Less than HK$10,000",
+          "description": "Number of domestic households - Monthly domestic household income: Less than HK$10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶每月收入：少於港元10,000",
+          "description": "家庭住戶數目 - 家庭住戶每月收入：少於港元10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 家庭住户每月收入：少于港元10,000",
+          "description": "家庭住户数目 - 家庭住户每月收入：少于港元10,000",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsMonthlyDomesticHouseholdIncomeLessThanHk10000",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_1",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Monthly domestic household income: HK$10,000-19,999",
+          "description": "Number of domestic households - Monthly domestic household income: HK$10,000-19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶每月收入：港元10,000 - 19,999",
+          "description": "家庭住戶數目 - 家庭住戶每月收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 家庭住户每月收入：港元10,000 - 19,999",
+          "description": "家庭住户数目 - 家庭住户每月收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHk1000019999",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_2",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Monthly domestic household income: HK$20,000-39,999",
+          "description": "Number of domestic households - Monthly domestic household income: HK$20,000-39,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶每月收入：港元20,000 - 39,999",
+          "description": "家庭住戶數目 - 家庭住戶每月收入：港元20,000 - 39,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 家庭住户每月收入：港元20,000 - 39,999",
+          "description": "家庭住户数目 - 家庭住户每月收入：港元20,000 - 39,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHk2000039999",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_3",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "domestic households: Monthly domestic household income: HK$40,000 and over",
+          "description": "Number of domestic households - Monthly domestic household income: HK$40,000 and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目 - 家庭住戶每月收入：港元40,000 及以上",
+          "description": "家庭住戶數目 - 家庭住戶每月收入：港元40,000 及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目 - 家庭住户每月收入：港元40,000 及以上",
+          "description": "家庭住户数目 - 家庭住户每月收入：港元40,000 及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHk40000AndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_4",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly domestic household income",
+          "description": "Median monthly domestic household income (HK$)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶每月收入中位數（港元）",
+          "description": "家庭住戶每月收入中位數（港元）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户每月收入中位数（港元）",
+          "description": "家庭住户每月收入中位数（港元）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "medianMonthlyDomesticHouseholdIncome",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ma_hh",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "economically-active households being economically active): Monthly domestic household income: Less than HK$10,000",
+          "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: Less than HK$10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：少於港元10,000",
+          "description": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：少於港元10,000",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：少于港元10,000",
+          "description": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：少于港元10,000",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "economicallyActiveHouseholdsBeingEconomicallyActiveMonthlyDomesticHouseholdIncomeLessThanHk10000",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_e1",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "economically-active households being economically active): Monthly domestic household income: HK$10,000-19,999",
+          "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$10,000-19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元10,000 - 19,999",
+          "description": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元10,000 - 19,999",
+          "description": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元10,000 - 19,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "economicallyActiveHouseholdsBeingEconomicallyActiveMonthlyDomesticHouseholdIncomeHk1000019999",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_e2",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "economically-active households being economically active): Monthly domestic household income: HK$20,000-39,999",
+          "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$20,000-39,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元20,000 - 39,999",
+          "description": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元20,000 - 39,999",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元20,000 - 39,999",
+          "description": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元20,000 - 39,999",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "economicallyActiveHouseholdsBeingEconomicallyActiveMonthlyDomesticHouseholdIncomeHk2000039999",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_e3",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "economically-active households being economically active): Monthly domestic household income: HK$40,000 and over",
+          "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$40,000 and over",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元40,000 及以上",
+          "description": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）數目 - 家庭住戶每月收入：港元40,000 及以上",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元40,000 及以上",
+          "description": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）数目 - 家庭住户每月收入：港元40,000 及以上",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "economicallyActiveHouseholdsBeingEconomicallyActiveMonthlyDomesticHouseholdIncomeHk40000AndOver",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhi_sb_e4",
+      "statisticKind": "count",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly domestic household income of economically-active households being economically active)",
+          "description": "Median monthly domestic household income (HK$) of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）的家庭住戶每月收入中位數（港元）",
+          "description": "從事經濟活動的家庭住戶（指家庭住戶內除外籍家庭傭工外至少有一名其他成員從事經濟活動）的家庭住戶每月收入中位數（港元）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）的家庭住户每月收入中位数（港元）",
+          "description": "从事经济活动的家庭住户（指家庭住户内除外籍家庭佣工外至少有一名其他成员从事经济活动）的家庭住户每月收入中位数（港元）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "medianMonthlyDomesticHouseholdIncomeOfEconomicallyActiveHouseholdsBeingEconomicallyActive",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "ma_econhh",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly mortgage or loan repayment",
+          "description": "Median monthly domestic household mortgage payment or loan repayment, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月按揭或貸款還款額中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月按揭或贷款还款额中位数",
+          "description": "家庭住户每月按揭供款及借贷还款中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyMortgageOrLoanRepayment",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhm_loan",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median mortgage or loan repayment-to-income ratio",
+          "description": "Median ratio of monthly domestic household mortgage payment or loan repayment to income.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "按揭或貸款還款與收入比率中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "按揭或贷款还款与收入比率中位数",
+          "description": "家庭住户每月按揭供款及借贷还款与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMortgageOrLoanRepaymentToIncomeRatio",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dhm_lr",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household rent",
+          "description": "Median monthly domestic household rent, in Hong Kong dollars.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶租金中位數",
+          "description": "家庭住戶每月租金中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户租金中位数",
+          "description": "家庭住户每月租金中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdRent",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dm_r",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median rent-to-income ratio",
+          "description": "Median ratio of monthly domestic household rent to income.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶租金與收入比率中位數",
+          "description": "家庭住戶每月租金與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户租金与收入比率中位数",
+          "description": "家庭住户每月租金与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianHouseholdRentToIncomeRatio",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "dmr_ir",
+      "statisticKind": "proportion",
+      "unitCode": "percent"
+    },
+    {
+      "aggregation": "median",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median floor area of accommodation of domestic households",
+          "description": "Median floor area of accommodation of domestic households (square metres) (excluding domestic households living in unsheltered accommodation or on board vessels and excluding floor area of common area shared among households)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶的居所樓面面積中位數（平方米）（不包括居於非屋宇單位或船艇的家庭住戶，亦不包括與其他住戶共同佔用的樓面面積）",
+          "description": "家庭住戶的居所樓面面積中位數（平方米）（不包括居於非屋宇單位或船艇的家庭住戶，亦不包括與其他住戶共同佔用的樓面面積）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户的居所楼面面积中位数（平方米）（不包括居于非屋宇单位或船艇的家庭住户，亦不包括与其他住户共同占用的楼面面积）",
+          "description": "家庭住户的居所楼面面积中位数（平方米）（不包括居于非屋宇单位或船艇的家庭住户，亦不包括与其他住户共同占用的楼面面积）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "medianFloorAreaOfAccommodationOfDomesticHouseholds",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "fa_m",
+      "statisticKind": "quantity",
+      "unitCode": "square-metre"
+    },
+    {
+      "aggregation": "total",
+      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Major housing estate",
+          "description": "Major housing estate (GML reference number)",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "主要屋苑（GML 識別號碼）",
+          "description": "主要屋苑（GML 識別號碼）",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "主要屋苑（GML 识别号码）",
+          "description": "主要屋苑（GML 识别号码）",
+          "isTranslationVerified": true
+        }
+      ],
+      "measureCode": "majorHousingEstate",
+      "schemaSpecification": {
+        "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "gml_id",
+      "statisticKind": "count",
+      "unitCode": "publisher-unknown"
+    }
+  ],
+  "schemaVersion": 5
+}
