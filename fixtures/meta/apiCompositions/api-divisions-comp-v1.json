@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a718d34922876f4b5369d9c1e56526d1fd99a7813fb5998a2a72c17c3b3ba45e",
+  "versionHash": "sha256:b1e5e73d95db8975be8b2a1bb8e924f50a98ca37251636fb15d2006cb6625409",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -108,7 +108,7 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "Housing Market Area (C&SD)",
+          "name": "HMA",
           "description": "Housing Market Areas defined by the Census and Statistics Department."
         },
         {
@@ -240,7 +240,7 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "HK Gov",
+          "name": "HKGOV",
           "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
         },
         {
