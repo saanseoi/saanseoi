@@ -2058,9 +2058,27 @@ async function downloadCsdiArchive(url: string, targetPath: string) {
   const response = await fetch(url)
   if (!response.ok)
     throw new Error(`Download failed with HTTP ${response.status}: ${url}`)
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  assertCsdiArchiveDownload(bytes, response.headers.get('content-type'), url)
   await mkdir(dirname(targetPath), { recursive: true })
-  await writeFile(targetPath, new Uint8Array(await response.arrayBuffer()))
+  await writeFile(targetPath, bytes)
   return readContentDispositionFileName(response.headers.get('content-disposition'))
+}
+
+export function assertCsdiArchiveDownload(
+  bytes: Uint8Array,
+  contentType: string | null,
+  url: string,
+) {
+  const prefix = new TextDecoder().decode(bytes.subarray(0, 512)).trimStart()
+  const isHtml =
+    contentType?.toLowerCase().includes('text/html') ||
+    /^<!doctype\s+html\b|^<html\b/i.test(prefix)
+  if (isHtml) {
+    throw new Error(
+      `CSDI archive download returned an HTML failure page instead of the source file: ${url}`,
+    )
+  }
 }
 
 function readContentDispositionFileName(value: string | null) {
