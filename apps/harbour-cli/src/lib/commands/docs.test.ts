@@ -1,12 +1,48 @@
 import { describe, expect, test } from 'bun:test'
+import { readFile, rm } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 import {
+  createApiReleaseSetRevisionDraft,
   parseMarkdownFixture,
   releaseVersionFromSourceVersion,
   renderMarkdownFixtureBody,
 } from './docs.ts'
 
 describe('docs markdown fixtures', () => {
+  test('copies the prior API release fixture and adds an English revision log', async () => {
+    const apiReleaseSetCode = 'data-hk-divisions-2025-09-24.0-r99'
+    const path = resolve(
+      import.meta.dir,
+      '../../../../../fixtures/meta/apiReleaseSets/divisions',
+      `${apiReleaseSetCode}.md`,
+    )
+
+    await rm(path, { force: true })
+    try {
+      const draft = await createApiReleaseSetRevisionDraft(
+        {
+          apiReleaseSetCode,
+          datasetName: 'Divisions',
+          message: 'Corrected the source metadata.',
+          publisherCode: 'overture',
+          sourceVersion: '2025-09-24.0',
+        },
+        { prompt: false },
+      )
+
+      expect(draft?.status).toBe('created')
+      const fixture = await readFile(path, 'utf8')
+      expect(fixture).toContain(`apiReleaseSet: "${apiReleaseSetCode}"`)
+      expect(fixture).toContain('## Revision log\n\n- Corrected the source metadata.')
+      expect(fixture.indexOf('## Revision log')).toBeLessThan(
+        fixture.indexOf('# ZH-HANT'),
+      )
+    } finally {
+      await rm(path, { force: true })
+    }
+  })
+
   test('normalises source versions for the release-version frontmatter', () => {
     expect(releaseVersionFromSourceVersion('2022')).toBe('2022.0')
     expect(releaseVersionFromSourceVersion('2025-09-24.0')).toBe('2025-09-24.0')

@@ -57,6 +57,7 @@ import {
 import { checkOvertureUploadAssumptions } from '../upload/overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
+import { createApiReleaseSetRevisionDraft } from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
@@ -208,6 +209,14 @@ ${mutedBar}  `)
     const [datasetFixture] = await loadDatasetFixtures(
       new Set([previewResult.plan.datasetCode]),
     )
+    const revisionDraft = () => ({
+      datasetName:
+        datasetFixture?.i18n?.find(entry => entry.locale === 'en')?.name ??
+        previewResult.plan.datasetCode,
+      prompt: !options.skipConfirm,
+      publisherCode: datasetFixture?.publisherCode ?? previewResult.plan.source,
+      sourceVersion: previewResult.plan.sourceVersion,
+    })
 
     note(
       formatSummary(previewResult, target, {
@@ -430,7 +439,10 @@ ${mutedBar}  `)
           ),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -482,7 +494,10 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -505,7 +520,7 @@ ${mutedBar}  `)
         if (!preparedUploadFile) {
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
-        await processLocalStreetSqlUpload(
+        const processingResult = await processLocalStreetSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -520,6 +535,10 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -563,7 +582,10 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
+        await logApiReleaseSetPublication(
+          processingResult.publishResult ?? undefined,
+          revisionDraft(),
+        )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -668,8 +690,9 @@ ${mutedBar}  `)
           ),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(
+        await logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
+          revisionDraft(),
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -693,22 +716,24 @@ ${mutedBar}  `)
             'C&SD statistic SQL processing requires its district statistic dataset.',
           )
         }
-        await processLocalHkgovCenstatdDistrictStatisticSqlUpload(
-          target,
-          {
-            cohortKey: previewResult.plan.cohortKey,
-            regionCode: 'hk',
-            releaseCode: previewResult.plan.releaseCode,
-            rowCount: previewResult.plan.rowCount,
-            source: 'hkgov-censtatd',
-            sourceVersion: previewResult.plan.sourceVersion,
-            theme: 'stats',
-            type: 'divisionStatistic',
-          },
-          uploadResult,
-          preparedUploadFile,
-          { promptForCuration: !options.skipConfirm },
-        )
+        const processingResult =
+          await processLocalHkgovCenstatdDistrictStatisticSqlUpload(
+            target,
+            {
+              cohortKey: previewResult.plan.cohortKey,
+              regionCode: 'hk',
+              releaseCode: previewResult.plan.releaseCode,
+              rowCount: previewResult.plan.rowCount,
+              source: 'hkgov-censtatd',
+              sourceVersion: previewResult.plan.sourceVersion,
+              theme: 'stats',
+              type: 'divisionStatistic',
+            },
+            uploadResult,
+            preparedUploadFile,
+            { promptForCuration: !options.skipConfirm },
+          )
+        await logApiReleaseSetPublication(processingResult, revisionDraft())
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -721,7 +746,7 @@ ${mutedBar}  `)
       if (processingStrategy.mode === 'local-hkgov-censtatd-generic-statistic-sql') {
         if (!preparedUploadFile)
           throw new Error('Expected a prepared upload file for local SQL processing.')
-        await processLocalHkgovCenstatdStatisticSqlUpload(
+        const processingResult = await processLocalHkgovCenstatdStatisticSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -733,6 +758,7 @@ ${mutedBar}  `)
           preparedUploadFile,
           { promptForCuration: !options.skipConfirm },
         )
+        await logApiReleaseSetPublication(processingResult, revisionDraft())
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -1362,7 +1388,7 @@ async function resolveAddressApiReleaseSetReadiness(
   }
 }
 
-function logApiReleaseSetPublication(
+async function logApiReleaseSetPublication(
   result:
     | {
         apiCatalogRevisionCode?: string
@@ -1376,6 +1402,12 @@ function logApiReleaseSetPublication(
     | void
     | null
     | undefined,
+  revisionDraft?: {
+    datasetName: string
+    prompt: boolean
+    publisherCode: string
+    sourceVersion: string
+  },
 ) {
   if (result?.apiReleaseSetPublications?.length) {
     for (const publication of result.apiReleaseSetPublications) {
@@ -1399,6 +1431,30 @@ function logApiReleaseSetPublication(
     }
   } else if (releaseSetCode) {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
+  }
+
+  if (!revisionDraft) return
+
+  const releaseSetCodes = [
+    ...(result?.apiReleaseSetPublications?.map(
+      publication => publication.apiReleaseSetCode,
+    ) ?? []),
+    ...(releaseSetCode ? [releaseSetCode] : []),
+  ]
+
+  for (const apiReleaseSetCode of new Set(releaseSetCodes)) {
+    try {
+      const draft = await createApiReleaseSetRevisionDraft(
+        { apiReleaseSetCode, ...revisionDraft },
+        { prompt: revisionDraft.prompt },
+      )
+      if (draft?.status === 'created') {
+        log.info(`Drafted revision notes: ${draft.path}`)
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error)
+      log.warn(`API revision notes were not drafted: ${reason}`)
+    }
   }
 }
 

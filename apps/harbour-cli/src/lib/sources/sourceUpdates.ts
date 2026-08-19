@@ -237,7 +237,11 @@ export type DatasetUpdate = {
   download?: () => Promise<string>
   ingest?: (
     target: import('../cli/options.ts').UploadTarget,
-    options?: { onProgress?: (progress: DatasetIngestProgress) => void },
+    options?: {
+      forceUpload?: boolean
+      onProgress?: (progress: DatasetIngestProgress) => void
+      skipPrompts?: boolean
+    },
   ) => Promise<void>
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
@@ -962,6 +966,7 @@ async function lookupLandsdStreet({
               total,
             }),
           releaseNotesUrl: sourceUrl,
+          forceUpload: options.forceUpload === true,
         })
       },
       message: `${newNotices.length} paired LandsD notice row(s) through ${latestDate}; evidence and a single active-only street snapshot will be published together.`,
@@ -1202,12 +1207,18 @@ async function runOverturist(version: string, theme: string) {
   try {
     const child = Bun.spawn(buildOverturistCommand(version, theme), {
       cwd: stagingRoot,
-      stdout: 'inherit',
-      stderr: 'inherit',
+      stdout: 'pipe',
+      stderr: 'pipe',
     })
-    const exitCode = await child.exited
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ])
     if (exitCode !== 0) {
-      throw new Error(`Overturist failed with exit code ${exitCode}.`)
+      throw new Error(
+        `Overturist failed with exit code ${exitCode}: ${formatChildProcessOutput(stderr || stdout)}`,
+      )
     }
 
     await cp(stagedRelease, targetRelease, { recursive: true, force: true })
@@ -1215,6 +1226,11 @@ async function runOverturist(version: string, theme: string) {
   } finally {
     await rm(stagingRoot, { recursive: true, force: true })
   }
+}
+
+function formatChildProcessOutput(output: string) {
+  const singleLine = output.replace(/\s+/g, ' ').trim()
+  return singleLine ? singleLine.slice(0, 500) : 'no diagnostic output'
 }
 
 async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
@@ -2280,14 +2296,9 @@ function createDataGovHkUpdate({
     `${safeFilePart(version)}-ALS.zip`,
   )
   return {
-    ...(phase
-      ? {
-          deferStateUntilProcessed: true,
-          phase,
-          sourceKey: version,
-          targetSourceKey: version,
-        }
-      : {}),
+    sourceKey: version,
+    targetSourceKey: version,
+    ...(phase ? { deferStateUntilProcessed: true, phase } : {}),
     dataset,
     status: resolveDatasetStatus({
       dataset,
@@ -2304,10 +2315,14 @@ function createDataGovHkUpdate({
     releaseLastRevisedAt: timestamp,
     ...(ingest
       ? {
-          ingest: async (target: import('../cli/options.ts').UploadTarget) =>
+          ingest: async (
+            target: import('../cli/options.ts').UploadTarget,
+            options = {},
+          ) =>
             ingestDataGovHkAlsRelease({
               downloadPath,
               downloadUrl: downloadUrl.toString(),
+              skipPrompts: options.skipPrompts === true,
               target,
               timestamp,
               version,
@@ -2338,12 +2353,14 @@ function resolveDataGovArchiveVersions(timestamps: readonly string[]) {
 async function ingestDataGovHkAlsRelease({
   downloadPath,
   downloadUrl,
+  skipPrompts,
   target,
   timestamp,
   version,
 }: {
   downloadPath: string
   downloadUrl: string
+  skipPrompts: boolean
   target: import('../cli/options.ts').UploadTarget
   timestamp: string
   version: string
@@ -2361,11 +2378,13 @@ async function ingestDataGovHkAlsRelease({
     throw new Error(`Could not unpack ALS release ${timestamp}.`)
   }
   const dataops = Bun.spawn(
-    buildHkgovAlsIngestCommand({ sourceRoot, target, version }),
+    buildHkgovAlsIngestCommand({ sourceRoot, target, version, skipPrompts }),
     { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
   )
   if ((await dataops.exited) !== 0) {
-    throw new Error(`DPO ALS backfill failed for ${version}.`)
+    throw new Error(
+      `DPO ALS intake stopped for ${version}; resolve the release-specific instruction in the preceding output.`,
+    )
   }
 }
 
@@ -2373,6 +2392,7 @@ export function buildHkgovAlsIngestCommand(input: {
   sourceRoot: string
   target: import('../cli/options.ts').UploadTarget
   version: string
+  skipPrompts?: boolean
 }) {
   return [
     process.execPath,
@@ -2388,6 +2408,7 @@ export function buildHkgovAlsIngestCommand(input: {
     input.version,
     '--from-source-version',
     input.version,
+    ...(input.skipPrompts ? ['--yes'] : []),
   ]
 }
 

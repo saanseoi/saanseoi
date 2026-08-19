@@ -370,16 +370,17 @@ export async function resolveLocalAddressDbContext(
   const targetName = resolveTargetName(target)
   const targetRecords = await resolveD1Targets(targetName)
   const regionCodeToken = regionCode.trim().toUpperCase()
-  const shardYearNumber = Number.parseInt(shardYear, 10)
+  const annualShardYear = resolveAnnualShardYear(shardYear)
+  const shardYearNumber = Number.parseInt(annualShardYear, 10)
   const historyBindingName = resolveShardBindingName(
     'history',
     regionCodeToken,
-    shardYear,
+    annualShardYear,
   )
   const sourceBindingName = resolveShardBindingName(
     'source',
     regionCodeToken,
-    shardYear,
+    annualShardYear,
   )
   const requiredBindingNames = [
     'DB_META',
@@ -464,14 +465,14 @@ export async function resolveLocalAddressDbContext(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
-    shardYear,
+    annualShardYear,
     history,
   )
   const internalSourceTargets = await buildSourceTargets(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
-    shardYear,
+    annualShardYear,
     source,
   )
   const historyTargets = internalHistoryTargets.map(target => ({
@@ -1023,12 +1024,22 @@ export function resolveShardBindingName(
   regionCodeToken: string,
   shardYear: string,
 ) {
-  const parsedYear = Number.parseInt(shardYear, 10)
+  const annualShardYear = resolveAnnualShardYear(shardYear)
+  const parsedYear = Number.parseInt(annualShardYear, 10)
   const prefix = kind === 'history' ? 'DB_HISTORY' : 'DB_SOURCE'
 
   return Number.isInteger(parsedYear) && parsedYear < BEFORE_SHARD_CUTOFF_YEAR
     ? `${prefix}_${regionCodeToken}_BEFORE`
-    : `${prefix}_${regionCodeToken}_${shardYear}`
+    : `${prefix}_${regionCodeToken}_${annualShardYear}`
+}
+
+/** D1 history/source bindings are annual even when source releases are dated. */
+function resolveAnnualShardYear(shardYear: string) {
+  const annualShardYear = /^(\d{4})/.exec(shardYear.trim())?.[1]
+  if (!annualShardYear) {
+    throw new Error(`Could not resolve an annual shard year from ${shardYear}.`)
+  }
+  return annualShardYear
 }
 
 function parseBindingScope(bindingName: string, prefix: string) {

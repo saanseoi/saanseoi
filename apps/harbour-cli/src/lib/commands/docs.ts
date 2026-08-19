@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { cancel, isCancel, note, outro, select } from '@clack/prompts'
+import { cancel, isCancel, note, outro, select, text } from '@clack/prompts'
 import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
@@ -69,6 +69,69 @@ const CENSTATD_CURATION_ROOT = resolve(
   REPO_ROOT,
   'fixtures/meta/curations/hkgov-censtatd-statistics',
 )
+
+type ApiReleaseSetRevisionDraft = {
+  apiReleaseSetCode: string
+  datasetName: string
+  message?: string
+  publisherCode: string
+  sourceVersion: string
+}
+
+/**
+ * Creates an editable English revision note after a new immutable API release
+ * revision has been published. Publication never depends on this local draft.
+ */
+export async function createApiReleaseSetRevisionDraft(
+  input: ApiReleaseSetRevisionDraft,
+  options: { prompt: boolean },
+) {
+  const parsedCode = parseReleaseSetCode(input.apiReleaseSetCode)
+  if (!parsedCode || parsedCode.sequence === 0) return null
+
+  const targetPath = resolveDocsFixturePath(
+    parsedCode.apiFamily,
+    input.apiReleaseSetCode,
+  )
+  if (existsSync(targetPath)) return { path: targetPath, status: 'existing' as const }
+
+  const previousCode = input.apiReleaseSetCode.replace(/-r\d+(?=--|$)/, '')
+  const previousFixture = await readFixtureIfExists(parsedCode.apiFamily, previousCode)
+  if (!previousFixture) {
+    throw new Error(
+      `Cannot draft revision notes for ${input.apiReleaseSetCode}: no prior fixture exists for ${previousCode}.`,
+    )
+  }
+
+  const publisherName = await resolvePublisherName(input.publisherCode)
+  const defaultMessage = `Added **${input.datasetName}** \`${input.sourceVersion}\` by _${publisherName}_ to this API Family Release.`
+  let message = input.message?.trim() || defaultMessage
+
+  if (options.prompt && !input.message) {
+    const answer = await text({
+      initialValue: defaultMessage,
+      message: `Revision note for ${input.apiReleaseSetCode}`,
+      validate: value => (value?.trim() ? undefined : 'Enter a revision note.'),
+    })
+    if (isCancel(answer)) return { status: 'cancelled' as const }
+    message = answer.trim()
+  }
+
+  const now = new Date().toISOString()
+  const body = appendEnglishRevisionLog(previousFixture.body, message)
+  const frontmatter = {
+    ...previousFixture.frontmatter,
+    apiReleaseSet: input.apiReleaseSetCode,
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  await mkdir(resolve(API_RELEASE_SET_DOCS_ROOT, parsedCode.apiFamily), {
+    recursive: true,
+  })
+  await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
+  return { path: targetPath, status: 'created' as const }
+}
 
 export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
   if ((await resolveDocsNewScope(args)) === 'releases') {
@@ -743,7 +806,40 @@ function compareReleaseRows(left: ReleaseDocsRow, right: ReleaseDocsRow) {
 }
 
 function resolveDocsFixturePath(apiFamily: string, code: string) {
-  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}-r0.md`)
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+  )
+}
+
+async function resolvePublisherName(publisherCode: string) {
+  const path = resolve(
+    REPO_ROOT,
+    'fixtures/meta/dataPublishers',
+    `${publisherCode}.json`,
+  )
+  const fixture = JSON.parse(await readFile(path, 'utf8')) as {
+    i18n?: Array<{ locale?: string; name?: string }>
+  }
+  return fixture.i18n?.find(entry => entry.locale === 'en')?.name ?? publisherCode
+}
+
+function appendEnglishRevisionLog(body: string, message: string) {
+  const englishEnd = body.indexOf('\n# ZH-HANT')
+  const english = englishEnd === -1 ? body : body.slice(0, englishEnd)
+  const remainder = englishEnd === -1 ? '' : body.slice(englishEnd)
+  const heading = '## Revision log'
+  const entry = `- ${message}`
+  const existingHeading = english.indexOf(heading)
+
+  if (existingHeading !== -1) {
+    const nextHeading = english.indexOf('\n## ', existingHeading + heading.length)
+    const insertionPoint = nextHeading === -1 ? english.length : nextHeading
+    return `${english.slice(0, insertionPoint).trimEnd()}\n${entry}\n${english.slice(insertionPoint)}${remainder}`
+  }
+
+  return `${english.trimEnd()}\n\n${heading}\n\n${entry}\n${remainder}`
 }
 
 function resolveReleaseDocsFixturePath(datasetCode: string, code: string) {
