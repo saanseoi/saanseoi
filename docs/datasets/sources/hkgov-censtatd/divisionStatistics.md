@@ -58,26 +58,26 @@ carry annual observations for 2016–2025 without collapsing them to the compila
 release period.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
-`fixtures/meta/curations/hkgov-censtatd-statistics.json`. It sets a stable canonical
-`measureCode`, a reviewed `statisticKind`, and a separate reviewed `aggregation`, while
-preserving the publisher `sourceField` in the canonical observation. `statisticKind`
-identifies whether the measure is a count, quantity, proportion, ratio, rate, density,
-or index; a ratio, rate, proportion, or density may also identify a canonical
-`denominatorMeasureCode`. These fields are deliberately separate from the source value
-representation and unit. The CLI reads the registered CSDI Simplified Data Specification
-through CSDI's static host only to pre-fill a review candidate. It displays compact
-metadata with the stable source-release portal URL rather than the expiring
-specification link, followed by a `sourceField -> measureCode` proposal with any
-compatible previously reviewed unit suggestion and all three locales inline before
-acceptance. On rejection, the CSDI English name and description are editable defaults.
-Changing either invokes Azure Translator for fresh Chinese defaults; accepted machine
-values are stored with `isTranslationVerified=false`, while official CSDI locale rows
-remain verified. `--yes` refuses every uncurated field. The importer retains the exact
-publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
-replace SaanSeoi's normalised observation status or automatically admit a unit. When a
-reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
-dimension, symbol, English name, and definition, then writes the unit registry with
-Azure-generated Traditional and Simplified Chinese names and definitions before it
+`fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a
+stable canonical `measureCode`, a reviewed `statisticKind`, and a separate reviewed
+`aggregation`, while preserving the publisher `sourceField` in the canonical
+observation. `statisticKind` identifies whether the measure is a count, quantity,
+proportion, ratio, rate, density, or index; a ratio, rate, proportion, or density may
+also identify a canonical `denominatorMeasureCode`. These fields are deliberately
+separate from the source value representation and unit. The CLI reads the registered
+CSDI Simplified Data Specification through CSDI's static host only to pre-fill a review
+candidate. It displays compact metadata with the stable source-release portal URL rather
+than the expiring specification link, followed by a `sourceField -> measureCode`
+proposal with any compatible previously reviewed unit suggestion and all three locales
+inline before acceptance. On rejection, the CSDI English name and description are
+editable defaults. Changing either invokes Azure Translator for fresh Chinese defaults;
+accepted machine values are stored with `isTranslationVerified=false`, while official
+CSDI locale rows remain verified. `--yes` refuses every uncurated field. The importer
+retains the exact publisher `Null Option` as the measure's nullable `sourceNullOption`.
+It does not replace SaanSeoi's normalised observation status or automatically admit a
+unit. When a reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the
+unit's dimension, symbol, English name, and definition, then writes the unit registry
+with Azure-generated Traditional and Simplified Chinese names and definitions before it
 writes that measure's curation decision. Each completed measure decision is written
 immediately to the curation manifest, so an interrupted review can be resumed or
 hand-edited without repeating completed measures. The release page presents the
