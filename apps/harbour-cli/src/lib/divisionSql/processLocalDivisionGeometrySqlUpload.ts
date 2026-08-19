@@ -470,20 +470,12 @@ export async function processLocalDivisionGeometrySqlUpload(
     const areasWithoutSourceGeometry =
       previewPlan.type === 'divisionArea'
         ? selectOvertureHongKongAreasWithoutSourceGeometry(syntheticAreas, normalised)
-        : syntheticAreas.filter(area => area.isSynthetic)
+        : []
     if (previewPlan.source === 'overture' && areasWithoutSourceGeometry.length > 0) {
-      const syntheticRows =
-        previewPlan.type === 'divisionArea'
-          ? buildSyntheticOvertureHongKongAreaRows(
-              areasWithoutSourceGeometry,
-              normalised,
-            )
-          : await buildSyntheticOvertureHongKongBoundaryRows(
-              dbContext.currentDb,
-              metaDb,
-              previewPlan,
-              areasWithoutSourceGeometry,
-            )
+      const syntheticRows = buildSyntheticOvertureHongKongAreaRows(
+        areasWithoutSourceGeometry,
+        normalised,
+      )
       normalised.push(...syntheticRows)
     }
 
@@ -612,7 +604,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
       ...buildSyntheticOvertureHongKongAreaProcessingActions(
         previewPlan,
-        syntheticAreas,
+        areasWithoutSourceGeometry,
       ),
     ])
     progress.complete(
@@ -2656,7 +2648,6 @@ type SyntheticOvertureHongKongArea = {
   code: string
   districtDivisionIds: string[]
   divisionId: string
-  isSynthetic: boolean
 }
 
 const SHENZHEN_BAY_PORT_EXCLUSION = {
@@ -2691,7 +2682,6 @@ async function resolveSyntheticOvertureHongKongAreas(
       id: currentSchema.divisions.id,
       identifiers: currentSchema.divisions.identifiers,
       level: currentSchema.divisions.level,
-      sources: currentSchema.divisions.sources,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
@@ -2749,16 +2739,9 @@ async function resolveSyntheticOvertureHongKongAreas(
         code: area.code,
         districtDivisionIds,
         divisionId,
-        isSynthetic:
-          Boolean(correction) || isSyntheticOvertureHongKongArea(division.sources),
       },
     ]
   })
-}
-
-function isSyntheticOvertureHongKongArea(sources: unknown) {
-  if (!sources || typeof sources !== 'object') return false
-  return JSON.stringify(sources).includes('synthetic:missing-overture-hong-kong-area')
 }
 
 export function selectOvertureHongKongAreasWithoutSourceGeometry(
