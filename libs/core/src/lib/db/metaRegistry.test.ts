@@ -646,6 +646,7 @@ function createLatestDatasetLookupDb() {
       regionCode TEXT NOT NULL,
       theme TEXT NOT NULL,
       type TEXT NOT NULL,
+      sourceVariant TEXT NOT NULL DEFAULT 'default',
       sourceCrs TEXT,
       processingRules TEXT
     );
