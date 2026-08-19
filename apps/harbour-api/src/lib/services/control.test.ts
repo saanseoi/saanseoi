@@ -11,6 +11,7 @@ import {
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/metaFixtures'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
@@ -85,6 +86,43 @@ test('publishes a source-only division statistic without an API snapshot', async
   expect(result).toMatchObject({ releaseId, status: 'published' })
   expect(release.status).toBe('published')
   sqlite.close()
+})
+
+test('retains a dataset source variant when reading a release for publication', async () => {
+  const tempDir = createTempDir()
+  const sqlite = initDb(join(tempDir, 'harbour-control-source-variant.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const releaseId = 'release-hkgov-censtatd-hma-2021'
+  sqlite.exec(`
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-hkgov-censtatd', 1761264000000, 1761264000000);
+
+    INSERT OR IGNORE INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'hkgov-censtatd-hk-hma', 'publisher-hkgov-censtatd',
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+      'hk', 'static', 'five-yearly', 'divisions', 'hkgov-censtatd-hma',
+      'https://www.censtatd.gov.hk/', 'vh-dataset-hkgov-censtatd-hma', 1761264000000, 1761264000000
+    );
+
+    INSERT INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+    )
+    SELECT
+      '${releaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
+      'hk/hkgov-censtatd/2021/division-area.parquet', 'division-area.parquet', 'staged',
+      '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
+    FROM datasets
+    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021';
+  `)
+
+  const release = await getDatasetRecordByReleaseId(db, releaseId)
+  sqlite.close()
+
+  expect(release?.sourceVariant).toBe('hkgov-censtatd-hma')
 })
 
 function seedSnapshot(

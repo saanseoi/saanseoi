@@ -1666,6 +1666,7 @@ const releaseRecordSelection = {
   cohortKey: metaReleases.cohortKey,
   theme: metaDatasets.theme,
   type: metaReleases.resourceType,
+  sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
   sourceVersion: metaReleases.sourceVersion,
