@@ -21,6 +21,7 @@ import {
   getMarkdownTransclusionDisplayTitle,
 } from '#lib/registry/referenceDocs.js'
 import type { LocalisedRow } from '#lib/registry/types.js'
+import { sourceFlowDomain, sourceFlowPriority } from './sourceFlowDomain.js'
 import SourceReleasePageSkeleton from './[datasetCode]/[releaseCode]/sourceReleasePageSkeleton.svelte'
 
 let { data } = $props()
@@ -48,6 +49,14 @@ const primaryTypeByApiFamily = {
   places: 'place',
   streets: 'street',
 } as const
+
+const streetGeometryLabels: Record<string, string> = {
+  'ds-hk-hkgov-hyd-pedestrian-street': 'GEOMETRY',
+  'ds-hk-hkgov-hyd-sensitive-street': 'POLYGON',
+  'ds-hk-hkgov-hyd-strategic-street': 'POLYGON',
+  'ds-hk-hkgov-hyd-street': 'POINT',
+  'ds-hk-hkgov-landsd-road-centreline': 'LINE',
+}
 
 const sourceAccentColors = {
   dpang: '#76b85b',
@@ -82,10 +91,7 @@ const sourceName = (source: SourcesPageSource) => {
 }
 
 const sourceFrequency = (source: SourcesPageSource) => {
-  if (
-    source.releaseFrequency === 'census' ||
-    source.publisherCode === 'hkgov-censtatd'
-  ) {
+  if (source.releaseFrequency === 'census' || source.sourceVariant === 'census') {
     return '5-yearly'
   }
   return source.releaseFrequency
@@ -144,21 +150,6 @@ const publisherAccent = (publisherCode: string) => {
   return sourceAccentColors.overture
 }
 
-const sourceDomain = (source: SourcesPageSource, familyType: string) => {
-  if (familyType === 'stats') return source.sourceVariant
-
-  if (source.theme !== 'divisions') return 'default'
-
-  const publishedDomain = sourceVersion(source)?.releaseAs?.find(
-    release => release.apiFamily === familyType,
-  )?.domainCode
-  if (publishedDomain) return publishedDomain
-
-  return source.sourceVariant === 'default'
-    ? source.publisherCode
-    : source.sourceVariant
-}
-
 const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   selectLocalisedRow(i18n, locale)?.name ??
   {
@@ -169,7 +160,15 @@ const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   }[domain] ??
   domain.replaceAll('-', ' ').toUpperCase()
 
-const variantLabel = (source: SourcesPageSource, primaryType: string) => {
+const variantLabel = (
+  source: SourcesPageSource,
+  primaryType: string,
+  familyType: string,
+) => {
+  if (familyType === 'streets') return streetGeometryLabels[source.code]
+  if (source.resourceTypes.includes('divisionArea')) return 'AREA'
+  if (source.resourceTypes.includes('divisionBoundary')) return 'BOUNDARY'
+
   if (source.resourceTypes.includes(primaryType)) {
     if (source.resourceTypes.length === 1) return undefined
     return 'GEOMETRY'
@@ -187,8 +186,12 @@ const variantLabel = (source: SourcesPageSource, primaryType: string) => {
 const sourceFlowInput = (
   source: SourcesPageSource,
   primaryType: string,
+  familyType: string,
 ): SourceFlowInput => {
-  const variant = variantLabel(source, primaryType)
+  const variant =
+    familyType === 'divisions' || familyType === 'streets'
+      ? variantLabel(source, primaryType, familyType)
+      : undefined
   const release = sourceVersion(source)
   const recordCount = formatRecordCount(sourceRecordCount(source))
   const year = sourceYear(source)
@@ -232,13 +235,19 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         const primaryType = primaryTypeByApiFamily[familyType]
         const groupLabel = 'domain'
         const sourceGroup = (source: SourcesPageSource) =>
-          sourceDomain(source, familyType)
+          sourceFlowDomain(source, familyType)
         const domainMetadata = domainsByApiFamily[familyType]
         const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
         const familySources = sources
           .filter(
             source =>
-              source.theme === familyType &&
+              (source.theme === familyType ||
+                (familyType === 'divisions' &&
+                  source.resourceTypes.some(resourceType =>
+                    ['division', 'divisionArea', 'divisionBoundary'].includes(
+                      resourceType,
+                    ),
+                  ))) &&
               !(familyType === 'addresses' && source.publisherCode === 'overture'),
           )
           .filter(sourceMatchesSearch)
@@ -259,9 +268,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             }
             const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
             if (domainDifference) return domainDifference
-            const leftIsPrimary = left.resourceTypes.includes(primaryType)
-            const rightIsPrimary = right.resourceTypes.includes(primaryType)
-            if (leftIsPrimary !== rightIsPrimary) return leftIsPrimary ? -1 : 1
+            const priorityDifference =
+              sourceFlowPriority(left, familyType, leftGroup, primaryType) -
+              sourceFlowPriority(right, familyType, rightGroup, primaryType)
+            if (priorityDifference) return priorityDifference
             return left.code.localeCompare(right.code)
           })
 
@@ -273,20 +283,17 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             const domainSources = familySources.filter(
               source => sourceGroup(source) === groupCode,
             )
-            const primary =
-              domainSources.find(source =>
-                source.resourceTypes.includes(primaryType),
-              ) ?? domainSources[0]
+            const primary = domainSources[0]
             if (!primary) return []
 
             return [
               {
                 id: `${familyType}:${groupCode}`,
                 label: domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
-                primary: sourceFlowInput(primary, primaryType),
+                primary: sourceFlowInput(primary, primaryType, familyType),
                 variants: domainSources
                   .filter(source => source.code !== primary.code)
-                  .map(source => sourceFlowInput(source, primaryType)),
+                  .map(source => sourceFlowInput(source, primaryType, familyType)),
               },
             ]
           },

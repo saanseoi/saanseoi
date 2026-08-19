@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 
 import { metaSchema, toIsoTimestamp } from '@repo/db'
+import type { ReleaseStatsRow } from '@repo/db/metaSchema'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import {
@@ -18,7 +19,19 @@ export type ReleaseProcessingAction = {
   summary: string
 }
 
-function declaredRecordOperationCodes(processingRules: unknown) {
+export type MaterialisedReleaseProcessingActions = {
+  actions: Array<
+    ReleaseProcessingAction & {
+      createdAt: string
+      id: string
+      releaseId: string
+      updatedAt: string
+    }
+  >
+  stats: ReleaseStatsRow[]
+}
+
+function declaredOperationCodes(processingRules: unknown) {
   if (!processingRules || typeof processingRules !== 'object') return null
   const rulesets = (processingRules as { rulesets?: unknown }).rulesets
   if (!Array.isArray(rulesets)) return null
@@ -34,7 +47,7 @@ function declaredRecordOperationCodes(processingRules: unknown) {
         operationCode?: unknown
         type?: unknown
       }
-      if (type === 'record' && typeof operationCode === 'string') {
+      if ((type === 'record' || type === 'bulk') && typeof operationCode === 'string') {
         operationCodes.add(operationCode)
       }
     }
@@ -53,6 +66,20 @@ export async function replaceReleaseProcessingActions(
   releaseId: string,
   actions: ReleaseProcessingAction[],
 ) {
+  return (
+    await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, actions)
+  ).actions.length
+}
+
+/**
+ * Replaces audit actions and returns their exact persisted rows for a
+ * target-aware DB_META replay.
+ */
+export async function replaceReleaseProcessingActionsAndReturnRows(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  actions: ReleaseProcessingAction[],
+): Promise<MaterialisedReleaseProcessingActions> {
   const release = await metaDb
     .select({
       status: metaSchema.metaReleases.status,
@@ -72,14 +99,14 @@ export async function replaceReleaseProcessingActions(
     )
   }
 
-  const recordOperationCodes = declaredRecordOperationCodes(release.processingRules)
-  if (recordOperationCodes) {
+  const operationCodes = declaredOperationCodes(release.processingRules)
+  if (operationCodes) {
     const undeclaredActions = actions
       .map(action => action.action)
-      .filter(action => !recordOperationCodes.has(action))
+      .filter(action => !operationCodes.has(action))
     if (undeclaredActions.length > 0) {
       throw new Error(
-        `Processing actions are not declared as record rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
+        `Processing actions are not declared in processing rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
       )
     }
   }
@@ -98,23 +125,20 @@ export async function replaceReleaseProcessingActions(
       ),
   ])
 
-  if (actions.length === 0) {
-    return 0
-  }
+  if (actions.length === 0) return { actions: [], stats: [] }
 
   const timestamp = toIsoTimestamp()
+  const materialisedActions = actions.map(action => ({
+    ...action,
+    affectedRecordCount: Math.max(0, Math.floor(action.affectedRecordCount)),
+    createdAt: timestamp,
+    id: crypto.randomUUID(),
+    releaseId,
+    updatedAt: timestamp,
+  }))
   const actionChunkSize = getMaxRowsPerInsert(9)
-  const actionStatements = chunkArray(actions, actionChunkSize).map(chunk =>
-    metaDb.insert(metaSchema.releaseProcessingActions).values(
-      chunk.map(action => ({
-        ...action,
-        affectedRecordCount: Math.max(0, Math.floor(action.affectedRecordCount)),
-        createdAt: timestamp,
-        id: crypto.randomUUID(),
-        releaseId,
-        updatedAt: timestamp,
-      })),
-    ),
+  const actionStatements = chunkArray(materialisedActions, actionChunkSize).map(chunk =>
+    metaDb.insert(metaSchema.releaseProcessingActions).values(chunk),
   )
   await runStatementsInGroupsWithWriteRetry(metaDb, actionStatements)
 
@@ -128,26 +152,28 @@ export async function replaceReleaseProcessingActions(
       statsByAction.set(key, { ...action })
     }
   }
+  const materialisedStats: ReleaseStatsRow[] = [...statsByAction.values()].map(
+    action => ({
+      apiReleaseSetId: null,
+      createdAt: timestamp,
+      dimension: 'processing',
+      groupBy: 'action',
+      groupValue: `${action.mode}:${action.action}`,
+      id: crypto.randomUUID(),
+      metric: 'processing',
+      metricUnit: 'count',
+      releaseId,
+      snapshotId: null,
+      type: 'processing',
+      updatedAt: timestamp,
+      value: Math.max(0, Math.floor(action.affectedRecordCount)),
+    }),
+  )
   const statsChunkSize = getMaxRowsPerInsert(13)
-  const statsStatements = chunkArray([...statsByAction.values()], statsChunkSize).map(
-    chunk =>
-      metaDb.insert(metaSchema.stats).values(
-        chunk.map(action => ({
-          createdAt: timestamp,
-          dimension: 'processing',
-          groupBy: 'action',
-          groupValue: `${action.mode}:${action.action}`,
-          id: crypto.randomUUID(),
-          metric: 'processing',
-          metricUnit: 'count',
-          releaseId,
-          type: 'processing',
-          updatedAt: timestamp,
-          value: Math.max(0, Math.floor(action.affectedRecordCount)),
-        })),
-      ),
+  const statsStatements = chunkArray(materialisedStats, statsChunkSize).map(chunk =>
+    metaDb.insert(metaSchema.stats).values(chunk),
   )
   await runStatementsInGroupsWithWriteRetry(metaDb, statsStatements)
 
-  return actions.length
+  return { actions: materialisedActions, stats: materialisedStats }
 }

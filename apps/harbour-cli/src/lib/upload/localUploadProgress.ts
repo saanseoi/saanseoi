@@ -40,7 +40,10 @@ export class LocalUploadProgress {
     }
   }
 
-  update(current: number, options?: { label?: string; max?: number | null }) {
+  update(
+    current: number,
+    options?: { label?: string; max?: number | null; reset?: boolean },
+  ) {
     if (!this.progressBar || !this.state || !this.currentLabel) {
       return
     }
@@ -57,7 +60,7 @@ export class LocalUploadProgress {
           : previousState.max
     const nextLabel = options?.label ?? this.currentLabel
 
-    if (nextMax !== previousState.max) {
+    if (options?.reset || nextMax !== previousState.max) {
       this.progressBar.clear()
       this.progressBar = progress({
         max: Math.max(nextMax ?? nextCurrent, 1),

@@ -318,6 +318,7 @@ describe('api field fixtures', () => {
       'ss-hk-address-2026-04-25.0': '1.16.0',
       'ss-hk-address-2026-07-08.0': '1.17.0',
       'ss-hk-address-2026-07-10.0': '1.17.0',
+      'ss-hk-address-2026-07-22.0': '1.18.0',
     }
 
     for (const [snapshotVersion, divisionSchemaVersion] of Object.entries(

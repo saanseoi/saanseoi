@@ -3,6 +3,7 @@ import type { AsyncBuffer } from 'hyparquet'
 import type { DatasetProcessingMessage } from '../../types'
 import { readParquetObjectsInBatches } from '../parquetR2'
 import prcCountryAnchor from '../../../../../fixtures/divisions/overture/hk-prc-country-anchor.json'
+import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
 
 type DivisionFixtureRow = Record<string, unknown>
 
@@ -48,11 +49,16 @@ export async function* readDivisionRowsWithFixtures(
   message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
   batchSize: number,
 ): AsyncGenerator<DivisionRowBatch> {
+  const sourceRows: DivisionFixtureRow[] = []
   for await (const rows of readParquetObjectsInBatches(file, batchSize)) {
+    sourceRows.push(...rows)
     yield { isSupplemental: false, rows }
   }
 
-  const rows = getSupplementalDivisionFixtureRows(message)
+  const rows = [
+    ...getSupplementalDivisionFixtureRows(message),
+    ...missingOvertureHongKongAreaRows(message, sourceRows),
+  ]
 
   if (rows.length > 0) {
     yield { isSupplemental: true, rows }

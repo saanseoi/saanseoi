@@ -2,9 +2,10 @@ import { and, eq } from 'drizzle-orm'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import { getDatasetRecordByReleaseId } from '../../lib/db/metaRegistry'
-import { metaSchema } from '@repo/db'
+import { metaSchema, toIsoTimestamp } from '@repo/db'
 import type {
   ApiReleaseSetScopedStatsRow,
+  ReleaseStatsRow,
   ReleaseScopedStatsRow,
 } from '@repo/db/metaSchema'
 import {
@@ -22,6 +23,19 @@ export async function replaceDatasetStats(
   releaseId: string,
   rows: ReleaseScopedStatsRow[],
 ) {
+  return (await replaceDatasetStatsAndReturnRows(metaDb, releaseId, rows)).length
+}
+
+/**
+ * Replaces release facts and returns the exact materialised rows. Callers that
+ * mirror metadata to another D1 database must replay these IDs and timestamps,
+ * rather than independently generating an equivalent-looking set of rows.
+ */
+export async function replaceDatasetStatsAndReturnRows(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  rows: ReleaseScopedStatsRow[],
+): Promise<ReleaseStatsRow[]> {
   const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
 
   if (!dataset) {
@@ -39,28 +53,33 @@ export async function replaceDatasetStats(
       ),
   ])
 
-  if (rows.length === 0) {
-    return 0
-  }
+  if (rows.length === 0) return []
+
+  const materialisedRows: ReleaseStatsRow[] = rows.map(row => {
+    const timestamp = toIsoTimestamp()
+    return {
+      ...row,
+      apiReleaseSetId: null,
+      createdAt: row.createdAt ?? timestamp,
+      groupBy: row.groupBy ?? null,
+      groupValue: row.groupValue ?? null,
+      id: crypto.randomUUID(),
+      releaseId: dataset.releaseId,
+      snapshotId: null,
+      updatedAt: row.updatedAt ?? timestamp,
+    }
+  })
 
   const chunkSize = getMaxRowsPerInsert(13)
   const statements = []
 
-  for (const chunk of chunkArray(rows, chunkSize)) {
-    statements.push(
-      metaDb.insert(metaSchema.stats).values(
-        chunk.map(row => ({
-          ...row,
-          releaseId: dataset.releaseId,
-          id: crypto.randomUUID(),
-        })),
-      ),
-    )
+  for (const chunk of chunkArray(materialisedRows, chunkSize)) {
+    statements.push(metaDb.insert(metaSchema.stats).values(chunk))
   }
 
   await runStatementsInGroupsWithWriteRetry(metaDb, statements)
 
-  return rows.length
+  return materialisedRows
 }
 
 /** Replaces one release-stat dimension while preserving all other release facts. */

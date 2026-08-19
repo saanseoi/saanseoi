@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:fc9cb5c38c8a05e22f8ea25c5ed187e1086681081a73db0bba76289b0d1bb1d1",
+  "versionHash": "sha256:b0934cbce36a9e94791676e44b184ee8266cf9caefe1c3191e7fb2424b4da296",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
@@ -49,13 +49,17 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [
     {
       "sourceVersion": "2021",
-      "identicalArchiveSlots": [
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
+      "verifiedIdenticalArchiveSlots": [
         {
           "releaseSlot": "2024-Q4",
           "sourceObjectHash": "b2ee014886c981b26f441f9b66923139872d42b5cc37689ecf3eebd6d85c79c1",
@@ -72,8 +76,8 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "2021 Census: Major Housing Estates",
-      "description": "Planned C&SD source for 2021 Census statistics and boundaries for 540 major housing estates."
+      "name": "Census: Major Housing Estates",
+      "description": "Planned C&SD source for Census statistics and boundaries for 540 major housing estates."
     }
   ]
 }

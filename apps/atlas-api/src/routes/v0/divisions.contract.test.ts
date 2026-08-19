@@ -102,7 +102,7 @@ function seedMeta(sqlite: Database) {
     {
       id: 'api-release-set-overture-2025',
       code: OVERTURE_RELEASE_SET,
-      domain: 'overture',
+      domain: 'geographic',
       cohort: '2025-09-24.0',
       snapshot: 'snapshot-overture-2025',
       effectiveFrom: '2025-09-24T00:00:00.000Z',

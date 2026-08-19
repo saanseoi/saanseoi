@@ -11,6 +11,7 @@ import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/in
 import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
+import * as ReleaseSamples from '#lib/bits/pages/docs/components/releaseSamples/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
@@ -23,11 +24,16 @@ import {
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
+import {
+  compareApiReleaseVersions,
+  getVisibleApiReleaseVersions,
+} from '#lib/registry/apiReleaseVersions.js'
 import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
 import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
+import { supportsReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
 import type {
   ReleaseNavAction,
   ReleaseNavOutlineItem,
@@ -79,9 +85,14 @@ let seoDescription = $derived(`${m.api_release_notes()}: ${seoTitle}.`)
 let locale = $derived(getCurrentLocale())
 let currentDomainCode = $derived(release.domainCode ?? 'default')
 let domainReleases = $derived(
-  (api.releases ?? []).filter(
-    item => (item.domainCode ?? 'default') === currentDomainCode,
-  ),
+  (api.releases ?? [])
+    .filter(item => (item.domainCode ?? 'default') === currentDomainCode)
+    .sort((left, right) =>
+      compareApiReleaseVersions(
+        { label: getReleaseVersionLabel(left.code, api.familyType) },
+        { label: getReleaseVersionLabel(right.code, api.familyType) },
+      ),
+    ),
 )
 
 let previousRelease = $derived.by(() => {
@@ -98,7 +109,7 @@ let notesPresentation = $derived(
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
-type ApiReleaseTab = 'notes' | 'stats' | 'audit' | 'sources'
+type ApiReleaseTab = 'notes' | 'samples' | 'stats' | 'audit' | 'sources'
 type ApiReleaseUrl = {
   searchParams: {
     get(name: string): string | null
@@ -106,11 +117,12 @@ type ApiReleaseUrl = {
 }
 const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
   const tab = url.searchParams.get('tab') ?? ''
-  return ['notes', 'stats', 'audit', 'sources'].includes(tab)
+  return ['notes', 'samples', 'stats', 'audit', 'sources'].includes(tab)
     ? (tab as ApiReleaseTab)
     : 'notes'
 }
 let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
+let showAllRevisions = $state(false)
 let activeHeadingId = $state<string | null>(null)
 let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
@@ -121,6 +133,18 @@ $effect(() => {
   showNoteDiff = page.url.searchParams.get('view') === 'diff'
 })
 let showBulkActions = $state(false)
+let sampleRequest = $state(0)
+let sampleCount = $state(0)
+let sampleView = $state<'distinct' | 'grouped'>('distinct')
+let sampleTarget = $state<string | null>(null)
+$effect(() => {
+  const nextTarget = `${release.apiVersion}:${release.code}`
+  if (sampleTarget === nextTarget) return
+  sampleTarget = nextTarget
+  sampleRequest = 0
+  sampleCount = 0
+  sampleView = 'distinct'
+})
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
@@ -235,7 +259,8 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       'zh-hant': m.source_locale_zh_hant(),
       'zh-hans': m.source_locale_zh_hans(),
     })[code] ?? code,
-  statLabel: humaniseStat,
+  statLabel: value =>
+    value === 'missing_street_count' ? 'Missing street linkage' : humaniseStat(value),
   districtFallback: districtId =>
     source_geometry_district_fallback({ district: districtId }),
   processingAction: code => {
@@ -246,11 +271,15 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       mode: mode === 'manual' ? 'Manual' : 'Automatic',
     }
   },
-  qualityDescription: humaniseStat,
+  qualityDescription: dimension =>
+    dimension === 'missing_street_count'
+      ? 'Addresses in this API release that could not be linked to a SaanSeoi street record. This does not mean the publisher omitted a street name.'
+      : humaniseStat(dimension),
 })
-let versions = $derived(
+let allVersions = $derived(
   domainReleases.map((item, index, releases) => ({
     code: item.code,
+    cohortKey: item.cohortKey,
     href: (() => {
       const searchParams = new URLSearchParams()
       if (activeTab !== 'notes') searchParams.set('tab', activeTab)
@@ -261,7 +290,14 @@ let versions = $derived(
       return `/apis/${api.familyType}/${item.code}${search ? `?${search}` : ''}`
     })(),
     label: getReleaseVersionLabel(item.code, api.familyType),
+    revision: item.revision,
   })),
+)
+let versions = $derived(
+  getVisibleApiReleaseVersions(allVersions, showAllRevisions, release.code),
+)
+let navigationVersions = $derived(
+  getVisibleApiReleaseVersions(allVersions, showAllRevisions),
 )
 
 let currentComposition = $derived(
@@ -306,6 +342,7 @@ let tabs = $derived<ReleaseNavTab[]>([
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
     : []),
+  { id: 'samples', label: 'Samples' },
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
@@ -325,17 +362,35 @@ let actions = $derived<ReleaseNavAction[]>(
           pressed: showNoteDiff,
         },
       ]
-    : activeTab === 'audit' && release.bulkActions?.length
+    : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
       ? [
           {
-            icon: 'ion:layers-outline',
-            id: 'bulk',
-            label: m.source_bulk_actions(),
-            onSelect: () => (showBulkActions = !showBulkActions),
-            pressed: showBulkActions,
+            id: 'more-samples',
+            label: 'Show more',
+            onSelect: () => (sampleRequest += 1),
           },
+          ...(sampleCount > 1
+            ? [
+                {
+                  id: 'sample-view',
+                  label: sampleView === 'grouped' ? 'Distinct' : 'Group by key',
+                  onSelect: () =>
+                    (sampleView = sampleView === 'grouped' ? 'distinct' : 'grouped'),
+                },
+              ]
+            : []),
         ]
-      : [],
+      : activeTab === 'audit' && release.bulkActions?.length
+        ? [
+            {
+              icon: 'ion:layers-outline',
+              id: 'bulk',
+              label: m.source_bulk_actions(),
+              onSelect: () => (showBulkActions = !showBulkActions),
+              pressed: showBulkActions,
+            },
+          ]
+        : [],
 )
 
 let sourceReleaseLinksPresentation = $derived(
@@ -384,6 +439,7 @@ let hasContent = $derived.by(() => {
       : Boolean(notesPresentation.markdown.trim())
   }
   if (activeTab === 'stats') return Boolean(release.stats?.length)
+  if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(release.processingActions?.length || release.bulkActions?.length)
   }
@@ -412,6 +468,11 @@ $effect(() => {
 
   <ReleaseNav.Root
     {versions}
+    {navigationVersions}
+    currentVersionCohortKey={release.cohortKey}
+    onToggleRevisions={() => (showAllRevisions = !showAllRevisions)}
+    {showAllRevisions}
+    showRevisionToggle={allVersions.some(version => (version.revision ?? 0) > 0)}
     {domains}
     domainTitle="Domains"
     {currentDomainCode}
@@ -479,6 +540,17 @@ $effect(() => {
             bind:headings={statsHeadings}
             bind:activeHeadingId={activeStatsHeadingId}
           />
+        {:else if activeTab === 'samples'}
+          {#key `${release.apiVersion}:${release.code}`}
+            <ReleaseSamples.Root
+              apiVersion={release.apiVersion}
+              apiFamily={release.apiFamily}
+              releaseSet={release.code}
+              request={sampleRequest}
+              bind:sampleCount
+              bind:view={sampleView}
+            />
+          {/key}
         {:else if activeTab === 'audit'}
           <ReleaseAudit.Root
             actions={release.processingActions}

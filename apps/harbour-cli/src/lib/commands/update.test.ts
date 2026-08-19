@@ -7,13 +7,18 @@ import {
   formatDownloadProgressLine,
   formatDatasetCheckLine,
   formatDatasetPromptLabel,
+  formatIngestProgressLine,
   formatLandsdIngestPrompt,
+  formatPublishedSourceRelease,
   formatUpdateProgressLine,
+  recordPublishedSourceRelease,
+  requirePublishedTargetVersion,
   resolveApiFamilySelection,
   shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
   shouldDownloadUpdate,
   targetVersionsFromReport,
+  validateUpdateArguments,
   wrapUpdateMessage,
 } from './update.ts'
 import {
@@ -49,6 +54,81 @@ test('formats the high-signal Clack dataset label without version noise', () => 
   ).toBe('CenstatD ∷ DivisionArea ∷ District')
 })
 
+test('shows ingestion progress and target while a native importer is working', () => {
+  expect(
+    formatIngestProgressLine(
+      {
+        code: 'ds-hk-hkgov-landsd-street',
+        publisherCode: 'hkgov-landsd',
+        regionCode: 'hk',
+        theme: 'streets',
+        resourceTypes: ['street'],
+        versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+      },
+      {
+        current: 127,
+        message: 'Reusing cached source PDF; registering evidence asset',
+        total: 356,
+      },
+      { environment: 'dev', remote: false },
+    ),
+  ).toContain(
+    'ingesting 128/356 · local-dev · Reusing cached source PDF; registering evidence asset',
+  )
+})
+
+test('retains and identifies every published cohort in the update summary', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+  const releases = new Map()
+
+  recordPublishedSourceRelease(releases, {
+    dataset,
+    sourceKey: '2022',
+    version: '2022.0',
+  })
+  recordPublishedSourceRelease(releases, {
+    dataset,
+    sourceKey: '2024',
+    version: '2024.0',
+  })
+
+  expect([...releases.values()]).toHaveLength(2)
+  expect([...releases.values()].map(formatPublishedSourceRelease)).toEqual([
+    'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2022.0',
+    'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2024.0',
+  ])
+})
+
+test('requires native ingestion to appear as the exact published target release', () => {
+  expect(
+    requirePublishedTargetVersion(
+      { targetSourceKey: '2024', version: '2024.0' },
+      new Map([['2024', '2024.0']]),
+    ),
+  ).toBe('2024.0')
+
+  expect(
+    requirePublishedTargetVersion(
+      { sourceKey: 'ds-hk-example', version: '2024.0' },
+      new Map([['ds-hk-example', '2024.0']]),
+    ),
+  ).toBe('2024.0')
+
+  expect(() =>
+    requirePublishedTargetVersion(
+      { targetSourceKey: '2024', version: '2024.0' },
+      new Map([['2024', null]]),
+    ),
+  ).toThrow('Ingestion completed, but 2024 is not published on the target')
+})
+
 test('uses sourceVariant as the subtype when the dataset code omits its resource type', () => {
   expect(
     formatDatasetPromptLabel({
@@ -81,6 +161,39 @@ test('selects an API family without prompting', async () => {
       datasets,
     ),
   ).resolves.toBe('streets')
+})
+
+test('uses explicit update flags instead of ambiguous --force', () => {
+  const printUsage = () => undefined
+
+  expect(() =>
+    validateUpdateArguments(
+      {
+        command: 'update',
+        positionals: [],
+        options: { 'check-now': true, 'force-upload': true },
+      },
+      printUsage,
+    ),
+  ).not.toThrow()
+  expect(() =>
+    validateUpdateArguments(
+      {
+        command: 'update',
+        positionals: [],
+        options: {
+          'release-notes-url': 'https://docs.overturemaps.org/release-notes/',
+        },
+      },
+      printUsage,
+    ),
+  ).not.toThrow()
+  expect(() =>
+    validateUpdateArguments(
+      { command: 'update', positionals: [], options: { force: true } },
+      printUsage,
+    ),
+  ).toThrow('does not support --force')
 })
 
 test('adds a composition lookup provider before an address update', async () => {
@@ -420,6 +533,40 @@ test('shows the matching target version for a CSDI archive release', () => {
   expect(line).toEndWith('no updates         v2021.0')
 })
 
+test('shows an ingested archive release as current in the completion summary', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+  const sourceKey = 'archive:censtatd-new-towns:2026-Q2'
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey,
+        status: 'new',
+        targetSourceKey: '2021',
+        targetVersion: null,
+        version: '2021.0',
+      },
+    ],
+    new Map([
+      ['2021', null],
+      [sourceKey, '2021.0'],
+    ]),
+  )
+
+  expect(line).not.toContain('MISSING')
+  expect(line).toContain('NEW')
+  expect(line).toContain('v2021.0')
+})
+
 test('shows both published C&SD district-statistic source releases as current', () => {
   const dataset = {
     code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
@@ -551,6 +698,16 @@ test('formats division statistics and identifies the HyD nameplate source', () =
   ).toBe('CenstatD ∷ Statistic ∷ Land Area')
   expect(
     formatDatasetPromptLabel({
+      code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas',
+      publisherCode: 'hkgov-censtatd',
+      regionCode: 'hk',
+      theme: 'stats',
+      resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+      versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+    }),
+  ).toBe('CenstatD ∷ Stat + Div(Area) ∷ Housing Market Areas')
+  expect(
+    formatDatasetPromptLabel({
       code: 'ds-hk-hkgov-pland-division-pu',
       publisherCode: 'hkgov-pland',
       regionCode: 'hk',
@@ -585,11 +742,36 @@ test('treats a partial target report as authoritative for every release cohort',
     ],
   } satisfies DatasetFixture
 
-  expect(targetVersionsFromReport(dataset, [{ sourceVersion: '2021.0' }])).toEqual(
+  expect(
+    targetVersionsFromReport(dataset, [
+      { sourceVersion: '2021.0', status: 'published' },
+    ]),
+  ).toEqual(
     new Map([
       ['2021.0', '2021.0'],
       ['2021', '2021.0'],
       ['2026', null],
+    ]),
+  )
+})
+
+test('treats a failed target release as a missing cohort that must be retried', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'places',
+    type: 'place',
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+
+  expect(
+    targetVersionsFromReport(dataset, [{ sourceVersion: '2021', status: 'failed' }]),
+  ).toEqual(
+    new Map([
+      ['ds-example', null],
+      ['2021', null],
     ]),
   )
 })

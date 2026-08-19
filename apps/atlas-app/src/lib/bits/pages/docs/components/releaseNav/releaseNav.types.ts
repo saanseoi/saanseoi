@@ -1,7 +1,9 @@
 export type ReleaseNavVersion = {
   code: string
+  cohortKey?: string | null
   href: string
   label: string
+  revision?: number
 }
 
 export type ReleaseNavVersionPreload = (version: ReleaseNavVersion) => void

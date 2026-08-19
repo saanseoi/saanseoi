@@ -3,14 +3,21 @@ import { Database } from 'bun:sqlite'
 
 import {
   asOptionalInteger,
+  calculateHousingMarketAreaDistrictCoverage,
   createGeometryChurnCounts,
+  decodeStoredGeoJsonGeometry,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
+  hasDivisionReferences,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+  selectOvertureHongKongAreasWithoutSourceGeometry,
   shouldCompressCanonicalGeometry,
+  supportsDistrictGeometryStatistics,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -78,6 +85,54 @@ describe('asOptionalInteger', () => {
   })
 })
 
+describe('C&SD area/type division references', () => {
+  test('skips an older Overture snapshot until all synthetic Hong Kong area IDs exist', () => {
+    const references = new Set([
+      'hong-kong-island-id',
+      'kowloon-id',
+      'new-territories-id',
+    ])
+    const preSyntheticSnapshot = new Set(['hong-kong-island-id'])
+    const firstSyntheticSnapshot = new Set(references)
+
+    expect(hasDivisionReferences(preSyntheticSnapshot, references)).toBeFalse()
+    expect(hasDivisionReferences(firstSyntheticSnapshot, references)).toBeTrue()
+  })
+})
+
+describe('Overture Hong Kong area geometry', () => {
+  test('derives geometry for every configured area identity missing an Overture area row', () => {
+    const areas = [
+      {
+        code: 'hong-kong-island',
+        districtDivisionIds: ['district-1'],
+        divisionId: 'hong-kong-island-id',
+      },
+      {
+        code: 'kowloon',
+        districtDivisionIds: ['district-2'],
+        divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
+      },
+      {
+        code: 'new-territories',
+        districtDivisionIds: ['district-3'],
+        divisionId: 'new-territories-id',
+      },
+    ]
+
+    expect(selectOvertureHongKongAreasWithoutSourceGeometry(areas, [])).toEqual(areas)
+    expect(
+      selectOvertureHongKongAreasWithoutSourceGeometry(areas, [
+        {
+          canonical: {
+            divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
+          },
+        } as never,
+      ]),
+    ).toEqual([areas[0]!, areas[2]!])
+  })
+})
+
 describe('createGeometryChurnCounts', () => {
   test('treats an independent cohort with no parent snapshot as an all-new baseline', () => {
     const geometry = {
@@ -130,7 +185,175 @@ describe('exact geometry release statistics', () => {
     expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
     expect(shouldWriteExactGeometryReleaseStats('simplified')).toBe(false)
   })
+
+  test('keeps Housing Market Area coverage separate from district geometry metrics', () => {
+    expect(
+      supportsDistrictGeometryStatistics({
+        cohortKey: '2021',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        regionCode: 'hk',
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+        rowCount: 173,
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021',
+        theme: 'divisions',
+        type: 'divisionArea',
+      }),
+    ).toBeFalse()
+  })
+
+  test('keeps C&SD District Council geometry eligible for district statistics', () => {
+    expect(
+      supportsDistrictGeometryStatistics({
+        cohortKey: '2021',
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        regionCode: 'hk',
+        releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
+        rowCount: 18,
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021',
+        theme: 'divisions',
+        type: 'divisionArea',
+      }),
+    ).toBeTrue()
+  })
 })
+
+describe('Housing Market Area district coverage', () => {
+  test('decodes Brotli-compressed exact C&SD district geometry from current storage', () => {
+    const geometry = polygon([
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+      [0, 0],
+    ])
+
+    expect(decodeStoredGeoJsonGeometry(compressJsonBrotli(geometry))).toEqual(geometry)
+  })
+
+  test('repairs an invalid district ring only for the coverage overlay', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma',
+          geometry: polygon([
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'invalid-district',
+          polygon([
+            [0, 0],
+            [2, 2],
+            [2, 0],
+            [0, 2],
+            [0, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect(coverage).toEqual(new Map([['invalid-district', 1]]))
+  })
+
+  test('increments every district with a positive-area intersection', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma-crosses-boundary',
+          geometry: polygon([
+            [0.5, 0.25],
+            [1.5, 0.25],
+            [1.5, 0.75],
+            [0.5, 0.75],
+            [0.5, 0.25],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'district-west',
+          polygon([
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ]),
+        ],
+        [
+          'district-east',
+          polygon([
+            [1, 0],
+            [2, 0],
+            [2, 1],
+            [1, 1],
+            [1, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect([...coverage.entries()]).toEqual([
+      ['district-west', 1],
+      ['district-east', 1],
+    ])
+  })
+
+  test('does not count a district touched only at its boundary', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma-east-only',
+          geometry: polygon([
+            [1, 0.25],
+            [1.5, 0.25],
+            [1.5, 0.75],
+            [1, 0.75],
+            [1, 0.25],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'district-west',
+          polygon([
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ]),
+        ],
+        [
+          'district-east',
+          polygon([
+            [1, 0],
+            [2, 0],
+            [2, 1],
+            [1, 1],
+            [1, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect([...coverage.entries()]).toEqual([['district-east', 1]])
+  })
+})
+
+function polygon(coordinates: number[][]): GeoJsonGeometry {
+  return { coordinates: [coordinates as [number, number][]], type: 'Polygon' }
+}
 
 describe('geometryBuildUpsertSql', () => {
   test('splits geometry upserts below D1’s SQL statement limit', () => {

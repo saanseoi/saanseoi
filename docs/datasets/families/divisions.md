@@ -25,13 +25,34 @@ Home Affairs Department profiles are kept in the provider source folders:
 - [`Planning Department TPU and subunit areas`](../sources/hkgov-pland/divisionArea.md)
 - [`LandsD place names`](../sources/hkgov-landsd/placeName.md)
 
+The default `geographic` domain retains Overture as its primary provider variant, rather
+than using the provider name as the domain identity. If Overture omits Hong Kong Island,
+Kowloon, or the New Territories, ingestion synthesises their level-1 `area` identities
+from the configured district members. Every one of those recognised areas receives a
+derived Overture `divisionArea` union when Overture omits its own area geometry, even if
+Overture does provide the division identity itself. Those reviewed identities retain
+their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
+New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
+`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
+C&SD Area/type geometry then references those Overture identities rather than creating
+parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's 173
+polygonal Housing Market Areas. Building Groups are not divisions: their source
+centroids remain source history for a future buildings projection.
+
+The 2023-H2 C&SD Area/type statistics output maps its source codes to those stable
+Overture area identities. It is an optional Geographic `divisionArea` variant, selected
+explicitly with `include=areas:hkgov-censtatd-area`; it never adds a second Geographic
+division collection. The 2021 HMA statistics output instead supplies the separate HMA
+domain's primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its
+native `hkgov-censtatd-hma` geometry.
+
 Planning Department Planning Units and New Towns are independent API domains, not
-optional members of an Overture release. Each Planning Department source dataset exposes
-both `division` and `divisionArea` from the same upstream layer and cohort. Each domain
-release contains only snapshots that can be returned together. Planning-domain canonical
-rows therefore never need an Overture cohort in order to be published, and a 2006
-planning cohort can be backfilled even when no 2006 Overture divisions exist. New Town
-identities are cohort-scoped; Planning Unit and Overture lineages use persistent
+optional members of the Geographic release. Each Planning Department source dataset
+exposes both `division` and `divisionArea` from the same upstream layer and cohort. Each
+domain release contains only snapshots that can be returned together. Planning-domain
+canonical rows therefore never need an Overture cohort in order to be published, and a
+2006 planning cohort can be backfilled even when no 2006 Overture divisions exist. New
+Town identities are cohort-scoped; Planning Unit and Overture lineages use persistent
 identity. Updater-driven Planning Department intake verifies the mirrored archive's
 managed key and SHA-256 before parsing it.
 
@@ -43,14 +64,14 @@ domain release, which preserves knowledge-time replay without duplicating canoni
 rows.
 
 The uploader reports readiness as an `API DOMAIN RELEASE` and reports the catalogue
-revision created when the domain release becomes publishable. Overture readiness checks
-its Overture, HAD, and C&SD composition members; each Planning Department domain is
-checked independently.
+revision created when the domain release becomes publishable. Geographic readiness
+checks its Overture, HAD, and C&SD composition members; each Planning Department domain
+is checked independently.
 
 ## Composition-owned ingestion dependencies
 
 The API composition also defines the prerequisites required to materialise its members.
-This is intentionally not source-dataset metadata. For the Overture domain, canonical
+This is intentionally not source-dataset metadata. For the Geographic domain, canonical
 `division` must be materialised before Overture `divisionArea` or `divisionBoundary` for
 the same cohort; the Planning Unit and New Town areas similarly require their domain's
 canonical division. `saanseoi update` expands the requested family with these providers
@@ -63,12 +84,12 @@ without duplicating the dependency declaration in each source fixture.
 `saanseoi update --target <environment> --api-family divisions --download --yes` reads
 the selected environment's release report before choosing source work. A successful
 report is authoritative: saved local check state never represents a source release that
-the environment has not reported. An empty Overture report rebuilds the current STAC
-release and the retained Overturist archive catalogue in release order. C&SD district
-areas are independently keyed by their 2016 and 2021 cohorts, so an interrupted
-bootstrap rebuilds only an absent cohort; a cohort already reported by the target is not
-selected again. This lets the command resume safely after interruption without
-re-publishing completed source releases.
+the environment has not reported. An empty Geographic report rebuilds the current
+Overture STAC release and the retained Overturist archive catalogue in release order.
+C&SD district areas are independently keyed by their 2016 and 2021 cohorts, so an
+interrupted bootstrap rebuilds only an absent cohort; a cohort already reported by the
+target is not selected again. This lets the command resume safely after interruption
+without re-publishing completed source releases.
 
 The canonical `schemaVersion` may remain unchanged when a new source merely supplies
 more values in the same response shape. Merge rulesets are domain-scoped for new

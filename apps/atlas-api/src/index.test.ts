@@ -551,6 +551,61 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /v0.1/divisions permits keyless requests from saanseoi.hk', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0.1/divisions', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+      env,
+    )
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active division snapshot is published.',
+    })
+  })
+
+  test('GET /v0.1/divisions keeps other origins behind public-key authentication', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0.1/divisions', {
+        headers: { origin: 'https://saanseoi.hk.example.com' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid SaanSeoi public API key is required.',
+    })
+  })
+
+  test('GET /v0.1/divisions accepts preflight requests from saanseoi.hk', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0.1/divisions', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'https://saanseoi.hk',
+          'access-control-request-method': 'GET',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+  })
+
   test('GET /v0/hk/streets/:id requires a public API key', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(

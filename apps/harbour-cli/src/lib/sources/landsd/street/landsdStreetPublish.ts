@@ -18,7 +18,10 @@ export async function publishLandsdStreetReleasePayloads(
       sourceVersion: string
       total: number
     }) => void
+    /** Reprocess a same-version staged release after an interrupted upload. */
+    forceUpload?: boolean
     releaseNotesUrl?: string
+    runUploadCommand?: typeof runUploadCommand
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
@@ -28,7 +31,7 @@ export async function publishLandsdStreetReleasePayloads(
       sourceVersion: release.sourceVersion,
       total: releases.length,
     })
-    await runUploadCommand(
+    await (options.runUploadCommand ?? runUploadCommand)(
       {
         command: 'upload',
         positionals: [release.parquetPath],
@@ -46,7 +49,7 @@ export async function publishLandsdStreetReleasePayloads(
       target,
       {
         dryRun: false,
-        forceUpload: false,
+        forceUpload: options.forceUpload === true,
         invocationCwd: options.invocationCwd ?? process.cwd(),
         printUsage: () => undefined,
         quiet: true,

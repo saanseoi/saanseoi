@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f9654ad316ffcedffef79741c5c65ad25bb3480f16510e3182f0c0dee3948520",
+  "versionHash": "sha256:ac15639822da9ab5398e1c7f900390e78503c59e9ff98922655eadb34a05e844",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "default",
   "schemaVersion": "sv-address-v1",
@@ -136,6 +136,13 @@
       "sourceSchemas": {
         "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.17.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-22.0",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.18.0"
       }
     }
   ],

@@ -1666,6 +1666,7 @@ const releaseRecordSelection = {
   cohortKey: metaReleases.cohortKey,
   theme: metaDatasets.theme,
   type: metaReleases.resourceType,
+  sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
   sourceVersion: metaReleases.sourceVersion,
@@ -1712,10 +1713,11 @@ async function runAtomicWriteStatements(
   }
 }
 
-export async function getLatestDatasetForRegionSourceType(
+export async function getLatestDatasetForRegionSourceDatasetType(
   db: HarbourReadableDb,
   regionCode: RegionCode,
   source: string,
+  datasetCode: string,
   type: ResourceType,
 ): Promise<LatestDatasetLookup> {
   const datasetRows = (await db
@@ -1727,10 +1729,10 @@ export async function getLatestDatasetForRegionSourceType(
       and(
         eq(metaDatasets.regionCode, regionCode),
         eq(metaPublishers.code, publisherCodeForSource(source)),
-        // A publisher can publish more than one product. In particular, the
-        // Planning Department TPU and New Town feeds share `hkgov-pland` but
-        // are independent dataset lineages with incompatible upload schemas.
-        eq(metaDatasets.code, buildDatasetCode(regionCode, source, type)),
+        // A publisher can publish more than one product in the same resource
+        // type and cohort. Upload chronology and schema compatibility belong
+        // to that product's dataset lineage, never to the publisher broadly.
+        eq(metaDatasets.code, datasetCode),
         eq(metaReleases.resourceType, type),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),
@@ -2136,12 +2138,13 @@ export function buildDeterministicApiFieldProvenanceId(args: {
 }
 
 export async function resetFailedDataset(
-  db: HarbourWritableDb,
+  db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
   rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus,
 ) {
+  const dataset = await requireDatasetDefinition(db, plan)
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2155,6 +2158,7 @@ export async function resetFailedDataset(
       sourceVersion: plan.sourceVersion,
       resourceType: plan.type,
       sourceSchemaVersion,
+      processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,
@@ -2168,6 +2172,31 @@ export async function resetFailedDataset(
       updatedAt: now,
     })
     .where(eq(metaReleases.code, plan.releaseCode))
+    .run()
+
+  await db
+    .update(metaSourceReleases)
+    .set({
+      sourceSchemaVersion,
+      processingRules: dataset.processingRules,
+      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      cohortKey: plan.cohortKey,
+      rawObjectKey,
+      originalFileName: plan.originalFileName,
+      releaseNotesUrl: plan.releaseNotesUrl ?? null,
+      status,
+      ingestedAt: now,
+      revokedAt: null,
+      revocationReason: null,
+      supersededBySourceReleaseId: null,
+      updatedAt: now,
+    })
+    .where(
+      eq(
+        metaSourceReleases.code,
+        buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion),
+      ),
+    )
     .run()
 }
 
@@ -2578,10 +2607,11 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
   cohortKey: string,
   options: { variant?: string } = {},
 ) {
-  // Overture's canonical division dataset is itself the durable domain
-  // identity. This deliberately does not require a lineage join: it lets the
-  // canonical snapshot remain resolvable while its lineage is being created
-  // or repaired, and also matches every lineage-backed Overture snapshot.
+  // Overture's canonical dataset for the requested resource type is itself a
+  // durable domain identity. This deliberately does not require a lineage
+  // join: it lets a snapshot remain resolvable while its lineage is being
+  // created or repaired, and includes Overture geometry snapshots whose
+  // primary source is divisionArea or divisionBoundary rather than division.
   if (options.variant === 'overture') {
     return (
       (await db
@@ -2603,7 +2633,10 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             eq(metaSnapshots.status, 'published'),
             eq(metaSnapshots.cohortKey, cohortKey),
             eq(metaDatasets.regionCode, regionCode),
-            eq(metaDatasets.code, buildDatasetCode(regionCode, 'overture', 'division')),
+            eq(
+              metaDatasets.code,
+              buildDatasetCode(regionCode, 'overture', resourceType),
+            ),
             eq(metaSnapshotSources.role, 'primary'),
           ),
         )
@@ -2650,11 +2683,82 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
 }
 
 /**
+ * Lists published canonical snapshots on or after a source cohort in chronological
+ * order. Callers which need a particular referenced identity can inspect later
+ * candidates without weakening the normal nearest-snapshot policy.
+ */
+export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  options: { publisherCode?: string } = {},
+) {
+  return db
+    .select({
+      id: metaSnapshots.id,
+      code: metaSnapshots.code,
+      cohortKey: metaSnapshots.cohortKey,
+      resourceType: metaSnapshots.resourceType,
+      status: metaSnapshots.status,
+    })
+    .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+    )
+    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(
+      and(
+        eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshots.status, 'published'),
+        sql`${metaSnapshots.cohortKey} >= ${cohortKey}`,
+        eq(metaDatasets.regionCode, regionCode),
+        eq(metaSnapshotSources.role, 'primary'),
+        options.publisherCode
+          ? eq(metaPublishers.code, options.publisherCode)
+          : undefined,
+      ),
+    )
+    .orderBy(
+      asc(metaSnapshots.cohortKey),
+      asc(metaSnapshots.publishedAt),
+      asc(metaSnapshots.createdAt),
+    )
+    .all()
+}
+
+/**
  * Resolves the first published canonical snapshot on or after a source cohort.
  * This is used to give historical, provider-specific geometry a stable canonical
  * identity and naming anchor when no same-cohort canonical snapshot exists.
  */
 export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  options: { publisherCode?: string } = {},
+) {
+  const [snapshot] =
+    await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
+      db,
+      resourceType,
+      regionCode,
+      cohortKey,
+      options,
+    )
+  return snapshot ?? null
+}
+
+/**
+ * Resolves the newest published snapshot at or before a source cohort. Together
+ * with the forward lookup above, this lets historical provider geometry anchor
+ * itself to the closest available canonical snapshot without assuming that the
+ * two publishers release on the same cadence.
+ */
+export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
   db: HarbourReadableDb,
   resourceType: ResourceType,
   regionCode: RegionCode,
@@ -2681,7 +2785,7 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
         and(
           eq(metaSnapshots.resourceType, resourceType),
           eq(metaSnapshots.status, 'published'),
-          sql`${metaSnapshots.cohortKey} >= ${cohortKey}`,
+          sql`${metaSnapshots.cohortKey} <= ${cohortKey}`,
           eq(metaDatasets.regionCode, regionCode),
           eq(metaSnapshotSources.role, 'primary'),
           options.publisherCode
@@ -2690,9 +2794,9 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
         ),
       )
       .orderBy(
-        metaSnapshots.cohortKey,
-        metaSnapshots.publishedAt,
-        metaSnapshots.createdAt,
+        desc(metaSnapshots.cohortKey),
+        desc(metaSnapshots.publishedAt),
+        desc(metaSnapshots.createdAt),
       )
       .limit(1)
       .get()) ?? null
@@ -2775,6 +2879,7 @@ export async function ensureDraftSnapshotForRelease(
     variant?: string
   },
 ) {
+  const variant = args.variant ?? 'default'
   const snapshotForSourceRelease = await db
     .select({
       id: metaSnapshots.id,
@@ -2787,10 +2892,15 @@ export async function ensureDraftSnapshotForRelease(
     })
     .from(metaSnapshotSources)
     .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(
       and(
         eq(metaSnapshotSources.sourceReleaseId, args.sourceReleaseId),
         eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshotLineages.variant, variant),
       ),
     )
     .orderBy(desc(metaSnapshots.revision))
@@ -2801,7 +2911,6 @@ export async function ensureDraftSnapshotForRelease(
     return snapshotForSourceRelease
   }
 
-  const variant = args.variant ?? 'default'
   const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
   const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
@@ -3052,7 +3161,36 @@ export async function resolveSnapshotForRelease(
   db: HarbourReadableDb,
   sourceReleaseId: string,
   resourceType: ResourceType,
+  options: { variant?: string } = {},
 ) {
+  if (options.variant) {
+    const variantSnapshot = await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshotSources)
+      .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .where(
+        and(
+          eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshotLineages.variant, options.variant),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()
+
+    if (variantSnapshot) return variantSnapshot
+  }
+
   return (
     (await db
       .select({
@@ -3067,6 +3205,7 @@ export async function resolveSnapshotForRelease(
         and(
           eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
           eq(metaSnapshots.resourceType, resourceType),
+          options.variant ? isNull(metaSnapshots.snapshotLineageId) : undefined,
         ),
       )
       .orderBy(desc(metaSnapshots.createdAt))
@@ -3334,7 +3473,7 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
   type: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  domainCode = 'overture',
+  domainCode = 'geographic',
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
   const rows = await db
@@ -4111,9 +4250,37 @@ export async function publishReleaseArtefacts(
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
-    .where(inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds))
+    .where(
+      and(
+        inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds),
+        // Lookup dependencies identify the source used to resolve a snapshot,
+        // rather than an API release-set input. Their schema must not override
+        // the primary source selected for the same dataset in this release set.
+        ne(metaSnapshotSources.role, 'lookup'),
+      ),
+    )
     .all()
   const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
+  const sourceReleaseSnapshotIds = [
+    ...new Set(
+      (
+        await db
+          .select({ id: metaSnapshots.id })
+          .from(metaSnapshotSources)
+          .innerJoin(
+            metaSnapshots,
+            eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+          )
+          .where(
+            and(
+              eq(metaSnapshotSources.sourceReleaseId, args.dataset.releaseId),
+              eq(metaSnapshots.resourceType, args.type),
+            ),
+          )
+          .all()
+      ).map(row => row.id),
+    ),
+  ]
 
   const sourceSchemas = new Map<string, string>()
 
@@ -4235,7 +4402,7 @@ export async function publishReleaseArtefacts(
           validTo: null,
           updatedAt: publishedAt,
         })
-        .where(eq(metaSnapshots.id, args.snapshotId)),
+        .where(inArray(metaSnapshots.id, sourceReleaseSnapshotIds)),
     ]
 
     statements.push(
@@ -4856,35 +5023,18 @@ export async function listCurrentSnapshotCleanupCandidates(
 
   let protectedRows: Array<{ snapshotId: string }>
   try {
-    const catalogs = await db
-      .select({ id: metaApiCatalogRevisions.id })
-      .from(metaApiCatalogRevisions)
-      .where(eq(metaApiCatalogRevisions.status, 'current'))
+    // A draft release set may be waiting for a dependent companion snapshot.
+    // Its already materialised members must remain in current storage until
+    // the release set is published or explicitly archived.
+    protectedRows = await db
+      .select({ snapshotId: metaApiReleaseSetSnapshots.snapshotId })
+      .from(metaApiReleaseSetSnapshots)
+      .innerJoin(
+        metaApiReleaseSets,
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .where(ne(metaApiReleaseSets.status, 'archived'))
       .all()
-    const retainedCatalogIds = catalogs.map(catalog => catalog.id)
-
-    protectedRows =
-      retainedCatalogIds.length > 0
-        ? await db
-            .select({ snapshotId: metaApiReleaseSetSnapshots.snapshotId })
-            .from(metaApiCatalogRevisionReleaseSets)
-            .innerJoin(
-              metaApiReleaseSetSnapshots,
-              eq(
-                metaApiCatalogRevisionReleaseSets.apiReleaseSetId,
-                metaApiReleaseSetSnapshots.apiReleaseSetId,
-              ),
-            )
-            .where(
-              and(
-                inArray(
-                  metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId,
-                  retainedCatalogIds,
-                ),
-              ),
-            )
-            .all()
-        : []
   } catch (error) {
     if (
       !(error instanceof Error) ||

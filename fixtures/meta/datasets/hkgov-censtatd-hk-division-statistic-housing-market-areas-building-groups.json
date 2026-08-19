@@ -1,14 +1,14 @@
 {
-  "versionHash": "sha256:9b3cd09a4e6a868982e94f8793e33228e34cbb8d3f85e5b812732b54c4c04189",
+  "versionHash": "sha256:e7f3d4da2b763168b7e6501d53e86a91a9b052f06f1c08bdc057c8c2fd289a07",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
-  "sourceVariant": "census",
+  "sourceVariant": "hkgov-censtatd-hma",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic"],
+  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
@@ -49,13 +49,17 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": ["normalise_censtatd_statistic_source_assertion"]
+      "operationCodes": [
+        "normalise_censtatd_statistic_source_assertion",
+        "curate_censtatd_measure_metadata"
+      ]
     }
   ],
   "releases": [
     {
       "sourceVersion": "2021",
-      "identicalArchiveSlots": [
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
+      "verifiedIdenticalArchiveSlots": [
         {
           "releaseSlot": "2026-Q1",
           "sourceObjectHash": "8c050049b01066d603c04162cddd107ede1d16baaa56140608f14122268702e7",
@@ -72,8 +76,8 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "2021 Census: Housing Market Areas and Building Groups",
-      "description": "Planned C&SD source for 2021 Census statistics and geography for housing market areas and building groups."
+      "name": "Census: Housing Market Areas and Building Groups",
+      "description": "Planned C&SD source for Census statistics and geography for housing market areas and building groups."
     }
   ]
 }

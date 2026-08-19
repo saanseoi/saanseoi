@@ -1,0 +1,484 @@
+import { expect, test } from 'bun:test'
+
+import {
+  emptyCenstatdMeasureCuration,
+  formatCenstatdMeasureProposal,
+  formatCenstatdMeasureReviewContext,
+  parseCenstatdMeasureCuration,
+  parseCsdiSimplifiedDataSpecification,
+  resolveChineseLocalisationProposals,
+  resolveUnitLocalisations,
+  resolveCenstatdMeasureCuration,
+  suggestAggregation,
+  suggestSeriesMeasureMetadata,
+  suggestStatisticKind,
+  suggestUnitCode,
+  suggestMeasureName,
+  validAggregationsForStatisticKind,
+} from './censtatdMeasureCuration.ts'
+
+test('shows the proposed name and description before prompting for measure metadata', () => {
+  const output = formatCenstatdMeasureReviewContext({
+    measure: {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      sourceField: 't_pop',
+      unitCode: 'publisher-unknown',
+      valueKind: 'numeric',
+    },
+    schemaCandidate: {
+      localisations: [
+        {
+          description: 'Total population in the housing market area.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+      ],
+      sourceReleaseUrl: 'https://example.test/release',
+    },
+  })
+
+  expect(output).toContain('proposed name')
+  expect(output).toContain('Total population')
+  expect(output).toContain('proposed description')
+  expect(output).toContain('Total population in the housing market area.')
+  expect(output).not.toContain('source field')
+})
+
+test('identifies C&SD measure fields that require a reviewed decision', () => {
+  const measure = {
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+    sourceField: 'TOTAL',
+    unitCode: 'publisher-unknown',
+    valueKind: 'numeric',
+  }
+  const unresolved = resolveCenstatdMeasureCuration({
+    registry: emptyCenstatdMeasureCuration(),
+    measures: [measure],
+  })
+  expect(unresolved.unresolved).toEqual([measure])
+
+  const resolved = resolveCenstatdMeasureCuration({
+    registry: {
+      measures: [
+        {
+          datasetCode: measure.datasetCode,
+          localisations: [
+            {
+              description: 'Total publisher count.',
+              isTranslationVerified: true,
+              locale: 'en',
+              name: 'Total',
+            },
+          ],
+          aggregation: 'total',
+          statisticKind: 'count',
+          measureCode: 'totalPopulation',
+          sourceField: measure.sourceField,
+          unitCode: 'person',
+        },
+      ],
+    },
+    measures: [measure],
+  })
+  expect(resolved.unresolved).toEqual([])
+  expect(
+    resolved.metadata.get(`${measure.datasetCode}\u0000${measure.sourceField}`),
+  ).toEqual({
+    localisations: [
+      {
+        description: 'Total publisher count.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Total',
+      },
+    ],
+    aggregation: 'total',
+    measureCode: 'totalPopulation',
+    statisticKind: 'count',
+    unitCode: 'person',
+  })
+})
+
+test('rejects duplicate localised measure names within a C&SD dataset', () => {
+  expect(() =>
+    parseCenstatdMeasureCuration(
+      {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        measures: [
+          {
+            aggregation: 'none',
+            localisations: [
+              {
+                description: 'The first distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'A repeated measure name',
+              },
+            ],
+            measureCode: 'firstMeasure',
+            sourceField: 'first',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+          {
+            aggregation: 'none',
+            localisations: [
+              {
+                description: 'The second distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'A repeated measure name',
+              },
+            ],
+            measureCode: 'secondMeasure',
+            sourceField: 'second',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+        ],
+        schemaVersion: 6,
+      },
+      'fixture.json',
+    ),
+  ).toThrow('Duplicate C&SD localised measure name')
+})
+
+test('requires the C&SD dataset code at the manifest root', () => {
+  expect(() =>
+    parseCenstatdMeasureCuration(
+      {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        measures: [
+          {
+            aggregation: 'none',
+            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+            localisations: [
+              {
+                description: 'A distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'Distinct statistic',
+              },
+            ],
+            measureCode: 'distinctStatistic',
+            sourceField: 'distinct',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+        ],
+        schemaVersion: 6,
+      },
+      'fixture.json',
+    ),
+  ).toThrow('C&SD dataset code belongs in the manifest root')
+})
+
+test('formats every proposed localisation and canonical key for review', () => {
+  const output = formatCenstatdMeasureProposal({
+    candidate: {
+      localisations: [
+        {
+          description: 'Total population in the area.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+        {
+          description: '區內總人口。',
+          isTranslationVerified: true,
+          locale: 'zh-Hant',
+          name: '總人口',
+        },
+        {
+          description: '区内总人口。',
+          isTranslationVerified: true,
+          locale: 'zh-Hans',
+          name: '总人口',
+        },
+      ],
+      measureCode: 'totalPopulation',
+    },
+    sourceField: 't_pop',
+    suggestedUnitCode: 'person',
+  })
+
+  expect(output).toContain('\u001B[31mt_pop')
+  expect(output).toContain('totalPopulation')
+  expect(output).toContain('(person)')
+  expect(output).toContain('Total population')
+  expect(output).toContain('總人口')
+  expect(output).toContain('总人口')
+})
+
+test('suggests a compatible reviewed unit for a similarly named measure', () => {
+  expect(
+    suggestUnitCode('totalPopulation', [
+      { measureCode: 'landArea', unitCode: 'square-kilometre' },
+      { measureCode: 'populationDensity', unitCode: 'person-per-square-kilometre' },
+      { measureCode: 'populationMidYear', unitCode: 'person' },
+    ]),
+  ).toBe('person')
+})
+
+test('suggests a statistic kind separately from its unit', () => {
+  expect(
+    suggestStatisticKind({
+      measureCode: 'sexRatio',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('ratio')
+  expect(
+    suggestStatisticKind({
+      measureCode: 'populationDensity',
+      unitCode: 'person-per-square-kilometre',
+    }),
+  ).toBe('density')
+  expect(
+    suggestStatisticKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
+  ).toBe('quantity')
+  expect(
+    suggestStatisticKind({
+      localisations: [
+        {
+          description: 'Sex ratio (number of males per 1 000 females).',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Sex ratio (number of males per 1 000 females)',
+        },
+      ],
+      measureCode: 'sexComparison',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('ratio')
+  expect(
+    suggestStatisticKind({
+      localisations: [
+        {
+          description:
+            'Proportion of never-married population aged 15 and over by sex - male.',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Never-married male population aged 15 and over',
+        },
+      ],
+      measureCode: 'neverMarriedAged15AndOverBySexMale',
+      unitCode: 'publisher-unknown',
+    }),
+  ).toBe('proportion')
+})
+
+test('suggests an aggregation stated in the proposed English semantic text', () => {
+  expect(
+    suggestAggregation([
+      {
+        description: 'Median age of residents.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Median age',
+      },
+    ]),
+  ).toBe('median')
+  expect(
+    suggestAggregation([
+      {
+        description: 'The average household size.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Household size',
+      },
+    ]),
+  ).toBe('mean')
+  expect(
+    suggestAggregation([
+      {
+        description: 'Age of residents.',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Age',
+      },
+    ]),
+  ).toBeNull()
+})
+
+test('excludes totals from non-additive statistic kinds', () => {
+  expect(validAggregationsForStatisticKind('count')).toContain('total')
+  for (const statisticKind of [
+    'proportion',
+    'ratio',
+    'rate',
+    'density',
+    'index',
+  ] as const) {
+    expect(validAggregationsForStatisticKind(statisticKind)).not.toContain('total')
+  }
+})
+
+test('reuses a unique reviewed metadata decision for an age-group series', () => {
+  const metadata = suggestSeriesMeasureMetadata({
+    decisions: [
+      {
+        aggregation: 'none',
+        denominatorMeasureCode: 'totalPopulation',
+        localisations: [
+          {
+            description: 'Percentage distribution of population aged under 15',
+            isTranslationVerified: true,
+            locale: 'en',
+            name: 'Population aged under 15',
+          },
+        ],
+        measureCode: 'agedUnder15',
+        sourceField: 'age_1',
+        statisticKind: 'proportion',
+        unitCode: 'percent',
+      },
+    ],
+    localisations: [
+      {
+        description: 'Percentage distribution of population aged 15-39',
+        isTranslationVerified: true,
+        locale: 'en',
+        name: 'Population aged 15-39',
+      },
+    ],
+  })
+
+  expect(metadata).toEqual({
+    aggregation: 'none',
+    denominatorMeasureCode: 'totalPopulation',
+    statisticKind: 'proportion',
+  })
+})
+
+test('uses Azure Chinese suggestions after an English schema proposal is edited', async () => {
+  const proposals = await resolveChineseLocalisationProposals({
+    candidate: {
+      localisations: [
+        {
+          description: 'Total population',
+          isTranslationVerified: true,
+          locale: 'en',
+          name: 'Total population',
+        },
+        {
+          description: '總人口',
+          isTranslationVerified: true,
+          locale: 'zh-Hant',
+          name: '總人口',
+        },
+        {
+          description: '总人口',
+          isTranslationVerified: true,
+          locale: 'zh-Hans',
+          name: '总人口',
+        },
+      ],
+    },
+    englishDescription: 'Population counted at the reference date',
+    englishName: 'Reference population',
+    translate: async (texts, options) =>
+      new Map(
+        [...texts].map(text => [
+          text,
+          `${options.to === 'zh-Hant' ? '繁' : '简'}:${text}`,
+        ]),
+      ),
+  })
+
+  expect(proposals.zhHant).toEqual({
+    description: '繁:Population counted at the reference date',
+    isTranslationVerified: false,
+    locale: 'zh-Hant',
+    name: '繁:Reference population',
+  })
+  expect(proposals.zhHans).toEqual({
+    description: '简:Population counted at the reference date',
+    isTranslationVerified: false,
+    locale: 'zh-Hans',
+    name: '简:Reference population',
+  })
+})
+
+test('fills a new unit’s Chinese localisations through Azure Translator', async () => {
+  const localisations = await resolveUnitLocalisations({
+    description: 'Area measured in square kilometres.',
+    name: 'Square kilometres',
+    translate: async (texts, options) =>
+      new Map(
+        [...texts].map(text => [
+          text,
+          `${options.to === 'zh-Hant' ? '繁' : '简'}:${text}`,
+        ]),
+      ),
+  })
+
+  expect(localisations).toEqual([
+    {
+      description: 'Area measured in square kilometres.',
+      locale: 'en',
+      name: 'Square kilometres',
+    },
+    {
+      description: '繁:Area measured in square kilometres.',
+      locale: 'zh-Hant',
+      name: '繁:Square kilometres',
+    },
+    {
+      description: '简:Area measured in square kilometres.',
+      locale: 'zh-Hans',
+      name: '简:Square kilometres',
+    },
+  ])
+})
+
+test('parses field definitions from a CSDI simplified data specification', () => {
+  const fields = parseCsdiSimplifiedDataSpecification(
+    `<table>
+      <tr><td>Field Name / 資料欄名稱</td><td>Data Type</td><td>Null Option</td><td>Description</td><td>描述(繁體中文)</td><td>描述(简体中文)</td></tr>
+      <tr><td>t_pop</td><td>String</td><td>Null</td><td>Total population</td><td>總人口</td><td>总人口</td></tr>
+      <tr><td>hma</td><td>String</td><td>Null</td><td>Housing Market Area</td><td>樓市片區</td><td>楼市片区</td></tr>
+    </table>`,
+  )
+
+  expect(fields).toEqual([
+    expect.objectContaining({
+      dataType: 'String',
+      descriptionEn: 'Total population',
+      descriptionZhHans: '总人口',
+      descriptionZhHant: '總人口',
+      nullOption: 'Null',
+      sourceField: 't_pop',
+    }),
+    expect.objectContaining({
+      descriptionEn: 'Housing Market Area',
+      sourceField: 'hma',
+    }),
+  ])
+  expect(fields[0]?.sha256).toMatch(/^[a-f0-9]{64}$/)
+})
+
+test('keeps a CSDI field eligible when a publisher locale is absent', () => {
+  const [field] = parseCsdiSimplifiedDataSpecification(
+    `<table>
+      <tr><td>Field Name</td><td>Data Type</td><td>Null Option</td><td>Description</td><td>描述(繁體中文)</td><td>描述(简体中文)</td></tr>
+      <tr><td>value</td><td>String</td><td>Null</td><td>Value</td><td></td><td>值</td></tr>
+    </table>`,
+  )
+
+  expect(field).toEqual(
+    expect.objectContaining({
+      descriptionEn: 'Value',
+      descriptionZhHans: '值',
+      descriptionZhHant: null,
+    }),
+  )
+})
+
+test('suggests stable camelCase names from publisher descriptions', () => {
+  expect(suggestMeasureName('Land Area (sq. km)')).toBe('landArea')
+  expect(suggestMeasureName("Mid-year Population ('000)")).toBe('populationMidYear')
+  expect(suggestMeasureName('Population Density (Persons per sq. km)')).toBe(
+    'populationDensity',
+  )
+})

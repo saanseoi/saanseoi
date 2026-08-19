@@ -245,16 +245,21 @@ release set. This is the current `comp-divisions-v1` shape in compact form:
 
 ```mermaid
 flowchart TD
-  Composition[comp-divisions-v1<br/>api-divisions-v0.1] --> Overture[domain: overture<br/>default]
+  Composition[comp-divisions-v1<br/>api-divisions-v0.1] --> Geographic[domain: geographic<br/>default]
+  Composition --> HMA[domain: hkgov-censtatd-hma]
   Composition --> PU[domain: hkgov-pland-pu]
   Composition --> NewTown[domain: hkgov-pland-new-town]
 
-  Overture --> ODiv[division / overture<br/>primary, required<br/>exact_ref]
-  Overture --> OArea[divisionArea / overture<br/>geometry, required<br/>exact_ref]
-  Overture --> HadArea[divisionArea / hkgov-had<br/>geometry, required<br/>latest_at_or_before_cohort_per_dataset]
-  Overture --> C2016[divisionArea / hkgov-censtatd:2016<br/>geometry, optional<br/>exact_ref]
-  Overture --> C2021[divisionArea / hkgov-censtatd:2021<br/>geometry, optional<br/>exact_ref]
-  Overture --> Boundary[divisionBoundary / overture<br/>geometry, required<br/>exact_ref]
+  Geographic --> ODiv[division / overture<br/>primary, required<br/>exact_ref]
+  Geographic --> OArea[divisionArea / overture<br/>geometry, required<br/>exact_ref]
+  Geographic --> HadArea[divisionArea / hkgov-had<br/>geometry, required<br/>latest_at_or_before_cohort_per_dataset]
+  Geographic --> C2016[divisionArea / hkgov-censtatd:2016<br/>geometry, required<br/>latest compatible]
+  Geographic --> C2021[divisionArea / hkgov-censtatd:2021<br/>geometry, required<br/>latest compatible]
+  Geographic --> CArea[divisionArea / hkgov-censtatd-area<br/>geometry, optional<br/>latest compatible]
+  Geographic --> Boundary[divisionBoundary / overture<br/>geometry, required<br/>exact_ref]
+
+  HMA --> HMADiv[division / hkgov-censtatd:2021<br/>primary, required<br/>exact_ref]
+  HMA --> HMAArea[divisionArea / hkgov-censtatd-hma<br/>geometry, required<br/>exact_ref]
 
   PU --> PUDiv[division / hkgov-pland-pu<br/>primary, required / exact_ref]
   PU --> PUArea[divisionArea / hkgov-pland-pu<br/>geometry, required / exact_ref]
@@ -266,7 +271,10 @@ flowchart TD
   HadArea --> ReleaseSet
   C2016 --> ReleaseSet
   C2021 --> ReleaseSet
+  CArea --> ReleaseSet
   Boundary --> ReleaseSet
+  HMADiv --> ReleaseSet
+  HMAArea --> ReleaseSet
 
   classDef declared fill:#e8f1ff,stroke:#4a78a8,color:#142b44
   classDef generated fill:#e8f7ed,stroke:#39764a,color:#173d21
@@ -806,8 +814,8 @@ It binds:
 - domain ruleset version
 - field provenance
 
-The composition's default domain is implicit. For divisions this is Overture, so
-`data-hk-divisions-2025-10-22.0` means the Overture domain; non-default domains retain
+The composition's default domain is implicit. For divisions this is Geographic, so
+`data-hk-divisions-2025-10-22.0` means the Geographic domain; non-default domains retain
 their `--{domain}` suffix.
 
 The trailing revision is a **domain-composition revision for that cohort**. It is not a

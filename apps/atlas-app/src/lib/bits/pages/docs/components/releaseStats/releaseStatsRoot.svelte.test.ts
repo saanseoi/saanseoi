@@ -8,6 +8,28 @@ test('renders the supplied empty state', async () => {
   await expect.element(screen.getByText('No stats')).toBeVisible()
 })
 
+test('renders a measure data dictionary with pending metadata visibly marked', async () => {
+  const screen = await render(ReleaseStatsRootTestHarness, {
+    measures: [
+      {
+        definition: null,
+        aggregation: 'total',
+        name: 'Population',
+        observationCount: 18,
+        sourceField: 'POPULATION',
+        statisticKind: 'count',
+        unitCode: 'publisher-unknown',
+        valueKind: 'numeric',
+      },
+    ],
+    stats: [{ dimension: 'records', metric: 'count', value: 18 }],
+  })
+  await expect.element(screen.getByRole('heading', { name: 'Measures' })).toBeVisible()
+  await expect.element(screen.getByRole('table')).toBeVisible()
+  await expect.element(screen.getByText('Definition not yet reviewed')).toBeVisible()
+  await expect.element(screen.getByText('Not mapped')).toBeVisible()
+})
+
 test('exposes the churn explanation through an accessible tooltip trigger', async () => {
   const screen = await render(ReleaseStatsRootTestHarness, {
     stats: [

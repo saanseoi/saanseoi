@@ -19,7 +19,7 @@ export function printUsage() {
   saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark|postcard|postcard-lit] [--dry-run]
   saanseoi schedule [--dry-run]
   saanseoi init:addresses:default [--target local|preview|production] [--continue] [--cacheArtefacts]
-  saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--download] [--force-download] [--no-upload] [--force|--check-now] [--yes]
+  saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--yes]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi release-sets:reconcile [--target local|preview|production] [--api-family FAMILY] [--region hk|mo]
   saanseoi docs:new [--target local|preview|production] [--scope apiReleaseSets|releases] [--region hk|mo] [--api-family addresses|divisions|places] [--dataset CODE] [--release CODE] [--cohort-key VALUE]
@@ -34,6 +34,9 @@ export function printUsage() {
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi stats:backfill-geometry --target local|preview|production [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--resource-type divisionArea|divisionBoundary|all] [--dry-run] [--refresh-cache] [--yes]
+  saanseoi stats:backfill-addresses --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
+  saanseoi stats:backfill-censtatd --target local [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--dry-run]
+  saanseoi stats:reset-censtatd --target local [--dataset DATASET_CODE[,DATASET_CODE...]] [--dry-run] [--yes]
   saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
 `)

@@ -51,7 +51,7 @@ describe('replaceReleaseProcessingActions', () => {
       `INSERT INTO releases (id, status, processingRules) VALUES (
         'release-1',
         'staged',
-        '{"rulesets":[{"rules":[{"operationCode":"division_code_mapped","type":"record"}]}]}'
+        '{"rulesets":[{"rules":[{"operationCode":"division_code_mapped","type":"bulk"}]}]}'
       )`,
     )
 
@@ -75,7 +75,7 @@ describe('replaceReleaseProcessingActions', () => {
           evidence: {},
         },
       ]),
-    ).rejects.toThrow('not declared as record rules')
+    ).rejects.toThrow('not declared in processing rules')
 
     sqlite.exec("UPDATE releases SET status = 'published' WHERE id = 'release-1'")
 

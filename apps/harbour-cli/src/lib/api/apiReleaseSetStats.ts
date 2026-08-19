@@ -14,6 +14,7 @@ import { createD1ImportClient } from '@repo/core/d1ImportApi'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import { and, currentSchema, eq, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
+import type { AnyColumn } from 'drizzle-orm'
 
 import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
@@ -109,7 +110,7 @@ export async function calculateAndStoreApiReleaseSetStats(
   try {
     const rows =
       options.family === 'address'
-        ? await buildAddressStatsRows(options.currentDb, snapshotId)
+        ? await buildAddressApiReleaseSetStatsForSnapshot(options.currentDb, snapshotId)
         : await buildDivisionStatsRows(options.currentDb, snapshotId)
 
     options.progress.update(1, {
@@ -180,7 +181,7 @@ export async function calculateAndStoreApiReleaseSetStats(
   }
 }
 
-async function buildAddressStatsRows(
+export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
@@ -189,8 +190,11 @@ async function buildAddressStatsRows(
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
-    divisionLinkedCount,
     streetLinkedCount,
+    districtLinkedCount,
+    areaLinkedCount,
+    componentCounts,
+    byDistrict,
   ] = await Promise.all([
     countRows(
       db,
@@ -221,7 +225,7 @@ async function buildAddressStatsRows(
       currentSchema.address2d,
       and(
         eq(currentSchema.address2d.snapshotId, snapshotId),
-        sql`${currentSchema.address2d.countryId} IS NOT NULL`,
+        sql`${currentSchema.address2d.streetId} IS NOT NULL`,
       ),
     ),
     countWhere(
@@ -229,8 +233,24 @@ async function buildAddressStatsRows(
       currentSchema.address2d,
       and(
         eq(currentSchema.address2d.snapshotId, snapshotId),
-        sql`${currentSchema.address2d.streetId} IS NOT NULL`,
+        sql`${currentSchema.address2d.districtId} IS NOT NULL`,
       ),
+    ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.areaId} IS NOT NULL`,
+      ),
+    ),
+    buildAddressComponentCounts(db, snapshotId),
+    countGrouped(
+      db,
+      currentSchema.address2d,
+      currentSchema.address2d.snapshotId,
+      snapshotId,
+      currentSchema.address2d.districtId,
     ),
   ])
   const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
@@ -240,12 +260,48 @@ async function buildAddressStatsRows(
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
-    divisionLinkedCount,
+    areaLinkedCount,
+    byDistrict,
+    componentCounts,
+    districtLinkedCount,
     localeStats,
-    missingDivisionCount: Math.max(0, address2dCount - divisionLinkedCount),
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
     streetLinkedCount,
   })
+}
+
+async function buildAddressComponentCounts(db: HarbourReadableDb, snapshotId: string) {
+  const row = await db
+    .select({
+      block: countDistinctAddressComponent(currentSchema.address2dI18n.blockExpression),
+      building_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.buildingName,
+      ),
+      building_number: countDistinctAddressComponent(
+        currentSchema.address2dI18n.buildingNumberExpression,
+      ),
+      estate_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.estateName,
+      ),
+      phase: countDistinctAddressComponent(currentSchema.address2dI18n.phaseExpression),
+      street_name: countDistinctAddressComponent(
+        currentSchema.address2dI18n.streetName,
+      ),
+    })
+    .from(currentSchema.address2dI18n)
+    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .get()
+
+  return Object.fromEntries(
+    Object.entries(row ?? {}).map(([component, count]) => [
+      component,
+      Number(count ?? 0),
+    ]),
+  )
+}
+
+function countDistinctAddressComponent(column: unknown) {
+  return sql<number>`count(distinct case when ${column} is not null then ${currentSchema.address2dI18n.addressId} end)`
 }
 
 async function buildDivisionStatsRows(
@@ -407,7 +463,7 @@ async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: strin
 async function countRows(
   db: HarbourReadableDb,
   table: unknown,
-  snapshotIdColumn: any,
+  snapshotIdColumn: AnyColumn,
   snapshotId: string,
 ) {
   return countWhere(db, table, eq(snapshotIdColumn, snapshotId))
@@ -428,9 +484,9 @@ async function countWhere(db: HarbourReadableDb, table: unknown, condition: unkn
 async function countGrouped(
   db: HarbourReadableDb,
   table: unknown,
-  snapshotIdColumn: any,
+  snapshotIdColumn: AnyColumn,
   snapshotId: string,
-  groupColumn: any,
+  groupColumn: AnyColumn,
 ) {
   const rows = await db
     .select({

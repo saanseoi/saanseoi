@@ -3,7 +3,27 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { translateLandsdStreetNames } from './landsdStreetTranslation.ts'
+import {
+  translateAzureTexts,
+  translateLandsdStreetNames,
+} from './landsdStreetTranslation.ts'
+
+test('translates missing schema labels through Azure with the requested locales', async () => {
+  const translated = await translateAzureTexts(['Population Density'], {
+    apiKey: 'test-key',
+    from: 'en',
+    to: 'zh-Hant',
+    fetch: async (input, init) => {
+      const url = new URL(String(input))
+      expect(url.searchParams.get('from')).toBe('en')
+      expect(url.searchParams.get('to')).toBe('zh-Hant')
+      expect(JSON.parse(String(init?.body))).toEqual([{ text: 'Population Density' }])
+      return Response.json([{ translations: [{ text: '人口密度' }] }])
+    },
+  })
+
+  expect(translated.get('Population Density')).toBe('人口密度')
+})
 
 test('translates unique names in Azure batches and reuses their source-hash cache', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-landsd-translation-'))

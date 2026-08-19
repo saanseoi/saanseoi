@@ -3,11 +3,13 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildMetaRegistrySyncStatements,
   initialApiCompositions,
+  initialApiCompositionMembers,
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
   initialDatasetResourceTypes,
   initialDataShards,
+  initialIdentifierBridges,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
 
@@ -73,7 +75,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the Census source domain', () => {
+  test('registers C&SD statistics under the default Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -93,17 +95,28 @@ describe('fixture version hashes', () => {
     expect(
       censtatdStats.every(
         dataset =>
-          dataset.sourceVariant === 'census' &&
-          dataset.sourceCrs === 'EPSG:2326' &&
-          dataset.releaseType === 'static' &&
-          dataset.releaseFrequency === 'five-yearly',
+          dataset.sourceCrs === 'EPSG:2326' && dataset.releaseType === 'static',
       ),
     ).toBe(true)
+    expect(
+      censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
+    ).toHaveLength(3)
+    expect(
+      censtatdStats
+        .filter(dataset => dataset.sourceVariant === 'census')
+        .every(dataset => dataset.releaseFrequency === 'five-yearly'),
+    ).toBe(true)
+    expect(
+      censtatdStats
+        .filter(dataset => dataset.sourceVariant === 'official-statistics')
+        .map(dataset => dataset.releaseFrequency)
+        .sort(),
+    ).toEqual(['half-yearly', 'yearly', 'yearly'])
     expect(
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'census' })
+    ).toMatchObject({ defaultDomainCode: 'default' })
     expect(
       censtatdStats.every(dataset =>
         dataset.processingRules?.rulesets.some(
@@ -116,6 +129,79 @@ describe('fixture version hashes', () => {
         ),
       ),
     ).toBe(true)
+  })
+
+  test('pairs C&SD HMA geometry with its canonical division and maps Area/type to Overture areas', () => {
+    const divisionsComposition = initialApiCompositions.find(
+      composition => composition.code === 'comp-divisions-v1',
+    )
+    expect(divisionsComposition).toBeDefined()
+
+    const hmaMembers = initialApiCompositionMembers.filter(
+      member =>
+        member.apiCompositionCode === 'comp-divisions-v1' &&
+        member.domainCode === 'hkgov-censtatd-hma',
+    )
+    expect(hmaMembers).toContainEqual(
+      expect.objectContaining({
+        resourceType: 'division',
+        variant: 'hkgov-censtatd-hma',
+        role: 'primary',
+        isRequired: true,
+      }),
+    )
+    expect(hmaMembers).toContainEqual(
+      expect.objectContaining({
+        resourceType: 'divisionArea',
+        variant: 'hkgov-censtatd-hma',
+        role: 'geometry',
+        isRequired: true,
+      }),
+    )
+
+    const areaTypeMembers = initialApiCompositionMembers.filter(
+      member =>
+        member.apiCompositionCode === 'comp-divisions-v1' &&
+        member.domainCode === 'geographic' &&
+        member.variant === 'hkgov-censtatd-area',
+    )
+    expect(areaTypeMembers).toEqual([
+      expect.objectContaining({
+        resourceType: 'divisionArea',
+        isRequired: false,
+        role: 'geometry',
+        cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
+        configJson: expect.stringContaining('"variant":"overture"'),
+      }),
+    ])
+  })
+
+  test('reconciles composition members as complete fixture declarations', () => {
+    const statements = buildMetaRegistrySyncStatements('preview').join('\n')
+    expect(statements).toContain('DELETE FROM apiCompositionMembers')
+    expect(statements).toContain("UPDATE apiReleaseSets\nSET domainCode = 'geographic'")
+  })
+
+  test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
+    const bridgesFor = (cohortKey: string) =>
+      initialIdentifierBridges.filter(
+        bridge =>
+          bridge.authority === 'hkgov-censtatd' &&
+          bridge.cohortKey === cohortKey &&
+          bridge.domain === 'administrative' &&
+          bridge.resourceType === 'division',
+      )
+
+    const bridges2016 = bridgesFor('2016')
+    const bridges2021 = bridgesFor('2021')
+
+    expect(bridges2016).toHaveLength(18)
+    expect(bridges2021).toHaveLength(18)
+    expect(new Set(bridges2016.map(bridge => bridge.externalCode)).size).toBe(18)
+    expect(new Set(bridges2021.map(bridge => bridge.externalCode)).size).toBe(18)
+    expect(new Set(bridges2016.map(bridge => bridge.canonicalId))).toEqual(
+      new Set(bridges2021.map(bridge => bridge.canonicalId)),
+    )
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
@@ -162,7 +248,7 @@ describe('fixture version hashes', () => {
         rulesets: [
           expect.objectContaining({
             rulesetVersion: 'rs-division-statistic-merge-v1',
-            rules: [
+            rules: expect.arrayContaining([
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_statistic_source_assertion',
                 type: 'bulk',
@@ -177,7 +263,12 @@ describe('fixture version hashes', () => {
                   }),
                 ]),
               }),
-            ],
+              expect.objectContaining({
+                operationCode: 'normalise_censtatd_population_thousands_to_persons',
+                sourceFieldPath: 'raw_properties.MYPOPN_LAND',
+                type: 'bulk',
+              }),
+            ]),
           }),
         ],
       }),

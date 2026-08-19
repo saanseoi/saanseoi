@@ -6,17 +6,17 @@ release: "dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-d
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2024"
-releaseVersion: "2024.0"
 sourceSchemaVersion: "1.0"
+releaseVersion: "2024.0"
 type: "divisionStatistic"
 cohortKey: "2024"
+hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json"
 ---
 
 # EN
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi release
 - <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
   {{ sourceVersion }} District Land Area, Population and Density statistics for all 18
   District Council districts.
@@ -24,9 +24,8 @@ cohortKey: "2024"
 ## Versioning
 
 This release is derived from the native <black>Density_{{ sourceVersion }}.gml</black>
-layer in [CSDI](saanseoi:en:definition/hkgov-csdi/v1) archive slot
-<black>2025-Q3</black>. The archive slot records _when_ the publisher package was
-archived, _not_ when the source was released. As such, we use
+layer in CSDI archive slot <black>2025-Q3</black>. The archive slot records _when_ the
+publisher package was archived, _not_ when the source was released. As such, we use
 <black>{{ releaseVersion }}</black> to version this source dataset; which is based on
 the source's reference year.
 
@@ -60,11 +59,20 @@ These source values are converted before being returned through
 - `DC_ENG` - is available as <black>sourceKeys.hkgovCenstatd.i18n.en.name</black>.
 - `DC_CHI` - is available as <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black>.
 
+## Measure mapping
+
+The measureCode [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
+and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
+readable statistical name from its exact definition. The mapping below is generated from
+this release's C&SD
+[measure curation manifest](saanseoi:en:definition/hkgov-censtatd-measure-curation-manifest/v1).
+
+{{hkgovCenstatdMeasureTable:en}}
+
 # ZH-HANT
 
 ## 變更記錄
 
-- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年全港 18 個區議會分區的土地面積、人口及人口密度統計資料。
 
@@ -103,11 +111,20 @@ These source values are converted before being returned through
 - `DC_ENG` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
 - `DC_CHI` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
 
+## 指標對應
+
+[指標代碼命名慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-naming/v1) 及
+[指標 offering 慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-offerings/v1)
+把易讀的統計名稱與其精確定義分開。以下經審核的對應表由此發布的
+[C&SD 指標整理清單](saanseoi:zh-hant:definition/hkgov-censtatd-measure-curation-manifest/v1)
+產生。
+
+{{hkgovCenstatdMeasureTable:zh-Hant}}
+
 # ZH-HANS
 
 ## 变更记录
 
-- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年全港 18 个区议会分区的土地面积、人口及人口密度统计资料。
 
@@ -145,3 +162,13 @@ These source values are converted before being returned through
 
 - `DC_ENG` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
 - `DC_CHI` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
+
+## 指标对应
+
+[指标代码命名惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-naming/v1) 及
+[指标 offering 惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-offerings/v1)
+把易读的统计名称与其精确定义分开。以下经审核的对应表由此发布的
+[C&SD 指标整理清单](saanseoi:zh-hans:definition/hkgov-censtatd-measure-curation-manifest/v1)
+产生。
+
+{{hkgovCenstatdMeasureTable:zh-Hans}}

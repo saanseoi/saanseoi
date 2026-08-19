@@ -27,7 +27,7 @@ let { group }: { group: GenericStatGroupPresentation } = $props()
           <p class="mt-1 font-body text-label-md font-semibold text-primary">
             {row.groupValue}
           </p>
-          {#if row.unit}
+          {#if row.unit && row.unit !== 'count'}
             <p class="mt-1 font-body text-caption text-foreground-alt">{row.unit}</p>
           {/if}
         </div>

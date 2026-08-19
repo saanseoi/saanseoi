@@ -5,7 +5,9 @@ import { join } from 'node:path'
 
 import {
   assertLandsdDownloadUrl,
+  buildStreetReleaseNotes,
   ingestLandsdStreetSource,
+  type LandsdStreetRecord,
 } from './landsdStreetIngest.ts'
 
 const englishPage = `
@@ -53,6 +55,64 @@ test('accepts only the official LandsD HTTPS origin for source downloads', () =>
     assertLandsdDownloadUrl('https://www.landsd.gov.hk.example.test/internal'),
   ).toThrow('outside the official origin')
 })
+
+test('writes only subsequent Government Notices to the street release changelog', () => {
+  const baseline = streetRecord({
+    i18n: [
+      { description: null, locale: 'en', name: 'Baseline Road' },
+      { description: null, locale: 'zh-Hant', name: '基線道' },
+    ],
+    recordKey: 'baseline',
+    sourceKind: 'baseline',
+  })
+  const declaration = streetRecord({
+    gazetteDate: '2026-08-14',
+    i18n: [
+      { description: null, locale: 'en', name: 'New Street' },
+      { description: null, locale: 'zh-Hant', name: '新街' },
+    ],
+    noticeType: 'declaration',
+    recordKey: 'declaration',
+    sourceKind: 'notice',
+  })
+  const change = streetRecord({
+    i18n: [
+      { description: null, locale: 'en', name: 'Renamed Road' },
+      { description: null, locale: 'zh-Hant', name: '改名道' },
+    ],
+    noticeType: 'change',
+    recordKey: 'change',
+    sourceKind: 'notice',
+  })
+
+  const notes = buildStreetReleaseNotes([baseline, declaration, change], '2026-08-14.0')
+
+  expect(notes).toContain('## New Street')
+  expect(notes).toContain('Other notices processed')
+  expect(notes).toContain('Renamed Road — change')
+  expect(notes).not.toContain('Baseline Road')
+})
+
+function streetRecord(
+  overrides: Partial<LandsdStreetRecord> &
+    Pick<LandsdStreetRecord, 'i18n' | 'recordKey' | 'sourceKind'>,
+): LandsdStreetRecord {
+  return {
+    application: null,
+    deferToNotices: false,
+    districtCodes: [],
+    effectiveDate: null,
+    evidenceAssets: [],
+    gazetteDate: null,
+    noticeRef: null,
+    noticeType: null,
+    parserDiagnostics: null,
+    previousNoticeRefs: [],
+    rawExtractedText: null,
+    streetId: null,
+    ...overrides,
+  }
+}
 
 test('stages paired notice releases with managed evidence URLs and an operator report', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-landsd-ingest-'))
