@@ -44,7 +44,7 @@ import {
 } from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
@@ -121,6 +121,7 @@ type GeometryWriteProgress = (label: string, current?: number, total?: number) =
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
+const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd:2021'
 // D1 accepts statements no larger than 100 KB. Reserve a small margin for
 // platform-side import handling rather than producing statements at the limit.
 export const MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES = 96 * 1024
@@ -381,7 +382,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     }> = []
     let rejectedRows = 0
     let processedRows = 0
-    const providerBridgeConfig = resolveProviderBridgeConfig(previewPlan.source)
+    const providerBridgeConfig = resolveProviderBridgeConfig(previewPlan)
     const providerBridge =
       providerBridgeConfig !== null
         ? new Map(
@@ -492,7 +493,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    const divisionLookupSnapshotId = !resolveProviderBridgeConfig(previewPlan.source)
+    const divisionLookupSnapshotId = !resolveProviderBridgeConfig(previewPlan)
       ? await assertDivisionReferences(
           dbContext.currentDb,
           dbContext.historyDb,
@@ -1209,11 +1210,14 @@ function geometryVariant(plan: GeometryUploadPlan) {
   })
 }
 
-function resolveProviderBridgeConfig(source: GeometryUploadPlan['source']) {
-  if (source === 'hkgov-had') {
+function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
+  if (plan.source === 'hkgov-had') {
     return { authority: 'hkgov-had' }
   }
-  if (source === 'hkgov-censtatd') {
+  if (
+    plan.source === 'hkgov-censtatd' &&
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district'
+  ) {
     return { authority: 'hkgov-censtatd' }
   }
   return null
@@ -2180,14 +2184,29 @@ async function buildGeometryStats(
   rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
 ) {
-  if (!supportsDistrictGeometryStatistics(plan.source)) {
-    // Planning Units/Subunits and New Towns are separate division domains.
-    // Their geometry needs a domain-specific grouping contract rather than a
-    // misleading district assignment, while lifecycle churn remains useful.
-    return buildGeometryChurnStatRows(plan.type, churn)
+  const churnStats = buildGeometryChurnStatRows(plan.type, churn)
+  if (isHousingMarketAreaPlan(plan)) {
+    // Housing Market Areas are their own geographic domain. Their records are
+    // shown on the district map only after a positive-area spatial
+    // intersection with the official C&SD district geometry; they must not
+    // contribute their full geometry measurements to every district they cross.
+    return [
+      ...churnStats,
+      ...buildHousingMarketAreaDistrictDistributionRows(
+        rows,
+        await resolveHousingMarketAreaDistrictGeometries(currentDb),
+      ),
+    ]
+  }
+  if (!supportsDistrictGeometryStatistics(plan)) {
+    // Statistics geography, Planning Units/Subunits, and New Towns are
+    // separate division domains. Their geometry needs a domain-specific
+    // grouping contract rather than a misleading district assignment, while
+    // lifecycle churn remains useful.
+    return churnStats
   }
   const districts = await resolveGeometryDistricts(currentDb, metaDb, plan)
-  if (resolveProviderBridgeConfig(plan.source)) {
+  if (resolveProviderBridgeConfig(plan)) {
     for (const row of rows) {
       for (const divisionId of divisionReferenceIds(plan.type, row)) {
         // HAD and C&SD bridges resolve these canonical identifiers directly to
@@ -2212,7 +2231,7 @@ async function buildGeometryStats(
           geometry: row.canonical.geometry as GeoJsonGeometry,
         }))
   return [
-    ...buildGeometryChurnStatRows(plan.type, churn),
+    ...churnStats,
     ...buildGeometryReleaseStatsRows(
       plan.type,
       calculateDistrictGeometryStatistics(plan.type, geometryRows, districts),
@@ -2221,8 +2240,22 @@ async function buildGeometryStats(
   ]
 }
 
-function supportsDistrictGeometryStatistics(source: GeometryUploadPlan['source']) {
-  return source === 'hkgov-had' || source === 'hkgov-censtatd' || source === 'overture'
+function isHousingMarketAreaPlan(plan: GeometryUploadPlan) {
+  return (
+    plan.type === 'divisionArea' &&
+    plan.source === 'hkgov-censtatd' &&
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+  )
+}
+
+export function supportsDistrictGeometryStatistics(plan: GeometryUploadPlan) {
+  return (
+    plan.source === 'hkgov-had' ||
+    plan.source === 'overture' ||
+    (plan.source === 'hkgov-censtatd' &&
+      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+  )
 }
 
 function buildGeometryChurnStatRows(
@@ -2257,7 +2290,7 @@ async function resolveGeometryDistricts(
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
 ) {
-  if (resolveProviderBridgeConfig(plan.source)) {
+  if (resolveProviderBridgeConfig(plan)) {
     // HAD and C&SD geometries are normalised through cohort-scoped identifier
     // bridges to canonical district IDs. No unrelated division snapshot may
     // replace that reviewed source mapping.
@@ -2312,6 +2345,38 @@ async function resolveGeometryDistricts(
   )
 }
 
+async function resolveHousingMarketAreaDistrictGeometries(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+) {
+  const rows = await currentDb
+    .select({
+      divisionId: currentSchema.divisionAreas.divisionId,
+      geometry: currentSchema.divisionAreas.geometry,
+      updatedAt: currentSchema.divisionAreas.updatedAt,
+    })
+    .from(currentSchema.divisionAreas)
+    .where(eq(currentSchema.divisionAreas.variant, CENSTATD_2021_DISTRICT_VARIANT))
+    .orderBy(desc(currentSchema.divisionAreas.updatedAt))
+    .all()
+
+  const districts = new Map<string, GeoJsonGeometry>()
+  for (const row of rows) {
+    if (districts.has(row.divisionId)) continue
+    if (!isGeoJsonPolygon(row.geometry)) {
+      throw new Error(
+        `C&SD district ${row.divisionId} is not polygonal; Housing Market Area coverage cannot be calculated.`,
+      )
+    }
+    districts.set(row.divisionId, row.geometry)
+  }
+  if (districts.size === 0) {
+    throw new Error(
+      `No C&SD 2021 district geometry is available; Housing Market Area coverage requires ${CENSTATD_2021_DISTRICT_VARIANT}.`,
+    )
+  }
+  return districts
+}
+
 function buildGeometryDistrictDistributionRows(
   type: GeometryUploadPlan['type'],
   rows: Array<NonNullable<NormalisedGeometry>>,
@@ -2330,6 +2395,62 @@ function buildGeometryDistrictDistributionRows(
     }
   }
 
+  return buildDistrictDistributionRows(counts)
+}
+
+function buildHousingMarketAreaDistrictDistributionRows(
+  rows: Array<NonNullable<NormalisedGeometry>>,
+  districtGeometries: ReadonlyMap<string, GeoJsonGeometry>,
+) {
+  return buildDistrictDistributionRows(
+    calculateHousingMarketAreaDistrictCoverage(
+      rows.map(row => ({
+        geometry: row.canonical.geometry as GeoJsonGeometry,
+        id: row.canonical.id,
+      })),
+      districtGeometries,
+    ),
+  )
+}
+
+/**
+ * Counts an HMA in every official C&SD district with which its polygon has a
+ * positive-area intersection. Boundary-only contact is deliberately excluded.
+ * The coordinate reference system is sufficient here because area is used as a
+ * non-zero predicate only, not reported as a measurement.
+ */
+export function calculateHousingMarketAreaDistrictCoverage(
+  housingMarketAreas: ReadonlyArray<{ geometry: GeoJsonGeometry; id: string }>,
+  districtGeometries: ReadonlyMap<string, GeoJsonGeometry>,
+) {
+  const reader = new GeoJSONReader(new GeometryFactory())
+  const districts = [...districtGeometries.entries()].map(([districtId, geometry]) => {
+    if (!isGeoJsonPolygon(geometry)) {
+      throw new Error(
+        `C&SD district ${districtId} is not polygonal; Housing Market Area coverage cannot be calculated.`,
+      )
+    }
+    return { districtId, geometry: reader.read(JSON.stringify(geometry)) }
+  })
+  const counts = new Map<string, number>()
+
+  for (const housingMarketArea of housingMarketAreas) {
+    if (!isGeoJsonPolygon(housingMarketArea.geometry)) {
+      throw new Error(`Housing Market Area ${housingMarketArea.id} is not polygonal.`)
+    }
+    const geometry = reader.read(JSON.stringify(housingMarketArea.geometry))
+    for (const district of districts) {
+      if (OverlayOp.intersection(geometry, district.geometry).getArea() <= 0) {
+        continue
+      }
+      counts.set(district.districtId, (counts.get(district.districtId) ?? 0) + 1)
+    }
+  }
+
+  return counts
+}
+
+function buildDistrictDistributionRows(counts: ReadonlyMap<string, number>) {
   return [...counts.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([groupValue, value]) =>
