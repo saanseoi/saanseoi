@@ -397,6 +397,15 @@ async function processPlannedUpdates(
       }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
         options.added.set(plan.dataset.code, update.version)
+        // Native archive intake emits its own detailed upload plan. End the
+        // dataset row with an explicit result as well, rather than leaving the
+        // final summary to describe the target as it was before processing.
+        row.finish(
+          result === 'ingested' ? 'INGESTED' : 'UPLOADED',
+          update.version,
+          update.version,
+        )
+        renderedUpdates.add(update)
       }
       if (update.mirroredArchive) {
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
@@ -421,6 +430,8 @@ async function processPlannedUpdates(
         recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
       }
       const message = error instanceof Error ? error.message : String(error)
+      update.message = message
+      update.status = 'error'
       options.errors.push(`${plan.dataset.code}: ${message}`)
     }
   }
@@ -1066,10 +1077,20 @@ function targetVersionForUpdate(
   dataset: DatasetFixture,
   targetVersions: ReadonlyMap<string, string | null>,
 ) {
-  return Object.hasOwn(update, 'targetVersion')
-    ? update.targetVersion
-    : (targetVersions.get(update.sourceKey ?? dataset.code) ??
-        targetVersions.get(update.targetSourceKey ?? dataset.code))
+  if (Object.hasOwn(update, 'targetVersion')) {
+    if (update.targetVersion !== null) return update.targetVersion
+
+    // `processPlannedUpdates` records a successful native archive ingest under
+    // its archive source key. An update begins with a null target version, so
+    // use that now-current map entry for its completion summary. Keep null when
+    // the archive has not yet been processed.
+    return targetVersions.get(update.sourceKey ?? dataset.code) ?? null
+  }
+
+  return (
+    targetVersions.get(update.sourceKey ?? dataset.code) ??
+    targetVersions.get(update.targetSourceKey ?? dataset.code)
+  )
 }
 
 function formatUpdateLine(
