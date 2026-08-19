@@ -20,6 +20,12 @@ describe('sourceSchemas', () => {
         sourceVersion: '2026-07-22.0',
       }),
     ).resolves.toBe('1.18.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'overture',
+        sourceVersion: '2026-08-19.0',
+      }),
+    ).resolves.toBe('1.18.0')
   })
 
   test('resolves the mapped HAD source schema version by source release', async () => {
@@ -97,7 +103,7 @@ describe('sourceSchemas', () => {
     ).rejects.toThrow('No hkgov-had source schema mapping found')
   })
 
-  test('rejects unknown newer Overture releases as not known safe', async () => {
+  test('accepts the mapped latest Overture release as known safe', async () => {
     const latestKnownSafe = getLatestKnownSafeOvertureRelease()
 
     await expect(
@@ -105,11 +111,9 @@ describe('sourceSchemas', () => {
         source: 'overture',
         sourceVersion: '2026-08-19.0',
       }),
-    ).rejects.toThrow(
-      `Overture sourceVersion 2026-08-19.0 is not marked as a known safe release.`,
-    )
+    ).resolves.toBeUndefined()
 
-    expect(latestKnownSafe?.version).toBe('2026-07-22.0')
+    expect(latestKnownSafe?.version).toBe('2026-08-19.0')
   })
 
   test('rejects unmapped older Overture releases as not known safe', async () => {
