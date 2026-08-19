@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ffd5ba3a00709503cc1ed7126ca5a5dd7f357c20cb870d57f6c75d595b0042fe",
+  "versionHash": "sha256:acaf86ef9a2ec3418a1466d7ee301de9d2138ac12970a9d53d47acf1f68789b6",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -96,6 +96,14 @@
           ]
         },
         {
+          "resourceType": "division",
+          "variant": "hkgov-censtatd:2023-H2",
+          "role": "enrichment",
+          "isRequired": false,
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
+          "priority": 16
+        },
+        {
           "resourceType": "divisionBoundary",
           "variant": "overture",
           "role": "geometry",
@@ -133,7 +141,7 @@
       "members": [
         {
           "resourceType": "division",
-          "variant": "hkgov-censtatd-hma",
+          "variant": "hkgov-censtatd:2021",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",

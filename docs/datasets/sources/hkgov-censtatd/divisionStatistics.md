@@ -130,6 +130,14 @@ and `divisionArea`: Area/type contributes the three level-1 Geographic areas, an
 contributes the C&SD Housing Market Area domain. Building Group points remain source
 history for a future buildings projection.
 
+The statistical `division` output has a cohort-qualified C&SD variant, independent of
+the native-geometry variant: the reviewed 2023-H2 Area/type release is
+`hkgov-censtatd:2023-H2`, and the reviewed 2021 HMA release is `hkgov-censtatd:2021`.
+Area/type is an optional Geographic enrichment selected at the latest compatible cohort.
+HMA is its domain's primary canonical division input, paired with the required native
+`hkgov-censtatd-hma` geometry. In both cases the `divisionArea` snapshot is the
+published geometry; its linked `division` snapshot supplies the canonical identity.
+
 ## Source-release statistics and geography audit
 
 Every C&SD statistics source release stores only structural release facts: validated
