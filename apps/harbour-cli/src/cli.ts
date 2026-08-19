@@ -6,6 +6,7 @@ import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
 import { runCenstatdStatsBackfillCommand } from './lib/commands/statsBackfillCenstatd.ts'
+import { runCenstatdStatsResetCommand } from './lib/commands/statsResetCenstatd.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import {
@@ -73,6 +74,9 @@ async function main() {
       return
     case 'stats:backfill-censtatd':
       await runCenstatdStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:reset-censtatd':
+      await runCenstatdStatsResetCommand(args, target, printUsage)
       return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {

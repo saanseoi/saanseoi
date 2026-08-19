@@ -99,6 +99,19 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.series).toContainEqual(
       expect.objectContaining({ divisionId: 'district-central-western' }),
     )
+    expect(rows.records).toEqual([
+      expect.objectContaining({
+        dimensions: { district: '11' },
+        values: expect.objectContaining({
+          LA: expect.objectContaining({ numericValue: '12.4' }),
+          MYPOPN_LAND: expect.objectContaining({
+            numericValue: '243300',
+            valuePrecision: '100',
+          }),
+          POPN_D: expect.objectContaining({ numericValue: '19620' }),
+        }),
+      }),
+    ])
   })
 
   test('uses reviewed measure metadata without changing publisher literals', () => {

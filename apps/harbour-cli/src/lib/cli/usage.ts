@@ -35,6 +35,7 @@ export function printUsage() {
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi stats:backfill-geometry --target local|preview|production [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--resource-type divisionArea|divisionBoundary|all] [--dry-run] [--refresh-cache] [--yes]
   saanseoi stats:backfill-censtatd --target local [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--dry-run]
+  saanseoi stats:reset-censtatd --target local [--dataset DATASET_CODE[,DATASET_CODE...]] [--dry-run] [--yes]
   saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
 `)
