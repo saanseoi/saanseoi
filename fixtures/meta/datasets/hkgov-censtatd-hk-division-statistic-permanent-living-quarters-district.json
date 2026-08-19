@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:962dba3158fddd15806c4ded0422d7f9f8bcc48b9047ff46b15c3021f5d4b446",
+  "versionHash": "sha256:053af96625f617e095a278e47fd8cf44d95105f89ffdc312e1defa83e3d0a3fa",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
@@ -59,7 +59,8 @@
   ],
   "releases": [
     {
-      "sourceVersion": "2023-H2"
+      "sourceVersion": "2023-H2",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
     }
   ],
   "i18n": [

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:505cf5d8eeaa2512fdece6aa977344521bbb14b088cea9b9097170437a881ceb",
+  "versionHash": "sha256:0fb53275bbffd3b4a1c05dbe8d9de61a3c38f639130d4250d797a95935bc9bd7",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
   "regionCode": "hk",
@@ -58,6 +58,7 @@
   "releases": [
     {
       "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
       "identicalArchiveSlots": [
         {
           "releaseSlot": "2024-Q4",

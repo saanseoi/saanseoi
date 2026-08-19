@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:40a400dc3efe10206c230fc5ce511a5d90c2dc62eea0db8300210005d3c3788b",
+  "versionHash": "sha256:33f81d5154161838346246c5544469b018ba8e7e5df8d197ac9d469fb7c59910",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
   "regionCode": "hk",
@@ -58,6 +58,7 @@
   "releases": [
     {
       "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
       "identicalArchiveSlots": [
         {
           "releaseSlot": "2026-Q1",
