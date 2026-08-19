@@ -21,7 +21,7 @@ import {
   getMarkdownTransclusionDisplayTitle,
 } from '#lib/registry/referenceDocs.js'
 import type { LocalisedRow } from '#lib/registry/types.js'
-import { sourceFlowDomain } from './sourceFlowDomain.js'
+import { sourceFlowDomain, sourceFlowPriority } from './sourceFlowDomain.js'
 import SourceReleasePageSkeleton from './[datasetCode]/[releaseCode]/sourceReleasePageSkeleton.svelte'
 
 let { data } = $props()
@@ -153,6 +153,9 @@ const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   domain.replaceAll('-', ' ').toUpperCase()
 
 const variantLabel = (source: SourcesPageSource, primaryType: string) => {
+  if (source.resourceTypes.includes('divisionArea')) return 'AREA'
+  if (source.resourceTypes.includes('divisionBoundary')) return 'BOUNDARY'
+
   if (source.resourceTypes.includes(primaryType)) {
     if (source.resourceTypes.length === 1) return undefined
     return 'GEOMETRY'
@@ -221,7 +224,13 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         const familySources = sources
           .filter(
             source =>
-              source.theme === familyType &&
+              (source.theme === familyType ||
+                (familyType === 'divisions' &&
+                  source.resourceTypes.some(resourceType =>
+                    ['division', 'divisionArea', 'divisionBoundary'].includes(
+                      resourceType,
+                    ),
+                  ))) &&
               !(familyType === 'addresses' && source.publisherCode === 'overture'),
           )
           .filter(sourceMatchesSearch)
@@ -242,9 +251,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             }
             const domainDifference = domainRank(leftGroup) - domainRank(rightGroup)
             if (domainDifference) return domainDifference
-            const leftIsPrimary = left.resourceTypes.includes(primaryType)
-            const rightIsPrimary = right.resourceTypes.includes(primaryType)
-            if (leftIsPrimary !== rightIsPrimary) return leftIsPrimary ? -1 : 1
+            const priorityDifference =
+              sourceFlowPriority(left, familyType, leftGroup, primaryType) -
+              sourceFlowPriority(right, familyType, rightGroup, primaryType)
+            if (priorityDifference) return priorityDifference
             return left.code.localeCompare(right.code)
           })
 
@@ -256,10 +266,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             const domainSources = familySources.filter(
               source => sourceGroup(source) === groupCode,
             )
-            const primary =
-              domainSources.find(source =>
-                source.resourceTypes.includes(primaryType),
-              ) ?? domainSources[0]
+            const primary = domainSources[0]
             if (!primary) return []
 
             return [

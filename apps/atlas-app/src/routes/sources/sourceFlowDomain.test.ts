@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
 
-import { sourceFlowDomain } from './sourceFlowDomain'
+import { sourceFlowDomain, sourceFlowPriority } from './sourceFlowDomain'
 
 const source = (overrides: Partial<SourcesPageSource>): SourcesPageSource =>
   ({
@@ -43,5 +43,86 @@ describe('sourceFlowDomain', () => {
         'divisions',
       ),
     ).toBe('planning')
+  })
+
+  test('places planned C&SD companion geometry in Geographic', () => {
+    expect(
+      sourceFlowDomain(
+        source({
+          resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+          sourceVariant: 'hkgov-censtatd-area',
+          theme: 'stats',
+        }),
+        'divisions',
+      ),
+    ).toBe('geographic')
+  })
+
+  test('keeps planned HMA geometry in its own division domain', () => {
+    expect(
+      sourceFlowDomain(
+        source({
+          resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+          sourceVariant: 'hkgov-censtatd-hma',
+          theme: 'stats',
+        }),
+        'divisions',
+      ),
+    ).toBe('hkgov-censtatd-hma')
+  })
+
+  test('keeps LandsD settlement divisions in HKGOV', () => {
+    expect(
+      sourceFlowDomain(
+        source({
+          publisherCode: 'hkgov-landsd',
+          resourceTypes: ['division'],
+          sourceVariant: 'default',
+          theme: 'divisions',
+        }),
+        'divisions',
+      ),
+    ).toBe('hkgov-landsd')
+  })
+
+  test('keeps LandsD settlement divisions in HKGOV when release metadata is stale', () => {
+    expect(
+      sourceFlowDomain(
+        source({
+          publisherCode: 'hkgov-landsd',
+          resourceTypes: ['division'],
+          sourceVersions: [
+            {
+              code: '2025-01',
+              cohortKey: '2025',
+              license: null,
+              releaseAs: [{ apiFamily: 'divisions', domainCode: 'geographic' }],
+              stats: [],
+              status: 'published',
+            },
+          ],
+          theme: 'divisions',
+        }),
+        'divisions',
+      ),
+    ).toBe('hkgov-landsd')
+  })
+
+  test('puts Overture Divisions ahead of alternative Geographic geometry', () => {
+    const overture = source({
+      code: 'ds-hk-overture-division',
+      publisherCode: 'overture',
+      resourceTypes: ['division'],
+      sourceVariant: 'overture',
+      theme: 'divisions',
+    })
+    const area = source({
+      resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+      sourceVariant: 'hkgov-censtatd-area',
+      theme: 'stats',
+    })
+
+    expect(sourceFlowPriority(overture, 'divisions', 'geographic', 'division')).toBe(0)
+    expect(sourceFlowPriority(area, 'divisions', 'geographic', 'division')).toBe(1)
   })
 })
