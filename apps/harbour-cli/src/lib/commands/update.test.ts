@@ -420,6 +420,40 @@ test('shows the matching target version for a CSDI archive release', () => {
   expect(line).toEndWith('no updates         v2021.0')
 })
 
+test('shows an ingested archive release as current in the completion summary', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+  const sourceKey = 'archive:censtatd-new-towns:2026-Q2'
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey,
+        status: 'new',
+        targetSourceKey: '2021',
+        targetVersion: null,
+        version: '2021.0',
+      },
+    ],
+    new Map([
+      ['2021', null],
+      [sourceKey, '2021.0'],
+    ]),
+  )
+
+  expect(line).not.toContain('MISSING')
+  expect(line).toContain('NEW')
+  expect(line).toContain('v2021.0')
+})
+
 test('shows both published C&SD district-statistic source releases as current', () => {
   const dataset = {
     code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
