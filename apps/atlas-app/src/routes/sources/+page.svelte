@@ -50,6 +50,14 @@ const primaryTypeByApiFamily = {
   streets: 'street',
 } as const
 
+const streetGeometryLabels: Record<string, string> = {
+  'ds-hk-hkgov-hyd-pedestrian-street': 'GEOMETRY',
+  'ds-hk-hkgov-hyd-sensitive-street': 'POLYGON',
+  'ds-hk-hkgov-hyd-strategic-street': 'POLYGON',
+  'ds-hk-hkgov-hyd-street': 'POINT',
+  'ds-hk-hkgov-landsd-road-centreline': 'LINE',
+}
+
 const sourceAccentColors = {
   dpang: '#76b85b',
   overture: '#4c5ee8',
@@ -152,7 +160,12 @@ const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   }[domain] ??
   domain.replaceAll('-', ' ').toUpperCase()
 
-const variantLabel = (source: SourcesPageSource, primaryType: string) => {
+const variantLabel = (
+  source: SourcesPageSource,
+  primaryType: string,
+  familyType: string,
+) => {
+  if (familyType === 'streets') return streetGeometryLabels[source.code]
   if (source.resourceTypes.includes('divisionArea')) return 'AREA'
   if (source.resourceTypes.includes('divisionBoundary')) return 'BOUNDARY'
 
@@ -173,8 +186,12 @@ const variantLabel = (source: SourcesPageSource, primaryType: string) => {
 const sourceFlowInput = (
   source: SourcesPageSource,
   primaryType: string,
+  familyType: string,
 ): SourceFlowInput => {
-  const variant = variantLabel(source, primaryType)
+  const variant =
+    familyType === 'divisions' || familyType === 'streets'
+      ? variantLabel(source, primaryType, familyType)
+      : undefined
   const release = sourceVersion(source)
   const recordCount = formatRecordCount(sourceRecordCount(source))
   const year = sourceYear(source)
@@ -273,10 +290,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
               {
                 id: `${familyType}:${groupCode}`,
                 label: domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
-                primary: sourceFlowInput(primary, primaryType),
+                primary: sourceFlowInput(primary, primaryType, familyType),
                 variants: domainSources
                   .filter(source => source.code !== primary.code)
-                  .map(source => sourceFlowInput(source, primaryType)),
+                  .map(source => sourceFlowInput(source, primaryType, familyType)),
               },
             ]
           },
