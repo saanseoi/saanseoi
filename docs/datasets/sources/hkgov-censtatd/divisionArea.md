@@ -109,6 +109,21 @@ The Atlas source-release Stats choropleth uses only the 2021 simplified variant
 (`hkgov-censtatd:2021:simplified`) from this dataset. It intentionally does not fall
 back to Home Affairs Department boundaries or the unsimplified C&SD source geometry.
 
+## Statistical area companions
+
+The C&SD Permanent Living Quarters by Area and Type release supplies three Area/type
+polygons (`HK`, `KLN`, and `NT`). They are a selectable Geographic area variant,
+`hkgov-censtatd-area`, rather than a second division collection: each polygon is linked
+to the corresponding canonical Overture division ID, including the deterministic
+synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
+them with `include=areas:hkgov-censtatd-area`.
+
+The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
+Market Area polygons have their own deterministic canonical division IDs and therefore
+form the separate `hkgov-censtatd-hma` domain. Its native area variant is
+`hkgov-censtatd-hma`; Building Groups remain source-only because their upstream geometry
+is point-like.
+
 ## Ingestion
 
 The updater passes the locally prepared native CSDI ZIP to the district importer. It
