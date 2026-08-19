@@ -380,8 +380,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
 
     await runPlandProgressPhase(
       progress,
-      'Reconcile',
-      'Planning divisions',
+      'Retire',
+      'superseded Planning records',
       async () => {
         await closeHistoryRows(
           context.historyDb as unknown as HarbourWritableDb,
@@ -397,20 +397,39 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           releaseCode,
           now,
         )
-        await replaceCurrentSnapshot(
+      },
+    )
+    await runPlandProgressPhase(
+      progress,
+      'Materialise',
+      'current Planning divisions',
+      () =>
+        replaceCurrentSnapshot(
           context.currentDb as unknown as HarbourWritableDb,
           snapshot.id,
           records,
           currentHistoryRows.map(row => row.id),
           now,
-        )
-        await replaceCurrentI18n(
+        ),
+    )
+    await runPlandProgressPhase(
+      progress,
+      'Materialise',
+      'Planning division names',
+      () =>
+        replaceCurrentI18n(
           context.currentDb as unknown as HarbourWritableDb,
           snapshot.id,
           records,
           currentHistoryRows.map(row => row.id),
           now,
-        )
+        ),
+    )
+    await runPlandProgressPhase(
+      progress,
+      'Record',
+      'Planning division history',
+      async () => {
         await insertHistoryRows(
           context.historyDb as unknown as HarbourWritableDb,
           snapshot.id,
@@ -427,16 +446,25 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           records.filter(record => changedHistoryIds.includes(record.base.id)),
           now,
         )
-        await insertSourceRows(
-          context.sourceDb as unknown as HarbourWritableDb,
-          releaseId,
-          releaseCode,
-          nativeRecords.filter(record =>
-            changedNativeIds.includes(record.sourceRecordId),
-          ),
-          previewPlan.source,
-          now,
-        )
+      },
+    )
+    await runPlandProgressPhase(progress, 'Store', 'Planning source records', () =>
+      insertSourceRows(
+        context.sourceDb as unknown as HarbourWritableDb,
+        releaseId,
+        releaseCode,
+        nativeRecords.filter(record =>
+          changedNativeIds.includes(record.sourceRecordId),
+        ),
+        previewPlan.source,
+        now,
+      ),
+    )
+    await runPlandProgressPhase(
+      progress,
+      'Update',
+      'Planning release metadata',
+      async () => {
         const repairedGeometryRecords = records.filter(wasPlanningGeometryRepaired)
         await replaceReleaseProcessingActions(
           metaDb,
@@ -483,19 +511,21 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             'ring_self_intersection',
           ),
         ])
-        await client.stageCompleted(
-          releaseId,
-          'processDataset',
-          {
-            resourceType: 'division',
-            sourceRows: previewPlan.rowCount,
-            importedRows: records.length,
-            changedRows: changedHistoryIds.length,
-            deletedRows: missingHistoryIds.length,
-          },
-          releaseCode,
-        )
       },
+    )
+    await runPlandProgressPhase(progress, 'Complete', 'Planning processing', () =>
+      client.stageCompleted(
+        releaseId,
+        'processDataset',
+        {
+          resourceType: 'division',
+          sourceRows: previewPlan.rowCount,
+          importedRows: records.length,
+          changedRows: changedHistoryIds.length,
+          deletedRows: missingHistoryIds.length,
+        },
+        releaseCode,
+      ),
     )
     const sqlManifest = await runPlandProgressPhase(
       progress,
