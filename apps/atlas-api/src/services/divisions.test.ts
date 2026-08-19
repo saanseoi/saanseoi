@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 
 import type { DivisionRecord } from '../db/divisions'
+import { DivisionsListQuerySchema } from '../schema/divisions'
 import {
   getDivisionDetail,
   listDivisions,
@@ -13,7 +14,7 @@ const activeSnapshot = {
   apiCatalogRevision: 'catalog-hk-divisions-v0.1-2026-06-29.0',
   catalogPublishedAt: '2026-06-29T00:00:00.000Z',
   cohortKey: '2026-06-17.0',
-  domainCode: 'overture',
+  domainCode: 'geographic',
   effectiveFrom: '2026-06-17T00:00:00.000Z',
   schemaVersion: 'sv-division-v1',
   rulesetVersion: 'rs-division-merge-v1',
@@ -283,6 +284,20 @@ describe('division services', () => {
     detailRecord = baseRecord
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(
       async () => resolvedReleaseSet,
+    )
+  })
+
+  test('accepts the configured domains and C&SD area alternatives', () => {
+    for (const query of [
+      { domain: 'geographic', include: 'areas:hkgov-censtatd-area' },
+      { domain: 'hkgov-censtatd-hma', include: 'areas:hkgov-censtatd-hma' },
+      { domain: 'hkgov-landsd' },
+    ]) {
+      expect(DivisionsListQuerySchema.safeParse(query).success).toBe(true)
+    }
+
+    expect(DivisionsListQuerySchema.safeParse({ domain: 'overture' }).success).toBe(
+      false,
     )
   })
 
