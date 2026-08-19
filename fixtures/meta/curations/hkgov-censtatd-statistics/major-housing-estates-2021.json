@@ -190,7 +190,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween15And39",
+      "measureCode": "aged15To39",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
@@ -224,7 +224,7 @@
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "agedBetween40And64",
+      "measureCode": "aged40To64",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
@@ -2211,7 +2211,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentLessThanHk10000MearnXfdhfwSb1",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentBelowHK10000ExclFDH",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
@@ -2244,7 +2244,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk1000019999MearnXfdhfwSb2",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK10000To19999ExclFDH",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
@@ -2277,7 +2277,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHk20000AndOverMearnXfdhfwSb3",
+      "measureCode": "workingPopulationMonthlyIncomeFromMainEmploymentHK20000AndOverExclFDH",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
@@ -2310,7 +2310,7 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationTMmearnXfdh",
+      "measureCode": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationExclFDH",
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9"
