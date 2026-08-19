@@ -22,7 +22,6 @@ import {
 
 export type CenstatdMeasureCurationEntry = {
   aggregation: Exclude<StatsAggregation, 'unreviewed'>
-  datasetCode: string
   denominatorMeasureCode?: string | null
   localisations: readonly CenstatdMeasureLocalisation[]
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
@@ -36,8 +35,15 @@ export type CenstatdMeasureCurationEntry = {
   unitCode: string
 }
 export type CenstatdMeasureCurationManifest = {
+  datasetCode: string
   measures: CenstatdMeasureCurationEntry[]
-  schemaVersion: 5
+  schemaVersion: 6
+}
+type CenstatdMeasureCurationDecision = CenstatdMeasureCurationEntry & {
+  datasetCode: string
+}
+type CenstatdMeasureCurationRegistry = {
+  measures: CenstatdMeasureCurationDecision[]
 }
 export type CenstatdMeasureForCuration = {
   datasetCode: string
@@ -100,21 +106,21 @@ export async function resolveCenstatdMeasureMetadata(input: {
   measures: readonly CenstatdMeasureForCuration[]
   promptForCuration: boolean
 }) {
-  let manifest = await loadCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY)
+  let registry = await loadCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY)
   const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.measures)
   let resolved = resolveCenstatdMeasureCuration({
-    manifest,
+    registry,
     measures: input.measures,
   })
   if (resolved.unresolved.length && input.promptForCuration) {
-    manifest = await promptForCenstatdMeasureCuration({
-      manifest,
+    registry = await promptForCenstatdMeasureCuration({
+      registry,
       measures: resolved.unresolved,
-      persist: manifest =>
-        saveCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY, manifest),
+      persist: registry =>
+        saveCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY, registry),
       schemaCandidates,
     })
-    resolved = resolveCenstatdMeasureCuration({ manifest, measures: input.measures })
+    resolved = resolveCenstatdMeasureCuration({ registry, measures: input.measures })
   }
   if (resolved.unresolved.length) {
     throw new Error(
@@ -138,10 +144,14 @@ export async function loadCenstatdMeasureCuration(
         parseCenstatdMeasureCuration(JSON.parse(await readFile(path, 'utf8')), path),
       ),
     )
-    return parseCenstatdMeasureCuration(
-      { measures: manifests.flatMap(manifest => manifest.measures), schemaVersion: 5 },
-      directory,
-    )
+    const datasetCodes = new Set(manifests.map(manifest => manifest.datasetCode))
+    if (datasetCodes.size !== manifests.length)
+      throw new Error(`Duplicate C&SD measure curation dataset: ${directory}.`)
+    return {
+      measures: manifests.flatMap(({ datasetCode, measures }) =>
+        measures.map(measure => ({ ...measure, datasetCode })),
+      ),
+    }
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
       return emptyCenstatdMeasureCuration()
@@ -151,11 +161,11 @@ export async function loadCenstatdMeasureCuration(
 
 export async function saveCenstatdMeasureCuration(
   directory: string,
-  manifest: CenstatdMeasureCurationManifest,
+  registry: CenstatdMeasureCurationRegistry,
 ) {
-  const checked = parseCenstatdMeasureCuration(manifest, directory)
+  const checked = validateCenstatdMeasureCurationRegistry(registry, directory)
   await mkdir(directory, { recursive: true })
-  const byDataset = new Map<string, CenstatdMeasureCurationEntry[]>()
+  const byDataset = new Map<string, CenstatdMeasureCurationDecision[]>()
   for (const measure of checked.measures) {
     const measures = byDataset.get(measure.datasetCode) ?? []
     measures.push(measure)
@@ -168,7 +178,15 @@ export async function saveCenstatdMeasureCuration(
       filenames.add(filename)
       await writeFile(
         resolve(directory, filename),
-        `${JSON.stringify({ measures, schemaVersion: 5 }, null, 2)}\n`,
+        `${JSON.stringify(
+          {
+            datasetCode,
+            measures: measures.map(({ datasetCode: _, ...measure }) => measure),
+            schemaVersion: 6,
+          },
+          null,
+          2,
+        )}\n`,
         'utf8',
       )
     }),
@@ -255,11 +273,11 @@ function unitLocalisationFromTranslation(
 }
 
 export function resolveCenstatdMeasureCuration(input: {
-  manifest: CenstatdMeasureCurationManifest
+  registry: CenstatdMeasureCurationRegistry
   measures: readonly CenstatdMeasureForCuration[]
 }) {
   const decisions = new Map(
-    input.manifest.measures.map(item => [measureKey(item), item] as const),
+    input.registry.measures.map(item => [measureKey(item), item] as const),
   )
   const unresolved = input.measures.filter(
     measure => !decisions.has(measureKey(measure)),
@@ -295,14 +313,13 @@ export function resolveCenstatdMeasureCuration(input: {
 }
 
 export async function promptForCenstatdMeasureCuration(input: {
-  manifest: CenstatdMeasureCurationManifest
+  registry: CenstatdMeasureCurationRegistry
   measures: readonly CenstatdMeasureForCuration[]
-  persist?: (manifest: CenstatdMeasureCurationManifest) => Promise<void>
+  persist?: (registry: CenstatdMeasureCurationRegistry) => Promise<void>
   schemaCandidates: ReadonlyMap<string, CenstatdSchemaMeasureCandidate>
 }) {
-  const decisions = [...input.manifest.measures]
-  const persist = () =>
-    input.persist?.({ measures: decisions, schemaVersion: 5 }) ?? Promise.resolve()
+  const decisions = [...input.registry.measures]
+  const persist = () => input.persist?.({ measures: decisions }) ?? Promise.resolve()
   for (const measure of input.measures) {
     const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
     note(
@@ -442,7 +459,7 @@ export async function promptForCenstatdMeasureCuration(input: {
     })
     await persist()
   }
-  return { measures: decisions, schemaVersion: 5 as const }
+  return { measures: decisions }
 }
 
 async function promptForCenstatdUnitCode(
@@ -485,8 +502,8 @@ export function formatCenstatdMeasureReviewContext(input: {
   ].join('\n')
 }
 
-export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationManifest {
-  return { measures: [], schemaVersion: 5 }
+export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationRegistry {
+  return { measures: [] }
 }
 
 function measureKey(
@@ -499,13 +516,21 @@ export function parseCenstatdMeasureCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const manifest = value as Partial<CenstatdMeasureCurationManifest>
-  if (manifest.schemaVersion !== 5 || !Array.isArray(manifest.measures))
+  if (
+    manifest.schemaVersion !== 6 ||
+    typeof manifest.datasetCode !== 'string' ||
+    !manifest.datasetCode.trim() ||
+    !Array.isArray(manifest.measures)
+  ) {
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
+  }
   const measures = manifest.measures.map((measure, index) => {
     if (!measure || typeof measure !== 'object' || Array.isArray(measure))
       throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}.`)
     const entry = measure as Partial<CenstatdMeasureCurationEntry>
-    for (const field of ['datasetCode', 'sourceField', 'unitCode'] as const)
+    if ('datasetCode' in entry)
+      throw new Error(`C&SD dataset code belongs in the manifest root: ${path}.`)
+    for (const field of ['sourceField', 'unitCode'] as const)
       if (typeof entry[field] !== 'string' || !entry[field].trim())
         throw new Error(`Invalid C&SD measure curation ${field}: ${path}.`)
     if (
@@ -576,28 +601,52 @@ export function parseCenstatdMeasureCuration(value: unknown, path: string) {
     }
     return entry as CenstatdMeasureCurationEntry
   })
-  const keys = new Set(measures.map(measureKey))
+  const keys = new Set(measures.map(measure => measure.sourceField))
   if (keys.size !== measures.length)
     throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
-  const measureCodes = new Set(
-    measures.map(measure => `${measure.datasetCode}\u0000${measure.measureCode}`),
-  )
+  const measureCodes = new Set(measures.map(measure => measure.measureCode))
   if (measureCodes.size !== measures.length)
     throw new Error(`Duplicate C&SD canonical measure key: ${path}.`)
   const localisedMeasureNames = new Map<string, CenstatdMeasureCurationEntry>()
   for (const measure of measures) {
     for (const localisation of measure.localisations) {
-      const key = `${measure.datasetCode}\u0000${localisation.locale}\u0000${localisation.name.trim()}`
+      const key = `${localisation.locale}\u0000${localisation.name.trim()}`
       const existing = localisedMeasureNames.get(key)
       if (existing) {
         throw new Error(
-          `Duplicate C&SD localised measure name for ${measure.datasetCode}/${localisation.locale}: ${localisation.name} (${existing.sourceField}, ${measure.sourceField}): ${path}.`,
+          `Duplicate C&SD localised measure name for ${manifest.datasetCode}/${localisation.locale}: ${localisation.name} (${existing.sourceField}, ${measure.sourceField}): ${path}.`,
         )
       }
       localisedMeasureNames.set(key, measure)
     }
   }
-  return { measures, schemaVersion: 5 as const }
+  return {
+    datasetCode: manifest.datasetCode,
+    measures,
+    schemaVersion: 6 as const,
+  }
+}
+
+function validateCenstatdMeasureCurationRegistry(
+  registry: CenstatdMeasureCurationRegistry,
+  path: string,
+) {
+  const byDataset = new Map<string, CenstatdMeasureCurationDecision[]>()
+  for (const decision of registry.measures) {
+    const measures = byDataset.get(decision.datasetCode) ?? []
+    measures.push(decision)
+    byDataset.set(decision.datasetCode, measures)
+  }
+  for (const [datasetCode, measures] of byDataset)
+    parseCenstatdMeasureCuration(
+      {
+        datasetCode,
+        measures: measures.map(({ datasetCode: _, ...measure }) => measure),
+        schemaVersion: 6,
+      },
+      path,
+    )
+  return registry
 }
 
 /**

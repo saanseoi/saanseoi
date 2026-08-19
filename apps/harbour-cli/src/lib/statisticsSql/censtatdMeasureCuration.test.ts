@@ -53,13 +53,13 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
     valueKind: 'numeric',
   }
   const unresolved = resolveCenstatdMeasureCuration({
-    manifest: emptyCenstatdMeasureCuration(),
+    registry: emptyCenstatdMeasureCuration(),
     measures: [measure],
   })
   expect(unresolved.unresolved).toEqual([measure])
 
   const resolved = resolveCenstatdMeasureCuration({
-    manifest: {
+    registry: {
       measures: [
         {
           datasetCode: measure.datasetCode,
@@ -78,7 +78,6 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
           unitCode: 'person',
         },
       ],
-      schemaVersion: 5,
     },
     measures: [measure],
   })
@@ -105,10 +104,10 @@ test('rejects duplicate localised measure names within a C&SD dataset', () => {
   expect(() =>
     parseCenstatdMeasureCuration(
       {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
         measures: [
           {
             aggregation: 'none',
-            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
             localisations: [
               {
                 description: 'The first distinct statistic.',
@@ -124,7 +123,6 @@ test('rejects duplicate localised measure names within a C&SD dataset', () => {
           },
           {
             aggregation: 'none',
-            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
             localisations: [
               {
                 description: 'The second distinct statistic.',
@@ -139,11 +137,41 @@ test('rejects duplicate localised measure names within a C&SD dataset', () => {
             unitCode: 'person',
           },
         ],
-        schemaVersion: 5,
+        schemaVersion: 6,
       },
       'fixture.json',
     ),
   ).toThrow('Duplicate C&SD localised measure name')
+})
+
+test('requires the C&SD dataset code at the manifest root', () => {
+  expect(() =>
+    parseCenstatdMeasureCuration(
+      {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        measures: [
+          {
+            aggregation: 'none',
+            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+            localisations: [
+              {
+                description: 'A distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'Distinct statistic',
+              },
+            ],
+            measureCode: 'distinctStatistic',
+            sourceField: 'distinct',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+        ],
+        schemaVersion: 6,
+      },
+      'fixture.json',
+    ),
+  ).toThrow('C&SD dataset code belongs in the manifest root')
 })
 
 test('formats every proposed localisation and canonical key for review', () => {
@@ -291,7 +319,6 @@ test('reuses a unique reviewed metadata decision for an age-group series', () =>
     decisions: [
       {
         aggregation: 'none',
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
         denominatorMeasureCode: 'totalPopulation',
         localisations: [
           {
