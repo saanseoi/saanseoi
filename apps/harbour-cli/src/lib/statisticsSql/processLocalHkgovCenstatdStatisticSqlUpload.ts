@@ -27,7 +27,6 @@ import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   buildStatisticSqlBatches,
   replayStatisticSqlBatches,
-  type StatisticSqlReplayProgress,
 } from './statisticSqlReplay.ts'
 import {
   buildCanonicalStatsSqlBatches,
@@ -48,6 +47,10 @@ import {
   replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
+import {
+  completeStatisticCache,
+  runStatisticProgressStep,
+} from './statisticProgress.ts'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
@@ -84,9 +87,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     throw error
   }
   if (progress.hasActivePhase()) {
-    progress.complete(
-      `Prepared statistic cache in ${formatDuration(Date.now() - cacheStartedAt)}`,
-    )
+    completeStatisticCache(progress, {
+      durationMs: Date.now() - cacheStartedAt,
+      remote: target.remote,
+    })
   }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
@@ -103,20 +107,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       })
   let processingStarted = false
   try {
-    const processingStepCount = target.remote ? 8 : 5
-    progress.beginPhase('Start statistic processing', { max: processingStepCount })
-    progress.update(1, { label: 'Read publisher statistic rows' })
-    const rows = await readRows(prepared.filePath, releaseId, releaseCode)
+    const rows = await runStatisticProgressStep(
+      progress,
+      { action: 'Prepare', count: plan.rowCount, subject: 'statistic rows' },
+      () => readRows(prepared.filePath, releaseId, releaseCode),
+    )
     if (rows.length !== plan.rowCount)
       throw new Error(
         `Expected ${plan.rowCount} C&SD statistic rows; found ${rows.length}.`,
       )
-    progress.update(2, { label: 'Build idempotent statistic replay SQL' })
-    const batches = buildStatisticSqlBatches({
-      releaseCode,
-      releaseId,
-      source: { rows, table: 'hkgovCenstatdStatistics' },
-    })
     const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
     const sourceFeatures = rows.map(row => ({
       featureId: requiredString(row.featureId, 'featureId'),
@@ -152,21 +151,65 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         sourceVersion: plan.sourceVersion,
       }
     })
-    let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
-    progress.complete('Prepared C&SD measure metadata for review')
-    const measureMetadata = await resolveCenstatdMeasureMetadata({
-      measures: canonical.measures,
-      promptForCuration: options.promptForCuration,
-    })
-    canonical = normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata })
-    progress.beginPhase('Process statistic release', {
-      current: 2,
-      max: processingStepCount,
-    })
-    const canonicalBatches = buildCanonicalStatsSqlBatches({
-      current: canonicalCurrentRows(canonical),
-      history: canonicalHistoryRows(canonical, releaseId),
-    })
+    let canonical = await runStatisticProgressStep(
+      progress,
+      { action: 'Normalise', count: rows.length, subject: 'records' },
+      () => normaliseHkgovCenstatdStatistics(canonicalInput),
+    )
+    const measureMetadata = await runStatisticProgressStep(
+      progress,
+      { action: 'Review', count: canonical.measures.length, subject: 'measures' },
+      () =>
+        resolveCenstatdMeasureMetadata({
+          measures: canonical.measures,
+          promptForCuration: options.promptForCuration,
+        }),
+    )
+    canonical = await runStatisticProgressStep(
+      progress,
+      { action: 'Curate', count: canonical.measures.length, subject: 'measures' },
+      () => normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata }),
+    )
+    const batches = await runStatisticProgressStep(
+      progress,
+      { action: 'Generate SQL', count: rows.length, subject: 'source' },
+      () =>
+        buildStatisticSqlBatches({
+          releaseCode,
+          releaseId,
+          source: { rows, table: 'hkgovCenstatdStatistics' },
+        }),
+    )
+    const canonicalHistoryBatches = await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Generate SQL',
+        count: canonical.observations.length,
+        subject: 'history',
+      },
+      () =>
+        buildCanonicalStatsSqlBatches({
+          current: [],
+          history: canonicalHistoryRows(canonical, releaseId),
+        }),
+    )
+    const canonicalCurrentBatches = await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Generate SQL',
+        count: canonical.observations.length,
+        subject: 'current',
+      },
+      () =>
+        buildCanonicalStatsSqlBatches({
+          current: canonicalCurrentRows(canonical),
+          history: [],
+        }),
+    )
+    const canonicalBatches = {
+      current: canonicalCurrentBatches.current,
+      history: canonicalHistoryBatches.history,
+    }
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -174,26 +217,32 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       releaseCode,
     )
     processingStarted = true
-    await replayStatisticSqlBatches(
-      target,
-      context,
-      plan.sourceVersion.slice(0, 4),
-      batches,
+    await runStatisticProgressStep(
+      progress,
       {
-        onProgress(event) {
-          updateStatisticReplayProgress(progress, event, target.remote)
-        },
+        action: 'Import SQL',
+        count:
+          batches.source.length +
+          batches.history.length +
+          canonicalBatches.current.length +
+          canonicalBatches.history.length,
+        subject: 'batches',
+      },
+      async () => {
+        await replayStatisticSqlBatches(
+          target,
+          context,
+          plan.sourceVersion.slice(0, 4),
+          batches,
+        )
+        await replayCanonicalStatsSqlBatches(
+          target,
+          context,
+          plan.sourceVersion.slice(0, 4),
+          canonicalBatches,
+        )
       },
     )
-    await replayCanonicalStatsSqlBatches(
-      target,
-      context,
-      plan.sourceVersion.slice(0, 4),
-      canonicalBatches,
-    )
-    progress.update(processingStepCount - 2, {
-      label: 'Materialise release statistics in local metadata',
-    })
     const statsProfile = censtatdReleaseStatsProfileFor(datasetCode, plan.sourceVersion)
     const structuralStats = buildCenstatdReleaseStats(
       sourceFeatures,
@@ -204,28 +253,43 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       metaDb,
       releaseId,
     )
-    const materialisedStats = await replaceDatasetStatsAndReturnRows(
-      metaDb,
-      releaseId,
-      [
-        ...structuralStats,
-        ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
-      ],
-    )
-    const materialisedProcessingActions =
-      await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
-        ...buildCenstatdGeographyLinkAuditActions(statsProfile, sourceFeatures.length),
-        ...buildCenstatdMeasureCurationAuditActions(canonical),
-        ...buildCenstatdNormalisationAuditActions(canonical),
-      ])
-    await replayReleaseStatsMetaToRemote(target, context, releaseId, materialisedStats)
-    await replayReleaseProcessingActionsMetaToRemote(
-      target,
-      context,
-      releaseId,
-      materialisedProcessingActions,
-    )
-    progress.update(processingStepCount - 1, { label: 'Complete statistic replay' })
+    const { materialisedProcessingActions, materialisedStats } =
+      await runStatisticProgressStep(
+        progress,
+        { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
+        async () => {
+          const materialisedStats = await replaceDatasetStatsAndReturnRows(
+            metaDb,
+            releaseId,
+            [
+              ...structuralStats,
+              ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+            ],
+          )
+          const materialisedProcessingActions =
+            await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
+              ...buildCenstatdGeographyLinkAuditActions(
+                statsProfile,
+                sourceFeatures.length,
+              ),
+              ...buildCenstatdMeasureCurationAuditActions(canonical),
+              ...buildCenstatdNormalisationAuditActions(canonical),
+            ])
+          await replayReleaseStatsMetaToRemote(
+            target,
+            context,
+            releaseId,
+            materialisedStats,
+          )
+          await replayReleaseProcessingActionsMetaToRemote(
+            target,
+            context,
+            releaseId,
+            materialisedProcessingActions,
+          )
+          return { materialisedProcessingActions, materialisedStats }
+        },
+      )
     await client.stageCompleted(
       releaseId,
       'processDataset',
@@ -236,15 +300,20 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
       releaseCode,
     )
-    progress.update(processingStepCount, { label: 'Publish statistic release' })
-    const published = await client.publishDataset(releaseId, releaseCode)
-    if (target.remote) {
-      await refreshRemoteMetaCache(
-        target.environment === 'production' ? 'production' : 'preview',
-        context.state.dbCacheDir,
-      )
-    }
-    progress.complete('Published statistic release')
+    const published = await runStatisticProgressStep(
+      progress,
+      { action: 'Publish', subject: 'statistic release' },
+      async () => {
+        const published = await client.publishDataset(releaseId, releaseCode)
+        if (target.remote) {
+          await refreshRemoteMetaCache(
+            target.environment === 'production' ? 'production' : 'preview',
+            context.state.dbCacheDir,
+          )
+        }
+        return published
+      },
+    )
     return published
   } catch (error) {
     progress.fail()
@@ -263,28 +332,6 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   } finally {
     context.cleanup()
   }
-}
-
-function formatDuration(durationMs: number) {
-  return `${Math.max(0, Math.round(durationMs / 1_000))} s`
-}
-
-function updateStatisticReplayProgress(
-  progress: LocalUploadProgress,
-  event: StatisticSqlReplayProgress,
-  isRemote: boolean,
-) {
-  const phaseStep =
-    event.phase === 'local-replay' ? 3 : event.phase === 'remote-source-replay' ? 4 : 5
-  if (!isRemote && event.phase !== 'local-replay') return
-  const labels = {
-    'local-replay': 'Replay source in local cache',
-    'remote-history-replay': 'Replay history into remote D1',
-    'remote-source-replay': 'Replay source into remote D1',
-  } as const
-  progress.update(phaseStep, {
-    label: `${labels[event.phase]} (${event.completedBatches}/${event.totalBatches})`,
-  })
 }
 
 async function readRows(filePath: string, releaseId: string, releaseCode: string) {
