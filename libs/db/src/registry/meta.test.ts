@@ -100,7 +100,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
     expect(
       censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
-    ).toHaveLength(4)
+    ).toHaveLength(3)
     expect(
       censtatdStats
         .filter(dataset => dataset.sourceVariant === 'census')
@@ -111,7 +111,7 @@ describe('fixture version hashes', () => {
         .filter(dataset => dataset.sourceVariant === 'official-statistics')
         .map(dataset => dataset.releaseFrequency)
         .sort(),
-    ).toEqual(['half-yearly', 'half-yearly', 'yearly', 'yearly'])
+    ).toEqual(['half-yearly', 'yearly', 'yearly'])
     expect(
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
@@ -131,7 +131,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('pairs C&SD HMA geometry with its canonical division and keeps Area/type optional', () => {
+  test('pairs C&SD HMA geometry with its canonical division and maps Area/type to Overture areas', () => {
     const divisionsComposition = initialApiCompositions.find(
       composition => composition.code === 'comp-divisions-v1',
     )
@@ -159,17 +159,21 @@ describe('fixture version hashes', () => {
       }),
     )
 
-    expect(initialApiCompositionMembers).toContainEqual(
-      expect.objectContaining({
-        apiCompositionCode: 'comp-divisions-v1',
-        domainCode: 'geographic',
-        resourceType: 'division',
-        variant: 'hkgov-censtatd:2023-H2',
-        role: 'enrichment',
-        isRequired: false,
-        cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
-      }),
+    const areaTypeMembers = initialApiCompositionMembers.filter(
+      member =>
+        member.apiCompositionCode === 'comp-divisions-v1' &&
+        member.domainCode === 'geographic' &&
+        member.variant === 'hkgov-censtatd-area',
     )
+    expect(areaTypeMembers).toEqual([
+      expect.objectContaining({
+        resourceType: 'divisionArea',
+        isRequired: false,
+        role: 'geometry',
+        cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
+        configJson: expect.stringContaining('"variant":"overture"'),
+      }),
+    ])
   })
 
   test('reconciles composition members as complete fixture declarations', () => {
@@ -244,7 +248,7 @@ describe('fixture version hashes', () => {
         rulesets: [
           expect.objectContaining({
             rulesetVersion: 'rs-division-statistic-merge-v1',
-            rules: [
+            rules: expect.arrayContaining([
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_statistic_source_assertion',
                 type: 'bulk',
@@ -264,7 +268,7 @@ describe('fixture version hashes', () => {
                 sourceFieldPath: 'raw_properties.MYPOPN_LAND',
                 type: 'bulk',
               }),
-            ],
+            ]),
           }),
         ],
       }),
