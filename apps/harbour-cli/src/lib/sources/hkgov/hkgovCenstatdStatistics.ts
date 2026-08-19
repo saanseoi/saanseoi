@@ -107,7 +107,9 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
   sourceVersion: string
 }) {
   const layerName = geographyLayerForDataset(input.datasetCode)
-  if (!layerName) return { divisionCount: 0, sourceFeatureCount: 0 }
+  if (!layerName) {
+    return { areaCount: 0, divisionCount: 0, sourceFeatureCount: 0 }
+  }
   const gml = input.inputGml[`${layerName}.gml`]
   if (!gml) throw new Error(`CSDI archive is missing ${layerName}.gml.`)
 
