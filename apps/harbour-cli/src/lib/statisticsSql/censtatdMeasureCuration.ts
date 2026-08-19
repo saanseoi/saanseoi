@@ -1,7 +1,7 @@
 import { confirm, isCancel, note, select, text } from '@clack/prompts'
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import {
   statsAggregations,
   statsStatisticKinds,
@@ -73,9 +73,9 @@ type CenstatdSchemaMeasureCandidate = {
   sourceNullOption: string
 }
 
-const DEFAULT_CURATION_PATH = resolve(
+const DEFAULT_CURATION_DIRECTORY = resolve(
   import.meta.dir,
-  '../../../../../fixtures/meta/curations/hkgov-censtatd-statistics.json',
+  '../../../../../fixtures/meta/curations/hkgov-censtatd-statistics',
 )
 const DEFAULT_UNITS_PATH = resolve(
   import.meta.dir,
@@ -100,7 +100,7 @@ export async function resolveCenstatdMeasureMetadata(input: {
   measures: readonly CenstatdMeasureForCuration[]
   promptForCuration: boolean
 }) {
-  let manifest = await loadCenstatdMeasureCuration(DEFAULT_CURATION_PATH)
+  let manifest = await loadCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY)
   const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.measures)
   let resolved = resolveCenstatdMeasureCuration({
     manifest,
@@ -110,7 +110,8 @@ export async function resolveCenstatdMeasureMetadata(input: {
     manifest = await promptForCenstatdMeasureCuration({
       manifest,
       measures: resolved.unresolved,
-      persist: manifest => saveCenstatdMeasureCuration(DEFAULT_CURATION_PATH, manifest),
+      persist: manifest =>
+        saveCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY, manifest),
       schemaCandidates,
     })
     resolved = resolveCenstatdMeasureCuration({ manifest, measures: input.measures })
@@ -123,9 +124,24 @@ export async function resolveCenstatdMeasureMetadata(input: {
   return resolved.metadata
 }
 
-export async function loadCenstatdMeasureCuration(path = DEFAULT_CURATION_PATH) {
+export async function loadCenstatdMeasureCuration(
+  directory = DEFAULT_CURATION_DIRECTORY,
+) {
   try {
-    return parseCenstatdMeasureCuration(JSON.parse(await readFile(path, 'utf8')), path)
+    const entries = await readdir(directory, { withFileTypes: true })
+    const paths = entries
+      .filter(entry => entry.isFile() && entry.name.endsWith('.json'))
+      .map(entry => resolve(directory, entry.name))
+      .sort((left, right) => left.localeCompare(right))
+    const manifests = await Promise.all(
+      paths.map(async path =>
+        parseCenstatdMeasureCuration(JSON.parse(await readFile(path, 'utf8')), path),
+      ),
+    )
+    return parseCenstatdMeasureCuration(
+      { measures: manifests.flatMap(manifest => manifest.measures), schemaVersion: 5 },
+      directory,
+    )
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
       return emptyCenstatdMeasureCuration()
@@ -134,11 +150,41 @@ export async function loadCenstatdMeasureCuration(path = DEFAULT_CURATION_PATH) 
 }
 
 export async function saveCenstatdMeasureCuration(
-  path: string,
+  directory: string,
   manifest: CenstatdMeasureCurationManifest,
 ) {
-  await mkdir(dirname(path), { recursive: true })
-  await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  const checked = parseCenstatdMeasureCuration(manifest, directory)
+  await mkdir(directory, { recursive: true })
+  const byDataset = new Map<string, CenstatdMeasureCurationEntry[]>()
+  for (const measure of checked.measures) {
+    const measures = byDataset.get(measure.datasetCode) ?? []
+    measures.push(measure)
+    byDataset.set(measure.datasetCode, measures)
+  }
+  const filenames = new Set<string>()
+  await Promise.all(
+    [...byDataset.entries()].map(async ([datasetCode, measures]) => {
+      const filename = curationDatasetFilename(datasetCode)
+      filenames.add(filename)
+      await writeFile(
+        resolve(directory, filename),
+        `${JSON.stringify({ measures, schemaVersion: 5 }, null, 2)}\n`,
+        'utf8',
+      )
+    }),
+  )
+  const existing = await readdir(directory, { withFileTypes: true })
+  await Promise.all(
+    existing
+      .filter(entry => entry.isFile() && entry.name.endsWith('.json'))
+      .filter(entry => !filenames.has(entry.name))
+      .map(entry => rm(resolve(directory, entry.name))),
+  )
+}
+
+function curationDatasetFilename(datasetCode: string) {
+  const prefix = 'ds-hk-hkgov-censtatd-division-statistic-'
+  return `${datasetCode.startsWith(prefix) ? datasetCode.slice(prefix.length) : datasetCode}.json`
 }
 
 /** Prompts for and persists a registry record before a new unit is referenced. */

@@ -5,6 +5,10 @@ import { XMLParser } from 'fast-xml-parser'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import { buildDeterministicUuidV5 } from '@repo/db'
+import {
+  overtureHongKongAreaDivisionId,
+  overtureHongKongAreaForCenstatdCode,
+} from '@repo/core/pipeline/services/overtureHongKongAreas'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
@@ -78,9 +82,16 @@ export function hkgovCenstatdStatisticDivisionId(
 ) {
   const geography = statisticGeographyIdentity(datasetCode, sourceCode)
   if (!geography) return null
+  if (geography.type === 'area') {
+    return overtureHongKongAreaForCenstatdCode(geography.code)
+      ? overtureHongKongAreaDivisionId(
+          overtureHongKongAreaForCenstatdCode(geography.code)!.code,
+        )
+      : null
+  }
   return buildDeterministicUuidV5(
     CANONICAL_DIVISION_ID_NAMESPACE,
-    `CENSTATD:${geography.type === 'area' ? 'AREA' : 'HMA'}:${geography.code}`,
+    `CENSTATD:HMA:${geography.code}`,
   )
 }
 
@@ -162,37 +173,44 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
         sources: provenance,
         type: 'divisionArea',
       },
-      division: {
-        canonical_level: geography.level,
-        canonical_type: geography.type,
-        geometry: feature.geometry,
-        id: divisionId,
-        identifiers: {
-          hkgovCenstatd: { code: geography.code, geographyType: geography.type },
-        },
-        names,
-        source: 'hkgov-censtatd',
-        source_properties: sourceRow.properties,
-        sources: provenance,
-        type: 'division',
-      },
+      division:
+        geography.type === 'area'
+          ? null
+          : {
+              canonical_level: geography.level,
+              canonical_type: geography.type,
+              geometry: feature.geometry,
+              id: divisionId,
+              identifiers: {
+                hkgovCenstatd: { code: geography.code, geographyType: geography.type },
+              },
+              names,
+              source: 'hkgov-censtatd',
+              source_properties: sourceRow.properties,
+              sources: provenance,
+              type: 'division',
+            },
     }
   })
-  const ids = new Set(rows.map(row => row.division.id))
-  if (ids.size !== rows.length)
+  const divisions = rows.flatMap(row => (row.division ? [row.division] : []))
+  const ids = new Set(divisions.map(division => division.id))
+  if (ids.size !== divisions.length)
     throw new Error(`${layerName} has duplicate division IDs.`)
 
   await Promise.all([
-    writePreparedGeographyParquet(
-      input.divisionOutputFile,
-      rows.map(row => row.division),
-    ),
+    divisions.length
+      ? writePreparedGeographyParquet(input.divisionOutputFile, divisions)
+      : Promise.resolve(),
     writePreparedGeographyParquet(
       input.areaOutputFile,
       rows.map(row => row.area),
     ),
   ])
-  return { divisionCount: rows.length, sourceFeatureCount: sourceRows.length }
+  return {
+    areaCount: rows.length,
+    divisionCount: divisions.length,
+    sourceFeatureCount: sourceRows.length,
+  }
 }
 
 function geographyLayerForDataset(datasetCode: string) {
