@@ -324,7 +324,6 @@ export const getSourceReleaseShellData = query(
       ...shell.timings,
       shell: performance.now() - startedAt,
     }
-    if (dev) console.info('[source-release-shell]', timings)
 
     const {
       timings: _timings,

@@ -6,7 +6,7 @@ apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2025-09-24.0"
 regionCode: "hk"
 cohortKey: "2025-09-24.0"
-domainCode: "overture"
+domainCode: "geographic"
 primarySourceRelease: "dr-hk-overture-division-2025-09-24.0"
 primarySourceReleaseUrl: "/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0"
 ---
