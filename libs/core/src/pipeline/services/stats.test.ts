@@ -103,13 +103,8 @@ describe('stats rows', () => {
       byDistrict: { 'district-id': 10 },
       componentCounts: { building_name: 4, street_name: 8 },
       districtLinkedCount: 10,
-      divisionLinkedCount: 9,
-      geocodedCount: 10,
-      missingDistrictCount: 0,
-      missingDivisionCount: 1,
-      missingGeometryCount: 0,
+      areaLinkedCount: 10,
       missingStreetCount: 3,
-      streetLinkedCount: 7,
       churn: {
         address2d: churnCounts,
         totals: churnCounts,
@@ -147,8 +142,10 @@ describe('stats rows', () => {
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'geocoded_count',
-        metric: 'quality',
+        dimension: 'records',
+        groupBy: 'divisionLevel',
+        groupValue: 'district',
+        metric: 'linkage',
         value: 10,
       }),
     )

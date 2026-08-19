@@ -299,6 +299,28 @@ export function createReleaseStatsPresentation({
       })()
     : undefined
 
+  const divisionLinkageRows = matching(
+    row =>
+      row.dimension === 'records' &&
+      row.metric === 'linkage' &&
+      row.groupBy === 'divisionLevel' &&
+      Boolean(row.groupValue),
+  )
+  const divisionLinkage = divisionLinkageRows.length
+    ? (() => {
+        claim(divisionLinkageRows)
+        return {
+          id: addHeading('stats-division-linkage', 'Division linkage'),
+          rows: divisionLinkageRows
+            .map(row => ({
+              label: copy.statLabel(row.groupValue),
+              value: formatReleaseStat(locale, row.value, row.metricUnit),
+            }))
+            .sort((left, right) => left.label.localeCompare(right.label, locale)),
+        }
+      })()
+    : undefined
+
   claim(
     matching(
       row =>
@@ -590,6 +612,7 @@ export function createReleaseStatsPresentation({
     districtDistribution,
     localeCoverage,
     componentCoverage,
+    divisionLinkage,
     geometry,
     measureCoverage,
     measures: measureDefinitions,

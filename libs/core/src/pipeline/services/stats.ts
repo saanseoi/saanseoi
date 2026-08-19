@@ -40,13 +40,6 @@ export type AddressApiReleaseSetStatsInput = {
   byDistrict?: Map<string, number> | Record<string, number>
   componentCounts?: Record<string, number>
   districtLinkedCount?: number
-  divisionLinkedCount: number
-  geocodedCount?: number
-  streetLinkedCount: number
-  missingAreaCount?: number
-  missingDistrictCount?: number
-  missingDivisionCount: number
-  missingGeometryCount?: number
   missingStreetCount: number
   localeStats?: LocaleStatsAccumulator
   churn?: {
@@ -599,17 +592,6 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'records',
-      'count',
-      'count',
-      input.address3dCount,
-      createdAt,
-      {
-        groupBy: 'table',
-        groupValue: 'address3d',
-      },
-    ),
-    buildApiReleaseSetStatsRow(
       'localised_records',
       'count',
       'count',
@@ -618,17 +600,6 @@ export function buildAddressApiReleaseSetStatsRows(
       {
         groupBy: 'table',
         groupValue: 'address2dI18n',
-      },
-    ),
-    buildApiReleaseSetStatsRow(
-      'localised_records',
-      'count',
-      'count',
-      input.address3dI18nCount,
-      createdAt,
-      {
-        groupBy: 'table',
-        groupValue: 'address3dI18n',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -654,27 +625,6 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'division_linked_count',
-      'quality',
-      'count',
-      input.divisionLinkedCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
-      'street_linked_count',
-      'quality',
-      'count',
-      input.streetLinkedCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
-      'missing_division_count',
-      'quality',
-      'count',
-      input.missingDivisionCount,
-      createdAt,
-    ),
-    buildApiReleaseSetStatsRow(
       'missing_street_count',
       'quality',
       'count',
@@ -692,17 +642,16 @@ export function buildAddressApiReleaseSetStatsRows(
     ...buildApiReleaseSetDistrictDistributionStatsRows(input.byDistrict ?? {}),
   )
 
-  for (const [dimension, value] of [
-    ['area_linked_count', input.areaLinkedCount],
-    ['district_linked_count', input.districtLinkedCount],
-    ['geocoded_count', input.geocodedCount],
-    ['missing_area_count', input.missingAreaCount],
-    ['missing_district_count', input.missingDistrictCount],
-    ['missing_geometry_count', input.missingGeometryCount],
+  for (const [level, value] of [
+    ['area', input.areaLinkedCount],
+    ['district', input.districtLinkedCount],
   ] as const) {
     if (value !== undefined)
       rows.push(
-        buildApiReleaseSetStatsRow(dimension, 'quality', 'count', value, createdAt),
+        buildApiReleaseSetStatsRow('records', 'linkage', 'count', value, createdAt, {
+          groupBy: 'divisionLevel',
+          groupValue: level,
+        }),
       )
   }
 

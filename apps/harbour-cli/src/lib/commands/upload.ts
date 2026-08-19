@@ -90,6 +90,8 @@ export async function runUploadCommand(
     divisionCohortKey?: string
     processingActions?: ReleaseProcessingAction[]
     quiet?: boolean
+    /** Interactive command to offer when a non-interactive run lacks release notes. */
+    releaseNotesRetryCommand?: string
     skipConfirm: boolean
     skipSnapshotCleanup: boolean
     validateGeometry: boolean
@@ -240,6 +242,7 @@ ${mutedBar}  `)
 
     const releaseNotesUrl = await resolveReleaseNotesUrl(previewResult.plan, {
       explicitUrl: registerOptions.releaseNotesUrl,
+      interactiveRetryCommand: options.releaseNotesRetryCommand,
       skipPrompt: options.skipConfirm,
     })
     registerOptions.releaseNotesUrl = releaseNotesUrl

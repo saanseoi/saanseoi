@@ -882,6 +882,7 @@ async function processUpdate(
       forceUpload: options.forceUpload,
       invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
       printUsage: options.printUsage,
+      releaseNotesRetryCommand: `./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${update.dataset.code} --download --check-now`,
       skipConfirm: true,
       skipSnapshotCleanup: false,
       quiet: true,

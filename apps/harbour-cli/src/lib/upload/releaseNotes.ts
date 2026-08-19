@@ -5,6 +5,8 @@ import { cancel, isCancel, text } from '@clack/prompts'
 
 import { buildDatasetReleaseCode, type UploadPlan } from '@repo/core'
 
+import { formatInteractiveRetry } from '../cli/interactiveRetry.ts'
+
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const CACHE_PATH = resolve(REPO_ROOT, '.local/harbour/release-note-cache.json')
 
@@ -119,7 +121,11 @@ async function writeCache(cache: ReleaseNoteCache) {
 
 export async function resolveReleaseNotesUrl(
   plan: UploadPlan,
-  options: { explicitUrl?: string; skipPrompt: boolean },
+  options: {
+    explicitUrl?: string
+    interactiveRetryCommand?: string
+    skipPrompt: boolean
+  },
 ) {
   const key = cacheKey(plan.releaseCode)
   const explicitUrl = options.explicitUrl?.trim()
@@ -139,8 +145,11 @@ export async function resolveReleaseNotesUrl(
   if (cachedUrl) return cachedUrl
 
   if (options.skipPrompt) {
+    const retry = options.interactiveRetryCommand
+      ? `\n\n${formatInteractiveRetry(options.interactiveRetryCommand)}`
+      : ''
     throw new Error(
-      `No upstream release-notes URL is cached for ${key}. Pass --release-notes-url URL.`,
+      `No upstream release-notes URL is cached for ${key}. Pass --release-notes-url URL.${retry}`,
     )
   }
 
