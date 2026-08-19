@@ -175,6 +175,7 @@ describe('fixture version hashes', () => {
   test('reconciles composition members as complete fixture declarations', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
+    expect(statements).toContain("UPDATE apiReleaseSets\nSET domainCode = 'geographic'")
   })
 
   test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {

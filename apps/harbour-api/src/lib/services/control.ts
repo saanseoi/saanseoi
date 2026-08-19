@@ -286,9 +286,14 @@ export async function handlePublishDataset(
       )
     }
     const domainCode = datasetMember.domainCode
-    const isCenstatdGeometry =
-      datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
-    const censtatdReleaseSetCohorts = isCenstatdGeometry
+    // Only the Geographic domain attaches optional C&SD geometry to Overture
+    // cohorts. Publisher-defined C&SD domains (such as Housing Market Areas)
+    // publish their own canonical division and divisionArea release set.
+    const isCenstatdGeographicGeometry =
+      datasetType === 'divisionArea' &&
+      dataset.source === 'hkgov-censtatd' &&
+      domainCode === 'geographic'
+    const censtatdReleaseSetCohorts = isCenstatdGeographicGeometry
       ? await listOvertureReleaseSetCohortsAtOrAfterCohortKey(
           db,
           'division',
@@ -297,7 +302,7 @@ export async function handlePublishDataset(
         )
       : []
 
-    if (isCenstatdGeometry && censtatdReleaseSetCohorts.length === 0) {
+    if (isCenstatdGeographicGeometry && censtatdReleaseSetCohorts.length === 0) {
       throw new ControlRequestError(
         `No Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
       )
@@ -306,7 +311,7 @@ export async function handlePublishDataset(
     // Census cohorts are independently selectable required inputs. Publishing
     // a later one must not supersede the earlier source release.
     const currentRelease =
-      isCenstatdGeometry || options.reconcileDraftReleaseSet
+      isCenstatdGeographicGeometry || options.reconcileDraftReleaseSet
         ? null
         : await getCurrentReleaseForDatasetId(
             db,
@@ -314,7 +319,7 @@ export async function handlePublishDataset(
             datasetType,
             dataset.releaseId,
           )
-    const existingReleaseSet = isCenstatdGeometry
+    const existingReleaseSet = isCenstatdGeographicGeometry
       ? null
       : (options.releaseSet ??
         (await resolveReleaseSetForRelease(
@@ -332,7 +337,7 @@ export async function handlePublishDataset(
             dataset.cohortKey,
           )
         : []
-    const releaseSets = isCenstatdGeometry
+    const releaseSets = isCenstatdGeographicGeometry
       ? await (async () => {
           const releaseSets = []
           // Create each revision in the same chronological order in which it
@@ -437,7 +442,7 @@ export async function handlePublishDataset(
       )
       const isNewestReleaseSet = index === newestReleaseSetIndex
       const shouldPublishReleaseSet =
-        releaseSetIsComplete && (isCenstatdGeometry || isNewestReleaseSet)
+        releaseSetIsComplete && (isCenstatdGeographicGeometry || isNewestReleaseSet)
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
