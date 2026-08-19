@@ -42,6 +42,7 @@ import {
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import {
   compressJsonBrotli,
+  decompressJsonBrotli,
   MAX_BROTLI_QUALITY,
 } from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
@@ -599,6 +600,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         releaseId,
         await buildGeometryStats(
           dbContext.currentDb,
+          dbContext.historyDb,
           metaDb,
           previewPlan,
           normalised,
@@ -2297,6 +2299,7 @@ async function getGeometryChurnBaseline(
 
 async function buildGeometryStats(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
   rows: Array<NonNullable<NormalisedGeometry>>,
@@ -2312,7 +2315,7 @@ async function buildGeometryStats(
       ...churnStats,
       ...buildHousingMarketAreaDistrictDistributionRows(
         rows,
-        await resolveHousingMarketAreaDistrictGeometries(currentDb),
+        await resolveHousingMarketAreaDistrictGeometries(currentDb, historyDb, metaDb),
       ),
     ]
   }
@@ -2465,8 +2468,10 @@ async function resolveGeometryDistricts(
 
 async function resolveHousingMarketAreaDistrictGeometries(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
+  metaDb: HarbourReadableDb,
 ) {
-  const rows = await currentDb
+  const currentRows = await currentDb
     .select({
       divisionId: currentSchema.divisionAreas.divisionId,
       geometry: currentSchema.divisionAreas.geometry,
@@ -2477,15 +2482,42 @@ async function resolveHousingMarketAreaDistrictGeometries(
     .orderBy(desc(currentSchema.divisionAreas.updatedAt))
     .all()
 
+  const snapshot =
+    currentRows.length > 0
+      ? null
+      : await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+          metaDb,
+          'divisionArea',
+          'hk',
+          '2021',
+          { variant: CENSTATD_2021_DISTRICT_VARIANT },
+        )
+  const rows =
+    currentRows.length > 0
+      ? currentRows
+      : snapshot
+        ? await historyDb
+            .select({
+              divisionId: historySchema.divisionAreas.divisionId,
+              geometry: historySchema.divisionAreas.geometry,
+              updatedAt: historySchema.divisionAreas.updatedAt,
+            })
+            .from(historySchema.divisionAreas)
+            .where(eq(historySchema.divisionAreas.snapshotId, snapshot.id))
+            .orderBy(desc(historySchema.divisionAreas.updatedAt))
+            .all()
+        : []
+
   const districts = new Map<string, GeoJsonGeometry>()
   for (const row of rows) {
     if (districts.has(row.divisionId)) continue
-    if (!isGeoJsonPolygon(row.geometry)) {
+    const geometry = decodeStoredGeoJsonGeometry(row.geometry)
+    if (!isGeoJsonPolygon(geometry)) {
       throw new Error(
         `C&SD district ${row.divisionId} is not polygonal; Housing Market Area coverage cannot be calculated.`,
       )
     }
-    districts.set(row.divisionId, row.geometry)
+    districts.set(row.divisionId, geometry)
   }
   if (districts.size === 0) {
     throw new Error(
@@ -2493,6 +2525,16 @@ async function resolveHousingMarketAreaDistrictGeometries(
     )
   }
   return districts
+}
+
+/** Decodes the Brotli BLOB used for exact C&SD canonical geometry in DB_CURRENT. */
+export function decodeStoredGeoJsonGeometry(value: unknown): GeoJsonGeometry {
+  if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+    return decompressJsonBrotli(value) as GeoJsonGeometry
+  }
+  if (typeof value === 'string') return JSON.parse(value) as GeoJsonGeometry
+  if (value && typeof value === 'object') return value as GeoJsonGeometry
+  throw new Error('Stored geometry could not be decoded.')
 }
 
 function buildGeometryDistrictDistributionRows(
@@ -2648,6 +2690,8 @@ async function resolveSyntheticOvertureHongKongAreas(
     .select({
       id: currentSchema.divisions.id,
       identifiers: currentSchema.divisions.identifiers,
+      level: currentSchema.divisions.level,
+      sources: currentSchema.divisions.sources,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
@@ -2665,10 +2709,11 @@ async function resolveSyntheticOvertureHongKongAreas(
       ),
     )
     .all()
-  const byId = new Map(rows.map(row => [row.id, row.identifiers]))
+  const byId = new Map(rows.map(row => [row.id, row]))
+  const districtIds = new Set(rows.filter(row => row.level === 2).map(row => row.id))
   const districtIdsByName = new Map<string, string[]>()
   for (const row of i18nRows) {
-    if (!row.name) continue
+    if (!row.name || !districtIds.has(row.divisionId)) continue
     const ids = districtIdsByName.get(row.name) ?? []
     ids.push(row.divisionId)
     districtIdsByName.set(row.name, ids)
@@ -2676,7 +2721,9 @@ async function resolveSyntheticOvertureHongKongAreas(
   return overtureHongKongAreas.flatMap(area => {
     const divisionId = overtureHongKongAreaDivisionId(area.code)
     if (!divisionId) return []
-    const identifiers = byId.get(divisionId)
+    const division = byId.get(divisionId)
+    if (!division) return []
+    const identifiers = division.identifiers
     const correction =
       identifiers && typeof identifiers === 'object' && !Array.isArray(identifiers)
         ? (identifiers as Record<string, unknown>).saanseoiCorrection
@@ -2697,18 +2744,21 @@ async function resolveSyntheticOvertureHongKongAreas(
             }
             return ids[0]!
           })
-    if (!byId.has(divisionId)) {
-      return []
-    }
     return [
       {
         code: area.code,
         districtDivisionIds,
         divisionId,
-        isSynthetic: Boolean(correction),
+        isSynthetic:
+          Boolean(correction) || isSyntheticOvertureHongKongArea(division.sources),
       },
     ]
   })
+}
+
+function isSyntheticOvertureHongKongArea(sources: unknown) {
+  if (!sources || typeof sources !== 'object') return false
+  return JSON.stringify(sources).includes('synthetic:missing-overture-hong-kong-area')
 }
 
 export function selectOvertureHongKongAreasWithoutSourceGeometry(
@@ -2902,6 +2952,10 @@ function isGeoJsonPolygon(value: unknown): value is GeoJsonGeometry {
   )
 }
 
+/**
+ * Records `overture_hong_kong_area_synthesised`; keep the policy and this
+ * implementation in sync.
+ */
 function buildSyntheticOvertureHongKongAreaProcessingActions(
   plan: GeometryUploadPlan,
   areas: readonly SyntheticOvertureHongKongArea[],
@@ -2924,7 +2978,7 @@ function buildSyntheticOvertureHongKongAreaProcessingActions(
       syntheticDivisionId: area.divisionId,
     },
     mode: 'automatic',
-    summary: `Synthesised the missing Overture Hong Kong ${area.code} area from its district geometries.`,
+    summary: `Derived Overture Hong Kong ${area.code} area geometry from its district geometries.`,
   }))
 }
 

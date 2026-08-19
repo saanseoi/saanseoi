@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:cbe4903c3daa3026042dd17d05ff99b978536d8774e26bae723591e633c0aebb",
+  "versionHash": "sha256:9152ca2627c00ccbe6e40f120af110499fb27ec92e01c910e309b95e248fa02e",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Initial division merge ruleset.",
+  "notes": "Includes the reviewed Hong Kong area-geometry derivation in the division merge policy.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",
@@ -281,6 +281,27 @@
         {
           "locale": "zh-hans",
           "description": "记录每个从香港 Overture 发布版本中排除的广东延伸几何。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_hong_kong_area_synthesised",
+      "type": "record",
+      "sourceFieldPath": "division_id, geometry",
+      "targetFieldPath": "divisionArea.geometry",
+      "condition": "Hong Kong Island, Kowloon, or the New Territories has a canonical Overture division identity but no source divisionArea geometry.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each Hong Kong level-1 area geometry derived by unioning its Overture district land geometries when Overture does not provide an area geometry."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄每個在 Overture 未提供範圍幾何時，透過合併其 Overture 地區陸地幾何而推導出的香港一級區域範圍。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录每个在 Overture 未提供范围几何时，通过合并其 Overture 地区陆地几何而推导出的香港一级区域范围。"
         }
       ]
     }
