@@ -234,6 +234,37 @@ describe('Housing Market Area district coverage', () => {
     expect(decodeStoredGeoJsonGeometry(compressJsonBrotli(geometry))).toEqual(geometry)
   })
 
+  test('repairs an invalid district ring only for the coverage overlay', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma',
+          geometry: polygon([
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'invalid-district',
+          polygon([
+            [0, 0],
+            [2, 2],
+            [2, 0],
+            [0, 2],
+            [0, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect(coverage).toEqual(new Map([['invalid-district', 1]]))
+  })
+
   test('increments every district with a positive-area intersection', () => {
     const coverage = calculateHousingMarketAreaDistrictCoverage(
       [
