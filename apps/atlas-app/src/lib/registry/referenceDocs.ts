@@ -130,7 +130,7 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     source: censtatdMeasureOfferings,
   },
   'hkgov-censtatd-measure-curation-manifest': {
-    title: 'C&SD measure curation manifest',
+    title: 'Measure curation manifest',
     displayTitleKey: 'reference_censtatd_measure_curation_manifest',
     source: censtatdMeasureCurationManifest,
   },
