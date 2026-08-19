@@ -6,6 +6,8 @@ import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
   recordSnapshotAssemblyRun,
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   upsertReleaseShardAssignment,
@@ -493,24 +495,21 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    const divisionLookupSnapshotId = !resolveProviderBridgeConfig(previewPlan)
+    const divisionLookup = !resolveProviderBridgeConfig(previewPlan)
       ? await assertDivisionReferences(
           dbContext.currentDb,
           dbContext.historyDb,
           metaDb,
-          previewPlan.regionCode,
-          previewPlan.cohortKey,
-          previewPlan.source,
-          previewPlan.type,
+          previewPlan,
           normalised,
         )
       : null
-    if (divisionLookupSnapshotId) {
+    if (divisionLookup) {
       await recordSnapshotLookupDependency(metaDb, {
         anchorReleaseId: dataset.releaseId,
-        lookupSnapshotId: divisionLookupSnapshotId,
-        selectedByRule: 'api-composition:divisions:division-geometry->division',
-        selectionMode: 'exact_ref',
+        lookupSnapshotId: divisionLookup.id,
+        selectedByRule: divisionLookup.selectedByRule,
+        selectionMode: divisionLookup.selectionMode,
         snapshotId: snapshot.id,
       })
     }
@@ -1228,6 +1227,14 @@ function geometryVariant(plan: GeometryUploadPlan) {
   })
 }
 
+function isCenstatdAreaTypePlan(plan: GeometryUploadPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+  )
+}
+
 function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
   if (plan.source === 'hkgov-had') {
     return { authority: 'hkgov-had' }
@@ -1296,22 +1303,16 @@ async function assertDivisionReferences(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   metaDb: HarbourReadableDb,
-  regionCode: RegionCode,
-  cohortKey: string,
-  variant: GeometryUploadPlan['source'],
-  type: GeometryUploadPlan['type'],
+  plan: GeometryUploadPlan,
   rows: Array<NonNullable<NormalisedGeometry>>,
 ) {
-  const divisionSnapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-    metaDb,
-    'division',
-    regionCode,
-    cohortKey,
-    { variant },
-  )
+  const lookup = await resolveDivisionReferenceLookup(metaDb, plan)
+  const divisionSnapshot = lookup.snapshot
   if (!divisionSnapshot) {
     throw new Error(
-      `No published division snapshot exists for ${regionCode}/${cohortKey}; geometry references cannot be validated.`,
+      isCenstatdAreaTypePlan(plan)
+        ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD area/type references cannot be validated.`
+        : `No published division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; geometry references cannot be validated.`,
     )
   }
   let divisionRows = await listCurrentDivisionIds(currentDb, divisionSnapshot.id)
@@ -1325,7 +1326,9 @@ async function assertDivisionReferences(
   }
   const knownIds = new Set(divisionRows.map(row => row.id))
   const missingReferences = rows.flatMap(row => {
-    const missingIds = divisionReferenceIds(type, row).filter(id => !knownIds.has(id))
+    const missingIds = divisionReferenceIds(plan.type, row).filter(
+      id => !knownIds.has(id),
+    )
     return missingIds.length > 0
       ? [
           {
@@ -1341,13 +1344,59 @@ async function assertDivisionReferences(
   if (missingIds.length > 0) {
     throw new Error(
       [
-        `Division geometry references ${missingIds.length} division IDs absent from the ${cohortKey} division snapshot.`,
+        `Division geometry references ${missingIds.length} division IDs absent from the ${plan.cohortKey} division snapshot.`,
         ...formatMissingDivisionReferenceRecords(missingReferences),
       ].join('\n'),
     )
   }
 
-  return divisionSnapshot.id
+  return {
+    id: divisionSnapshot.id,
+    selectedByRule: lookup.selectedByRule,
+    selectionMode: lookup.selectionMode,
+  }
+}
+
+async function resolveDivisionReferenceLookup(
+  metaDb: HarbourReadableDb,
+  plan: GeometryUploadPlan,
+) {
+  if (isCenstatdAreaTypePlan(plan)) {
+    const prior =
+      await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+        metaDb,
+        'division',
+        plan.regionCode,
+        plan.cohortKey,
+        { publisherCode: 'overture' },
+      )
+    const snapshot =
+      prior ??
+      (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+        metaDb,
+        'division',
+        plan.regionCode,
+        plan.cohortKey,
+        { publisherCode: 'overture' },
+      ))
+    return {
+      snapshot,
+      selectedByRule: 'api-composition:divisions:censtatd-area-type->overture-division',
+      selectionMode: prior ? 'latest_at_or_before' : 'earliest_at_or_after',
+    }
+  }
+
+  return {
+    snapshot: await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      metaDb,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+      { variant: geometryVariant(plan) },
+    ),
+    selectedByRule: 'api-composition:divisions:division-geometry->division',
+    selectionMode: 'exact_ref',
+  }
 }
 
 async function listCurrentDivisionIds(

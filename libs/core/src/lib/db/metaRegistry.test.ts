@@ -22,6 +22,7 @@ import {
   resolveApiReleaseSetForRequest,
   resolveActiveSnapshotForType,
   resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
@@ -2498,6 +2499,46 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
       id: 'overture-first',
       code: 'ss-hk-division-2025-09-24.0',
       cohortKey: '2025-09-24.0',
+      resourceType: 'division',
+      status: 'published',
+    })
+
+    sqlite.close()
+  })
+})
+
+describe('resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey', () => {
+  test('prefers the closest earlier canonical snapshot over a future snapshot', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'hk');
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-earlier', 'division', 'ss-hk-division-2023-06-01.0', '2023-06-01.0', 'published', 1685577600000, 1685577600000),
+        ('overture-future', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-earlier', 'dataset-overture-division', 'release-overture-earlier', 'primary'),
+        ('overture-future', 'dataset-overture-division', 'release-overture-future', 'primary');
+    `)
+
+    await expect(
+      resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2023-H2',
+        { publisherCode: 'overture' },
+      ),
+    ).resolves.toEqual({
+      id: 'overture-earlier',
+      code: 'ss-hk-division-2023-06-01.0',
+      cohortKey: '2023-06-01.0',
       resourceType: 'division',
       status: 'published',
     })

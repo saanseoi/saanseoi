@@ -296,6 +296,60 @@ describe('Home Affairs Department geometry prerequisites', () => {
   })
 })
 
+describe('C&SD geometry prerequisites', () => {
+  test('requires the published HMA division snapshot before its companion area', async () => {
+    const resolveRemotePublishedDivisionSnapshotMock = mock(async () => ({
+      snapshotId: 'snapshot-hkgov-censtatd-hma-2021',
+    }))
+
+    await assertDivisionGeometryUploadPrerequisites(
+      {
+        environment: 'preview',
+        remote: true,
+      },
+      {
+        cohortKey: '2021',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        regionCode: 'hk',
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021',
+        theme: 'divisions',
+        type: 'divisionArea',
+      } as never,
+      {
+        resolveRemotePublishedDivisionSnapshot:
+          resolveRemotePublishedDivisionSnapshotMock,
+      },
+    )
+
+    expect(resolveRemotePublishedDivisionSnapshotMock).toHaveBeenCalledTimes(1)
+  })
+
+  test('keeps independently bridged C&SD district areas exempt', async () => {
+    const resolveRemotePublishedDivisionSnapshotMock = mock(async () => null)
+
+    await assertDivisionGeometryUploadPrerequisites(
+      {
+        environment: 'preview',
+        remote: true,
+      },
+      {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        source: 'hkgov-censtatd',
+        theme: 'divisions',
+        type: 'divisionArea',
+      } as never,
+      {
+        resolveRemotePublishedDivisionSnapshot:
+          resolveRemotePublishedDivisionSnapshotMock,
+      },
+    )
+
+    expect(resolveRemotePublishedDivisionSnapshotMock).not.toHaveBeenCalled()
+  })
+})
+
 describe('Planning Department geometry prerequisites', () => {
   test('reports the exact missing cohort without referring to an address shard', async () => {
     await expect(

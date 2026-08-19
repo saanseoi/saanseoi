@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { buildCanonicalStatsSqlBatches } from './canonicalStatsSql.ts'
+import {
+  buildCanonicalStatsSqlBatches,
+  replayCanonicalStatsSqlBatches,
+} from './canonicalStatsSql.ts'
 
 describe('buildCanonicalStatsSqlBatches', () => {
   test('keeps unrelated reference periods in the current view', () => {
@@ -51,5 +54,52 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.current[0]?.match(/INSERT INTO/g)).toHaveLength(1)
     expect(batches.current[0]).toContain("'stats:0'")
     expect(batches.current[0]).toContain("'stats:99'")
+  })
+})
+
+describe('replayCanonicalStatsSqlBatches', () => {
+  test('reports each local canonical SQL batch', async () => {
+    const executed: string[] = []
+    const binding = {
+      prepare(sql: string) {
+        return {
+          async run() {
+            executed.push(sql)
+          },
+        }
+      },
+    }
+    const progress: string[] = []
+
+    await replayCanonicalStatsSqlBatches(
+      { environment: 'dev', remote: false },
+      {
+        currentBinding: binding,
+        historyBinding: binding,
+        historyTargets: [],
+        state: { bindings: {} },
+      } as never,
+      '2021',
+      {
+        current: ['SELECT 1;', 'SELECT 2;'],
+        history: ['SELECT 3;'],
+      },
+      {
+        onProgress(event) {
+          progress.push(
+            `${event.phase}:${event.completedBatches}/${event.totalBatches}`,
+          )
+        },
+      },
+    )
+
+    expect(executed).toEqual(['SELECT 1;', 'SELECT 2;', 'SELECT 3;'])
+    expect(progress).toEqual([
+      'local-current-replay:0/3',
+      'local-current-replay:1/3',
+      'local-current-replay:2/3',
+      'local-history-replay:2/3',
+      'local-history-replay:3/3',
+    ])
   })
 })

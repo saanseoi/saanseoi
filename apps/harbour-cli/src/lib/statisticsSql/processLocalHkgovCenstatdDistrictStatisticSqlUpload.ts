@@ -267,26 +267,40 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       {
         action: 'Import SQL',
         count:
-          batches.source.length +
-          batches.history.length +
-          canonicalBatches.current.length +
-          canonicalBatches.history.length,
+          (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
         subject: 'batches',
       },
-      async () => {
-        await replayStatisticSqlBatches(
+      () =>
+        replayStatisticSqlBatches(
           target,
           context,
           plan.sourceVersion.slice(0, 4),
           batches,
-        )
-        await replayCanonicalStatsSqlBatches(
+        ),
+    )
+    await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Import canonical SQL',
+        count:
+          (canonicalBatches.current.length + canonicalBatches.history.length) *
+          (target.remote ? 2 : 1),
+        subject: 'batches',
+      },
+      () =>
+        replayCanonicalStatsSqlBatches(
           target,
           context,
           plan.sourceVersion.slice(0, 4),
           canonicalBatches,
-        )
-      },
+          {
+            onProgress(event) {
+              progress.update(event.completedBatches, {
+                label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+              })
+            },
+          },
+        ),
     )
     const statsProfile = censtatdReleaseStatsProfileFor(
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
