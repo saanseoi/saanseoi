@@ -442,6 +442,8 @@
   "reference_division_hierarchy_normalisation": "區劃層級正規化",
   "reference_censtatd": "C&SD",
   "reference_csdi": "CSDI",
+  "reference_censtatd_measure_naming": "統計指標命名",
+  "reference_censtatd_measure_offerings": "統計指標 offering",
   "reference_address_division_normalisation": "地址區劃正規化",
   "reference_catalogue": "目錄",
   "reference_catalogue_revision": "目錄修訂",
