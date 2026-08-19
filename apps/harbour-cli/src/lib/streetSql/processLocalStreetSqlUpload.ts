@@ -723,6 +723,7 @@ async function loadCanonicalDistricts(
         eq(metaSchema.metaSnapshots.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, regionCode),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
       ),
     )
     .orderBy(
@@ -733,7 +734,10 @@ async function loadCanonicalDistricts(
     .get()
   if (!snapshot) {
     throw new Error(
-      'A published canonical division snapshot is required to normalize LandsD street districts.',
+      [
+        'A published canonical Overture division snapshot is required to normalize LandsD street districts.',
+        'Run ./bin/saanseoi init:divisions:overture --target local, then retry the update.',
+      ].join(' '),
     )
   }
   const rows = await currentDb
@@ -772,7 +776,7 @@ async function loadCanonicalDistricts(
   const districts = [...byId.values()]
   if (districts.length === 0) {
     throw new Error(
-      'The published division snapshot contains no canonical district rows.',
+      'The published canonical Overture division snapshot contains no district rows.',
     )
   }
   return districts

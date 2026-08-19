@@ -412,6 +412,8 @@ describe('LandsD bilingual street notices', () => {
       { id: 'district-wan-chai', names: { en: 'Wan Chai' } },
       { id: 'district-eastern', names: { en: 'Eastern' } },
       { id: 'district-islands', names: { en: 'Islands', zhHant: '離島區' } },
+      { id: 'district-kwai-tsing', names: { en: 'Kwai Tsing' } },
+      { id: 'district-tsuen-wan', names: { en: 'Tsuen Wan' } },
     ]
 
     expect(
@@ -430,6 +432,12 @@ describe('LandsD bilingual street notices', () => {
     expect(resolveLandsdStreetDistricts({ en: 'Islands (Lantau)' }, districts)).toEqual(
       { districtIds: ['district-islands'], unmatched: [] },
     )
+    expect(
+      resolveLandsdStreetDistricts({ en: null }, districts, ['Is-TW', 'K&T']),
+    ).toEqual({
+      districtIds: ['district-islands', 'district-kwai-tsing', 'district-tsuen-wan'],
+      unmatched: [],
+    })
   })
 })
 

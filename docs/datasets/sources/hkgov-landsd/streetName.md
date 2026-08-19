@@ -154,9 +154,12 @@ name. Its later declaration is where the corresponding whole or partial name-cha
 application is recorded.
 
 Each updater run emits one source release and canonical snapshot for the newly observed
-batch of notices. Current snapshots contain active streets only. Historic deleted states
-and the replay projection remain in history, while every current street includes its own
-`attributes.changelog`; the full replay is available at `GET /v0/hk/streets/changelog`.
+batch of notices. The source-release notes enumerate only subsequent Government Notice
+events; the complete gazetted baseline is retained in the release payload, not written
+as changelog entries. Current snapshots contain active streets only. Historic deleted
+states and the replay projection remain in history, while every current street includes
+its own `attributes.changelog`; the full replay is available at
+`GET /v0/hk/streets/changelog`.
 
 ## Names and districts
 
@@ -168,7 +171,9 @@ Translation failures block publication; Traditional Chinese is never a silent fa
 Publisher district labels and baseline district codes stay in the source ledger. During
 canonical materialisation they are resolved against the published district snapshot and
 stored as canonical `districtIds`; those IDs never leak back into source storage. An
-unresolved district blocks publication and is reported as a quality error.
+unresolved district blocks publication and is reported as a quality error. The gazetted
+baseline's `Is` and `K&T` codes resolve respectively to Islands and Kwai Tsing through
+the versioned bridge; mixed codes retain every applicable district.
 
 ## Upstream
 

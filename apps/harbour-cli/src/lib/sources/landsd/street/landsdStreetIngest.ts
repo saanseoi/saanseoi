@@ -1192,7 +1192,6 @@ async function writeReleasePayloads(input: {
     .at(-1)
   return [
     await createLandsdStreetReleasePayload({
-      fixtureKind: input.baselineRecords.length > 0 ? 'initial' : 'notice',
       outputDir: input.outputDir,
       records,
       sourceVersion: latestNoticeDate
@@ -1204,7 +1203,6 @@ async function writeReleasePayloads(input: {
 }
 
 export async function createLandsdStreetReleasePayload(input: {
-  fixtureKind?: 'initial' | 'notice'
   outputDir: string
   records: LandsdStreetRecord[]
   sourceVersion: string
@@ -1214,19 +1212,12 @@ export async function createLandsdStreetReleasePayload(input: {
   const parquetPath = join(releaseDir, 'landsd-street.parquet')
   await writeStreetParquet(parquetPath, input.records, input.sourceVersion)
 
-  const hasDeclaration = input.records.some(
-    record => record.noticeType === 'declaration',
-  )
-  const fixtureKind = input.fixtureKind ?? 'initial'
-  const fixturePath =
-    input.writeFixture && (fixtureKind === 'initial' || hasDeclaration)
-      ? fixturePathFor(input.sourceVersion)
-      : null
+  const fixturePath = input.writeFixture ? fixturePathFor(input.sourceVersion) : null
   if (fixturePath) {
     await mkdir(dirname(fixturePath), { recursive: true })
     await writeFile(
       fixturePath,
-      buildStreetReleaseNotes(input.records, input.sourceVersion, fixtureKind),
+      buildStreetReleaseNotes(input.records, input.sourceVersion),
       'utf8',
     )
   }
@@ -1268,13 +1259,13 @@ function hasSameBilingualRecordName(
   })
 }
 
-function buildStreetReleaseNotes(
+export function buildStreetReleaseNotes(
   records: LandsdStreetRecord[],
   sourceVersion: string,
-  kind: 'initial' | 'notice',
 ) {
-  const declarations = records.filter(record => record.noticeType === 'declaration')
-  const otherNotices = records.filter(record => record.noticeType !== 'declaration')
+  const notices = records.filter(record => record.sourceKind !== 'baseline')
+  const declarations = notices.filter(record => record.noticeType === 'declaration')
+  const otherNotices = notices.filter(record => record.noticeType !== 'declaration')
   const lines = [
     '---',
     `dataset: "${LANDSD_STREET_DATASET_CODE}"`,
@@ -1288,13 +1279,11 @@ function buildStreetReleaseNotes(
     '',
     '# EN',
     '',
-    kind === 'initial'
-      ? 'Initial gazetted street-name register, excluding exact English-name matches that are represented by later Government Notices.'
-      : 'Street-name declarations and related Government Notices processed from the LandsD bilingual source pages.',
+    'Subsequent street-name declarations and related Government Notices processed from the LandsD bilingual source pages.',
+    'The current gazetted street-name register is retained in the release payload and is not enumerated as changelog entries.',
     '',
   ]
-  const visible = kind === 'initial' ? records : declarations
-  for (const record of visible) {
+  for (const record of declarations) {
     const en = record.i18n.find(item => item.locale === 'en')
     if (!en) continue
     lines.push(`## ${en.name}`, '')
@@ -1320,7 +1309,7 @@ function buildStreetReleaseNotes(
     }
     lines.push('')
   }
-  if (otherNotices.length > 0 && kind === 'notice') {
+  if (otherNotices.length > 0) {
     lines.push('## Other notices processed', '')
     for (const record of otherNotices) {
       const en = record.i18n.find(item => item.locale === 'en')
