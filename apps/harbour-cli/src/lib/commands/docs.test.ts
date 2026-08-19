@@ -59,4 +59,21 @@ Schema \`{{sourceSchemaVersion}}\`
 Schema \`1.15.0\`
 `)
   })
+
+  test('renders C&SD measure tables from the reviewed curation manifest', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: '{{hkgovCenstatdMeasureTable:en}}\n',
+      frontmatter: {
+        hkgovCenstatdCuration:
+          'fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json',
+      },
+    })
+
+    expect(rendered).toContain(
+      '| `LA` | `landArea` | Land area | Land area of the District Council district, in square kilometres. |',
+    )
+    expect(rendered).toContain(
+      '| `POPN_D` | `populationDensity` | Population density | Mid-year population density of the District Council district, in persons per square kilometre. |',
+    )
+  })
 })
