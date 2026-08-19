@@ -8,7 +8,9 @@ import {
   formatDatasetCheckLine,
   formatDatasetPromptLabel,
   formatLandsdIngestPrompt,
+  formatPublishedSourceRelease,
   formatUpdateProgressLine,
+  recordPublishedSourceRelease,
   resolveApiFamilySelection,
   shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
@@ -47,6 +49,35 @@ test('formats the high-signal Clack dataset label without version noise', () => 
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ DivisionArea ∷ District')
+})
+
+test('retains and identifies every published cohort in the update summary', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+  const releases = new Map()
+
+  recordPublishedSourceRelease(releases, {
+    dataset,
+    sourceKey: '2022',
+    version: '2022.0',
+  })
+  recordPublishedSourceRelease(releases, {
+    dataset,
+    sourceKey: '2024',
+    version: '2024.0',
+  })
+
+  expect([...releases.values()]).toHaveLength(2)
+  expect([...releases.values()].map(formatPublishedSourceRelease)).toEqual([
+    'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2022.0',
+    'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2024.0',
+  ])
 })
 
 test('uses sourceVariant as the subtype when the dataset code omits its resource type', () => {

@@ -209,6 +209,7 @@ export type DatasetUpdate = {
   postArchiveIngest?: (
     target: import('../cli/options.ts').UploadTarget,
     prepared: PreparedSourceArchive,
+    skipConfirm: boolean,
   ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase
@@ -1383,8 +1384,14 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
-        postArchiveIngest: async (target, prepared) =>
-          runCsdiArchiveIngestPlaceholder(dataset, release, target, prepared),
+        postArchiveIngest: async (target, prepared, skipConfirm) =>
+          runCsdiArchiveIngestPlaceholder(
+            dataset,
+            release,
+            target,
+            prepared,
+            skipConfirm,
+          ),
         ...(release
           ? {
               recordIdenticalArchive: async (contentHash: string) => {
@@ -1408,6 +1415,7 @@ async function runCsdiArchiveIngestPlaceholder(
   release: DatasetRelease | undefined,
   target: import('../cli/options.ts').UploadTarget,
   prepared: PreparedSourceArchive,
+  skipConfirm: boolean,
 ): Promise<'ingested' | 'not-implemented'> {
   const plandKind =
     dataset.code === 'ds-hk-hkgov-pland-division-pu'
@@ -1497,6 +1505,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
@@ -1814,6 +1823,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
   sourceArchiveSha256: string
   sourceVersion: string
   target: import('../cli/options.ts').UploadTarget
+  yes: boolean
 }) {
   return [
     process.execPath,
@@ -1835,6 +1845,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.yes ? ['--yes'] : []),
   ]
 }
 

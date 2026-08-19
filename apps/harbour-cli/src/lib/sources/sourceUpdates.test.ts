@@ -206,6 +206,7 @@ describe('dataset update registry', () => {
         sourceArchiveSha256: 'e'.repeat(64),
         sourceVersion: '2021',
         target: { environment: 'preview', remote: true },
+        yes: true,
       }),
     ).toEqual(
       expect.arrayContaining([
@@ -215,6 +216,7 @@ describe('dataset update registry', () => {
         'preview',
         '--dataset-code',
         'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        '--yes',
       ]),
     )
   })

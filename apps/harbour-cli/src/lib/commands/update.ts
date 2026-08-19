@@ -47,6 +47,12 @@ type UpdateProcessingResult =
   | 'skipped'
   | 'uploaded'
 
+type PublishedSourceRelease = {
+  dataset: DatasetFixture
+  sourceKey: string
+  version: string
+}
+
 export type ScheduledUpdateSummary = {
   added: Array<{
     datasetCode: string
@@ -118,7 +124,7 @@ export async function runUpdateCommand(
   const forceCheck =
     args.options.force === true || args.options['check-now'] === true || forceDownload
   const errors: string[] = []
-  const added = new Map<string, string | undefined>()
+  const added = new Map<string, PublishedSourceRelease>()
   let reportedTargetLookupFailure = false
   const planned: PlannedDatasetUpdates[] = []
 
@@ -249,6 +255,20 @@ export async function runUpdateCommand(
   }
 
   await writeUpdateState(state)
+  if (added.size > 0) {
+    log.message(['PUBLISHED SOURCE RELEASES', ''].join('\n'), {
+      secondarySymbol: dim('│'),
+      spacing: 1,
+      symbol: dim('├'),
+      withGuide: true,
+    })
+    for (const release of added.values()) {
+      log.success(formatPublishedSourceRelease(release), {
+        spacing: 0,
+        withGuide: true,
+      })
+    }
+  }
   if (errors.length > 0) {
     log.error(
       ['Update errors:', ...errors.flatMap(error => wrapUpdateMessage(error))].join(
@@ -260,9 +280,9 @@ export async function runUpdateCommand(
     )
   }
   await writeScheduledUpdateSummary({
-    added: [...added.entries()].map(([datasetCode, version]) => ({
-      datasetCode,
-      ...(version ? { version } : {}),
+    added: [...added.values()].map(({ dataset, version }) => ({
+      datasetCode: dataset.code,
+      version,
     })),
     errors,
   })
@@ -359,7 +379,7 @@ function updateVersionBase(version: string | null | undefined) {
 async function processPlannedUpdates(
   plan: PlannedDatasetUpdates,
   options: {
-    added: Map<string, string | undefined>
+    added: Map<string, PublishedSourceRelease>
     errors: string[]
     forceDownload: boolean
     printUsage: () => void
@@ -396,7 +416,11 @@ async function processPlannedUpdates(
         plan.targetVersions.set(sourceKey, update.version)
       }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
-        options.added.set(plan.dataset.code, update.version)
+        recordPublishedSourceRelease(options.added, {
+          dataset: plan.dataset,
+          sourceKey,
+          version: update.version,
+        })
         // Native archive intake emits its own detailed upload plan. End the
         // dataset row with an explicit result as well, rather than leaving the
         // final summary to describe the target as it was before processing.
@@ -440,6 +464,20 @@ async function processPlannedUpdates(
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
+}
+
+export function recordPublishedSourceRelease(
+  releases: Map<string, PublishedSourceRelease>,
+  release: PublishedSourceRelease,
+) {
+  releases.set(
+    `${release.dataset.code}:${release.sourceKey}:${release.version}`,
+    release,
+  )
+}
+
+export function formatPublishedSourceRelease(release: PublishedSourceRelease) {
+  return `${formatDatasetPromptLabel(release.dataset)}  v${ownVersion(release.version)}`
 }
 
 async function writeScheduledUpdateSummary(summary: ScheduledUpdateSummary) {
@@ -724,7 +762,11 @@ async function processUpdate(
       return 'mirrored' as const
     }
     if (promptForIngest) replaceResolvedDecision()
-    const result = await update.postArchiveIngest(options.target, prepared)
+    const result = await update.postArchiveIngest(
+      options.target,
+      prepared,
+      options.skipPrompts,
+    )
     return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }
 
