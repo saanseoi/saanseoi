@@ -68,7 +68,7 @@
           "contentHash": "97459d23e1d08f1b72241e082a28d993dca5bbd7631b89db8c6f1e4b1d69f72a"
         }
       ],
-      "identicalArchiveSlots": [
+      "verifiedIdenticalArchiveSlots": [
         {
           "contentHash": "97459d23e1d08f1b72241e082a28d993dca5bbd7631b89db8c6f1e4b1d69f72a",
           "releaseSlot": "2023-Q4",
@@ -86,7 +86,7 @@
           "contentHash": "14ca05cef251be311160ed9e99a9e699ee2a2f505035660933c6bb40cd85e64b"
         }
       ],
-      "identicalArchiveSlots": [
+      "verifiedIdenticalArchiveSlots": [
         {
           "contentHash": "14ca05cef251be311160ed9e99a9e699ee2a2f505035660933c6bb40cd85e64b",
           "releaseSlot": "2025-Q3",

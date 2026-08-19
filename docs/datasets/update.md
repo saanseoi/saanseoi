@@ -186,8 +186,8 @@ Archive metadata records whether availability is `none`, `limited`, or `full`, p
 entry URL and reusable discovery operation where automated access exists. Once an
 archive package has been downloaded, the updater compares its publisher-byte hash with
 the known artefacts for that source release. A match is saved as an
-`identicalArchiveSlots` fixture entry, so the same archive object is not made actionable
-again.
+`verifiedIdenticalArchiveSlots` fixture entry, so the same archive object is not made
+actionable again.
 
 The console collects due source discoveries before processing them, then renders the
 actionable results under `NEW RELEASES`, `NEW REVISIONS`, and `ARCHIVES`. A source

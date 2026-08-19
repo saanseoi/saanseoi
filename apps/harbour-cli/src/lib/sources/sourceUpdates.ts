@@ -132,7 +132,7 @@ export type DatasetRelease = {
     releaseSlot: string
     sourceObjectHash: string
   }>
-  identicalArchiveSlots?: Array<{
+  verifiedIdenticalArchiveSlots?: Array<{
     contentHash: string
     releaseSlot: string
     sourceObjectHash: string
@@ -1349,7 +1349,7 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         dataset,
         downloadPath: sourcePath,
         downloadUrl: source.sourceUrl,
-        isKnownIdenticalArchive: isKnownIdenticalCsdiArchive(
+        isKnownIdenticalArchive: isVerifiedIdenticalCsdiArchive(
           release,
           source.releaseSlot,
           versionKey,
@@ -1395,7 +1395,7 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         ...(release
           ? {
               recordIdenticalArchive: async (contentHash: string) => {
-                await recordIdenticalCsdiArchiveSlot({
+                await recordVerifiedIdenticalCsdiArchiveSlot({
                   contentHash,
                   datasetCode: dataset.code,
                   release,
@@ -1932,19 +1932,19 @@ function findCsdiDatasetRelease(
   )
 }
 
-function isKnownIdenticalCsdiArchive(
+function isVerifiedIdenticalCsdiArchive(
   release: DatasetRelease | undefined,
   releaseSlot: string,
   sourceObjectHash: string,
 ) {
-  return release?.identicalArchiveSlots?.some(
+  return release?.verifiedIdenticalArchiveSlots?.some(
     archive =>
       archive.releaseSlot === releaseSlot &&
       `sha256:${archive.sourceObjectHash}` === sourceObjectHash,
   )
 }
 
-async function recordIdenticalCsdiArchiveSlot(input: {
+async function recordVerifiedIdenticalCsdiArchiveSlot(input: {
   contentHash: string
   datasetCode: string
   release: DatasetRelease
@@ -1959,7 +1959,7 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     return
   }
   if (
-    input.release.identicalArchiveSlots?.some(
+    input.release.verifiedIdenticalArchiveSlots?.some(
       slot =>
         slot.releaseSlot === input.releaseSlot &&
         slot.sourceObjectHash === input.sourceObjectHash,
@@ -1986,7 +1986,7 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     sourceObjectHash: input.sourceObjectHash,
   }
   if (
-    release.identicalArchiveSlots?.some(
+    release.verifiedIdenticalArchiveSlots?.some(
       candidate =>
         candidate.releaseSlot === slot.releaseSlot &&
         candidate.sourceObjectHash === slot.sourceObjectHash,
@@ -1995,12 +1995,13 @@ async function recordIdenticalCsdiArchiveSlot(input: {
     return
   }
 
-  release.identicalArchiveSlots = [...(release.identicalArchiveSlots ?? []), slot].sort(
-    (left, right) => left.releaseSlot.localeCompare(right.releaseSlot),
-  )
+  release.verifiedIdenticalArchiveSlots = [
+    ...(release.verifiedIdenticalArchiveSlots ?? []),
+    slot,
+  ].sort((left, right) => left.releaseSlot.localeCompare(right.releaseSlot))
   await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8')
-  input.release.identicalArchiveSlots = [
-    ...(input.release.identicalArchiveSlots ?? []),
+  input.release.verifiedIdenticalArchiveSlots = [
+    ...(input.release.verifiedIdenticalArchiveSlots ?? []),
     slot,
   ]
 }

@@ -815,7 +815,7 @@ describe('dataset update registry', () => {
               sourceVersion: '2021',
               sourceUrl:
                 'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635933617052_68946',
-              identicalArchiveSlots: [
+              verifiedIdenticalArchiveSlots: [
                 {
                   contentHash: 'b'.repeat(64),
                   releaseSlot: '2025-Q4',
@@ -827,7 +827,7 @@ describe('dataset update registry', () => {
               sourceVersion: '2016',
               sourceUrl:
                 'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635932488538_10765',
-              identicalArchiveSlots: [
+              verifiedIdenticalArchiveSlots: [
                 {
                   contentHash: 'c'.repeat(64),
                   releaseSlot: '2025-Q4',

@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:0fb53275bbffd3b4a1c05dbe8d9de61a3c38f639130d4250d797a95935bc9bd7",
+  "versionHash": "sha256:cec0c00fbc83233b16816bfa917d6d1617a9a2c5285c1da3273e79ba9063d0f0",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
@@ -59,7 +59,7 @@
     {
       "sourceVersion": "2021",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
-      "identicalArchiveSlots": [
+      "verifiedIdenticalArchiveSlots": [
         {
           "releaseSlot": "2024-Q4",
           "sourceObjectHash": "42f7cff4738103ab3eb49af8ccb765905a48776139b87cbb526493709120e63a",
@@ -76,8 +76,8 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "2021 Census: New Towns",
-      "description": "Planned C&SD source for 2021 Census statistics and boundaries for 10 new towns."
+      "name": "Census: New Towns",
+      "description": "Planned C&SD source for Census statistics and boundaries for 10 new towns."
     }
   ]
 }
