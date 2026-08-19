@@ -2,11 +2,8 @@ import { mkdir } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
-import {
-  resolveLatestPublishedSnapshotForResourceTypeRegion,
-  resolveShardForTypeRegionYear,
-} from '@repo/core/db/metaRegistry'
+import type { DatasetProcessingMessage } from '@repo/core'
+import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
@@ -39,7 +36,6 @@ import {
   countDivisionCurrentSnapshotI18nRows,
   countDivisionCurrentSnapshotRows,
   getDivisionCurrentSnapshotTraceState,
-  getMergedCurrentDivisionVersionMap,
   getDivisionVersionMapForSnapshot,
   prepareDivisionVersionInsertContext,
 } from '@repo/core/pipeline/db/division'
@@ -453,7 +449,7 @@ export async function processLocalDivisionSqlUpload(
             buildDivisionBaseHashInput,
             normaliseDivisionI18nSnapshotRow,
           },
-          dbContext.historyTargets.map((target, index) =>
+          dbContext.historyTargets.map(target =>
             buildHistoryOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
           ),
         )
@@ -478,10 +474,9 @@ export async function processLocalDivisionSqlUpload(
           )
         : new Map()
     await assertDivisionCurrentSnapshotComplete(
-      dbContext.metaDb,
       dbContext.currentDb,
       currentRows,
-      previewPlan.regionCode,
+      versionInsertContext.parentSnapshotId,
     )
     if (!target.remote) {
       progress.complete(
@@ -705,7 +700,6 @@ export async function processLocalDivisionSqlUpload(
       importTargets,
     )
     const extraHistorySqlOperations = buildExtraHistorySqlOperations(
-      initialMessage,
       divisionState,
       importTargets,
     )
@@ -1102,25 +1096,16 @@ function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
 }
 
 async function assertDivisionCurrentSnapshotComplete(
-  metaDb: MetaDatabase,
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   currentRows: Map<string, DivisionVersionSnapshot>,
-  regionCode: RegionCode,
+  parentSnapshotId: string | null,
 ) {
+  if (!parentSnapshotId) return
+
   const traceDivisionIds = resolveDivisionTraceIds()
-  const activeSnapshot = await resolveLatestPublishedSnapshotForResourceTypeRegion(
-    metaDb as unknown as HarbourReadableDb,
-    'division',
-    regionCode,
-  )
-
-  if (!activeSnapshot) {
-    return
-  }
-
   const [activeSnapshotRowCount, activeSnapshotI18nRowCount] = await Promise.all([
-    countDivisionCurrentSnapshotRows(currentDb as never, activeSnapshot.id),
-    countDivisionCurrentSnapshotI18nRows(currentDb as never, activeSnapshot.id),
+    countDivisionCurrentSnapshotRows(currentDb as never, parentSnapshotId),
+    countDivisionCurrentSnapshotI18nRows(currentDb as never, parentSnapshotId),
   ])
   const expectedI18nRowCount = [...currentRows.values()].reduce(
     (total, row) => total + row.localisedRows.length,
@@ -1129,7 +1114,7 @@ async function assertDivisionCurrentSnapshotComplete(
 
   const traceState = await getDivisionCurrentSnapshotTraceState(
     currentDb as never,
-    activeSnapshot.id,
+    parentSnapshotId,
     [...traceDivisionIds],
   )
 
@@ -1137,8 +1122,8 @@ async function assertDivisionCurrentSnapshotComplete(
     const snapshotState = traceState.get(divisionId)
 
     logDivisionTrace(traceDivisionIds, divisionId, {
-      activeSnapshotCode: activeSnapshot.code,
-      activeSnapshotId: activeSnapshot.id,
+      activeSnapshotCode: parentSnapshotId,
+      activeSnapshotId: parentSnapshotId,
       event: 'baseline',
       historyCurrentExists: currentRows.has(divisionId),
       historyCurrentLocaleCount: currentRows.get(divisionId)?.localisedRows.length ?? 0,
@@ -1148,13 +1133,13 @@ async function assertDivisionCurrentSnapshotComplete(
     })
   }
 
-  if (currentRows.size > 0 && activeSnapshotRowCount < currentRows.size) {
+  if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
     for (const divisionId of traceDivisionIds) {
       const snapshotState = traceState.get(divisionId)
 
       logDivisionTrace(traceDivisionIds, divisionId, {
-        activeSnapshotCode: activeSnapshot.code,
-        activeSnapshotId: activeSnapshot.id,
+        activeSnapshotCode: parentSnapshotId,
+        activeSnapshotId: parentSnapshotId,
         event: 'activeSnapshotMismatch',
         historyCurrentExists: currentRows.has(divisionId),
         historyCurrentLocaleCount:
@@ -1166,13 +1151,13 @@ async function assertDivisionCurrentSnapshotComplete(
     }
 
     throw new Error(
-      `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected at least ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
+      `Parent division snapshot ${parentSnapshotId} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
     )
   }
 
-  if (expectedI18nRowCount > 0 && activeSnapshotI18nRowCount < expectedI18nRowCount) {
+  if (expectedI18nRowCount > 0 && activeSnapshotI18nRowCount !== expectedI18nRowCount) {
     throw new Error(
-      `Active division snapshot ${activeSnapshot.id} is incomplete in current i18n storage: expected at least ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
+      `Parent division snapshot ${parentSnapshotId} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
     )
   }
 }
@@ -2229,7 +2214,6 @@ ON CONFLICT(id) DO UPDATE SET
 }
 
 function buildExtraHistorySqlOperations(
-  message: DatasetProcessingMessage,
   state: DivisionSqlState,
   importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
 ) {

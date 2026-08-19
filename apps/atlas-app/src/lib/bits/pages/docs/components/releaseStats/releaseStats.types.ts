@@ -172,7 +172,7 @@ export type QualityPresentation = {
 }
 export type DivisionLinkagePresentation = {
   id: string
-  rows: Array<{ label: string; value: string }>
+  rows: Array<{ label: string; value: string; coverageLabel: string }>
 }
 export type GenericStatGroupPresentation = {
   id: string

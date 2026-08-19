@@ -41,6 +41,7 @@ export type AddressApiReleaseSetStatsInput = {
   componentCounts?: Record<string, number>
   districtLinkedCount?: number
   missingStreetCount: number
+  streetLinkedCount?: number
   localeStats?: LocaleStatsAccumulator
   churn?: {
     address2d?: ChurnCounts
@@ -645,6 +646,7 @@ export function buildAddressApiReleaseSetStatsRows(
   for (const [level, value] of [
     ['area', input.areaLinkedCount],
     ['district', input.districtLinkedCount],
+    ['street', input.streetLinkedCount],
   ] as const) {
     if (value !== undefined)
       rows.push(

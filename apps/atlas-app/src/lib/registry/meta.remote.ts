@@ -13,15 +13,21 @@ import {
 import {
   and,
   createCurrentDb,
+  createHistoryDb,
   createMetaDb,
   currentSchema,
   desc,
   eq,
+  historySchema,
   inArray,
   metaApiReleaseSets,
   metaApiVersions,
   metaAssets,
+  metaDataShards,
   metaReleases,
+  metaSnapshotLineages,
+  metaSnapshotShardAssignments,
+  metaSnapshots,
   metaSourceReleases,
   metaApiComposition,
   metaApiCompositionMembers,
@@ -239,6 +245,18 @@ function getCurrentDb() {
   return createCurrentDb(binding)
 }
 
+function getHistoryDb(bindingName: string) {
+  const env = getRequestEvent().platform?.env
+  const bindings = {
+    DB_HISTORY_HK_BEFORE: env?.DB_HISTORY_HK_BEFORE,
+    DB_HISTORY_HK_2025: env?.DB_HISTORY_HK_2025,
+    DB_HISTORY_HK_2026: env?.DB_HISTORY_HK_2026,
+  }
+  const binding = bindings[bindingName as keyof typeof bindings]
+  if (!binding) throw new Error(`History D1 binding "${bindingName}" not found.`)
+  return createHistoryDb(binding)
+}
+
 function isRegistryBootstrapError(error: unknown) {
   const seen = new Set<unknown>()
   let current = error
@@ -434,26 +452,76 @@ const UNOFFICIAL_DISTRICT_IDS = new Set([
 ])
 
 /**
- * The district-coverage map uses the C&SD 2021 Census District Boundary's
- * simplified display geometry. Do not substitute HAD or source-precision
- * geometry here: the choropleth must remain a lightweight Census map.
+ * The district-coverage map prefers the C&SD 2021 Census District Boundary's
+ * simplified display geometry. Its immutable snapshot can live in a history
+ * shard, so resolve the published snapshot and read its assigned shard rather
+ * than substituting Overture geometry.
  */
 export const getDistrictCoverageMapData = query(
   districtMapLocaleSchema,
   async locale => {
     const { divisionAreas, divisionsI18n } = currentSchema
     const i18nLocale = locale.toLowerCase()
-    const rows = await getCurrentDb()
-      .select({
-        divisionId: divisionAreas.divisionId,
-        geometry: divisionAreas.geometry,
-        updatedAt: divisionAreas.updatedAt,
-        variant: divisionAreas.variant,
-      })
-      .from(divisionAreas)
-      .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
-      .orderBy(desc(divisionAreas.updatedAt))
-      .all()
+    const selectCurrentDistrictAreas = () =>
+      getCurrentDb()
+        .select({
+          divisionId: divisionAreas.divisionId,
+          geometry: divisionAreas.geometry,
+          updatedAt: divisionAreas.updatedAt,
+          variant: divisionAreas.variant,
+        })
+        .from(divisionAreas)
+        .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
+        .orderBy(desc(divisionAreas.updatedAt))
+        .all()
+    const currentRows = await selectCurrentDistrictAreas()
+    const snapshot =
+      currentRows.length > 0
+        ? null
+        : await getMetaDb()
+            .select({
+              bindingName: metaDataShards.bindingName,
+              snapshotId: metaSnapshots.id,
+            })
+            .from(metaSnapshots)
+            .innerJoin(
+              metaSnapshotLineages,
+              eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+            )
+            .innerJoin(
+              metaSnapshotShardAssignments,
+              eq(metaSnapshots.id, metaSnapshotShardAssignments.snapshotId),
+            )
+            .innerJoin(
+              metaDataShards,
+              eq(metaSnapshotShardAssignments.dataShardId, metaDataShards.id),
+            )
+            .where(
+              and(
+                eq(metaSnapshots.resourceType, 'divisionArea'),
+                eq(metaSnapshots.status, 'published'),
+                eq(metaSnapshotLineages.variant, DISTRICT_COVERAGE_MAP_VARIANT),
+              ),
+            )
+            .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+            .limit(1)
+            .get()
+    const rows =
+      currentRows.length > 0
+        ? currentRows
+        : snapshot
+          ? await getHistoryDb(snapshot.bindingName)
+              .select({
+                divisionId: historySchema.divisionAreas.divisionId,
+                geometry: historySchema.divisionAreas.geometry,
+                updatedAt: historySchema.divisionAreas.updatedAt,
+                variant: historySchema.divisionAreas.variant,
+              })
+              .from(historySchema.divisionAreas)
+              .where(eq(historySchema.divisionAreas.snapshotId, snapshot.snapshotId))
+              .orderBy(desc(historySchema.divisionAreas.updatedAt))
+              .all()
+          : []
 
     const latestByDistrict = new Map<string, (typeof rows)[number]>()
     for (const row of rows) {
