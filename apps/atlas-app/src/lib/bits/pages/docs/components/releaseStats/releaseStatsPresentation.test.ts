@@ -401,6 +401,7 @@ describe('createReleaseStatsPresentation', () => {
 
   test('presents division linkage separately from quality checks', () => {
     const model = present([
+      { dimension: 'records', metric: 'count', value: 10 },
       {
         dimension: 'records',
         metric: 'linkage',
@@ -416,7 +417,7 @@ describe('createReleaseStatsPresentation', () => {
     ])
 
     expect(model.divisionLinkage?.rows).toEqual([
-      expect.objectContaining({ label: 'area', value: '7' }),
+      expect.objectContaining({ label: 'area', value: '7', coverageLabel: '70%' }),
     ])
     expect(model.quality?.issues).toHaveLength(1)
     expect(model.genericGroups).toEqual([])

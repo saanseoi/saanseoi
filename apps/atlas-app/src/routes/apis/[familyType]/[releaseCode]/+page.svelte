@@ -33,6 +33,7 @@ import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
+import { supportsReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
 import type {
   ReleaseNavAction,
   ReleaseNavOutlineItem,
@@ -132,6 +133,18 @@ $effect(() => {
   showNoteDiff = page.url.searchParams.get('view') === 'diff'
 })
 let showBulkActions = $state(false)
+let sampleRequest = $state(0)
+let sampleCount = $state(0)
+let sampleView = $state<'distinct' | 'grouped'>('distinct')
+let sampleTarget = $state<string | null>(null)
+$effect(() => {
+  const nextTarget = `${release.apiVersion}:${release.code}`
+  if (sampleTarget === nextTarget) return
+  sampleTarget = nextTarget
+  sampleRequest = 0
+  sampleCount = 0
+  sampleView = 'distinct'
+})
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
@@ -246,7 +259,8 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       'zh-hant': m.source_locale_zh_hant(),
       'zh-hans': m.source_locale_zh_hans(),
     })[code] ?? code,
-  statLabel: humaniseStat,
+  statLabel: value =>
+    value === 'missing_street_count' ? 'Missing street linkage' : humaniseStat(value),
   districtFallback: districtId =>
     source_geometry_district_fallback({ district: districtId }),
   processingAction: code => {
@@ -324,11 +338,11 @@ function setActiveTab(tab: string) {
 }
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
-  { id: 'samples', label: 'Samples' },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
     : []),
+  { id: 'samples', label: 'Samples' },
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
@@ -348,17 +362,35 @@ let actions = $derived<ReleaseNavAction[]>(
           pressed: showNoteDiff,
         },
       ]
-    : activeTab === 'audit' && release.bulkActions?.length
+    : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
       ? [
           {
-            icon: 'ion:layers-outline',
-            id: 'bulk',
-            label: m.source_bulk_actions(),
-            onSelect: () => (showBulkActions = !showBulkActions),
-            pressed: showBulkActions,
+            id: 'more-samples',
+            label: 'Show more',
+            onSelect: () => (sampleRequest += 1),
           },
+          ...(sampleCount > 1
+            ? [
+                {
+                  id: 'sample-view',
+                  label: sampleView === 'grouped' ? 'Distinct' : 'Group by key',
+                  onSelect: () =>
+                    (sampleView = sampleView === 'grouped' ? 'distinct' : 'grouped'),
+                },
+              ]
+            : []),
         ]
-      : [],
+      : activeTab === 'audit' && release.bulkActions?.length
+        ? [
+            {
+              icon: 'ion:layers-outline',
+              id: 'bulk',
+              label: m.source_bulk_actions(),
+              onSelect: () => (showBulkActions = !showBulkActions),
+              pressed: showBulkActions,
+            },
+          ]
+        : [],
 )
 
 let sourceReleaseLinksPresentation = $derived(
@@ -509,10 +541,16 @@ $effect(() => {
             bind:activeHeadingId={activeStatsHeadingId}
           />
         {:else if activeTab === 'samples'}
-          <ReleaseSamples.Root
-            apiVersion={release.apiVersion}
-            releaseSet={release.code}
-          />
+          {#key `${release.apiVersion}:${release.code}`}
+            <ReleaseSamples.Root
+              apiVersion={release.apiVersion}
+              apiFamily={release.apiFamily}
+              releaseSet={release.code}
+              request={sampleRequest}
+              bind:sampleCount
+              bind:view={sampleView}
+            />
+          {/key}
         {:else if activeTab === 'audit'}
           <ReleaseAudit.Root
             actions={release.processingActions}

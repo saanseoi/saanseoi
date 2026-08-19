@@ -14,6 +14,7 @@ import { createD1ImportClient } from '@repo/core/d1ImportApi'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import { and, currentSchema, eq, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
+import type { AnyColumn } from 'drizzle-orm'
 
 import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
@@ -265,6 +266,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     districtLinkedCount,
     localeStats,
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
+    streetLinkedCount,
   })
 }
 
@@ -461,7 +463,7 @@ async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: strin
 async function countRows(
   db: HarbourReadableDb,
   table: unknown,
-  snapshotIdColumn: any,
+  snapshotIdColumn: AnyColumn,
   snapshotId: string,
 ) {
   return countWhere(db, table, eq(snapshotIdColumn, snapshotId))
@@ -482,9 +484,9 @@ async function countWhere(db: HarbourReadableDb, table: unknown, condition: unkn
 async function countGrouped(
   db: HarbourReadableDb,
   table: unknown,
-  snapshotIdColumn: any,
+  snapshotIdColumn: AnyColumn,
   snapshotId: string,
-  groupColumn: any,
+  groupColumn: AnyColumn,
 ) {
   const rows = await db
     .select({

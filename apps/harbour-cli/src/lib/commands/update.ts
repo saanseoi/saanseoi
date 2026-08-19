@@ -86,6 +86,15 @@ export async function runUpdateCommand(
 ) {
   validateUpdateArguments(args, printUsage)
   const requested = readDatasetOption(args)
+  const releaseNotesUrl =
+    typeof args.options['release-notes-url'] === 'string'
+      ? args.options['release-notes-url']
+      : undefined
+  if (releaseNotesUrl && requested?.size !== 1) {
+    throw new Error('--release-notes-url requires exactly one --dataset CODE.')
+  }
+  const releaseNotesDatasetCode =
+    releaseNotesUrl && requested?.size === 1 ? [...requested][0] : undefined
 
   const datasets = await loadDatasetFixtures()
   const requestedDatasets = requested
@@ -244,6 +253,8 @@ export async function runUpdateCommand(
         forceDownload,
         forceUpload,
         printUsage,
+        releaseNotesDatasetCode,
+        releaseNotesUrl,
         shouldDownload,
         skipPrompts,
         skipUpload,
@@ -310,6 +321,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'force-download',
     'force-upload',
     'no-upload',
+    'release-notes-url',
     'scope',
     'target',
     'yes',
@@ -328,11 +340,13 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
   const invalidBooleanOptions = booleanOptions.filter(
     option => args.options[option] !== undefined && args.options[option] !== true,
   )
+  const releaseNotesUrlMissingValue = args.options['release-notes-url'] === true
 
   if (
     args.positionals.length === 0 &&
     invalidOptions.length === 0 &&
-    invalidBooleanOptions.length === 0
+    invalidBooleanOptions.length === 0 &&
+    !releaseNotesUrlMissingValue
   ) {
     return
   }
@@ -350,6 +364,9 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     throw new Error(
       `Unsupported update option(s): ${invalidOptions.map(option => `--${option}`).join(', ')}.`,
     )
+  }
+  if (releaseNotesUrlMissingValue) {
+    throw new Error('--release-notes-url requires an absolute HTTP(S) URL.')
   }
   throw new Error(
     `Update flags do not take values: ${invalidBooleanOptions.map(option => `--${option}`).join(', ')}.`,
@@ -460,6 +477,8 @@ async function processPlannedUpdates(
     forceDownload: boolean
     forceUpload: boolean
     printUsage: () => void
+    releaseNotesDatasetCode?: string
+    releaseNotesUrl?: string
     shouldDownload: boolean
     skipPrompts: boolean
     skipUpload: boolean
@@ -481,6 +500,10 @@ async function processPlannedUpdates(
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
         printUsage: options.printUsage,
+        releaseNotesUrl:
+          options.releaseNotesDatasetCode === plan.dataset.code
+            ? options.releaseNotesUrl
+            : undefined,
         row,
         shouldDownload: options.shouldDownload,
         skipPrompts: options.skipPrompts,
@@ -760,6 +783,7 @@ async function processUpdate(
   update: DatasetUpdate,
   options: {
     printUsage: () => void
+    releaseNotesUrl?: string
     row: UpdateRow
     shouldDownload: boolean
     forceDownload: boolean
@@ -875,7 +899,16 @@ async function processUpdate(
   if (promptForUpload) replaceResolvedDecision()
 
   await runUploadCommand(
-    { command: 'upload', positionals: [path], options: update.upload.options },
+    {
+      command: 'upload',
+      positionals: [path],
+      options: {
+        ...update.upload.options,
+        ...(options.releaseNotesUrl
+          ? { 'release-notes-url': options.releaseNotesUrl }
+          : {}),
+      },
+    },
     options.target,
     {
       dryRun: false,

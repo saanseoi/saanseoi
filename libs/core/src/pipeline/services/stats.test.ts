@@ -105,6 +105,7 @@ describe('stats rows', () => {
       districtLinkedCount: 10,
       areaLinkedCount: 10,
       missingStreetCount: 3,
+      streetLinkedCount: 0,
       churn: {
         address2d: churnCounts,
         totals: churnCounts,
@@ -155,6 +156,15 @@ describe('stats rows', () => {
         groupBy: 'table',
         groupValue: 'address3d',
         value: 4,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'divisionLevel',
+        groupValue: 'street',
+        metric: 'linkage',
+        value: 0,
       }),
     )
     expect(rows).toContainEqual(

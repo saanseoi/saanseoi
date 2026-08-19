@@ -178,6 +178,18 @@ test('uses explicit update flags instead of ambiguous --force', () => {
   ).not.toThrow()
   expect(() =>
     validateUpdateArguments(
+      {
+        command: 'update',
+        positionals: [],
+        options: {
+          'release-notes-url': 'https://docs.overturemaps.org/release-notes/',
+        },
+      },
+      printUsage,
+    ),
+  ).not.toThrow()
+  expect(() =>
+    validateUpdateArguments(
       { command: 'update', positionals: [], options: { force: true } },
       printUsage,
     ),

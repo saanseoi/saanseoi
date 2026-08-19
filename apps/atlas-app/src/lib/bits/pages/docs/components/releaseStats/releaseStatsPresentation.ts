@@ -309,14 +309,27 @@ export function createReleaseStatsPresentation({
   const divisionLinkage = divisionLinkageRows.length
     ? (() => {
         claim(divisionLinkageRows)
+        const linkageTotal = primaryRecords?.value ?? fallback?.value ?? total ?? 0
+        const divisionLevelOrder = ['area', 'district', 'street']
         return {
-          id: addHeading('stats-division-linkage', 'Division linkage'),
+          id: addHeading('stats-division-linkage', 'Divisions & Streets'),
           rows: divisionLinkageRows
             .map(row => ({
+              order: divisionLevelOrder.indexOf(row.groupValue ?? ''),
               label: copy.statLabel(row.groupValue),
               value: formatReleaseStat(locale, row.value, row.metricUnit),
+              coverageLabel: formatReleaseStat(
+                locale,
+                linkageTotal > 0 ? Math.min(100, (row.value / linkageTotal) * 100) : 0,
+                'percentage',
+              ),
             }))
-            .sort((left, right) => left.label.localeCompare(right.label, locale)),
+            .sort(
+              (left, right) =>
+                left.order - right.order ||
+                left.label.localeCompare(right.label, locale),
+            )
+            .map(({ order: _order, ...row }) => row),
         }
       })()
     : undefined

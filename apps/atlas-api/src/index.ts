@@ -44,14 +44,16 @@ app.use('*', poweredBy())
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, prettyJSON())
 }
-app.use(
-  '/v0/*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
-  }),
-)
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(
+    path,
+    cors({
+      origin: '*',
+      allowMethods: ['GET', 'POST', 'OPTIONS'],
+      allowHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
+    }),
+  )
+}
 app.use(
   '/v0/meta/substack',
   cors({
@@ -74,7 +76,11 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
-    if (isPublicMetadataPath(c.req.path) || isAuthDisabled(c.env)) {
+    if (
+      isPublicMetadataPath(c.req.path) ||
+      isAuthDisabled(c.env) ||
+      isSaanSeoiSiteOrigin(c.req.header('origin'))
+    ) {
       return next()
     }
     const rawKey = readPublicApiKey(c.req.raw)
@@ -152,6 +158,16 @@ function isPublicMetadataPath(path: string) {
 
 function isAuthDisabled(env: AppBindings) {
   return env.AUTH_MODE === 'disabled'
+}
+
+function isSaanSeoiSiteOrigin(origin: string | undefined) {
+  if (!origin) return false
+  try {
+    const url = new URL(origin)
+    return url.protocol === 'https:' && url.hostname === 'saanseoi.hk' && !url.port
+  } catch {
+    return false
+  }
 }
 
 function requestOrigin(origin: string | undefined) {
