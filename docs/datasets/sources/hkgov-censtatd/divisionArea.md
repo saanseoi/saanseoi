@@ -118,13 +118,21 @@ to the corresponding canonical Overture division ID, including the deterministic
 synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
 them with `include=areas:hkgov-censtatd-area`.
 
+During ingestion, the three references are checked against the closest published
+canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
+used first; only an absent earlier cohort permits the earliest later Overture cohort.
+The selection is retained as a snapshot lookup dependency. Area/type must not create a
+second C&SD division snapshot merely to satisfy its geometry validation.
+
 The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
 Market Area polygons have their own deterministic canonical division IDs and therefore
 form the separate `hkgov-censtatd-hma` domain. Its native area variant is
 `hkgov-censtatd-hma`; Building Groups remain source-only because their upstream geometry
 is point-like. A Housing Market Area is not presented as a District Council district.
-For the source-release Records by district map only, each HMA is spatially associated
-with every official exact 2021 C&SD district polygon with which it has a positive-area
+The source-release fan-out publishes its HMA `division` snapshot before the companion
+`divisionArea` snapshot; the latter validates against that exact HMA snapshot. For the
+source-release Records by district map only, each HMA is spatially associated with every
+official exact 2021 C&SD district polygon with which it has a positive-area
 intersection. A boundary-only touch does not count. Consequently, an HMA spanning a
 district boundary increments each intersected district and the map total can exceed the
 number of HMA records. The association does not alter HMA canonical division IDs and it

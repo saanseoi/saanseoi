@@ -158,7 +158,13 @@ assumed match.
 
 If source geometry is suitable for delivery, it is reviewed and published through a
 Divisions-domain workflow. Area/type and HMA are the approved exception: their shared
-statistics importer executes that source-release fan-out explicitly.
+statistics importer executes that source-release fan-out explicitly. For HMA, it
+publishes the generated `division` snapshot before the companion `divisionArea`
+snapshot, so the area records are validated against the immutable HMA identities from
+the same source release. Area/type creates no parallel C&SD division snapshot: its three
+geometry records validate against the closest published canonical Overture division
+cohort, preferring the latest cohort at or before the C&SD cohort and using the earliest
+later cohort only when no earlier one is available.
 
 When a comparable earlier source release exists, structural churn is limited to measure
 and dimension-definition/coverage changes. It is a quality-control signal, not a claim
