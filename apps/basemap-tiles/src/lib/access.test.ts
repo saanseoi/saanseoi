@@ -11,7 +11,7 @@ import worker from '../index'
 
 const config: OriginAccessConfig = {
   DIAGNOSTIC_ORIGINS: 'https://maplibre.org',
-  DEV_ORIGINS: 'http://localhost:5174',
+  DEV_ORIGINS: 'http://localhost:5174,http://127.0.0.1:5175',
   CORE_ORIGIN_SUFFIXES: '*.hype.hk,*.saanseoi.hk',
   HUB_ORIGINS: 'https://hype.hk,https://saanseoi.hk',
   PREVIEW_PREFIXES: 'preview.',
@@ -53,6 +53,7 @@ test('only configured first-party origins are unmetered', () => {
   assert.equal(isUnmeteredOrigin('https://hype.hk:443', config), true)
   assert.equal(isUnmeteredOrigin('https://maps.saanseoi.hk', config), true)
   assert.equal(isUnmeteredOrigin('http://localhost:5174', config), true)
+  assert.equal(isUnmeteredOrigin('http://127.0.0.1:5175', config), true)
   assert.equal(isUnmeteredOrigin('https://preview.hype.hk', config), true)
   assert.equal(isUnmeteredOrigin('https://maplibre.org', config), true)
   assert.equal(isUnmeteredOrigin('https://hype.hk.example', config), false)
