@@ -19,6 +19,7 @@ import {
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
+  assertCsdiArchiveDownload,
   datasetCorrectionSuffixSources,
   datasetName,
   getDueUpdatePhases,
@@ -40,6 +41,28 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('rejects CSDI HTML error pages before caching them as source archives', () => {
+    const url = 'https://static.csdi.gov.hk/csdi-webpage/download/common/missing?a=1'
+
+    expect(() =>
+      assertCsdiArchiveDownload(
+        new TextEncoder().encode('<!DOCTYPE html><html><title>Download Failed</title>'),
+        'text/html; charset=UTF-8',
+        url,
+      ),
+    ).toThrow(
+      `CSDI archive download returned an HTML failure page instead of the source file: ${url}`,
+    )
+
+    expect(() =>
+      assertCsdiArchiveDownload(
+        new TextEncoder().encode('<gml:FeatureCollection />'),
+        'application/gml+xml',
+        url,
+      ),
+    ).not.toThrow()
+  })
+
   test('hands the exact mirrored LandsD archives to their native importers', () => {
     const common = {
       inputFile: '/tmp/landsd-source.zip',
