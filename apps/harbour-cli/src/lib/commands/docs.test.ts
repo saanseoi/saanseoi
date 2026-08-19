@@ -13,7 +13,7 @@ describe('docs markdown fixtures', () => {
     expect(releaseVersionFromSourceVersion('2025-09-24.1')).toBe('2025-09-24.1')
   })
 
-  test('renders lower-camel frontmatter tags in fixture bodies', () => {
+  test('renders lower-camel frontmatter tags in fixture bodies', async () => {
     const fixture = parseMarkdownFixture(`---
 sourceSchemaVersion: "1.12.0"
 sourceVersion: "2025-09-24.0"
@@ -25,23 +25,23 @@ Release \`{{ releaseVersion }}\`
 Locale \`{{LOCALE}}\`
 `)
 
-    expect(renderMarkdownFixtureBody(fixture)).toBe(`Schema \`1.12.0\`
+    expect(await renderMarkdownFixtureBody(fixture)).toBe(`Schema \`1.12.0\`
 Source \`2025-09-24.0\`
 Release \`2025-09-24.0\`
 Locale \`{{LOCALE}}\`
 `)
   })
 
-  test('rejects unknown frontmatter tags', () => {
-    expect(() =>
+  test('rejects unknown frontmatter tags', async () => {
+    await expect(
       renderMarkdownFixtureBody({
         body: 'Schema `{{schemaVerison}}`\n',
         frontmatter: { sourceSchemaVersion: '1.12.0' },
       }),
-    ).toThrow('Unknown markdown fixture frontmatter tag: {{schemaVerison}}')
+    ).rejects.toThrow('Unknown markdown fixture frontmatter tag: {{schemaVerison}}')
   })
 
-  test('can render a carried-forward fixture with target row frontmatter', () => {
+  test('can render a carried-forward fixture with target row frontmatter', async () => {
     const fixture = parseMarkdownFixture(`---
 release: "dr-hk-hkgov-dpo-address-2025-09-24.0"
 sourceSchemaVersion: "1.12.0"
@@ -51,7 +51,7 @@ Schema \`{{sourceSchemaVersion}}\`
 `)
 
     expect(
-      renderMarkdownFixtureBody(fixture, {
+      await renderMarkdownFixtureBody(fixture, {
         release: 'dr-hk-hkgov-dpo-address-2026-01-01.0',
         sourceSchemaVersion: '1.15.0',
       }),

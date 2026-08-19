@@ -376,6 +376,28 @@ function updateVersionBase(version: string | null | undefined) {
   return version?.replace(/\.\d+$/, '')
 }
 
+/**
+ * A native importer exiting successfully is not publication evidence. Confirm
+ * the exact release is visible on the upload target before reporting it.
+ */
+export function requirePublishedTargetVersion(
+  update: Pick<DatasetUpdate, 'targetSourceKey' | 'version'>,
+  targetVersions: ReadonlyMap<string, string | null>,
+) {
+  const targetSourceKey = update.targetSourceKey
+  const publishedVersion = targetSourceKey
+    ? targetVersions.get(targetSourceKey)
+    : undefined
+
+  if (!update.version || publishedVersion !== update.version) {
+    throw new Error(
+      `Ingestion completed, but ${targetSourceKey ?? 'the source release'} is not published on the target at v${update.version ?? 'unknown'} (target reports ${publishedVersion ? `v${publishedVersion}` : 'no release'}).`,
+    )
+  }
+
+  return publishedVersion
+}
+
 async function processPlannedUpdates(
   plan: PlannedDatasetUpdates,
   options: {
@@ -412,10 +434,15 @@ async function processPlannedUpdates(
         updateIndex,
         updateTotal: plan.updates.length,
       })
-      if (result === 'ingested' && update.version) {
-        plan.targetVersions.set(sourceKey, update.version)
-      }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
+        const publishedVersion = requirePublishedTargetVersion(
+          update,
+          await fetchTargetVersions(options.target, plan.dataset),
+        )
+        plan.targetVersions.set(
+          update.targetSourceKey ?? plan.dataset.code,
+          publishedVersion,
+        )
         recordPublishedSourceRelease(options.added, {
           dataset: plan.dataset,
           sourceKey,
@@ -1287,11 +1314,16 @@ function datasetLabelParts(dataset: DatasetFixture) {
         ? 'Nameplate'
         : '',
     type:
-      resourceTypes.length === 2 &&
+      resourceTypes.length === 3 &&
+      resourceTypes.includes('divisionStatistic') &&
       resourceTypes.includes('division') &&
       resourceTypes.includes('divisionArea')
-        ? 'Division(Area)'
-        : resourceTypes.map(formatResourceTypeLabel).join(' + '),
+        ? 'Stat + Div(Area)'
+        : resourceTypes.length === 2 &&
+            resourceTypes.includes('division') &&
+            resourceTypes.includes('divisionArea')
+          ? 'Division(Area)'
+          : resourceTypes.map(formatResourceTypeLabel).join(' + '),
   }
 }
 

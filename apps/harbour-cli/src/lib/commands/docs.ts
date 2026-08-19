@@ -65,6 +65,10 @@ type PublishDocsScope = DocsScope | 'all'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const API_RELEASE_SET_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiReleaseSets')
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
+const CENSTATD_CURATION_ROOT = resolve(
+  REPO_ROOT,
+  'fixtures/meta/curations/hkgov-censtatd-statistics',
+)
 
 export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
   if ((await resolveDocsNewScope(args)) === 'releases') {
@@ -208,7 +212,7 @@ async function runApiReleaseSetDocsPublishCommand(
 
       const previousNotes = row.notes ?? ''
 
-      const notes = renderMarkdownFixtureBody(
+      const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForApiReleaseSetRow(row),
       )
@@ -371,7 +375,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
 
       const previousNotes = row.notes ?? ''
 
-      const notes = renderMarkdownFixtureBody(
+      const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForReleaseRow(row),
       )
@@ -884,7 +888,7 @@ function serialiseMarkdownFixture(frontmatter: Record<string, string>, body: str
     .join('\n')}\n---\n${ensureTrailingNewline(body)}`
 }
 
-export function renderMarkdownFixtureBody(
+export async function renderMarkdownFixtureBody(
   fixture: {
     body: string
     frontmatter: Record<string, string>
@@ -896,7 +900,7 @@ export function renderMarkdownFixtureBody(
     ...frontmatterOverride,
   }
 
-  return fixture.body.replace(
+  const markdown = fixture.body.replace(
     /\{\{\s*([a-z][A-Za-z0-9_-]*)\s*\}\}/g,
     (tag, key: string) => {
       const value = frontmatter[key]
@@ -908,6 +912,155 @@ export function renderMarkdownFixtureBody(
       return value
     },
   )
+
+  return renderCenstatdMeasureTables(markdown, frontmatter)
+}
+
+/**
+ * Expands a reviewed C&SD measure curation into the release-note table for one
+ * locale. This keeps the notes coupled to the names and descriptions actually
+ * published by the statistics processor, rather than maintaining a second
+ * hand-written copy in Markdown.
+ */
+async function renderCenstatdMeasureTables(
+  markdown: string,
+  frontmatter: Record<string, string>,
+) {
+  const directive = /\{\{hkgovCenstatdMeasureTable:(en|zh-Hant|zh-Hans)\}\}/g
+
+  if (!directive.test(markdown)) return markdown
+
+  const curationPath = frontmatter.hkgovCenstatdCuration
+  if (!curationPath) {
+    throw new Error(
+      'C&SD measure-table directives require hkgovCenstatdCuration in fixture frontmatter.',
+    )
+  }
+
+  const path = resolve(REPO_ROOT, curationPath)
+  if (!path.startsWith(`${CENSTATD_CURATION_ROOT}/`) || !path.endsWith('.json')) {
+    throw new Error(`Invalid C&SD measure curation path: ${curationPath}`)
+  }
+
+  const manifest = parseCenstatdMeasureTableManifest(
+    JSON.parse(await readFile(path, 'utf8')),
+    path,
+  )
+
+  return markdown.replace(directive, (_tag, locale: CenstatdMeasureTableLocale) =>
+    renderCenstatdMeasureTable(manifest, locale),
+  )
+}
+
+type CenstatdMeasureTableLocale = 'en' | 'zh-Hant' | 'zh-Hans'
+
+type CenstatdMeasureTableManifest = {
+  measures: Array<{
+    localisations: Array<{
+      description: string
+      locale: CenstatdMeasureTableLocale
+      name: string
+    }>
+    measureCode: string
+    sourceField: string
+  }>
+}
+
+function parseCenstatdMeasureTableManifest(
+  value: unknown,
+  path: string,
+): CenstatdMeasureTableManifest {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !Array.isArray((value as { measures?: unknown }).measures)
+  ) {
+    throw new Error(`Invalid C&SD measure curation manifest: ${path}`)
+  }
+
+  const measures = (value as { measures: unknown[] }).measures.map((measure, index) => {
+    if (!measure || typeof measure !== 'object') {
+      throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
+    }
+
+    const entry = measure as {
+      localisations?: unknown
+      measureCode?: unknown
+      sourceField?: unknown
+    }
+    if (
+      typeof entry.measureCode !== 'string' ||
+      typeof entry.sourceField !== 'string' ||
+      !Array.isArray(entry.localisations)
+    ) {
+      throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
+    }
+
+    const localisations = entry.localisations.map((localisation, localisationIndex) => {
+      if (!localisation || typeof localisation !== 'object') {
+        throw new Error(
+          `Invalid C&SD measure localisation ${index + 1}.${localisationIndex + 1}: ${path}`,
+        )
+      }
+      const value = localisation as {
+        description?: unknown
+        locale?: unknown
+        name?: unknown
+      }
+      if (
+        typeof value.description !== 'string' ||
+        typeof value.name !== 'string' ||
+        !isCenstatdMeasureTableLocale(value.locale)
+      ) {
+        throw new Error(
+          `Invalid C&SD measure localisation ${index + 1}.${localisationIndex + 1}: ${path}`,
+        )
+      }
+      return value as CenstatdMeasureTableManifest['measures'][number]['localisations'][number]
+    })
+
+    return {
+      localisations,
+      measureCode: entry.measureCode,
+      sourceField: entry.sourceField,
+    }
+  })
+
+  return { measures }
+}
+
+function isCenstatdMeasureTableLocale(
+  value: unknown,
+): value is CenstatdMeasureTableLocale {
+  return value === 'en' || value === 'zh-Hant' || value === 'zh-Hans'
+}
+
+function renderCenstatdMeasureTable(
+  manifest: CenstatdMeasureTableManifest,
+  locale: CenstatdMeasureTableLocale,
+) {
+  const lines = [
+    '| sourceField | measureCode | name | description |',
+    '| --- | --- | --- | --- |',
+  ]
+
+  for (const measure of manifest.measures) {
+    const localisation = measure.localisations.find(entry => entry.locale === locale)
+    if (!localisation) {
+      throw new Error(
+        `C&SD measure ${measure.sourceField} has no ${locale} localisation for the release-note table.`,
+      )
+    }
+    lines.push(
+      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
+    )
+  }
+
+  return lines.join('\n')
+}
+
+function escapeMarkdownTableCell(value: string) {
+  return value.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>')
 }
 
 function frontmatterForApiReleaseSetRow(
