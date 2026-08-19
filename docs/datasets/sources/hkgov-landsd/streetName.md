@@ -94,8 +94,8 @@ publisher provenance, not a canonical-street lookup key. A deletion updates the
 application’s explicit affected street and sets `deletedAt` only for a confidently
 parsed legal effective date.
 
-Declarations may create a new street automatically. Other existing-street changes
-require a versioned application fixture in
+Declarations may create a new street automatically. Other existing-street changes and
+deletions require a versioned application fixture in
 [`fixtures/meta/curations/hkgov-landsd-street.json`](../../../../fixtures/meta/curations/hkgov-landsd-street.json).
 It is a schema-version 2 manifest; an empty `decisions` array is valid until a
 reviewable notice needs a manual disposition. The first blocked run writes

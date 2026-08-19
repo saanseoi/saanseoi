@@ -18,7 +18,7 @@ import { mintLandsdStreetId } from './landsdStreetIds.ts'
 
 type LandsdStreetReviewableNoticeType = Extract<
   LandsdStreetNoticeType,
-  'change' | 'corrigendum' | 'intention'
+  'change' | 'corrigendum' | 'deletion' | 'intention'
 >
 
 export type LandsdStreetCurationDisposition =
@@ -81,7 +81,12 @@ export type LandsdStreetLifecycleReview = {
   } | null
   sourceName: { en: string; zhHant: string }
   noticeIdentity: string | null
-  operation: 'description-change' | 'name-change' | 'corrigendum' | 'intention'
+  operation:
+    | 'deletion'
+    | 'description-change'
+    | 'name-change'
+    | 'corrigendum'
+    | 'intention'
   correction: LandsdStreetTextCorrection | null
   partialRenameIntention: LandsdStreetPartialRenameIntention | null
   intentionSummary: string | null
@@ -206,6 +211,7 @@ export function resolveLandsdStreetCuration(input: {
     } =>
       notice.governmentNoticeType === 'change' ||
       notice.governmentNoticeType === 'corrigendum' ||
+      notice.governmentNoticeType === 'deletion' ||
       notice.governmentNoticeType === 'intention',
   )
   const decisions = new Map(
@@ -216,7 +222,7 @@ export function resolveLandsdStreetCuration(input: {
     for (const decision of input.manifest.decisions)
       if (!IDs.has(decision.sourceRecordId))
         throw new Error(
-          `LandsD curation ${decision.sourceRecordId} does not identify a change, corrigendum, or intention notice in the current source.`,
+          `LandsD curation ${decision.sourceRecordId} does not identify a change, corrigendum, deletion, or intention notice in the current source.`,
         )
   const review = reviewable.map(notice => {
     const parsed = input.parsedEntries.get(notice.id)
@@ -496,6 +502,7 @@ function lifecycleOperationFor(
   notice: PairedLandsdStreetNotice,
   parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
 ) {
+  if (notice.governmentNoticeType === 'deletion') return 'deletion' as const
   if (notice.governmentNoticeType === 'intention') return 'intention' as const
   if (notice.governmentNoticeType === 'corrigendum') return 'corrigendum' as const
   const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
