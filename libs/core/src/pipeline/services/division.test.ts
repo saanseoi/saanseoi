@@ -239,6 +239,12 @@ describe('missingOvertureHongKongAreaRows', () => {
     })),
   )
 
+  test('reuses Overture’s historic Kowloon identity', () => {
+    expect(overtureHongKongAreaDivisionId('kowloon')).toBe(
+      '17009785-57fd-4e5b-af86-2d27352e4718',
+    )
+  })
+
   test('synthesises each missing Hong Kong level-1 area from its district members', () => {
     const rows = missingOvertureHongKongAreaRows(
       { regionCode: 'hk', source: 'overture', type: 'division' },
@@ -249,6 +255,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     for (const area of overtureHongKongAreas) {
       const row = rows.find(row => row.id === overtureHongKongAreaDivisionId(area.code))
       expect(row?.names.primary).toBe(area.names.en)
+      expect(row?.wikidata).toBe(area.wikidata)
       expect(row?.identifiers.saanseoiCorrection.districtDivisionIds).toHaveLength(
         area.districtNames.length,
       )
@@ -260,7 +267,11 @@ describe('missingOvertureHongKongAreaRows', () => {
       { regionCode: 'hk', source: 'overture', type: 'division' },
       [
         ...sourceRows,
-        { id: 'source-kowloon', names: { primary: 'Kowloon' }, subtype: 'locality' },
+        {
+          id: '17009785-57fd-4e5b-af86-2d27352e4718',
+          names: { primary: 'Kowloon' },
+          subtype: 'locality',
+        },
       ],
     )
 

@@ -5,6 +5,12 @@ import type { DatasetProcessingMessage } from '../../types'
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 const HONG_KONG_SAR_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
 const PRC_DIVISION_ID = 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be'
+const HISTORIC_OVERTURE_HONG_KONG_AREA_DIVISION_IDS: Readonly<Record<string, string>> =
+  {
+    // Keep Overture's established Kowloon identity when a later scoped extract
+    // needs us to synthesise the row from its district members.
+    kowloon: '17009785-57fd-4e5b-af86-2d27352e4718',
+  }
 
 export const overtureHongKongAreas = [
   {
@@ -17,6 +23,7 @@ export const overtureHongKongAreas = [
       'Southern District',
     ],
     names: { en: 'Hong Kong Island', 'zh-hans': '香港岛', 'zh-hant': '香港島' },
+    wikidata: 'Q3248921',
   },
   {
     censtatdCode: 'KLN',
@@ -29,6 +36,7 @@ export const overtureHongKongAreas = [
       'Kwun Tong District',
     ],
     names: { en: 'Kowloon', 'zh-hans': '九龙', 'zh-hant': '九龍' },
+    wikidata: 'Q239143',
   },
   {
     censtatdCode: 'NT',
@@ -45,6 +53,7 @@ export const overtureHongKongAreas = [
       'Islands District',
     ],
     names: { en: 'New Territories', 'zh-hans': '新界', 'zh-hant': '新界' },
+    wikidata: 'Q596660',
   },
 ] as const
 
@@ -53,6 +62,8 @@ export type OvertureHongKongArea = (typeof overtureHongKongAreas)[number]
 export function overtureHongKongAreaDivisionId(code: string) {
   const area = overtureHongKongAreas.find(candidate => candidate.code === code)
   if (!area) return null
+  const historicOvertureId = HISTORIC_OVERTURE_HONG_KONG_AREA_DIVISION_IDS[area.code]
+  if (historicOvertureId) return historicOvertureId
   return buildDeterministicUuidV5(
     CANONICAL_DIVISION_ID_NAMESPACE,
     `overture:hk:area:${area.code}`,
@@ -141,6 +152,7 @@ export function missingOvertureHongKongAreaRows(
         ],
         subtype: 'locality',
         type: 'division',
+        wikidata: area.wikidata,
       }
     })
 }

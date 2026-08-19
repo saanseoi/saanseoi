@@ -2848,6 +2848,10 @@ describe('publishReleaseArtefacts', () => {
         .query('SELECT status FROM sourceReleases WHERE id = ?')
         .get('source-release-1'),
     ).toEqual({ status: 'published' })
+    expect(sqlite.query('SELECT id, status FROM snapshots ORDER BY id').all()).toEqual([
+      { id: 'snapshot-curated', status: 'published' },
+      { id: 'snapshot-new', status: 'published' },
+    ])
     if (!catalogRevision) throw new Error('Expected a published catalogue revision.')
     expect(
       sqlite

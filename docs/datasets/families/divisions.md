@@ -28,11 +28,14 @@ Home Affairs Department profiles are kept in the provider source folders:
 The default `geographic` domain retains Overture as its primary provider variant, rather
 than using the provider name as the domain identity. If Overture omits Hong Kong Island,
 Kowloon, or the New Territories, ingestion synthesises their level-1 `area` identities
-and geometry from the configured district members. C&SD Area/type geometry then
-references those Overture identities rather than creating parallel divisions. The
-separate `hkgov-censtatd-hma` domain publishes C&SD's 173 polygonal Housing Market
-Areas. Building Groups are not divisions: their source centroids remain source history
-for a future buildings projection.
+and geometry from the configured district members. Those reviewed identities retain
+their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
+New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
+`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
+C&SD Area/type geometry then references those Overture identities rather than creating
+parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's 173
+polygonal Housing Market Areas. Building Groups are not divisions: their source
+centroids remain source history for a future buildings projection.
 
 The 2023-H2 C&SD Area/type statistics output maps its source codes to those stable
 Overture area identities. It is an optional Geographic `divisionArea` variant, selected

@@ -3159,8 +3159,8 @@ export async function resolveSnapshotForRelease(
   resourceType: ResourceType,
   options: { variant?: string } = {},
 ) {
-  return (
-    (await db
+  if (options.variant) {
+    const variantSnapshot = await db
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
@@ -3177,9 +3177,31 @@ export async function resolveSnapshotForRelease(
         and(
           eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
           eq(metaSnapshots.resourceType, resourceType),
-          ...(options.variant
-            ? [eq(metaSnapshotLineages.variant, options.variant)]
-            : []),
+          eq(metaSnapshotLineages.variant, options.variant),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()
+
+    if (variantSnapshot) return variantSnapshot
+  }
+
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshotSources)
+      .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+      .where(
+        and(
+          eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
+          eq(metaSnapshots.resourceType, resourceType),
+          options.variant ? isNull(metaSnapshots.snapshotLineageId) : undefined,
         ),
       )
       .orderBy(desc(metaSnapshots.createdAt))
