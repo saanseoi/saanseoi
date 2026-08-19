@@ -53,8 +53,10 @@ import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import type Geometry from 'jsts/org/locationtech/jts/geom/Geometry.js'
+import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
+import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
@@ -2582,7 +2584,19 @@ export function calculateHousingMarketAreaDistrictCoverage(
         `C&SD district ${districtId} is not polygonal; Housing Market Area coverage cannot be calculated.`,
       )
     }
-    return { districtId, geometry: reader.read(JSON.stringify(geometry)) }
+    const parsed = reader.read(JSON.stringify(geometry))
+    // C&SD's authoritative 2021 CENSTATD:T ring self-intersects. Keep the
+    // publisher geometry in storage, but make a valid temporary polygon for
+    // the positive-area overlay predicate.
+    const overlayGeometry = IsValidOp.isValid(parsed)
+      ? parsed
+      : BufferOp.bufferOp(parsed, 0)
+    if (!IsValidOp.isValid(overlayGeometry)) {
+      throw new Error(
+        `C&SD district ${districtId} could not be repaired for Housing Market Area coverage.`,
+      )
+    }
+    return { districtId, geometry: overlayGeometry }
   })
   const counts = new Map<string, number>()
 
