@@ -4,40 +4,28 @@ import {
   canonicalStatsDimension,
   canonicalStatsMeasure,
   canonicalStatsMeasureI18n,
-  canonicalStatsObservation,
-  canonicalStatsSeries,
-  canonicalStatsSeriesDimension,
+  canonicalStatsRecord,
   canonicalStatsValue,
   canonicalStatsValueI18n,
 } from '../shared'
 import { historyStatisticVersioning } from './shared'
 
 /** Immutable canonical observations, including superseded publisher revisions. */
-export const statsObservations = sqliteTable(
-  'statsObservations',
-  { ...canonicalStatsObservation, ...historyStatisticVersioning },
+export const statsRecords = sqliteTable(
+  'statsRecords',
+  { ...canonicalStatsRecord, ...historyStatisticVersioning },
   table => [
     primaryKey({ columns: [table.id, table.versionHash] }),
-    index('statsObservations_current_lookup_idx').on(table.id, table.isCurrent),
-    index('statsObservations_series_measure_idx').on(table.seriesId, table.measureCode),
-  ],
-)
-
-export const statsSeries = sqliteTable(
-  'statsSeries',
-  { ...canonicalStatsSeries, ...historyStatisticVersioning },
-  table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
-    index('statsSeries_current_lookup_idx').on(table.id, table.isCurrent),
-    index('statsSeries_dataset_period_idx').on(
+    index('statsRecords_current_lookup_idx').on(table.id, table.isCurrent),
+    index('statsRecords_dataset_period_idx').on(
       table.datasetCode,
       table.referencePeriodCode,
     ),
-    index('statsSeries_division_period_idx').on(
+    index('statsRecords_division_period_idx').on(
       table.divisionId,
       table.referencePeriodCode,
     ),
-    index('statsSeries_source_release_idx').on(table.sourceReleaseId),
+    index('statsRecords_source_release_idx').on(table.sourceReleaseId),
   ],
 )
 
@@ -102,21 +90,5 @@ export const statsValuesI18n = sqliteTable(
         table.versionHash,
       ],
     }),
-  ],
-)
-
-export const statsSeriesDimensions = sqliteTable(
-  'statsSeriesDimensions',
-  { ...canonicalStatsSeriesDimension, ...historyStatisticVersioning },
-  table => [
-    primaryKey({
-      columns: [
-        table.seriesId,
-        table.dimensionCode,
-        table.valueCode,
-        table.versionHash,
-      ],
-    }),
-    index('statsSeriesDimensions_series_idx').on(table.seriesId, table.isCurrent),
   ],
 )
