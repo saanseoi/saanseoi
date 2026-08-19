@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:b1e5e73d95db8975be8b2a1bb8e924f50a98ca37251636fb15d2006cb6625409",
+  "versionHash": "sha256:213e915b518699f0ebcb73e831d4add7fcd89c81ef5a8b17236fc9d2aa3a6345",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -125,7 +125,7 @@
       "members": [
         {
           "resourceType": "division",
-          "variant": "hkgov-censtatd:2021",
+          "variant": "hkgov-censtatd-hma",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
