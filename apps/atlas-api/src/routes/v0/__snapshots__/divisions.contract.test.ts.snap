@@ -169,7 +169,7 @@ exports[`Divisions API responses through the Worker route default list through a
     },
     "links": {
       "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
       "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
@@ -177,7 +177,7 @@ exports[`Divisions API responses through the Worker route default list through a
       "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
       "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
       "cohort": "2025-09-24.0",
-      "domain": "overture",
+      "domain": "geographic",
       "filters": {},
       "locales": [
         "en",
@@ -431,7 +431,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
     },
     "links": {
       "first": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=map&releaseSet=data-hk-divisions-2025-09-24.0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=map&releaseSet=data-hk-divisions-2025-09-24.0",
       "self": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
@@ -439,7 +439,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
       "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
       "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
       "cohort": "2025-09-24.0",
-      "domain": "overture",
+      "domain": "geographic",
       "filters": {},
       "locales": [
         "en",
@@ -731,7 +731,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
     },
     "links": {
       "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
       "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
@@ -739,7 +739,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
       "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
       "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
       "cohort": "2025-09-24.0",
-      "domain": "overture",
+      "domain": "geographic",
       "filters": {},
       "locales": [
         "en",
@@ -1133,7 +1133,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       "version": "1.1",
     },
     "links": {
-      "permalink": "http://localhost/v0.1/divisions/division-a-kung-ngam?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&include=hierarchy&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=*&profile=full&releaseSet=data-hk-divisions-2025-09-24.0",
+      "permalink": "http://localhost/v0.1/divisions/division-a-kung-ngam?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=hierarchy&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=*&profile=full&releaseSet=data-hk-divisions-2025-09-24.0",
       "self": "http://localhost/v0.1/divisions/division-a-kung-ngam?releaseSet=data-hk-divisions-2025-09-24.0&profile=full&include=hierarchy",
     },
     "meta": {
@@ -1141,7 +1141,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
       "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
       "cohort": "2025-09-24.0",
-      "domain": "overture",
+      "domain": "geographic",
       "locales": [
         "*",
       ],
@@ -1417,7 +1417,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
     },
     "links": {
       "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=overture&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
       "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
     },
     "meta": {
@@ -1425,7 +1425,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
       "apiReleaseSet": "data-hk-divisions-2025-09-24.0",
       "catalogPublishedAt": "2026-08-14T00:00:00.000Z",
       "cohort": "2025-09-24.0",
-      "domain": "overture",
+      "domain": "geographic",
       "filters": {
         "divisionType": "locality",
         "level": 3,
@@ -1456,7 +1456,7 @@ exports[`Divisions API responses through the Worker route invalid request throug
     "details": [
       {
         "code": "invalid_format",
-        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/",
+        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/",
         "path": "include",
       },
     ],
