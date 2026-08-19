@@ -9,6 +9,11 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { unzipSync } from 'fflate'
 
 import {
+  overtureHongKongAreaDivisionId,
+  overtureHongKongAreas,
+} from '@repo/core/pipeline/services/overtureHongKongAreas'
+
+import {
   hkgovCenstatdStatisticDivisionId,
   prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
@@ -203,12 +208,14 @@ describe('C&SD native statistics archives', () => {
         expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
       }
     }
-    expect(
-      hkgovCenstatdStatisticDivisionId(
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
-        'HK',
-      ),
-    ).toMatch(/^[0-9a-f-]{36}$/)
+    for (const area of overtureHongKongAreas) {
+      expect(
+        hkgovCenstatdStatisticDivisionId(
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+          area.censtatdCode,
+        ),
+      ).toBe(overtureHongKongAreaDivisionId(area.code))
+    }
   })
 })
 
