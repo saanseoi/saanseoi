@@ -449,7 +449,7 @@ function measureKey(
   return `${measure.datasetCode}\u0000${measure.sourceField}`
 }
 
-function parseCenstatdMeasureCuration(value: unknown, path: string) {
+export function parseCenstatdMeasureCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
   const manifest = value as Partial<CenstatdMeasureCurationManifest>
@@ -538,6 +538,19 @@ function parseCenstatdMeasureCuration(value: unknown, path: string) {
   )
   if (measureCodes.size !== measures.length)
     throw new Error(`Duplicate C&SD canonical measure key: ${path}.`)
+  const localisedMeasureNames = new Map<string, CenstatdMeasureCurationEntry>()
+  for (const measure of measures) {
+    for (const localisation of measure.localisations) {
+      const key = `${measure.datasetCode}\u0000${localisation.locale}\u0000${localisation.name.trim()}`
+      const existing = localisedMeasureNames.get(key)
+      if (existing) {
+        throw new Error(
+          `Duplicate C&SD localised measure name for ${measure.datasetCode}/${localisation.locale}: ${localisation.name} (${existing.sourceField}, ${measure.sourceField}): ${path}.`,
+        )
+      }
+      localisedMeasureNames.set(key, measure)
+    }
+  }
   return { measures, schemaVersion: 5 as const }
 }
 

@@ -4,6 +4,7 @@ import {
   emptyCenstatdMeasureCuration,
   formatCenstatdMeasureProposal,
   formatCenstatdMeasureReviewContext,
+  parseCenstatdMeasureCuration,
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
   resolveUnitLocalisations,
@@ -98,6 +99,51 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
     statisticKind: 'count',
     unitCode: 'person',
   })
+})
+
+test('rejects duplicate localised measure names within a C&SD dataset', () => {
+  expect(() =>
+    parseCenstatdMeasureCuration(
+      {
+        measures: [
+          {
+            aggregation: 'none',
+            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+            localisations: [
+              {
+                description: 'The first distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'A repeated measure name',
+              },
+            ],
+            measureCode: 'firstMeasure',
+            sourceField: 'first',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+          {
+            aggregation: 'none',
+            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+            localisations: [
+              {
+                description: 'The second distinct statistic.',
+                isTranslationVerified: true,
+                locale: 'en',
+                name: 'A repeated measure name',
+              },
+            ],
+            measureCode: 'secondMeasure',
+            sourceField: 'second',
+            statisticKind: 'count',
+            unitCode: 'person',
+          },
+        ],
+        schemaVersion: 5,
+      },
+      'fixture.json',
+    ),
+  ).toThrow('Duplicate C&SD localised measure name')
 })
 
 test('formats every proposed localisation and canonical key for review', () => {
