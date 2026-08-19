@@ -466,15 +466,22 @@ export async function processLocalDivisionGeometrySqlUpload(
       metaDb,
       previewPlan,
     )
-    if (previewPlan.source === 'overture' && syntheticAreas.length > 0) {
+    const areasWithoutSourceGeometry =
+      previewPlan.type === 'divisionArea'
+        ? selectOvertureHongKongAreasWithoutSourceGeometry(syntheticAreas, normalised)
+        : syntheticAreas.filter(area => area.isSynthetic)
+    if (previewPlan.source === 'overture' && areasWithoutSourceGeometry.length > 0) {
       const syntheticRows =
         previewPlan.type === 'divisionArea'
-          ? buildSyntheticOvertureHongKongAreaRows(syntheticAreas, normalised)
+          ? buildSyntheticOvertureHongKongAreaRows(
+              areasWithoutSourceGeometry,
+              normalised,
+            )
           : await buildSyntheticOvertureHongKongBoundaryRows(
               dbContext.currentDb,
               metaDb,
               previewPlan,
-              syntheticAreas,
+              areasWithoutSourceGeometry,
             )
       normalised.push(...syntheticRows)
     }
@@ -2607,6 +2614,7 @@ type SyntheticOvertureHongKongArea = {
   code: string
   districtDivisionIds: string[]
   divisionId: string
+  isSynthetic: boolean
 }
 
 const SHENZHEN_BAY_PORT_EXCLUSION = {
@@ -2644,7 +2652,27 @@ async function resolveSyntheticOvertureHongKongAreas(
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
     .all()
+  const i18nRows = await currentDb
+    .select({
+      divisionId: currentSchema.divisionsI18n.divisionId,
+      name: currentSchema.divisionsI18n.name,
+    })
+    .from(currentSchema.divisionsI18n)
+    .where(
+      and(
+        eq(currentSchema.divisionsI18n.snapshotId, snapshot.id),
+        eq(currentSchema.divisionsI18n.locale, 'en'),
+      ),
+    )
+    .all()
   const byId = new Map(rows.map(row => [row.id, row.identifiers]))
+  const districtIdsByName = new Map<string, string[]>()
+  for (const row of i18nRows) {
+    if (!row.name) continue
+    const ids = districtIdsByName.get(row.name) ?? []
+    ids.push(row.divisionId)
+    districtIdsByName.set(row.name, ids)
+  }
   return overtureHongKongAreas.flatMap(area => {
     const divisionId = overtureHongKongAreaDivisionId(area.code)
     if (!divisionId) return []
@@ -2653,15 +2681,46 @@ async function resolveSyntheticOvertureHongKongAreas(
       identifiers && typeof identifiers === 'object' && !Array.isArray(identifiers)
         ? (identifiers as Record<string, unknown>).saanseoiCorrection
         : null
-    const districtDivisionIds =
+    const correctionDistrictIds =
       correction && typeof correction === 'object' && !Array.isArray(correction)
         ? (correction as Record<string, unknown>).districtDivisionIds
         : null
-    if (!Array.isArray(districtDivisionIds) || !districtDivisionIds.every(isString)) {
+    const districtDivisionIds =
+      Array.isArray(correctionDistrictIds) && correctionDistrictIds.every(isString)
+        ? correctionDistrictIds
+        : area.districtNames.map(name => {
+            const ids = districtIdsByName.get(name) ?? []
+            if (ids.length !== 1) {
+              throw new Error(
+                `Cannot derive Overture ${area.code} geometry: expected one English district named ${name}, found ${ids.length}.`,
+              )
+            }
+            return ids[0]!
+          })
+    if (!byId.has(divisionId)) {
       return []
     }
-    return [{ code: area.code, districtDivisionIds, divisionId }]
+    return [
+      {
+        code: area.code,
+        districtDivisionIds,
+        divisionId,
+        isSynthetic: Boolean(correction),
+      },
+    ]
   })
+}
+
+export function selectOvertureHongKongAreasWithoutSourceGeometry(
+  areas: readonly SyntheticOvertureHongKongArea[],
+  normalised: readonly NonNullable<NormalisedGeometry>[],
+) {
+  const sourceAreaDivisionIds = new Set(
+    normalised.flatMap(row =>
+      'divisionId' in row.canonical ? [row.canonical.divisionId] : [],
+    ),
+  )
+  return areas.filter(area => !sourceAreaDivisionIds.has(area.divisionId))
 }
 
 function buildSyntheticOvertureHongKongAreaRows(

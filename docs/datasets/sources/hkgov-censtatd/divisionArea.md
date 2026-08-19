@@ -77,6 +77,12 @@ releases dr-hk-hkgov-censtatd-division-area-district-2016
          dr-hk-hkgov-censtatd-division-area-district-2021
 ```
 
+The publisher's 2021 `CENSTATD:T` feature has a self-intersecting ring. The C&SD adapter
+retains that exact source geometry without a topology repair; full topology validation
+is therefore not enabled for this provider profile. Structural validation, feature-count
+checks and source-archive SHA-256 verification still apply. The same policy applies to
+direct archive intake and `saanseoi update`.
+
 ## Land-clipped display transformation
 
 Both detailed source geometries are land-clipped already. For Hong Kong-wide preview

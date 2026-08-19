@@ -73,7 +73,10 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
         printUsage: () => undefined,
         skipConfirm: true,
         skipSnapshotCleanup: false,
-        validateGeometry: true,
+        // The authoritative 2021 delivery includes a self-intersecting
+        // CENSTATD:T ring. Preserve the publisher geometry without a repair,
+        // matching the updater's source-profile policy.
+        validateGeometry: false,
       },
     )
   } finally {

@@ -9,6 +9,7 @@ import {
   geometryBuildUpsertSql,
   hasDivisionReferences,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+  selectOvertureHongKongAreasWithoutSourceGeometry,
   shouldCompressCanonicalGeometry,
   supportsDistrictGeometryStatistics,
   shouldWriteExactGeometryReleaseStats,
@@ -94,6 +95,30 @@ describe('C&SD area/type division references', () => {
 
     expect(hasDivisionReferences(preSyntheticSnapshot, references)).toBeFalse()
     expect(hasDivisionReferences(firstSyntheticSnapshot, references)).toBeTrue()
+  })
+})
+
+describe('Overture Hong Kong area geometry', () => {
+  test('derives geometry for a native area identity when Overture omits its area row', () => {
+    const areas = [
+      {
+        code: 'kowloon',
+        districtDivisionIds: ['district-1'],
+        divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
+        isSynthetic: false,
+      },
+    ]
+
+    expect(selectOvertureHongKongAreasWithoutSourceGeometry(areas, [])).toEqual(areas)
+    expect(
+      selectOvertureHongKongAreasWithoutSourceGeometry(areas, [
+        {
+          canonical: {
+            divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
+          },
+        } as never,
+      ]),
+    ).toEqual([])
   })
 })
 
