@@ -846,7 +846,8 @@ function requestedGeometryVariants(
   const area = [...includes].find(item => item.startsWith('areas:'))
   const boundary = [...includes].find(item => item.startsWith('boundaries:'))
   const areaVariant =
-    area?.slice('areas:'.length) || (domainCode === 'overture' ? 'overture' : undefined)
+    area?.slice('areas:'.length) ||
+    (domainCode === 'geographic' ? 'overture' : undefined)
   return {
     area:
       transform && /^hkgov-censtatd:(?:2016|2021)$/.test(areaVariant ?? '')
@@ -854,7 +855,7 @@ function requestedGeometryVariants(
         : areaVariant,
     boundary:
       boundary?.slice('boundaries:'.length) ||
-      (domainCode === 'overture' ? 'overture' : undefined),
+      (domainCode === 'geographic' ? 'overture' : undefined),
   }
 }
 
@@ -1005,7 +1006,7 @@ export async function listDivisions(args: {
   })
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
-  const domainCode = args.query.domain ?? 'overture'
+  const domainCode = args.query.domain ?? 'geographic'
   const geometryVariants = requestedGeometryVariants(
     args.query.include,
     domainCode,
@@ -1165,7 +1166,7 @@ export async function getDivisionDetail(args: {
     profile: args.query.profile,
     locales: args.query.locales,
   })
-  const domainCode = args.query.domain ?? 'overture'
+  const domainCode = args.query.domain ?? 'geographic'
   const geometryVariants = requestedGeometryVariants(
     args.query.include,
     domainCode,
