@@ -100,8 +100,14 @@ describe('stats rows', () => {
       address2dI18nCount: 18,
       address3dCount: 4,
       address3dI18nCount: 6,
+      byDistrict: { 'district-id': 10 },
+      componentCounts: { building_name: 4, street_name: 8 },
+      districtLinkedCount: 10,
       divisionLinkedCount: 9,
+      geocodedCount: 10,
+      missingDistrictCount: 0,
       missingDivisionCount: 1,
+      missingGeometryCount: 0,
       missingStreetCount: 3,
       streetLinkedCount: 7,
       churn: {
@@ -117,6 +123,32 @@ describe('stats rows', () => {
         groupBy: null,
         metric: 'count',
         metricUnit: 'count',
+        value: 10,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'component_coverage',
+        groupBy: 'addressComponent',
+        groupValue: 'street_name',
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        value: 80,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'district',
+        groupValue: 'district-id',
+        metric: 'distribution',
+        value: 10,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'geocoded_count',
+        metric: 'quality',
         value: 10,
       }),
     )
