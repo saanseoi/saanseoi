@@ -88,6 +88,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         dryRun: false,
         // A previous source-only run may already have published this deterministic
         // release. Reprocess it locally to materialise the history observation.
+        allowHistoricalCohort: true,
         allowReprocessPublished: true,
         forceUpload: true,
         invocationCwd: REPO_ROOT,
