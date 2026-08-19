@@ -132,7 +132,7 @@ Housing Market Area domain. Building Group points remain source history for a fu
 buildings projection.
 
 The statistical `division` output is therefore limited to the reviewed 2021 HMA variant
-(`hkgov-censtatd:2021`). Area/type is optional source-specific Geographic geometry
+(`hkgov-censtatd-hma`). Area/type is optional source-specific Geographic geometry
 selected at the latest compatible cohort and linked to the Overture identity snapshot.
 HMA is its domain's primary canonical division input, paired with the required native
 `hkgov-censtatd-hma` geometry.
@@ -234,3 +234,13 @@ Before an entry advances beyond planned, inspect and record its downloadable art
 or API, schema, licence, update cadence, identifiers, publication date, reference
 period, measure definition, and geography cohort. A derived rate must identify its
 numerator and denominator series and must not replace a publisher-supplied measure.
+
+## Release-note measure mappings
+
+Each C&SD statistics release fixture declares its corresponding manifest under
+`fixtures/meta/curations/hkgov-censtatd-statistics/`. The documentation publisher
+expands `{{hkgovCenstatdMeasureTable:LOCALE}}` from that JSON at publish time, producing
+the reviewed `sourceField | measureCode | name | description` table for each supported
+locale. Release notes therefore present exactly the curated offering names and inclusion
+criteria that the statistics processor publishes, without a second hand-maintained
+Markdown copy.
