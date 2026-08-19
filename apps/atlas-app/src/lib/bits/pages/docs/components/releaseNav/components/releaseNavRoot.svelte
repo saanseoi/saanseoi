@@ -24,12 +24,16 @@ type Props = {
   activeOutlineId: string | null
   activeTab?: string
   children?: Snippet
+  currentVersionCohortKey?: string | null
   hasContent: boolean
   loading?: boolean
   nestedContent?: boolean
+  navigationVersions?: ReleaseNavVersion[]
   onTabChange?: (tab: string) => void
+  onToggleRevisions?: () => void
   onVersionPreload?: ReleaseNavVersionPreload
   outline?: ReleaseNavOutlineItem[]
+  showAllRevisions?: boolean
   tabs: ReleaseNavTab[]
   versionTitle: string
   versions: ReleaseNavVersion[]
@@ -37,6 +41,7 @@ type Props = {
   currentVersionCode: string
   domains?: ReleaseNavDomain[]
   domainTitle?: string
+  showRevisionToggle?: boolean
 }
 
 let {
@@ -44,19 +49,24 @@ let {
   activeOutlineId,
   activeTab = $bindable('notes'),
   children,
+  currentVersionCohortKey,
   hasContent,
   loading = false,
   nestedContent = false,
+  versions,
+  navigationVersions = versions,
   onTabChange,
+  onToggleRevisions,
   onVersionPreload,
   outline = [],
+  showAllRevisions = false,
   tabs,
   versionTitle,
-  versions,
   currentDomainCode,
   currentVersionCode,
   domains = [],
   domainTitle = 'Domains',
+  showRevisionToggle = false,
 }: Props = $props()
 
 let contentPanel = $state<HTMLElement>()
@@ -105,8 +115,13 @@ $effect(() => {
   <ReleaseNavBar
     {actions}
     {activeTab}
+    {currentVersionCohortKey}
     currentVersionCode={visibleVersionCode}
+    {navigationVersions}
+    {onToggleRevisions}
     onSelectTab={selectTab}
+    {showAllRevisions}
+    {showRevisionToggle}
     {tabs}
     {versionTitle}
     {versions}
