@@ -133,6 +133,17 @@ area and boundary uploads can be performed in either order. If one geometry snap
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
 
+## Synthetic Hong Kong areas
+
+If the scoped Overture division input omits Hong Kong Island, Kowloon or the New
+Territories, the division processor creates a reviewed level-1 identity from the
+configured district members. The generated row carries the stable canonical ID and the
+corresponding Wikidata ID: `Q3248921`, `Q239143`, or `Q596660`. Kowloon deliberately
+reuses Overture's historic ID `17009785-57fd-4e5b-af86-2d27352e4718`, rather than a new
+synthetic identifier. Its companion Overture area geometry is the union of those
+district land geometries and is returned by the Divisions API with
+`include=areas:overture`.
+
 ## Scoped parent fixture
 
 Hong Kong's scoped division extract omits the Overture PRC country record
