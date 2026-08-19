@@ -116,6 +116,8 @@ type NormalisedGeometry = ReturnType<
   typeof normaliseDivisionAreaGeometryRow | typeof normaliseDivisionBoundaryGeometryRow
 >
 
+type GeometryWriteProgress = (label: string, current?: number, total?: number) => void
+
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
@@ -542,7 +544,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         cohortKey: previewPlan.cohortKey,
         transform: previewPlan.transform,
       },
-      label => progress.message(formatGeometryProgressLabel('Materialise', label)),
+      (label, current, total) =>
+        progress.message(
+          formatGeometryProgressLabel('Materialise', label, current, total),
+        ),
     )
 
     progress.complete(
@@ -1481,7 +1486,7 @@ async function writeGeometryRows(
     cohortKey: string
     transform?: GeometryUploadPlan['transform']
   },
-  onProgress?: (label: string) => void,
+  onProgress?: GeometryWriteProgress,
 ) {
   const now = toIsoTimestamp()
   const currentTable =
@@ -1527,8 +1532,8 @@ async function writeGeometryRows(
     .run()
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()
-  onProgress?.('hash geometry rows')
-  for (const row of rows) {
+  onProgress?.('hash geometry rows', 0, rows.length)
+  for (const [index, row] of rows.entries()) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
     if (
       !isCenstatdDerivative &&
@@ -1540,6 +1545,9 @@ async function writeGeometryRows(
         row.source.sourceRecordId,
         await hashGeometrySourceAssertion(row.source, version.source),
       )
+    }
+    if ((index + 1) % 32 === 0 || index + 1 === rows.length) {
+      onProgress?.('hash geometry rows', index + 1, rows.length)
     }
   }
   // Churn is a property of the snapshot lineage, not of the mutable history
@@ -1609,7 +1617,7 @@ async function writeGeometryRows(
             version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
           )
         : row.canonical.geometry,
-      versionHash: await hashDivisionGeometryRow(row.canonical),
+      versionHash: requireGeometryHash(historyHashes, row.canonical.id),
       sourceReleaseId: version.releaseId,
       snapshotId: version.snapshotId,
       isCurrent: true,
@@ -1657,10 +1665,7 @@ async function writeGeometryRows(
                       sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
                   : {}),
-              versionHash: await hashGeometrySourceAssertion(
-                row.source,
-                version.source,
-              ),
+              versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
               releaseId: version.releaseId,
               validFromRelease: version.releaseCode,
               validToRelease: null,
@@ -1734,10 +1739,17 @@ async function writeGeometryRows(
       rows,
       version,
       now,
+      historyHashes,
     )
   }
 
   return { churn, currentRows }
+}
+
+function requireGeometryHash(hashes: Map<string, string>, id: string) {
+  const hash = hashes.get(id)
+  if (!hash) throw new Error(`Missing computed geometry hash for ${id}.`)
+  return hash
 }
 
 function hashGeometrySourceAssertion(
@@ -1765,6 +1777,7 @@ async function writeCenstatdSourceDerivatives(
     transform?: 'simplified'
   },
   now: string,
+  historyHashes: Map<string, string>,
 ) {
   const transform = version.transform
   if (!transform) {
@@ -1803,7 +1816,7 @@ async function writeCenstatdSourceDerivatives(
           `C&SD derivative ${row.source.sourceRecordId} has no derivation metadata.`,
         )
       }
-      const versionHash = await hashDivisionGeometryRow(row.canonical)
+      const versionHash = requireGeometryHash(historyHashes, row.canonical.id)
       nextHashes.set(`${row.source.sourceRecordId}:${inputVersionHash}`, versionHash)
       return {
         sourceRecordId: row.source.sourceRecordId,
