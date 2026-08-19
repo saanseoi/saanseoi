@@ -16,6 +16,21 @@ Chinese labels stay paired on their parent source row (`nameEn` and `nameZhHant`
 notices retain paired `descriptionEn` and `descriptionZhHant` there too, rather than
 using source locale rows.
 
+## Historic baseline version
+
+The historic source-version anchor for the gazetted baseline is **`2016-01-01.0`**. The
+initial local bootstrap runs `hkgov-landsd-streets:baseline` before
+`hkgov-landsd-streets:landsd-notices`, and stages the baseline payload at that version.
+It deliberately predates the LandsD notice-feed boundary of 22 January 2016. This is a
+source-version anchor for a present-state reconciliation list, not a claim that the
+publisher PDF itself was issued on 1 January 2016.
+
+`2026-08-14.0` is not a replacement baseline: it is the latest Government Notice date
+included in the current assembled release. When a complete notice ledger is present, the
+assembler versions the combined payload by that latest notice date; it falls back to
+`2016-01-01.0` only when there are no notice records. Consequently, the normal complete
+ingest does not create a separate published `2016-01-01.0` snapshot release.
+
 ## Notice ledger and evidence
 
 The append-only source ledger retains the notice event ID, LandsD-listed `gazetteDate`
