@@ -2,9 +2,9 @@
 
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
-metadata database. Its canonical record is `statsObservations`: an immutable published
-observation connected to a source release and reference period, with a nullable reviewed
-canonical `divisionId`.
+metadata database. Its canonical record is `statsRecords`: an immutable publisher
+feature and reference period, with a nullable reviewed canonical `divisionId`,
+dimensions, and a complete JSON map of its normalised measures.
 
 The initial C&SD District Land Area, Population and Density releases write two distinct
 layers. The source shard preserves C&SD's numeric `DC` and complete assertion. The
@@ -25,9 +25,11 @@ current data. This is deliberately not a cohort-based Stats API model: a new opt
 dataset member, or historic dimensions added to an existing member, creates the next
 Stats family revision. It does not require a shared base cohort across datasets.
 
-The generic observation schema stores exact decimal text (not floats), original source
-literals, an optional `valuePrecision`, categorical `valueCode`s, and normalised measure
-and dimension dictionaries. There is no multiplier column and no separate
+Each packed measure value stores exact decimal text (not floats), its original source
+literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
+dimension dictionaries remain normalised because they are small shared metadata. This
+avoids a D1 write per measure while retaining a queryable, independently versioned
+record per publisher feature. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 

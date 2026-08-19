@@ -45,17 +45,17 @@ manifest SHA-256, expands only GML members within explicit entry-count and uncom
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
 key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
-assertions, then writes one normalised `statsSeries` row for each publisher feature and
+assertions, then writes one normalised `statsRecords` row for each publisher feature and
 reference period, with its dataset, source release, `<layer>:<feature>` identity,
-optional reviewed `divisionId`, and geography cohort. Dimensions attach to that series
-once, rather than once per measure. `statsObservations` records only the series
-reference, exact source property name and literal, decimal value or categorical code,
-unit, precision (when known), and status. Measure, dimension, and localised-value
-dictionaries remain normalised. The current shard contains the latest version of each
-series and observation, composed across source compilations; the history shard retains
-superseded values and definitions. A Population and Household compilation can therefore
-carry annual observations for 2016–2025 without collapsing them to the compilation
-release period.
+optional reviewed `divisionId`, geography cohort, dimension-value map, and complete
+measure-value map. Each packed value retains its exact source property name and literal,
+decimal value or categorical code, precision (when known), and status. Measure,
+dimension, and localised-value dictionaries remain normalised. This avoids one D1 write
+per publisher measure while retaining feature-level revision and lookup. The current
+shard contains the latest version of each record, composed across source compilations;
+the history shard retains superseded records and definitions. A Population and Household
+compilation can therefore carry annual observations for 2016–2025 without collapsing
+them to the compilation release period.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a
