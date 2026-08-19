@@ -89,6 +89,13 @@ test('requires native ingestion to appear as the exact published target release'
     ),
   ).toBe('2024.0')
 
+  expect(
+    requirePublishedTargetVersion(
+      { sourceKey: 'ds-hk-example', version: '2024.0' },
+      new Map([['ds-hk-example', '2024.0']]),
+    ),
+  ).toBe('2024.0')
+
   expect(() =>
     requirePublishedTargetVersion(
       { targetSourceKey: '2024', version: '2024.0' },
@@ -677,11 +684,36 @@ test('treats a partial target report as authoritative for every release cohort',
     ],
   } satisfies DatasetFixture
 
-  expect(targetVersionsFromReport(dataset, [{ sourceVersion: '2021.0' }])).toEqual(
+  expect(
+    targetVersionsFromReport(dataset, [
+      { sourceVersion: '2021.0', status: 'published' },
+    ]),
+  ).toEqual(
     new Map([
       ['2021.0', '2021.0'],
       ['2021', '2021.0'],
       ['2026', null],
+    ]),
+  )
+})
+
+test('treats a failed target release as a missing cohort that must be retried', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'places',
+    type: 'place',
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+
+  expect(
+    targetVersionsFromReport(dataset, [{ sourceVersion: '2021', status: 'failed' }]),
+  ).toEqual(
+    new Map([
+      ['ds-example', null],
+      ['2021', null],
     ]),
   )
 })

@@ -381,10 +381,10 @@ function updateVersionBase(version: string | null | undefined) {
  * the exact release is visible on the upload target before reporting it.
  */
 export function requirePublishedTargetVersion(
-  update: Pick<DatasetUpdate, 'targetSourceKey' | 'version'>,
+  update: Pick<DatasetUpdate, 'sourceKey' | 'targetSourceKey' | 'version'>,
   targetVersions: ReadonlyMap<string, string | null>,
 ) {
-  const targetSourceKey = update.targetSourceKey
+  const targetSourceKey = update.targetSourceKey ?? update.sourceKey
   const publishedVersion = targetSourceKey
     ? targetVersions.get(targetSourceKey)
     : undefined
@@ -649,17 +649,18 @@ async function fetchTargetVersions(target: UploadTarget, dataset: DatasetFixture
 
 export function targetVersionsFromReport(
   dataset: DatasetFixture,
-  rows: ReadonlyArray<Pick<ReleaseReportRow, 'sourceVersion'>>,
+  rows: ReadonlyArray<Pick<ReleaseReportRow, 'sourceVersion' | 'status'>>,
 ) {
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
-  const targetHasNoReleases = rows.length === 0
+  const publishedRows = rows.filter(row => isPublishedTargetRelease(row.status))
+  const targetHasNoReleases = publishedRows.length === 0
 
   // A successful target report is authoritative. Missing manifest cohorts are
   // absent from the target too, even when this operator has saved local state.
   if (targetHasNoReleases) targetVersions.set(dataset.code, null)
 
-  for (const sourceVersion of rows
+  for (const sourceVersion of publishedRows
     .map(row => row.sourceVersion)
     .filter((version): version is string => Boolean(version))) {
     targetVersions.set(sourceVersion, normaliseDatasetVersion(dataset, sourceVersion))
@@ -670,9 +671,10 @@ export function targetVersionsFromReport(
     const sourceKey = releaseSourceVersion ?? dataset.code
     const matchingVersions = releaseSourceVersion
       ? rows
+          .filter(row => isPublishedTargetRelease(row.status))
           .map(row => row.sourceVersion)
           .filter(version => versionMatchesSourceRelease(version, releaseSourceVersion))
-      : rows.map(row => row.sourceVersion)
+      : publishedRows.map(row => row.sourceVersion)
     const resolvedTargetVersion = latestVersion(matchingVersions)
     const targetVersion = resolvedTargetVersion
       ? normaliseDatasetVersion(dataset, resolvedTargetVersion)
@@ -682,6 +684,10 @@ export function targetVersionsFromReport(
   }
 
   return targetVersions
+}
+
+function isPublishedTargetRelease(status: string) {
+  return status === 'published' || status === 'superseded'
 }
 
 function versionMatchesSourceRelease(version: string, sourceVersion: string) {
