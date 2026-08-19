@@ -2157,17 +2157,20 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         ('snapshot-published-default', 'division', 'published'),
         ('snapshot-published-historical-cohort', 'division', 'published'),
         ('snapshot-published-retained-revision', 'division', 'published'),
+        ('snapshot-published-draft-member', 'division', 'published'),
         ('snapshot-published-candidate', 'division', 'published');
 
       INSERT INTO apiReleaseSets (id, code, status) VALUES
         ('release-set-default', 'ss-hk-division-2026-05-20.0', 'published'),
         ('release-set-historical-cohort', 'ss-hk-division-2026-04-20.0', 'published'),
-        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0', 'published');
+        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0', 'published'),
+        ('release-set-draft', 'ss-hk-division-2026-06-20.0', 'draft');
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
         ('release-set-default', 'snapshot-published-default'),
         ('release-set-historical-cohort', 'snapshot-published-historical-cohort'),
-        ('release-set-retained-revision', 'snapshot-published-retained-revision');
+        ('release-set-retained-revision', 'snapshot-published-retained-revision'),
+        ('release-set-draft', 'snapshot-published-draft-member');
 
       INSERT INTO apiCatalogRevisions (
         id, apiVersionId, regionCode, revision, status, publishedAt
@@ -2309,6 +2312,42 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       id: 'overture-division-2025',
       code: 'ss-hk-division-2025-09-24.0',
       resourceType: 'division',
+      status: 'published',
+    })
+
+    sqlite.close()
+  })
+
+  test('resolves an Overture division-area snapshot by its geometry dataset', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE datasets ADD COLUMN code TEXT;
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+      INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
+        ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area', 'hk');
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-division-area-2025', NULL, 'divisionArea', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-division-area-2025', 'dataset-overture-division-area', 'release-overture-division-area-2025', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2025-09-24.0',
+        { variant: 'overture' },
+      ),
+    ).resolves.toEqual({
+      id: 'overture-division-area-2025',
+      code: 'ss-hk-division-area-2025-09-24.0',
+      resourceType: 'divisionArea',
       status: 'published',
     })
 

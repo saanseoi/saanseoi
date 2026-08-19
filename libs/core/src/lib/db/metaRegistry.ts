@@ -2607,10 +2607,11 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
   cohortKey: string,
   options: { variant?: string } = {},
 ) {
-  // Overture's canonical division dataset is itself the durable domain
-  // identity. This deliberately does not require a lineage join: it lets the
-  // canonical snapshot remain resolvable while its lineage is being created
-  // or repaired, and also matches every lineage-backed Overture snapshot.
+  // Overture's canonical dataset for the requested resource type is itself a
+  // durable domain identity. This deliberately does not require a lineage
+  // join: it lets a snapshot remain resolvable while its lineage is being
+  // created or repaired, and includes Overture geometry snapshots whose
+  // primary source is divisionArea or divisionBoundary rather than division.
   if (options.variant === 'overture') {
     return (
       (await db
@@ -2632,7 +2633,10 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             eq(metaSnapshots.status, 'published'),
             eq(metaSnapshots.cohortKey, cohortKey),
             eq(metaDatasets.regionCode, regionCode),
-            eq(metaDatasets.code, buildDatasetCode(regionCode, 'overture', 'division')),
+            eq(
+              metaDatasets.code,
+              buildDatasetCode(regionCode, 'overture', resourceType),
+            ),
             eq(metaSnapshotSources.role, 'primary'),
           ),
         )
@@ -5011,35 +5015,18 @@ export async function listCurrentSnapshotCleanupCandidates(
 
   let protectedRows: Array<{ snapshotId: string }>
   try {
-    const catalogs = await db
-      .select({ id: metaApiCatalogRevisions.id })
-      .from(metaApiCatalogRevisions)
-      .where(eq(metaApiCatalogRevisions.status, 'current'))
+    // A draft release set may be waiting for a dependent companion snapshot.
+    // Its already materialised members must remain in current storage until
+    // the release set is published or explicitly archived.
+    protectedRows = await db
+      .select({ snapshotId: metaApiReleaseSetSnapshots.snapshotId })
+      .from(metaApiReleaseSetSnapshots)
+      .innerJoin(
+        metaApiReleaseSets,
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .where(ne(metaApiReleaseSets.status, 'archived'))
       .all()
-    const retainedCatalogIds = catalogs.map(catalog => catalog.id)
-
-    protectedRows =
-      retainedCatalogIds.length > 0
-        ? await db
-            .select({ snapshotId: metaApiReleaseSetSnapshots.snapshotId })
-            .from(metaApiCatalogRevisionReleaseSets)
-            .innerJoin(
-              metaApiReleaseSetSnapshots,
-              eq(
-                metaApiCatalogRevisionReleaseSets.apiReleaseSetId,
-                metaApiReleaseSetSnapshots.apiReleaseSetId,
-              ),
-            )
-            .where(
-              and(
-                inArray(
-                  metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId,
-                  retainedCatalogIds,
-                ),
-              ),
-            )
-            .all()
-        : []
   } catch (error) {
     if (
       !(error instanceof Error) ||
