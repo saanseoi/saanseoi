@@ -1496,7 +1496,7 @@ function installDiagnostics(
   })
   target.on('click', event => {
     if (!diagnostics.inspect) return
-    const layers = target.queryRenderedFeatures(event.point).slice(0, 12)
+    const layers = inspectableFeatures(target.queryRenderedFeatures(event.point))
     const feature: FeatureDiagnostic = {
       release,
       longitude: event.lngLat.lng,
@@ -1511,6 +1511,28 @@ function installDiagnostics(
     diagnostics.feature = feature
     publishDiagnostics()
   })
+}
+
+function inspectableFeatures(features: maplibregl.MapGeoJSONFeature[]) {
+  return features
+    .filter(feature => {
+      const layer = feature.layer
+      return (
+        layer.id !== BOUNDARY_MASK_LAYER_ID &&
+        layer.source !== BOUNDARY_MASK_SOURCE_ID &&
+        layer.id !== BOUNDARY_LAYER_ID &&
+        layer.source !== BOUNDARY_SOURCE_ID
+      )
+    })
+    .sort((left, right) => inspectionFeatureRank(left) - inspectionFeatureRank(right))
+    .slice(0, 12)
+}
+
+function inspectionFeatureRank(feature: maplibregl.MapGeoJSONFeature) {
+  const sourceLayer = feature.sourceLayer ?? ''
+  if (sourceLayer === 'land' || sourceLayer === 'earth') return 0
+  if (sourceLayer === 'water' || sourceLayer === 'ocean') return 2
+  return 1
 }
 
 function basemapTileSource(sourceId: string | undefined): BasemapTileSource | null {
