@@ -3,14 +3,17 @@ import { Database } from 'bun:sqlite'
 
 import {
   asOptionalInteger,
+  calculateHousingMarketAreaDistrictCoverage,
   createGeometryChurnCounts,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   shouldCompressCanonicalGeometry,
+  supportsDistrictGeometryStatistics,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -130,7 +133,132 @@ describe('exact geometry release statistics', () => {
     expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
     expect(shouldWriteExactGeometryReleaseStats('simplified')).toBe(false)
   })
+
+  test('keeps Housing Market Area coverage separate from district geometry metrics', () => {
+    expect(
+      supportsDistrictGeometryStatistics({
+        cohortKey: '2021',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+        regionCode: 'hk',
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021-2021',
+        rowCount: 173,
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021',
+        theme: 'divisions',
+        type: 'divisionArea',
+      }),
+    ).toBeFalse()
+  })
+
+  test('keeps C&SD District Council geometry eligible for district statistics', () => {
+    expect(
+      supportsDistrictGeometryStatistics({
+        cohortKey: '2021',
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        regionCode: 'hk',
+        releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
+        rowCount: 18,
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021',
+        theme: 'divisions',
+        type: 'divisionArea',
+      }),
+    ).toBeTrue()
+  })
 })
+
+describe('Housing Market Area district coverage', () => {
+  test('increments every district with a positive-area intersection', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma-crosses-boundary',
+          geometry: polygon([
+            [0.5, 0.25],
+            [1.5, 0.25],
+            [1.5, 0.75],
+            [0.5, 0.75],
+            [0.5, 0.25],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'district-west',
+          polygon([
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ]),
+        ],
+        [
+          'district-east',
+          polygon([
+            [1, 0],
+            [2, 0],
+            [2, 1],
+            [1, 1],
+            [1, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect([...coverage.entries()]).toEqual([
+      ['district-west', 1],
+      ['district-east', 1],
+    ])
+  })
+
+  test('does not count a district touched only at its boundary', () => {
+    const coverage = calculateHousingMarketAreaDistrictCoverage(
+      [
+        {
+          id: 'hma-east-only',
+          geometry: polygon([
+            [1, 0.25],
+            [1.5, 0.25],
+            [1.5, 0.75],
+            [1, 0.75],
+            [1, 0.25],
+          ]),
+        },
+      ],
+      new Map([
+        [
+          'district-west',
+          polygon([
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ]),
+        ],
+        [
+          'district-east',
+          polygon([
+            [1, 0],
+            [2, 0],
+            [2, 1],
+            [1, 1],
+            [1, 0],
+          ]),
+        ],
+      ]),
+    )
+
+    expect([...coverage.entries()]).toEqual([['district-east', 1]])
+  })
+})
+
+function polygon(coordinates: number[][]): GeoJsonGeometry {
+  return { coordinates: [coordinates as [number, number][]], type: 'Polygon' }
+}
 
 describe('geometryBuildUpsertSql', () => {
   test('splits geometry upserts below D1’s SQL statement limit', () => {
