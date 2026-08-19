@@ -2506,7 +2506,7 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
 })
 
 describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
-  test('selects draft and published-compatible Overture cohorts in chronological order', async () => {
+  test('selects draft and published-compatible Geographic cohorts in chronological order', async () => {
     const { sqlite, db } = createRegionalSnapshotLookupDb()
 
     sqlite.exec(`
@@ -2557,11 +2557,11 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
       INSERT INTO apiReleaseSets (
         id, apiVersionId, regionCode, domainCode, cohortKey, revision, status
       ) VALUES
-        ('release-set-2025-r0', 'api-divisions', 'hk', 'overture', '2025-09-24.0', 0, 'archived'),
-        ('release-set-2025-r1', 'api-divisions', 'hk', 'overture', '2025-09-24.0', 1, 'archived'),
-        ('release-set-2026', 'api-divisions', 'hk', 'overture', '2026-06-17.0', 0, 'current'),
-        ('release-set-had', 'api-divisions', 'hk', 'overture', '2026-07-01.0', 0, 'current'),
-        ('release-set-draft', 'api-divisions', 'hk', 'overture', '2026-08-01.0', 0, 'draft');
+        ('release-set-2025-r0', 'api-divisions', 'hk', 'geographic', '2025-09-24.0', 0, 'archived'),
+        ('release-set-2025-r1', 'api-divisions', 'hk', 'geographic', '2025-09-24.0', 1, 'archived'),
+        ('release-set-2026', 'api-divisions', 'hk', 'geographic', '2026-06-17.0', 0, 'current'),
+        ('release-set-had', 'api-divisions', 'hk', 'geographic', '2026-07-01.0', 0, 'current'),
+        ('release-set-draft', 'api-divisions', 'hk', 'geographic', '2026-08-01.0', 0, 'draft');
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role) VALUES
         ('release-set-2025-r0', 'snapshot-overture-2025-r0', 'primary'),
