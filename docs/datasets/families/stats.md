@@ -32,10 +32,10 @@ statistical-geography registry. Source geometry stays in provenance until a revi
 geometry is released through the Divisions family.
 
 Every C&SD publisher field requires a reviewed entry in
-`fixtures/meta/curations/hkgov-censtatd-statistics.json`. The entry assigns its stable
-canonical `measureCode`, retains the publisher `sourceField`, assigns a reviewed
-`statisticKind` (`count`, `quantity`, `proportion`, `ratio`, `rate`, `density`, or
-`index`) and a separate `aggregation` (`none`, `total`, `mean`, `median`, and related
+`fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset assigns
+its stable canonical `measureCode`, retains the publisher `sourceField`, assigns a
+reviewed `statisticKind` (`count`, `quantity`, `proportion`, `ratio`, `rate`, `density`,
+or `index`) and a separate `aggregation` (`none`, `total`, `mean`, `median`, and related
 forms), and supplies the English, Traditional Chinese, and Simplified Chinese measure
 dictionary. A proportion, ratio, rate, or density can also name its canonical
 `denominatorMeasureCode`. These semantics are independent of `valueKind` (numeric or
