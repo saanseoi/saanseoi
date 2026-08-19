@@ -954,7 +954,7 @@ async function lookupLandsdStreet({
           ),
           sourceUrl,
           target,
-          promptForCuration: true,
+          promptForCuration: options.skipPrompts !== true,
           onProgress: options.onProgress,
         })
         await publishLandsdStreetReleasePayloads(target, result.releases, {

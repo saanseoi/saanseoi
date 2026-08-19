@@ -780,8 +780,11 @@ export async function ingestLandsdStreetSource(options: {
       writeOperatorReport(outputDir, report),
       writeLifecycleReview(outputDir, curation.review),
     ])
+    const retry = options.promptForCuration
+      ? ''
+      : ` Run interactively with:\n./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${LANDSD_STREET_DATASET_CODE} --download --force`
     throw new Error(
-      `LandsD notice(s) require lifecycle curation before publication. Review ${reviewPath}, record decisions in ${options.curationPath ?? DEFAULT_CURATION_PATH}, then rerun. Operator report: ${reportPath}.`,
+      `LandsD notice(s) require lifecycle curation before publication. Review ${reviewPath}, record decisions in ${options.curationPath ?? DEFAULT_CURATION_PATH}, then rerun.${retry}\nOperator report: ${reportPath}.`,
     )
   }
 
