@@ -5,6 +5,7 @@ import type {
   ReleaseStatsLabels,
 } from '../releaseStats.types'
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
+import DivisionLinkage from './releaseStatsDivisionLinkageSection.svelte'
 import District from './releaseStatsDistrictSection.svelte'
 import GenericGroups from './releaseStatsGenericGroups.svelte'
 import Geometry from './releaseStatsGeometrySection.svelte'
@@ -42,6 +43,9 @@ let {
   {/if}
   {#if presentation.componentCoverage}
     <ComponentCoverage rows={presentation.componentCoverage} {labels} />
+  {/if}
+  {#if presentation.divisionLinkage}
+    <DivisionLinkage linkage={presentation.divisionLinkage} />
   {/if}
   {#if presentation.sourceLayerDistribution}
     <TypeDistribution distribution={presentation.sourceLayerDistribution} {labels} />

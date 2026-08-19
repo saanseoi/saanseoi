@@ -170,6 +170,10 @@ export type ProcessingPresentation = {
 export type QualityPresentation = {
   issues: Array<{ label: string; description: string; value: string }>
 }
+export type DivisionLinkagePresentation = {
+  id: string
+  rows: Array<{ label: string; value: string }>
+}
 export type GenericStatGroupPresentation = {
   id: string
   label: string
@@ -194,5 +198,6 @@ export type ReleaseStatsPresentation = {
   sourceLayerDistribution?: TypeDistributionPresentation
   processing?: ProcessingPresentation
   quality?: QualityPresentation
+  divisionLinkage?: DivisionLinkagePresentation
   genericGroups: GenericStatGroupPresentation[]
 }

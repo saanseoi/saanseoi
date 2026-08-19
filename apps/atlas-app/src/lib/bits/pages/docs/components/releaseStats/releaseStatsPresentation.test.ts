@@ -399,6 +399,29 @@ describe('createReleaseStatsPresentation', () => {
     ])
   })
 
+  test('presents division linkage separately from quality checks', () => {
+    const model = present([
+      {
+        dimension: 'records',
+        metric: 'linkage',
+        groupBy: 'divisionLevel',
+        groupValue: 'area',
+        value: 7,
+      },
+      {
+        dimension: 'missing_street_count',
+        metric: 'quality',
+        value: 2,
+      },
+    ])
+
+    expect(model.divisionLinkage?.rows).toEqual([
+      expect.objectContaining({ label: 'area', value: '7' }),
+    ])
+    expect(model.quality?.issues).toHaveLength(1)
+    expect(model.genericGroups).toEqual([])
+  })
+
   test('renders record distributions as bars and keeps district identifiers out of generic cards', () => {
     const model = present([
       { dimension: 'records', metric: 'count', value: 10 },

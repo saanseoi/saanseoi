@@ -11,6 +11,7 @@ import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/in
 import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
+import * as ReleaseSamples from '#lib/bits/pages/docs/components/releaseSamples/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
@@ -107,7 +108,7 @@ let notesPresentation = $derived(
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
-type ApiReleaseTab = 'notes' | 'stats' | 'audit' | 'sources'
+type ApiReleaseTab = 'notes' | 'samples' | 'stats' | 'audit' | 'sources'
 type ApiReleaseUrl = {
   searchParams: {
     get(name: string): string | null
@@ -115,7 +116,7 @@ type ApiReleaseUrl = {
 }
 const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
   const tab = url.searchParams.get('tab') ?? ''
-  return ['notes', 'stats', 'audit', 'sources'].includes(tab)
+  return ['notes', 'samples', 'stats', 'audit', 'sources'].includes(tab)
     ? (tab as ApiReleaseTab)
     : 'notes'
 }
@@ -256,7 +257,10 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       mode: mode === 'manual' ? 'Manual' : 'Automatic',
     }
   },
-  qualityDescription: humaniseStat,
+  qualityDescription: dimension =>
+    dimension === 'missing_street_count'
+      ? 'Addresses in this API release that could not be linked to a SaanSeoi street record. This does not mean the publisher omitted a street name.'
+      : humaniseStat(dimension),
 })
 let allVersions = $derived(
   domainReleases.map((item, index, releases) => ({
@@ -320,6 +324,7 @@ function setActiveTab(tab: string) {
 }
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
+  { id: 'samples', label: 'Samples' },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
@@ -402,6 +407,7 @@ let hasContent = $derived.by(() => {
       : Boolean(notesPresentation.markdown.trim())
   }
   if (activeTab === 'stats') return Boolean(release.stats?.length)
+  if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(release.processingActions?.length || release.bulkActions?.length)
   }
@@ -501,6 +507,11 @@ $effect(() => {
             presentation={statsPresentation}
             bind:headings={statsHeadings}
             bind:activeHeadingId={activeStatsHeadingId}
+          />
+        {:else if activeTab === 'samples'}
+          <ReleaseSamples.Root
+            apiVersion={release.apiVersion}
+            releaseSet={release.code}
           />
         {:else if activeTab === 'audit'}
           <ReleaseAudit.Root

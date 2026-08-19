@@ -63,6 +63,7 @@ import {
   type SourceAssetRole,
 } from '../../sourceAssets.ts'
 import { withLocalMetaDb } from '../../../dbCache/localDbCache.ts'
+import { formatInteractiveRetry } from '../../../cli/interactiveRetry.ts'
 import type { UploadTarget } from '../../../cli/options.ts'
 
 export const LANDSD_STREET_DATASET_CODE = 'ds-hk-hkgov-landsd-street'
@@ -782,7 +783,7 @@ export async function ingestLandsdStreetSource(options: {
     ])
     const retry = options.promptForCuration
       ? ''
-      : ` Run interactively with:\n./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${LANDSD_STREET_DATASET_CODE} --download --check-now`
+      : `\n\n${formatInteractiveRetry(`./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${LANDSD_STREET_DATASET_CODE} --download --check-now`)}`
     throw new Error(
       `LandsD notice(s) require lifecycle curation before publication. Review ${reviewPath}, record decisions in ${options.curationPath ?? DEFAULT_CURATION_PATH}, then rerun.${retry}\nOperator report: ${reportPath}.`,
     )

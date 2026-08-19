@@ -189,11 +189,9 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
-    divisionLinkedCount,
     streetLinkedCount,
     districtLinkedCount,
     areaLinkedCount,
-    geocodedCount,
     componentCounts,
     byDistrict,
   ] = await Promise.all([
@@ -226,14 +224,6 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       currentSchema.address2d,
       and(
         eq(currentSchema.address2d.snapshotId, snapshotId),
-        sql`${currentSchema.address2d.countryId} IS NOT NULL`,
-      ),
-    ),
-    countWhere(
-      db,
-      currentSchema.address2d,
-      and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
         sql`${currentSchema.address2d.streetId} IS NOT NULL`,
       ),
     ),
@@ -251,14 +241,6 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       and(
         eq(currentSchema.address2d.snapshotId, snapshotId),
         sql`${currentSchema.address2d.areaId} IS NOT NULL`,
-      ),
-    ),
-    countWhere(
-      db,
-      currentSchema.address2d,
-      and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
-        sql`${currentSchema.address2d.geometry} IS NOT NULL`,
       ),
     ),
     buildAddressComponentCounts(db, snapshotId),
@@ -281,15 +263,8 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     byDistrict,
     componentCounts,
     districtLinkedCount,
-    divisionLinkedCount,
-    geocodedCount,
     localeStats,
-    missingAreaCount: Math.max(0, address2dCount - areaLinkedCount),
-    missingDistrictCount: Math.max(0, address2dCount - districtLinkedCount),
-    missingDivisionCount: Math.max(0, address2dCount - divisionLinkedCount),
-    missingGeometryCount: Math.max(0, address2dCount - geocodedCount),
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
-    streetLinkedCount,
   })
 }
 
