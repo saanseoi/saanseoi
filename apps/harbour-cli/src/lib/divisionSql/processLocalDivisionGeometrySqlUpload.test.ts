@@ -107,19 +107,16 @@ describe('Overture Hong Kong area geometry', () => {
         code: 'hong-kong-island',
         districtDivisionIds: ['district-1'],
         divisionId: 'hong-kong-island-id',
-        isSynthetic: true,
       },
       {
         code: 'kowloon',
         districtDivisionIds: ['district-2'],
         divisionId: '17009785-57fd-4e5b-af86-2d27352e4718',
-        isSynthetic: false,
       },
       {
         code: 'new-territories',
         districtDivisionIds: ['district-3'],
         divisionId: 'new-territories-id',
-        isSynthetic: true,
       },
     ]
 
