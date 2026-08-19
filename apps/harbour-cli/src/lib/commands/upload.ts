@@ -1476,7 +1476,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   try {
     const db = dbContext.metaDb
     if (isCenstatdAreaTypePlan(plan)) {
-      return resolveCenstatdAreaTypeDivisionSnapshot(
+      return await resolveCenstatdAreaTypeDivisionSnapshot(
         db as unknown as HarbourReadableDb,
         plan,
       )
