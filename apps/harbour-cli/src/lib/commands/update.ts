@@ -84,11 +84,8 @@ export async function runUpdateCommand(
   target: UploadTarget,
   printUsage: () => void,
 ) {
+  validateUpdateArguments(args, printUsage)
   const requested = readDatasetOption(args)
-  if (args.positionals.length > 0) {
-    printUsage()
-    throw new Error('`update` accepts dataset selection through --dataset only.')
-  }
 
   const datasets = await loadDatasetFixtures()
   const requestedDatasets = requested
@@ -122,9 +119,8 @@ export async function runUpdateCommand(
   const shouldDownload = args.options.download === true || forceDownload
   const skipUpload = args.options['no-upload'] === true
   const skipPrompts = args.options.yes === true
-  const forceCheck =
-    args.options.force === true || args.options['check-now'] === true || forceDownload
-  const forceUpload = args.options.force === true
+  const forceCheck = args.options['check-now'] === true || forceDownload
+  const forceUpload = args.options['force-upload'] === true
   const errors: string[] = []
   const added = new Map<string, PublishedSourceRelease>()
   let reportedTargetLookupFailure = false
@@ -303,6 +299,61 @@ function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
     revisions: 'NEW REVISIONS',
     archives: 'SOURCE ARCHIVES TO MIRROR',
   }[phase]
+}
+
+export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void) {
+  const supportedOptions = new Set([
+    'api-family',
+    'check-now',
+    'dataset',
+    'download',
+    'force-download',
+    'force-upload',
+    'no-upload',
+    'scope',
+    'target',
+    'yes',
+  ])
+  const invalidOptions = Object.keys(args.options).filter(
+    option => !supportedOptions.has(option),
+  )
+  const booleanOptions = [
+    'check-now',
+    'download',
+    'force-download',
+    'force-upload',
+    'no-upload',
+    'yes',
+  ]
+  const invalidBooleanOptions = booleanOptions.filter(
+    option => args.options[option] !== undefined && args.options[option] !== true,
+  )
+
+  if (
+    args.positionals.length === 0 &&
+    invalidOptions.length === 0 &&
+    invalidBooleanOptions.length === 0
+  ) {
+    return
+  }
+
+  printUsage()
+  if (args.positionals.length > 0) {
+    throw new Error('`update` accepts dataset selection through --dataset only.')
+  }
+  if (invalidOptions.includes('force')) {
+    throw new Error(
+      '`update` does not support --force. Use --check-now to ignore the scheduled delay, --force-download to fetch again, or --force-upload with --check-now to reprocess a staged release.',
+    )
+  }
+  if (invalidOptions.length > 0) {
+    throw new Error(
+      `Unsupported update option(s): ${invalidOptions.map(option => `--${option}`).join(', ')}.`,
+    )
+  }
+  throw new Error(
+    `Update flags do not take values: ${invalidBooleanOptions.map(option => `--${option}`).join(', ')}.`,
+  )
 }
 
 function logPhaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {

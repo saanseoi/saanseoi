@@ -179,8 +179,10 @@ Each phase uses a trigger rather than only a fixed cadence: `periodic`,
 `after-latest-release-age` supports release cliffs such as Overture's daily polling
 after 25 days. `on-discovery` can run on a newly found release, a revision, and/or the
 initial download, which lets bounded archives recover an intermediate release missed
-between updater runs. `--force` and `--check-now` bypass due intervals but never a
-policy explicitly set to `never`.
+between updater runs. `--check-now` bypasses due intervals but never a policy explicitly
+set to `never`. `--force-download` also checks immediately and ignores a cached
+download; combine `--force-upload` with `--check-now` to reprocess a staged upload
+outside its normal schedule.
 
 Archive metadata records whether availability is `none`, `limited`, or `full`, plus the
 entry URL and reusable discovery operation where automated access exists. Once an

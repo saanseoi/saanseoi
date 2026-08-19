@@ -18,6 +18,7 @@ import {
   shouldIngestUpdate,
   shouldDownloadUpdate,
   targetVersionsFromReport,
+  validateUpdateArguments,
   wrapUpdateMessage,
 } from './update.ts'
 import {
@@ -160,6 +161,27 @@ test('selects an API family without prompting', async () => {
       datasets,
     ),
   ).resolves.toBe('streets')
+})
+
+test('uses explicit update flags instead of ambiguous --force', () => {
+  const printUsage = () => undefined
+
+  expect(() =>
+    validateUpdateArguments(
+      {
+        command: 'update',
+        positionals: [],
+        options: { 'check-now': true, 'force-upload': true },
+      },
+      printUsage,
+    ),
+  ).not.toThrow()
+  expect(() =>
+    validateUpdateArguments(
+      { command: 'update', positionals: [], options: { force: true } },
+      printUsage,
+    ),
+  ).toThrow('does not support --force')
 })
 
 test('adds a composition lookup provider before an address update', async () => {

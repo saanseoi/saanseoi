@@ -84,7 +84,7 @@ export async function runCenstatdStatsResetCommand(
       )
     }
     console.log(
-      `Reset ${selected.length} local C&SD statistic releases. Re-upload with \`./bin/saanseoi update --target local --scope stats --download --yes --force\`.`,
+      `Reset ${selected.length} local C&SD statistic releases. Re-upload with \`./bin/saanseoi update --target local --scope stats --download --yes --check-now\`.`,
     )
   } finally {
     context.cleanup()
