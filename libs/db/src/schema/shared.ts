@@ -198,8 +198,26 @@ export const canonicalDivisionStatistic = {
   sources: jsonText('sources').notNull(),
 }
 
-/** Shared feature-level context for a set of statistic observations. */
-export const canonicalStatsSeries = {
+/**
+ * One publisher feature and reference period, with its complete statistic
+ * payload. Keeping values together avoids one D1 write per measure.
+ */
+export type CanonicalStatsRecordValue = {
+  /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
+  sourceField: string
+  /** Decimal text, never a floating point approximation. */
+  numericValue: string | null
+  /** Categorical value where no numeric observation exists. */
+  valueCode: string | null
+  /** Decimal increment, e.g. `100` for a value rounded to the nearest hundred. */
+  valuePrecision: string | null
+  observationStatus: string
+  /** Original publisher literal, retained even when the numeric value is scaled. */
+  sourceValue: string
+}
+
+/** Shared feature-level context and packed values for a statistic record. */
+export const canonicalStatsRecord = {
   id: text('id').notNull(),
   datasetCode: text('datasetCode').notNull(),
   sourceReleaseId: text('sourceReleaseId').notNull(),
@@ -213,28 +231,10 @@ export const canonicalStatsSeries = {
   referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
   /** The source geography cohort used by this series, where applicable. */
   geographyCohortId: text('geographyCohortId'),
-}
-
-/**
- * A canonical statistic observation. Values are stored as publisher-independent
- * decimal text rather than floating point, so the value presented by the API
- * remains exact. `sourceValue` always retains the publisher's literal.
- */
-export const canonicalStatsObservation = {
-  id: text('id').notNull(),
-  seriesId: text('seriesId').notNull(),
-  /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
-  sourceField: text('sourceField').notNull(),
-  measureCode: text('measureCode').notNull(),
-  /** Decimal text, never a floating point approximation. */
-  numericValue: text('numericValue'),
-  /** Categorical value where no numeric observation exists. */
-  valueCode: text('valueCode'),
-  unitCode: text('unitCode').notNull(),
-  /** Decimal increment, e.g. `100` for a value rounded to the nearest hundred. */
-  valuePrecision: text('valuePrecision'),
-  observationStatus: text('observationStatus').notNull(),
-  sourceValue: text('sourceValue').notNull(),
+  /** Dimension values for this publisher feature, keyed by dimension code. */
+  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Values keyed by stable reviewed measure code. */
+  values: jsonText<Record<string, CanonicalStatsRecordValue>>('values').notNull(),
 }
 
 /**
@@ -318,12 +318,6 @@ export const canonicalStatsValueI18n = {
   valueCode: text('valueCode').notNull(),
   locale: text('locale').notNull(),
   name: text('name').notNull(),
-}
-
-export const canonicalStatsSeriesDimension = {
-  seriesId: text('seriesId').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-  valueCode: text('valueCode').notNull(),
 }
 
 export const canonicalAddress2d = {

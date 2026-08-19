@@ -4,37 +4,27 @@ import {
   canonicalStatsDimension,
   canonicalStatsMeasure,
   canonicalStatsMeasureI18n,
-  canonicalStatsObservation,
-  canonicalStatsSeries,
-  canonicalStatsSeriesDimension,
+  canonicalStatsRecord,
   canonicalStatsValue,
   canonicalStatsValueI18n,
   timestamps,
 } from '../shared'
 
 /** Latest canonical view only; revision history remains in the history shard. */
-export const statsObservations = sqliteTable(
-  'statsObservations',
-  { ...canonicalStatsObservation, ...timestamps },
+export const statsRecords = sqliteTable(
+  'statsRecords',
+  { ...canonicalStatsRecord, ...timestamps },
   table => [
     primaryKey({ columns: [table.id] }),
-    index('statsObservations_series_measure_idx').on(table.seriesId, table.measureCode),
-  ],
-)
-
-export const statsSeries = sqliteTable(
-  'statsSeries',
-  { ...canonicalStatsSeries, ...timestamps },
-  table => [
-    primaryKey({ columns: [table.id] }),
-    index('statsSeries_dataset_period_idx').on(
+    index('statsRecords_dataset_period_idx').on(
       table.datasetCode,
       table.referencePeriodCode,
     ),
-    index('statsSeries_division_period_idx').on(
+    index('statsRecords_division_period_idx').on(
       table.divisionId,
       table.referencePeriodCode,
     ),
+    index('statsRecords_source_release_idx').on(table.sourceReleaseId),
   ],
 )
 
@@ -73,16 +63,5 @@ export const statsValuesI18n = sqliteTable(
     primaryKey({
       columns: [table.datasetCode, table.dimensionCode, table.valueCode, table.locale],
     }),
-  ],
-)
-
-export const statsSeriesDimensions = sqliteTable(
-  'statsSeriesDimensions',
-  { ...canonicalStatsSeriesDimension, ...timestamps },
-  table => [
-    primaryKey({
-      columns: [table.seriesId, table.dimensionCode, table.valueCode],
-    }),
-    index('statsSeriesDimensions_series_idx').on(table.seriesId),
   ],
 )
