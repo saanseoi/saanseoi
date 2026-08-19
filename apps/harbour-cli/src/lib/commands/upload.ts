@@ -77,6 +77,8 @@ export async function runUploadCommand(
     forceUpload: boolean
     /** Allows a source-specific local repair to reprocess a published release. */
     allowReprocessPublished?: boolean
+    /** Allows a native importer to register an independent older cohort. */
+    allowHistoricalCohort?: boolean
     invocationCwd: string
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
@@ -118,6 +120,9 @@ ${mutedBar}  `)
   let divisionGeometryTransform: 'simplified' | undefined
   try {
     const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
+    if (options.allowHistoricalCohort) {
+      registerOptions.allowHistoricalCohort = true
+    }
     const hkgovHadPreparation = await prepareHkgovHadGeoJsonUpload(
       registerOptions.filePath,
       registerOptions.source,

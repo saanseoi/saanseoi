@@ -11,6 +11,7 @@ import {
   formatPublishedSourceRelease,
   formatUpdateProgressLine,
   recordPublishedSourceRelease,
+  requirePublishedTargetVersion,
   resolveApiFamilySelection,
   shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
@@ -78,6 +79,22 @@ test('retains and identifies every published cohort in the update summary', () =
     'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2022.0',
     'CenstatD ∷ Statistic ∷ Land Area Population Density District  v2024.0',
   ])
+})
+
+test('requires native ingestion to appear as the exact published target release', () => {
+  expect(
+    requirePublishedTargetVersion(
+      { targetSourceKey: '2024', version: '2024.0' },
+      new Map([['2024', '2024.0']]),
+    ),
+  ).toBe('2024.0')
+
+  expect(() =>
+    requirePublishedTargetVersion(
+      { targetSourceKey: '2024', version: '2024.0' },
+      new Map([['2024', null]]),
+    ),
+  ).toThrow('Ingestion completed, but 2024 is not published on the target')
 })
 
 test('uses sourceVariant as the subtype when the dataset code omits its resource type', () => {
@@ -614,6 +631,16 @@ test('formats division statistics and identifies the HyD nameplate source', () =
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ Statistic ∷ Land Area')
+  expect(
+    formatDatasetPromptLabel({
+      code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-2021',
+      publisherCode: 'hkgov-censtatd',
+      regionCode: 'hk',
+      theme: 'stats',
+      resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+      versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+    }),
+  ).toBe('CenstatD ∷ Stat + Div + DivArea ∷ Housing Market Areas 2021')
   expect(
     formatDatasetPromptLabel({
       code: 'ds-hk-hkgov-pland-division-pu',
