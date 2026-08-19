@@ -10,6 +10,7 @@ sourceSchemaVersion: "1.0"
 releaseVersion: "2022.0"
 type: "divisionStatistic"
 cohortKey: "2022"
+hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json"
 ---
 
 # EN
@@ -60,6 +61,15 @@ These source values are converted before being returned through
 - `DC_ENG` - is available as <black>sourceKeys.hkgovCenstatd.i18n.en.name</black>.
 - `DC_CHI` - is available as <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black>.
 
+## Measure mapping
+
+The [measure-code naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
+and [measure-offering convention](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1)
+separate a readable statistical name from its exact definition. The reviewed mapping
+below is generated from this release's curation manifest.
+
+{{hkgovCenstatdMeasureTable:en}}
+
 # ZH-HANT
 
 ## 變更記錄
@@ -103,6 +113,14 @@ These source values are converted before being returned through
 - `DC_ENG` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
 - `DC_CHI` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
 
+## 指標對應
+
+[指標代碼命名慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-naming/v1) 及
+[指標 offering 慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-offerings/v1)
+把易讀的統計名稱與其精確定義分開。以下經審核的對應表由此發布的整理清單產生。
+
+{{hkgovCenstatdMeasureTable:zh-Hant}}
+
 # ZH-HANS
 
 ## 变更记录
@@ -145,3 +163,11 @@ These source values are converted before being returned through
 
 - `DC_ENG` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
 - `DC_CHI` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
+
+## 指标对应
+
+[指标代码命名惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-naming/v1) 及
+[指标 offering 惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-offerings/v1)
+把易读的统计名称与其精确定义分开。以下经审核的对应表由此发布的整理清单产生。
+
+{{hkgovCenstatdMeasureTable:zh-Hans}}
