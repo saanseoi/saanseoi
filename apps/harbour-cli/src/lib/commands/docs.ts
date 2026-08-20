@@ -23,6 +23,19 @@ type ApiReleaseSetDocsRow = {
   notes: string | null
   createdAt: string
   updatedAt: string
+  sources?: ApiReleaseSetSourceDocsRow[]
+}
+
+export type ApiReleaseSetSourceDocsRow = {
+  datasetCode: string
+  datasetI18n: Array<{ locale: string; name: string }>
+  publisherCode: string
+  publisherI18n: Array<{ locale: string; name: string }>
+  releaseCode: string
+  resourceType: string
+  role: 'primary' | 'supporting'
+  sourceVersion: string
+  variant: string
 }
 
 type ReleaseDocsRow = {
@@ -122,6 +135,7 @@ export async function createApiReleaseSetRevisionDraft(
   const frontmatter = {
     ...previousFixture.frontmatter,
     apiReleaseSet: input.apiReleaseSetCode,
+    apiReleaseSetRevision: String(parsedCode.sequence),
     createdAt: now,
     updatedAt: now,
   }
@@ -202,6 +216,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     apiFamily: selectedFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: releaseSet.code,
+    apiReleaseSetRevision: String(releaseSet.parsedCode.sequence),
     regionCode: releaseSet.parsedCode.regionCode,
     cohortKey: releaseSet.parsedCode.cohortKey,
   }
@@ -278,6 +293,7 @@ async function runApiReleaseSetDocsPublishCommand(
       const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForApiReleaseSetRow(row),
+        row.sources ?? [],
       )
 
       if (previousNotes !== notes) {
@@ -990,6 +1006,7 @@ export async function renderMarkdownFixtureBody(
     frontmatter: Record<string, string>
   },
   frontmatterOverride: Record<string, string> = {},
+  apiReleaseSources: ApiReleaseSetSourceDocsRow[] = [],
 ) {
   const frontmatter = {
     ...fixture.frontmatter,
@@ -1009,7 +1026,11 @@ export async function renderMarkdownFixtureBody(
     },
   )
 
-  return renderCenstatdMeasureTables(markdown, frontmatter)
+  const renderedCenstatdTables = await renderCenstatdMeasureTables(
+    markdown,
+    frontmatter,
+  )
+  return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
 }
 
 /**
@@ -1046,6 +1067,158 @@ async function renderCenstatdMeasureTables(
   return markdown.replace(directive, (_tag, locale: CenstatdMeasureTableLocale) =>
     renderCenstatdMeasureTable(manifest, locale),
   )
+}
+
+function renderApiReleaseSetSourcesTables(
+  markdown: string,
+  sources: ApiReleaseSetSourceDocsRow[],
+) {
+  if (sources.length === 0) return markdown
+
+  const english = replaceMarkdownSection(
+    markdown,
+    '## Constituent source releases',
+    renderApiReleaseSetSourcesTable(sources, 'en'),
+  )
+  if (!english.matched) {
+    throw new Error(
+      'API release-set notes are missing the English source table heading.',
+    )
+  }
+
+  const traditionalChinese = replaceMarkdownSection(
+    english.markdown,
+    '## 組成來源發布',
+    renderApiReleaseSetSourcesTable(sources, 'zh-Hant'),
+  )
+  if (!traditionalChinese.matched) {
+    throw new Error(
+      'API release-set notes are missing the Traditional Chinese source table heading.',
+    )
+  }
+  return traditionalChinese.markdown
+}
+
+function renderApiReleaseSetSourcesTable(
+  sources: ApiReleaseSetSourceDocsRow[],
+  locale: 'en' | 'zh-Hant',
+) {
+  const groups = new Map<string, ApiReleaseSetSourceDocsRow[]>()
+  const sortedSources = [...sources].sort(
+    (left, right) =>
+      roleOrder(left.role) - roleOrder(right.role) ||
+      left.resourceType.localeCompare(right.resourceType) ||
+      left.publisherCode.localeCompare(right.publisherCode) ||
+      left.sourceVersion.localeCompare(right.sourceVersion, undefined, {
+        numeric: true,
+      }),
+  )
+
+  for (const source of sortedSources) {
+    const key = `${source.role}:${source.resourceType}`
+    groups.set(key, [...(groups.get(key) ?? []), source])
+  }
+
+  const lines: string[] = []
+  for (const [, group] of groups) {
+    const first = group[0]
+    if (!first) continue
+
+    lines.push(
+      `### ${sourceRoleLabel(first.role, locale)} · ${resourceTypeLabel(first.resourceType, locale)}`,
+      '',
+      locale === 'en'
+        ? '| Publisher | Source dataset | Release |'
+        : '| 發布者 | 來源資料集 | 發布版本 |',
+      '| --- | --- | --- |',
+    )
+
+    for (const source of group) {
+      const sourceHref = `/sources/${source.datasetCode}/${source.releaseCode}`
+      const publisherName = selectDocsLocalisedName(
+        source.publisherI18n,
+        locale,
+        source.publisherCode,
+      )
+      const datasetName = selectDocsLocalisedName(
+        source.datasetI18n,
+        locale,
+        source.datasetCode,
+      )
+      lines.push(
+        `| ${markdownLink(publisherName, `/publishers/${source.publisherCode}`)} | ${markdownLink(datasetName, sourceHref)} | ${markdownLink(source.sourceVersion, sourceHref)} |`,
+      )
+    }
+
+    lines.push('')
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+function replaceMarkdownSection(markdown: string, heading: string, body: string) {
+  const headingPattern = new RegExp(
+    `(^|\\n)${escapeRegExp(heading)}\\n[\\s\\S]*?(?=\\n## |$)`,
+  )
+  let matched = false
+
+  const replaced = markdown.replace(headingPattern, (_match, prefix: string) => {
+    matched = true
+    return `${prefix}${heading}\n\n${body}\n`
+  })
+  return { markdown: replaced, matched }
+}
+
+function roleOrder(role: ApiReleaseSetSourceDocsRow['role']) {
+  return role === 'primary' ? 0 : 1
+}
+
+function sourceRoleLabel(
+  role: ApiReleaseSetSourceDocsRow['role'],
+  locale: 'en' | 'zh-Hant',
+) {
+  if (locale === 'zh-Hant') return role === 'primary' ? '主要' : '支援'
+  return role === 'primary' ? 'Primary' : 'Supporting'
+}
+
+function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
+  if (locale === 'zh-Hant') {
+    return (
+      {
+        division: '區劃',
+        divisionArea: '區劃面',
+        divisionBoundary: '區劃邊界',
+        divisionStatistic: '區劃統計',
+      }[resourceType] ?? humaniseResourceType(resourceType)
+    )
+  }
+
+  return humaniseResourceType(resourceType)
+}
+
+function humaniseResourceType(value: string) {
+  return value
+    .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
+    .replaceAll(/[_-]/g, ' ')
+    .replace(/\b\w/g, letter => letter.toUpperCase())
+}
+
+function selectDocsLocalisedName(
+  rows: Array<{ locale: string; name: string }>,
+  locale: 'en' | 'zh-Hant',
+  fallback: string,
+) {
+  const normalisedLocale = locale.toLowerCase()
+  return (
+    rows.find(row => row.locale.toLowerCase() === normalisedLocale)?.name ??
+    rows.find(row => row.locale.toLowerCase() === 'en')?.name ??
+    rows[0]?.name ??
+    fallback
+  )
+}
+
+function markdownLink(label: string, href: string) {
+  return escapeMarkdownTableCell(`[${label.replaceAll(']', '\\]')}](${href})`)
 }
 
 type CenstatdMeasureTableLocale = 'en' | 'zh-Hant' | 'zh-Hans'
@@ -1159,12 +1332,17 @@ function escapeMarkdownTableCell(value: string) {
   return value.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>')
 }
 
+function escapeRegExp(value: string) {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function frontmatterForApiReleaseSetRow(
   row: ParsedApiReleaseSetDocsRow,
 ): Record<string, string> {
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
+    apiReleaseSetRevision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
     regionCode: row.parsedCode.regionCode,

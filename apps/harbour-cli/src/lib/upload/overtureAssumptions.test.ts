@@ -1,6 +1,14 @@
-import { describe, expect, test } from 'bun:test'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-import { evaluateDivisionAssumptions } from './overtureAssumptions.ts'
+import { describe, expect, test } from 'bun:test'
+import { parquetWriteFile } from 'hyparquet-writer'
+
+import {
+  checkOvertureUploadAssumptions,
+  evaluateDivisionAssumptions,
+} from './overtureAssumptions.ts'
 
 describe('evaluateDivisionAssumptions', () => {
   test('accepts the current Hong Kong-style dropped-field profile', () => {
@@ -61,6 +69,35 @@ describe('evaluateDivisionAssumptions', () => {
       '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`region`\u001B[39m should be \u001B[32mall null\u001B[39m; found \u001B[31m7 non-null rows\u001B[39m.',
       '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`norms`\u001B[39m should be \u001B[32meffectively uniform\u001B[39m; found \u001B[31m2 distinct non-null values\u001B[39m.',
     ])
+  })
+
+  test('labels parquet summaries with more than 100 distinct values honestly', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'harbour-overture-assumptions-'))
+    const filePath = join(directory, 'division.parquet')
+    try {
+      parquetWriteFile({
+        filename: filePath,
+        columnData: [
+          {
+            data: Array.from({ length: 101 }, (_, index) => `theme-${index}`),
+            name: 'theme',
+            nullable: false,
+            type: 'STRING',
+          },
+        ],
+      })
+
+      const warnings = await checkOvertureUploadAssumptions(filePath, {
+        source: 'overture',
+        type: 'division',
+        regionCode: 'hk',
+      } as never)
+
+      expect(warnings[0]).toContain('at least 100 distinct non-null values')
+      expect(warnings[0]).toContain('Dropped field')
+    } finally {
+      await rm(directory, { force: true, recursive: true })
+    }
   })
 
   test('accepts the allowlisted Guangdong rows in early HK geometry extracts', () => {

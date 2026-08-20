@@ -1,6 +1,9 @@
 const toHex = (bytes: Uint8Array) =>
   Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
 
+const MAX_SIGNED_REQUEST_LENGTH = 4_096
+const MAX_ENCODED_SIGNATURE_LENGTH = 64
+
 const decodeBase64Url = (value: string): Uint8Array => {
   const normalized = value.replaceAll('-', '+').replaceAll('_', '/')
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
@@ -14,8 +17,17 @@ export const parseFacebookSignedRequest = async (
   signedRequest: string,
   appSecret: string,
 ): Promise<{ user_id: string } | null> => {
-  const [encodedSignature, encodedPayload] = signedRequest.split('.', 2)
-  if (!encodedSignature || !encodedPayload || !appSecret) return null
+  if (!appSecret || signedRequest.length > MAX_SIGNED_REQUEST_LENGTH) return null
+
+  const parts = signedRequest.split('.')
+  if (parts.length !== 2) return null
+  const [encodedSignature, encodedPayload] = parts
+  if (
+    !encodedSignature ||
+    !encodedPayload ||
+    encodedSignature.length > MAX_ENCODED_SIGNATURE_LENGTH
+  )
+    return null
 
   let signature: Uint8Array
   let payload: Uint8Array
@@ -25,6 +37,7 @@ export const parseFacebookSignedRequest = async (
   } catch {
     return null
   }
+  if (signature.byteLength !== 32) return null
 
   const key = await crypto.subtle.importKey(
     'raw',

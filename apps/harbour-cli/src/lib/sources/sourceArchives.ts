@@ -2,16 +2,17 @@ import { createHash } from 'node:crypto'
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, resolve } from 'node:path'
 
-import { strFromU8, unzipSync, zipSync } from 'fflate'
-import fgdb from 'fgdb'
+import { strFromU8, zipSync } from 'fflate'
 import shp from 'shpjs'
 
 import type { UploadTarget } from '../cli/options.ts'
 import { buildManagedAssetUrl, uploadManagedSourceAsset } from './sourceAssets.ts'
+import { readFileGeodatabaseArchive } from './fileGeodatabase.ts'
 import {
   HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
   readHkgovTdPedestrianStreetArchive,
 } from './hkgov/hkgovHyd.ts'
+import { readSafeZipArchive } from './zipArchive.ts'
 
 const SOURCE_ARCHIVE_ROOT = 'by-source'
 const CSDI_ARCHIVE_PUBLISHER = 'hkgov-csdi'
@@ -139,13 +140,7 @@ export async function mirrorCsdiSourceArchive(
   const manifestBytes = await readFile(prepared.manifestPath)
   const manifestSha256 = sha256(manifestBytes)
   const retrievedAt = new Date().toISOString()
-  const sourceKey = buildSourceArchiveObjectKey(
-    {
-      datasetId: archive.datasetId,
-      sha256: prepared.manifest.archive.sha256,
-    },
-    'source.zip',
-  )
+  const sourceKey = prepared.manifest.archive.objectKey
   const manifestKey = buildSourceArchiveObjectKey(
     {
       datasetId: archive.datasetId,
@@ -248,8 +243,9 @@ async function buildSourceArchiveManifest(input: {
 }
 
 function inspectZip(value: Uint8Array) {
-  const entries = unzipSync(value)
-  const files = Object.keys(entries).sort()
+  const { entries, files } = readSafeZipArchive(value, {
+    select: file => file.toLowerCase().endsWith('.prj'),
+  })
   const layers = files
     .filter(file => file.toLowerCase().endsWith('.shp'))
     .map(file => {
@@ -267,11 +263,11 @@ async function inspectNativeSemantics(
   archiveBytes: Uint8Array,
   requestedLayers: string[] | undefined,
 ) {
-  const entries = unzipSync(archiveBytes)
+  const { files } = readSafeZipArchive(archiveBytes, { select: () => false })
   const parsed = isTdPedestrianStreetLayers(requestedLayers)
     ? readHkgovTdPedestrianStreetArchive(archiveBytes)
-    : Object.keys(entries).some(file => file.toLowerCase().includes('.gdb/'))
-      ? await fgdb(Uint8Array.from(archiveBytes))
+    : files.some(file => file.toLowerCase().includes('.gdb/'))
+      ? await readFileGeodatabaseArchive(archiveBytes)
       : await shp(Uint8Array.from(archiveBytes).buffer)
   const featureCollections = readFeatureCollections(parsed)
   if (featureCollections.length === 0) return undefined

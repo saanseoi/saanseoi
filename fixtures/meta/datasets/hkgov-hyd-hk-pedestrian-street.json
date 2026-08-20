@@ -1,16 +1,18 @@
 {
-  "versionHash": "sha256:9f455c3a75ca96eb69113aa3ffcc31818b67e479733c718ebd2ebfaf1a7a254d",
+  "versionHash": "sha256:b8d477f72b89d28019b58a41294218e7968acd9f01473b9758df3fece28924a0",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-pedestrian-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": ["street"],
+  "resourceTypes": [
+    "street"
+  ],
   "licenseCode": "hkgov-open-data",
-  "attribution": "© Hong Kong Special Administrative Region Government, Transport Department.",
+  "attribution": "© Hong Kong Special Administrative Region Government, Transport Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/b8562cd1703ad443a23157c2e6bad6435784aa9993154f924c533b3055268940",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/b8562cd1703ad443a23157c2e6bad6435784aa9993154f924c533b3055268940",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"],
+        "discoveries": [
+          "new-release"
+        ],
         "includeInitialDownload": true
       }
     },

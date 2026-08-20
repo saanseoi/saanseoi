@@ -13,6 +13,12 @@ export type RegistryPublisher = {
   contactPhone?: string | null
   parentPublisherId?: string | null
   publisherI18n?: LocalisedRow[]
+  accessMetrics?: AccessMetrics | null
+}
+
+export type AccessMetrics = {
+  metrics: Record<string, number>
+  asOf: string | null
 }
 
 export type ApiRelease = {
@@ -76,6 +82,7 @@ export type ApiRelease = {
   contributingSources?: Array<{
     sourceCode: string
     sourceReleaseCode: string
+    datasetI18n?: Array<{ locale: string; name: string }>
     publisherCode: string
     snapshotCode: string
     role: 'primary' | 'supporting'
@@ -91,6 +98,7 @@ export type ApiRelease = {
   createdAt: string
   updatedAt: string
   primaryRecordCount?: number | null
+  accessMetrics?: AccessMetrics | null
 }
 
 export type BasemapSchemaVersion = `protomaps-v4.${number}`
@@ -198,6 +206,7 @@ export type SourceVersion = {
   }>
   createdAt: string
   updatedAt: string
+  accessMetrics?: AccessMetrics | null
   license?: {
     id: string | null
     code: string | null
@@ -220,6 +229,7 @@ export type RegistrySource = {
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
+  schemaURL?: string | null
   licenseId?: string | null
   license?: {
     id: string | null

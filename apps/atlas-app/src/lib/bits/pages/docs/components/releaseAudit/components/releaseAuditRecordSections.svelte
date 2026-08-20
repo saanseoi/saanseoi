@@ -4,14 +4,20 @@ import { m } from '#lib/bits/internal/i18n.js'
 import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'
 import ReleaseAuditCardHeader from './releaseAuditCardHeader.svelte'
-import type { AuditRowPresentation, AuditSection } from './releaseAudit.types'
+import type {
+  AuditEvidenceCopyHandler,
+  AuditRowPresentation,
+  AuditSection,
+} from './releaseAudit.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 type Props = {
   copiedEvidenceId: string | null
+  analyticsSurface: ReleaseAnalyticsSurface
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
-  onCopy: (id: string, evidence: unknown) => void
+  onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
   onToggle: (id: string) => void
   presentRow: (
@@ -24,6 +30,7 @@ type Props = {
 
 let {
   copiedEvidenceId,
+  analyticsSurface,
   evidenceTransitionName,
   expandedEvidenceId,
   formatAction,
@@ -81,6 +88,7 @@ let {
         <div class="divide-y divide-data-outline-variant/60">
           {#each section.rows as row}
             <ReleaseAuditActionRow
+              {analyticsSurface}
               copied={copiedEvidenceId === row.id}
               expanded={expandedEvidenceId === row.id}
               {onCopy}

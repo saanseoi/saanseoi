@@ -13,7 +13,11 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "dev": "bash ./scripts/dev.sh",
+    "dev": "fish ./scripts/dev.fish all",
+    "dev:all": "fish ./scripts/dev.fish all",
+    "dev:atlas": "fish ./scripts/dev.fish atlas",
+    "dev:harbour": "fish ./scripts/dev.fish harbour",
+    "dev:basemap": "bun run --filter=basemap-viewer dev",
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
     "upload": "./bin/saanseoi upload",
@@ -121,14 +125,14 @@
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.24.1",
-    "bits-ui": "^2.18.1",
+    "bits-ui": "^2.19.0",
     "bun-types": "^1.3.14",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.8",
-    "@changesets/cli": "^3.0.0",
+    "@biomejs/biome": "^2.5.9",
+    "@changesets/cli": "^3.0.1",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@iconify-json/simple-icons": "^1.2.93",
@@ -142,8 +146,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.10.10",
-    "wrangler": "^4.123.0"
+    "turbo": "^2.10.11",
+    "wrangler": "^4.124.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

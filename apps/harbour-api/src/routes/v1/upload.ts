@@ -7,10 +7,13 @@ import {
 } from '../../lib/services/uploadSession'
 import {
   parseSourceAssetMetadata,
+  linkManagedSourceAssetToRelease,
   registerManagedSourceAsset,
 } from '../../lib/services/sourceAssets'
 import {
   ErrorResponseSchema,
+  LinkManagedSourceAssetRequestSchema,
+  LinkManagedSourceAssetResponseSchema,
   LocalUploadRegistrationResponseSchema,
   ManagedSourceAssetResponseSchema,
   RegisterUploadRequestSchema,
@@ -61,6 +64,32 @@ const managedSourceAssetRouteConfig = createRoute({
     400: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
       description: 'Source asset upload failed.',
+    },
+  },
+})
+
+const linkManagedSourceAssetRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/assets/link-release',
+  tags: ['Source assets'],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: LinkManagedSourceAssetRequestSchema },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: LinkManagedSourceAssetResponseSchema },
+      },
+      description: 'Link an immutable source asset to a processed release.',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Source asset linkage failed.',
     },
   },
 })
@@ -128,4 +157,30 @@ export const managedSourceAssetRoute = defineOpenAPIRoute<
   },
 })
 
-export const uploadRoutes = [registerUploadRoute, managedSourceAssetRoute] as const
+export const linkManagedSourceAssetRoute = defineOpenAPIRoute<
+  typeof linkManagedSourceAssetRouteConfig,
+  AppEnv
+>({
+  route: linkManagedSourceAssetRouteConfig,
+  handler: async c => {
+    try {
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      return c.json(await linkManagedSourceAssetToRelease(db, c.req.valid('json')), 200)
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'source_asset_link_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
+export const uploadRoutes = [
+  registerUploadRoute,
+  managedSourceAssetRoute,
+  linkManagedSourceAssetRoute,
+] as const

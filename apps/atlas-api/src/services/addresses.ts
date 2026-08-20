@@ -27,6 +27,11 @@ import {
 } from '../lib/api'
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
+import type { AccessAttribution } from './accessAnalytics'
+import {
+  resolveApiReleaseSetAccessAttribution,
+  resolveOptionalApiReleaseSetAccessAttribution,
+} from './accessAnalytics'
 
 export type RequestedAddressVersion = 'v0' | 'v0.1'
 export type RequestedAddressApiVersion = '0.1'
@@ -421,11 +426,21 @@ export async function listAddresses(args: {
   requestedApiVersion: RequestedAddressApiVersion
   resolvedApiVersion: ResolvedAddressApiVersion
   query: AddressListQuery
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<AddressListResult> {
   const routeState = buildAddressRouteState(args)
   const activeSnapshot = await getActiveAddressSnapshot(args.metaDb, args.query)
   if (!activeSnapshot) {
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeSnapshot.apiReleaseSet,
+      ),
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
 
   const limit = args.query['page[limit]'] ?? 25
@@ -507,11 +522,21 @@ export async function getAddressDetail(args: {
   resolvedApiVersion: ResolvedAddressApiVersion
   id: string
   query: AddressDetailQuery
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<AddressDetailResult> {
   const routeState = buildAddressRouteState(args)
   const activeSnapshot = await getActiveAddressSnapshot(args.metaDb, args.query)
   if (!activeSnapshot) {
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeSnapshot.apiReleaseSet,
+      ),
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
 
   const record = await runWithD1ReadRetry(() =>

@@ -5,6 +5,7 @@ import {
   getRegistrySource,
   getRegistrySourcePublisher,
   listRegistryApiCompositions,
+  listRegistrySourcePublishers,
   listRegistrySourcesPage,
   listRegistrySources,
   getRegistryReleaseLifecycleScope,
@@ -25,10 +26,10 @@ import {
   metaAssets,
   metaDataShards,
   metaReleases,
+  metaSourceReleases,
   metaSnapshotLineages,
   metaSnapshotShardAssignments,
   metaSnapshots,
-  metaSourceReleases,
   metaApiComposition,
   metaApiCompositionMembers,
   stats,
@@ -40,6 +41,8 @@ import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
+import { writeServerProductUsage } from '../analytics/productUsage.js'
+import { getRegistryAccessMetrics } from './accessMetrics.js'
 import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
@@ -70,6 +73,29 @@ const BASEMAP_REGIONS = {
   hk: { name: 'Hong Kong', tileset: 'hongkong' },
   mo: { name: 'Macao', tileset: 'macau' },
 } as const
+
+const recordRegistryDataLoad = (
+  route: string,
+  entityType:
+    | 'source'
+    | 'source_release'
+    | 'publisher'
+    | 'api'
+    | 'api_release'
+    | 'data_release'
+    | 'district'
+    | 'region',
+  entityId?: string,
+  outcome: 'success' | 'failure' = 'success',
+) =>
+  writeServerProductUsage({
+    event: 'registry.data_load',
+    surface: 'registry',
+    route,
+    entityType,
+    entityId,
+    outcome,
+  })
 
 export type SourcesPageSource = Pick<
   RegistrySource,
@@ -190,12 +216,16 @@ function isBasemapVersionEntry(
 }
 
 async function loadBasemapReleases(): Promise<BasemapRelease[]> {
+  const eventFetch = getRequestEvent().fetch
   const releases = await Promise.all(
     Object.entries(BASEMAP_REGIONS).map(async ([code, region]) => {
       try {
-        const response = await fetch(`${BASEMAP_TILE_ORIGIN}/${code}/versions.json`, {
-          headers: { Accept: 'application/json', Origin: BASEMAP_VIEWER_ORIGIN },
-        })
+        const response = await eventFetch(
+          `${BASEMAP_TILE_ORIGIN}/${code}/versions.json`,
+          {
+            headers: { Accept: 'application/json', Origin: BASEMAP_VIEWER_ORIGIN },
+          },
+        )
         if (!response.ok) return []
         const value = (await response.json()) as { versions?: unknown }
         if (!Array.isArray(value.versions)) return []
@@ -301,9 +331,67 @@ export const getSourcesPageData = query(async () => {
     }),
   )
 
-  return {
+  const result = {
     domainsByApiFamily,
     sources: (sources as unknown as RegistrySource[]).map(toSourcesPageSource),
+  }
+  recordRegistryDataLoad('/sources', 'source')
+  return result
+})
+
+export const getPublishersPageData = query(async () => {
+  const db = getMetaDb()
+  const [registryPublishers, registrySources] = await Promise.all([
+    listRegistrySourcePublishers(db),
+    listRegistrySourcesPage(db, 200),
+  ])
+  const publishers = registryPublishers as RegistryPublisher[]
+  const sourceCounts = new Map<string, number>()
+
+  for (const source of registrySources) {
+    sourceCounts.set(
+      source.publisherId,
+      (sourceCounts.get(source.publisherId) ?? 0) + 1,
+    )
+  }
+
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const publisher of publishers) {
+    if (!publisher.parentPublisherId) continue
+    const children = childrenByPublisherId.get(publisher.parentPublisherId) ?? []
+    children.push(publisher)
+    childrenByPublisherId.set(publisher.parentPublisherId, children)
+  }
+
+  const contributionCounts = new Map<string, number>()
+  const countContributions = (
+    publisherId: string,
+    ancestors = new Set<string>(),
+  ): number => {
+    const cachedCount = contributionCounts.get(publisherId)
+    if (cachedCount !== undefined) return cachedCount
+    if (ancestors.has(publisherId)) return sourceCounts.get(publisherId) ?? 0
+
+    const nextAncestors = new Set(ancestors).add(publisherId)
+    const count =
+      (sourceCounts.get(publisherId) ?? 0) +
+      (childrenByPublisherId.get(publisherId) ?? []).reduce(
+        (total, child) => total + countContributions(child.id, nextAncestors),
+        0,
+      )
+    contributionCounts.set(publisherId, count)
+    return count
+  }
+
+  return {
+    publishers: publishers
+      .map(publisher => ({
+        ...publisher,
+        isInstitution:
+          countContributions(publisher.id) > (sourceCounts.get(publisher.id) ?? 0),
+        sourceCount: countContributions(publisher.id),
+      }))
+      .filter(publisher => publisher.sourceCount > 0),
   }
 })
 
@@ -319,6 +407,7 @@ export const getSourcePageData = query(registryCodeSchema, async datasetCode => 
     redirect(302, `/sources/${source.code}/${latestVersion.code}`)
   }
 
+  recordRegistryDataLoad('/sources/:id', 'source', datasetCode)
   return source
 })
 
@@ -346,11 +435,18 @@ export const getSourceReleaseShellData = query(
       selectedReleaseCode: _selectedReleaseCode,
       ...source
     } = shell
-    return {
+    const accessMetrics = await getRegistryAccessMetrics(
+      getMetaDb(),
+      'source_release',
+      version.id,
+    )
+    const result = {
       source: source as RegistrySource,
-      version: version as SourceVersion,
+      version: { ...version, accessMetrics } as SourceVersion,
       timings,
     }
+    recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
+    return result
   },
 )
 
@@ -417,10 +513,15 @@ export const getSourceReleaseContentData = query(
       datasetCode,
       releaseId: version.id,
     })
+    const accessMetrics = await getRegistryAccessMetrics(
+      db,
+      'source_release',
+      version.id,
+    )
     const result = {
       version: archive
-        ? { ...version, sourceArchiveAssetId: archive.assetId }
-        : version,
+        ? { ...version, sourceArchiveAssetId: archive.assetId, accessMetrics }
+        : { ...version, accessMetrics },
       previousNotes,
       measures,
     } as {
@@ -434,6 +535,7 @@ export const getSourceReleaseContentData = query(
         content: performance.now() - startedAt,
       })
 
+    recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
     return result
   },
 )
@@ -441,7 +543,7 @@ export const getSourceReleaseContentData = query(
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
 const districtGeometryNamesSchema = z.object({
-  districtIds: z.array(z.string().trim().min(1).max(200)).max(10_000),
+  districtIds: z.array(z.string().trim().min(1).max(200)).max(100),
   locale: districtMapLocaleSchema,
 })
 const D1_DISTRICT_NAME_BATCH_SIZE = 98
@@ -623,29 +725,55 @@ export const getDistrictGeometryNames = query(
     const localisedNames = namesByLocale.get(i18nLocale)
     const englishNames = namesByLocale.get('en')
 
-    return ids.map(divisionId => ({
+    const result = ids.map(divisionId => ({
       divisionId,
       name: localisedNames?.get(divisionId) ?? englishNames?.get(divisionId) ?? null,
       unofficial: UNOFFICIAL_DISTRICT_IDS.has(divisionId),
     }))
+    recordRegistryDataLoad('/sources/:id/:id', 'district')
+    return result
   },
 )
 
 export const getPublisherPageData = query(registryCodeSchema, async publisherCode => {
   const db = getMetaDb()
-  const [registryPublisher, registrySources] = await Promise.all([
+  const [registryPublisher, registryPublishers, registrySources] = await Promise.all([
     getRegistrySourcePublisher(db, publisherCode),
+    listRegistrySourcePublishers(db),
     listRegistrySources(db),
   ])
   const publisher = registryPublisher as RegistryPublisher | null
+  const publishers = registryPublishers as RegistryPublisher[]
   const sources = registrySources as RegistrySource[]
 
   if (!publisher) error(404, 'Publisher not found.')
 
-  return {
-    publisher,
-    sources: sources.filter(source => source.publisherId === publisher.id),
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const child of publishers) {
+    if (!child.parentPublisherId) continue
+    const children = childrenByPublisherId.get(child.parentPublisherId) ?? []
+    children.push(child)
+    childrenByPublisherId.set(child.parentPublisherId, children)
   }
+
+  const descendantPublisherIds = new Set<string>([publisher.id])
+  const collectDescendants = (publisherId: string) => {
+    for (const child of childrenByPublisherId.get(publisherId) ?? []) {
+      if (descendantPublisherIds.has(child.id)) continue
+      descendantPublisherIds.add(child.id)
+      collectDescendants(child.id)
+    }
+  }
+  collectDescendants(publisher.id)
+
+  const accessMetrics = await getRegistryAccessMetrics(db, 'publisher', publisher.code)
+
+  const result = {
+    publisher: { ...publisher, accessMetrics },
+    sources: sources.filter(source => descendantPublisherIds.has(source.publisherId)),
+  }
+  recordRegistryDataLoad('/publishers/:id', 'publisher', publisherCode)
+  return result
 })
 
 async function loadDataReleasesPage(offset = 0) {
@@ -1011,36 +1139,46 @@ async function loadDataPageApiData() {
 
 export const getDataPageApiData = query(async () => {
   try {
-    return await runWithD1ReadRetry(loadDataPageApiData)
+    const result = await runWithD1ReadRetry(loadDataPageApiData)
+    recordRegistryDataLoad('/data', 'data_release')
+    return result
   } catch (error) {
     // An import can briefly expose the app before both D1 databases have their
     // registry tables. Render the empty registry state until the upload finishes.
     if (isRegistryBootstrapError(error)) {
-      return {
+      const result = {
         releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: 0,
         apis: [] as DataPageApi[],
       }
+      recordRegistryDataLoad('/data', 'data_release')
+      return result
     }
     throw error
   }
 })
 
-export const getDataPageBasemapData = query(async () => ({
-  basemapReleases: await loadBasemapReleases(),
-}))
+export const getDataPageBasemapData = query(async () => {
+  const result = { basemapReleases: await loadBasemapReleases() }
+  recordRegistryDataLoad('/data', 'region')
+  return result
+})
 
 export const getDataReleasesPageData = query(releasePageSchema, async ({ offset }) => {
   try {
-    return await runWithD1ReadRetry(() => loadDataReleasesPage(offset))
+    const result = await runWithD1ReadRetry(() => loadDataReleasesPage(offset))
+    recordRegistryDataLoad('/data/releases', 'data_release', String(offset))
+    return result
   } catch (error) {
     if (isRegistryBootstrapError(error)) {
-      return {
+      const result = {
         releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: offset,
       }
+      recordRegistryDataLoad('/data/releases', 'data_release', String(offset))
+      return result
     }
     throw error
   }
@@ -1059,16 +1197,26 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
     redirect(302, `/apis/${api.familyType}/${latestRelease.code}`)
   }
 
+  recordRegistryDataLoad('/apis/:id', 'api', familyType)
   return { api, release: null }
 })
 
 export const getApiReleaseShellData = query(registryCodeSchema, async familyType => {
+  const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
+    getRegistryApi(db, familyType),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
-  return api
+  const releases = await Promise.all(
+    (api.releases ?? []).map(async release => ({
+      ...release,
+      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
+    })),
+  )
+
+  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
+  return { ...api, releases }
 })
 
 export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
@@ -1090,14 +1238,18 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
         .select({
           assetId: metaAssets.id,
           mediaType: metaAssets.mediaType,
-          releaseCode: metaReleases.code,
+          releaseCode: metaSourceReleases.code,
         })
         .from(metaAssets)
         .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+        .innerJoin(
+          metaSourceReleases,
+          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+        )
         .where(
           and(
             eq(metaAssets.role, 'sourceArchive'),
-            inArray(metaReleases.code, sourceReleaseCodes),
+            inArray(metaSourceReleases.code, sourceReleaseCodes),
           ),
         )
         .orderBy(desc(metaAssets.retrievedAt))
@@ -1114,14 +1266,18 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
           groupValue: stats.groupValue,
           metric: stats.metric,
           metricUnit: stats.metricUnit,
-          releaseCode: metaReleases.code,
+          releaseCode: metaSourceReleases.code,
           value: stats.value,
         })
         .from(stats)
         .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
+        .innerJoin(
+          metaSourceReleases,
+          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+        )
         .where(
           and(
-            inArray(metaReleases.code, sourceReleaseCodes),
+            inArray(metaSourceReleases.code, sourceReleaseCodes),
             eq(stats.dimension, 'records'),
             eq(stats.metric, 'distribution'),
             eq(stats.groupBy, 'district'),
@@ -1137,7 +1293,7 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
     ])
   }
 
-  return {
+  const result = {
     ...api,
     releases: api.releases?.map(release => ({
       ...release,
@@ -1163,4 +1319,12 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
       }),
     })),
   }
+  const releasesWithMetrics = await Promise.all(
+    (result.releases ?? []).map(async release => ({
+      ...release,
+      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
+    })),
+  )
+  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
+  return { ...result, releases: releasesWithMetrics }
 })

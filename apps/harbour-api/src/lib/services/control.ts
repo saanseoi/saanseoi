@@ -286,9 +286,9 @@ export async function handlePublishDataset(
       )
     }
     const domainCode = datasetMember.domainCode
-    // Only the Geographic domain attaches optional C&SD geometry to Overture
-    // cohorts. Publisher-defined C&SD domains (such as Housing Market Areas)
-    // publish their own canonical division and divisionArea release set.
+    // Only the Geographic domain attaches separately selectable C&SD geometry to
+    // Overture cohorts. Publisher-defined C&SD domains (such as Housing Market
+    // Areas) publish their own canonical division and divisionArea release set.
     const isCenstatdGeographicGeometry =
       datasetType === 'divisionArea' &&
       dataset.source === 'hkgov-censtatd' &&

@@ -31,6 +31,11 @@ import {
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
 import type { SourcesPayload } from '../schema'
+import {
+  resolveApiReleaseSetAccessAttribution,
+  resolveOptionalApiReleaseSetAccessAttribution,
+  type AccessAttribution,
+} from './accessAnalytics'
 
 export type RequestedDivisionVersion = 'v0' | 'v0.1'
 export type RequestedDivisionApiVersion = '0.1'
@@ -991,6 +996,7 @@ export async function listDivisions(args: {
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   query: DivisionListQuery
+  onResolved?: (attribution: AccessAttribution) => void
   dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionListResult> {
   const dependencies = {
@@ -1026,6 +1032,15 @@ export async function listDivisions(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeDivisionSnapshot.apiReleaseSet,
+      ),
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
   if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
     return {
@@ -1075,7 +1090,7 @@ export async function listDivisions(args: {
 
   const includedRecords = await runWithD1ReadRetry(() =>
     loadIncludedHierarchyRecords({
-      includeHierarchy: args.query.include === 'hierarchy',
+      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records,
@@ -1153,6 +1168,7 @@ export async function getDivisionDetail(args: {
   resolvedApiVersion: ResolvedDivisionApiVersion
   id: string
   query: DivisionDetailQuery
+  onResolved?: (attribution: AccessAttribution) => void
   dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionDetailResult> {
   const dependencies = {
@@ -1186,6 +1202,15 @@ export async function getDivisionDetail(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeDivisionSnapshot.apiReleaseSet,
+      ),
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
   if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
     return {
@@ -1228,7 +1253,7 @@ export async function getDivisionDetail(args: {
 
   const includedRecords = await runWithD1ReadRetry(() =>
     loadIncludedHierarchyRecords({
-      includeHierarchy: args.query.include === 'hierarchy',
+      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records: [record],

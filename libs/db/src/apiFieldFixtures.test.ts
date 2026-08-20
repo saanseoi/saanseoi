@@ -8,6 +8,7 @@ const overtureSourceSchemas = {
   'ds-hk-overture-division-boundary': '1.17.0',
   'ds-hk-hkgov-had-division-area-district': '1.2',
   'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': '1.0',
 }
 
 describe('api field fixtures', () => {
@@ -25,7 +26,7 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-divisions-v0.1',
-        domainCode: 'overture',
+        domainCode: 'geographic',
         lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
         schemaVersion: 'sv-division-v1',
         rulesetVersion: 'rs-division-merge-v1',
@@ -42,7 +43,7 @@ describe('api field fixtures', () => {
   test('selects the mapping for a complete required release set', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
-      domainCode: 'overture',
+      domainCode: 'geographic',
       lineageSnapshotVersions: [
         'ss-hk-division-2025-09-24.0',
         'ss-hk-division-2025-10-22.0',
@@ -55,6 +56,8 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.13.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+          '1.0',
       },
     })
 
@@ -68,7 +71,7 @@ describe('api field fixtures', () => {
   test('keeps the Overture 1.15 mapping across the 2025 to 2026 boundary', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
-      domainCode: 'overture',
+      domainCode: 'geographic',
       lineageSnapshotVersions: ['ss-hk-division-2026-01-21.0'],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -78,6 +81,8 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.15.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+          '1.0',
       },
     })
 
@@ -98,7 +103,7 @@ describe('api field fixtures', () => {
     for (const cohort of cohorts) {
       const fixture = resolveApiFieldFixture({
         apiVersion: 'api-divisions-v0.1',
-        domainCode: 'overture',
+        domainCode: 'geographic',
         lineageSnapshotVersions: [cohort.snapshotVersion],
         schemaVersion: 'sv-division-v1',
         rulesetVersion: 'rs-division-merge-v1',
@@ -108,6 +113,8 @@ describe('api field fixtures', () => {
           'ds-hk-overture-division-boundary': cohort.version,
           'ds-hk-hkgov-had-division-area-district': '1.2',
           'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+            '1.0',
         },
       })
 
@@ -182,7 +189,7 @@ describe('api field fixtures', () => {
   test('selects the closest matching ancestor, not the highest snapshot code', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
-      domainCode: 'overture',
+      domainCode: 'geographic',
       lineageSnapshotVersions: [
         'ss-hk-division-2025-09-24.0',
         'ss-hk-division-2025-10-22.0',
@@ -207,7 +214,7 @@ describe('api field fixtures', () => {
   test('resolves the current Overture 1.18 release anchor', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
-      domainCode: 'overture',
+      domainCode: 'geographic',
       lineageSnapshotVersions: [
         'ss-hk-division-2025-09-24.0',
         'ss-hk-division-2025-10-22.0',
@@ -229,6 +236,8 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.18.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+          '1.0',
       },
     })
 
@@ -352,7 +361,7 @@ describe('api field fixtures', () => {
     const fixtures = listApiFieldFixtures()
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
-      domainCode: 'overture',
+      domainCode: 'geographic',
       lineageSnapshotVersions: [
         'ss-hk-division-2026-05-20.0',
         'ss-hk-division-2026-06-17.0',

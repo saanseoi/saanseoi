@@ -273,6 +273,20 @@ export const ManagedSourceAssetResponseSchema = z
   })
   .openapi('HarbourManagedSourceAssetResponse')
 
+export const LinkManagedSourceAssetRequestSchema = z
+  .object({
+    assetKey: z.string().min(1),
+    releaseId: ReleaseIdSchema,
+  })
+  .openapi('HarbourLinkManagedSourceAssetRequest')
+
+export const LinkManagedSourceAssetResponseSchema = z
+  .object({
+    assetId: z.string().uuid(),
+    status: z.enum(['existing', 'linked']),
+  })
+  .openapi('HarbourLinkManagedSourceAssetResponse')
+
 export const ControlStageRequestSchema = z
   .object({
     releaseCode: ReleaseCodeSchema.optional(),

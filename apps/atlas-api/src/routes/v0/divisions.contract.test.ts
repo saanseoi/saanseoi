@@ -517,6 +517,7 @@ function createFixtureEnvironment() {
     ENVIRONMENT: 'test',
     API_RATE_LIMIT: { limit: async () => ({ success: true }) },
     API_USAGE: { writeDataPoint: () => {} },
+    PRODUCT_USAGE_DATASET: 'test-product-usage',
   } as unknown as AppBindings
 
   return {

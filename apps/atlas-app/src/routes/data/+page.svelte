@@ -743,7 +743,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         <span aria-hidden="true" class="text-foreground-alt">·</span>
         <a
           class="font-body text-label-md font-semibold text-secondary"
-          href="/basemaps/get-started"
+          href="/guides/create-a-map"
           >{m.data_get_started()}</a
         >
       </PageSectionActions>

@@ -1,5 +1,6 @@
 import { command, getRequestEvent } from '$app/server'
 import { createAMapSelectionChoices } from '#lib/guides/createAMapSelections.js'
+import { writeServerProductUsage } from '#lib/analytics/productUsage.js'
 import { z } from 'zod'
 
 const choices = createAMapSelectionChoices
@@ -46,5 +47,11 @@ export const trackCreateAMapSelection = command(selectionSchema, selection => {
       ...selectionKeys.map(key => selection[key] ?? notSelected),
     ],
     doubles: [1],
+  })
+  writeServerProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'guide',
+    entityId: 'create-a-map',
   })
 })

@@ -10,6 +10,7 @@ import {
   initialDatasetResourceTypes,
   initialDataShards,
   initialIdentifierBridges,
+  initialPublishers,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
 
@@ -168,7 +169,7 @@ describe('fixture version hashes', () => {
     expect(areaTypeMembers).toEqual([
       expect.objectContaining({
         resourceType: 'divisionArea',
-        isRequired: false,
+        isRequired: true,
         role: 'geometry',
         cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
         configJson: expect.stringContaining('"variant":"overture"'),
@@ -176,10 +177,11 @@ describe('fixture version hashes', () => {
     ])
   })
 
-  test('reconciles composition members as complete fixture declarations', () => {
+  test('reconciles composition members without rewriting historical domains', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
-    expect(statements).toContain("UPDATE apiReleaseSets\nSET domainCode = 'geographic'")
+    expect(statements).not.toContain('UPDATE apiCatalogRevisionReleaseSets')
+    expect(statements).not.toContain('UPDATE apiReleaseSets\nSET domainCode =')
   })
 
   test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
@@ -320,6 +322,18 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('orders parent publishers before their children', () => {
+    const parentIndex = initialPublishers.findIndex(
+      publisher => publisher.code === 'hkgov',
+    )
+    const childIndex = initialPublishers.findIndex(
+      publisher => publisher.code === 'hkgov-censtatd',
+    )
+
+    expect(parentIndex).toBeGreaterThanOrEqual(0)
+    expect(childIndex).toBeGreaterThan(parentIndex)
+  })
+
   test('builds update-capable upserts for registry-backed tables', () => {
     const statements = buildMetaRegistrySyncStatements('preview')
 

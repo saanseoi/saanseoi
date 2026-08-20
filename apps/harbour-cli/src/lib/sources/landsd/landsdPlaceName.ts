@@ -2,9 +2,9 @@ import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteFile } from 'hyparquet-writer'
-import fgdb from 'fgdb'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
 
 const LANDSD_PLACE_NAME_SOURCE = 'hkgov-landsd'
 const LANDSD_PLACE_NAME_SOURCE_SCHEMA_VERSION = '1.0'
@@ -49,7 +49,7 @@ export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
 export async function readLandsdPlaceNameArchive(
   archiveBytes: Uint8Array,
 ): Promise<NativeLandsdPlaceName[]> {
-  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const layers = await readFileGeodatabaseArchive(archiveBytes)
   const placeFeatures = layers.GEO_PLACE_NAME
   const placeNameRows = layers.PLACE_NAME
   if (!isFeatureCollection(placeFeatures)) {

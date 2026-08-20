@@ -27,6 +27,7 @@
     "AUTH_MODE": "disabled",
     "ENVIRONMENT": "local",
     "HARBOUR_BASE_URL": "http://localhost:8788",
+    "PRODUCT_USAGE_DATASET": "ss-product-usage-local",
     "SUBSTACK_PUBLICATION": "saanseoi",
     "USAGE_ROLLUP_DATASETS": "ss-api-usage-local"
   },
@@ -105,16 +106,22 @@
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
+    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" },
+    { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-local" }
   ],
   "triggers": {
-    "crons": ["*/5 * * * *"]
+    "crons": ["*/5 * * * *", "15 0 * * *"]
   },
   "ratelimits": [
     {
       "name": "API_RATE_LIMIT",
       "namespace_id": "42001",
       "simple": { "limit": 120, "period": 60 }
+    },
+    {
+      "name": "NEWSLETTER_RATE_LIMIT",
+      "namespace_id": "42101",
+      "simple": { "limit": 5, "period": 60 }
     }
   ],
   "placement": {
@@ -170,6 +177,7 @@
         "AUTH_MODE": "required",
         "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
+        "PRODUCT_USAGE_DATASET": "ss-product-usage-preview",
         "SUBSTACK_PUBLICATION": "saanseoi",
         "USAGE_ROLLUP_DATASETS": "ss-api-usage-preview"
       },
@@ -252,13 +260,19 @@
         }
       ],
       "analytics_engine_datasets": [
-        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" }
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" },
+        { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-preview" }
       ],
       "ratelimits": [
         {
           "name": "API_RATE_LIMIT",
           "namespace_id": "42002",
           "simple": { "limit": 120, "period": 60 }
+        },
+        {
+          "name": "NEWSLETTER_RATE_LIMIT",
+          "namespace_id": "42102",
+          "simple": { "limit": 5, "period": 60 }
         }
       ],
       "routes": [
@@ -293,6 +307,7 @@
         "AUTH_MODE": "required",
         "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
+        "PRODUCT_USAGE_DATASET": "ss-product-usage-production",
         "SUBSTACK_PUBLICATION": "saanseoi",
         "USAGE_ROLLUP_DATASETS": "ss-api-usage-production,ss-tile-usage-production"
       },
@@ -375,13 +390,19 @@
         }
       ],
       "analytics_engine_datasets": [
-        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" }
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" },
+        { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-production" }
       ],
       "ratelimits": [
         {
           "name": "API_RATE_LIMIT",
           "namespace_id": "42003",
           "simple": { "limit": 120, "period": 60 }
+        },
+        {
+          "name": "NEWSLETTER_RATE_LIMIT",
+          "namespace_id": "42103",
+          "simple": { "limit": 5, "period": 60 }
         }
       ],
       "routes": [

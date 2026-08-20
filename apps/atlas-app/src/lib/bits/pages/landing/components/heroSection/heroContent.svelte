@@ -140,7 +140,7 @@ onMount(() => {
         >
           <Button
             class="w-full sm:w-auto sm:shrink-0 min-[640px]:max-[767px]:flex-[0_0_auto] min-[640px]:max-[767px]:whitespace-nowrap"
-            href="/community"
+            href="#community"
             variant="secondary"
           >
             {m.hero_cta_secondary()}

@@ -16,6 +16,7 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 
 import {
+  invalidateRemoteDbCache,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
@@ -104,6 +105,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         },
       })
   let processingStarted = false
+  let cacheMutationStarted = false
   try {
     const rows = await runStatisticProgressStep(
       progress,
@@ -229,6 +231,14 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           context,
           plan.sourceVersion.slice(0, 4),
           batches,
+          {
+            onProgress(event) {
+              if (event.phase === 'local-replay') cacheMutationStarted = true
+              progress.update(event.completedBatches, {
+                label: `Import SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+              })
+            },
+          },
         ),
     )
     await runStatisticProgressStep(
@@ -329,6 +339,13 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     return published
   } catch (error) {
     progress.fail()
+    if (target.remote && cacheMutationStarted) {
+      await invalidateRemoteDbCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+        error instanceof Error ? error.message : String(error),
+      ).catch(() => undefined)
+    }
     if (processingStarted) {
       await client
         .stageFailed(

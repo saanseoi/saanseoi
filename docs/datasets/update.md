@@ -52,6 +52,15 @@ by-source/hk/hkgov-csdi/{dataset-id}/
   {manifest-sha256}-manifest.json  # records the individual archive slot
 ```
 
+The catalogue URL's final hash is a CSDI object identifier, not an asserted digest of
+the response bytes. Local download and prepared-archive paths include that identifier,
+so a revised object in the same quarter cannot reuse stale cached bytes. SaanSeoi
+calculates the publisher-byte and prepared-archive SHA-256 values separately and records
+them in the manifest. Downloads are restricted to CSDI's official HTTPS archive origin,
+including after redirects, and use time and compressed-size limits. ZIP metadata is
+validated for safe member names, entry count, expanded size, per-entry size and
+compression ratio before publisher members are decompressed.
+
 Each retained source object is registered as a managed source asset and Atlas API serves
 its public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
 Archives and retained source Parquet are publisher evidence, while SaanSeoi's
@@ -81,10 +90,10 @@ bun run dataops -- hkgov-censtatd:district-land-area-population-density --target
 bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2024
 ```
 
-Dataset fixtures retain `schemaSpecificationURL` when the publisher provides a source
-schema. A missing value is explicit (`null`) rather than an inferred schema claim. CSDI
-simplified data specifications are publisher references, separate from SaanSeoi's own
-source-schema version labels.
+Dataset fixtures retain `schemaURL` when the publisher provides a source schema. A
+missing value is explicit (`null`) rather than an inferred schema claim. CSDI simplified
+data specifications are publisher references, separate from SaanSeoi's own source-schema
+version labels.
 
 The update report collapses already-current CSDI archive slots into one row per source
 release. The updater still retains and checks state for every archive slot; a newly

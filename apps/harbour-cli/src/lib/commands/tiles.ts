@@ -505,16 +505,7 @@ export async function runTilesRetractCommand(args: ParsedArgs, printUsage: () =>
   const current = versionsIndex.regions[input.region.code]?.latest
   const isCurrent = current?.version === input.version
   const releaseName = `${input.region.name}-${input.version}`
-  const artefacts = [
-    entry?.key ?? objectKey(input.region.code, `${releaseName}.pmtiles`),
-    entry?.manifestKey ?? objectKey(input.region.code, `${releaseName}.json`),
-    objectKey(input.region.code, `${releaseName}.boundary.geojson`),
-    // Releases published before regional coastlines were embedded expose this
-    // legacy, viewer-only artefact too. R2 deletion is idempotent.
-    objectKey(input.region.code, `${releaseName}.land.geojson`),
-    objectKey(input.region.code, `${releaseName}-light.webp`),
-    objectKey(input.region.code, `${releaseName}-dark.webp`),
-  ]
+  const artefacts = resolveTilesRetractionArtefacts(input.region, input.version, entry)
   for (const key of artefacts) await deleteObject(key)
 
   if (isCurrent) {
@@ -563,6 +554,38 @@ export async function runTilesRetractCommand(args: ParsedArgs, printUsage: () =>
         ? `Retracted ${releaseName} and unpublished ${input.region.name}-latest`
         : `Retracted ${releaseName}`,
   )
+}
+
+export function resolveTilesRetractionArtefacts(
+  region: { code: RegionCode; name: string },
+  version: string,
+  entry?: Pick<VersionEntry, 'key' | 'manifestKey'>,
+) {
+  const releaseName = `${region.name}-${version}`
+  const archiveKey = objectKey(region.code, `${releaseName}.pmtiles`)
+  const manifestKey = objectKey(region.code, `${releaseName}.json`)
+
+  if (entry?.key && entry.key !== archiveKey) {
+    throw new Error(
+      `Refusing tiles retraction: catalogue archive key does not match ${archiveKey}.`,
+    )
+  }
+  if (entry?.manifestKey && entry.manifestKey !== manifestKey) {
+    throw new Error(
+      `Refusing tiles retraction: catalogue manifest key does not match ${manifestKey}.`,
+    )
+  }
+
+  return [
+    archiveKey,
+    manifestKey,
+    objectKey(region.code, `${releaseName}.boundary.geojson`),
+    // Releases published before regional coastlines were embedded expose this
+    // legacy, viewer-only artefact too. R2 deletion is idempotent.
+    objectKey(region.code, `${releaseName}.land.geojson`),
+    objectKey(region.code, `${releaseName}-light.webp`),
+    objectKey(region.code, `${releaseName}-dark.webp`),
+  ]
 }
 
 async function runTilesCommand(

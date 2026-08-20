@@ -18,6 +18,7 @@ import {
   type ResolvedDivisionApiVersion,
 } from '../../handlers/divisions/v0'
 import type { AppEnv } from '../../types'
+import { sanitiseResponseUrl } from '../../lib/api'
 
 const ROUTE_VARIANTS = [
   {
@@ -144,11 +145,12 @@ export const divisionRoutes = [
         const result = await listDivisions({
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
-          requestUrl: c.req.url,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) {
@@ -172,12 +174,13 @@ export const divisionRoutes = [
         const result = await getDivisionDetail({
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
-          requestUrl: c.req.url,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           id,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) {

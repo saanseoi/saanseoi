@@ -13,11 +13,26 @@
 
 This project is a monorepo managed by [Turborepo](https://turbo.build/).
 
-```bash
+Install Bun 1.3.0 and Fish before running the development commands. The `dev:*`
+launchers invoke the `fish` executable directly.
+
+```fish
 git clone git@github.com:saanseoi/saanseoi.git && cd saanseoi
 bun install
-bun run dev
+bun run dev:atlas
 ```
+
+Run the focused local services you need:
+
+```fish
+bun run dev:atlas    # Atlas API and public site
+bun run dev:harbour  # Harbour API and queue Worker
+bun run dev:basemap  # Basemap release viewer
+bun run dev:all      # All services currently included in the full stack
+```
+
+Development commands do not run local D1 migrations. Apply schema changes manually with
+`bun run db:migration:run:local` before starting a Worker when needed.
 
 For more detail on contributing, workflows, and project expectations, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -42,6 +42,7 @@ export const metaDatasets = sqliteTable(
     // dataset-level metadata on every row.
     sourceCrs: text('sourceCrs'),
     sourceUrl: text('sourceUrl'),
+    schemaURL: text('schemaURL'),
     licenseId: text('licenseId').references(() => metaLicenses.id, {
       onDelete: 'restrict',
     }),

@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
+import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
@@ -368,6 +369,43 @@ export async function uploadManagedSourceAsset(
   return { assetId: payload.assetId, url: payload.assetUrl }
 }
 
+export async function linkManagedSourceAssetToRelease(
+  target: UploadTarget,
+  input: { assetKey: string; releaseId: string },
+  localOptions: Pick<LocalSourceAssetUploadOptions, 'withMetaDb'> = {},
+) {
+  if (target.remote) {
+    const response = await fetch(
+      `${resolveHarbourApiUrl(target)}/v1/assets/link-release`,
+      {
+        body: JSON.stringify(input),
+        headers: { 'content-type': 'application/json', ...getAuthHeaders() },
+        method: 'POST',
+      },
+    )
+    const payload = (await response.json().catch(() => null)) as unknown
+    if (!response.ok || !isLinkedSourceAsset(payload)) {
+      const message =
+        payload &&
+        typeof payload === 'object' &&
+        typeof (payload as { message?: unknown }).message === 'string'
+          ? (payload as { message: string }).message
+          : `Harbour source asset linkage failed with HTTP ${response.status}.`
+      throw new Error(message)
+    }
+    return payload
+  }
+
+  const withMetaDb = localOptions.withMetaDb ?? withLocalMetaDb
+  return queueLocalSourceAssetRegistration(() =>
+    runWithWriteRetry(() =>
+      withMetaDb(async metaDb => {
+        return linkManagedSourceAssetToReleaseInDb(metaDb, input)
+      }),
+    ),
+  )
+}
+
 async function uploadLocalManagedSourceAsset(
   target: UploadTarget,
   input: ManagedSourceAssetUpload,
@@ -533,6 +571,19 @@ function isUploadedSourceAsset(value: unknown): value is {
     typeof value === 'object' &&
     typeof (value as { assetId?: unknown }).assetId === 'string' &&
     typeof (value as { assetUrl?: unknown }).assetUrl === 'string'
+  )
+}
+
+function isLinkedSourceAsset(value: unknown): value is {
+  assetId: string
+  status: 'existing' | 'linked'
+} {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    typeof (value as { assetId?: unknown }).assetId === 'string' &&
+    ((value as { status?: unknown }).status === 'existing' ||
+      (value as { status?: unknown }).status === 'linked')
   )
 }
 

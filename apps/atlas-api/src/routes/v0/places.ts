@@ -22,6 +22,10 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import { runWithD1ReadRetry } from '../../lib/d1'
+import {
+  resolveApiReleaseSetAccessAttributionForSnapshot,
+  resolveOptionalApiReleaseSetAccessAttribution,
+} from '../../services/accessAnalytics'
 import type { AppEnv } from '../../types'
 
 const placeRouteConfig = createRoute({
@@ -166,6 +170,13 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
         503,
       )
     }
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
+    )
+    if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
     const place = await runWithD1ReadRetry(() =>
       getPlaceCurrent(db, {
@@ -248,6 +259,13 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
       return c.json(response, 503)
     }
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
+    )
+    if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
     const places = await runWithD1ReadRetry(() =>
       listPlacesByH3Cell(db, {
@@ -288,6 +306,13 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
 
       return c.json(response, 503)
     }
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
+    )
+    if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
     try {
       const results = await runWithD1ReadRetry(() =>

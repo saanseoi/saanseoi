@@ -29,6 +29,7 @@ export class LocalUploadProgress {
     }
     this.progressBar = progress({
       max: Math.max(this.state.max ?? this.state.current, 1),
+      withGuide: false,
     })
     this.progressBar.start(label)
 
@@ -64,6 +65,7 @@ export class LocalUploadProgress {
       this.progressBar.clear()
       this.progressBar = progress({
         max: Math.max(nextMax ?? nextCurrent, 1),
+        withGuide: false,
       })
       this.progressBar.start(nextLabel)
       if (nextCurrent > 0) {

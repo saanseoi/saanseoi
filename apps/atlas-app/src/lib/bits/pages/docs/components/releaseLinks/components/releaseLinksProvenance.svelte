@@ -7,13 +7,17 @@ import ReleaseLinksEmptyState from './releaseLinksEmptyState.svelte'
 import ReleaseLinksGroup from './releaseLinksGroup.svelte'
 import ReleaseLinksProvenanceFactGrid from './releaseLinksProvenanceFactGrid.svelte'
 import ReleaseLinksRequestExample from './releaseLinksRequestExample.svelte'
-import type { ReleaseLinksProvenancePresentation } from './releaseLinks.types'
+import type {
+  ReleaseAnalyticsSurface,
+  ReleaseLinksProvenancePresentation,
+} from './releaseLinks.types'
 
 type Props = {
   copyRequestLabel?: string
   emptyLabel?: string
   presentation: ReleaseLinksProvenancePresentation
   requestLabel?: string
+  analyticsSurface: ReleaseAnalyticsSurface
 }
 
 let {
@@ -21,6 +25,7 @@ let {
   emptyLabel,
   presentation,
   requestLabel = 'Request',
+  analyticsSurface,
 }: Props = $props()
 
 let groups = $derived(presentation.groups.filter(group => group.entries.length))
@@ -76,9 +81,10 @@ let groups = $derived(presentation.groups.filter(group => group.entries.length))
                         request={entry.request}
                         label={entry.requestLabel ?? requestLabel}
                         copyLabel={copyRequestLabel}
+                        {analyticsSurface}
                       />
                     {/if}
-                    <ReleaseLinksActions actions={entry.actions} />
+                    <ReleaseLinksActions {analyticsSurface} actions={entry.actions} />
                     <ReleaseLinksProvenanceFactGrid facts={entry.facts} />
                   </div>
                 </ReleaseLinksCard>

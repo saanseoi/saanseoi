@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 import GuideCodeBlock from './guideCodeBlock.svelte'
 
@@ -16,6 +17,14 @@ let { code, promptIcon }: Props = $props()
   {code}
   variant="prompt"
   {promptIcon}
+  onCopy={outcome =>
+    trackClientProductUsage({
+      event: 'guide.prompt_copy',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'prompt',
+      outcome,
+    })}
   copyLabel={m.common_copy()}
   copiedLabel={m.common_copied()}
 />

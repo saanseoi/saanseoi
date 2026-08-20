@@ -16,6 +16,16 @@ export type UploadTarget = {
 }
 
 /**
+ * Local processing uses preview shard metadata; remote processing must follow
+ * the explicitly selected preview or production environment.
+ */
+export function resolvePipelineEnvironment(
+  target: UploadTarget,
+): 'preview' | 'production' {
+  return target.remote && target.environment === 'production' ? 'production' : 'preview'
+}
+
+/**
  * Parse the Harbour CLI invocation into a command, positional arguments,
  * and `--flag` style options.
  */

@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth/minimal'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { oneTap } from 'better-auth/plugins'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { passkey } from '@better-auth/passkey'
 
@@ -131,6 +132,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
     },
     socialProviders: createSocialProviders(authEnv),
     plugins: [
+      oneTap(),
       passkey({
         rpID: new URL(baseURL).hostname,
         rpName: 'SaanSeoi',

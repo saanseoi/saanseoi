@@ -8,18 +8,21 @@ import ReleaseAuditEmptyState from './releaseAuditEmptyState.svelte'
 import ReleaseAuditRecordSections from './releaseAuditRecordSections.svelte'
 import type {
   AuditBulkRule,
+  AuditEvidenceCopyHandler,
   AuditRowPresentation,
   AuditSection,
 } from './releaseAudit.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 type Props = {
   bulkActions: AuditBulkRule[]
+  analyticsSurface: ReleaseAnalyticsSurface
   copiedEvidenceId: string | null
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
   locale: string
-  onCopy: (id: string, evidence: unknown) => void
+  onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
   onToggle: (id: string) => void
   presentRow: (
@@ -43,6 +46,7 @@ let props: Props = $props()
 {/if}
 
 <ReleaseAuditRecordSections
+  analyticsSurface={props.analyticsSurface}
   copiedEvidenceId={props.copiedEvidenceId}
   evidenceTransitionName={props.evidenceTransitionName}
   expandedEvidenceId={props.expandedEvidenceId}
