@@ -22,7 +22,10 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import { runWithD1ReadRetry } from '../../lib/d1'
-import { resolveApiReleaseSetAccessAttributionForSnapshot } from '../../services/accessAnalytics'
+import {
+  resolveApiReleaseSetAccessAttributionForSnapshot,
+  resolveOptionalApiReleaseSetAccessAttribution,
+} from '../../services/accessAnalytics'
 import type { AppEnv } from '../../types'
 
 const placeRouteConfig = createRoute({
@@ -167,9 +170,11 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
         503,
       )
     }
-    const accessAttribution = await resolveApiReleaseSetAccessAttributionForSnapshot(
-      c.var.metaDb.$client,
-      activePlaceSnapshot.snapshotId,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
     )
     if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
@@ -254,9 +259,11 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
       return c.json(response, 503)
     }
-    const accessAttribution = await resolveApiReleaseSetAccessAttributionForSnapshot(
-      c.var.metaDb.$client,
-      activePlaceSnapshot.snapshotId,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
     )
     if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
@@ -299,9 +306,11 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
 
       return c.json(response, 503)
     }
-    const accessAttribution = await resolveApiReleaseSetAccessAttributionForSnapshot(
-      c.var.metaDb.$client,
-      activePlaceSnapshot.snapshotId,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttributionForSnapshot(
+        c.var.metaDb.$client,
+        activePlaceSnapshot.snapshotId,
+      ),
     )
     if (accessAttribution) c.set('accessAttribution', accessAttribution)
 
