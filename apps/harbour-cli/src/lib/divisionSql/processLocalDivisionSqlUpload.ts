@@ -80,6 +80,7 @@ import {
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
+import { resolvePipelineEnvironment } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   createLocalImportProgressClient,
@@ -2899,7 +2900,7 @@ function resolveTargetName(target: UploadTarget) {
 }
 
 function resolveImportEnvironment(target: UploadTarget): 'preview' | 'production' {
-  return target.remote && target.environment === 'production' ? 'production' : 'preview'
+  return resolvePipelineEnvironment(target)
 }
 
 function resolveCloudflareAccountId(target: UploadTarget) {
