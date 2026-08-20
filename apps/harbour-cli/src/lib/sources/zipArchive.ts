@@ -44,13 +44,15 @@ export function readSafeZipArchive(
       }
 
       assertSafeMemberName(entry.name)
-      if (entry.originalSize > limits.maxEntryBytes) {
+      const expectedOutputBytes =
+        entry.compression === 0 ? entry.size : entry.originalSize
+      if (expectedOutputBytes > limits.maxEntryBytes) {
         throw new Error(
           `ZIP archive member ${entry.name} expands beyond the ${formatBytes(limits.maxEntryBytes)} per-entry limit.`,
         )
       }
 
-      expandedBytes += entry.originalSize
+      expandedBytes += expectedOutputBytes
       if (expandedBytes > limits.maxExpandedBytes) {
         throw new Error(
           `ZIP archive expands beyond the ${formatBytes(limits.maxExpandedBytes)} safety limit.`,
@@ -67,6 +69,23 @@ export function readSafeZipArchive(
       return options.select?.(entry.name) ?? true
     },
   })
+
+  let actualExpandedBytes = 0
+  for (const name of Object.keys(entries)) {
+    const output = entries[name]
+    if (!output) continue
+    if (output.byteLength > limits.maxEntryBytes) {
+      throw new Error(
+        `ZIP archive member ${name} expands beyond the ${formatBytes(limits.maxEntryBytes)} per-entry limit.`,
+      )
+    }
+    actualExpandedBytes += output.byteLength
+    if (actualExpandedBytes > limits.maxExpandedBytes) {
+      throw new Error(
+        `ZIP archive expands beyond the ${formatBytes(limits.maxExpandedBytes)} safety limit.`,
+      )
+    }
+  }
 
   if (files.length === 0) throw new Error('ZIP archive is empty.')
   return { entries, files: files.sort() }
