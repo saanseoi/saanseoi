@@ -336,7 +336,7 @@ function setActiveTab(tab: string) {
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
-  { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
+  { compactLabel: m.source_notes(), id: 'notes', label: m.source_notes() },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
