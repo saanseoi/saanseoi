@@ -18,6 +18,7 @@ import {
   type ResolvedAddressApiVersion,
 } from '../../services/addresses'
 import type { AppEnv } from '../../types'
+import { sanitiseResponseUrl } from '../../lib/api'
 
 const ROUTE_VARIANTS = [
   {
@@ -110,7 +111,7 @@ export const addressRoutes = [
         const result = await listAddresses({
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
-          requestUrl: c.req.url,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
@@ -131,7 +132,7 @@ export const addressRoutes = [
         const result = await getAddressDetail({
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
-          requestUrl: c.req.url,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
