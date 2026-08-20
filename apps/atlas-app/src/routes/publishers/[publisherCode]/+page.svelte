@@ -110,11 +110,7 @@ let latestReleaseDisplayCode = $derived(
 
 const displayDate = (value?: string | null) =>
   value
-    ? new Intl.DateTimeFormat(locale, {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(new Date(value))
+    ? new Date(value).toISOString().slice(0, 10)
     : unavailable
 
 const sourceCountLabel = (count: number) =>
