@@ -33,9 +33,7 @@ let { input }: Props = $props()
       <span>{input.fallbackIcon ?? input.publisher.slice(0, 2)}</span>
     {/if}
   </span>
-  <span
-    class={`min-w-0 ${input.planned || input.variant ? 'source-flow-copy-with-status' : ''}`}
-  >
+  <span class="min-w-0">
     <span class="source-flow-source">{input.source}</span>
     <span class="source-flow-publisher">{input.publisher}</span>
     {#if input.fields?.length}
@@ -52,7 +50,7 @@ let { input }: Props = $props()
   {#if input.planned || input.variant}
     <span class="source-flow-statuses">
       {#if input.planned}
-        <span class="source-flow-status">PLANNED</span>
+        <span class="source-flow-status source-flow-status-planned">PLANNED</span>
       {/if}
       {#if input.variant}
         <span class="source-flow-status source-flow-status-variant"
@@ -213,10 +211,6 @@ let { input }: Props = $props()
   color: rgb(255 255 255 / 0.82);
 }
 
-.source-flow-copy-with-status {
-  padding-right: 5rem;
-}
-
 .source-flow-source {
   font-family: var(--font-display);
   font-size: 1.08rem;
@@ -269,29 +263,34 @@ let { input }: Props = $props()
   text-transform: uppercase;
 }
 .source-flow-statuses {
-  position: absolute;
-  inset: 0.72rem;
+  position: relative;
   z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
+  margin: -0.18rem -0.18rem -0.18rem 0;
   pointer-events: none;
 }
+
+.source-flow-status-planned {
+  margin-top: auto;
+}
 .source-flow-status-variant {
+  order: -1;
   border-color: color-mix(in srgb, #fff 65%, transparent);
   background: rgb(255 255 255 / 0.08);
   color: #fff;
 }
 .source-flow-statuses .source-flow-status {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-.source-flow-statuses .source-flow-status-variant {
-  top: 0;
-  bottom: auto;
+  position: static;
 }
 
 @media (max-width: 640px) {
   .source-flow-input {
-    grid-template-columns: 3.8rem minmax(0, 1fr);
+    grid-template-columns: 3.8rem minmax(0, 1fr) auto;
   }
   .source-flow-icon {
     width: 3.8rem;
