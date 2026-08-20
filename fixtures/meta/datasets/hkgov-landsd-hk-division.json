@@ -1,16 +1,18 @@
 {
-  "versionHash": "sha256:d449eaf17670b8cca8964fc0375becdb0e585a970e4658a036040867d00e1210",
+  "versionHash": "sha256:2224b4a0ed484caf2a216b70f682b3391c7b2ccbddbeda0529b8fb6208885c3a",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-division",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "resourceTypes": ["division"],
+  "resourceTypes": [
+    "division"
+  ],
   "licenseCode": "hkgov-open-data",
-  "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
+  "attribution": "© Hong Kong Special Administrative Region Government, Lands Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/d2e1764a6a12785c27fb25c31d822e17e9bd8561b432be124969b2eabb1bd777",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/d2e1764a6a12785c27fb25c31d822e17e9bd8561b432be124969b2eabb1bd777",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -29,7 +31,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["revision"],
+        "discoveries": [
+          "revision"
+        ],
         "includeInitialDownload": true
       }
     },

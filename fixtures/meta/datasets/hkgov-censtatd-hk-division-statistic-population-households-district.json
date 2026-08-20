@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:b0f9df20b5ef0087a777f15f4d23b878fa7e8ad0335a54194e559e7d9ca45e70",
+  "versionHash": "sha256:215f9897172ce47f70245e4e9fe3e30ab38c9d0e5e86ce2fca7d437ce06e4535",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -8,11 +8,13 @@
   "theme": "stats",
   "sourceVariant": "official-statistics",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic"],
+  "resourceTypes": [
+    "divisionStatistic"
+  ],
   "licenseCode": "hkgov-open-data",
-  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["revision"],
+        "discoveries": [
+          "revision"
+        ],
         "includeInitialDownload": true
       }
     },

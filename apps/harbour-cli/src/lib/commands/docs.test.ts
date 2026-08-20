@@ -80,6 +80,61 @@ Publishes revision r{{ apiReleaseSetRevision }}.
     expect(await renderMarkdownFixtureBody(fixture)).toBe('Publishes revision r0.\n')
   })
 
+  test('renders API release sources as role and resource-type tables', async () => {
+    const rendered = await renderMarkdownFixtureBody(
+      {
+        body: `# EN
+
+## Constituent source releases
+
+- Old hand-written source list.
+
+## Using the Divisions API
+
+## 組成來源發布
+
+- 舊的來源清單。
+
+## 使用 Divisions API
+`,
+        frontmatter: {},
+      },
+      {},
+      [
+        {
+          datasetCode: 'ds-hk-overture-division',
+          datasetI18n: [{ locale: 'en', name: 'Divisions' }],
+          publisherCode: 'overture',
+          publisherI18n: [{ locale: 'en', name: 'Overture' }],
+          releaseCode: 'dr-hk-overture-division-2025-09-24.0',
+          resourceType: 'division',
+          role: 'primary',
+          sourceVersion: '2025-09-24.0',
+          variant: 'default',
+        },
+        {
+          datasetCode: 'ds-hk-had-division-area-district',
+          datasetI18n: [{ locale: 'en', name: 'District Boundary' }],
+          publisherCode: 'hkgov-had',
+          publisherI18n: [{ locale: 'en', name: 'Home Affairs Department' }],
+          releaseCode: 'dr-hk-had-division-area-district-2022',
+          resourceType: 'divisionArea',
+          role: 'supporting',
+          sourceVersion: '2022',
+          variant: 'default',
+        },
+      ],
+    )
+
+    expect(rendered).toContain('### Primary · Division')
+    expect(rendered).toContain(
+      '| [Overture](/publishers/overture) | [Divisions](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) | [2025-09-24.0](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) |',
+    )
+    expect(rendered).toContain('### Supporting · Division Area')
+    expect(rendered).not.toContain('Old hand-written source list')
+    expect(rendered).not.toContain('舊的來源清單')
+  })
+
   test('rejects unknown frontmatter tags', async () => {
     await expect(
       renderMarkdownFixtureBody({

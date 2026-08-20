@@ -192,13 +192,13 @@ export function formatPlan(result: UploadPreviewResult) {
 export function formatSummary(
   result: UploadPreviewResult,
   target: UploadTarget,
-  options: { schemaSpecificationUrl?: string | null } = {},
+  options: { schemaURL?: string | null } = {},
 ) {
   return [
     formatField('target', formatTargetValue(target)),
     ...formatPlan(result),
-    ...(options.schemaSpecificationUrl
-      ? [formatField('schema', options.schemaSpecificationUrl)]
+    ...(options.schemaURL
+      ? [formatField('schema', options.schemaURL)]
       : []),
   ]
 }

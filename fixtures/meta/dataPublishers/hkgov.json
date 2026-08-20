@@ -1,23 +1,23 @@
 {
-  "versionHash": "sha256:2e6d620aaf5a4c46e3d28eb7f9794663db8d2f4a4885bbc620795badaa529a44",
+  "versionHash": "sha256:cc2b2fc60cb0abe61d4e66a7f3138e67afef26d793c0659c1f8267bf608bcd84",
   "code": "hkgov",
   "url": "https://data.gov.hk",
   "contactUrl": "https://data.gov.hk/en/feedback",
   "i18n": [
     {
       "locale": "en",
-      "name": "DATA.GOV.HK",
-      "description": "Open data portal from the HK SAR Government"
+      "name": "Hong Kong SAR Government",
+      "description": "Hong Kong SAR Government open data, published through DATA.GOV.HK."
     },
     {
       "locale": "zh-hant",
-      "name": "資料一線通",
-      "description": "香港特別行政區政府開放數據入口網站。"
+      "name": "香港特別行政區政府",
+      "description": "透過資料一線通發布香港特別行政區政府開放數據。"
     },
     {
       "locale": "zh-hans",
-      "name": "资料一线通",
-      "description": "香港特别行政区政府开放数据入口网站。"
+      "name": "香港特别行政区政府",
+      "description": "通过资料一线通发布香港特别行政区政府开放数据。"
     }
   ]
 }

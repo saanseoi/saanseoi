@@ -222,7 +222,7 @@ ${mutedBar}  `)
 
     note(
       formatSummary(previewResult, target, {
-        schemaSpecificationUrl: datasetFixture?.schemaSpecificationURL,
+        schemaURL: datasetFixture?.schemaURL,
       }).join('\n'),
       options.dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
     )

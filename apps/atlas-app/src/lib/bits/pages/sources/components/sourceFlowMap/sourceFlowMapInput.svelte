@@ -20,6 +20,9 @@ let { input }: Props = $props()
   data-sveltekit-preload-data={input.href ? 'hover' : undefined}
   transition:scale={{ duration: 180, start: 0.96 }}
 >
+  {#if input.icon}
+    <img class="source-flow-watermark" src={input.icon} alt="" aria-hidden="true">
+  {/if}
   <span
     class={`source-flow-icon ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}
     aria-hidden="true"
@@ -47,7 +50,7 @@ let { input }: Props = $props()
   {#if input.planned || input.variant}
     <span class="source-flow-statuses">
       {#if input.planned}
-        <span class="source-flow-status">PLANNED</span>
+        <span class="source-flow-status source-flow-status-planned">PLANNED</span>
       {/if}
       {#if input.variant}
         <span class="source-flow-status source-flow-status-variant"
@@ -63,7 +66,7 @@ let { input }: Props = $props()
   position: relative;
   display: grid;
   min-height: 5.65rem;
-  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
   overflow: hidden;
@@ -71,7 +74,7 @@ let { input }: Props = $props()
   border-radius: 0.5rem;
   background: var(--surface-container-low);
   padding: 0.9rem 1rem;
-  color: var(--primary);
+  color: #fff;
   transition:
     border-color 180ms ease,
     background 180ms ease,
@@ -83,13 +86,18 @@ let { input }: Props = $props()
   inset: 0;
   content: "";
   background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--source-accent) 72%, var(--surface-container-low)) 0%,
-    color-mix(in srgb, var(--source-accent) 42%, var(--surface-container-low)) 36%,
-    color-mix(in srgb, var(--source-accent) 18%, var(--surface-container-low)) 72%,
-    color-mix(in srgb, var(--source-accent) 6%, var(--surface-container-low)) 100%
+    160deg,
+    color-mix(in srgb, var(--source-accent) 86%, white),
+    var(--source-accent)
   );
-  opacity: 0.44;
+}
+
+:global(.dark) .source-flow-input::before {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--source-accent) 72%, black),
+    color-mix(in srgb, var(--source-accent) 88%, black)
+  );
 }
 
 .source-flow-input::after {
@@ -109,6 +117,41 @@ let { input }: Props = $props()
   );
 }
 
+.source-flow-watermark {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 0;
+  width: 72%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 5% 60%;
+  opacity: 0.25;
+  filter: blur(7px) brightness(105%) saturate(75%);
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black 58%,
+    rgb(0 0 0 / 0.8) 72%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black 58%,
+    rgb(0 0 0 / 0.8) 72%,
+    transparent 100%
+  );
+  transform: scale(1.11);
+  transform-origin: left center;
+}
+
+:global(.dark) .source-flow-watermark {
+  opacity: 0.27;
+  filter: blur(7px) brightness(115%) saturate(75%);
+}
+
 .source-flow-input:hover,
 .source-flow-input:focus-visible {
   border-color: color-mix(in srgb, var(--source-accent) 72%, var(--outline-variant));
@@ -119,8 +162,8 @@ let { input }: Props = $props()
   position: relative;
   z-index: 1;
   display: inline-flex;
-  width: 4rem;
-  height: 4rem;
+  width: 4.5rem;
+  height: 4.5rem;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -144,8 +187,8 @@ let { input }: Props = $props()
 }
 
 .source-flow-icon img {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3.1rem;
+  height: 3.1rem;
   object-fit: contain;
 }
 
@@ -165,14 +208,14 @@ let { input }: Props = $props()
   font-family: var(--font-body);
   font-size: 0.82rem;
   font-weight: 650;
-  color: var(--foreground-alt);
+  color: rgb(255 255 255 / 0.82);
 }
 
 .source-flow-source {
   font-family: var(--font-display);
   font-size: 1.08rem;
   font-weight: 800;
-  color: var(--primary);
+  color: #fff;
 }
 .source-flow-fields {
   position: relative;
@@ -193,7 +236,7 @@ let { input }: Props = $props()
 }
 .source-flow-field-label {
   font-weight: 760;
-  color: color-mix(in srgb, var(--foreground-alt) 72%, transparent);
+  color: rgb(255 255 255 / 0.72);
   text-transform: lowercase;
 }
 .source-flow-field-value {
@@ -203,54 +246,59 @@ let { input }: Props = $props()
     "Courier New", monospace;
   font-size: 0.72rem;
   font-weight: 750;
-  color: var(--primary);
+  color: #fff;
   text-transform: uppercase;
 }
 .source-flow-status {
   position: relative;
   z-index: 1;
-  border: 1px solid color-mix(in srgb, var(--source-accent) 42%, transparent);
+  border: 1px solid rgb(255 255 255 / 0.42);
   border-radius: 0.25rem;
-  background: color-mix(in srgb, var(--source-accent) 12%, transparent);
+  background: rgb(255 255 255 / 0.12);
   padding: 0.22rem 0.42rem;
   font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 800;
-  color: var(--source-accent);
+  color: #fff;
   text-transform: uppercase;
 }
 .source-flow-statuses {
-  position: absolute;
-  inset: 0.72rem;
+  position: relative;
   z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
+  margin: -0.18rem -0.18rem -0.18rem 0;
   pointer-events: none;
 }
+
+.source-flow-status-planned {
+  margin-top: auto;
+}
 .source-flow-status-variant {
+  order: -1;
   border-color: color-mix(in srgb, #fff 65%, transparent);
   background: rgb(255 255 255 / 0.08);
   color: #fff;
 }
 .source-flow-statuses .source-flow-status {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-.source-flow-statuses .source-flow-status-variant {
-  top: 0;
-  bottom: auto;
+  position: static;
 }
 
 @media (max-width: 640px) {
   .source-flow-input {
-    grid-template-columns: 3.4rem minmax(0, 1fr);
+    grid-template-columns: 3.8rem minmax(0, 1fr) auto;
   }
   .source-flow-icon {
-    width: 3.4rem;
-    height: 3.4rem;
+    width: 3.8rem;
+    height: 3.8rem;
   }
   .source-flow-icon img {
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.6rem;
+    height: 2.6rem;
   }
 }
 </style>

@@ -61,13 +61,6 @@ export type ReleaseLinksProvenanceEntry = ReleaseLinkCardPresentation & {
   facts?: ReleaseLinkFact[]
   request?: ReleaseLinkRequestExample
   requestLabel?: string
-  /** Structured provenance used by alternate renderings such as tables. */
-  datasetName?: string
-  publisherCode?: string
-  resourceType?: string
-  role?: 'primary' | 'supporting'
-  snapshotCode?: string
-  sourceReleaseCode?: string
 }
 
 export type ReleaseLinksProvenanceGroup = {

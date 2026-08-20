@@ -1,16 +1,18 @@
 {
-  "versionHash": "sha256:d4d4b2c0449dd87512f6e5ae046902427f1cf5aa28455f1bd09065e61772f384",
+  "versionHash": "sha256:10f557ca89366d70f87c313f6f418761e2cbe4e7fcae82ff420dd57c83fa35e0",
   "publisherCode": "hkgov-dpo",
   "code": "ds-hk-hkgov-dpo-address",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "addresses",
-  "resourceTypes": ["address"],
+  "resourceTypes": [
+    "address"
+  ],
   "licenseCode": "hkgov-open-data",
   "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
-  "schemaSpecificationURL": "https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf",
+  "schemaURL": "https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
