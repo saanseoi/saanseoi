@@ -134,7 +134,7 @@ export const unlinkAccountForCurrentUser = command(
 
     await event.locals.auth.api.unlinkAccount({
       headers: event.request.headers,
-      body: { providerId, accountId: account.accountId },
+      body: { accountId: account.accountId },
     })
     await getAccountPageData().refresh()
     writeServerProductUsage({
