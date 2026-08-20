@@ -94,7 +94,8 @@
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "MAP_GUIDE_SELECTIONS", "dataset": "ss-map-guide-selections-local" }
+    { "binding": "MAP_GUIDE_SELECTIONS", "dataset": "ss-map-guide-selections-local" },
+    { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-local" }
   ],
   "workers_dev": true,
   "preview_urls": true,
@@ -213,6 +214,10 @@
         {
           "binding": "MAP_GUIDE_SELECTIONS",
           "dataset": "ss-map-guide-selections-preview"
+        },
+        {
+          "binding": "PRODUCT_USAGE",
+          "dataset": "ss-product-usage-preview"
         }
       ],
       "routes": [
@@ -309,6 +314,10 @@
         {
           "binding": "MAP_GUIDE_SELECTIONS",
           "dataset": "ss-map-guide-selections-production"
+        },
+        {
+          "binding": "PRODUCT_USAGE",
+          "dataset": "ss-product-usage-production"
         }
       ],
       "routes": [
