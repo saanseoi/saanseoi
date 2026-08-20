@@ -29,6 +29,7 @@ solely because it compiles or an LLM generated the wording.
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Existing data                  | Privacy-aware discovery prompt for an LLM or community helper                                                                                                           | Review after the first supported import path is published                                                                                                       |
 | SaanSeoi urban-density example | Tutorial-sized Turf calculation for Hong Kong, Kowloon and the New Territories; sourced from district geometry, unclipped basemap land use and C&amp;SD population data | Verify the published Statistics collection, its download/API contract, land-use export contract and the region/district grouping before marking fully available |
+| Planned sushi Places example   | Use Places search in pages of no more than 100 results and keep each search query within 200 characters                                                                 | Verify the published Places snapshot, category vocabulary, pagination design and public-key flow before adding it to the tutorial                               |
 
 ## Review checklist
 
@@ -48,5 +49,7 @@ solely because it compiles or an LLM generated the wording.
 - Before replacing the temporary C&amp;SD population input, verify the published
   Statistics collection's endpoint, schema, reference-year semantics and download
   pagination.
+- Before adding the sushi example, verify that it respects the Places API maximum of 100
+  results per request and does not depend on unbounded search responses.
 - Review the mobile, notebook and Leaflet hand-offs with a practitioner before
   presenting them as full integrations.
