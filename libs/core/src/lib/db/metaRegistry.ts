@@ -3637,7 +3637,7 @@ export async function ensureDraftReleaseSetForRelease(
   const resourceCode = resourceTypeCodeSlug(type)
   const schemaVersion = latestReleaseSet?.schemaVersion ?? `sv-${resourceCode}-v1`
   const rulesetDomainSegment =
-    domainCode === 'default' || domainCode === 'overture' ? '' : `-${domainCode}`
+    domainCode === (composition?.defaultDomainCode ?? 'default') ? '' : `-${domainCode}`
   const rulesetVersion =
     latestReleaseSet?.rulesetVersion ??
     `rs-${resourceCode}${rulesetDomainSegment}-merge-v1`

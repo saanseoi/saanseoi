@@ -45,6 +45,8 @@ describe('registry code construction', () => {
   test('maps both Planning Department variants to their publisher code', () => {
     expect(publisherCodeForSource('hkgov-pland-pu')).toBe('hkgov-pland')
     expect(publisherCodeForSource('hkgov-pland-new-town')).toBe('hkgov-pland')
+    expect(publisherCodeForSource('hkgov-censtatd-area')).toBe('hkgov-censtatd')
+    expect(publisherCodeForSource('hkgov-censtatd-hma')).toBe('hkgov-censtatd')
   })
 
   test('derives variants from structured source metadata', () => {

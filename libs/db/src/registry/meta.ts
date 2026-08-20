@@ -1004,7 +1004,7 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
 
   // The pre-release Divisions API originally named its default Geographic
   // domain after its Overture primary member. The domain is broader than that
-  // publisher: it can carry optional C&SD enrichments. Reconcile existing
+  // publisher: it can carry separately selectable C&SD enrichments. Reconcile existing
   // local/preview release sets in place so their immutable cohort/revision
   // identity is retained without keeping an obsolete domain alias.
   statements.push(
