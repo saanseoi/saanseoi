@@ -8,6 +8,7 @@ import type {
   ReleaseNavVersion,
   ReleaseNavVersionPreload,
 } from '../releaseNav.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 import {
   createNestedContentScroll,
   createReleaseNavigationPersistence,
@@ -21,6 +22,7 @@ import ReleaseNavSideNav from './releaseNavSideNav.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
+  analyticsSurface: ReleaseAnalyticsSurface
   activeOutlineId: string | null
   activeTab?: string
   children?: Snippet
@@ -46,6 +48,7 @@ type Props = {
 
 let {
   actions = [],
+  analyticsSurface,
   activeOutlineId,
   activeTab = $bindable('notes'),
   children,
@@ -114,6 +117,7 @@ $effect(() => {
 {#snippet navBar()}
   <ReleaseNavBar
     {actions}
+    {analyticsSurface}
     {activeTab}
     {currentVersionCohortKey}
     currentVersionCode={visibleVersionCode}

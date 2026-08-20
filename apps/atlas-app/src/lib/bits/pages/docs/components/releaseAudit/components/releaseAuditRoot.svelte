@@ -17,9 +17,11 @@ import {
 import type { AuditAction } from './releaseAudit.types'
 import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
 type Props = {
   actions?: AuditAction[]
+  analyticsSurface: ReleaseAnalyticsSurface
   bulkActions?: AuditBulkRule[]
   locale: string
   showBulkActions?: boolean
@@ -29,6 +31,7 @@ type Props = {
 
 let {
   actions = [],
+  analyticsSurface,
   bulkActions = [],
   locale,
   showBulkActions = false,
@@ -576,6 +579,7 @@ $effect(() => {
       bind:query
     />
     <ReleaseAuditResults
+      {analyticsSurface}
       {bulkActions}
       {copiedEvidenceId}
       {evidenceTransitionName}
@@ -595,6 +599,7 @@ $effect(() => {
   </ReleaseAuditPanel>
 
   <ReleaseAuditEvidenceDialog
+    {analyticsSurface}
     bind:open={evidenceDialogOpen}
     {copiedEvidenceId}
     evidence={selectedEvidence}

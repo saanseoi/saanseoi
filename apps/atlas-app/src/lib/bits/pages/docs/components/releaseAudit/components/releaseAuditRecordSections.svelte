@@ -5,8 +5,10 @@ import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'
 import ReleaseAuditCardHeader from './releaseAuditCardHeader.svelte'
 import type { AuditRowPresentation, AuditSection } from './releaseAudit.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 type Props = {
   copiedEvidenceId: string | null
+  analyticsSurface: ReleaseAnalyticsSurface
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
   formatAction: (action: string) => { issue: string; outcome: string }
@@ -24,6 +26,7 @@ type Props = {
 
 let {
   copiedEvidenceId,
+  analyticsSurface,
   evidenceTransitionName,
   expandedEvidenceId,
   formatAction,
@@ -81,6 +84,7 @@ let {
         <div class="divide-y divide-data-outline-variant/60">
           {#each section.rows as row}
             <ReleaseAuditActionRow
+              {analyticsSurface}
               copied={copiedEvidenceId === row.id}
               expanded={expandedEvidenceId === row.id}
               {onCopy}

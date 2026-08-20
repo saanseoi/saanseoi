@@ -11,8 +11,10 @@ import type {
   AuditRowPresentation,
   AuditSection,
 } from './releaseAudit.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 type Props = {
   bulkActions: AuditBulkRule[]
+  analyticsSurface: ReleaseAnalyticsSurface
   copiedEvidenceId: string | null
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
@@ -43,6 +45,7 @@ let props: Props = $props()
 {/if}
 
 <ReleaseAuditRecordSections
+  analyticsSurface={props.analyticsSurface}
   copiedEvidenceId={props.copiedEvidenceId}
   evidenceTransitionName={props.evidenceTransitionName}
   expandedEvidenceId={props.expandedEvidenceId}
