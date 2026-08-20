@@ -397,6 +397,7 @@ let sourceReleaseLinksPresentation = $derived(
     release.contributingSources,
     api.familyType,
     (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, ''),
+    locale,
   ),
 )
 let sourceOutline = $derived(
@@ -561,7 +562,7 @@ $effect(() => {
           />
         {:else}
           <ReleaseLinks.Root>
-            <ReleaseLinks.Provenance
+            <ReleaseLinks.Table
               presentation={sourceReleaseLinksPresentation}
               emptyLabel={m.api_release_unavailable()}
             />

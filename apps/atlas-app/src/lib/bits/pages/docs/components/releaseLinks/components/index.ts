@@ -5,6 +5,7 @@ export { default as Group } from './releaseLinksGroup.svelte'
 export { default as Provenance } from './releaseLinksProvenance.svelte'
 export { default as Root } from './releaseLinksRoot.svelte'
 export { default as Skeleton } from './releaseLinksSkeleton.svelte'
+export { default as Table } from './releaseLinksTable.svelte'
 export type {
   ReleaseLinkAction,
   ReleaseLinkCardPresentation,

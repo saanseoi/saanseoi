@@ -76,6 +76,7 @@ export type ApiRelease = {
   contributingSources?: Array<{
     sourceCode: string
     sourceReleaseCode: string
+    datasetI18n?: Array<{ locale: string; name: string }>
     publisherCode: string
     snapshotCode: string
     role: 'primary' | 'supporting'
