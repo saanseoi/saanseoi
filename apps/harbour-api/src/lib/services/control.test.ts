@@ -198,16 +198,47 @@ function seedCompleteDivisionSourceSignature(
 
     INSERT OR IGNORE INTO datasets (
       id, publisherId, code, regionCode, releaseType, releaseFrequency, theme,
-      sourceUrl, versionHash, createdAt, updatedAt
-    ) VALUES (
-      'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'as-needed',
-      'divisions', 'https://www.censtatd.gov.hk/',
-      'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
-    );
+      sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES
+      (
+        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'as-needed',
+        'divisions', 'default', 'https://www.censtatd.gov.hk/',
+        'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
+      ),
+      (
+        'hkgov-censtatd-hk-area-type', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
+        'https://www.censtatd.gov.hk/',
+        'vh-dataset-hkgov-censtatd-hk-area-type-v1', 1761264000000, 1761264000000
+      );
 
     INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES ('hkgov-censtatd-hk-district', 'divisionArea');
+    VALUES
+      ('hkgov-censtatd-hk-district', 'divisionArea'),
+      ('hkgov-censtatd-hk-area-type', 'divisionArea');
+
+    INSERT OR IGNORE INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
+      cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
+      updatedAt
+    ) VALUES (
+      'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
+      'hkgov-censtatd-hk-area-type', 'divisionArea',
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2',
+      '2023-H2', '1.0', '2023-H2',
+      'hk/hkgov-censtatd/2023-H2/division-area.parquet',
+      'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
+      '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
+    );
+
+    INSERT OR IGNORE INTO snapshotSources (
+      snapshotId, datasetId, sourceReleaseId, role
+    ) VALUES (
+      '${snapshotId}', 'hkgov-censtatd-hk-area-type',
+      'release-dr-hk-hkgov-censtatd-area-type-2023-H2', 'supporting'
+    );
   `)
 
   const companionReleases = [
@@ -1151,7 +1182,7 @@ describe('control service', () => {
 
     sqlite.exec(`
       UPDATE apiComposition
-      SET i18n = '{"overture":[{"locale":"en","name":"Overture","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}]}'
+      SET i18n = '{"geographic":[{"locale":"en","name":"Geographic","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}]}'
       WHERE id = 'api-composition-divisions-v1';
 
       DELETE FROM apiCompositionMembers
@@ -1161,12 +1192,13 @@ describe('control service', () => {
         apiCompositionId, domainCode, resourceType, variant, role, isRequired,
         cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
       ) VALUES
-        ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
-        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10, null),
-        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11, null),
-        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12, null),
-        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13, null),
-        ('api-composition-divisions-v1', 'overture', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
+        ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15, null),
+        ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, apiCompositionId, code, regionCode, domainCode,
@@ -1178,7 +1210,7 @@ describe('control service', () => {
         'api-composition-divisions-v1',
         'data-hk-divisions-${cohortKey}',
         'hk',
-        'overture',
+        'geographic',
         '${cohortKey}',
         0,
         'sv-division-v1',
@@ -1402,6 +1434,64 @@ describe('control service', () => {
         .run(`lineage-censtatd-${year}`, snapshotId)
     }
 
+    const incompleteReconciliation = await handleReconcileDraftReleaseSets(db, {
+      apiFamily: 'divisions',
+      regionCode: 'hk',
+    })
+    const stillDraftSet = sqlite
+      .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+      .get(releaseSetId) as { status: string }
+
+    sqlite.exec(`
+      INSERT INTO datasets (
+        id, publisherId, code, regionCode, releaseType, releaseFrequency,
+        theme, sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'hkgov-censtatd-hk-area-type', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
+        'https://www.censtatd.gov.hk/', 'vh-censtatd-area-type',
+        1761264000001, 1761264000001
+      );
+
+      INSERT INTO datasetResourceTypes (datasetId, resourceType)
+      VALUES ('hkgov-censtatd-hk-area-type', 'divisionArea');
+
+      INSERT INTO releases (
+        id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
+        'hkgov-censtatd-hk-area-type', 'divisionArea',
+        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2',
+        '2023-H2', '1.0', '2023-H2',
+        'hk/hkgov-censtatd/2023-H2/division-area.parquet', 'division-area.parquet',
+        'published', '2026-06-05T00:02:00.000Z',
+        '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
+      );
+
+      INSERT INTO snapshotLineages (
+        id, code, regionCode, resourceType, variant, identityMode,
+        primaryDatasetId, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'lineage-censtatd-area-type', 'sl-ds-hk-hkgov-censtatd-area-type',
+        'hk', 'divisionArea', 'hkgov-censtatd-area', 'persistent',
+        'hkgov-censtatd-hk-area-type', 'vh-lineage-censtatd-area-type',
+        1761264000001, 1761264000001
+      );
+    `)
+    const areaTypeSnapshotId = seedSnapshot(sqlite, {
+      code: 'ss-hk-division-area-hkgov-censtatd-area-2023-H2',
+      cohortKey: '2023-H2',
+      datasetId: 'hkgov-censtatd-hk-area-type',
+      resourceType: 'divisionArea',
+      releaseId: 'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
+      status: 'published',
+    })
+    sqlite
+      .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
+      .run('lineage-censtatd-area-type', areaTypeSnapshotId)
+
     const reconciliation = await handleReconcileDraftReleaseSets(db, {
       apiFamily: 'divisions',
       regionCode: 'hk',
@@ -1416,6 +1506,12 @@ describe('control service', () => {
     expect(publishedSet.status).toBe('draft')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
+    expect(incompleteReconciliation).toMatchObject({
+      inspected: 1,
+      pendingReleaseSetCodes: [`data-hk-divisions-${cohortKey}`],
+      publishedReleaseSetCodes: [],
+    })
+    expect(stillDraftSet.status).toBe('draft')
     expect(reconciliation).toMatchObject({
       inspected: 1,
       pendingReleaseSetCodes: [],
@@ -1427,8 +1523,8 @@ describe('control service', () => {
           cohortKey,
           description:
             'Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas.',
-          domainCode: 'overture',
-          domainName: 'Overture',
+          domainCode: 'geographic',
+          domainName: 'Geographic',
           publisherName: 'overture',
           regionCode: 'hk',
           revision: 0,

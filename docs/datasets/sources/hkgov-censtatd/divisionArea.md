@@ -124,6 +124,11 @@ to the corresponding canonical Overture division ID, including the deterministic
 synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
 them with `include=areas:hkgov-censtatd-area`.
 
+This area variant is a required composition member: Harbour does not publish a
+Geographic Divisions release set until the Area/type snapshot and every other configured
+member are available. Required publication membership does not make the geometry part of
+the default response; clients still select it explicitly with `include`.
+
 During ingestion, the three references are checked against the closest published
 canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
 used first; only an absent earlier cohort permits the earliest later Overture cohort.
