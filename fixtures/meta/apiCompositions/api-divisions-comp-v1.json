@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:213e915b518699f0ebcb73e831d4add7fcd89c81ef5a8b17236fc9d2aa3a6345",
+  "versionHash": "sha256:b63967e163b40f13a5272427ee00200cb8ea4d8c81239a66f6165f6a8fabc641",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -77,7 +77,7 @@
           "resourceType": "divisionArea",
           "variant": "hkgov-censtatd-area",
           "role": "geometry",
-          "isRequired": false,
+          "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
           "priority": 15,
           "ingestDependencies": [
