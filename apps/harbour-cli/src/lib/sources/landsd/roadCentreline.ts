@@ -1,5 +1,4 @@
 import proj4 from 'proj4'
-import fgdb from 'fgdb'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
@@ -10,6 +9,7 @@ import {
   type GeoJsonPosition,
 } from '@repo/core/pipeline/geojson'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
 
 export const LANDSD_ROAD_CENTRELINE_DATASET_CODE = 'ds-hk-hkgov-landsd-road-centreline'
 export const LANDSD_ROAD_CENTRELINE_LAYER = 'GEO_STREET_CENTRELINE'
@@ -101,7 +101,7 @@ export type NativeRoadCentrelineArchive = {
 export async function readLandsdRoadCentrelineArchive(
   archiveBytes: Uint8Array,
 ): Promise<NativeRoadCentrelineArchive> {
-  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const layers = await readFileGeodatabaseArchive(archiveBytes)
   const candidates = Object.entries(layers).filter(([, value]) =>
     isFeatureCollection(value),
   )
