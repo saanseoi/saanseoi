@@ -205,13 +205,15 @@ const providerDetails = (providerId: string) =>
                 >{m.account_change_password()}</Button
               >
             {/if}
-            <Button
-              onclick={() => unlink(account.id)}
-              disabled={unlinkingAccountId !== null}
-              size="compact"
-              variant="secondary"
-              >{unlinkingAccountId === account.id ? m.account_removing() : m.account_remove()}</Button
-            >
+            {#if accounts.length > 1}
+              <Button
+                onclick={() => unlink(account.id)}
+                disabled={unlinkingAccountId !== null}
+                size="compact"
+                variant="secondary"
+                >{unlinkingAccountId === account.id ? m.account_removing() : m.account_remove()}</Button
+              >
+            {/if}
           </div>
         </article>
       {/each}
