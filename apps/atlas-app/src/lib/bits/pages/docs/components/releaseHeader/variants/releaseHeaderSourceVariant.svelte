@@ -64,6 +64,16 @@ let statusLabel = $derived(
         : version.status,
 )
 let releaseNotesUrl = $derived(normaliseExternalUrl(version.releaseNotesUrl))
+let accessMetrics = $derived([
+  {
+    label: m.publishers_api_requests(),
+    value: 'N/A',
+  },
+  {
+    label: m.publishers_downloads(),
+    value: 'N/A',
+  },
+])
 let details = $derived.by((): Detail[] => {
   const codeDetails = [
     { isMonospace: true, label: m.source_version(), value: version.sourceVersion },
@@ -180,7 +190,7 @@ let secondaryLinks = $derived(
     ? [
         {
           href: sourceUrl,
-          icon: 'ion:open-outline',
+          icon: 'ion:link-outline',
           isExternal: true,
           label: m.source_official_site(),
         },
@@ -225,9 +235,10 @@ const displayDate = (value?: string | null) =>
 <ReleaseHeader.Root>
   <ReleaseHeader.Header
     label={m.source_dataset()}
+    metrics={accessMetrics}
     {statusLabel}
     {statusClass}
     {statusDotClass}
   />
-  <ReleaseHeader.Content {main} {card} />
+  <ReleaseHeader.Content {main} {card} metrics={accessMetrics} />
 </ReleaseHeader.Root>
