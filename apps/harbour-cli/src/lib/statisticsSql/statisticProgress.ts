@@ -4,8 +4,8 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
-  formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
+import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
 import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 
 /**
@@ -21,36 +21,16 @@ export async function runStatisticProgressStep<T>(
   },
   operation: () => Promise<T> | T,
 ) {
-  const total = Math.max(1, input.count ?? 1)
-  const startedAt = Date.now()
-  const runningLabel = formatRunningPhaseLabel(
-    colorTeal(input.action),
-    colorRed(input.subject),
-    0,
-    total,
+  return runLocalProgressPhase(
+    progress,
+    {
+      action: input.action,
+      completedCount: input.count,
+      subject: input.subject,
+      totalUnits: Math.max(1, input.count ?? 1),
+    },
+    operation,
   )
-
-  progress.beginPhase(runningLabel, { current: 0, max: total })
-  const result = await operation()
-  progress.update(total, {
-    label: formatRunningPhaseLabel(
-      colorTeal(input.action),
-      colorRed(input.subject),
-      total,
-      total,
-    ),
-  })
-  progress.complete(
-    appendPhaseDetails(
-      formatCompletedPhaseLabel(
-        colorTeal(input.action),
-        colorRed(input.subject),
-        input.count,
-      ),
-      [formatDurationMs(Date.now() - startedAt)],
-    ),
-  )
-  return result
 }
 
 export function completeStatisticCache(

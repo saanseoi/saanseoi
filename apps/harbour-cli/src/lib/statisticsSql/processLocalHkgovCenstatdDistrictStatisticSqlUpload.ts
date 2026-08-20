@@ -22,6 +22,7 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
+  invalidateRemoteDbCache,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
@@ -150,6 +151,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       })
 
   let processingStarted = false
+  let cacheMutationStarted = false
   try {
     const resolutionBySourceDistrictCode = await runStatisticProgressStep(
       progress,
@@ -267,13 +269,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
         subject: 'batches',
       },
-      () =>
-        replayStatisticSqlBatches(
+      () => {
+        cacheMutationStarted = true
+        return replayStatisticSqlBatches(
           target,
           context,
           plan.sourceVersion.slice(0, 4),
           batches,
-        ),
+        )
+      },
     )
     await runStatisticProgressStep(
       progress,
@@ -380,6 +384,13 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     return published
   } catch (error) {
     progress.fail()
+    if (target.remote && cacheMutationStarted) {
+      await invalidateRemoteDbCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+        error instanceof Error ? error.message : String(error),
+      ).catch(() => undefined)
+    }
     if (processingStarted) {
       await client
         .stageFailed(

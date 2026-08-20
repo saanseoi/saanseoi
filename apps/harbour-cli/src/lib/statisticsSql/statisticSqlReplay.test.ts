@@ -46,6 +46,24 @@ function historyRow(id: string) {
 }
 
 describe('buildStatisticSqlBatches', () => {
+  test('rejects one publisher row that exceeds the D1 statement limit', () => {
+    expect(() =>
+      buildStatisticSqlBatches({
+        releaseCode,
+        releaseId,
+        source: {
+          rows: [
+            {
+              ...sourceRow('district-large'),
+              rawProperties: { value: 'x'.repeat(100_000) },
+            },
+          ],
+          table: 'hkgovCenstatdStatistics',
+        },
+      }),
+    ).toThrow('A statistic SQL statement exceeds the D1 limit')
+  })
+
   test('creates deterministic source/history upserts that restore a failed release safely', () => {
     const batches = buildStatisticSqlBatches({
       history: {
@@ -138,6 +156,26 @@ describe('buildStatisticSqlBatches', () => {
 })
 
 describe('replayStatisticSqlBatches', () => {
+  test('checks remote prerequisites before mutating the local cache', async () => {
+    const calls: string[] = []
+    await expect(
+      replayStatisticSqlBatches(
+        { environment: 'preview', remote: true },
+        { historyTargets: [], sourceTargets: [] } as never,
+        '2022',
+        { history: [], source: ['SELECT 1;'] },
+        {
+          executeSql: async target => {
+            calls.push(target.name)
+            return 0
+          },
+          importOptions: { accountId: 'account', apiToken: 'token' },
+        },
+      ),
+    ).rejects.toThrow('source.databaseId')
+    expect(calls).toEqual([])
+  })
+
   test('replays a source-only statistic without requiring a history shard', async () => {
     const batches = buildStatisticSqlBatches({
       releaseCode,

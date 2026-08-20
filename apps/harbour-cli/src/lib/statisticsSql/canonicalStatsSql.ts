@@ -82,6 +82,9 @@ export async function replayCanonicalStatsSqlBatches(
     onProgress?: (event: CanonicalStatsSqlReplayProgress) => Promise<void> | void
   } = {},
 ) {
+  const remoteReplay = target.remote
+    ? resolveRemoteReplay(target, context, shardYear, batches, options)
+    : null
   const localBatchCount = batches.current.length + batches.history.length
   const totalBatches = localBatchCount * (target.remote ? 2 : 1)
   await replay(
@@ -102,8 +105,45 @@ export async function replayCanonicalStatsSqlBatches(
     batches.current.length,
     totalBatches,
   )
-  if (!target.remote) return
+  if (!remoteReplay) return
 
+  await replay(
+    { databaseId: remoteReplay.currentDatabaseId ?? null, name: 'current' },
+    batches.current,
+    {
+      accountId: remoteReplay.accountId,
+      apiToken: remoteReplay.apiToken,
+      isLocal: false,
+    },
+    'remote-current-replay',
+    options.onProgress,
+    localBatchCount,
+    totalBatches,
+  )
+  await replay(
+    { databaseId: remoteReplay.historyDatabaseId ?? null, name: 'history' },
+    batches.history,
+    {
+      accountId: remoteReplay.accountId,
+      apiToken: remoteReplay.apiToken,
+      isLocal: false,
+    },
+    'remote-history-replay',
+    options.onProgress,
+    localBatchCount + batches.current.length,
+    totalBatches,
+  )
+}
+
+function resolveRemoteReplay(
+  target: UploadTarget,
+  context: Pick<LocalAddressDbContext, 'historyTargets' | 'state'>,
+  shardYear: string,
+  batches: CanonicalStatsSqlBatches,
+  options: {
+    importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
+  },
+) {
   const accountId =
     options.importOptions?.accountId ?? resolveCloudflareAccountId(target)
   const apiToken =
@@ -121,24 +161,7 @@ export async function replayCanonicalStatsSqlBatches(
   if (missing.length) {
     throw new Error(`Canonical statistic D1 replay requires ${missing.join(', ')}.`)
   }
-  await replay(
-    { databaseId: currentDatabaseId ?? null, name: 'current' },
-    batches.current,
-    { accountId, apiToken, isLocal: false },
-    'remote-current-replay',
-    options.onProgress,
-    localBatchCount,
-    totalBatches,
-  )
-  await replay(
-    { databaseId: historyDatabaseId ?? null, name: 'history' },
-    batches.history,
-    { accountId, apiToken, isLocal: false },
-    'remote-history-replay',
-    options.onProgress,
-    localBatchCount + batches.current.length,
-    totalBatches,
-  )
+  return { accountId, apiToken, currentDatabaseId, historyDatabaseId }
 }
 
 function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {
