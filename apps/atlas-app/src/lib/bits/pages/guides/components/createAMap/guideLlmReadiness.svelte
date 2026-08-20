@@ -30,6 +30,7 @@ type Props = {
   incompleteDescription: string
   isZedSetupGuideProvided: boolean
   onComplete: () => void
+  onExternalOpen?: (kind: 'setup' | 'sign_up' | 'openrouter') => void
   onOpenZedSetup: () => void
   onReset: () => void
   operatingSystem?: 'windows' | 'macos' | 'linux'
@@ -51,6 +52,7 @@ let {
   incompleteDescription,
   isZedSetupGuideProvided,
   onComplete,
+  onExternalOpen,
   onOpenZedSetup,
   onReset,
   operatingSystem,
@@ -136,6 +138,7 @@ let expanded = $state(false)
         {:else if option.setupUrl}
           <Button
             href={option.setupUrl}
+            onclick={() => onExternalOpen?.('setup')}
             size="compact"
             variant="secondary"
             class="shrink-0 px-4"
@@ -145,7 +148,12 @@ let expanded = $state(false)
           </Button>
         {/if}
         {#if option.signUpUrl}
-          <Button href={option.signUpUrl} size="compact" variant="secondary">
+          <Button
+            href={option.signUpUrl}
+            onclick={() => onExternalOpen?.('sign_up')}
+            size="compact"
+            variant="secondary"
+          >
             <Icon
               icon={aiAccess === 'web' ? (option.icon ?? 'proicons:user-add') : 'proicons:user-add'}
               class="size-4"
@@ -164,6 +172,7 @@ let expanded = $state(false)
         {#if option.supportsOpenRouter}
           <Button
             href="https://openrouter.ai/sign-up"
+            onclick={() => onExternalOpen?.('openrouter')}
             size="compact"
             variant="secondary"
           >

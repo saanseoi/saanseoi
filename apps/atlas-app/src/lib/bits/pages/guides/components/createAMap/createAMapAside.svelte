@@ -36,6 +36,7 @@ type Props = {
   onCopyGuideLink: () => void
   onOpenHandover: () => void
   onShareGuide: () => void
+  onShareExternalLink: (provider: string) => void
   shareLinks: ShareLink[]
 }
 
@@ -45,6 +46,7 @@ let {
   onCopyGuideLink,
   onOpenHandover,
   onShareGuide,
+  onShareExternalLink,
   shareLinks,
 }: Props = $props()
 </script>
@@ -95,6 +97,7 @@ let {
           <a
             class={shareActionClass}
             href={link.href}
+            onclick={() => onShareExternalLink(link.icon)}
             target="_blank"
             rel="noreferrer"
             aria-label={link.label}
