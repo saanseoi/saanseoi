@@ -7,6 +7,7 @@ import type { SocialProvider } from '#lib/auth-providers.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
+import { getAuthRedirectPath } from '#lib/authRedirect.js'
 import { page } from '$app/state'
 
 let email = $state('')
@@ -16,7 +17,7 @@ let busy = $state(false)
 let pendingProvider = $state<SocialProvider | null>(null)
 let passkeyPending = $state(false)
 let showEmailForm = $state(false)
-const next = $derived(page.url.searchParams.get('next') ?? '/api-keys')
+const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 
 const signIn = async () => {
   busy = true
