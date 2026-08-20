@@ -1002,23 +1002,6 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
-  // The pre-release Divisions API originally named its default Geographic
-  // domain after its Overture primary member. The domain is broader than that
-  // publisher: it can carry separately selectable C&SD enrichments. Reconcile existing
-  // local/preview release sets in place so their immutable cohort/revision
-  // identity is retained without keeping an obsolete domain alias.
-  statements.push(
-    `
-UPDATE apiReleaseSets
-SET domainCode = 'geographic',
-    updatedAt = ${nowSql}
-WHERE apiCompositionId = ${sqlDeterministicId(
-      API_COMPOSITION_ID_NAMESPACE,
-      'comp-divisions-v1',
-    )}
-  AND domainCode = 'overture';`.trim(),
-  )
-
   // A composition fixture declares the complete current set of member slots.
   // Replacing a variant must not leave its previous slot active alongside it.
   statements.push(
