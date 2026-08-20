@@ -31,8 +31,11 @@ import {
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
 import type { SourcesPayload } from '../schema'
-import type { AccessAttribution } from './accessAnalytics'
-import { resolveApiReleaseSetAccessAttribution } from './accessAnalytics'
+import {
+  resolveApiReleaseSetAccessAttribution,
+  resolveOptionalApiReleaseSetAccessAttribution,
+  type AccessAttribution,
+} from './accessAnalytics'
 
 export type RequestedDivisionVersion = 'v0' | 'v0.1'
 export type RequestedDivisionApiVersion = '0.1'
@@ -1031,9 +1034,11 @@ export async function listDivisions(args: {
     }
   }
   if (args.onResolved) {
-    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
-      args.metaDb.$client,
-      activeDivisionSnapshot.apiReleaseSet,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeDivisionSnapshot.apiReleaseSet,
+      ),
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }
@@ -1199,9 +1204,11 @@ export async function getDivisionDetail(args: {
     }
   }
   if (args.onResolved) {
-    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
-      args.metaDb.$client,
-      activeDivisionSnapshot.apiReleaseSet,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeDivisionSnapshot.apiReleaseSet,
+      ),
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }

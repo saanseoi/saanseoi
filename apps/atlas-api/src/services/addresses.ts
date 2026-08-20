@@ -28,7 +28,10 @@ import {
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
 import type { AccessAttribution } from './accessAnalytics'
-import { resolveApiReleaseSetAccessAttribution } from './accessAnalytics'
+import {
+  resolveApiReleaseSetAccessAttribution,
+  resolveOptionalApiReleaseSetAccessAttribution,
+} from './accessAnalytics'
 
 export type RequestedAddressVersion = 'v0' | 'v0.1'
 export type RequestedAddressApiVersion = '0.1'
@@ -431,9 +434,11 @@ export async function listAddresses(args: {
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
   }
   if (args.onResolved) {
-    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
-      args.metaDb.$client,
-      activeSnapshot.apiReleaseSet,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeSnapshot.apiReleaseSet,
+      ),
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }
@@ -525,9 +530,11 @@ export async function getAddressDetail(args: {
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
   }
   if (args.onResolved) {
-    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
-      args.metaDb.$client,
-      activeSnapshot.apiReleaseSet,
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeSnapshot.apiReleaseSet,
+      ),
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }
