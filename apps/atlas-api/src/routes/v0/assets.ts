@@ -1,5 +1,12 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
-import { eq, metaAssets } from '@repo/db'
+import {
+  eq,
+  metaAssets,
+  metaDatasets,
+  metaPublishers,
+  metaReleases,
+  metaSourceReleases,
+} from '@repo/db'
 
 import { ErrorResponseSchema } from '../../schema'
 import type { AppEnv } from '../../types'
@@ -38,8 +45,20 @@ export const managedAssetRoute = defineOpenAPIRoute<
   handler: async c => {
     const { assetId } = c.req.valid('param')
     const asset = await c.var.metaDb
-      .select({ assetKey: metaAssets.assetKey })
+      .select({
+        assetKey: metaAssets.assetKey,
+        publisherCode: metaPublishers.code,
+        sourceReleaseCode: metaSourceReleases.code,
+        sourceReleaseId: metaSourceReleases.id,
+      })
       .from(metaAssets)
+      .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+      .leftJoin(
+        metaSourceReleases,
+        eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+      )
+      .leftJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
+      .leftJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(eq(metaAssets.id, assetId))
       .get()
     if (!asset) {
@@ -51,6 +70,14 @@ export const managedAssetRoute = defineOpenAPIRoute<
         },
         404,
       )
+    }
+    if (asset.publisherCode && asset.sourceReleaseId && asset.sourceReleaseCode) {
+      c.set('accessAttribution', {
+        publisherCodes: [asset.publisherCode],
+        sourceReleaseCode: asset.sourceReleaseCode,
+        sourceReleaseId: asset.sourceReleaseId,
+        surface: 'source',
+      })
     }
 
     // Workers Cache slices Range requests from this full immutable response.

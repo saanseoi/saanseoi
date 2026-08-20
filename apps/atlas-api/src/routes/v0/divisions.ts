@@ -150,6 +150,7 @@ export const divisionRoutes = [
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) {
@@ -179,6 +180,7 @@ export const divisionRoutes = [
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           id,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) {

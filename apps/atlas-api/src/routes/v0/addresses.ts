@@ -116,6 +116,7 @@ export const addressRoutes = [
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) return c.json(result.body, 503)
@@ -138,6 +139,7 @@ export const addressRoutes = [
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           id,
           query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
         if (result.status === 503) return c.json(result.body, 503)
