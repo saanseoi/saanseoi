@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e54008a57f01d44ea2e6891866b884004e8f5aba62ff4372601a9133cad14bd8",
+  "versionHash": "sha256:f210c6d953fc0aeac5b338d259103cd75e477c8a57f9298e784e1bad0aeda0dc",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-strategic-street",
   "regionCode": "hk",
@@ -12,7 +12,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/f57192b371a4134c56a2a48bf2bc746b6cf8a04d81d3576fbdc38575b9e0563b",
+  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/f57192b371a4134c56a2a48bf2bc746b6cf8a04d81d3576fbdc38575b9e0563b",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"

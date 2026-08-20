@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0369dd58ce872046473e22c27b95c7975353f20a346c03790ef1f4aca34be5af",
+  "versionHash": "sha256:5061e860061da7b7dede1a7f2589a71aa92db764c7912ce762478c655bbd77bd",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Home Affairs Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/7e0a99346d34458e54a144dfa37ce1284306a8d02782c23d9aad9b7a1462c018",
+  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/7e0a99346d34458e54a144dfa37ce1284306a8d02782c23d9aad9b7a1462c018",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "weekly"
