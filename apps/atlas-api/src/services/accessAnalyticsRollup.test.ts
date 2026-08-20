@@ -83,6 +83,13 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
       data: [
         {
           day: '2026-08-20 00:00:00',
+          scope: 'dataset',
+          entityId: 'dataset-1',
+          metricKey: 'apiRequests.direct',
+          metricValue: 2,
+        },
+        {
+          day: '2026-08-20 00:00:00',
           scope: 'publisher',
           entityId: 'hkgov',
           metricKey: 'apiRequests',
@@ -118,7 +125,7 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
         },
         Date.parse('2026-08-21T00:15:00Z'),
       ),
-    ).resolves.toEqual({ days: 2, rows: 1 })
+    ).resolves.toEqual({ days: 2, rows: 2 })
 
     expect(queries[0]).toContain('FROM ss-product-usage-local')
     expect(queries[0]).toContain("index1 = 'api.access'")
@@ -130,6 +137,12 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
     ).toEqual([
       {
         day: '2026-08-20',
+        scope: 'dataset',
+        entityId: 'dataset-1',
+        metrics: '{"apiRequests.direct":2}',
+      },
+      {
+        day: '2026-08-20',
         scope: 'publisher',
         entityId: 'hkgov',
         metrics: '{"apiRequests":3,"downloads":1}',
@@ -138,12 +151,19 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
     const allTime = rows<{ period: string; metrics: string }>(
       'SELECT period, metrics FROM accessAnalyticsRollups',
     )
-    expect(allTime).toHaveLength(1)
-    expect(allTime[0]?.period).toBe('all_time')
-    expect(JSON.parse(allTime[0]?.metrics ?? '{}')).toEqual({
-      apiRequests: 3,
-      downloads: 1,
-    })
+    expect(allTime).toHaveLength(2)
+    expect(allTime.every(row => row.period === 'all_time')).toBe(true)
+    expect(
+      JSON.parse(
+        allTime.find(row => row.metrics.includes('apiRequests.direct'))?.metrics ??
+          '{}',
+      ),
+    ).toEqual({ 'apiRequests.direct': 2 })
+    expect(
+      JSON.parse(
+        allTime.find(row => row.metrics.includes('downloads'))?.metrics ?? '{}',
+      ),
+    ).toEqual({ apiRequests: 3, downloads: 1 })
   } finally {
     close()
   }

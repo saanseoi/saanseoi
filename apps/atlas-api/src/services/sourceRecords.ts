@@ -28,6 +28,7 @@ type SourceReleaseRow = {
 
 type SourceReleaseWithShard = SourceReleaseRow & {
   bindingName: string
+  datasetId: string
   publisherCode: string
   sourceReleaseId: string
 }
@@ -200,6 +201,7 @@ async function resolveSourceRelease(
     metaDb.$client
       .prepare(
         `SELECT
+          datasets.id AS datasetId,
           datasets.code AS datasetCode,
           releases.id AS releaseId,
           releases.resourceType AS resourceType,
@@ -354,6 +356,7 @@ export async function listSourceRecords(args: {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
   args.onResolved?.({
+    datasetId: resolved.release.datasetId,
     publisherCodes: [resolved.release.publisherCode],
     sourceReleaseCode: resolved.release.sourceReleaseCode,
     sourceReleaseId: resolved.release.sourceReleaseId,
@@ -409,6 +412,7 @@ export async function streamSourceRecordsNdjson(args: {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
   args.onResolved?.({
+    datasetId: resolved.release.datasetId,
     publisherCodes: [resolved.release.publisherCode],
     sourceReleaseCode: resolved.release.sourceReleaseCode,
     sourceReleaseId: resolved.release.sourceReleaseId,

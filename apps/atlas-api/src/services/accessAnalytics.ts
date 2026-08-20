@@ -2,15 +2,21 @@ import { recordProductUsage, type ProductUsageDataset } from '@repo/core/product
 
 export type AccessSurface = 'source' | 'api_release_set'
 export type AccessEventType = 'api_request' | 'download'
-export type AccessAnalyticsScope = 'publisher' | 'source_release' | 'api_release_set'
+export type AccessAnalyticsScope =
+  | 'publisher'
+  | 'dataset'
+  | 'source_release'
+  | 'api_release_set'
 export type AccessAnalyticsPeriod = string
 
 export const ACCESS_ANALYTICS_ALL_TIME_PERIOD = 'all_time'
 
 export type AccessAttribution = {
   surface: AccessSurface
+  datasetId?: string
   sourceReleaseId?: string
   sourceReleaseCode?: string
+  contributingDatasetIds?: string[]
   contributingSourceReleaseIds?: string[]
   contributingSourceReleaseCodes?: string[]
   apiReleaseSetId?: string
@@ -32,7 +38,11 @@ type AccessEvent = AccessAttribution & {
 type AccessRollupScope = {
   scope: AccessAnalyticsScope
   entityId: string
+  metricKey: string
 }
+
+type AccessMetricKey = 'apiRequests' | 'downloads'
+type AccessPath = 'direct' | 'via_api_release_set'
 
 /**
  * Resolves publisher attribution from the immutable source membership of an
@@ -48,6 +58,7 @@ export async function resolveApiReleaseSetAccessAttribution(
       `SELECT DISTINCT
          apiReleaseSets.id AS apiReleaseSetId,
          apiReleaseSets.code AS apiReleaseSetCode,
+         datasets.id AS datasetId,
          sourceReleases.id AS sourceReleaseId,
          sourceReleases.code AS sourceReleaseCode,
          publishers.code AS publisherCode
@@ -77,6 +88,7 @@ export async function resolveApiReleaseSetAccessAttribution(
     .all<{
       apiReleaseSetId: string
       apiReleaseSetCode: string
+      datasetId: string
       sourceReleaseId: string
       sourceReleaseCode: string
       publisherCode: string
@@ -87,6 +99,7 @@ export async function resolveApiReleaseSetAccessAttribution(
   return {
     apiReleaseSetId: first.apiReleaseSetId,
     apiReleaseSetCode: first.apiReleaseSetCode,
+    contributingDatasetIds: [...new Set(result.results.map(row => row.datasetId))],
     contributingSourceReleaseIds: [
       ...new Set(result.results.map(row => row.sourceReleaseId)),
     ],
@@ -141,10 +154,10 @@ export function completeAccessAnalyticsDownload(
 function writeAccessMetrics(
   dataset: ProductUsageDataset | undefined,
   input: AccessEvent,
-  metricKey: string,
+  metricKey: AccessMetricKey,
 ) {
-  const scopes = buildAccessAnalyticsScopes(input)
-  for (const { scope, entityId } of scopes) {
+  const scopes = buildAccessAnalyticsScopes(input, metricKey)
+  for (const { scope, entityId, metricKey: scopedMetricKey } of scopes) {
     recordProductUsage(dataset, {
       event: 'api.access',
       producer: 'atlas-api',
@@ -154,7 +167,7 @@ function writeAccessMetrics(
       entityId,
       outcome: 'success',
       httpStatus: input.httpStatus,
-      metricKey,
+      metricKey: scopedMetricKey,
       count: 1,
     })
   }
@@ -182,16 +195,51 @@ export async function getAccessMetrics(
   }
 }
 
-function buildAccessAnalyticsScopes(input: AccessAttribution): AccessRollupScope[] {
+function buildAccessAnalyticsScopes(
+  input: AccessAttribution,
+  metricKey: AccessMetricKey,
+): AccessRollupScope[] {
+  const path: AccessPath =
+    input.surface === 'api_release_set' ? 'via_api_release_set' : 'direct'
+  const scopedMetricKey = `${metricKey}.${path}`
   const publisherCodes = [...new Set(input.publisherCodes)].sort()
+  const sourceReleaseIds =
+    path === 'via_api_release_set'
+      ? [...new Set(input.contributingSourceReleaseIds ?? [])].sort()
+      : input.sourceReleaseId
+        ? [input.sourceReleaseId]
+        : []
+  const datasetIds =
+    path === 'via_api_release_set'
+      ? [...new Set(input.contributingDatasetIds ?? [])].sort()
+      : input.datasetId
+        ? [input.datasetId]
+        : []
   return [
-    ...(input.sourceReleaseId
-      ? [{ scope: 'source_release' as const, entityId: input.sourceReleaseId }]
-      : []),
+    ...sourceReleaseIds.map(entityId => ({
+      scope: 'source_release' as const,
+      entityId,
+      metricKey: scopedMetricKey,
+    })),
     ...(input.apiReleaseSetId
-      ? [{ scope: 'api_release_set' as const, entityId: input.apiReleaseSetId }]
+      ? [
+          {
+            scope: 'api_release_set' as const,
+            entityId: input.apiReleaseSetId,
+            metricKey: scopedMetricKey,
+          },
+        ]
       : []),
-    ...publisherCodes.map(entityId => ({ scope: 'publisher' as const, entityId })),
+    ...datasetIds.map(entityId => ({
+      scope: 'dataset' as const,
+      entityId,
+      metricKey: scopedMetricKey,
+    })),
+    ...publisherCodes.map(entityId => ({
+      scope: 'publisher' as const,
+      entityId,
+      metricKey: scopedMetricKey,
+    })),
   ]
 }
 
