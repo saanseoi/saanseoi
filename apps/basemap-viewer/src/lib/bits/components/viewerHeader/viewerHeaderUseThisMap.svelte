@@ -11,7 +11,7 @@ let {
 const saanseoiBaseUrl = import.meta.env.DEV
   ? 'http://localhost:5173'
   : 'https://saanseoi.hk'
-const gettingStartedUrl = new URL('/basemaps/get-started', saanseoiBaseUrl).href
+const gettingStartedUrl = new URL('/guides/create-a-map', saanseoiBaseUrl).href
 </script>
 
 <a
