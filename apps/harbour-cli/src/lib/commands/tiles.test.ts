@@ -22,7 +22,14 @@ describe('resolveTilesRetractionArtefacts', () => {
         key: 'basemap/hk/hongkong-2026-08-20.pmtiles',
         manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
       }),
-    ).toContain('basemap/hk/hongkong-2026-08-20.pmtiles')
+    ).toEqual([
+      'basemap/hk/hongkong-2026-08-20.pmtiles',
+      'basemap/hk/hongkong-2026-08-20.json',
+      'basemap/hk/hongkong-2026-08-20.boundary.geojson',
+      'basemap/hk/hongkong-2026-08-20.land.geojson',
+      'basemap/hk/hongkong-2026-08-20-light.webp',
+      'basemap/hk/hongkong-2026-08-20-dark.webp',
+    ])
   })
 
   test('rejects catalogue keys outside the requested release', () => {
@@ -32,6 +39,15 @@ describe('resolveTilesRetractionArtefacts', () => {
         manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
       }),
     ).toThrow('catalogue archive key does not match')
+  })
+
+  test('rejects manifest keys outside the requested release', () => {
+    expect(() =>
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/hk/hongkong-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-21.json',
+      }),
+    ).toThrow('catalogue manifest key does not match')
   })
 })
 
