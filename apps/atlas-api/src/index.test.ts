@@ -15,6 +15,10 @@ type MockDbOptions = {
   failOnFirst?: (query: string, values: unknown[]) => boolean
   failOnRaw?: (query: string, values: unknown[]) => boolean
   failOnRun?: (query: string, values: unknown[]) => boolean
+  newsletterSubscription?: {
+    status: 'failed' | 'pending' | 'subscribed' | 'unsubscribed'
+    updatedAt: string
+  } | null
   streetDetail?: boolean
 }
 
@@ -108,6 +112,16 @@ function createMockDb(options: MockDbOptions = {}) {
             }
 
             if (options.asset) return [[options.asset.assetKey] as T]
+
+            if (
+              options.newsletterSubscription !== undefined &&
+              query.includes('from "newsletterSubscription"')
+            ) {
+              const subscription = options.newsletterSubscription
+              return subscription
+                ? [[subscription.status, subscription.updatedAt] as T]
+                : []
+            }
 
             if (options.streetDetail) return streetRows(query) as T[][]
 
@@ -294,6 +308,9 @@ function createEnv(
       AUTH_MODE: 'disabled',
       ENVIRONMENT: 'local',
       API_RATE_LIMIT: { limit: async () => ({ success: true }) } as RateLimit,
+      NEWSLETTER_RATE_LIMIT: {
+        limit: async () => ({ success: true }),
+      } as RateLimit,
       API_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
       PUBLIC_KEY_LEASES: {
         get: async () => ({
@@ -711,6 +728,34 @@ describe('atlas-api', () => {
       version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
       versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
     })
+  })
+
+  test('response links do not reflect query-string API credentials', async () => {
+    const { env } = createAuthenticatedEnv({}, { streetDetail: true })
+    const res = await app.fetch(
+      new Request(
+        `http://localhost/v0/hk/streets/landsd-street-notice-example?access_token=${encodeURIComponent(testApiKey)}&view=full`,
+      ),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    const body = await res.text()
+    expect(body).not.toContain('access_token')
+    expect(body).not.toContain(testApiKey)
+    expect(body).toContain('view=full')
+  })
+
+  test('Places endpoints reject unbounded limits', async () => {
+    const { env } = createEnv()
+    for (const path of [
+      '/v0/hk/places/by-cell/9/89283470cdbffff?limit=101',
+      '/v0/hk/search?q=sushi&limit=101',
+    ]) {
+      const res = await app.fetch(apiRequest(`http://localhost${path}`), env)
+      expect(res.status).toBe(422)
+      expect(await res.json()).toMatchObject({ error: 'validation_error' })
+    }
   })
 
   test('GET /v0/hk/streets/changelog replays LandsD events', async () => {
@@ -1154,6 +1199,82 @@ describe('atlas-api', () => {
             operation.values.includes('hello@example.com'),
         ),
       ).toBe(true)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('POST /v0/meta/substack applies its dedicated abuse limit before side effects', async () => {
+    const originalFetch = globalThis.fetch
+    const fetchCalls: Array<RequestInfo | URL> = []
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      fetchCalls.push(input)
+      return Response.json({ ok: true })
+    }) as typeof fetch
+
+    try {
+      const { env, operations } = createEnv({
+        NEWSLETTER_RATE_LIMIT: {
+          limit: async () => ({ success: false }),
+        } as RateLimit,
+      })
+      const res = await app.fetch(
+        new Request('http://localhost/v0/meta/substack', {
+          method: 'POST',
+          headers: {
+            'cf-connecting-ip': '203.0.113.10',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ email: 'hello@example.com' }),
+        }),
+        env,
+      )
+
+      expect(res.status).toBe(429)
+      expect(res.headers.get('retry-after')).toBe('60')
+      expect(await res.json()).toMatchObject({ error: 'rate_limit_exceeded' })
+      expect(operations).toHaveLength(0)
+      expect(fetchCalls).toHaveLength(0)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('POST /v0/meta/substack is idempotent for subscribed addresses', async () => {
+    const originalFetch = globalThis.fetch
+    const fetchCalls: Array<RequestInfo | URL> = []
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      fetchCalls.push(input)
+      return Response.json({ ok: true })
+    }) as typeof fetch
+
+    try {
+      const { env, operations } = createEnv(
+        {},
+        {
+          newsletterSubscription: {
+            status: 'subscribed',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      )
+      const res = await app.fetch(
+        new Request('http://localhost/v0/meta/substack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: 'HELLO@example.com' }),
+        }),
+        env,
+      )
+
+      expect(res.status).toBe(200)
+      expect((await res.json()) as unknown).toEqual({
+        ok: true,
+        message: 'This email address is already subscribed.',
+        subscriptionState: 'subscribed',
+      })
+      expect(operations).toHaveLength(0)
+      expect(fetchCalls).toHaveLength(0)
     } finally {
       globalThis.fetch = originalFetch
     }
