@@ -90,10 +90,10 @@ bun run dataops -- hkgov-censtatd:district-land-area-population-density --target
 bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2024
 ```
 
-Dataset fixtures retain `schemaSpecificationURL` when the publisher provides a source
-schema. A missing value is explicit (`null`) rather than an inferred schema claim. CSDI
-simplified data specifications are publisher references, separate from SaanSeoi's own
-source-schema version labels.
+Dataset fixtures retain `schemaURL` when the publisher provides a source schema. A
+missing value is explicit (`null`) rather than an inferred schema claim. CSDI simplified
+data specifications are publisher references, separate from SaanSeoi's own source-schema
+version labels.
 
 The update report collapses already-current CSDI archive slots into one row per source
 release. The updater still retains and checks state for every archive slot; a newly

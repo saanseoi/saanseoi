@@ -95,13 +95,14 @@ const removePasskey = async (id: string) => {
   }
 }
 
-const unlink = async (accountId: string) => {
+const unlink = async (accountId: string, providerId: string) => {
   if (unlinkingAccountId) return
   error = null
   unlinkingAccountId = accountId
   try {
     const result = await unlinkAccountForCurrentUser({
       accountId,
+      providerId,
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
@@ -207,7 +208,7 @@ const providerDetails = (providerId: string) =>
             {/if}
             {#if accounts.length > 1}
               <Button
-                onclick={() => unlink(account.id)}
+                onclick={() => unlink(account.id, account.providerId)}
                 disabled={unlinkingAccountId !== null}
                 size="compact"
                 variant="secondary"

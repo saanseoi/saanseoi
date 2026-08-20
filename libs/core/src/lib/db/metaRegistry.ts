@@ -832,6 +832,7 @@ const registrySourceSelection = {
   sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   sourceUrl: metaDatasets.sourceUrl,
+  schemaURL: metaDatasets.schemaURL,
   licenseId: metaDatasets.licenseId,
   license: {
     id: metaLicenses.id,

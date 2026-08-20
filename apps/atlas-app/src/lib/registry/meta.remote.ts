@@ -5,6 +5,7 @@ import {
   getRegistrySource,
   getRegistrySourcePublisher,
   listRegistryApiCompositions,
+  listRegistrySourcePublishers,
   listRegistrySourcesPage,
   listRegistrySources,
   getRegistryReleaseLifecycleScope,
@@ -335,6 +336,62 @@ export const getSourcesPageData = query(async () => {
   }
   recordRegistryDataLoad('/sources', 'source')
   return result
+})
+
+export const getPublishersPageData = query(async () => {
+  const db = getMetaDb()
+  const [registryPublishers, registrySources] = await Promise.all([
+    listRegistrySourcePublishers(db),
+    listRegistrySourcesPage(db, 200),
+  ])
+  const publishers = registryPublishers as RegistryPublisher[]
+  const sourceCounts = new Map<string, number>()
+
+  for (const source of registrySources) {
+    sourceCounts.set(
+      source.publisherId,
+      (sourceCounts.get(source.publisherId) ?? 0) + 1,
+    )
+  }
+
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const publisher of publishers) {
+    if (!publisher.parentPublisherId) continue
+    const children = childrenByPublisherId.get(publisher.parentPublisherId) ?? []
+    children.push(publisher)
+    childrenByPublisherId.set(publisher.parentPublisherId, children)
+  }
+
+  const contributionCounts = new Map<string, number>()
+  const countContributions = (
+    publisherId: string,
+    ancestors = new Set<string>(),
+  ): number => {
+    const cachedCount = contributionCounts.get(publisherId)
+    if (cachedCount !== undefined) return cachedCount
+    if (ancestors.has(publisherId)) return sourceCounts.get(publisherId) ?? 0
+
+    const nextAncestors = new Set(ancestors).add(publisherId)
+    const count =
+      (sourceCounts.get(publisherId) ?? 0) +
+      (childrenByPublisherId.get(publisherId) ?? []).reduce(
+        (total, child) => total + countContributions(child.id, nextAncestors),
+        0,
+      )
+    contributionCounts.set(publisherId, count)
+    return count
+  }
+
+  return {
+    publishers: publishers
+      .map(publisher => ({
+        ...publisher,
+        isInstitution:
+          countContributions(publisher.id) > (sourceCounts.get(publisher.id) ?? 0),
+        sourceCount: countContributions(publisher.id),
+      }))
+      .filter(publisher => publisher.sourceCount > 0),
+  }
 })
 
 export const getSourcePageData = query(registryCodeSchema, async datasetCode => {
@@ -669,18 +726,38 @@ export const getDistrictGeometryNames = query(
 
 export const getPublisherPageData = query(registryCodeSchema, async publisherCode => {
   const db = getMetaDb()
-  const [registryPublisher, registrySources] = await Promise.all([
+  const [registryPublisher, registryPublishers, registrySources] = await Promise.all([
     getRegistrySourcePublisher(db, publisherCode),
+    listRegistrySourcePublishers(db),
     listRegistrySources(db),
   ])
   const publisher = registryPublisher as RegistryPublisher | null
+  const publishers = registryPublishers as RegistryPublisher[]
   const sources = registrySources as RegistrySource[]
 
   if (!publisher) error(404, 'Publisher not found.')
 
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const child of publishers) {
+    if (!child.parentPublisherId) continue
+    const children = childrenByPublisherId.get(child.parentPublisherId) ?? []
+    children.push(child)
+    childrenByPublisherId.set(child.parentPublisherId, children)
+  }
+
+  const descendantPublisherIds = new Set<string>([publisher.id])
+  const collectDescendants = (publisherId: string) => {
+    for (const child of childrenByPublisherId.get(publisherId) ?? []) {
+      if (descendantPublisherIds.has(child.id)) continue
+      descendantPublisherIds.add(child.id)
+      collectDescendants(child.id)
+    }
+  }
+  collectDescendants(publisher.id)
+
   const result = {
     publisher,
-    sources: sources.filter(source => source.publisherId === publisher.id),
+    sources: sources.filter(source => descendantPublisherIds.has(source.publisherId)),
   }
   recordRegistryDataLoad('/publishers/:id', 'publisher', publisherCode)
   return result

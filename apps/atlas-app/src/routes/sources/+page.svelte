@@ -16,6 +16,7 @@ import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/i
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
 import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
+import { publisherAccent } from '#lib/bits/pages/publishers/publisherPresentation.js'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
@@ -57,12 +58,6 @@ const streetGeometryLabels: Record<string, string> = {
   'ds-hk-hkgov-hyd-street': 'POINT',
   'ds-hk-hkgov-landsd-road-centreline': 'LINE',
 }
-
-const sourceAccentColors = {
-  dpang: '#76b85b',
-  overture: '#4c5ee8',
-  hkgov: '#ee2b24',
-} as const
 
 const sourceVersion = (source: SourcesPageSource) =>
   source.sourceVersions?.find(version => version.status === 'published') ?? null
@@ -141,13 +136,6 @@ const sourceMatchesSearch = (source: SourcesPageSource) => {
   ]
 
   return terms.some(term => term.toLocaleLowerCase(locale).includes(sourceSearchQuery))
-}
-
-const publisherAccent = (publisherCode: string) => {
-  if (publisherCode === 'dpang') return sourceAccentColors.dpang
-  if (publisherCode === 'overture') return sourceAccentColors.overture
-  if (publisherCode.startsWith('hkgov')) return sourceAccentColors.hkgov
-  return sourceAccentColors.overture
 }
 
 const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>

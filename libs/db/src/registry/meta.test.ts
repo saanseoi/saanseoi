@@ -10,6 +10,7 @@ import {
   initialDatasetResourceTypes,
   initialDataShards,
   initialIdentifierBridges,
+  initialPublishers,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
 
@@ -321,6 +322,18 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('orders parent publishers before their children', () => {
+    const parentIndex = initialPublishers.findIndex(
+      publisher => publisher.code === 'hkgov',
+    )
+    const childIndex = initialPublishers.findIndex(
+      publisher => publisher.code === 'hkgov-censtatd',
+    )
+
+    expect(parentIndex).toBeGreaterThanOrEqual(0)
+    expect(childIndex).toBeGreaterThan(parentIndex)
+  })
+
   test('builds update-capable upserts for registry-backed tables', () => {
     const statements = buildMetaRegistrySyncStatements('preview')
 

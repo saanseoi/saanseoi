@@ -10,6 +10,7 @@ type Detail = {
   href?: string
   isExternal?: boolean
   isMonospace?: boolean
+  isAccessMetric?: boolean
   disclosure?: Array<{
     label: string
     value: string
@@ -57,18 +58,18 @@ let allDetailsOpen = $state(false)
           onToggle={() => (allDetailsOpen = !allDetailsOpen)}
         />
       {:else}
-        <div class="min-w-0">
+        <div class={`min-w-0 ${detail.isAccessMetric ? 'hidden lg:block' : ''}`}>
           <dt
             class="text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
           >
             {detail.label}
           </dt>
           <dd
-            class={`mt-2 min-w-0 wrap-break-word text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
+            class="mt-2 min-w-0 wrap-break-word font-mono text-sm font-semibold text-primary"
           >
             {#if detail.href}
               <a
-                class="inline-flex items-center gap-1 font-body font-semibold text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
+                class="inline-flex items-center gap-1 font-mono font-semibold text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
                 href={detail.href}
                 target={detail.isExternal ? '_blank' : undefined}
                 rel={detail.isExternal ? 'noopener noreferrer' : undefined}
