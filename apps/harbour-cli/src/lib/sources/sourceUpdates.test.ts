@@ -20,6 +20,7 @@ import {
   buildOverturistCommand,
   buildOverturistReleasesCommand,
   assertCsdiArchiveDownload,
+  assertCsdiArchiveUrl,
   datasetCorrectionSuffixSources,
   datasetName,
   getDueUpdatePhases,
@@ -33,6 +34,7 @@ import {
   recordUpdateArchiveMirror,
   recordUpdateDatabaseImport,
   readCsdiArchivedSources,
+  resolveCsdiArchiveRedirect,
   resolveDatasetVersion,
   shouldCheckDataset,
   type DatasetUpdate,
@@ -41,6 +43,30 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('accepts only the official CSDI HTTPS archive origin', () => {
+    expect(() =>
+      assertCsdiArchiveUrl('https://static.csdi.gov.hk/download/source.zip'),
+    ).not.toThrow()
+    expect(() =>
+      assertCsdiArchiveUrl('http://static.csdi.gov.hk/download/source.zip'),
+    ).toThrow('Refusing CSDI archive download outside the official origin')
+    expect(() =>
+      assertCsdiArchiveUrl('https://static.csdi.gov.hk.example/download/source.zip'),
+    ).toThrow('Refusing CSDI archive download outside the official origin')
+    expect(() =>
+      resolveCsdiArchiveRedirect(
+        'https://static.csdi.gov.hk/download/source.zip',
+        'http://127.0.0.1/internal',
+      ),
+    ).toThrow('Refusing CSDI archive download outside the official origin')
+    expect(
+      resolveCsdiArchiveRedirect(
+        'https://static.csdi.gov.hk/download/source.zip',
+        '../revised/source.zip',
+      ),
+    ).toBe('https://static.csdi.gov.hk/revised/source.zip')
+  })
+
   test('rejects CSDI HTML error pages before caching them as source archives', () => {
     const url = 'https://static.csdi.gov.hk/csdi-webpage/download/common/missing?a=1'
 
@@ -949,6 +975,9 @@ describe('dataset update registry', () => {
       )
 
       expect(updates.map(update => update.version)).toEqual(['2022.0', '2024.0'])
+      expect(updates[0]?.downloadPath).toContain(sourceObjectHash2022)
+      expect(updates[1]?.downloadPath).toContain(sourceObjectHash2024)
+      expect(updates[0]?.downloadPath).not.toBe(updates[1]?.downloadPath)
     } finally {
       globalThis.fetch = originalFetch
     }
