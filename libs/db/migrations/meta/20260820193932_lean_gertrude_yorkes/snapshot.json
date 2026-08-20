@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "d40d3511-d2a5-4346-b136-5629b6a2288f",
+  "id": "b76c99bf-72b3-4a90-918d-750a1fbc67b1",
   "prevIds": ["3f71aa16-7b0f-416a-93dc-9b1c22ee5648"],
   "ddl": [
     {
@@ -194,10 +194,6 @@
     },
     {
       "name": "accessAnalyticsDaily",
-      "entityType": "tables"
-    },
-    {
-      "name": "accessAnalyticsIdempotency",
       "entityType": "tables"
     },
     {
@@ -4796,66 +4792,6 @@
     },
     {
       "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "requestIdentity",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "eventType",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "eligible",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "counted",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "accessAnalyticsIdempotency"
-    },
-    {
-      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -5914,13 +5850,6 @@
       "nameExplicit": false,
       "name": "assets_pk",
       "table": "assets",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["requestIdentity"],
-      "nameExplicit": false,
-      "name": "accessAnalyticsIdempotency_pk",
-      "table": "accessAnalyticsIdempotency",
       "entityType": "pks"
     },
     {
@@ -7367,5 +7296,5 @@
       "table": "stats"
     }
   ],
-  "renames": ["accessAnalyticsEvents->accessAnalyticsDaily"]
+  "renames": []
 }
