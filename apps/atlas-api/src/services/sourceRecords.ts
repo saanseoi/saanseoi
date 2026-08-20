@@ -615,8 +615,14 @@ async function querySourceReleaseDiscoveryRows(
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
         INNER JOIN snapshotSources ON snapshotSources.snapshotId = snapshots.id
         INNER JOIN releases ON releases.id = snapshotSources.sourceReleaseId
+        INNER JOIN sourceReleases
+          ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId
         WHERE ${sourceCondition}
+        AND releases.status IN ('published', 'superseded')
+        AND releases.revokedAt IS NULL
+        AND sourceReleases.status IN ('published', 'superseded')
+        AND sourceReleases.revokedAt IS NULL
         ${datasetCondition}
         ORDER BY datasets.code ASC, releases.code ASC, snapshots.code ASC`,
       )
