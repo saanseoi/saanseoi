@@ -8,6 +8,7 @@ type TrackedColumn = 'country' | 'theme' | 'type' | 'region' | 'norms' | 'perspe
 
 type ColumnSummary = {
   distinctValues: string[]
+  distinctValuesTruncated?: boolean
   nonNullCount: number
 }
 
@@ -21,6 +22,7 @@ const DIVISION_ASSUMPTION_COLUMNS: TrackedColumn[] = [
   'norms',
   'perspectives',
 ]
+const MAX_TRACKED_DISTINCT_VALUES = 100
 
 export async function checkOvertureUploadAssumptions(
   filePath: string,
@@ -59,7 +61,7 @@ export function evaluateDivisionAssumptions(
       formatAssumptionWarning(
         'country',
         'single-valued',
-        `${country.distinctValues.length} distinct non-null values`,
+        formatDistinctValueCount(country),
       ),
     )
   }
@@ -70,7 +72,7 @@ export function evaluateDivisionAssumptions(
       formatAssumptionWarning(
         'theme',
         'single-valued',
-        `${theme.distinctValues.length} distinct non-null values`,
+        formatDistinctValueCount(theme),
       ),
     )
   }
@@ -78,11 +80,7 @@ export function evaluateDivisionAssumptions(
   const type = summary.type
   if (type && type.distinctValues.length !== 1) {
     warnings.push(
-      formatAssumptionWarning(
-        'type',
-        'single-valued',
-        `${type.distinctValues.length} distinct non-null values`,
-      ),
+      formatAssumptionWarning('type', 'single-valued', formatDistinctValueCount(type)),
     )
   }
 
@@ -109,7 +107,7 @@ export function evaluateDivisionAssumptions(
       formatAssumptionWarning(
         'norms',
         'effectively uniform',
-        `${norms.distinctValues.length} distinct non-null values`,
+        formatDistinctValueCount(norms),
       ),
     )
   }
@@ -136,6 +134,11 @@ function formatAssumptionWarning(
   actual: string,
 ) {
   return `${yellowText('⚠')} Dropped field ${cyanText(`\`${field}\``)} should be ${greenText(expected)}; found ${redText(actual)}.`
+}
+
+function formatDistinctValueCount(summary: ColumnSummary) {
+  const qualifier = summary.distinctValuesTruncated ? 'at least ' : ''
+  return `${qualifier}${summary.distinctValues.length} distinct non-null values`
 }
 
 function cyanText(value: string) {
@@ -166,8 +169,13 @@ async function summariseDivisionAssumptionColumns(filePath: string) {
   )
   const summaries = new Map<
     TrackedColumn,
-    { distinct: Set<string>; nonNullCount: number }
-  >(columns.map(column => [column, { distinct: new Set<string>(), nonNullCount: 0 }]))
+    { distinct: Set<string>; distinctValuesTruncated: boolean; nonNullCount: number }
+  >(
+    columns.map(column => [
+      column,
+      { distinct: new Set<string>(), distinctValuesTruncated: false, nonNullCount: 0 },
+    ]),
+  )
 
   if (columns.length === 0) {
     return {}
@@ -190,7 +198,13 @@ async function summariseDivisionAssumptionColumns(filePath: string) {
         }
 
         summary.nonNullCount += 1
-        summary.distinct.add(stableStringify(value))
+        const serialised = stableStringify(value)
+        if (summary.distinct.has(serialised)) continue
+        if (summary.distinct.size < MAX_TRACKED_DISTINCT_VALUES) {
+          summary.distinct.add(serialised)
+        } else {
+          summary.distinctValuesTruncated = true
+        }
       }
     },
   })
@@ -200,6 +214,7 @@ async function summariseDivisionAssumptionColumns(filePath: string) {
       column,
       {
         distinctValues: [...summary.distinct].sort(),
+        ...(summary.distinctValuesTruncated ? { distinctValuesTruncated: true } : {}),
         nonNullCount: summary.nonNullCount,
       } satisfies ColumnSummary,
     ]),

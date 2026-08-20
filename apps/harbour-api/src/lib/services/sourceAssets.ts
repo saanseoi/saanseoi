@@ -2,6 +2,8 @@ import { eq, metaAssets } from '@repo/db'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
+export { linkManagedSourceAssetToRelease } from '@repo/core/sourceAssets'
+
 const SOURCE_ASSET_PREFIX = 'by-source/'
 
 type AssetBucket = Pick<R2Bucket, 'head' | 'put'>

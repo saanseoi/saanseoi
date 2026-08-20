@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   listSourceRecords,
+  listSourceReleases,
   SourceRecordRequestError,
   streamSourceRecordsNdjson,
 } from './sourceRecords'
@@ -37,6 +38,7 @@ function metaDatabase(input?: {
   sourceReleaseCode?: string
   sourceVersion?: string
   sourceVariant?: string
+  published?: boolean
 }) {
   const sourceReleaseCode =
     input?.sourceReleaseCode ?? 'dr-hk-overture-division-2026-07-22.0'
@@ -48,19 +50,28 @@ function metaDatabase(input?: {
             return {
               all: async () => {
                 expect(query).toContain('FROM releases')
-                expect(values).toEqual([sourceReleaseCode])
+                expect(query).toContain("apiReleaseSets.status <> 'draft'")
+                expect(query).toContain(
+                  "sourceReleases.status IN ('published', 'superseded')",
+                )
+                expect(query).toContain('releases.revokedAt IS NULL')
+                expect(values).toEqual([sourceReleaseCode, 'divisions'])
                 return {
-                  results: [
-                    {
-                      bindingName: 'DB_SOURCE_HK_2026',
-                      datasetCode: input?.datasetCode ?? 'ds-hk-overture-division',
-                      releaseId: 'source-release-id',
-                      resourceType: input?.resourceType ?? 'division',
-                      sourceReleaseCode,
-                      sourceVersion: input?.sourceVersion ?? '2026-07-22.0',
-                      sourceVariant: input?.sourceVariant ?? 'overture',
-                    },
-                  ],
+                  results:
+                    input?.published === false
+                      ? []
+                      : [
+                          {
+                            bindingName: 'DB_SOURCE_HK_2026',
+                            datasetCode:
+                              input?.datasetCode ?? 'ds-hk-overture-division',
+                            releaseId: 'source-release-id',
+                            resourceType: input?.resourceType ?? 'division',
+                            sourceReleaseCode,
+                            sourceVersion: input?.sourceVersion ?? '2026-07-22.0',
+                            sourceVariant: input?.sourceVariant ?? 'overture',
+                          },
+                        ],
                 }
               },
             }
@@ -74,6 +85,68 @@ function metaDatabase(input?: {
 const sourceReleaseCode = 'dr-hk-overture-division-2026-07-22.0'
 
 describe('source records', () => {
+  test('discovers current and archived API release sets as published history', async () => {
+    const queries: string[] = []
+    const metaDb = {
+      $client: {
+        prepare(query: string) {
+          queries.push(query)
+          return {
+            bind() {
+              return {
+                first: async () => ({ id: 'release-set-1' }),
+                all: async () => ({
+                  results: [
+                    {
+                      apiReleaseSetCode: 'data-hk-divisions-2026-07-22.0-r0',
+                      datasetCode: 'ds-hk-overture-division',
+                      hasSourceShard: 1,
+                      resourceType: 'division',
+                      role: 'primary',
+                      snapshotCode: 'snapshot-1',
+                      sourceReleaseCode,
+                      sourceVariant: 'overture',
+                    },
+                  ],
+                }),
+              }
+            },
+          }
+        },
+      },
+    } as never
+
+    const result = await listSourceReleases({
+      family: 'divisions',
+      metaDb,
+    })
+
+    expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
+    expect(queries[1]).toContain("releases.status IN ('published', 'superseded')")
+    expect(queries[1]).toContain('releases.revokedAt IS NULL')
+    expect(queries[1]).toContain("sourceReleases.status IN ('published', 'superseded')")
+    expect(queries[1]).toContain('sourceReleases.revokedAt IS NULL')
+    expect(queries.join('\n')).not.toContain("apiReleaseSets.status = 'published'")
+    expect(result).toHaveLength(1)
+    expect(result[0]?.recordsAvailable).toBe(true)
+  })
+
+  test('does not expose a stored source release before publication', async () => {
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: sourceDatabase([]),
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: false,
+      metaDb: metaDatabase({ published: false }),
+      sourceReleaseCode,
+    })
+
+    expect(result).toBeNull()
+  })
+
   test('pins an Overture source release and preserves its raw properties', async () => {
     const result = await listSourceRecords({
       env: {

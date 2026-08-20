@@ -1,9 +1,13 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
+import ReleaseHeaderMetrics from './releaseHeaderMetrics.svelte'
+import type { ReleaseHeaderMetric } from './releaseHeaderMetric'
+
 type Props = {
   label: string
   labelAction?: Snippet
+  metrics?: ReleaseHeaderMetric[]
   statusLabel: string
   statusClass: string
   statusDotClass: string
@@ -13,6 +17,7 @@ type Props = {
 let {
   label,
   labelAction,
+  metrics = [],
   statusLabel,
   statusClass,
   statusDotClass,
@@ -34,11 +39,16 @@ let {
         <div class="shrink-0">{@render labelAction()}</div>
       {/if}
     </div>
-    <span
-      class={`inline-flex items-center gap-2 border px-3 py-1 font-body text-label-sm font-semibold capitalize ${statusClass}`}
-    >
-      <span class={`size-1.5 rounded-full ${statusDotClass}`}></span>
-      {statusLabel}
-    </span>
+    <div class="flex items-center gap-x-5 gap-y-2">
+      {#if metrics.length}
+        <ReleaseHeaderMetrics metrics={metrics} class="hidden lg:flex" />
+      {/if}
+      <span
+        class={`inline-flex items-center gap-2 border px-3 py-1 font-body text-label-sm font-semibold capitalize ${statusClass}`}
+      >
+        <span class={`size-1.5 rounded-full ${statusDotClass}`}></span>
+        {statusLabel}
+      </span>
+    </div>
   </div>
 </div>

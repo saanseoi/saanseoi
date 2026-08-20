@@ -1,4 +1,5 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { Scalar } from '@scalar/hono-api-reference'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { cors } from 'hono/cors'
@@ -27,6 +28,16 @@ import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
+import {
+  completeAccessAnalyticsDownload,
+  recordAccessAnalyticsEvent,
+} from './services/accessAnalytics'
+import { rollUpAccessAnalyticsDaily } from './services/accessAnalyticsRollup'
+import {
+  isFirstPartyWebOrigin,
+  productApiOutcome,
+  writeProductUsage,
+} from './lib/productUsage'
 import type { AppBindings, AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -72,6 +83,117 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       createHistoryDb(c.env.DB_HISTORY_HK_2026),
     ])
     await next()
+  })
+}
+
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    const startedAt = performance.now()
+    let requestStatus = 500
+    try {
+      await next()
+      requestStatus = c.res.status
+    } catch (error) {
+      requestStatus = isTransientD1ReadError(error) ? 503 : 500
+      throw error
+    } finally {
+      const requestPath = c.req.path
+      const status = requestStatus
+      const outcome = productApiOutcome(status)
+      const origin = c.req.header('origin')
+      const assetMatch = requestPath.match(/^\/v0(?:\.1)?\/assets\/([^/]+)$/)
+      const styleMatch = requestPath.match(
+        /^\/v0(?:\.1)?\/styles\/([a-z0-9-]+)\/(\d+\.\d+\.\d+\.json)$/,
+      )
+
+      if (assetMatch) {
+        writeProductUsage(c, {
+          event: 'api.asset_download',
+          surface: 'asset_request',
+          route: requestPath,
+          entityType: 'asset',
+          entityId: assetMatch[1],
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (styleMatch?.[1] && styleMatch[2]) {
+        writeProductUsage(c, {
+          event: 'api.style_request',
+          surface: 'style_request',
+          route: requestPath,
+          entityType: 'style',
+          entityId: `${styleMatch[1]}:${styleMatch[2].replace('.json', '')}`,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (requestPath === '/v0/meta/substack') {
+        writeProductUsage(c, {
+          event: 'newsletter.subscription',
+          surface: 'newsletter',
+          route: requestPath,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (
+        isFirstPartyWebOrigin(origin) &&
+        !requestPath.startsWith('/v0/meta/health')
+      ) {
+        writeProductUsage(c, {
+          event: 'api.request',
+          surface: 'api',
+          route: requestPath,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      }
+    }
+  })
+}
+
+// Attribution is attached by the route after it has selected the exact
+// source release or API ReleaseSet. This middleware runs after the
+// key/rate-limit gate and the product-status middleware so an analytics
+// acknowledgement failure is visible as the final 503 response.
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    await next()
+    const attribution = c.get('accessAttribution')
+    if (!attribution) return c.res
+
+    const status = c.res.status
+    const event = {
+      ...attribution,
+      eventType: 'api_request' as const,
+      route: c.req.path,
+      httpStatus: status,
+    }
+
+    recordAccessAnalyticsEvent(c.env.PRODUCT_USAGE, event)
+
+    if (isCompletedDownloadRequest(c) && isSuccessfulStatus(status) && c.res.body) {
+      const downloadEvent = { ...event, eventType: 'download' as const }
+      const body = c.res.body.pipeThrough(
+        new TransformStream<Uint8Array, Uint8Array>({
+          transform(chunk, controller) {
+            controller.enqueue(chunk)
+          },
+          async flush() {
+            completeAccessAnalyticsDownload(c.env.PRODUCT_USAGE, downloadEvent)
+          },
+        }),
+      )
+      return new Response(body, {
+        headers: c.res.headers,
+        status: c.res.status,
+        statusText: c.res.statusText,
+      })
+    }
+
+    return c.res
   })
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
@@ -140,7 +262,6 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       blobs: [c.req.path, requestOrigin(c.req.header('origin'))],
       doubles: [1],
     })
-    c.set('apiKey', { id: lease.keyId, userId: lease.keyId })
     return next()
   })
 }
@@ -177,6 +298,17 @@ function requestOrigin(origin: string | undefined) {
   } catch {
     return '(invalid)'
   }
+}
+
+function isSuccessfulStatus(status: number) {
+  return status >= 200 && status < 300
+}
+
+function isCompletedDownloadRequest(c: Context<AppEnv>) {
+  return (
+    c.res.headers.get('content-disposition')?.toLowerCase().startsWith('attachment') ===
+    true
+  )
 }
 
 app.onError((error, c) => {
@@ -257,8 +389,13 @@ const worker = Object.assign(app, {
     env: AppBindings,
     ctx: ExecutionContext,
   ) {
-    if (controller.cron !== '*/5 * * * *') return
-    ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+    if (controller.cron === '*/5 * * * *') {
+      ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+      return
+    }
+    if (controller.cron === '15 0 * * *') {
+      ctx.waitUntil(rollUpAccessAnalyticsDaily(env, controller.scheduledTime))
+    }
   },
 })
 

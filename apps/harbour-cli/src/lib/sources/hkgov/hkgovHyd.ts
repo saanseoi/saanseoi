@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 
-import { unzipSync } from 'fflate'
-import fgdb from 'fgdb'
+import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
+import { unzipSafeArchive } from '../zipArchive.ts'
 
 const require = createRequire(import.meta.url)
 
@@ -40,11 +40,6 @@ export type HkgovTdPedestrianStreetCollection = {
 type GeoJsonGeometry = {
   coordinates: unknown
   type: 'MultiPolygon' | 'Point' | 'Polygon'
-}
-
-type FgdbFeatureCollection = {
-  features?: unknown
-  type?: unknown
 }
 
 export type HkgovHydStreetArchiveKind =
@@ -108,7 +103,7 @@ const PEDESTRIAN_FIELDS = [
 export function readHkgovTdPedestrianStreetArchive(
   archiveBytes: Uint8Array,
 ): Record<HkgovTdPedestrianStreetLayer, HkgovTdPedestrianStreetCollection> {
-  const entries = unzipSync(archiveBytes)
+  const entries = unzipSafeArchive(archiveBytes)
   const readTable = createNativeFgdbTableReader()
   const items = readTable(entries, 4)
   if (!isFeatureCollection(items)) {
@@ -144,7 +139,7 @@ export async function readHkgovHydStreetArchive(
   archiveBytes: Uint8Array,
 ): Promise<HkgovHydStreetCollection> {
   const profile = HKGOV_HYD_STREET_PROFILES[kind]
-  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const layers = await readFileGeodatabaseArchive(archiveBytes)
   const matches = Object.entries(layers).filter(([name]) => name === profile.layer)
   if (matches.length !== 1) {
     throw new Error(

@@ -40,11 +40,12 @@ polygonal Housing Market Areas. Building Groups are not divisions: their source
 centroids remain source history for a future buildings projection.
 
 The 2023-H2 C&SD Area/type statistics output maps its source codes to those stable
-Overture area identities. It is an optional Geographic `divisionArea` variant, selected
-explicitly with `include=areas:hkgov-censtatd-area`; it never adds a second Geographic
-division collection. The 2021 HMA statistics output instead supplies the separate HMA
-domain's primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its
-native `hkgov-censtatd-hma` geometry.
+Overture area identities. It is a required member of each publishable Geographic release
+set, while remaining an explicitly selected `divisionArea` response variant through
+`include=areas:hkgov-censtatd-area`; it never adds a second Geographic division
+collection. The 2021 HMA statistics output instead supplies the separate HMA domain's
+primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
+`hkgov-censtatd-hma` geometry.
 
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset

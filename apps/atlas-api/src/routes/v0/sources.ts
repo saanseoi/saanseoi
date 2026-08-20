@@ -17,6 +17,7 @@ import {
   streamSourceRecordsNdjson,
 } from '../../services/sourceRecords'
 import type { AppEnv } from '../../types'
+import type { AccessAttribution } from '../../services/accessAnalytics'
 
 const sourceReleasesRouteConfig = createRoute({
   method: 'get',
@@ -125,6 +126,8 @@ export const sourceRecordsRoute = defineOpenAPIRoute<
       includeGeometry: query.include === 'geometry',
       metaDb: c.var.metaDb,
       sourceReleaseCode: query.sourceRelease,
+      onResolved: (attribution: AccessAttribution) =>
+        c.set('accessAttribution', attribution),
     }
 
     try {
@@ -177,6 +180,8 @@ export async function streamSourceRecordsMiddleware(c: Context<AppEnv>, next: Ne
       includeGeometry: query.include === 'geometry',
       metaDb: c.var.metaDb,
       sourceReleaseCode: query.sourceRelease,
+      onResolved: (attribution: AccessAttribution) =>
+        c.set('accessAttribution', attribution),
     })
     if (!stream) return sourceRecordsUnavailable(c)
 
@@ -186,7 +191,7 @@ export async function streamSourceRecordsMiddleware(c: Context<AppEnv>, next: Ne
     if (query.download === '1') {
       headers.set(
         'content-disposition',
-        `attachment; filename="${query.sourceRelease}.ndjson"`,
+        `attachment; filename="${sourceRecordsFilename(query.sourceRelease)}"`,
       )
     }
 
@@ -205,6 +210,11 @@ export async function streamSourceRecordsMiddleware(c: Context<AppEnv>, next: Ne
 
     throw error
   }
+}
+
+function sourceRecordsFilename(sourceReleaseCode: string) {
+  const safeCode = sourceReleaseCode.replaceAll(/[^A-Za-z0-9._-]/g, '_')
+  return `${safeCode || 'source-records'}.ndjson`
 }
 
 function sourceRecordsUnavailable(c: Context<AppEnv>) {

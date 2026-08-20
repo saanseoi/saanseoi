@@ -64,6 +64,26 @@ describe('api helpers', () => {
     })
   })
 
+  test('response links omit query-string credentials and preserve other filters', () => {
+    const document = buildJsonApiListDocument({
+      url: new URL(
+        'http://localhost/v0/divisions?access_token=secret&domain=geographic',
+      ),
+      data: [],
+      limit: 10,
+      offset: 0,
+      total: 0,
+      meta: {},
+      permalink:
+        'http://localhost/v0.1/divisions?access_token=secret&releaseSet=release-1',
+    })
+
+    expect(JSON.stringify(document)).not.toContain('access_token')
+    expect(JSON.stringify(document)).not.toContain('secret')
+    expect(document.links.self).toContain('domain=geographic')
+    expect(document.links.permalink).toContain('releaseSet=release-1')
+  })
+
   test('resolveApiMetaLocales preserves wildcard mode', () => {
     expect(
       resolveApiMetaLocales({

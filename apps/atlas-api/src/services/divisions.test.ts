@@ -509,18 +509,62 @@ describe('division services', () => {
     )
   })
 
-  test('getDivisionDetail derives hierarchy and included resources from canonical hierarchy', async () => {
+  test('combined list includes retain hierarchy resources', async () => {
+    resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
+      ...resolvedReleaseSet,
+      snapshots: [
+        ...resolvedReleaseSet.snapshots,
+        {
+          snapshotResourceType: 'divisionArea' as const,
+          snapshotId: 'snapshot-overture-area',
+          role: 'primary' as const,
+          variant: 'overture',
+        },
+      ],
+    }))
+    const result = await listDivisions({
+      currentDb: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/v0.1/divisions?include=hierarchy,areas:overture',
+      requestedVersionPath: 'v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include: 'hierarchy,areas:overture' },
+      dependencies: divisionServiceDependencies,
+    })
+
+    expect(result.status).toBe(200)
+    if (result.status !== 200) return
+    expect(result.body.included?.map(resource => resource.id)).toEqual([
+      'division-hk-sar',
+      'division-east',
+    ])
+  })
+
+  test('combined detail includes derive hierarchy from canonical hierarchy', async () => {
+    resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
+      ...resolvedReleaseSet,
+      snapshots: [
+        ...resolvedReleaseSet.snapshots,
+        {
+          snapshotResourceType: 'divisionArea' as const,
+          snapshotId: 'snapshot-overture-area',
+          role: 'primary' as const,
+          variant: 'overture',
+        },
+      ],
+    }))
     const result = await getDivisionDetail({
       currentDb: {} as never,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/v0.1/divisions/division-a-kung-ngam?include=hierarchy&profile=full',
+        'http://localhost/v0.1/divisions/division-a-kung-ngam?include=hierarchy,areas:overture&profile=full',
       requestedVersionPath: 'v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       id: 'division-a-kung-ngam',
       query: {
-        include: 'hierarchy',
+        include: 'hierarchy,areas:overture',
         profile: 'full',
       },
       dependencies: divisionServiceDependencies,

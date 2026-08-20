@@ -1,5 +1,6 @@
 <script lang="ts">
 import SourceFlowMapGroup from './sourceFlowMapGroup.svelte'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import type {
   SourceFlowDomain,
   SourceFlowInput,
@@ -70,11 +71,23 @@ const visibleVariantCount = (domain: SourceFlowDomain) =>
 
 const toggleLane = () => {
   expanded = !expanded
+  trackClientProductUsage({
+    event: 'client.source_flow_expand',
+    surface: 'sources',
+    entityType: 'source',
+    entityId: lane.id,
+  })
 }
 const toggleDomain = (domainId: string) => {
   expandedDomainIds = expandedDomainIds.includes(domainId)
     ? expandedDomainIds.filter(id => id !== domainId)
     : [...expandedDomainIds, domainId]
+  trackClientProductUsage({
+    event: 'client.source_flow_expand',
+    surface: 'sources',
+    entityType: 'source',
+    entityId: domainId,
+  })
 }
 const toggleDefaultInputList = () => {
   defaultInputListExpanded = !defaultInputListExpanded

@@ -1,4 +1,4 @@
-import { timingSafeEqual as constantTimeEqual } from 'node:crypto'
+import { timingSafeEqual as nodeTimingSafeEqual } from 'node:crypto'
 
 import {
   DEFAULT_D1_PLACEMENT_PROBE_ITERATIONS,
@@ -96,7 +96,7 @@ export const d1PlacementProbeRoute = defineOpenAPIRoute<
 
     const providedApiKey = c.req.header(API_KEY_HEADER)?.trim()
 
-    if (!providedApiKey || !timingSafeEqual(providedApiKey, configuredApiKey)) {
+    if (!providedApiKey || !(await timingSafeEqual(providedApiKey, configuredApiKey))) {
       return c.json(
         {
           error: 'unauthorized',
@@ -153,13 +153,14 @@ export const d1PlacementProbeRoute = defineOpenAPIRoute<
 
 export const probeRoutes = [d1PlacementProbeRoute] as const
 
-function timingSafeEqual(left: string, right: string) {
-  const leftBytes = new TextEncoder().encode(left)
-  const rightBytes = new TextEncoder().encode(right)
-
-  if (leftBytes.byteLength !== rightBytes.byteLength) {
-    return false
+async function timingSafeEqual(left: string, right: string) {
+  const encoder = new TextEncoder()
+  const [leftHash, rightHash] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(left)),
+    crypto.subtle.digest('SHA-256', encoder.encode(right)),
+  ])
+  if (typeof crypto.subtle.timingSafeEqual === 'function') {
+    return crypto.subtle.timingSafeEqual(leftHash, rightHash)
   }
-
-  return constantTimeEqual(leftBytes, rightBytes)
+  return nodeTimingSafeEqual(new Uint8Array(leftHash), new Uint8Array(rightHash))
 }

@@ -5,12 +5,14 @@ import type {
   ReleaseNavVersion,
   ReleaseNavVersionPreload,
 } from '../releaseNav.types'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 import ReleaseNavActions from './releaseNavActions.svelte'
 import ReleaseNavTabs from './releaseNavTabs.svelte'
 import ReleaseNavVersionControls from './releaseNavVersionControls.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
+  analyticsSurface: ReleaseAnalyticsSurface
   activeTab: string
   currentVersionCohortKey?: string | null
   currentVersionCode: string
@@ -26,6 +28,7 @@ type Props = {
 }
 let {
   actions,
+  analyticsSurface,
   activeTab,
   currentVersionCohortKey,
   currentVersionCode,
@@ -47,7 +50,7 @@ let {
 >
   <div class="flex min-w-0">
     <ReleaseNavTabs {activeTab} onSelect={onSelectTab} {tabs} />
-    <ReleaseNavActions {actions} />
+    <ReleaseNavActions {actions} {analyticsSurface} />
   </div>
   <div class="hidden h-10 items-center justify-between xl:flex">
     <div class="flex items-center gap-2">

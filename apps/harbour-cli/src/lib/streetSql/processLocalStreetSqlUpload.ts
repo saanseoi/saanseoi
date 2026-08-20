@@ -42,12 +42,14 @@ import {
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   resolveLandsdStreetDistricts,
   type LandsdStreetCanonicalDistrict,
@@ -168,14 +170,24 @@ export async function processLocalStreetSqlUpload(
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
+  const progress = new LocalUploadProgress()
   const bucket = new LocalPipelineBucket(releaseRoot)
-  await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
+  await runLocalProgressPhase(
+    progress,
+    { action: 'Prepare', subject: 'workspace' },
+    () => bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
+  )
 
-  const context = await resolveLocalAddressDbContext(
-    target,
-    previewPlan.regionCode,
-    previewPlan.sourceVersion,
-    { cacheTableProfile: 'street', includePreviousShardYears: true },
+  const context = await runLocalProgressPhase(
+    progress,
+    { action: 'Prepare', subject: 'database' },
+    () =>
+      resolveLocalAddressDbContext(
+        target,
+        previewPlan.regionCode,
+        previewPlan.sourceVersion,
+        { cacheTableProfile: 'street', includePreviousShardYears: true },
+      ),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = (
@@ -241,14 +253,14 @@ export async function processLocalStreetSqlUpload(
       resolveShardForTypeRegionYear(
         metaDb,
         'history',
-        target.remote ? 'production' : 'preview',
+        resolvePipelineEnvironment(target),
         previewPlan.regionCode,
         previewPlan.sourceVersion,
       ),
       resolveShardForTypeRegionYear(
         metaDb,
         'source',
-        target.remote ? 'production' : 'preview',
+        resolvePipelineEnvironment(target),
         previewPlan.regionCode,
         previewPlan.sourceVersion,
       ),
@@ -407,6 +419,7 @@ export async function processLocalStreetSqlUpload(
     })
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {
+    progress.fail()
     await client
       .stageFailed(
         releaseId,

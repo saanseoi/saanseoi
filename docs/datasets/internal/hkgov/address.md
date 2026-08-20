@@ -32,6 +32,11 @@ query ends on the previous UTC day because the archive API does not accept the c
 day. A successful response whose body is truncated or otherwise invalid JSON is retried
 before the DPO check is reported as an error.
 
+The updater applies a ten-minute and 2 GiB compressed-download limit, validates ZIP
+member names, counts, expanded sizes and compression ratios before extraction, and
+recreates the timestamp-specific extraction directory on retry. A truncated, revised or
+failed extraction therefore cannot leave stale GeoJSON members in a later intake.
+
 When an addresses update is selected, the updater reads the composition dependency
 graph, adds the required Overture division provider when necessary, and processes it
 first. The address snapshot then records the exact division source release selected for

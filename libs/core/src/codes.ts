@@ -50,6 +50,9 @@ export function publisherCodeForSource(source: string) {
   if (source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town') {
     return 'hkgov-pland'
   }
+  if (source.startsWith('hkgov-censtatd-')) {
+    return 'hkgov-censtatd'
+  }
   return source
 }
 

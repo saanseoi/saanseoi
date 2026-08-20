@@ -7,7 +7,11 @@ import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 
-import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  invalidateRemoteDbCache,
+  resolveLocalAddressDbContext,
+  type LocalAddressDbContext,
+} from '../dbCache/localDbCache.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from './localControlClient.ts'
@@ -20,6 +24,7 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   'apps/harbour-workers/wrangler.jsonc',
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
+const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 
 export type NativeSourceRow = Record<string, unknown> & {
   sourceRecordId: string
@@ -103,6 +108,7 @@ export async function processNativeSourceSqlRelease(
           async stageRunning() {},
         },
       })
+  let localCacheMutationStarted = false
 
   try {
     await client.stageRunning(
@@ -116,26 +122,22 @@ export async function processNativeSourceSqlRelease(
       releaseCode,
     )
     const sql = await buildNativeSourceSql(input.tables, releaseId, releaseCode)
+    const remoteReplay = target.remote
+      ? resolveNativeRemoteReplay(target, context, shardYear)
+      : null
+    localCacheMutationStarted = true
     await executeSqlChunks(
       { binding: context.sourceBinding, databaseId: null, name: 'source' },
       sql,
       { isLocal: true },
     )
 
-    if (target.remote) {
-      const sourceTarget = context.sourceTargets.find(item => item.year === shardYear)
-      const remoteTarget: SqlImportTargetContext = {
-        databaseId: sourceTarget?.databaseId ?? null,
-        name: 'source',
-      }
-      const accountId = resolveCloudflareAccountId(target)
-      const apiToken = process.env.CLOUDFLARE_D1_TOKEN?.trim()
-      if (!remoteTarget.databaseId || !accountId || !apiToken) {
-        throw new Error(
-          'Native source D1 import requires source.databaseId, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_D1_TOKEN.',
-        )
-      }
-      await executeSqlChunks(remoteTarget, sql, { accountId, apiToken, isLocal: false })
+    if (remoteReplay) {
+      await executeSqlChunks(remoteReplay.target, sql, {
+        accountId: remoteReplay.accountId,
+        apiToken: remoteReplay.apiToken,
+        isLocal: false,
+      })
     }
 
     await client.stageCompleted(
@@ -154,6 +156,13 @@ export async function processNativeSourceSqlRelease(
     )
     return await client.publishDataset(releaseId, releaseCode)
   } catch (error) {
+    if (target.remote && localCacheMutationStarted) {
+      await invalidateRemoteDbCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+        error instanceof Error ? error.message : String(error),
+      ).catch(() => undefined)
+    }
     await client
       .stageFailed(
         releaseId,
@@ -167,6 +176,26 @@ export async function processNativeSourceSqlRelease(
   } finally {
     context.cleanup()
   }
+}
+
+function resolveNativeRemoteReplay(
+  target: UploadTarget,
+  context: Pick<LocalAddressDbContext, 'sourceTargets'>,
+  shardYear: string,
+) {
+  const sourceTarget = context.sourceTargets.find(item => item.year === shardYear)
+  const remoteTarget: SqlImportTargetContext = {
+    databaseId: sourceTarget?.databaseId ?? null,
+    name: 'source',
+  }
+  const accountId = resolveCloudflareAccountId(target)
+  const apiToken = process.env.CLOUDFLARE_D1_TOKEN?.trim()
+  if (!remoteTarget.databaseId || !accountId || !apiToken) {
+    throw new Error(
+      'Native source D1 import requires source.databaseId, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_D1_TOKEN.',
+    )
+  }
+  return { accountId, apiToken, target: remoteTarget }
 }
 
 export async function versionNativeSourceRows(
@@ -330,7 +359,14 @@ function chunkSql(statements: string[]) {
   const chunks: string[] = []
   let current = ''
   for (const statement of statements) {
-    if (current && current.length + statement.length > SQL_CHUNK_BYTE_LIMIT) {
+    if (Buffer.byteLength(statement) > SQL_STATEMENT_BYTE_LIMIT) {
+      throw new Error('A native source SQL statement exceeds the D1 limit.')
+    }
+    if (
+      current &&
+      Buffer.byteLength(current) + Buffer.byteLength(statement) + 1 >
+        SQL_CHUNK_BYTE_LIMIT
+    ) {
       chunks.push(current)
       current = ''
     }

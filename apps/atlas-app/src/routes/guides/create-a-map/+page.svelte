@@ -47,6 +47,7 @@ import {
   type CreateAMapSelectionValue,
 } from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 import { createCreateAMapGuideAdapter } from './createAMapGuideAdapter.svelte'
 import {
@@ -173,6 +174,7 @@ let zedSetupContentExpanded = $state(
   page.url.searchParams.get('zed-setup') !== 'collapsed',
 )
 let analyticsTrackingStarted = $state(false)
+let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
@@ -206,12 +208,24 @@ let basemapAccountContinueUrl = $derived.by(() => {
 
 const completeEditorReadiness = () => {
   completedEditorReadinessKey = editorReadinessKey
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'editor_ready',
+  })
 }
 
 const completeDataStep = () => {
   if (!dataReadinessKey) return
 
   completedDataKey = dataReadinessKey
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'data_ready',
+  })
 }
 
 const resetDataStep = () => {
@@ -222,12 +236,25 @@ const completeLlmReadiness = () => {
   if (!llmReadinessKey) return
   if (!isPaymentConfirmed) {
     paymentCompletionWarning = true
+    trackClientProductUsage({
+      event: 'guide.milestone',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'llm_ready',
+      outcome: 'failure',
+    })
     return
   }
 
   completedLlmReadinessKey = llmReadinessKey
   zedSetupExpanded = false
   zedSetupContentExpanded = true
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'llm_ready',
+  })
 }
 
 const confirmPaymentSuccessful = () => {
@@ -235,6 +262,12 @@ const confirmPaymentSuccessful = () => {
 
   completedPaymentKey = llmReadinessKey
   paymentCompletionWarning = false
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'payment_ready',
+  })
 }
 
 const resetPayment = () => {
@@ -252,6 +285,12 @@ const resetEditorReadiness = () => {
 
 const completeMapboxToken = () => {
   mapboxTokenConfigured = true
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'mapbox_token_ready',
+  })
 }
 
 const resetMapboxToken = () => {
@@ -261,6 +300,12 @@ const resetMapboxToken = () => {
 const openZedSetup = async () => {
   zedSetupExpanded = true
   zedSetupContentExpanded = true
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'zed_setup_open',
+  })
   await tick()
 
   const guide = document.getElementById('zed-setup-guide')
@@ -558,7 +603,15 @@ const scrollPrimerToTop = async (id: string) => {
 }
 
 const handleLlmModeChange = (value: string) => {
-  if (value === 'handover') llmDialogOpen = true
+  if (value === 'handover') {
+    llmDialogOpen = true
+    trackClientProductUsage({
+      event: 'guide.handover',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'open',
+    })
+  }
   if (value === 'assisted') void scrollPrimerToTop('agentic-ai-primer')
 }
 const handleTerminalExperienceChange = (value: string) => {
@@ -612,14 +665,33 @@ const openLlmWithoutPrompt = async (provider: 'gemini' | 'kimi', prompt: string)
   const handoverChatUrls = createHandoverChatUrls(prompt)
   const url = provider === 'gemini' ? handoverChatUrls.gemini : handoverChatUrls.kimi
   window.open(url, '_blank', 'noopener,noreferrer')
+  trackClientProductUsage({
+    event: 'guide.provider_open',
+    surface: 'guide',
+    entityType: 'provider',
+    entityId: provider,
+  })
 
   copiedPromptProvider = provider
   copyPromptFailed = false
 
   try {
     await navigator.clipboard.writeText(prompt)
+    trackClientProductUsage({
+      event: 'guide.prompt_copy',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'handover',
+    })
   } catch {
     copyPromptFailed = true
+    trackClientProductUsage({
+      event: 'guide.prompt_copy',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'handover',
+      outcome: 'failure',
+    })
   }
 }
 
@@ -634,6 +706,12 @@ const openChatHandover = async (provider: HandoverChatLlm) => {
     '_blank',
     'noopener,noreferrer',
   )
+  trackClientProductUsage({
+    event: 'guide.provider_open',
+    surface: 'guide',
+    entityType: 'provider',
+    entityId: provider,
+  })
 }
 
 const copyAgenticHandoverPrompt = async () => {
@@ -643,9 +721,22 @@ const copyAgenticHandoverPrompt = async () => {
   try {
     await navigator.clipboard.writeText(agenticHandoverPrompt)
     handoverAgentPromptCopied = true
+    trackClientProductUsage({
+      event: 'guide.prompt_copy',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'handover_agent',
+    })
     window.setTimeout(() => (handoverAgentPromptCopied = false), 1600)
   } catch {
     copyPromptFailed = true
+    trackClientProductUsage({
+      event: 'guide.prompt_copy',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'handover_agent',
+      outcome: 'failure',
+    })
   }
 }
 
@@ -660,9 +751,22 @@ const copyGuideLink = async () => {
   try {
     await navigator.clipboard.writeText(guideUrl)
     guideLinkCopied = true
+    trackClientProductUsage({
+      event: 'guide.share',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'copy_link',
+    })
     window.setTimeout(() => (guideLinkCopied = false), 1600)
   } catch {
     guideLinkCopyFailed = true
+    trackClientProductUsage({
+      event: 'guide.share',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'copy_link',
+      outcome: 'failure',
+    })
   }
 }
 
@@ -678,11 +782,51 @@ const shareGuide = async () => {
       text: m.guide_share_description(),
       url: guideUrl,
     })
+    trackClientProductUsage({
+      event: 'guide.share',
+      surface: 'guide',
+      entityType: 'action',
+      entityId: 'native_share',
+    })
   } catch (error) {
-    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      trackClientProductUsage({
+        event: 'guide.share',
+        surface: 'guide',
+        entityType: 'action',
+        entityId: 'native_share',
+        outcome: 'cancelled',
+      })
+    } else {
+      trackClientProductUsage({
+        event: 'guide.share',
+        surface: 'guide',
+        entityType: 'action',
+        entityId: 'native_share',
+        outcome: 'failure',
+      })
       await copyGuideLink()
     }
   }
+}
+
+const shareExternalLink = (provider: string) => {
+  trackClientProductUsage({
+    event: 'guide.share',
+    surface: 'guide',
+    entityType: 'provider',
+    entityId: provider,
+  })
+}
+
+const trackGuideExternalOpen = (kind: 'setup' | 'sign_up' | 'openrouter') => {
+  const provider = aiAccess === 'agentic' ? agentTool : llm
+  trackClientProductUsage({
+    event: 'guide.provider_open',
+    surface: 'guide',
+    entityType: 'provider',
+    entityId: `${kind}:${provider ?? 'provider'}`,
+  })
 }
 
 const shareLinks = $derived.by(() => {
@@ -1062,6 +1206,21 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     renderer,
     dataSource,
   })
+})
+$effect(() => {
+  const complete =
+    Boolean(objective) &&
+    missingPrerequisiteQuestions.length > 0 &&
+    missingPrerequisiteQuestions.every(question => question.answered)
+  if (complete && !guideWasComplete) {
+    trackClientProductUsage({
+      event: 'guide.completion',
+      surface: 'guide',
+      entityType: 'guide',
+      entityId: 'create-a-map',
+    })
+  }
+  guideWasComplete = complete
 })
 const selectedMapLibrary = $derived(
   objective === 'mobile-embed'
@@ -1680,8 +1839,17 @@ const styleChoices = $derived.by(() =>
       {guideLinkCopied}
       {guideLinkCopyFailed}
       onCopyGuideLink={copyGuideLink}
-      onOpenHandover={() => (llmDialogOpen = true)}
+      onOpenHandover={() => {
+        llmDialogOpen = true
+        trackClientProductUsage({
+          event: 'guide.handover',
+          surface: 'guide',
+          entityType: 'action',
+          entityId: 'open',
+        })
+      }}
       onShareGuide={shareGuide}
+      onShareExternalLink={shareExternalLink}
       {shareLinks}
     />
   </section>
@@ -1817,6 +1985,7 @@ const styleChoices = $derived.by(() =>
                   incompleteDescription={llmReadinessIncompleteDescription}
                   {isZedSetupGuideProvided}
                   onComplete={completeLlmReadiness}
+                  onExternalOpen={trackGuideExternalOpen}
                   onOpenZedSetup={openZedSetup}
                   onReset={resetLlmReadiness}
                   {operatingSystem}
@@ -2220,7 +2389,7 @@ const styleChoices = $derived.by(() =>
                       {@html m.guide_renderer_web_embed()}
                       <a
                         class="font-semibold text-secondary underline underline-offset-4"
-                        href="/community"
+                        href="/#community"
                         >{@html m.guide_join_community()}</a
                       >.
                     </p>
@@ -2619,7 +2788,7 @@ const styleChoices = $derived.by(() =>
                   {@html m.guide_setup_mobile_other()}
                   <a
                     class="font-semibold text-secondary underline underline-offset-4"
-                    href="/community"
+                    href="/#community"
                     >{@html m.guide_join_community()}</a
                   >.
                 </p>

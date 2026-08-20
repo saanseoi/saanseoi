@@ -51,6 +51,15 @@ describe('Facebook data deletion', () => {
     ).resolves.toBeNull()
   })
 
+  test('rejects malformed and oversized signed requests before verification', async () => {
+    await expect(
+      parseFacebookSignedRequest('signature.payload.extra', 'test-secret'),
+    ).resolves.toBeNull()
+    await expect(
+      parseFacebookSignedRequest(`signature.${'a'.repeat(4_096)}`, 'test-secret'),
+    ).resolves.toBeNull()
+  })
+
   test('creates a deterministic, hashable confirmation code', async () => {
     const first = await createFacebookDeletionConfirmationCode(
       'test-secret',

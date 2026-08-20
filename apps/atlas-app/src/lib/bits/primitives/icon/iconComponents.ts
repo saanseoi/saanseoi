@@ -31,6 +31,7 @@ import IconIonMailOutline from '@iconify-svelte/ion/mail-outline'
 import IconIonOpenOutline from '@iconify-svelte/ion/open-outline'
 import IconIonReloadOutline from '@iconify-svelte/ion/reload-outline'
 import IconMaterialSymbolsLightApiRounded from '@iconify-svelte/material-symbols-light/api-rounded'
+import IconMaterialSymbolsLightAccountBalance from '@iconify-svelte/material-symbols-light/account-balance'
 import IconMaterialSymbolsLightArrowForwardRounded from '@iconify-svelte/material-symbols-light/arrow-forward-rounded'
 import IconMaterialSymbolsLightArrowTopRight from '@iconify-svelte/material-symbols-light/arrow-top-right'
 import IconMaterialSymbolsLightArrowUpwardRounded from '@iconify-svelte/material-symbols-light/arrow-upward-rounded'
@@ -180,6 +181,7 @@ export const localIconComponents = {
   'ion:reload-outline': IconIonReloadOutline,
   'ion:select-outline': IconMaterialSymbolsLightSelectOutline,
   'material-symbols-light:api-rounded': IconMaterialSymbolsLightApiRounded,
+  'material-symbols-light:account-balance': IconMaterialSymbolsLightAccountBalance,
   'material-symbols-light:arrow-forward-rounded':
     IconMaterialSymbolsLightArrowForwardRounded,
   'material-symbols-light:arrow-upward-rounded':

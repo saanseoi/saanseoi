@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-06T14:53:53.553Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
+updatedAt: "2026-08-20T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2025-09-24.0"
 regionCode: "hk"
@@ -150,7 +150,10 @@ village        199
 
 ## 更新紀錄
 
-山水 | SaanSeoi 初始版本。
+- 山水 | SaanSeoi 初始版本
+- <orange>上游</orange> 在 <black>sources</black> 中新增
+  <black>license</black>，並填入適用的授權資訊
+- <orange>上游</orange> 更新 OSM 資料至 <black>2025-08-29</black>
 
 ## 兼容性
 
@@ -271,7 +274,10 @@ village        199
 
 ## 更新记录
 
-山水 | SaanSeoi 初始版本。
+- 山水 | SaanSeoi 初始版本
+- <orange>上游</orange> 在 <black>sources</black> 中新增
+  <black>license</black>，并填入适用的许可信息
+- <orange>上游</orange> 更新 OSM 数据至 <black>2025-08-29</black>
 
 ## 兼容性
 

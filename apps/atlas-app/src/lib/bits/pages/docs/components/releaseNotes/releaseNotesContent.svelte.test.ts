@@ -70,3 +70,17 @@ test('opens external documentation safely in a new tab', async () => {
     .element(screen.getByRole('link', { name: /SaanSeoi/ }))
     .toHaveAttribute('rel', 'noopener noreferrer')
 })
+
+test('escapes arbitrary HTML while preserving supported release-note tags', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '<iframe src="https://example.com">unsafe</iframe> <black>safe</black>',
+      'en',
+    ),
+  )
+
+  await expect.element(screen.getByText('safe')).toHaveClass('font-mono')
+  await expect.element(screen.getByText(/<iframe/)).toBeVisible()
+  expect(document.querySelector('iframe')).toBeNull()
+})

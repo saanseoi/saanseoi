@@ -18,6 +18,7 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   'apps/harbour-workers/wrangler.jsonc',
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
+const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 const SOURCE_ID_CHUNK_SIZE = 250
 
 type StatisticRow = object
@@ -116,6 +117,9 @@ export async function replayStatisticSqlBatches(
   options: StatisticSqlReplayOptions = {},
 ) {
   const execute = options.executeSql ?? executeSqlText
+  const remoteReplay = target.remote
+    ? resolveRemoteReplay(target, context, shardYear, batches, options)
+    : null
   const localSourceTarget: SqlImportTargetContext = {
     binding: context.sourceBinding,
     databaseId: null,
@@ -126,6 +130,8 @@ export async function replayStatisticSqlBatches(
     databaseId: null,
     name: 'history',
   }
+  const localBatchCount = batches.source.length + batches.history.length
+  const totalBatchCount = remoteReplay ? localBatchCount * 2 : localBatchCount
 
   await replayBatches(
     execute,
@@ -134,6 +140,8 @@ export async function replayStatisticSqlBatches(
     { isLocal: true },
     'local-replay',
     options.onProgress,
+    0,
+    totalBatchCount,
   )
   await replayBatches(
     execute,
@@ -143,11 +151,48 @@ export async function replayStatisticSqlBatches(
     'local-replay',
     options.onProgress,
     batches.source.length,
-    batches.source.length + batches.history.length,
+    totalBatchCount,
   )
 
-  if (!target.remote) return
+  if (!remoteReplay) return
 
+  await replayBatches(
+    execute,
+    { databaseId: remoteReplay.sourceDatabaseId ?? null, name: 'source' },
+    batches.source,
+    {
+      accountId: remoteReplay.accountId,
+      apiToken: remoteReplay.apiToken,
+      isLocal: false,
+    },
+    'remote-source-replay',
+    options.onProgress,
+    localBatchCount,
+    totalBatchCount,
+  )
+  await replayBatches(
+    execute,
+    { databaseId: remoteReplay.historyDatabaseId ?? null, name: 'history' },
+    batches.history,
+    {
+      accountId: remoteReplay.accountId,
+      apiToken: remoteReplay.apiToken,
+      isLocal: false,
+    },
+    'remote-history-replay',
+    options.onProgress,
+    localBatchCount + batches.source.length,
+    totalBatchCount,
+  )
+}
+
+function resolveRemoteReplay(
+  target: UploadTarget,
+  context: Pick<LocalAddressDbContext, 'historyTargets' | 'sourceTargets'>,
+  shardYear: string,
+  batches: StatisticSqlBatches,
+  options: StatisticSqlReplayOptions,
+) {
   const accountId =
     options.importOptions?.accountId ?? resolveCloudflareAccountId(target)
   const apiToken =
@@ -165,23 +210,7 @@ export async function replayStatisticSqlBatches(
     requireHistoryDatabaseId: batches.history.length > 0,
     sourceDatabaseId,
   })
-
-  await replayBatches(
-    execute,
-    { databaseId: sourceDatabaseId ?? null, name: 'source' },
-    batches.source,
-    { accountId, apiToken, isLocal: false },
-    'remote-source-replay',
-    options.onProgress,
-  )
-  await replayBatches(
-    execute,
-    { databaseId: historyDatabaseId ?? null, name: 'history' },
-    batches.history,
-    { accountId, apiToken, isLocal: false },
-    'remote-history-replay',
-    options.onProgress,
-  )
+  return { accountId, apiToken, historyDatabaseId, sourceDatabaseId }
 }
 
 function buildCloseSourceStatements(
@@ -325,7 +354,14 @@ function chunkSql(statements: string[]) {
   const chunks: string[] = []
   let current = ''
   for (const statement of statements) {
-    if (current && current.length + statement.length + 1 > SQL_CHUNK_BYTE_LIMIT) {
+    if (Buffer.byteLength(statement) > SQL_STATEMENT_BYTE_LIMIT) {
+      throw new Error('A statistic SQL statement exceeds the D1 limit.')
+    }
+    if (
+      current &&
+      Buffer.byteLength(current) + Buffer.byteLength(statement) + 1 >
+        SQL_CHUNK_BYTE_LIMIT
+    ) {
       chunks.push(current)
       current = ''
     }

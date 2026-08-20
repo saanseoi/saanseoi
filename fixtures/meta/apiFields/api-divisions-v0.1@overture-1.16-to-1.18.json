@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:7485f4a511370c34085aec288f74b4786c5fd079c161033f3a38f5930c042186",
+  "versionHash": "sha256:d461612418f0d5ed85547ca795ae84d0e6d3dd4a44d2d299a5fd6c134c0689fa",
   "apiVersion": "api-divisions-v0.1",
-  "domainCode": "overture",
+  "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
   "lineageAnchors": [
@@ -12,7 +12,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -22,7 +23,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -32,7 +34,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -42,7 +45,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -52,7 +56,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -62,7 +67,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -72,7 +78,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     },
     {
@@ -82,7 +89,8 @@
         "ds-hk-overture-division-area": "1.18.0",
         "ds-hk-overture-division-boundary": "1.18.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
       }
     }
   ],

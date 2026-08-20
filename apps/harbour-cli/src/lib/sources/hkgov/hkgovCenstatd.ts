@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteBuffer } from 'hyparquet-writer'
-import { strFromU8, unzipSync } from 'fflate'
+import { strFromU8 } from 'fflate'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -10,6 +10,7 @@ import TopologyPreservingSimplifier from 'jsts/org/locationtech/jts/simplify/Top
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
+import { readSafeZipArchive } from '../zipArchive.ts'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
@@ -211,14 +212,16 @@ export function readHkgovCenstatdDistrictGmlArchive(
   const profile = SOURCE_PROFILE[sourceVersion]
   if (!profile) throw new Error(`No C&SD district profile exists for ${sourceVersion}.`)
   const expectedMember = `${profile.layerName}.gml`
-  const archive = unzipSync(archiveBytes)
+  const { entries: archive, files } = readSafeZipArchive(archiveBytes, {
+    select: member => member.toLowerCase().endsWith('.gml'),
+  })
   const gml = archive[expectedMember]
   if (!gml) {
     throw new Error(
       `C&SD ${sourceVersion} source archive must contain ${expectedMember}.`,
     )
   }
-  const unexpectedGml = Object.keys(archive).filter(
+  const unexpectedGml = files.filter(
     member => member.toLowerCase().endsWith('.gml') && member !== expectedMember,
   )
   if (unexpectedGml.length > 0) {

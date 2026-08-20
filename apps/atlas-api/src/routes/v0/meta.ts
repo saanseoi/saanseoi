@@ -1,7 +1,9 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { listDatasets } from '@repo/core/db/metaRegistry'
 
 import {
+  getNewsletterSubscription,
   markNewsletterFailed,
   markNewsletterPending,
   markNewsletterSubscribed,
@@ -88,6 +90,14 @@ const substackRouteConfig = createRoute({
       description: 'Subscribe an email address to the configured Substack publication.',
     },
     422: ValidationErrorOpenAPIResponse,
+    429: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Newsletter signup rate limit exceeded.',
+    },
     500: {
       content: {
         'application/json': {
@@ -150,8 +160,45 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
 export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppEnv>({
   route: substackRouteConfig,
   handler: async c => {
-    const { email } = c.req.valid('json')
+    const email = c.req.valid('json').email.trim().toLowerCase()
     const db = c.var.metaDb
+
+    if (!(await newsletterRateLimitAllows(c, email))) {
+      c.header('retry-after', '60')
+      return c.json(
+        {
+          httpStatus: 429,
+          error: 'rate_limit_exceeded',
+          message: 'Too many newsletter signup requests. Please try again later.',
+        },
+        429,
+      )
+    }
+
+    const existing = await getNewsletterSubscription(db, email)
+    if (existing?.status === 'subscribed') {
+      return c.json(
+        {
+          ok: true as const,
+          message: 'This email address is already subscribed.',
+          subscriptionState: 'subscribed' as const,
+        },
+        200,
+      )
+    }
+    if (
+      existing?.status === 'pending' &&
+      Date.parse(existing.updatedAt) > Date.now() - 10 * 60 * 1000
+    ) {
+      return c.json(
+        {
+          ok: true as const,
+          message: 'This subscription request is already pending.',
+          subscriptionState: 'pending' as const,
+        },
+        200,
+      )
+    }
 
     await markNewsletterPending(db, email)
 
@@ -248,5 +295,24 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
     }
   },
 })
+
+async function newsletterRateLimitAllows(c: Context<AppEnv>, email: string) {
+  const clientIp = c.req.header('cf-connecting-ip')?.trim() || '(unknown)'
+  const keys = await Promise.all([
+    digestRateLimitKey(`ip:${clientIp}`),
+    digestRateLimitKey(`email:${email}`),
+  ])
+  const results = await Promise.all(
+    keys.map(key => c.env.NEWSLETTER_RATE_LIMIT.limit({ key })),
+  )
+  return results.every(result => result.success)
+}
+
+async function digestRateLimitKey(value: string) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+  return Array.from(new Uint8Array(digest), byte =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
+}
 
 export const metaRoutes = [healthRoute, datasetsRoute, substackRoute] as const

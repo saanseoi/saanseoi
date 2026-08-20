@@ -161,7 +161,7 @@ const closingPrinciple = $derived(principles[12])
           tone="highlight"
         >
           <div class="mt-10 flex flex-col justify-center gap-16 sm:flex-row">
-            <Button class="justify-center scale-120" href="/community"
+            <Button class="justify-center scale-120" href="/#community"
               >{ctaSecondary}</Button
             >
             <Button

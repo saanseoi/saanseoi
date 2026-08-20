@@ -5,7 +5,51 @@ import {
   boundariesToOsmiumPolygon,
   historicalBorderSourceRequired,
   polygoniseCoastlineFeatures,
+  resolveTilesRetractionArtefacts,
 } from './tiles.ts'
+
+describe('resolveTilesRetractionArtefacts', () => {
+  const region = {
+    area: 'hong kong',
+    code: 'hk' as const,
+    description: 'Hong Kong',
+    name: 'hongkong',
+  }
+
+  test('derives every deletion key from the requested region and version', () => {
+    expect(
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/hk/hongkong-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
+      }),
+    ).toEqual([
+      'basemap/hk/hongkong-2026-08-20.pmtiles',
+      'basemap/hk/hongkong-2026-08-20.json',
+      'basemap/hk/hongkong-2026-08-20.boundary.geojson',
+      'basemap/hk/hongkong-2026-08-20.land.geojson',
+      'basemap/hk/hongkong-2026-08-20-light.webp',
+      'basemap/hk/hongkong-2026-08-20-dark.webp',
+    ])
+  })
+
+  test('rejects catalogue keys outside the requested release', () => {
+    expect(() =>
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/mo/macau-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
+      }),
+    ).toThrow('catalogue archive key does not match')
+  })
+
+  test('rejects manifest keys outside the requested release', () => {
+    expect(() =>
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/hk/hongkong-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-21.json',
+      }),
+    ).toThrow('catalogue manifest key does not match')
+  })
+})
 
 describe('historicalBorderSourceRequired', () => {
   test('requires the companion GBA archive for a Macao-only historical source', () => {

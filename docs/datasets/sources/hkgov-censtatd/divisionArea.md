@@ -45,6 +45,11 @@ byte-identical within the 2016 and 2021 cohorts. The updater suppresses only tho
 no-op objects; it continues to inspect the archive catalogue, so a changed slot or
 object key remains eligible for review.
 
+The 2016 and 2021 cohorts use separate source releases and cohort-specific native ZIP
+members. Each mirrored ZIP is shared only by that cohort's exact and simplified
+materialisations, and is linked to those processed resource releases through their
+canonical source-release lineage.
+
 During a target bootstrap, the release report is evaluated separately for the `2016` and
 `2021` source cohorts. An absent cohort is rebuilt from its native CSDI archive group,
 while a cohort already reported by the target remains current even if the operator's
@@ -123,6 +128,11 @@ polygons (`HK`, `KLN`, and `NT`). They are a selectable Geographic area variant,
 to the corresponding canonical Overture division ID, including the deterministic
 synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
 them with `include=areas:hkgov-censtatd-area`.
+
+This area variant is a required composition member: Harbour does not publish a
+Geographic Divisions release set until the Area/type snapshot and every other configured
+member are available. Required publication membership does not make the geometry part of
+the default response; clients still select it explicitly with `include`.
 
 During ingestion, the three references are checked against the closest published
 canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is

@@ -5,6 +5,7 @@ import zhHansMessages from '@repo/i18n/messages/zh-Hans/shared.json'
 import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
 import { userLocales } from '@repo/db'
 import { z } from 'zod'
+import { writeServerProductUsage } from '#lib/analytics/productUsage.js'
 
 const unlinkAccountSchema = z.object({
   providerId: z.string(),
@@ -81,29 +82,50 @@ export const unlinkAccountForCurrentUser = command(
   unlinkAccountSchema,
   async ({ providerId, accountId, locale }) => {
     const event = requireUser()
-    if (!event)
+    if (!event) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'unlink',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_unlink_error'),
       } as const
+    }
 
     const [accounts, passkeys] = await Promise.all([
       event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
       event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
     ])
     if (accounts.length + passkeys.length <= 1) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'unlink',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_last_sign_in_method'),
       } as const
     }
 
-    // The account page exposes Better Auth's database record ID (`id`). Its
-    // unlink endpoint instead expects the provider's account ID (`accountId`).
+    // Better Auth 1.7's unlink endpoint expects the local account record ID.
     const account = accounts.find(
       account => account.id === accountId && account.providerId === providerId,
     )
     if (!account) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'unlink',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_sign_in_method_not_found'),
@@ -112,12 +134,15 @@ export const unlinkAccountForCurrentUser = command(
 
     await event.locals.auth.api.unlinkAccount({
       headers: event.request.headers,
-      body: {
-        providerId,
-        accountId: account.accountId,
-      },
+      body: { accountId: account.id },
     })
     await getAccountPageData().refresh()
+    writeServerProductUsage({
+      event: 'account.mutation',
+      surface: 'account',
+      entityType: 'account_mutation',
+      entityId: 'unlink',
+    })
 
     return { ok: true } as const
   },
@@ -127,11 +152,19 @@ export const deletePasskeyForCurrentUser = command(
   deletePasskeySchema,
   async ({ id, locale }) => {
     const event = requireUser()
-    if (!event)
+    if (!event) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'delete_passkey',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_passkey_remove_error'),
       } as const
+    }
 
     const [accounts, passkeys] = await Promise.all([
       event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
@@ -141,6 +174,13 @@ export const deletePasskeyForCurrentUser = command(
       accounts.length + passkeys.length <= 1 ||
       !passkeys.some(passkey => passkey.id === id)
     ) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'delete_passkey',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_passkey_remove_error'),
@@ -153,6 +193,13 @@ export const deletePasskeyForCurrentUser = command(
         body: { id },
       })
     } catch {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'delete_passkey',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_passkey_remove_error'),
@@ -160,6 +207,12 @@ export const deletePasskeyForCurrentUser = command(
     }
 
     await getAccountPageData().refresh()
+    writeServerProductUsage({
+      event: 'account.mutation',
+      surface: 'account',
+      entityType: 'account_mutation',
+      entityId: 'delete_passkey',
+    })
     return { ok: true } as const
   },
 )
@@ -168,6 +221,13 @@ export const addPasswordForCurrentUser = command(
   setPasswordSchema,
   async ({ password, locale }) => {
     if (!passwordIsValid(password)) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'add_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_password_invalid'),
@@ -176,6 +236,13 @@ export const addPasswordForCurrentUser = command(
 
     const event = requireUser()
     if (!event) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'add_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_password_add_error'),
@@ -188,6 +255,13 @@ export const addPasswordForCurrentUser = command(
         body: { newPassword: password },
       })
     } catch {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'add_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_password_add_error'),
@@ -195,6 +269,12 @@ export const addPasswordForCurrentUser = command(
     }
 
     await getAccountPageData().refresh()
+    writeServerProductUsage({
+      event: 'account.mutation',
+      surface: 'account',
+      entityType: 'account_mutation',
+      entityId: 'add_password',
+    })
     return {
       ok: true,
       message: getAccountMessage(locale, 'account_password_added'),
@@ -206,6 +286,13 @@ export const changePasswordForCurrentUser = command(
   changePasswordSchema,
   async ({ currentPassword, newPassword, locale }) => {
     if (!passwordIsValid(newPassword)) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'change_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_new_password_invalid'),
@@ -213,11 +300,19 @@ export const changePasswordForCurrentUser = command(
     }
 
     const event = requireUser()
-    if (!event)
+    if (!event) {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'change_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_password_change_error'),
       } as const
+    }
 
     try {
       await event.locals.auth.api.changePassword({
@@ -229,12 +324,25 @@ export const changePasswordForCurrentUser = command(
         },
       })
     } catch {
+      writeServerProductUsage({
+        event: 'account.mutation',
+        surface: 'account',
+        entityType: 'account_mutation',
+        entityId: 'change_password',
+        outcome: 'failure',
+      })
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_current_password_not_accepted'),
       } as const
     }
 
+    writeServerProductUsage({
+      event: 'account.mutation',
+      surface: 'account',
+      entityType: 'account_mutation',
+      entityId: 'change_password',
+    })
     return {
       ok: true,
       message: getAccountMessage(locale, 'account_password_changed'),

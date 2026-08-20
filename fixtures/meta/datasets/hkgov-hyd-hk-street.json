@@ -1,16 +1,18 @@
 {
-  "versionHash": "sha256:be9d9069143dade8c69c7cb3efaa124708f9b7b64dffbb56f96ddbd163181c10",
+  "versionHash": "sha256:cf9944c8bd306f5195ced1a2d880caf9a8e65e80a47b44a07f683c825cb4843b",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": ["street"],
+  "resourceTypes": [
+    "street"
+  ],
   "licenseCode": "hkgov-open-data",
-  "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
+  "attribution": "© Hong Kong Special Administrative Region Government, Highways Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/302b904e3769eae0dc5bfc349288953f2556eb8467288b8226344767031bdafd",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/302b904e3769eae0dc5bfc349288953f2556eb8467288b8226344767031bdafd",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"],
+        "discoveries": [
+          "new-release"
+        ],
         "includeInitialDownload": true
       }
     },

@@ -5,6 +5,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Label } from '#lib/bits/primitives/label/index.js'
 import SourcesHeaderSearch from './sourcesHeaderSearch.svelte'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 type Props = {
   expandAll?: boolean
@@ -41,7 +42,10 @@ let {
       size="compact"
       type="button"
       variant="secondary"
-      onclick={() => (expandAll = !expandAll)}
+      onclick={() => {
+        expandAll = !expandAll
+        trackClientProductUsage({ event: 'client.source_flow_expand', surface: 'sources', entityType: 'action', entityId: expandAll ? 'expand_all' : 'collapse_all' })
+      }}
     >
       <Icon
         icon={expandAll

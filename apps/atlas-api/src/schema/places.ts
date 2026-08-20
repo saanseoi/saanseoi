@@ -1,5 +1,6 @@
 import { z } from '@hono/zod-openapi'
 
+import { MAX_PLACE_RESULTS, MAX_PLACE_SEARCH_LENGTH } from '../lib/api-limits'
 import { RegionCode } from './common'
 
 export const SearchSnapshotNotReadyErrorResponseSchema = z
@@ -72,7 +73,7 @@ export const PlacesByCellParamsSchema = z
 
 export const PlacesByCellQuerySchema = z
   .object({
-    limit: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
   })
   .openapi('PlacesByCellQuery')
 
@@ -90,9 +91,9 @@ export const SearchParamsSchema = z
 
 export const SearchQuerySchema = z
   .object({
-    q: z.string(),
+    q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
     locale: z.string().optional(),
-    limit: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
   })
   .openapi('SearchQuery')
 

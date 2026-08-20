@@ -161,6 +161,12 @@ function createRegistryReleasesDb() {
       resourceType TEXT NOT NULL
     );
 
+    CREATE TABLE datasetI18n (
+      datasetId TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
       releaseId TEXT NOT NULL,
@@ -275,6 +281,10 @@ describe('listRegistryReleases', () => {
         ('dataset-b', 'address'),
         ('dataset-c', 'division');
 
+      INSERT INTO datasetI18n (datasetId, locale, name) VALUES
+        ('dataset-a', 'en', 'Hong Kong addresses'),
+        ('dataset-a', 'zh-Hant', '香港地址');
+
       INSERT INTO releases (id, datasetId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
         ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
@@ -328,6 +338,10 @@ describe('listRegistryReleases', () => {
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
           subType: null,
+          datasetI18n: [
+            { datasetId: 'dataset-a', locale: 'en', name: 'Hong Kong addresses' },
+            { datasetId: 'dataset-a', locale: 'zh-Hant', name: '香港地址' },
+          ],
         }),
         expect.objectContaining({
           publisherCode: 'landsd',
@@ -886,7 +900,7 @@ function createPublishReleaseArtefactsDb() {
       apiCompositionId TEXT,
       code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0',
       regionCode TEXT DEFAULT 'hk',
-      domainCode TEXT NOT NULL DEFAULT 'overture',
+      domainCode TEXT NOT NULL DEFAULT 'geographic',
       cohortKey TEXT DEFAULT '2026-05-20.0',
       revision INTEGER NOT NULL DEFAULT 0,
       effectiveFrom INTEGER,
@@ -1001,7 +1015,8 @@ function createPublishReleaseArtefactsDb() {
       ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area'),
       ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
-      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district');
+      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district'),
+      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type');
   `)
 
   return {
@@ -1027,13 +1042,15 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-area', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000),
-      ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000);
+      ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000),
+      ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
 
     INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
       ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
-      ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd');
+      ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
+      ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
 }
 
@@ -2794,7 +2811,7 @@ describe('publishReleaseArtefacts', () => {
         'release-set-previous',
         'api-version-1',
         'hk',
-        'overture',
+        'geographic',
         '2026-05-20.0',
         'sv-division-v1',
         'rs-division-merge-v1',
@@ -2807,7 +2824,7 @@ describe('publishReleaseArtefacts', () => {
         'release-set-1',
         'api-version-1',
         'hk',
-        'overture',
+        'geographic',
         '2026-06-17.0',
         'sv-division-v1',
         'rs-division-merge-v1',
@@ -2903,19 +2920,19 @@ describe('publishReleaseArtefacts', () => {
         .all(catalogRevision.id),
     ).toEqual([
       {
-        domainCode: 'overture',
+        domainCode: 'geographic',
         cohortKey: '2026-05-20.0',
         isDefault: 0,
       },
       {
-        domainCode: 'overture',
+        domainCode: 'geographic',
         cohortKey: '2026-06-17.0',
         isDefault: 1,
       },
     ])
     await expect(
       resolveApiReleaseSetForRequest(db, 'division', {
-        domainCode: 'overture',
+        domainCode: 'geographic',
         knownAt: '2026-06-29T00:00:00.000Z',
         regionCode: 'hk',
       }),
@@ -2926,7 +2943,7 @@ describe('publishReleaseArtefacts', () => {
     })
     await expect(
       resolveApiReleaseSetForRequest(db, 'division', {
-        domainCode: 'overture',
+        domainCode: 'geographic',
         knownAt: '2026-06-28T23:59:59.999Z',
         regionCode: 'hk',
       }),
@@ -3010,7 +3027,7 @@ describe('publishReleaseArtefacts', () => {
         'release-set-1',
         'api-version-1',
         'hk',
-        'overture',
+        'geographic',
         '2025-09-24.0',
         'sv-division-v1',
         'rs-division-merge-v1',

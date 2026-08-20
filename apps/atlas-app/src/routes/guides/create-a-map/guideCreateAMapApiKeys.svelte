@@ -4,6 +4,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { GuideCodeBlock } from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
@@ -44,8 +45,24 @@ const createKey = async () => {
 const copyNewKey = async () => {
   if (!newKey) return
 
-  await navigator.clipboard.writeText(newKey)
-  copied = true
+  try {
+    await navigator.clipboard.writeText(newKey)
+    copied = true
+    trackClientProductUsage({
+      event: 'api_key.copy',
+      surface: 'guide',
+      entityType: 'key_action',
+      entityId: 'copy',
+    })
+  } catch {
+    trackClientProductUsage({
+      event: 'api_key.copy',
+      surface: 'guide',
+      entityType: 'key_action',
+      entityId: 'copy',
+      outcome: 'failure',
+    })
+  }
 }
 
 const resetApiKeyConfirmation = () => {
@@ -187,7 +204,10 @@ $effect(() => {
             >{isNewKeyRevealed ? newKey : '••••••••••••••••••••••••••••••••'}</code
           >
           <Button
-            onclick={() => (isNewKeyRevealed = !isNewKeyRevealed)}
+            onclick={() => {
+              isNewKeyRevealed = !isNewKeyRevealed
+              trackClientProductUsage({ event: 'api_key.reveal', surface: 'guide', entityType: 'key_action', entityId: isNewKeyRevealed ? 'reveal' : 'hide' })
+            }}
             size="compact"
             variant="secondary"
           >

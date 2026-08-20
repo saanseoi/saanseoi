@@ -29,6 +29,7 @@ import {
   getVisibleApiReleaseVersions,
 } from '#lib/registry/apiReleaseVersions.js'
 import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import {
   buildReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
@@ -46,7 +47,6 @@ import type {
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
-import ApiReleaseContentSkeleton from './apiReleaseContentSkeleton.svelte'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
 
 let { params, data } = $props()
@@ -316,6 +316,12 @@ let domains = $derived(
 )
 function setShowNoteDiff(enabled: boolean) {
   showNoteDiff = enabled
+  trackClientProductUsage({
+    event: 'client.release_notes_diff',
+    surface: 'api_release',
+    entityType: 'action',
+    entityId: enabled ? 'open' : 'close',
+  })
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
@@ -327,6 +333,12 @@ function setShowNoteDiff(enabled: boolean) {
 }
 function setActiveTab(tab: string) {
   activeTab = tab as ApiReleaseTab
+  trackClientProductUsage({
+    event: 'client.release_tab_view',
+    surface: 'api_release',
+    entityType: 'tab',
+    entityId: tab,
+  })
   const url = new URL(page.url.href)
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
@@ -337,7 +349,7 @@ function setActiveTab(tab: string) {
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
-  { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
+  { compactLabel: m.source_notes(), id: 'notes', label: m.source_notes() },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
@@ -367,15 +379,30 @@ let actions = $derived<ReleaseNavAction[]>(
           {
             id: 'more-samples',
             label: 'Show more',
-            onSelect: () => (sampleRequest += 1),
+            onSelect: () => {
+              sampleRequest += 1
+              trackClientProductUsage({
+                event: 'client.sample_control',
+                surface: 'api_release',
+                entityType: 'sample',
+                entityId: 'show_more',
+              })
+            },
           },
           ...(sampleCount > 1
             ? [
                 {
                   id: 'sample-view',
                   label: sampleView === 'grouped' ? 'Distinct' : 'Group by key',
-                  onSelect: () =>
-                    (sampleView = sampleView === 'grouped' ? 'distinct' : 'grouped'),
+                  onSelect: () => {
+                    sampleView = sampleView === 'grouped' ? 'distinct' : 'grouped'
+                    trackClientProductUsage({
+                      event: 'client.sample_control',
+                      surface: 'api_release',
+                      entityType: 'sample',
+                      entityId: sampleView,
+                    })
+                  },
                 },
               ]
             : []),
@@ -386,7 +413,15 @@ let actions = $derived<ReleaseNavAction[]>(
               icon: 'ion:layers-outline',
               id: 'bulk',
               label: m.source_bulk_actions(),
-              onSelect: () => (showBulkActions = !showBulkActions),
+              onSelect: () => {
+                showBulkActions = !showBulkActions
+                trackClientProductUsage({
+                  event: 'client.audit_control',
+                  surface: 'api_release',
+                  entityType: 'action',
+                  entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                })
+              },
               pressed: showBulkActions,
             },
           ]
@@ -467,6 +502,7 @@ $effect(() => {
   <ReleaseHeader.ApiVariant {api} {release} {locale} />
 
   <ReleaseNav.Root
+    analyticsSurface="api_release"
     {versions}
     {navigationVersions}
     currentVersionCohortKey={release.cohortKey}
@@ -489,7 +525,7 @@ $effect(() => {
     bind:activeTab
   >
     {#if isContentLoading && contentResource.showSkeleton}
-      <ApiReleaseContentSkeleton tab={activeTab} diff={showNoteDiff} />
+      <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
     {:else if contentResource.error}
       <section
         class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
@@ -553,6 +589,7 @@ $effect(() => {
           {/key}
         {:else if activeTab === 'audit'}
           <ReleaseAudit.Root
+            analyticsSurface="api_release"
             actions={release.processingActions}
             bulkActions={release.bulkActions}
             {locale}
@@ -563,6 +600,7 @@ $effect(() => {
         {:else}
           <ReleaseLinks.Root>
             <ReleaseLinks.Provenance
+              analyticsSurface="api_release"
               presentation={sourceReleaseLinksPresentation}
               emptyLabel={m.api_release_unavailable()}
             />

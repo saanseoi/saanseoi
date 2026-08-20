@@ -1,0 +1,47 @@
+#!/usr/bin/env fish
+
+# Keep ignored local environment files and the local metadata D1 schema
+# available in linked worktrees.
+# This hook is intentionally non-blocking: a missing Bun executable, a copy
+# failure, or a database setup failure must not make `git worktree add` fail.
+set repo_root (git rev-parse --show-toplevel 2>/dev/null)
+if test $status -ne 0
+    exit 0
+end
+
+# Reuse the retained source-data directory from the primary worktree. This
+# keeps large ignored Overture inputs available to linked worktrees without
+# copying them. Never replace an existing local data directory or link.
+set primary_worktree (git -C $repo_root worktree list --porcelain 2>/dev/null | string match -r '^worktree ' | string replace 'worktree ' '')
+set primary_worktree $primary_worktree[1]
+set data_source "$primary_worktree/data"
+set data_target "$repo_root/data"
+if test "$repo_root" != "$primary_worktree"; and test -d $data_source; and not test -e $data_target; and not test -L $data_target
+    if not ln -s $data_source $data_target
+        echo 'warning: could not link primary worktree data into this worktree' >&2
+    end
+end
+
+if not type -q bun
+    exit 0
+end
+
+if not bun "$repo_root/scripts/copy-worktree-local-files.ts"
+    echo 'warning: could not copy local environment files into this worktree' >&2
+end
+
+# Only initialise metadata for a linked worktree that has no local D1 database
+# yet. Ordinary checkout in the primary worktree, and later branch switches in
+# an initialised linked worktree, must never reset local development state.
+set local_d1_dir "$repo_root/.local/d1/dev/v3/d1/miniflare-D1DatabaseObject"
+set local_databases (find $local_d1_dir -maxdepth 1 -type f -name '*.sqlite' ! -name metadata.sqlite 2>/dev/null)
+if test "$repo_root" != "$primary_worktree"; and test (count $local_databases) -eq 0
+    if not begin
+        cd $repo_root
+        and bun run --filter @repo/db db:reset:local:meta
+    end
+        echo 'warning: could not initialise the local metadata database' >&2
+    end
+end
+
+exit 0

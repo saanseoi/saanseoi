@@ -7,11 +7,11 @@ import { fade } from 'svelte/transition'
 
 import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
+import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
-import ReleaseHeaderSourceVariant from '#lib/bits/pages/docs/components/releaseHeader/variants/releaseHeaderSourceVariant.svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 
@@ -34,7 +34,7 @@ import type {
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import { getDistrictCoverageMapData } from '#lib/registry/meta.remote.js'
-import SourceReleaseContentSkeleton from './sourceReleaseContentSkeleton.svelte'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import {
   getSourceReleaseContentQuery,
@@ -220,6 +220,12 @@ let sourceReleaseAssembliesPresentation = $derived(
 )
 function setShowNoteDiff(enabled: boolean) {
   showNoteDiff = enabled
+  trackClientProductUsage({
+    event: 'client.release_notes_diff',
+    surface: 'source_release',
+    entityType: 'action',
+    entityId: enabled ? 'open' : 'close',
+  })
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
@@ -231,6 +237,12 @@ function setShowNoteDiff(enabled: boolean) {
 }
 function setActiveTab(tab: string) {
   activeTab = tab as SourceReleaseTab
+  trackClientProductUsage({
+    event: 'client.release_tab_view',
+    surface: 'source_release',
+    entityType: 'tab',
+    entityId: tab,
+  })
   const url = new URL(page.url.href)
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
@@ -286,7 +298,15 @@ let actions = $derived<ReleaseNavAction[]>(
                   icon: 'ion:layers-outline',
                   id: 'bulk',
                   label: m.source_bulk_actions(),
-                  onSelect: () => (showBulkActions = !showBulkActions),
+                  onSelect: () => {
+                    showBulkActions = !showBulkActions
+                    trackClientProductUsage({
+                      event: 'client.audit_control',
+                      surface: 'source_release',
+                      entityType: 'action',
+                      entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                    })
+                  },
                   pressed: showBulkActions,
                 },
               ]
@@ -298,6 +318,7 @@ let actions = $derived<ReleaseNavAction[]>(
                 icon: 'ion:download-outline',
                 id: 'download',
                 label: m.source_download_archive(),
+                analyticsSurface: 'source_release',
               }
             : {
                 disabled: true,
@@ -337,9 +358,10 @@ $effect(() => {
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   {#if source && shellVersion && version}
-    <ReleaseHeaderSourceVariant {source} {version} {locale} />
+    <ReleaseHeader.SourceVariant {source} {version} {locale} />
 
     <ReleaseNav.Root
+      analyticsSurface="source_release"
       {versions}
       currentVersionCode={params.releaseCode}
       loading={isContentLoading}
@@ -355,7 +377,11 @@ $effect(() => {
       bind:activeTab
     >
       {#if isContentLoading && contentResource.showSkeleton}
-        <SourceReleaseContentSkeleton tab={activeTab} diff={showNoteDiff} />
+        <ReleaseNav.ContentSkeleton
+          tab={activeTab}
+          diff={showNoteDiff}
+          linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
+        />
       {:else if releaseQueryError}
         <section
           class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
@@ -409,6 +435,7 @@ $effect(() => {
             />
           {:else if activeTab === 'audit'}
             <ReleaseAudit.Root
+              analyticsSurface="source_release"
               actions={version.processingActions}
               {bulkActions}
               {locale}
@@ -419,6 +446,7 @@ $effect(() => {
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
+                analyticsSurface="source_release"
                 presentation={sourceReleaseLinksPresentation}
                 copyRequestLabel="Copy request"
                 emptyLabel={m.source_released_as_empty()}
@@ -427,6 +455,7 @@ $effect(() => {
           {:else}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
+                analyticsSurface="source_release"
                 presentation={sourceReleaseAssembliesPresentation}
                 copyRequestLabel="Copy request"
                 emptyLabel="No assembled source releases."

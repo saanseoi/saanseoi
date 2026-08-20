@@ -190,7 +190,7 @@ let expanded = $state(true)
         <span>3</span>
         <p>
           {@html m.guide_terminal_intro_recovery_ask_before()}
-          <a href="/community">{@html m.guide_join_community()}</a>
+          <a href="/#community">{@html m.guide_join_community()}</a>
           {@html m.guide_terminal_intro_recovery_ask_after()}
         </p>
       </li>

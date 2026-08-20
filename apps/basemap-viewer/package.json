@@ -21,8 +21,8 @@
     "@iconify/svelte": "^5.2.2",
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
-    "bits-ui": "^2.18.1",
-    "maplibre-gl": "^6.4.0",
+    "bits-ui": "^2.19.0",
+    "maplibre-gl": "^6.4.1",
     "svelte": "^5.56.9"
   },
   "devDependencies": {
@@ -31,8 +31,8 @@
     "@types/node": "^26.2.0",
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
-    "vite": "^8.2.1",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.123.0"
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.124.0"
   }
 }

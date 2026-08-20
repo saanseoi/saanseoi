@@ -1,6 +1,7 @@
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 import { runWithD1ReadRetry } from '../lib/d1'
+import type { AccessAttribution } from './accessAnalytics'
 import type { AppBindings, AppEnv } from '../types'
 
 const DEFAULT_PAGE_LIMIT = 100
@@ -27,6 +28,9 @@ type SourceReleaseRow = {
 
 type SourceReleaseWithShard = SourceReleaseRow & {
   bindingName: string
+  datasetId: string
+  publisherCode: string
+  sourceReleaseId: string
 }
 
 type SourceRecordRow = {
@@ -191,29 +195,53 @@ function decodeCursor(value: string | undefined): Cursor | null {
 async function resolveSourceRelease(
   metaDb: AppEnv['Variables']['metaDb'],
   sourceReleaseCode: string,
+  family: SourceFamily,
 ): Promise<SourceReleaseWithShard | null> {
   const result = await runWithD1ReadRetry(() =>
     metaDb.$client
       .prepare(
         `SELECT
+          datasets.id AS datasetId,
           datasets.code AS datasetCode,
           releases.id AS releaseId,
           releases.resourceType AS resourceType,
           releases.code AS sourceReleaseCode,
           releases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
+          sourceReleases.id AS sourceReleaseId,
+          publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
         FROM releases
+        INNER JOIN sourceReleases
+          ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId
+        INNER JOIN publishers ON publishers.id = datasets.publisherId
         INNER JOIN releaseShardAssignments
           ON releaseShardAssignments.releaseId = releases.id
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
         WHERE releases.code = ?
+          AND releases.status IN ('published', 'superseded')
+          AND releases.revokedAt IS NULL
+          AND sourceReleases.status IN ('published', 'superseded')
+          AND sourceReleases.revokedAt IS NULL
           AND dataShards.shardType = 'source'
-          AND dataShards.status = 'active'`,
+          AND dataShards.status = 'active'
+          AND EXISTS (
+            SELECT 1
+            FROM snapshotSources
+            INNER JOIN apiReleaseSetSnapshots
+              ON apiReleaseSetSnapshots.snapshotId = snapshotSources.snapshotId
+            INNER JOIN apiReleaseSets
+              ON apiReleaseSets.id = apiReleaseSetSnapshots.apiReleaseSetId
+            INNER JOIN apiVersions
+              ON apiVersions.id = apiReleaseSets.apiVersionId
+            WHERE snapshotSources.sourceReleaseId = releases.id
+              AND apiReleaseSets.status <> 'draft'
+              AND apiVersions.familyType = ?
+          )`,
       )
-      .bind(sourceReleaseCode)
+      .bind(sourceReleaseCode, family)
       .all<SourceReleaseWithShard>(),
   )
 
@@ -301,7 +329,11 @@ async function resolveRecordsRequest(args: {
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
 }) {
-  const release = await resolveSourceRelease(args.metaDb, args.sourceReleaseCode)
+  const release = await resolveSourceRelease(
+    args.metaDb,
+    args.sourceReleaseCode,
+    args.family,
+  )
   if (!release) return null
 
   const entry = sourceCatalogueFor(args.family)[release.datasetCode]
@@ -319,9 +351,17 @@ export async function listSourceRecords(args: {
   limit?: number
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<SourceRecordPage | null> {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
+  args.onResolved?.({
+    datasetId: resolved.release.datasetId,
+    publisherCodes: [resolved.release.publisherCode],
+    sourceReleaseCode: resolved.release.sourceReleaseCode,
+    sourceReleaseId: resolved.release.sourceReleaseId,
+    surface: 'source',
+  })
 
   const cursor = decodeCursor(args.cursor)
   if (args.cursor && !cursor) {
@@ -367,9 +407,17 @@ export async function streamSourceRecordsNdjson(args: {
   includeGeometry: boolean
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<ReadableStream<Uint8Array> | null> {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
+  args.onResolved?.({
+    datasetId: resolved.release.datasetId,
+    publisherCodes: [resolved.release.publisherCode],
+    sourceReleaseCode: resolved.release.sourceReleaseCode,
+    sourceReleaseId: resolved.release.sourceReleaseId,
+    surface: 'source',
+  })
 
   let cursor = decodeCursor(args.cursor)
   if (args.cursor && !cursor) {
@@ -379,37 +427,61 @@ export async function streamSourceRecordsNdjson(args: {
     )
   }
   const encoder = new TextEncoder()
+  let page: SourceRecordRow[] = []
+  let pageIndex = 0
+  let reachedLastPage = false
+  let cancelled = false
 
   return new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {
-        const rows = await readSourceRecordPage({
-          ...resolved,
-          cursor,
-          includeGeometry: args.includeGeometry,
-          limit: DOWNLOAD_PAGE_LIMIT,
-        })
-        for (const row of rows) {
-          controller.enqueue(
-            encoder.encode(
-              `${JSON.stringify(toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry))}\n`,
-            ),
-          )
+        if (cancelled) return
+
+        if (pageIndex >= page.length) {
+          if (reachedLastPage) {
+            controller.close()
+            return
+          }
+
+          page = await readSourceRecordPage({
+            ...resolved,
+            cursor,
+            includeGeometry: args.includeGeometry,
+            limit: DOWNLOAD_PAGE_LIMIT,
+          })
+          pageIndex = 0
+          reachedLastPage = page.length < DOWNLOAD_PAGE_LIMIT
+
+          const last = page.at(-1)
+          if (!last) {
+            controller.close()
+            return
+          }
+          cursor = {
+            sourceRecordId: last.sourceRecordId,
+            versionHash: last.versionHash,
+          }
         }
 
-        const last = rows.at(-1)
-        if (!last || rows.length < DOWNLOAD_PAGE_LIMIT) {
+        const row = page[pageIndex]
+        if (!row) return
+        pageIndex += 1
+        controller.enqueue(
+          encoder.encode(
+            `${JSON.stringify(toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry))}\n`,
+          ),
+        )
+
+        if (pageIndex >= page.length && reachedLastPage) {
           controller.close()
-          return
-        }
-
-        cursor = {
-          sourceRecordId: last.sourceRecordId,
-          versionHash: last.versionHash,
         }
       } catch (error) {
         controller.error(error)
       }
+    },
+    cancel() {
+      cancelled = true
+      page = []
     },
   })
 }
@@ -487,7 +559,7 @@ async function listReleaseSetSourceReleases(
          FROM apiReleaseSets
          INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
          WHERE apiVersions.familyType = ?
-           AND apiReleaseSets.status = 'published'
+           AND apiReleaseSets.status <> 'draft'
            ${selectionCondition}
          ORDER BY coalesce(apiReleaseSets.publishedAt, apiReleaseSets.createdAt) DESC,
            apiReleaseSets.id DESC
@@ -528,7 +600,7 @@ async function querySourceReleaseDiscoveryRows(
   const byReleaseSet = 'apiReleaseSetId' in selector
   const sourceCondition = byReleaseSet
     ? 'apiReleaseSetSnapshots.apiReleaseSetId = ?'
-    : "apiVersions.familyType = ? AND snapshots.code = ? AND apiReleaseSets.status = 'published'"
+    : "apiVersions.familyType = ? AND snapshots.code = ? AND apiReleaseSets.status <> 'draft'"
   const datasetCondition = selector.datasetCode ? 'AND datasets.code = ?' : ''
   const values = byReleaseSet
     ? [
@@ -567,8 +639,14 @@ async function querySourceReleaseDiscoveryRows(
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
         INNER JOIN snapshotSources ON snapshotSources.snapshotId = snapshots.id
         INNER JOIN releases ON releases.id = snapshotSources.sourceReleaseId
+        INNER JOIN sourceReleases
+          ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId
         WHERE ${sourceCondition}
+        AND releases.status IN ('published', 'superseded')
+        AND releases.revokedAt IS NULL
+        AND sourceReleases.status IN ('published', 'superseded')
+        AND sourceReleases.revokedAt IS NULL
         ${datasetCondition}
         ORDER BY datasets.code ASC, releases.code ASC, snapshots.code ASC`,
       )

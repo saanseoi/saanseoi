@@ -92,6 +92,16 @@ let scopeDescription = $derived(
   selectLocalisedRow(composition?.i18n?.[release.domainCode ?? 'default'], locale)
     ?.description,
 )
+let accessMetrics = $derived([
+  {
+    label: m.publishers_api_requests(),
+    value: 'N/A',
+  },
+  {
+    label: m.publishers_downloads(),
+    value: 'N/A',
+  },
+])
 let details = $derived([
   {
     disclosure: [
@@ -176,10 +186,11 @@ let details = $derived([
   <ReleaseHeader.Header
     label={`${m.common_api()} ·`}
     labelAction={domainSelector}
+    metrics={accessMetrics}
     {statusLabel}
     {statusClass}
     {statusDotClass}
     showBackground
   />
-  <ReleaseHeader.Content {main} showBackground />
+  <ReleaseHeader.Content {main} metrics={accessMetrics} showBackground />
 </ReleaseHeader.Root>

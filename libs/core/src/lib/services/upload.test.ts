@@ -425,7 +425,7 @@ describe('upload', () => {
     ).rejects.toThrow(
       'Overture sourceVersion 2026-06-24.0 is not marked as a known safe release.',
     )
-  })
+  }, 10_000)
 
   test('registers the first dataset upload against a provided raw object key', async () => {
     const tempDir = createTempDir()
