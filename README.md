@@ -28,6 +28,9 @@ bun run dev:basemap  # Basemap release viewer
 bun run dev:all      # All services currently included in the full stack
 ```
 
+Development commands do not run local D1 migrations. Apply schema changes manually with
+`bun run db:migration:run:local` before starting a Worker when needed.
+
 For more detail on contributing, workflows, and project expectations, see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
