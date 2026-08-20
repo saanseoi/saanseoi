@@ -453,6 +453,7 @@ type ApiReleaseSetSourceQueryRow = {
   releaseCode: string
   resourceType: string
   role: string
+  resourceReleaseCode: string
   sourceReleaseId: string
   sourceVersion: string
   variant: string
@@ -476,12 +477,13 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
           d.id AS datasetId,
           p.code AS publisherCode,
           p.id AS publisherId,
-          r.code AS releaseCode,
+          sr.code AS releaseCode,
           s.resourceType,
           CASE
             WHEN arss.role = 'primary' AND ss.role = 'primary' THEN 'primary'
             ELSE 'supporting'
           END AS role,
+          r.code AS resourceReleaseCode,
           ss.sourceReleaseId,
           r.sourceVersion,
           arss.variant
@@ -489,6 +491,7 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
         INNER JOIN snapshots s ON s.id = arss.snapshotId
         INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
         INNER JOIN releases r ON r.id = ss.sourceReleaseId
+        INNER JOIN sourceReleases sr ON sr.id = r.sourceReleaseId
         INNER JOIN datasets d ON d.id = ss.datasetId
         INNER JOIN publishers p ON p.id = d.publisherId
         WHERE ss.role <> 'lookup'

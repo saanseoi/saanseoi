@@ -149,13 +149,49 @@ export async function linkManagedSourceAssetToRelease(
     return { assetId: asset.assetId, status: 'existing' as const }
   }
 
-  await db
+  const updateResult = await db
     .update(metaAssets)
     .set({ releaseId: input.releaseId })
     .where(and(eq(metaAssets.assetKey, input.assetKey), isNull(metaAssets.releaseId)))
     .run()
 
-  return { assetId: asset.assetId, status: 'linked' as const }
+  if (getChangedRowCount(updateResult) > 0) {
+    return { assetId: asset.assetId, status: 'linked' as const }
+  }
+
+  const linkedAsset = await db
+    .select({ releaseId: metaAssets.releaseId })
+    .from(metaAssets)
+    .where(eq(metaAssets.assetKey, input.assetKey))
+    .get()
+  if (!linkedAsset?.releaseId) {
+    throw new Error(`Source asset ${input.assetKey} could not be linked to a release.`)
+  }
+
+  const linkedRelease = await db
+    .select({ sourceReleaseId: metaReleases.sourceReleaseId })
+    .from(metaReleases)
+    .where(eq(metaReleases.id, linkedAsset.releaseId))
+    .get()
+  if (linkedRelease?.sourceReleaseId !== targetRelease.sourceReleaseId) {
+    throw new Error(
+      `Source asset ${input.assetKey} is already linked to a different source release.`,
+    )
+  }
+
+  return { assetId: asset.assetId, status: 'existing' as const }
+}
+
+function getChangedRowCount(result: unknown) {
+  if (!result || typeof result !== 'object') return 0
+
+  if ('meta' in result && result.meta && typeof result.meta === 'object') {
+    const changes = 'changes' in result.meta ? result.meta.changes : undefined
+    if (typeof changes === 'number') return changes
+  }
+
+  const changes = 'changes' in result ? result.changes : undefined
+  return typeof changes === 'number' ? changes : 0
 }
 
 export function parseSourceAssetMetadata(value: string | File | null) {
