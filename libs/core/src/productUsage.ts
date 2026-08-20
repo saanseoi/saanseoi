@@ -192,7 +192,7 @@ export function toProductUsageDataPoint(
   const count = safeNumber(input.count, 0, 1_000_000)
 
   return {
-    indexes: [input.event, input.surface],
+    indexes: [input.event],
     blobs: [
       PRODUCT_USAGE_SCHEMA_VERSION,
       input.event,
