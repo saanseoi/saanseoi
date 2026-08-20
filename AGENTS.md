@@ -24,6 +24,7 @@ Repo-local operating notes for Codex and similar agents.
 - Type checking: `tsc --noEmit` in package scripts
 - Worker build/deploy tooling: `wrangler`
 - Prefer `rg`/`rg --files` for search
+- Use Fish for all shell commands and scripts; do not use Bash or POSIX shell syntax.
 - Use British English in prose, documentation, and identifiers where applicable.
 - After finishing a run that touched Markdown files, run `bun run format:markdown`.
 - The product is pre-release: do not retain legacy compatibility paths or migration
