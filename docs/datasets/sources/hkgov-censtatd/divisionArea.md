@@ -45,6 +45,11 @@ byte-identical within the 2016 and 2021 cohorts. The updater suppresses only tho
 no-op objects; it continues to inspect the archive catalogue, so a changed slot or
 object key remains eligible for review.
 
+The mirrored native ZIP is linked to the processed resource release after registration,
+through that release's canonical source-release lineage. This keeps one archive download
+available to both the 2016 and 2021 resource materialisations without making the archive
+depend on a particular resource type.
+
 During a target bootstrap, the release report is evaluated separately for the `2016` and
 `2021` source cohorts. An absent cohort is rebuilt from its native CSDI archive group,
 while a cohort already reported by the target remains current even if the operator's
