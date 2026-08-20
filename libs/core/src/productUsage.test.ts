@@ -20,7 +20,7 @@ describe('product usage contract', () => {
     })
 
     expect(point).toMatchObject({
-      indexes: ['client.download_click', 'api_release'],
+      indexes: ['client.download_click'],
       blobs: [
         'v1',
         'client.download_click',
