@@ -7,7 +7,6 @@ import { userLocales } from '@repo/db'
 import { z } from 'zod'
 
 const unlinkAccountSchema = z.object({
-  providerId: z.string(),
   accountId: z.string(),
   locale: z.enum(userLocales),
 })
@@ -79,7 +78,7 @@ export const getAccountPageData = query(async () => {
 
 export const unlinkAccountForCurrentUser = command(
   unlinkAccountSchema,
-  async ({ providerId, accountId, locale }) => {
+  async ({ accountId, locale }) => {
     const event = requireUser()
     if (!event)
       return {
@@ -87,22 +86,18 @@ export const unlinkAccountForCurrentUser = command(
         message: getAccountMessage(locale, 'account_unlink_error'),
       } as const
 
-    const [accounts, passkeys] = await Promise.all([
-      event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
-      event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
-    ])
-    if (accounts.length + passkeys.length <= 1) {
+    const accounts = await event.locals.auth.api.listUserAccounts({
+      headers: event.request.headers,
+    })
+    if (accounts.length <= 1) {
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_last_sign_in_method'),
       } as const
     }
 
-    // The account page exposes Better Auth's database record ID (`id`). Its
-    // unlink endpoint instead expects the provider's account ID (`accountId`).
-    const account = accounts.find(
-      account => account.id === accountId && account.providerId === providerId,
-    )
+    // Better Auth 1.7's unlink endpoint expects the local account record ID.
+    const account = accounts.find(account => account.id === accountId)
     if (!account) {
       return {
         ok: false,
@@ -112,10 +107,7 @@ export const unlinkAccountForCurrentUser = command(
 
     await event.locals.auth.api.unlinkAccount({
       headers: event.request.headers,
-      body: {
-        providerId,
-        accountId: account.accountId,
-      },
+      body: { accountId: account.id },
     })
     await getAccountPageData().refresh()
 

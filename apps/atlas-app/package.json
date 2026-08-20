@@ -22,7 +22,8 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
-    "@better-auth/passkey": "1.6.29",
+    "@better-auth/core": "1.7.1",
+    "@better-auth/passkey": "1.7.1",
     "@humanspeak/svelte-markdown": "^1.8.7",
     "@iconify-svelte/emojione-monotone": "1.0.3",
     "@iconify-svelte/hugeicons": "1.0.18",
@@ -36,7 +37,7 @@
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
     "@scalar/api-reference": "^1.65.1",
-    "better-auth": "~1.6.29",
+    "better-auth": "1.7.1",
     "bits-ui": "^2.19.0",
     "diff": "^9.0.0",
     "github-slugger": "^2.0.0",
