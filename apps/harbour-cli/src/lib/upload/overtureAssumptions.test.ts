@@ -63,6 +63,18 @@ describe('evaluateDivisionAssumptions', () => {
     ])
   })
 
+  test('labels capped distinct-value summaries honestly', () => {
+    expect(
+      evaluateDivisionAssumptions({
+        theme: {
+          distinctValues: Array.from({ length: 100 }, (_, index) => `${index}`),
+          distinctValuesTruncated: true,
+          nonNullCount: 101,
+        },
+      })[0],
+    ).toContain('at least 100 distinct non-null values')
+  })
+
   test('accepts the allowlisted Guangdong rows in early HK geometry extracts', () => {
     expect(
       evaluateDivisionAssumptions(
