@@ -13,7 +13,11 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "dev": "bash ./scripts/dev.sh",
+    "dev": "bash ./scripts/dev.sh all",
+    "dev:all": "bash ./scripts/dev.sh all",
+    "dev:atlas": "bash ./scripts/dev.sh atlas",
+    "dev:harbour": "bash ./scripts/dev.sh harbour",
+    "dev:basemap": "bun run --filter=basemap-viewer dev",
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
     "upload": "./bin/saanseoi upload",

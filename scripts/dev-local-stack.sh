@@ -8,7 +8,7 @@ db_migrate_script="$repo_root/libs/db/scripts/migrate-local-db.sh"
 mkdir -p "$persist_dir"
 
 # Ensure the local preview D1 schema exists before workerd binds the database.
-# The repository dev script performs this once before starting all services.
+# A parent root development command may perform this once before starting services.
 if [[ "${SAANSEOI_LOCAL_D1_MIGRATIONS_READY:-}" != "1" ]]; then
   bash "$db_migrate_script"
 fi
