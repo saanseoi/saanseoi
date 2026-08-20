@@ -7,7 +7,7 @@ export type RegistryAccessMetrics = {
 
 export async function getRegistryAccessMetrics(
   db: MetaDatabase,
-  scope: 'publisher' | 'source_release' | 'api_release_set',
+  scope: 'publisher' | 'dataset' | 'source_release' | 'api_release_set',
   entityId: string,
 ): Promise<RegistryAccessMetrics | null> {
   try {
