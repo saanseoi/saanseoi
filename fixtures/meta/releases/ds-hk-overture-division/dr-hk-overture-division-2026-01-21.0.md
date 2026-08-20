@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-14T05:04:22.737Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
+updatedAt: "2026-08-20T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2026-01-21.0"
 regionCode: "hk"
@@ -16,6 +16,7 @@ cohortKey: "2026-01-21.0"
 
 ## Changelog
 
+- <orange>Upstream</orange> Refreshed OSM data
 - <orange>Upstream</orange> Made minor, incremental updates to the data
 
 ## Compatibility
