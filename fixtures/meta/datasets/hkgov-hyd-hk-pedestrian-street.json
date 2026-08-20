@@ -12,7 +12,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Transport Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742",
-  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/b8562cd1703ad443a23157c2e6bad6435784aa9993154f924c533b3055268940",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/b8562cd1703ad443a23157c2e6bad6435784aa9993154f924c533b3055268940",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"

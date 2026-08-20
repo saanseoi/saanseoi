@@ -115,7 +115,7 @@ type DatasetFixture = {
   licenseCode: string
   attribution?: string
   sourceUrl?: string
-  schemaSpecificationURL: string | null
+  schemaURL: string | null
   category?: DatasetCategory
   // A dataset selects the source-specific operations it uses from a versioned
   // merge ruleset. The rule definitions themselves belong to rulesetVersions.
@@ -278,13 +278,7 @@ type InitialUnitI18nSeed = {
 type InitialDatasetSeed = VersionedFixture<
   Omit<
     DatasetFixture,
-    | 'i18n'
-    | 'mergeRules'
-    | 'resourceTypes'
-    | 'schemaSpecificationURL'
-    | 'subType'
-    | 'sourceVariant'
-    | 'transforms'
+    'i18n' | 'mergeRules' | 'resourceTypes' | 'subType' | 'sourceVariant' | 'transforms'
   > & {
     subType: string | null
     sourceVariant: string
@@ -499,6 +493,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   licenseCode: fixture.licenseCode,
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
+  schemaURL: fixture.schemaURL,
   category: fixture.category,
   processingRules: resolveDatasetMergeRules(fixture.mergeRules),
 }))
@@ -827,7 +822,7 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -840,6 +835,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceCrs)},
   ${sqlNullable(dataset.sourceUrl)},
+  ${sqlNullable(dataset.schemaURL ?? undefined)},
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
@@ -859,13 +855,15 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   sourceVariant = excluded.sourceVariant,
   sourceCrs = excluded.sourceCrs,
   sourceUrl = excluded.sourceUrl,
+  schemaURL = excluded.schemaURL,
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
   category = excluded.category,
   processingRules = excluded.processingRules,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
-WHERE datasets.versionHash <> excluded.versionHash;`.trim(),
+WHERE datasets.versionHash <> excluded.versionHash
+   OR datasets.schemaURL IS NOT excluded.schemaURL;`.trim(),
     )
   }
 

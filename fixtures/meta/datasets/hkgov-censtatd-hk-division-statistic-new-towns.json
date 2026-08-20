@@ -14,7 +14,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
-  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
