@@ -12,7 +12,7 @@
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
-  "schemaSpecificationURL": "https://docs.overturemaps.org/schema/reference/divisions/division/",
+  "schemaURL": "https://docs.overturemaps.org/schema/reference/divisions/division/",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
