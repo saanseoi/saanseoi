@@ -41,6 +41,7 @@ import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
+import { writeServerProductUsage } from '../analytics/productUsage.js'
 import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
@@ -71,6 +72,29 @@ const BASEMAP_REGIONS = {
   hk: { name: 'Hong Kong', tileset: 'hongkong' },
   mo: { name: 'Macao', tileset: 'macau' },
 } as const
+
+const recordRegistryDataLoad = (
+  route: string,
+  entityType:
+    | 'source'
+    | 'source_release'
+    | 'publisher'
+    | 'api'
+    | 'api_release'
+    | 'data_release'
+    | 'district'
+    | 'region',
+  entityId?: string,
+  outcome: 'success' | 'failure' = 'success',
+) =>
+  writeServerProductUsage({
+    event: 'registry.data_load',
+    surface: 'registry',
+    route,
+    entityType,
+    entityId,
+    outcome,
+  })
 
 export type SourcesPageSource = Pick<
   RegistrySource,
@@ -306,10 +330,12 @@ export const getSourcesPageData = query(async () => {
     }),
   )
 
-  return {
+  const result = {
     domainsByApiFamily,
     sources: (sources as unknown as RegistrySource[]).map(toSourcesPageSource),
   }
+  recordRegistryDataLoad('/sources', 'source')
+  return result
 })
 
 export const getPublishersPageData = query(async () => {
@@ -380,6 +406,7 @@ export const getSourcePageData = query(registryCodeSchema, async datasetCode => 
     redirect(302, `/sources/${source.code}/${latestVersion.code}`)
   }
 
+  recordRegistryDataLoad('/sources/:id', 'source', datasetCode)
   return source
 })
 
@@ -407,11 +434,13 @@ export const getSourceReleaseShellData = query(
       selectedReleaseCode: _selectedReleaseCode,
       ...source
     } = shell
-    return {
+    const result = {
       source: source as RegistrySource,
       version: version as SourceVersion,
       timings,
     }
+    recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
+    return result
   },
 )
 
@@ -495,6 +524,7 @@ export const getSourceReleaseContentData = query(
         content: performance.now() - startedAt,
       })
 
+    recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
     return result
   },
 )
@@ -684,11 +714,13 @@ export const getDistrictGeometryNames = query(
     const localisedNames = namesByLocale.get(i18nLocale)
     const englishNames = namesByLocale.get('en')
 
-    return ids.map(divisionId => ({
+    const result = ids.map(divisionId => ({
       divisionId,
       name: localisedNames?.get(divisionId) ?? englishNames?.get(divisionId) ?? null,
       unofficial: UNOFFICIAL_DISTRICT_IDS.has(divisionId),
     }))
+    recordRegistryDataLoad('/sources/:id/:id', 'district')
+    return result
   },
 )
 
@@ -723,10 +755,12 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
   }
   collectDescendants(publisher.id)
 
-  return {
+  const result = {
     publisher,
     sources: sources.filter(source => descendantPublisherIds.has(source.publisherId)),
   }
+  recordRegistryDataLoad('/publishers/:id', 'publisher', publisherCode)
+  return result
 })
 
 async function loadDataReleasesPage(offset = 0) {
@@ -1092,36 +1126,46 @@ async function loadDataPageApiData() {
 
 export const getDataPageApiData = query(async () => {
   try {
-    return await runWithD1ReadRetry(loadDataPageApiData)
+    const result = await runWithD1ReadRetry(loadDataPageApiData)
+    recordRegistryDataLoad('/data', 'data_release')
+    return result
   } catch (error) {
     // An import can briefly expose the app before both D1 databases have their
     // registry tables. Render the empty registry state until the upload finishes.
     if (isRegistryBootstrapError(error)) {
-      return {
+      const result = {
         releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: 0,
         apis: [] as DataPageApi[],
       }
+      recordRegistryDataLoad('/data', 'data_release')
+      return result
     }
     throw error
   }
 })
 
-export const getDataPageBasemapData = query(async () => ({
-  basemapReleases: await loadBasemapReleases(),
-}))
+export const getDataPageBasemapData = query(async () => {
+  const result = { basemapReleases: await loadBasemapReleases() }
+  recordRegistryDataLoad('/data', 'region')
+  return result
+})
 
 export const getDataReleasesPageData = query(releasePageSchema, async ({ offset }) => {
   try {
-    return await runWithD1ReadRetry(() => loadDataReleasesPage(offset))
+    const result = await runWithD1ReadRetry(() => loadDataReleasesPage(offset))
+    recordRegistryDataLoad('/data/releases', 'data_release', String(offset))
+    return result
   } catch (error) {
     if (isRegistryBootstrapError(error)) {
-      return {
+      const result = {
         releases: [] as DataPageRelease[],
         hasMore: false,
         nextOffset: offset,
       }
+      recordRegistryDataLoad('/data/releases', 'data_release', String(offset))
+      return result
     }
     throw error
   }
@@ -1140,6 +1184,7 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
     redirect(302, `/apis/${api.familyType}/${latestRelease.code}`)
   }
 
+  recordRegistryDataLoad('/apis/:id', 'api', familyType)
   return { api, release: null }
 })
 
@@ -1149,6 +1194,7 @@ export const getApiReleaseShellData = query(registryCodeSchema, async familyType
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
+  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
   return api
 })
 
@@ -1218,7 +1264,7 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
     ])
   }
 
-  return {
+  const result = {
     ...api,
     releases: api.releases?.map(release => ({
       ...release,
@@ -1244,4 +1290,6 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
       }),
     })),
   }
+  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
+  return result
 })

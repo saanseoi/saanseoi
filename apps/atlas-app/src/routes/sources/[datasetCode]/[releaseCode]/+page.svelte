@@ -34,6 +34,7 @@ import type {
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import { getDistrictCoverageMapData } from '#lib/registry/meta.remote.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import {
   getSourceReleaseContentQuery,
@@ -219,6 +220,12 @@ let sourceReleaseAssembliesPresentation = $derived(
 )
 function setShowNoteDiff(enabled: boolean) {
   showNoteDiff = enabled
+  trackClientProductUsage({
+    event: 'client.release_notes_diff',
+    surface: 'source_release',
+    entityType: 'action',
+    entityId: enabled ? 'open' : 'close',
+  })
   const url = new URL(page.url.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
@@ -230,6 +237,12 @@ function setShowNoteDiff(enabled: boolean) {
 }
 function setActiveTab(tab: string) {
   activeTab = tab as SourceReleaseTab
+  trackClientProductUsage({
+    event: 'client.release_tab_view',
+    surface: 'source_release',
+    entityType: 'tab',
+    entityId: tab,
+  })
   const url = new URL(page.url.href)
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
@@ -285,7 +298,15 @@ let actions = $derived<ReleaseNavAction[]>(
                   icon: 'ion:layers-outline',
                   id: 'bulk',
                   label: m.source_bulk_actions(),
-                  onSelect: () => (showBulkActions = !showBulkActions),
+                  onSelect: () => {
+                    showBulkActions = !showBulkActions
+                    trackClientProductUsage({
+                      event: 'client.audit_control',
+                      surface: 'source_release',
+                      entityType: 'action',
+                      entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                    })
+                  },
                   pressed: showBulkActions,
                 },
               ]
@@ -297,6 +318,7 @@ let actions = $derived<ReleaseNavAction[]>(
                 icon: 'ion:download-outline',
                 id: 'download',
                 label: m.source_download_archive(),
+                analyticsSurface: 'source_release',
               }
             : {
                 disabled: true,
@@ -339,6 +361,7 @@ $effect(() => {
     <ReleaseHeader.SourceVariant {source} {version} {locale} />
 
     <ReleaseNav.Root
+      analyticsSurface="source_release"
       {versions}
       currentVersionCode={params.releaseCode}
       loading={isContentLoading}
@@ -412,6 +435,7 @@ $effect(() => {
             />
           {:else if activeTab === 'audit'}
             <ReleaseAudit.Root
+              analyticsSurface="source_release"
               actions={version.processingActions}
               {bulkActions}
               {locale}
@@ -422,6 +446,7 @@ $effect(() => {
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
+                analyticsSurface="source_release"
                 presentation={sourceReleaseLinksPresentation}
                 copyRequestLabel="Copy request"
                 emptyLabel={m.source_released_as_empty()}
@@ -430,6 +455,7 @@ $effect(() => {
           {:else}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
+                analyticsSurface="source_release"
                 presentation={sourceReleaseAssembliesPresentation}
                 copyRequestLabel="Copy request"
                 emptyLabel="No assembled source releases."

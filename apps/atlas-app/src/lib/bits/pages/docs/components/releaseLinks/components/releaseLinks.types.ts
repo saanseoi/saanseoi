@@ -1,3 +1,10 @@
+import type { ProductUsageSurface } from '@repo/core/productUsage'
+
+export type ReleaseAnalyticsSurface = Extract<
+  ProductUsageSurface,
+  'api_release' | 'source_release'
+>
+
 export type ReleaseLinkTitlePart = {
   colour?: string
   muted?: boolean
@@ -45,6 +52,7 @@ export type ReleaseLinkAction = {
   icon?: string
   id: string
   label: string
+  analyticsSurface?: ReleaseAnalyticsSurface
 }
 
 export type ReleaseLinksProvenanceEntry = ReleaseLinkCardPresentation & {

@@ -3,6 +3,7 @@ import { command, getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
 import { createApiKey, listApiKeys, revokeApiKey } from '#lib/server/apiKeys.js'
+import { writeServerProductUsage } from '#lib/analytics/productUsage.js'
 
 const createApiKeySchema = z.object({
   name: z
@@ -37,10 +38,27 @@ export const createApiKeyForCurrentUser = command(
   createApiKeySchema,
   async ({ name }) => {
     const { binding, userId } = getIdentity()
-    const key = await createApiKey(binding, userId, name)
+    try {
+      const key = await createApiKey(binding, userId, name)
 
-    await getApiKeysPageData().refresh()
-    return key
+      await getApiKeysPageData().refresh()
+      writeServerProductUsage({
+        event: 'api_key.create',
+        surface: 'api_keys',
+        entityType: 'key_action',
+        entityId: 'create',
+      })
+      return key
+    } catch (error) {
+      writeServerProductUsage({
+        event: 'api_key.create',
+        surface: 'api_keys',
+        entityType: 'key_action',
+        entityId: 'create',
+        outcome: 'failure',
+      })
+      throw error
+    }
   },
 )
 
@@ -49,7 +67,24 @@ export const revokeApiKeyForCurrentUser = command(
   async ({ id }) => {
     const { binding, userId } = getIdentity()
 
-    await revokeApiKey(binding, userId, id)
-    await getApiKeysPageData().refresh()
+    try {
+      await revokeApiKey(binding, userId, id)
+      await getApiKeysPageData().refresh()
+      writeServerProductUsage({
+        event: 'api_key.revoke',
+        surface: 'api_keys',
+        entityType: 'key_action',
+        entityId: 'revoke',
+      })
+    } catch (error) {
+      writeServerProductUsage({
+        event: 'api_key.revoke',
+        surface: 'api_keys',
+        entityType: 'key_action',
+        entityId: 'revoke',
+        outcome: 'failure',
+      })
+      throw error
+    }
   },
 )

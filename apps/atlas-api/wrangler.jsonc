@@ -105,7 +105,8 @@
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
+    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" },
+    { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-local" }
   ],
   "triggers": {
     "crons": ["*/5 * * * *"]
@@ -257,7 +258,8 @@
         }
       ],
       "analytics_engine_datasets": [
-        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" }
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" },
+        { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-preview" }
       ],
       "ratelimits": [
         {
@@ -385,7 +387,8 @@
         }
       ],
       "analytics_engine_datasets": [
-        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" }
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" },
+        { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-production" }
       ],
       "ratelimits": [
         {

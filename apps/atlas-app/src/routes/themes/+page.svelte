@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import {
   PageDescription,
   PageHeader,
@@ -112,6 +113,7 @@ function purposeLabel(option: PurposeFilter) {
         <select
           aria-label={m.themes_region()}
           bind:value={regionCode}
+          onchange={() => trackClientProductUsage({ event: 'client.basemap_control', surface: 'basemaps', entityType: 'region', entityId: regionCode })}
           class="min-h-11 rounded-default border border-border-card bg-background px-3 font-body text-foreground shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-secondary"
         >
           {#each regions as region}
@@ -166,7 +168,10 @@ function purposeLabel(option: PurposeFilter) {
               type="button"
               aria-pressed={appearance === option}
               class="rounded-full border px-3 py-1.5 font-body text-sm font-semibold transition-colors {appearance === option ? 'border-primary bg-primary text-on-primary' : 'border-border-card bg-background text-foreground hover:bg-muted'}"
-              onclick={() => (appearance = option as AppearanceFilter)}
+              onclick={() => {
+                appearance = option as AppearanceFilter
+                trackClientProductUsage({ event: 'client.basemap_control', surface: 'basemaps', entityType: 'theme', entityId: appearance })
+              }}
             >
               {appearanceLabel(option)}
             </button>
@@ -183,7 +188,10 @@ function purposeLabel(option: PurposeFilter) {
               type="button"
               aria-pressed={purpose === option}
               class="rounded-full border px-3 py-1.5 font-body text-sm font-semibold transition-col {purpose === option ? 'border-primary bg-primary text-on-primary' : 'border-border-card bg-background text-foreground hover:bg-muted'}"
-              onclick={() => (purpose = option as PurposeFilter)}
+              onclick={() => {
+                purpose = option as PurposeFilter
+                trackClientProductUsage({ event: 'client.basemap_control', surface: 'basemaps', entityType: 'theme', entityId: purpose })
+              }}
             >
               {purposeLabel(option)}
             </button>
@@ -241,6 +249,7 @@ function purposeLabel(option: PurposeFilter) {
                 href={viewerUrl(style)}
                 target="_blank"
                 rel="noreferrer"
+                onclick={() => trackClientProductUsage({ event: 'client.viewer_link', surface: 'basemaps', entityType: 'theme', entityId: style.id })}
                 size="compact"
                 >{m.themes_preview_map()}</Button
               >
@@ -248,6 +257,7 @@ function purposeLabel(option: PurposeFilter) {
                 href={styleUrl(style)}
                 target="_blank"
                 rel="noreferrer"
+                onclick={() => trackClientProductUsage({ event: 'client.style_link', surface: 'style_request', entityType: 'style', entityId: style.id })}
                 size="compact"
                 variant="secondary"
                 >{m.themes_style_json()}</Button
