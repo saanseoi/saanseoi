@@ -86,6 +86,9 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     try {
       await next()
       requestStatus = c.res.status
+    } catch (error) {
+      requestStatus = isTransientD1ReadError(error) ? 503 : 500
+      throw error
     } finally {
       const requestPath = c.req.path
       const status = requestStatus
