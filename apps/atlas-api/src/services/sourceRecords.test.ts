@@ -122,6 +122,10 @@ describe('source records', () => {
     })
 
     expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
+    expect(queries[1]).toContain("releases.status IN ('published', 'superseded')")
+    expect(queries[1]).toContain('releases.revokedAt IS NULL')
+    expect(queries[1]).toContain("sourceReleases.status IN ('published', 'superseded')")
+    expect(queries[1]).toContain('sourceReleases.revokedAt IS NULL')
     expect(queries.join('\n')).not.toContain("apiReleaseSets.status = 'published'")
     expect(result).toHaveLength(1)
     expect(result[0]?.recordsAvailable).toBe(true)
