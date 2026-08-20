@@ -516,6 +516,7 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
     const existingIndex = sources.findIndex(
       candidate =>
         candidate.releaseCode === source.releaseCode &&
+        candidate.resourceType === source.resourceType &&
         candidate.variant === source.variant,
     )
     const next: ApiReleaseSetSourceDocsRow = {
