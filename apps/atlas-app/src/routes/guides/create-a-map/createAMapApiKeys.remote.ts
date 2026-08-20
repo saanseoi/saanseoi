@@ -2,6 +2,7 @@ import { command, getRequestEvent } from '$app/server'
 import { z } from 'zod'
 
 import { createApiKey } from '#lib/server/apiKeys.js'
+import { writeServerProductUsage } from '#lib/analytics/productUsage.js'
 
 const createApiKeySchema = z.object({
   name: z
@@ -24,6 +25,23 @@ const getIdentity = () => {
 export const createGuideApiKey = command(createApiKeySchema, async ({ name }) => {
   const identity = getIdentity()
   if (!identity) throw new Error('You must be signed in to create an API key.')
-
-  return createApiKey(identity.binding, identity.userId, name)
+  try {
+    const key = await createApiKey(identity.binding, identity.userId, name)
+    writeServerProductUsage({
+      event: 'api_key.create',
+      surface: 'guide',
+      entityType: 'key_action',
+      entityId: 'create',
+    })
+    return key
+  } catch (error) {
+    writeServerProductUsage({
+      event: 'api_key.create',
+      surface: 'guide',
+      entityType: 'key_action',
+      entityId: 'create',
+      outcome: 'failure',
+    })
+    throw error
+  }
 })
