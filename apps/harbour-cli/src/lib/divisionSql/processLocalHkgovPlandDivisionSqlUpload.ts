@@ -46,7 +46,7 @@ import {
 } from '@repo/core/pipeline/services/pipelineArtefacts'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
@@ -77,6 +77,7 @@ import {
   type LocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
 import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
+import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -271,14 +272,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           resolveShardForTypeRegionYear(
             metaDb,
             'history',
-            target.remote ? 'production' : 'preview',
+            resolvePipelineEnvironment(target),
             previewPlan.regionCode,
             previewPlan.sourceVersion,
           ),
           resolveShardForTypeRegionYear(
             metaDb,
             'source',
-            target.remote ? 'production' : 'preview',
+            resolvePipelineEnvironment(target),
             previewPlan.regionCode,
             previewPlan.sourceVersion,
           ),
@@ -1849,37 +1850,16 @@ async function runPlandProgressPhase<T>(
   operation: (reportProgress: (current: number) => void) => Promise<T>,
   options: { totalUnits?: number } = {},
 ) {
-  const startedAt = Date.now()
   const totalUnits =
     typeof options.totalUnits === 'number' && options.totalUnits > 0
       ? Math.floor(options.totalUnits)
       : undefined
-  const labelForProgress = (current?: number) =>
-    formatRunningPhaseLabel(colorTeal(action), colorRed(subject), current, totalUnits)
-  progress.beginPhase(labelForProgress(0), {
-    current: 0,
-    max: totalUnits ?? null,
-  })
 
-  try {
-    const result = await operation(current => {
-      if (totalUnits === undefined) return
-      const resolvedCurrent = Math.min(Math.max(0, current), totalUnits)
-      progress.update(resolvedCurrent, {
-        label: labelForProgress(resolvedCurrent),
-      })
-    })
-    progress.complete(
-      appendPhaseDetails(
-        formatCompletedPhaseLabel(colorTeal(action), colorRed(subject)),
-        [formatDurationMs(Date.now() - startedAt)],
-      ),
-    )
-    return result
-  } catch (error) {
-    progress.fail()
-    throw error
-  }
+  return runLocalProgressPhase(
+    progress,
+    { action, subject, totalUnits },
+    reportProgress => operation(reportProgress),
+  )
 }
 
 async function replayPlandSqlIntoSharedCache(

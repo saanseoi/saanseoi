@@ -122,7 +122,7 @@ describe('division API release set readiness display', () => {
     ).toBe(
       [
         '# EXACT REF',
-        'HK / overture / 2025-09-24.0',
+        'HK / geographic / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[31munavailable\u001B[39m',
         '  \u001B[31m○\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[31munavailable\u001B[39m',
@@ -165,7 +165,7 @@ describe('division API release set readiness display', () => {
     ).toBe(
       [
         '# EXACT REF',
-        'HK / overture / 2025-09-24.0',
+        'HK / geographic / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[32mavailable\u001B[39m',
