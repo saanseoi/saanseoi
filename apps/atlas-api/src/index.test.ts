@@ -1143,15 +1143,25 @@ describe('atlas-api', () => {
   })
 
   test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
+    const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createEnv(
-      {},
+      {
+        PRODUCT_USAGE: {
+          writeDataPoint: event => productEvents.push(event ?? {}),
+        } as AnalyticsEngineDataset,
+      },
       {
         failOnAll: () => true,
         failOnFirst: () => true,
         failOnRaw: () => true,
       },
     )
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+      env,
+    )
     const body = (await res.json()) as {
       error: string
       message: string
@@ -1162,6 +1172,18 @@ describe('atlas-api', () => {
       error: 'service_unavailable',
       message: 'The atlas API is temporarily unavailable.',
     })
+    expect(productEvents[0]?.blobs).toEqual([
+      'v1',
+      'api.request',
+      'atlas-api',
+      'api',
+      '/v0/divisions',
+      '',
+      '',
+      '',
+      'failure',
+      '503',
+    ])
   })
 
   test('GET /v0/divisions rejects invalid locale syntax', async () => {
