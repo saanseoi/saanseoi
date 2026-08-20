@@ -6,10 +6,12 @@ import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
 import { getAuthRedirectPath } from '#lib/authRedirect.js'
 import { page } from '$app/state'
 
+let { data } = $props()
 let email = $state('')
 let password = $state('')
 let error = $state<string | null>(null)
@@ -85,6 +87,11 @@ const passkeySignIn = async () => {
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.auth_sign_in_description()}
   </p>
+  <AuthGoogleOneTap
+    clientId={data.googleClientId}
+    callbackURL={next}
+    context="signin"
+  />
   <p class="sr-only" aria-live="polite">{busy ? m.auth_signing_in() : ''}</p>
   <AuthSocialButtons {pendingProvider} disabled={busy} onselect={socialSignIn} />
   <div class="my-7 flex items-center gap-3" aria-hidden="true">
