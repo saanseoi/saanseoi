@@ -68,5 +68,5 @@
       "description": "本数据以土地信息系统（“LIS”）1:1000 地形数据集为基础，亦可在 iB1000 数据集的 Street Centre Lines 要素类及 iRG1000 数据集的 Road Centreline 获取。地政总署道路中心线主要用于大概位置查询及地图注记标注。"
     }
   ],
-  "versionHash": "sha256:2a703f6c30426e7de2c24990bfbe16293f40a0f2b48455f597a78886dcd118cc"
+  "versionHash": "sha256:0e3f3c10e99fca7d6c2590a21dc8e0cdc5516419254f033e4891b9135a28058e"
 }
