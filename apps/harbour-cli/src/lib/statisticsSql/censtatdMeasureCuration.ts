@@ -665,7 +665,7 @@ export async function resolveCenstatdSchemaMeasureCandidates(
   await Promise.all(
     fixtures.map(async dataset => {
       const specificationUrl = staticCsdiSpecificationUrl(
-        dataset.schemaSpecificationURL,
+        dataset.schemaURL,
       )
       if (!specificationUrl) return
       const fields = await fetchCsdiSpecification(specificationUrl)

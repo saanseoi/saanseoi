@@ -221,6 +221,7 @@ export type RegistrySource = {
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
+  schemaURL?: string | null
   licenseId?: string | null
   license?: {
     id: string | null
