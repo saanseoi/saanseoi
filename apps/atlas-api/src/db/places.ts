@@ -1,6 +1,7 @@
 import type { CurrentDatabase } from '@repo/db'
 import { and, asc, eq } from '@repo/db'
 import { currentSchema } from '@repo/db'
+import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 
 const {
   divisions,
@@ -125,7 +126,7 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
         eq(placesCells.h3Cell, lookup.h3Cell),
       ),
     )
-    .limit(lookup.limit ?? 50)
+    .limit(Math.min(lookup.limit ?? 50, MAX_PLACE_RESULTS))
     .all()
 }
 
@@ -154,7 +155,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
           placesFtsMatch(lookup.query),
         ),
       )
-      .limit(lookup.limit ?? 20)
+      .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
       .all()
   } catch (error) {
     if (error instanceof Error && error.message.includes('no such table: placesFts')) {

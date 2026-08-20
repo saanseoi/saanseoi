@@ -5,6 +5,16 @@ import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
+const D1_MAX_BOUND_VARIABLES = 100
+
+function chunkD1Values(values: string[], reservedVariables: number) {
+  const uniqueValues = [...new Set(values)]
+  const chunkSize = Math.max(1, D1_MAX_BOUND_VARIABLES - reservedVariables)
+  return Array.from(
+    { length: Math.ceil(uniqueValues.length / chunkSize) },
+    (_, index) => uniqueValues.slice(index * chunkSize, (index + 1) * chunkSize),
+  )
+}
 
 function decodeStoredDivisionGeometry(value: unknown) {
   if (value instanceof Uint8Array) return decompressJsonBrotli(value)
@@ -129,30 +139,37 @@ export async function listDivisionAreasCurrentByDivisionIds(
   lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
 ) {
   if (lookup.divisionIds.length === 0) return []
-  return (
-    await db
-      .select({
-        id: divisionAreas.id,
-        variant: divisionAreas.variant,
-        divisionId: divisionAreas.divisionId,
-        bbox: divisionAreas.bbox,
-        geometry: divisionAreas.geometry,
-        sourceKeys: divisionAreas.sourceKeys,
-        sources: divisionAreas.sources,
-        type: divisionAreas.type,
-        isLand: divisionAreas.isLand,
-        isTerritorial: divisionAreas.isTerritorial,
-      })
-      .from(divisionAreas)
-      .where(
-        and(
-          eq(divisionAreas.snapshotId, lookup.snapshotId),
-          inArray(divisionAreas.divisionId, lookup.divisionIds),
-          ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
-        ),
-      )
-      .all()
-  ).map(row => ({
+  const chunks = chunkD1Values(lookup.divisionIds, 1 + (lookup.variant ? 1 : 0))
+  const rows = (
+    await Promise.all(
+      chunks.map(divisionIds =>
+        db
+          .select({
+            id: divisionAreas.id,
+            variant: divisionAreas.variant,
+            divisionId: divisionAreas.divisionId,
+            bbox: divisionAreas.bbox,
+            geometry: divisionAreas.geometry,
+            sourceKeys: divisionAreas.sourceKeys,
+            sources: divisionAreas.sources,
+            type: divisionAreas.type,
+            isLand: divisionAreas.isLand,
+            isTerritorial: divisionAreas.isTerritorial,
+          })
+          .from(divisionAreas)
+          .where(
+            and(
+              eq(divisionAreas.snapshotId, lookup.snapshotId),
+              inArray(divisionAreas.divisionId, divisionIds),
+              ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
+            ),
+          )
+          .all(),
+      ),
+    )
+  ).flat()
+
+  return rows.map(row => ({
     ...row,
     geometry: decodeStoredDivisionGeometry(row.geometry),
   })) as DivisionAreaRecord[]
@@ -163,56 +180,57 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
   lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
 ) {
   if (lookup.divisionIds.length === 0) return []
-  const left = await db
-    .select({
-      id: divisionBoundaries.id,
-      variant: divisionBoundaries.variant,
-      leftDivisionId: divisionBoundaries.leftDivisionId,
-      rightDivisionId: divisionBoundaries.rightDivisionId,
-      bbox: divisionBoundaries.bbox,
-      geometry: divisionBoundaries.geometry,
-      sourceKeys: divisionBoundaries.sourceKeys,
-      sources: divisionBoundaries.sources,
-      type: divisionBoundaries.type,
-      isLand: divisionBoundaries.isLand,
-      isTerritorial: divisionBoundaries.isTerritorial,
-    })
-    .from(divisionBoundaries)
-    .where(
-      and(
-        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
-        inArray(divisionBoundaries.leftDivisionId, lookup.divisionIds),
-        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
-      ),
+  const chunks = chunkD1Values(lookup.divisionIds, 1 + (lookup.variant ? 1 : 0))
+  const rows = (
+    await Promise.all(
+      chunks.map(async divisionIds => {
+        const selection = {
+          id: divisionBoundaries.id,
+          variant: divisionBoundaries.variant,
+          leftDivisionId: divisionBoundaries.leftDivisionId,
+          rightDivisionId: divisionBoundaries.rightDivisionId,
+          bbox: divisionBoundaries.bbox,
+          geometry: divisionBoundaries.geometry,
+          sourceKeys: divisionBoundaries.sourceKeys,
+          sources: divisionBoundaries.sources,
+          type: divisionBoundaries.type,
+          isLand: divisionBoundaries.isLand,
+          isTerritorial: divisionBoundaries.isTerritorial,
+        }
+        return Promise.all([
+          db
+            .select(selection)
+            .from(divisionBoundaries)
+            .where(
+              and(
+                eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+                inArray(divisionBoundaries.leftDivisionId, divisionIds),
+                ...(lookup.variant
+                  ? [eq(divisionBoundaries.variant, lookup.variant)]
+                  : []),
+              ),
+            )
+            .all(),
+          db
+            .select(selection)
+            .from(divisionBoundaries)
+            .where(
+              and(
+                eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+                inArray(divisionBoundaries.rightDivisionId, divisionIds),
+                ...(lookup.variant
+                  ? [eq(divisionBoundaries.variant, lookup.variant)]
+                  : []),
+              ),
+            )
+            .all(),
+        ])
+      }),
     )
-    .all()
-  const right = await db
-    .select({
-      id: divisionBoundaries.id,
-      variant: divisionBoundaries.variant,
-      leftDivisionId: divisionBoundaries.leftDivisionId,
-      rightDivisionId: divisionBoundaries.rightDivisionId,
-      bbox: divisionBoundaries.bbox,
-      geometry: divisionBoundaries.geometry,
-      sourceKeys: divisionBoundaries.sourceKeys,
-      sources: divisionBoundaries.sources,
-      type: divisionBoundaries.type,
-      isLand: divisionBoundaries.isLand,
-      isTerritorial: divisionBoundaries.isTerritorial,
-    })
-    .from(divisionBoundaries)
-    .where(
-      and(
-        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
-        inArray(divisionBoundaries.rightDivisionId, lookup.divisionIds),
-        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
-      ),
-    )
-    .all()
-  return [
-    ...left,
-    ...right.filter(item => !left.some(existing => existing.id === item.id)),
-  ].map(row => ({
+  ).flat(2)
+  const uniqueRows = [...new Map(rows.map(row => [row.id, row])).values()]
+
+  return uniqueRows.map(row => ({
     ...row,
     geometry: decodeStoredDivisionGeometry(row.geometry),
   })) as DivisionBoundaryRecord[]
@@ -469,14 +487,9 @@ export async function listDivisionRecordsCurrentByIds(
   }
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  const uniqueIds = [...new Set(lookup.divisionIds)]
   // D1 permits at most 100 bound variables. Reserve one for every selected
   // division snapshot as well as the requested canonical IDs.
-  const maxDivisionIds = Math.max(1, 100 - (lookup.snapshotIds?.length ?? 1))
-  const chunks = Array.from(
-    { length: Math.ceil(uniqueIds.length / maxDivisionIds) },
-    (_, index) => uniqueIds.slice(index * maxDivisionIds, (index + 1) * maxDivisionIds),
-  )
+  const chunks = chunkD1Values(lookup.divisionIds, lookup.snapshotIds?.length ?? 1)
   const rows = (
     await Promise.all(
       chunks.map(divisionIds =>
