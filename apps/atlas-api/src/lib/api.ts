@@ -22,8 +22,14 @@ export type SnapshotNotReadyResponse<TResourceType extends string = string> = {
   message: `No active ${TResourceType} snapshot is published.`
 }
 
+export function sanitiseResponseUrl(url: string | URL) {
+  const safeUrl = new URL(url)
+  safeUrl.searchParams.delete('access_token')
+  return safeUrl
+}
+
 export function buildPaginationLink(args: { url: URL; limit: number; offset: number }) {
-  const pageUrl = new URL(args.url)
+  const pageUrl = sanitiseResponseUrl(args.url)
   pageUrl.searchParams.set('page[limit]', String(args.limit))
   pageUrl.searchParams.set('page[offset]', String(args.offset))
   return pageUrl.toString()
@@ -121,7 +127,9 @@ export function buildJsonApiListDocument<
     offset: args.offset,
     total: args.total,
   })
-  if (args.permalink) links.permalink = args.permalink
+  if (args.permalink) {
+    links.permalink = sanitiseResponseUrl(args.permalink).toString()
+  }
 
   return {
     jsonapi: {
@@ -150,8 +158,10 @@ export function buildJsonApiDetailDocument<
       version: '1.1' as const,
     },
     links: {
-      self: args.url.toString(),
-      ...(args.permalink ? { permalink: args.permalink } : {}),
+      self: sanitiseResponseUrl(args.url).toString(),
+      ...(args.permalink
+        ? { permalink: sanitiseResponseUrl(args.permalink).toString() }
+        : {}),
     },
     data: args.data,
     ...(args.included && args.included.length > 0 ? { included: args.included } : {}),

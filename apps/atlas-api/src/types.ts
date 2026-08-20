@@ -9,6 +9,7 @@ import type { AuthenticatedApiKey } from './lib/api-key-auth'
 export type AppBindings = CloudflareBindings &
   SaanseoiWorkerBindings & {
     API_RATE_LIMIT: RateLimit
+    NEWSLETTER_RATE_LIMIT: RateLimit
     API_USAGE: AnalyticsEngineDataset
     ANALYTICS_ENGINE_ACCOUNT_ID: string
     ANALYTICS_ENGINE_READ_TOKEN: string
