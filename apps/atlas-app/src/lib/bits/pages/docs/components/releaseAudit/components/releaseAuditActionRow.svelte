@@ -4,13 +4,17 @@ import { m } from '#lib/bits/internal/i18n.js'
 import ReleaseAuditCardRow from './releaseAuditCardRow.svelte'
 import ReleaseAuditEvidenceActions from './releaseAuditEvidenceActions.svelte'
 import ReleaseAuditJsonEvidence from './releaseAuditJsonEvidence.svelte'
-import type { AuditAction, AuditRowPresentation } from './releaseAudit.types'
+import type {
+  AuditAction,
+  AuditEvidenceCopyHandler,
+  AuditRowPresentation,
+} from './releaseAudit.types'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 type Props = {
   copied: boolean
   analyticsSurface: ReleaseAnalyticsSurface
   expanded: boolean
-  onCopy: (id: string, evidence: unknown) => void
+  onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
   onToggle: (id: string) => void
   presentation: AuditRowPresentation

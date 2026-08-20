@@ -4,13 +4,14 @@ import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 import { m } from '#lib/bits/internal/i18n.js'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
+import type { AuditEvidenceCopyHandler } from './releaseAudit.types'
 
 type Props = {
   copied: boolean
   analyticsSurface: ReleaseAnalyticsSurface
   evidence: unknown
   evidenceId: string | null
-  onCopy: (id: string, evidence: unknown) => void | Promise<void>
+  onCopy: AuditEvidenceCopyHandler
   onFullscreen?: (id: string, evidence: unknown) => void
 }
 
@@ -27,10 +28,13 @@ let { analyticsSurface, copied, evidence, evidenceId, onCopy, onFullscreen }: Pr
     disabled={!evidenceId}
     onclick={() => {
       if (!evidenceId) return
-      trackClientProductUsage({ event: 'client.copy_evidence_json', surface: analyticsSurface, entityType: 'action', entityId: 'copy' })
-      void Promise.resolve(onCopy(evidenceId, evidence)).catch(() => {
-        trackClientProductUsage({ event: 'client.copy_evidence_json', surface: analyticsSurface, entityType: 'action', entityId: 'copy', outcome: 'failure' })
-      })
+      void onCopy(evidenceId, evidence)
+        .then(outcome => {
+          trackClientProductUsage({ event: 'client.copy_evidence_json', surface: analyticsSurface, entityType: 'action', entityId: 'copy', outcome: outcome ? 'success' : 'failure' })
+        })
+        .catch(() => {
+          trackClientProductUsage({ event: 'client.copy_evidence_json', surface: analyticsSurface, entityType: 'action', entityId: 'copy', outcome: 'failure' })
+        })
     }}
   >
     <Icon
