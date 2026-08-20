@@ -5,7 +5,9 @@
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "streets",
-  "resourceTypes": ["street"],
+  "resourceTypes": [
+    "street"
+  ],
   "sourceVariant": "hkgov-landsd-road-centreline",
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
@@ -32,7 +34,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"],
+        "discoveries": [
+          "new-release"
+        ],
         "includeInitialDownload": true
       }
     },
