@@ -47,6 +47,7 @@ export const managedAssetRoute = defineOpenAPIRoute<
     const asset = await c.var.metaDb
       .select({
         assetKey: metaAssets.assetKey,
+        datasetId: metaDatasets.id,
         publisherCode: metaPublishers.code,
         sourceReleaseCode: metaSourceReleases.code,
         sourceReleaseId: metaSourceReleases.id,
@@ -71,8 +72,14 @@ export const managedAssetRoute = defineOpenAPIRoute<
         404,
       )
     }
-    if (asset.publisherCode && asset.sourceReleaseId && asset.sourceReleaseCode) {
+    if (
+      asset.datasetId &&
+      asset.publisherCode &&
+      asset.sourceReleaseId &&
+      asset.sourceReleaseCode
+    ) {
       c.set('accessAttribution', {
+        datasetId: asset.datasetId,
         publisherCodes: [asset.publisherCode],
         sourceReleaseCode: asset.sourceReleaseCode,
         sourceReleaseId: asset.sourceReleaseId,

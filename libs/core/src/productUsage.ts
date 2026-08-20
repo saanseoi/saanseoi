@@ -7,6 +7,7 @@ export const PRODUCT_USAGE_SCHEMA_VERSION = 'v1' as const
 
 export const PRODUCT_USAGE_EVENTS = [
   'api.request',
+  'api.access',
   'api.asset_download',
   'api.style_request',
   'newsletter.subscription',
@@ -57,6 +58,7 @@ export const PRODUCT_USAGE_SURFACES = [
   'auth',
   'account',
   'api_keys',
+  'access',
   'api_release',
   'source_release',
   'sources',
@@ -69,9 +71,11 @@ export const PRODUCT_USAGE_ENTITY_TYPES = [
   'asset',
   'style',
   'source',
+  'dataset',
   'source_release',
   'api',
   'api_release',
+  'api_release_set',
   'publisher',
   'data_release',
   'district',
@@ -109,6 +113,7 @@ export type ProductUsageEventInput = {
   httpStatus?: number
   durationMs?: number
   count?: number
+  metricKey?: string
 }
 
 export type ProductUsageDataset = {
@@ -190,21 +195,26 @@ export function toProductUsageDataPoint(
   const httpStatus = safeNumber(input.httpStatus, 100, 599)
   const durationMs = safeNumber(input.durationMs, 0, 600_000)
   const count = safeNumber(input.count, 0, 1_000_000)
+  const metricKey = safeIdentifier(input.metricKey)
+
+  const blobs = [
+    PRODUCT_USAGE_SCHEMA_VERSION,
+    input.event,
+    input.producer,
+    input.surface,
+    normaliseProductUsageRoute(input.route),
+    input.entityType ?? '',
+    entityId,
+    entityId2,
+    input.outcome,
+    httpStatus === undefined ? '' : String(Math.round(httpStatus)),
+  ]
+
+  if (input.event === 'api.access') blobs.push(metricKey)
 
   return {
     indexes: [input.event],
-    blobs: [
-      PRODUCT_USAGE_SCHEMA_VERSION,
-      input.event,
-      input.producer,
-      input.surface,
-      normaliseProductUsageRoute(input.route),
-      input.entityType ?? '',
-      entityId,
-      entityId2,
-      input.outcome,
-      httpStatus === undefined ? '' : String(Math.round(httpStatus)),
-    ],
+    blobs,
     doubles: [durationMs ?? 0, count ?? 1],
   }
 }

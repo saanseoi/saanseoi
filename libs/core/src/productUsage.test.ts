@@ -1,11 +1,19 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  PRODUCT_USAGE_ENTITY_TYPES,
+  PRODUCT_USAGE_SURFACES,
   recordProductUsage,
   toProductUsageDataPoint,
   normaliseProductUsageRoute,
 } from './productUsage'
 
 describe('product usage contract', () => {
+  test('keeps API ReleaseSets as entities rather than Product Usage surfaces', () => {
+    expect(PRODUCT_USAGE_SURFACES).not.toContain('api_release_set')
+    expect(PRODUCT_USAGE_ENTITY_TYPES).toContain('dataset')
+    expect(PRODUCT_USAGE_ENTITY_TYPES).toContain('api_release_set')
+  })
+
   test('allowlists events and sanitises routes and identifiers', () => {
     const point = toProductUsageDataPoint({
       event: 'client.download_click',
@@ -136,5 +144,37 @@ describe('product usage contract', () => {
         outcome: 'success',
       })?.blobs[3],
     ).toBe('api_release')
+  })
+
+  test('encodes access metric keys for the daily Analytics Engine rollup', () => {
+    expect(
+      toProductUsageDataPoint({
+        event: 'api.access',
+        producer: 'atlas-api',
+        surface: 'access',
+        route: '/v0.1/divisions',
+        entityType: 'publisher',
+        entityId: 'hkgov',
+        metricKey: 'apiRequests',
+        outcome: 'success',
+        count: 1,
+      }),
+    ).toMatchObject({
+      indexes: ['api.access'],
+      blobs: [
+        'v1',
+        'api.access',
+        'atlas-api',
+        'access',
+        '/v0.1/divisions',
+        'publisher',
+        'hkgov',
+        '',
+        'success',
+        '',
+        'apiRequests',
+      ],
+      doubles: [0, 1],
+    })
   })
 })

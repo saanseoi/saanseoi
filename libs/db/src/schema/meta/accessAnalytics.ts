@@ -4,6 +4,7 @@ import { jsonText, timestamps } from '../shared'
 
 export const accessAnalyticsRollupScopes = [
   'publisher',
+  'dataset',
   'source_release',
   'api_release_set',
 ] as const
