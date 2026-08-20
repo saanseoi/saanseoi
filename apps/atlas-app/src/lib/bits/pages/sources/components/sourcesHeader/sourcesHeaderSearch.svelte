@@ -2,13 +2,27 @@
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 type Props = { query?: string }
 
 let { query = $bindable('') }: Props = $props()
+let searchTracked = false
 
 const clearQuery = () => {
   query = ''
+  searchTracked = false
+}
+
+const handleInput = () => {
+  if (searchTracked || query.trim().length < 2) return
+  searchTracked = true
+  trackClientProductUsage({
+    event: 'client.source_search',
+    surface: 'sources',
+    entityType: 'source',
+    entityId: 'search',
+  })
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -30,6 +44,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     class="h-10 w-full rounded-default border border-outline-variant bg-background-alt py-2 pr-10 pl-9 font-body text-label-md text-primary outline-none transition placeholder:text-foreground-alt focus:border-secondary"
     placeholder={m.sources_search_placeholder()}
     type="search"
+    oninput={handleInput}
     onkeydown={handleKeydown}
   >
   {#if query}
