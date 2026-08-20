@@ -447,15 +447,21 @@ const identifierBridgeFixtures = readFixtureDir<{
   }>
 }>('identifierBridges')
 
-export const initialPublishers: InitialPublisherSeed[] = publisherFixtures.map(
-  fixture => ({
+export const initialPublishers: InitialPublisherSeed[] = publisherFixtures
+  // Parent rows must be inserted before children because child links use a
+  // same-batch lookup of the parent publisher's deterministic ID.
+  .toSorted(
+    (left, right) =>
+      Number(Boolean(left.parentCode)) - Number(Boolean(right.parentCode)) ||
+      left.code.localeCompare(right.code),
+  )
+  .map(fixture => ({
     code: fixture.code,
     url: fixture.url,
     contactUrl: fixture.contactUrl,
     parentCode: fixture.parentCode,
     versionHash: fixture.versionHash,
-  }),
-)
+  }))
 
 export const initialPublisherI18n: InitialPublisherI18nSeed[] =
   publisherFixtures.flatMap(fixture =>
