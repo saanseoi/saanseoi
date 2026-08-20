@@ -273,6 +273,7 @@
   "source_release_notes": "版本說明",
   "source_archive": "來源封存檔",
   "source_download_archive": "下載來源",
+  "source_download_archive_zip": "ZIP 壓縮檔",
   "source_publisher": "發布者",
   "source_subtype": "子類型",
   "source_contact": "聯絡",
