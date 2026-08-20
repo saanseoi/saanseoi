@@ -12,6 +12,7 @@ type Props = {
   editorIcon?: string
   label: string
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
+  onCopy?: (outcome: 'success' | 'failure') => void
   promptIcon?: string
   variant?: 'code' | 'editor' | 'prompt'
 }
@@ -134,6 +135,7 @@ let {
   editorIcon = 'material-symbols-light:code-rounded',
   label,
   language = 'text',
+  onCopy,
   promptIcon = 'material-symbols-light:auto-awesome',
   variant = 'code',
 }: Props = $props()
@@ -166,6 +168,7 @@ const copyWithFallback = (text: string) => {
 async function copy() {
   if (variant === 'prompt') {
     manualCopyOpen = true
+    onCopy?.('success')
     return
   }
 
@@ -173,11 +176,13 @@ async function copy() {
     await navigator.clipboard.writeText(code)
   } catch {
     if (!copyWithFallback(code)) {
+      onCopy?.('failure')
       manualCopyOpen = true
       return
     }
   }
 
+  onCopy?.('success')
   copied = true
   window.setTimeout(() => (copied = false), 1600)
 }
