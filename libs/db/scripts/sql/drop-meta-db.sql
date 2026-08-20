@@ -44,7 +44,6 @@ DROP TABLE IF EXISTS `identifierBridges`;
 DROP TABLE IF EXISTS `divisionIdentifierBridges`;
 DROP TABLE IF EXISTS `api_key_usage`;
 DROP TABLE IF EXISTS `accessAnalyticsRollups`;
-DROP TABLE IF EXISTS `accessAnalyticsIdempotency`;
 DROP TABLE IF EXISTS `accessAnalyticsDaily`;
 DROP TABLE IF EXISTS `api_key_origin_policy`;
 DROP TABLE IF EXISTS `api_key`;

@@ -1,9 +1,7 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, timestamps } from '../shared'
 
-export const accessAnalyticsEventTypes = ['api_request', 'download'] as const
-export const accessAnalyticsSurfaces = ['source', 'api_release_set'] as const
 export const accessAnalyticsRollupScopes = [
   'publisher',
   'source_release',
@@ -24,21 +22,6 @@ export const metaAccessAnalyticsDaily = sqliteTable(
     primaryKey({ columns: [table.day, table.scope, table.entityId] }),
     index('accessAnalyticsDaily_entityId_idx').on(table.entityId),
   ],
-)
-
-/**
- * Compact request deduplication state. It contains no serving payload or
- * attribution, and is retained for exact retry handling.
- */
-export const metaAccessAnalyticsIdempotency = sqliteTable(
-  'accessAnalyticsIdempotency',
-  {
-    requestIdentity: text('requestIdentity').primaryKey(),
-    eventType: text('eventType', { enum: accessAnalyticsEventTypes }).notNull(),
-    eligible: integer('eligible', { mode: 'boolean' }).notNull(),
-    counted: integer('counted', { mode: 'boolean' }).notNull(),
-    ...timestamps,
-  },
 )
 
 /** Running serving cache. `period` starts with `all_time` and can later hold week/month keys. */

@@ -1,14 +1,3 @@
-CREATE TABLE `accessAnalyticsIdempotency` (
-	`requestIdentity` text PRIMARY KEY,
-	`eventType` text NOT NULL,
-	`eligible` integer NOT NULL,
-	`counted` integer NOT NULL,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
-);
---> statement-breakpoint
-DROP TABLE `accessAnalyticsEvents`;
---> statement-breakpoint
 CREATE TABLE `accessAnalyticsDaily` (
 	`day` text NOT NULL,
 	`scope` text NOT NULL,
@@ -43,6 +32,8 @@ FROM `__legacy_accessAnalyticsRollups`;
 --> statement-breakpoint
 DROP TABLE `__legacy_accessAnalyticsRollups`;
 --> statement-breakpoint
-CREATE INDEX `accessAnalyticsDaily_entityId_idx` ON `accessAnalyticsDaily` (`entityId`);
+DROP TABLE `accessAnalyticsEvents`;
 --> statement-breakpoint
 CREATE INDEX `accessAnalyticsRollups_entityId_idx` ON `accessAnalyticsRollups` (`entityId`);
+--> statement-breakpoint
+CREATE INDEX `accessAnalyticsDaily_entityId_idx` ON `accessAnalyticsDaily` (`entityId`);
