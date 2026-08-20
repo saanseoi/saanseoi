@@ -23,11 +23,11 @@ const lanes = [
       <div class="grid gap-3">
         {#each Array(lane.inputs) as _, inputIndex (`${lane.id}-${inputIndex}`)}
           <div
-            class="grid min-h-[5.65rem] grid-cols-[4rem_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] p-[0.9rem_1rem] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] overflow-hidden bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] motion-reduce:animate-none"
+            class="grid min-h-[5.65rem] grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] p-[0.9rem_1rem] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] overflow-hidden bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] motion-reduce:animate-none"
             aria-hidden="true"
           >
             <span
-              class="size-16 rounded-[0.35rem] border border-[color-mix(in_srgb,var(--outline-variant)_68%,transparent)] bg-[color-mix(in_srgb,var(--foreground-alt)_10%,transparent)]"
+              class="size-[4.5rem] rounded-[0.35rem] border border-[color-mix(in_srgb,var(--outline-variant)_68%,transparent)] bg-[color-mix(in_srgb,var(--foreground-alt)_10%,transparent)]"
             ></span>
             <span class="grid gap-[0.65rem]">
               <span
