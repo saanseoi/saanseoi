@@ -4,6 +4,7 @@ import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
 import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
 import { m, selectLocalisedRow, type AppLocale } from '#lib/bits/internal/i18n.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
+import { normaliseExternalUrl } from '#lib/externalUrl.js'
 import { buildReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
 import type { RegistrySource, SourceVersion } from '#lib/registry/types.js'
 
@@ -62,6 +63,7 @@ let statusLabel = $derived(
         ? m.source_superseded()
         : version.status,
 )
+let releaseNotesUrl = $derived(normaliseExternalUrl(version.releaseNotesUrl))
 let details = $derived.by((): Detail[] => {
   const codeDetails = [
     { isMonospace: true, label: m.source_version(), value: version.sourceVersion },
@@ -79,10 +81,10 @@ let details = $derived.by((): Detail[] => {
       value: source.resourceTypes.join(', ') || m.api_release_unavailable(),
     },
     ...(source.subType ? [{ label: m.source_subtype(), value: source.subType }] : []),
-    ...(version.releaseNotesUrl
+    ...(releaseNotesUrl
       ? [
           {
-            href: version.releaseNotesUrl,
+            href: releaseNotesUrl,
             isExternal: true,
             label: m.source_upstream(),
             value: m.source_release_notes(),
@@ -138,11 +140,12 @@ let publisher = $derived(selectLocalisedRow(source.publisher?.publisherI18n, loc
 let publisherName = $derived(
   publisher?.name ?? source.publisher?.code ?? source.publisherCode,
 )
+let publisherContactUrl = $derived(normaliseExternalUrl(source.publisher?.contactUrl))
 let primaryLinks = $derived.by(() => {
-  if (source.publisher?.contactUrl) {
+  if (publisherContactUrl) {
     return [
       {
-        href: source.publisher.contactUrl,
+        href: publisherContactUrl,
         icon: 'ion:chatbubble-outline',
         isExternal: true,
         label: m.source_contact(),
@@ -171,11 +174,12 @@ let primaryLinks = $derived.by(() => {
       : []),
   ]
 })
+let sourceUrl = $derived(normaliseExternalUrl(source.sourceUrl))
 let secondaryLinks = $derived(
-  source.sourceUrl
+  sourceUrl
     ? [
         {
-          href: source.sourceUrl,
+          href: sourceUrl,
           icon: 'ion:open-outline',
           isExternal: true,
           label: m.source_official_site(),
