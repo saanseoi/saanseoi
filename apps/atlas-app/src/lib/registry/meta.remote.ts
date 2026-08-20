@@ -318,6 +318,7 @@ export const getPublishersPageData = query(async () => {
     listRegistrySourcePublishers(db),
     listRegistrySourcesPage(db, 200),
   ])
+  const publishers = registryPublishers as RegistryPublisher[]
   const sourceCounts = new Map<string, number>()
 
   for (const source of registrySources) {
@@ -327,11 +328,43 @@ export const getPublishersPageData = query(async () => {
     )
   }
 
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const publisher of publishers) {
+    if (!publisher.parentPublisherId) continue
+    const children = childrenByPublisherId.get(publisher.parentPublisherId) ?? []
+    children.push(publisher)
+    childrenByPublisherId.set(publisher.parentPublisherId, children)
+  }
+
+  const contributionCounts = new Map<string, number>()
+  const countContributions = (
+    publisherId: string,
+    ancestors = new Set<string>(),
+  ): number => {
+    const cachedCount = contributionCounts.get(publisherId)
+    if (cachedCount !== undefined) return cachedCount
+    if (ancestors.has(publisherId)) return sourceCounts.get(publisherId) ?? 0
+
+    const nextAncestors = new Set(ancestors).add(publisherId)
+    const count =
+      (sourceCounts.get(publisherId) ?? 0) +
+      (childrenByPublisherId.get(publisherId) ?? []).reduce(
+        (total, child) => total + countContributions(child.id, nextAncestors),
+        0,
+      )
+    contributionCounts.set(publisherId, count)
+    return count
+  }
+
   return {
-    publishers: (registryPublishers as RegistryPublisher[]).map(publisher => ({
-      ...publisher,
-      sourceCount: sourceCounts.get(publisher.id) ?? 0,
-    })),
+    publishers: publishers
+      .map(publisher => ({
+        ...publisher,
+        isInstitution:
+          countContributions(publisher.id) > (sourceCounts.get(publisher.id) ?? 0),
+        sourceCount: countContributions(publisher.id),
+      }))
+      .filter(publisher => publisher.sourceCount > 0),
   }
 })
 
@@ -661,18 +694,38 @@ export const getDistrictGeometryNames = query(
 
 export const getPublisherPageData = query(registryCodeSchema, async publisherCode => {
   const db = getMetaDb()
-  const [registryPublisher, registrySources] = await Promise.all([
+  const [registryPublisher, registryPublishers, registrySources] = await Promise.all([
     getRegistrySourcePublisher(db, publisherCode),
+    listRegistrySourcePublishers(db),
     listRegistrySources(db),
   ])
   const publisher = registryPublisher as RegistryPublisher | null
+  const publishers = registryPublishers as RegistryPublisher[]
   const sources = registrySources as RegistrySource[]
 
   if (!publisher) error(404, 'Publisher not found.')
 
+  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
+  for (const child of publishers) {
+    if (!child.parentPublisherId) continue
+    const children = childrenByPublisherId.get(child.parentPublisherId) ?? []
+    children.push(child)
+    childrenByPublisherId.set(child.parentPublisherId, children)
+  }
+
+  const descendantPublisherIds = new Set<string>([publisher.id])
+  const collectDescendants = (publisherId: string) => {
+    for (const child of childrenByPublisherId.get(publisherId) ?? []) {
+      if (descendantPublisherIds.has(child.id)) continue
+      descendantPublisherIds.add(child.id)
+      collectDescendants(child.id)
+    }
+  }
+  collectDescendants(publisher.id)
+
   return {
     publisher,
-    sources: sources.filter(source => source.publisherId === publisher.id),
+    sources: sources.filter(source => descendantPublisherIds.has(source.publisherId)),
   }
 })
 
