@@ -79,7 +79,7 @@ let {
         {@html m.guide_embed_other_notice()}
         <a
           class="font-semibold text-secondary underline underline-offset-4"
-          href="/community"
+          href="/#community"
           >{@html m.guide_join_community()}</a
         >.
       </p>

@@ -2389,7 +2389,7 @@ const styleChoices = $derived.by(() =>
                       {@html m.guide_renderer_web_embed()}
                       <a
                         class="font-semibold text-secondary underline underline-offset-4"
-                        href="/community"
+                        href="/#community"
                         >{@html m.guide_join_community()}</a
                       >.
                     </p>
@@ -2788,7 +2788,7 @@ const styleChoices = $derived.by(() =>
                   {@html m.guide_setup_mobile_other()}
                   <a
                     class="font-semibold text-secondary underline underline-offset-4"
-                    href="/community"
+                    href="/#community"
                     >{@html m.guide_join_community()}</a
                   >.
                 </p>
