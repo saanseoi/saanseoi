@@ -1,5 +1,7 @@
 import { recordProductUsage, type ProductUsageDataset } from '@repo/core/productUsage'
 
+import { runWithD1ReadRetry } from '../lib/d1'
+
 export type AccessSurface = 'source' | 'api_release_set'
 export type AccessEventType = 'api_request' | 'download'
 export type AccessAnalyticsScope =
@@ -108,6 +110,16 @@ export async function resolveApiReleaseSetAccessAttribution(
     ],
     publisherCodes: [...new Set(result.results.map(row => row.publisherCode))],
     surface: 'api_release_set',
+  }
+}
+
+export async function resolveOptionalApiReleaseSetAccessAttribution(
+  operation: () => Promise<AccessAttribution | null>,
+): Promise<AccessAttribution | null> {
+  try {
+    return await runWithD1ReadRetry(operation)
+  } catch {
+    return null
   }
 }
 

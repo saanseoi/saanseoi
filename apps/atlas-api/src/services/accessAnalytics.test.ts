@@ -6,6 +6,7 @@ import {
   getAccessMetrics,
   recordAccessAnalyticsEvent,
   resolveApiReleaseSetAccessAttribution,
+  resolveOptionalApiReleaseSetAccessAttribution,
 } from './accessAnalytics'
 
 function createDataset() {
@@ -76,6 +77,34 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
     surface: 'api_release_set',
   })
   expect(queries[0]).toContain("snapshotSources.role <> 'lookup'")
+})
+
+test('retries optional attribution reads and fails open when they remain unavailable', async () => {
+  let transientAttempts = 0
+  const attribution = {
+    apiReleaseSetId: 'set-1',
+    apiReleaseSetCode: 'api-divisions-2026.0',
+    publisherCodes: ['hkgov'],
+    surface: 'api_release_set' as const,
+  }
+
+  await expect(
+    resolveOptionalApiReleaseSetAccessAttribution(async () => {
+      transientAttempts += 1
+      if (transientAttempts < 5) throw new Error('D1_ERROR: database is locked')
+      return attribution
+    }),
+  ).resolves.toEqual(attribution)
+  expect(transientAttempts).toBe(5)
+
+  let permanentAttempts = 0
+  await expect(
+    resolveOptionalApiReleaseSetAccessAttribution(async () => {
+      permanentAttempts += 1
+      throw new Error('metadata unavailable')
+    }),
+  ).resolves.toBeNull()
+  expect(permanentAttempts).toBe(1)
 })
 
 test('emits one successful API hit for every attributed dimension', () => {
