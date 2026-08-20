@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:164ab4f80bd6c6f2b9087c62cb81be5627f9559e62c33ae17bc0a74460e9adaa",
+  "versionHash": "sha256:05b93e7a5343bf405932e74c387a75b7cd3fcd88739a338a5d1c1bbaec283ed4",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -9,10 +9,7 @@
   "subType": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
