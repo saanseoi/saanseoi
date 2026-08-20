@@ -7,6 +7,7 @@ import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 
 import {
   createApiKeyForCurrentUser,
@@ -40,6 +41,12 @@ const createKey = async () => {
 
     revealedKey = result.rawKey
     keyRevealOpen = true
+    trackClientProductUsage({
+      event: 'api_key.reveal',
+      surface: 'api_keys',
+      entityType: 'key_action',
+      entityId: 'reveal',
+    })
     name = ''
     await refreshAll()
   } catch (exception) {
@@ -51,8 +58,24 @@ const createKey = async () => {
 const copyRevealedKey = async () => {
   if (!revealedKey) return
 
-  await navigator.clipboard.writeText(revealedKey)
-  copied = true
+  try {
+    await navigator.clipboard.writeText(revealedKey)
+    copied = true
+    trackClientProductUsage({
+      event: 'api_key.copy',
+      surface: 'api_keys',
+      entityType: 'key_action',
+      entityId: 'copy',
+    })
+  } catch {
+    trackClientProductUsage({
+      event: 'api_key.copy',
+      surface: 'api_keys',
+      entityType: 'key_action',
+      entityId: 'copy',
+      outcome: 'failure',
+    })
+  }
 }
 
 const revokeKey = async (id: string) => {
