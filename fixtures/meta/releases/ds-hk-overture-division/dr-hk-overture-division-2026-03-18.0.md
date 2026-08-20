@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-14T05:19:28.642Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
+updatedAt: "2026-08-20T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2026-03-18.0"
 regionCode: "hk"
@@ -147,13 +147,7 @@ village        199
 
 ## 更新紀錄
 
-- <orange>上游</orange> 更新 OSM 資料
-- <orange>上游</orange> 新增 `admin_level`
-  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
-  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級，因此 Saanseoi
-    <black>Division</black> 僅會在有值時，將其作為 <black>overture.admin_level</black>
-    下的兼容性值提供。
-  - 相關數值已回填，確保自第一個 <black>Division</black> 發布版本起即可使用。
+- <orange>上游</orange> 對資料作出輕微、逐步的更新
 
 ## 兼容性
 
