@@ -42,6 +42,7 @@ import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
 import { writeServerProductUsage } from '../analytics/productUsage.js'
+import { getRegistryAccessMetrics } from './accessMetrics.js'
 import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
@@ -434,9 +435,14 @@ export const getSourceReleaseShellData = query(
       selectedReleaseCode: _selectedReleaseCode,
       ...source
     } = shell
+    const accessMetrics = await getRegistryAccessMetrics(
+      getMetaDb(),
+      'source_release',
+      version.id,
+    )
     const result = {
       source: source as RegistrySource,
-      version: version as SourceVersion,
+      version: { ...version, accessMetrics } as SourceVersion,
       timings,
     }
     recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
@@ -507,10 +513,15 @@ export const getSourceReleaseContentData = query(
       datasetCode,
       releaseId: version.id,
     })
+    const accessMetrics = await getRegistryAccessMetrics(
+      db,
+      'source_release',
+      version.id,
+    )
     const result = {
       version: archive
-        ? { ...version, sourceArchiveAssetId: archive.assetId }
-        : version,
+        ? { ...version, sourceArchiveAssetId: archive.assetId, accessMetrics }
+        : { ...version, accessMetrics },
       previousNotes,
       measures,
     } as {
@@ -755,8 +766,10 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
   }
   collectDescendants(publisher.id)
 
+  const accessMetrics = await getRegistryAccessMetrics(db, 'publisher', publisher.code)
+
   const result = {
-    publisher,
+    publisher: { ...publisher, accessMetrics },
     sources: sources.filter(source => descendantPublisherIds.has(source.publisherId)),
   }
   recordRegistryDataLoad('/publishers/:id', 'publisher', publisherCode)
@@ -1189,13 +1202,21 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
 })
 
 export const getApiReleaseShellData = query(registryCodeSchema, async familyType => {
+  const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
+    getRegistryApi(db, familyType),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
+  const releases = await Promise.all(
+    (api.releases ?? []).map(async release => ({
+      ...release,
+      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
+    })),
+  )
+
   recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
-  return api
+  return { ...api, releases }
 })
 
 export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
@@ -1294,6 +1315,12 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
       }),
     })),
   }
+  const releasesWithMetrics = await Promise.all(
+    (result.releases ?? []).map(async release => ({
+      ...release,
+      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
+    })),
+  )
   recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
-  return result
+  return { ...result, releases: releasesWithMetrics }
 })
