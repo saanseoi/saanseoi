@@ -59,7 +59,7 @@ import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
@@ -90,6 +90,7 @@ import {
   formatDurationMs,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
+import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -334,14 +335,14 @@ export async function processLocalDivisionGeometrySqlUpload(
       resolveShardForTypeRegionYear(
         metaDb,
         'history',
-        target.remote ? 'production' : 'preview',
+        resolvePipelineEnvironment(target),
         previewPlan.regionCode,
         shardYear,
       ),
       resolveShardForTypeRegionYear(
         metaDb,
         'source',
-        target.remote ? 'production' : 'preview',
+        resolvePipelineEnvironment(target),
         previewPlan.regionCode,
         shardYear,
       ),
@@ -2057,18 +2058,7 @@ async function runGeometryProgressPhase<T>(
   subject: string,
   operation: () => Promise<T>,
 ) {
-  const startedAt = Date.now()
-  progress.beginPhase(formatGeometryProgressLabel(action, subject), {
-    current: 0,
-    max: null,
-  })
-
-  const result = await operation()
-
-  progress.complete(
-    formatGeometryCompletedLabel(action, subject, undefined, Date.now() - startedAt),
-  )
-  return result
+  return runLocalProgressPhase(progress, { action, subject }, operation)
 }
 
 function describeRemoteGeometryImport(
