@@ -5,6 +5,7 @@ import {
   getRegistrySource,
   getRegistrySourcePublisher,
   listRegistryApiCompositions,
+  listRegistrySourcePublishers,
   listRegistrySourcesPage,
   listRegistrySources,
   getRegistryReleaseLifecycleScope,
@@ -308,6 +309,29 @@ export const getSourcesPageData = query(async () => {
   return {
     domainsByApiFamily,
     sources: (sources as unknown as RegistrySource[]).map(toSourcesPageSource),
+  }
+})
+
+export const getPublishersPageData = query(async () => {
+  const db = getMetaDb()
+  const [registryPublishers, registrySources] = await Promise.all([
+    listRegistrySourcePublishers(db),
+    listRegistrySourcesPage(db, 200),
+  ])
+  const sourceCounts = new Map<string, number>()
+
+  for (const source of registrySources) {
+    sourceCounts.set(
+      source.publisherId,
+      (sourceCounts.get(source.publisherId) ?? 0) + 1,
+    )
+  }
+
+  return {
+    publishers: (registryPublishers as RegistryPublisher[]).map(publisher => ({
+      ...publisher,
+      sourceCount: sourceCounts.get(publisher.id) ?? 0,
+    })),
   }
 })
 
