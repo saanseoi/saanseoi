@@ -3,8 +3,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
+import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
-import { and, eq, isNull, metaAssets, metaReleases } from '@repo/db'
+import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
@@ -399,43 +400,7 @@ export async function linkManagedSourceAssetToRelease(
   return queueLocalSourceAssetRegistration(() =>
     runWithWriteRetry(() =>
       withMetaDb(async metaDb => {
-        const [asset, targetRelease] = await Promise.all([
-          metaDb
-            .select({ assetId: metaAssets.id, releaseId: metaAssets.releaseId })
-            .from(metaAssets)
-            .where(eq(metaAssets.assetKey, input.assetKey))
-            .get(),
-          metaDb
-            .select({ sourceReleaseId: metaReleases.sourceReleaseId })
-            .from(metaReleases)
-            .where(eq(metaReleases.id, input.releaseId))
-            .get(),
-        ])
-        if (!asset) throw new Error(`Source asset not found: ${input.assetKey}`)
-        if (!targetRelease) throw new Error(`Release not found: ${input.releaseId}`)
-
-        if (asset.releaseId) {
-          const linkedRelease = await metaDb
-            .select({ sourceReleaseId: metaReleases.sourceReleaseId })
-            .from(metaReleases)
-            .where(eq(metaReleases.id, asset.releaseId))
-            .get()
-          if (linkedRelease?.sourceReleaseId !== targetRelease.sourceReleaseId) {
-            throw new Error(
-              `Source asset ${input.assetKey} is already linked to a different source release.`,
-            )
-          }
-          return { assetId: asset.assetId, status: 'existing' as const }
-        }
-
-        await metaDb
-          .update(metaAssets)
-          .set({ releaseId: input.releaseId })
-          .where(
-            and(eq(metaAssets.assetKey, input.assetKey), isNull(metaAssets.releaseId)),
-          )
-          .run()
-        return { assetId: asset.assetId, status: 'linked' as const }
+        return linkManagedSourceAssetToReleaseInDb(metaDb, input)
       }),
     ),
   )
