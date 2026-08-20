@@ -14,6 +14,50 @@ import {
   parseFacebookSignedRequest,
 } from '#lib/server/facebook-data-deletion.js'
 
+const MAX_FORM_BODY_BYTES = 8_192
+
+async function readFormBody(request: Request) {
+  const contentType = request.headers
+    .get('content-type')
+    ?.split(';', 1)[0]
+    ?.trim()
+    .toLowerCase()
+  if (contentType !== 'application/x-www-form-urlencoded') {
+    throw error(415, 'INVALID_CONTENT_TYPE')
+  }
+
+  const declaredLength = Number(request.headers.get('content-length'))
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_FORM_BODY_BYTES) {
+    throw error(413, 'SIGNED_REQUEST_TOO_LARGE')
+  }
+
+  const reader = request.body?.getReader()
+  if (!reader) return new URLSearchParams()
+
+  const chunks: Uint8Array[] = []
+  let byteLength = 0
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    byteLength += value.byteLength
+    if (byteLength > MAX_FORM_BODY_BYTES) {
+      await reader.cancel()
+      throw error(413, 'SIGNED_REQUEST_TOO_LARGE')
+    }
+    chunks.push(value)
+  }
+
+  const body = new Uint8Array(byteLength)
+  let offset = 0
+  for (const chunk of chunks) {
+    body.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+
+  return new URLSearchParams(new TextDecoder().decode(body))
+}
+
 /**
  * Handles Meta's Facebook user-data deletion callback.
  *
@@ -26,9 +70,9 @@ export const POST: RequestHandler = async ({ platform, request, url }) => {
   const appSecret = platform?.env.FACEBOOK_CLIENT_SECRET
   if (!database || !appSecret) throw error(503, 'FACEBOOK_DELETION_UNAVAILABLE')
 
-  const form = await request.formData()
+  const form = await readFormBody(request)
   const signedRequest = form.get('signed_request')
-  if (typeof signedRequest !== 'string') throw error(400, 'INVALID_SIGNED_REQUEST')
+  if (!signedRequest) throw error(400, 'INVALID_SIGNED_REQUEST')
 
   const payload = await parseFacebookSignedRequest(signedRequest, appSecret)
   if (!payload) throw error(400, 'INVALID_SIGNED_REQUEST')
