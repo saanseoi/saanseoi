@@ -6,6 +6,20 @@
 # failure, or a database setup failure must not make `git worktree add` fail.
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
 
+if [ -n "$repo_root" ]; then
+	# Reuse the retained source-data directory from the primary worktree. This
+	# keeps large ignored Overture inputs available to linked worktrees without
+	# copying them. Never replace an existing local data directory or link.
+	primary_worktree=$(git -C "$repo_root" worktree list --porcelain 2>/dev/null | sed -n '1s/^worktree //p')
+	data_source="$primary_worktree/data"
+	data_target="$repo_root/data"
+	if [ "$repo_root" != "$primary_worktree" ] && [ -d "$data_source" ] && [ ! -e "$data_target" ] && [ ! -L "$data_target" ]; then
+		if ! ln -s "$data_source" "$data_target"; then
+			echo "warning: could not link primary worktree data into this worktree" >&2
+		fi
+	fi
+fi
+
 if [ -n "$repo_root" ] && command -v bun >/dev/null 2>&1; then
 	if ! bun "$repo_root/scripts/copy-worktree-local-files.ts"; then
 		echo "warning: could not copy local environment files into this worktree" >&2
