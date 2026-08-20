@@ -6,6 +6,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 
 import ReleaseAuditEvidenceActions from './releaseAuditEvidenceActions.svelte'
 import ReleaseAuditJsonEvidence from './releaseAuditJsonEvidence.svelte'
+import type { AuditEvidenceCopyHandler } from './releaseAudit.types'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
 type Props = {
@@ -14,7 +15,7 @@ type Props = {
   evidence: unknown
   evidenceId: string | null
   onClose: () => void
-  onCopy: (id: string, evidence: unknown) => void
+  onCopy: AuditEvidenceCopyHandler
   open?: boolean
   transitionName?: string
 }

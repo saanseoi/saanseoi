@@ -33,6 +33,11 @@ export type AuditRowPresentation = {
   rightValue?: string
 }
 
+export type AuditEvidenceCopyHandler = (
+  id: string,
+  evidence: unknown,
+) => Promise<boolean>
+
 export type AuditSection = {
   action: string
   affectedRecordCount: number
