@@ -2,9 +2,9 @@ import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteFile } from 'hyparquet-writer'
-import fgdb from 'fgdb'
 
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
+import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
 
 const HKGOV_HAD_SOURCE = 'hkgov-had'
 const HKGOV_HAD_SOURCE_SCHEMA_VERSION = '1.2'
@@ -189,7 +189,7 @@ export async function prepareHkgovHadDistrictUpload(
 
 /** Reads and validates the publisher's native File Geodatabase package. */
 export async function readHkgovHadDistrictArchive(archiveBytes: Uint8Array) {
-  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const layers = await readFileGeodatabaseArchive(archiveBytes)
   const dcdLayers = Object.entries(layers).filter(
     ([name]) => name.toUpperCase() === 'DCD',
   )
