@@ -3,6 +3,20 @@ import { eq, metaSchema, toIsoTimestamp } from '@repo/db'
 
 const { newsletterSubscription, user } = metaSchema
 
+export async function getNewsletterSubscription(db: MetaDatabase, email: string) {
+  return (
+    (await db
+      .select({
+        status: newsletterSubscription.status,
+        updatedAt: newsletterSubscription.updatedAt,
+      })
+      .from(newsletterSubscription)
+      .where(eq(newsletterSubscription.email, email))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
 export async function markNewsletterPending(db: MetaDatabase, email: string) {
   const updatedAt = toIsoTimestamp()
 
