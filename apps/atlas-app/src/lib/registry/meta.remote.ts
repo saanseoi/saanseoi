@@ -190,12 +190,16 @@ function isBasemapVersionEntry(
 }
 
 async function loadBasemapReleases(): Promise<BasemapRelease[]> {
+  const eventFetch = getRequestEvent().fetch
   const releases = await Promise.all(
     Object.entries(BASEMAP_REGIONS).map(async ([code, region]) => {
       try {
-        const response = await fetch(`${BASEMAP_TILE_ORIGIN}/${code}/versions.json`, {
-          headers: { Accept: 'application/json', Origin: BASEMAP_VIEWER_ORIGIN },
-        })
+        const response = await eventFetch(
+          `${BASEMAP_TILE_ORIGIN}/${code}/versions.json`,
+          {
+            headers: { Accept: 'application/json', Origin: BASEMAP_VIEWER_ORIGIN },
+          },
+        )
         if (!response.ok) return []
         const value = (await response.json()) as { versions?: unknown }
         if (!Array.isArray(value.versions)) return []
