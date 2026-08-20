@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f1cac5d5af07e6052e40d5d15428458f6bd8ae33bd8be0b4d0e2071dfeae09bc",
+  "versionHash": "sha256:c99e5d15662172387d61d239d875e3f83d09df1ecc24e3069558586b31aec689",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -8,9 +8,7 @@
   "theme": "divisions",
   "subType": "district",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },

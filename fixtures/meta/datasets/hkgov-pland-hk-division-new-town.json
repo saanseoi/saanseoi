@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:86a658b80d73dbd1ad2deaeca532d925a6d42ca3aec115f2c7ab7e9e7eec8cff",
+  "versionHash": "sha256:aa1a5eff190c289bb3f355bae943026960253f56663aae0e09fc94ae2e15140b",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -9,10 +9,7 @@
   "subType": "new-town",
   "sourceVariant": "hkgov-pland-new-town",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",

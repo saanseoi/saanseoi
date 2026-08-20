@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7668175b65f83b698965baa5f1b4e38c454d5bd6e7969dab14254ee4961e2a8f",
+  "versionHash": "sha256:b01551387409e9ec2cd2972de8427e765f4fe86d08389e8e4f2960762a03c41f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "regionCode": "hk",
@@ -8,9 +8,7 @@
   "theme": "stats",
   "sourceVariant": "census",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },

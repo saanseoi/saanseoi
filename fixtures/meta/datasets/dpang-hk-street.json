@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:b82818f5bd2411578b17ed8470f93054aa3233a3ac720643c9979274daaf3a2b",
+  "versionHash": "sha256:1f39c66acf39c6d42043384196ceeedccc4f350ae2e11bbc799f9a487fe75e39",
   "publisherCode": "dpang",
   "code": "ds-hk-dpang-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "licenseCode": "odc-by-1.0",
   "attribution": "© Diana Pang",
   "schemaURL": null,

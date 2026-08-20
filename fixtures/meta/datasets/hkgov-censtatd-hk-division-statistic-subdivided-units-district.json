@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7eea088071c28186fa7ebb0a692ab5e870cbe1efdd12795649a492f16adad076",
+  "versionHash": "sha256:8e2981a788d358a7f159d7e40dc131fa72eb8f61351820bbd8dd517941a07ffc",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -8,9 +8,7 @@
   "theme": "stats",
   "sourceVariant": "census",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
