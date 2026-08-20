@@ -34,7 +34,9 @@ describe('docs markdown fixtures', () => {
       expect(draft?.status).toBe('created')
       const fixture = await readFile(path, 'utf8')
       expect(fixture).toContain(`apiReleaseSet: "${apiReleaseSetCode}"`)
-      expect(fixture).toContain('## Revision log\n\n- Corrected the source metadata.')
+      expect(fixture).toContain('apiReleaseSetRevision: "99"')
+      expect(fixture).toContain('## Revision log')
+      expect(fixture).toContain('- Corrected the source metadata.')
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
       )
@@ -66,6 +68,16 @@ Source \`2025-09-24.0\`
 Release \`2025-09-24.0\`
 Locale \`{{LOCALE}}\`
 `)
+  })
+
+  test('renders the API release-set revision from frontmatter', async () => {
+    const fixture = parseMarkdownFixture(`---
+apiReleaseSetRevision: "0"
+---
+Publishes revision r{{ apiReleaseSetRevision }}.
+`)
+
+    expect(await renderMarkdownFixtureBody(fixture)).toBe('Publishes revision r0.\n')
   })
 
   test('rejects unknown frontmatter tags', async () => {
