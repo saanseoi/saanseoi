@@ -25,7 +25,8 @@
     "./parquetInspector": "./src/lib/parquetInspector.ts",
     "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
-    "./db/metaRegistry": "./src/lib/db/metaRegistry.ts"
+    "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
+    "./sourceAssets": "./src/lib/services/sourceAssets.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
