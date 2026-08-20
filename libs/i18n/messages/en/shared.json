@@ -272,6 +272,7 @@
   "source_release_notes": "Release notes",
   "source_archive": "Source archive",
   "source_download_archive": "Download source",
+  "source_download_archive_zip": "zipped .zip",
   "source_publisher": "Publisher",
   "source_subtype": "Subtype",
   "source_contact": "Contact",
