@@ -1,4 +1,5 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { Scalar } from '@scalar/hono-api-reference'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { cors } from 'hono/cors'
@@ -27,6 +28,11 @@ import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
+import {
+  completeAccessAnalyticsDownload,
+  rebuildAccessAnalyticsAllTimeCache,
+  recordAccessAnalyticsEvent,
+} from './services/accessAnalytics'
 import {
   isFirstPartyWebOrigin,
   productApiOutcome,
@@ -79,6 +85,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     await next()
   })
 }
+
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
     const startedAt = performance.now()
@@ -144,6 +151,66 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
         })
       }
     }
+  })
+}
+
+// Attribution is attached by the route after it has selected the exact
+// source release or API ReleaseSet. This middleware runs after the
+// key/rate-limit gate and the product-status middleware so an analytics
+// acknowledgement failure is visible as the final 503 response.
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    await next()
+    const attribution = c.get('accessAttribution')
+    if (!attribution) return c.res
+
+    const status = c.res.status
+    const eventType = isCompletedDownloadRequest(c) ? 'download' : 'api_request'
+    const event = {
+      ...attribution,
+      eventType,
+      httpStatus: status,
+      requestIdentity: servingRequestIdentity(c.req.raw),
+      completedAt:
+        eventType === 'download' && isSuccessfulStatus(status) ? undefined : null,
+    } as const
+
+    try {
+      // A pending download is acknowledged before the response is returned;
+      // only stream completion below turns it into a counted download.
+      await recordAccessAnalyticsEvent(c.env.DB_META, event)
+    } catch (error) {
+      console.error('Access analytics acknowledgement failed:', error)
+      const unavailable = c.json(
+        {
+          error: 'service_unavailable',
+          message: 'The API is temporarily unavailable. Please retry.',
+        },
+        503,
+      )
+      c.res = unavailable
+      return unavailable
+    }
+
+    if (eventType === 'download' && isSuccessfulStatus(status) && c.res.body) {
+      const body = c.res.body.pipeThrough(
+        new TransformStream<Uint8Array, Uint8Array>({
+          transform(chunk, controller) {
+            controller.enqueue(chunk)
+          },
+          async flush() {
+            await completeAccessAnalyticsDownload(c.env.DB_META, event)
+          },
+        }),
+      )
+      return new Response(body, {
+        headers: c.res.headers,
+        status: c.res.status,
+        statusText: c.res.statusText,
+      })
+    }
+
+    return c.res
   })
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
@@ -250,6 +317,28 @@ function requestOrigin(origin: string | undefined) {
   }
 }
 
+function isSuccessfulStatus(status: number) {
+  return status >= 200 && status < 300
+}
+
+function isCompletedDownloadRequest(c: Context<AppEnv>) {
+  return (
+    c.req.query('download') === '1' ||
+    c.res.headers.get('content-disposition')?.toLowerCase().startsWith('attachment') ===
+      true
+  )
+}
+
+function servingRequestIdentity(request: Request) {
+  const edgeId = request.headers.get('cf-ray')
+  const suppliedId = request.headers.get('x-request-id')
+  return edgeId
+    ? `cf-ray:${edgeId}`
+    : suppliedId
+      ? `request:${suppliedId}`
+      : crypto.randomUUID()
+}
+
 app.onError((error, c) => {
   console.error(error)
   if (isTransientD1ReadError(error)) {
@@ -329,7 +418,12 @@ const worker = Object.assign(app, {
     ctx: ExecutionContext,
   ) {
     if (controller.cron !== '*/5 * * * *') return
-    ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+    ctx.waitUntil(
+      Promise.all([
+        rollUpApiKeyUsage(env, controller.scheduledTime),
+        rebuildAccessAnalyticsAllTimeCache(env.DB_META),
+      ]),
+    )
   },
 })
 

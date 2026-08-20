@@ -4,6 +4,7 @@ import type {
   createMetaDb,
   SaanseoiWorkerBindings,
 } from '@repo/db'
+import type { AccessAttribution } from './services/accessAnalytics'
 
 export type AppBindings = CloudflareBindings &
   SaanseoiWorkerBindings & {
@@ -31,5 +32,6 @@ export type AppEnv = {
     currentDb: ReturnType<typeof createCurrentDb>
     historyDbs: ReturnType<typeof createHistoryDb>[]
     metaDb: ReturnType<typeof createMetaDb>
+    accessAttribution?: AccessAttribution
   }
 }

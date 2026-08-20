@@ -31,6 +31,8 @@ import {
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
 import type { SourcesPayload } from '../schema'
+import type { AccessAttribution } from './accessAnalytics'
+import { resolveApiReleaseSetAccessAttribution } from './accessAnalytics'
 
 export type RequestedDivisionVersion = 'v0' | 'v0.1'
 export type RequestedDivisionApiVersion = '0.1'
@@ -991,6 +993,7 @@ export async function listDivisions(args: {
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   query: DivisionListQuery
+  onResolved?: (attribution: AccessAttribution) => void
   dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionListResult> {
   const dependencies = {
@@ -1026,6 +1029,13 @@ export async function listDivisions(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
+      args.metaDb.$client,
+      activeDivisionSnapshot.apiReleaseSet,
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
   if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
     return {
@@ -1153,6 +1163,7 @@ export async function getDivisionDetail(args: {
   resolvedApiVersion: ResolvedDivisionApiVersion
   id: string
   query: DivisionDetailQuery
+  onResolved?: (attribution: AccessAttribution) => void
   dependencies?: Partial<DivisionServiceDependencies>
 }): Promise<DivisionDetailResult> {
   const dependencies = {
@@ -1186,6 +1197,13 @@ export async function getDivisionDetail(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveApiReleaseSetAccessAttribution(
+      args.metaDb.$client,
+      activeDivisionSnapshot.apiReleaseSet,
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
   }
   if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
     return {

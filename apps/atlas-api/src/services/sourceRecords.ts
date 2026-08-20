@@ -1,6 +1,7 @@
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 import { runWithD1ReadRetry } from '../lib/d1'
+import type { AccessAttribution } from './accessAnalytics'
 import type { AppBindings, AppEnv } from '../types'
 
 const DEFAULT_PAGE_LIMIT = 100
@@ -27,6 +28,8 @@ type SourceReleaseRow = {
 
 type SourceReleaseWithShard = SourceReleaseRow & {
   bindingName: string
+  publisherCode: string
+  sourceReleaseId: string
 }
 
 type SourceRecordRow = {
@@ -203,11 +206,14 @@ async function resolveSourceRelease(
           releases.code AS sourceReleaseCode,
           releases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
+          sourceReleases.id AS sourceReleaseId,
+          publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
         FROM releases
         INNER JOIN sourceReleases
           ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId
+        INNER JOIN publishers ON publishers.id = datasets.publisherId
         INNER JOIN releaseShardAssignments
           ON releaseShardAssignments.releaseId = releases.id
         INNER JOIN dataShards
@@ -343,9 +349,16 @@ export async function listSourceRecords(args: {
   limit?: number
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<SourceRecordPage | null> {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
+  args.onResolved?.({
+    publisherCodes: [resolved.release.publisherCode],
+    sourceReleaseCode: resolved.release.sourceReleaseCode,
+    sourceReleaseId: resolved.release.sourceReleaseId,
+    surface: 'source',
+  })
 
   const cursor = decodeCursor(args.cursor)
   if (args.cursor && !cursor) {
@@ -391,9 +404,16 @@ export async function streamSourceRecordsNdjson(args: {
   includeGeometry: boolean
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
+  onResolved?: (attribution: AccessAttribution) => void
 }): Promise<ReadableStream<Uint8Array> | null> {
   const resolved = await resolveRecordsRequest(args)
   if (!resolved) return null
+  args.onResolved?.({
+    publisherCodes: [resolved.release.publisherCode],
+    sourceReleaseCode: resolved.release.sourceReleaseCode,
+    sourceReleaseId: resolved.release.sourceReleaseId,
+    surface: 'source',
+  })
 
   let cursor = decodeCursor(args.cursor)
   if (args.cursor && !cursor) {
