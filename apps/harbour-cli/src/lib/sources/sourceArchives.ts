@@ -140,13 +140,7 @@ export async function mirrorCsdiSourceArchive(
   const manifestBytes = await readFile(prepared.manifestPath)
   const manifestSha256 = sha256(manifestBytes)
   const retrievedAt = new Date().toISOString()
-  const sourceKey = buildSourceArchiveObjectKey(
-    {
-      datasetId: archive.datasetId,
-      sha256: prepared.manifest.archive.sha256,
-    },
-    'source.zip',
-  )
+  const sourceKey = prepared.manifest.archive.objectKey
   const manifestKey = buildSourceArchiveObjectKey(
     {
       datasetId: archive.datasetId,
