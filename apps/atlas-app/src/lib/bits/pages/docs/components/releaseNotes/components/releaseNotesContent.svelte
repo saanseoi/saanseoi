@@ -1,5 +1,9 @@
 <script lang="ts">
-import SvelteMarkdown, { defaultSanitizeUrl } from '@humanspeak/svelte-markdown'
+import SvelteMarkdown, {
+  buildUnsupportedHTML,
+  defaultRenderers,
+  defaultSanitizeUrl,
+} from '@humanspeak/svelte-markdown'
 
 import ApiUrlCodeBlock from '#lib/bits/components/api-url-code-block.svelte'
 import { getMarkdownHeadingId } from '#lib/registry/markdownHeading.js'
@@ -22,13 +26,22 @@ type Props = {
 
 let { markdown, labels, transclusions, nested = false }: Props = $props()
 
+const releaseNotesRenderers = {
+  ...defaultRenderers,
+  html: buildUnsupportedHTML(),
+}
+
 function sanitiseUrl(url: string) {
   return transclusions[url] ? url : defaultSanitizeUrl(url, { type: 'link', tag: 'a' })
 }
 </script>
 
 {#key markdown}
-  <SvelteMarkdown source={markdown} sanitizeUrl={sanitiseUrl}>
+  <SvelteMarkdown
+    source={markdown}
+    renderers={releaseNotesRenderers}
+    sanitizeUrl={sanitiseUrl}
+  >
     {#snippet heading({ depth, text, children, slug })}
       <ReleaseNotesHeading {depth} id={getMarkdownHeadingId(slug(text))}>
         {@render children?.()}
