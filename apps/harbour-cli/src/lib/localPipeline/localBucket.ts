@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, open, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, resolve, sep } from 'node:path'
 
 type RangeOptions = {
@@ -45,10 +45,9 @@ export class LocalPipelineBucket {
     const filePath = this.resolvePath(key)
 
     try {
-      const bytes = await readFile(filePath)
-      const offset = Math.max(0, options?.range?.offset ?? 0)
-      const length = Math.max(0, options?.range?.length ?? bytes.byteLength - offset)
-      const chunk = options?.range ? bytes.subarray(offset, offset + length) : bytes
+      const chunk = options?.range
+        ? await readFileRange(filePath, options.range)
+        : await readFile(filePath)
 
       return {
         async arrayBuffer() {
@@ -93,6 +92,28 @@ export class LocalPipelineBucket {
 
     return filePath
   }
+}
+
+async function readFileRange(
+  filePath: string,
+  range: NonNullable<RangeOptions['range']>,
+) {
+  const file = await open(filePath, 'r')
+  try {
+    const fileSize = (await file.stat()).size
+    const offset = Math.min(fileSize, normaliseRangeValue(range.offset))
+    const available = fileSize - offset
+    const length = Math.min(available, normaliseRangeValue(range.length))
+    const chunk = Buffer.allocUnsafe(length)
+    const { bytesRead } = await file.read(chunk, 0, length, offset)
+    return chunk.subarray(0, bytesRead)
+  } finally {
+    await file.close()
+  }
+}
+
+function normaliseRangeValue(value: number) {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
 }
 
 function isMissingFileError(error: unknown) {
