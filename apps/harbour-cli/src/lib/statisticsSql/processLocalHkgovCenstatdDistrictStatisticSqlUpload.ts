@@ -269,15 +269,21 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
         subject: 'batches',
       },
-      () => {
-        cacheMutationStarted = true
-        return replayStatisticSqlBatches(
+      () =>
+        replayStatisticSqlBatches(
           target,
           context,
           plan.sourceVersion.slice(0, 4),
           batches,
-        )
-      },
+          {
+            onProgress(event) {
+              if (event.phase === 'local-replay') cacheMutationStarted = true
+              progress.update(event.completedBatches, {
+                label: `Import SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+              })
+            },
+          },
+        ),
     )
     await runStatisticProgressStep(
       progress,
