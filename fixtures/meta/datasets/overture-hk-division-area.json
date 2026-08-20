@@ -1,12 +1,14 @@
 {
-  "versionHash": "sha256:ca971d9ad878df1b1b46cb271c02582f7c0bb0d8c5a18faf7eea3d2c23d3d998",
+  "versionHash": "sha256:0005cae431e503b6d271a38b769af67d87dfb0ebff23d634d3c0f030cf9a9702",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "resourceTypes": ["divisionArea"],
+  "resourceTypes": [
+    "divisionArea"
+  ],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/guides/divisions/",
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"]
+        "discoveries": [
+          "new-release"
+        ]
       }
     },
     "archives": {
