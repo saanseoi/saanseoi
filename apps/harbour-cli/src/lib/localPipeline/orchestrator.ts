@@ -8,11 +8,19 @@ import {
   appendPhaseDetails,
   formatBytes,
   formatCount,
+  formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
   colorRed,
   colorTeal,
 } from './progressFormatting.ts'
+
+export type LocalProgressPhase = {
+  action: string
+  completedCount?: number
+  subject: string
+  totalUnits?: number
+}
 
 export type LocalGenerationPhase<TMessage> = {
   completionLabel: string
@@ -66,6 +74,67 @@ const PRE_IMPORT_PHASES = [
   'generateAddressSqlCurrent',
 ] as const
 
+/**
+ * Run one visible ingestion phase with the same labels, timing, progress
+ * clamping, and failure behaviour for every API family.
+ */
+export async function runLocalProgressPhase<T>(
+  progress: LocalUploadProgress,
+  phase: LocalProgressPhase,
+  operation: (
+    reportProgress: (current: number, subject?: string) => void,
+  ) => Promise<T> | T,
+) {
+  const totalUnits = normalisePositiveInteger(phase.totalUnits)
+  const labelForProgress = (current?: number, subject = phase.subject) =>
+    formatRunningPhaseLabel(
+      colorTeal(phase.action),
+      colorRed(subject),
+      totalUnits === undefined ? undefined : current,
+      totalUnits,
+    )
+  const startedAt = Date.now()
+
+  progress.beginPhase(labelForProgress(0), {
+    current: 0,
+    max: totalUnits ?? null,
+  })
+
+  try {
+    const result = await operation((current, subject) => {
+      if (totalUnits === undefined) {
+        if (subject) progress.message(labelForProgress(undefined, subject))
+        return
+      }
+
+      const resolvedCurrent = Math.min(Math.max(0, Math.floor(current)), totalUnits)
+      progress.update(resolvedCurrent, {
+        label: labelForProgress(resolvedCurrent, subject),
+      })
+    })
+
+    if (totalUnits !== undefined) {
+      progress.update(totalUnits, {
+        label: labelForProgress(totalUnits),
+      })
+    }
+    progress.complete(
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(
+          colorTeal(phase.action),
+          colorRed(phase.subject),
+          phase.completedCount,
+        ),
+        [formatDurationMs(Date.now() - startedAt)],
+      ),
+    )
+    return result
+  } catch (error) {
+    progress.fail()
+    throw error
+  }
+}
+
 export async function runLocalGenerationPhase<TMessage>(
   progress: LocalUploadProgress,
   harbourClient: HarbourClient,
@@ -75,6 +144,7 @@ export async function runLocalGenerationPhase<TMessage>(
   worker: (message: TMessage) => Promise<TMessage>,
 ) {
   let processedUnits = 0
+  let progressWrite = Promise.resolve()
   const startedAt = Date.now()
 
   progress.beginPhase(phase.label, {
@@ -99,14 +169,17 @@ export async function runLocalGenerationPhase<TMessage>(
     progress.update(current, {
       label: phase.labelForProgress(current),
     })
-    await harbourClient.stageRunning(
-      phase.releaseId,
-      phase.phase,
-      {
-        processedRows: current,
-      },
-      phase.releaseCode,
+    progressWrite = progressWrite.then(() =>
+      harbourClient.stageRunning(
+        phase.releaseId,
+        phase.phase,
+        {
+          processedRows: current,
+        },
+        phase.releaseCode,
+      ),
     )
+    await progressWrite
 
     return result
   })
@@ -412,6 +485,10 @@ export async function mapWithConcurrency<TInput, TOutput>(
   concurrency: number,
   worker: (item: TInput, index: number) => Promise<TOutput>,
 ) {
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    throw new Error('Concurrency must be a positive integer.')
+  }
+
   const results = new Array<TOutput>(items.length)
   let nextIndex = 0
 
@@ -432,6 +509,12 @@ export async function mapWithConcurrency<TInput, TOutput>(
   )
 
   return results
+}
+
+function normalisePositiveInteger(value: number | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : undefined
 }
 
 function sumImportProgress(importProgressByPhase: Map<string, number>) {

@@ -81,6 +81,58 @@ describe('local import progress orchestration', () => {
       'running:importAddressSqlSource',
     ])
   })
+
+  test('rejects invalid concurrency instead of returning sparse results', async () => {
+    const { mapWithConcurrency } = await import('./orchestrator.ts')
+
+    await expect(mapWithConcurrency([1], 0, async value => value)).rejects.toThrow(
+      'Concurrency must be a positive integer.',
+    )
+  })
+
+  test('serialises concurrent generation progress writes', async () => {
+    const { runLocalGenerationPhase } = await import('./orchestrator.ts')
+    const committedRows: number[] = []
+    const progress = {
+      beginPhase() {},
+      complete() {},
+      update() {},
+    }
+    const harbourClient = {
+      async publishDataset() {},
+      async stageCompleted() {},
+      async stageFailed() {},
+      async stageRunning(
+        _releaseId: string,
+        _phase: string,
+        stats?: Record<string, unknown>,
+      ) {
+        const processedRows = Number(stats?.processedRows ?? 0)
+        if (processedRows === 1) await Bun.sleep(10)
+        committedRows.push(processedRows)
+      },
+    }
+
+    await runLocalGenerationPhase(
+      progress as never,
+      harbourClient,
+      {
+        completionLabel: 'complete',
+        label: 'running',
+        labelForProgress: current => `running ${current}`,
+        phase: 'generate',
+        releaseCode: 'release-code',
+        releaseId: 'release-id',
+        totalUnits: 2,
+        unitsForMessage: () => 1,
+      },
+      [1, 2],
+      2,
+      async value => value,
+    )
+
+    expect(committedRows).toEqual([0, 1, 2])
+  })
 })
 
 function stripAnsi(value: string) {
