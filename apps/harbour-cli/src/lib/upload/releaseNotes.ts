@@ -28,6 +28,8 @@ const overtureVersions = [
   '2026-04-15.0',
   '2026-05-20.0',
   '2026-06-17.0',
+  '2026-07-22.0',
+  '2026-08-19.0',
 ] as const
 
 const overtureReleaseNotesThemes = [
