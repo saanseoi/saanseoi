@@ -441,7 +441,7 @@ export const getSourceReleaseContentData = query(
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
 const districtGeometryNamesSchema = z.object({
-  districtIds: z.array(z.string().trim().min(1).max(200)).max(10_000),
+  districtIds: z.array(z.string().trim().min(1).max(200)).max(100),
   locale: districtMapLocaleSchema,
 })
 const D1_DISTRICT_NAME_BATCH_SIZE = 98
