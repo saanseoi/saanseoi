@@ -1,3 +1,5 @@
+import type { ReleaseAnalyticsSurface } from '../releaseLinks/components/releaseLinks.types.js'
+
 export type ReleaseNavVersion = {
   code: string
   cohortKey?: string | null
@@ -36,4 +38,5 @@ export type ReleaseNavAction = {
   label: string
   onSelect?: () => void
   pressed?: boolean
+  analyticsSurface?: ReleaseAnalyticsSurface
 }
