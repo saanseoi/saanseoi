@@ -77,11 +77,9 @@ export function buildApiReleaseLinksPresentation(
               }
             : undefined
         const sourceArchive = source.sourceArchive
-        const archiveExtension = sourceArchive?.mediaType.includes('parquet')
-          ? '.parquet'
-          : sourceArchive?.mediaType === 'application/zip'
-            ? '.zip'
-            : ''
+        const isParquet = sourceArchive?.mediaType.includes('parquet')
+        const isZip = sourceArchive?.mediaType === 'application/zip'
+        const archiveExtension = isParquet ? '.parquet' : isZip ? '.zip' : ''
 
         return {
           accentColour: 'var(--data-primary)',
@@ -104,9 +102,13 @@ export function buildApiReleaseLinksPresentation(
                 {
                   download: true,
                   href: `${apiBaseUrl}/v0/assets/${sourceArchive.assetId}`,
-                  icon: 'ion:download-outline',
+                  icon: isZip
+                    ? 'proicons:archive'
+                    : isParquet
+                      ? 'proicons:database'
+                      : 'ion:download-outline',
                   id: 'download-source-archive',
-                  label: `${m.source_download_archive()}${archiveExtension ? ` (${archiveExtension})` : ''}`,
+                  label: `${m.source_download_archive()}${isZip ? ' (zipped .zip)' : archiveExtension ? ` (${archiveExtension})` : ''}`,
                   analyticsSurface: 'api_release' as const,
                 },
               ]

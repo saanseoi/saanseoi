@@ -33,6 +33,10 @@ authority `hkgov-had`, cohort `2022`, and the administrative domain. The source 
 is `dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source
 schema version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
+The managed ZIP is linked after resource-release registration through the release's
+canonical source-release lineage, so its download remains available independently of the
+`divisionArea` materialisation that consumes it.
+
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalisation, in both source columns and canonical geometry `sourceKeys`:
 
