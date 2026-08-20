@@ -7,9 +7,11 @@ import { authClient } from '#lib/auth-client.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
 import { getAuthRedirectPath } from '#lib/authRedirect.js'
 
+let { data } = $props()
 let name = $state('')
 let email = $state('')
 let password = $state('')
@@ -80,6 +82,11 @@ const openEmailForm = () => {
   <p class="mt-3 font-body text-body-lg text-foreground-alt">
     {m.auth_sign_up_description()}
   </p>
+  <AuthGoogleOneTap
+    clientId={data.googleClientId}
+    callbackURL={callbackUrl}
+    context="signup"
+  />
   <p class="sr-only" aria-live="polite">
     {busy ? (pendingProvider ? m.auth_signing_in() : m.auth_creating()) : ''}
   </p>
