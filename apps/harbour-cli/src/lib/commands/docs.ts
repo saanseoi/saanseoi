@@ -1075,17 +1075,28 @@ function renderApiReleaseSetSourcesTables(
 ) {
   if (sources.length === 0) return markdown
 
-  let rendered = replaceMarkdownSection(
+  const english = replaceMarkdownSection(
     markdown,
     '## Constituent source releases',
     renderApiReleaseSetSourcesTable(sources, 'en'),
   )
-  rendered = replaceMarkdownSection(
-    rendered,
+  if (!english.matched) {
+    throw new Error(
+      'API release-set notes are missing the English source table heading.',
+    )
+  }
+
+  const traditionalChinese = replaceMarkdownSection(
+    english.markdown,
     '## 組成來源發布',
     renderApiReleaseSetSourcesTable(sources, 'zh-Hant'),
   )
-  return rendered
+  if (!traditionalChinese.matched) {
+    throw new Error(
+      'API release-set notes are missing the Traditional Chinese source table heading.',
+    )
+  }
+  return traditionalChinese.markdown
 }
 
 function renderApiReleaseSetSourcesTable(
@@ -1149,11 +1160,13 @@ function replaceMarkdownSection(markdown: string, heading: string, body: string)
   const headingPattern = new RegExp(
     `(^|\\n)${escapeRegExp(heading)}\\n[\\s\\S]*?(?=\\n## |$)`,
   )
+  let matched = false
 
-  return markdown.replace(
-    headingPattern,
-    (_match, prefix: string) => `${prefix}${heading}\n\n${body}\n`,
-  )
+  const replaced = markdown.replace(headingPattern, (_match, prefix: string) => {
+    matched = true
+    return `${prefix}${heading}\n\n${body}\n`
+  })
+  return { markdown: replaced, matched }
 }
 
 function roleOrder(role: ApiReleaseSetSourceDocsRow['role']) {
@@ -1173,9 +1186,9 @@ function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
     return (
       {
         division: '區劃',
-        divisionArea: '面',
-        divisionBoundary: '邊界',
-        divisionStatistic: '統計',
+        divisionArea: '區劃面',
+        divisionBoundary: '區劃邊界',
+        divisionStatistic: '區劃統計',
       }[resourceType] ?? humaniseResourceType(resourceType)
     )
   }
