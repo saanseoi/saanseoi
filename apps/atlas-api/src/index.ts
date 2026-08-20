@@ -140,7 +140,6 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       blobs: [c.req.path, requestOrigin(c.req.header('origin'))],
       doubles: [1],
     })
-    c.set('apiKey', { id: lease.keyId, userId: lease.keyId })
     return next()
   })
 }
