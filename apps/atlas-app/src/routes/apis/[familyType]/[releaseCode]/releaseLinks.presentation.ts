@@ -1,4 +1,4 @@
-import { m, selectLocalisedRow, type AppLocale } from '#lib/bits/internal/i18n.js'
+import { m } from '#lib/bits/internal/i18n.js'
 import type { ReleaseLinksProvenancePresentation } from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import type { ApiRelease } from '#lib/registry/types.js'
 import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
@@ -55,7 +55,6 @@ export function buildApiReleaseLinksPresentation(
   sources: ApiRelease['contributingSources'],
   familyType: string,
   apiBaseUrl: string,
-  locale: AppLocale,
 ): ReleaseLinksProvenancePresentation {
   const consolidatedSources = consolidateSourceMaterialisations(sources ?? [])
   const entries = (items: NonNullable<ApiRelease['contributingSources']>) =>
@@ -89,8 +88,6 @@ export function buildApiReleaseLinksPresentation(
           description: directRequest ? m.source_direct_usage() : undefined,
           detail: source.sourceCode,
           detailLabel: m.source_dataset(),
-          datasetName:
-            selectLocalisedRow(source.datasetI18n, locale)?.name ?? source.sourceCode,
           eyebrow: humaniseResourceType(source.resourceType),
           eyebrowColour: 'var(--data-primary)',
           expanded: source.role === 'primary',
@@ -117,13 +114,8 @@ export function buildApiReleaseLinksPresentation(
           id: sourceLinkId(source),
           publisherLogoSrc: getPublisherLogo(source.publisherCode),
           publisherName: humaniseCode(source.publisherCode),
-          publisherCode: source.publisherCode,
           request: directRequest,
           requestLabel: m.source_released_as_request(),
-          resourceType: source.resourceType,
-          role: source.role,
-          snapshotCode: source.snapshotCode,
-          sourceReleaseCode: source.sourceReleaseCode,
           title: [
             `v${source.sourceVersion}`,
             ...(source.subType ? [humaniseCode(source.subType)] : []),
