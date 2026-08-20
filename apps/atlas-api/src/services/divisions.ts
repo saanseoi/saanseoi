@@ -1075,7 +1075,7 @@ export async function listDivisions(args: {
 
   const includedRecords = await runWithD1ReadRetry(() =>
     loadIncludedHierarchyRecords({
-      includeHierarchy: args.query.include === 'hierarchy',
+      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records,
@@ -1228,7 +1228,7 @@ export async function getDivisionDetail(args: {
 
   const includedRecords = await runWithD1ReadRetry(() =>
     loadIncludedHierarchyRecords({
-      includeHierarchy: args.query.include === 'hierarchy',
+      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records: [record],

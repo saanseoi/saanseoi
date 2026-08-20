@@ -443,18 +443,6 @@ function publicAssetLinks(value: unknown): StreetAsset[] {
   })
 }
 
-function publicProvenance(value: unknown) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-  const landsd = (value as Record<string, unknown>).hkgovLandsd
-  if (!landsd || typeof landsd !== 'object' || Array.isArray(landsd)) return null
-  const record = landsd as Record<string, unknown>
-  return {
-    effectiveDate: stringOrNull(record.effectiveDate),
-    publicationDate: stringOrNull(record.publicationDate),
-    sourceEventIds: stringArray(record.sourceEventIds),
-  }
-}
-
 function isStreetEvidenceAssetRole(value: unknown): value is StreetEvidenceAssetRole {
   return (
     typeof value === 'string' &&
@@ -466,10 +454,6 @@ function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
     : []
-}
-
-function stringOrNull(value: unknown) {
-  return typeof value === 'string' ? value : null
 }
 
 function snapshotNotReady() {
