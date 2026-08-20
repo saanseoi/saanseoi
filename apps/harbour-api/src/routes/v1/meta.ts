@@ -20,6 +20,21 @@ const ApiReleaseSetDocsRowSchema = z
     notes: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
+    sources: z
+      .array(
+        z.object({
+          datasetCode: z.string(),
+          datasetI18n: z.array(z.object({ locale: z.string(), name: z.string() })),
+          publisherCode: z.string(),
+          publisherI18n: z.array(z.object({ locale: z.string(), name: z.string() })),
+          releaseCode: z.string(),
+          resourceType: z.string(),
+          role: z.enum(['primary', 'supporting']),
+          sourceVersion: z.string(),
+          variant: z.string(),
+        }),
+      )
+      .optional(),
   })
   .openapi('HarbourApiReleaseSetDocsRow')
 
@@ -216,6 +231,7 @@ export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>(
 })
 
 type ApiReleaseSetDocsRow = z.infer<typeof ApiReleaseSetDocsRowSchema>
+type ApiReleaseSetSourceDocsRow = NonNullable<ApiReleaseSetDocsRow['sources']>[number]
 type ReleaseDocsRow = z.infer<typeof ReleaseDocsRowSchema>
 
 export const apiReleaseSetDocsListRoute = defineOpenAPIRoute<
@@ -228,7 +244,7 @@ export const apiReleaseSetDocsListRoute = defineOpenAPIRoute<
 
     return c.json(
       {
-        rows: await listApiReleaseSetDocsRows(c.env.DB_META),
+        rows: await withApiReleaseSetSources(c.env.DB_META),
       },
       200,
     )
@@ -416,6 +432,127 @@ async function listApiReleaseSetDocsRows(dbBinding: D1Database) {
     .all<ApiReleaseSetDocsRow>()
 
   return result.results ?? []
+}
+
+async function withApiReleaseSetSources(dbBinding: D1Database) {
+  const rows = await listApiReleaseSetDocsRows(dbBinding)
+  const sourcesByReleaseSetId = await listApiReleaseSetSources(dbBinding)
+
+  return rows.map(row => ({
+    ...row,
+    sources: sourcesByReleaseSetId.get(row.id) ?? [],
+  }))
+}
+
+type ApiReleaseSetSourceQueryRow = {
+  apiReleaseSetId: string
+  datasetCode: string
+  datasetId: string
+  publisherCode: string
+  publisherId: string
+  releaseCode: string
+  resourceType: string
+  role: string
+  sourceReleaseId: string
+  sourceVersion: string
+  variant: string
+}
+
+type LocalisedDocsNameRow = {
+  id: string
+  locale: string
+  name: string
+}
+
+async function listApiReleaseSetSources(dbBinding: D1Database) {
+  const db = withPrimarySession(dbBinding)
+  const [sourceResult, datasetI18nResult, publisherI18nResult] = await Promise.all([
+    db
+      .prepare(
+        `
+        SELECT
+          arss.apiReleaseSetId,
+          d.code AS datasetCode,
+          d.id AS datasetId,
+          p.code AS publisherCode,
+          p.id AS publisherId,
+          r.code AS releaseCode,
+          s.resourceType,
+          CASE
+            WHEN arss.role = 'primary' AND ss.role = 'primary' THEN 'primary'
+            ELSE 'supporting'
+          END AS role,
+          ss.sourceReleaseId,
+          r.sourceVersion,
+          arss.variant
+        FROM apiReleaseSetSnapshots arss
+        INNER JOIN snapshots s ON s.id = arss.snapshotId
+        INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
+        INNER JOIN releases r ON r.id = ss.sourceReleaseId
+        INNER JOIN datasets d ON d.id = ss.datasetId
+        INNER JOIN publishers p ON p.id = d.publisherId
+        WHERE ss.role <> 'lookup'
+        ORDER BY arss.apiReleaseSetId, role, s.resourceType, r.code
+        `,
+      )
+      .all<ApiReleaseSetSourceQueryRow>(),
+    db
+      .prepare('SELECT datasetId AS id, locale, name FROM datasetI18n')
+      .all<LocalisedDocsNameRow>(),
+    db
+      .prepare('SELECT publisherId AS id, locale, name FROM publisherI18n')
+      .all<LocalisedDocsNameRow>(),
+  ])
+
+  const datasetI18nById = groupLocalisedDocsNames(datasetI18nResult.results ?? [])
+  const publisherI18nById = groupLocalisedDocsNames(publisherI18nResult.results ?? [])
+  const sourcesByReleaseSetId = new Map<string, ApiReleaseSetSourceDocsRow[]>()
+
+  for (const source of sourceResult.results ?? []) {
+    const sources = sourcesByReleaseSetId.get(source.apiReleaseSetId) ?? []
+    const existingIndex = sources.findIndex(
+      candidate =>
+        candidate.releaseCode === source.releaseCode &&
+        candidate.variant === source.variant,
+    )
+    const next: ApiReleaseSetSourceDocsRow = {
+      datasetCode: source.datasetCode,
+      datasetI18n: datasetI18nById.get(source.datasetId) ?? [],
+      publisherCode: source.publisherCode,
+      publisherI18n: publisherI18nById.get(source.publisherId) ?? [],
+      releaseCode: source.releaseCode,
+      resourceType: source.resourceType,
+      role: source.role === 'primary' ? 'primary' : 'supporting',
+      sourceVersion: source.sourceVersion,
+      variant: source.variant,
+    }
+
+    if (existingIndex === -1) {
+      sources.push(next)
+    } else if (
+      sources[existingIndex]?.role === 'supporting' &&
+      next.role === 'primary'
+    ) {
+      sources[existingIndex] = next
+    }
+
+    sourcesByReleaseSetId.set(source.apiReleaseSetId, sources)
+  }
+
+  return sourcesByReleaseSetId
+}
+
+function groupLocalisedDocsNames(rows: LocalisedDocsNameRow[]) {
+  const grouped = new Map<string, Array<{ locale: string; name: string }>>()
+
+  for (const row of rows) {
+    grouped.set(row.id, [
+      ...(grouped.get(row.id) ?? []),
+      { locale: row.locale, name: row.name },
+    ])
+  }
+
+  return grouped
 }
 
 async function listReleaseDocsRows(dbBinding: D1Database) {
