@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:74c2d16936da4d2481bccb92dc7ffce33ec169ac8ffd88e28f8827c6bd132df0",
+  "versionHash": "sha256:8f968e24b3eefa948481265e7634467949761d916337fc221ce76ec80233f1ee",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
@@ -8,9 +8,7 @@
   "theme": "divisions",
   "subType": "district",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Home Affairs Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ]
+        "discoveries": ["new-release"]
       }
     },
     "archives": {

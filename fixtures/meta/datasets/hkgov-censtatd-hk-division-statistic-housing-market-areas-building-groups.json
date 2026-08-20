@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:00182960606d2c6c94c8cec1b2b7c8330352b22e22937889f9ef9e70faab8159",
+  "versionHash": "sha256:1e9fdff0d3be9da71ed3e5f8bb3adde2ec45538b8e1dd6de7ae4cb3c3a67cb2f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
@@ -8,11 +8,7 @@
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-hma",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic",
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
@@ -35,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
