@@ -30,9 +30,9 @@ import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
 import {
   completeAccessAnalyticsDownload,
-  rebuildAccessAnalyticsAllTimeCache,
   recordAccessAnalyticsEvent,
 } from './services/accessAnalytics'
+import { rollUpAccessAnalyticsDaily } from './services/accessAnalyticsRollup'
 import {
   isFirstPartyWebOrigin,
   productApiOutcome,
@@ -169,28 +169,11 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     const event = {
       ...attribution,
       eventType,
+      route: c.req.path,
       httpStatus: status,
-      requestIdentity: servingRequestIdentity(c.req.raw),
-      completedAt:
-        eventType === 'download' && isSuccessfulStatus(status) ? undefined : null,
     } as const
 
-    try {
-      // A pending download is acknowledged before the response is returned;
-      // only stream completion below turns it into a counted download.
-      await recordAccessAnalyticsEvent(c.env.DB_META, event)
-    } catch (error) {
-      console.error('Access analytics acknowledgement failed:', error)
-      const unavailable = c.json(
-        {
-          error: 'service_unavailable',
-          message: 'The API is temporarily unavailable. Please retry.',
-        },
-        503,
-      )
-      c.res = unavailable
-      return unavailable
-    }
+    recordAccessAnalyticsEvent(c.env.PRODUCT_USAGE, event)
 
     if (eventType === 'download' && isSuccessfulStatus(status) && c.res.body) {
       const body = c.res.body.pipeThrough(
@@ -199,7 +182,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
             controller.enqueue(chunk)
           },
           async flush() {
-            await completeAccessAnalyticsDownload(c.env.DB_META, event)
+            completeAccessAnalyticsDownload(c.env.PRODUCT_USAGE, event)
           },
         }),
       )
@@ -329,16 +312,6 @@ function isCompletedDownloadRequest(c: Context<AppEnv>) {
   )
 }
 
-function servingRequestIdentity(request: Request) {
-  const edgeId = request.headers.get('cf-ray')
-  const suppliedId = request.headers.get('x-request-id')
-  return edgeId
-    ? `cf-ray:${edgeId}`
-    : suppliedId
-      ? `request:${suppliedId}`
-      : crypto.randomUUID()
-}
-
 app.onError((error, c) => {
   console.error(error)
   if (isTransientD1ReadError(error)) {
@@ -417,13 +390,13 @@ const worker = Object.assign(app, {
     env: AppBindings,
     ctx: ExecutionContext,
   ) {
-    if (controller.cron !== '*/5 * * * *') return
-    ctx.waitUntil(
-      Promise.all([
-        rollUpApiKeyUsage(env, controller.scheduledTime),
-        rebuildAccessAnalyticsAllTimeCache(env.DB_META),
-      ]),
-    )
+    if (controller.cron === '*/5 * * * *') {
+      ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+      return
+    }
+    if (controller.cron === '15 0 * * *') {
+      ctx.waitUntil(rollUpAccessAnalyticsDaily(env, controller.scheduledTime))
+    }
   },
 })
 

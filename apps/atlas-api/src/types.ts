@@ -14,6 +14,7 @@ export type AppBindings = CloudflareBindings &
     PRODUCT_USAGE?: AnalyticsEngineDataset
     ANALYTICS_ENGINE_ACCOUNT_ID: string
     ANALYTICS_ENGINE_READ_TOKEN: string
+    PRODUCT_USAGE_DATASET: string
     AUTH_MODE: 'disabled' | 'required'
     D1_PLACEMENT_PROBE_API_KEY: string
     R2_ASSETS: R2Bucket

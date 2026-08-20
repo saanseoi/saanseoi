@@ -493,10 +493,17 @@ describe('atlas-api', () => {
     ])
   })
 
-  test('returns 503 when the serving analytics acknowledgement fails', async () => {
+  test('does not block serving when Analytics Engine telemetry fails', async () => {
     const { bucket } = createAssetBucket()
     const { env, operations } = createEnv(
-      { R2_ASSETS: bucket },
+      {
+        PRODUCT_USAGE: {
+          writeDataPoint: () => {
+            throw new Error('Analytics Engine unavailable')
+          },
+        } as AnalyticsEngineDataset,
+        R2_ASSETS: bucket,
+      },
       {
         asset: {
           assetKey: 'source-archives/example.zip',
@@ -504,7 +511,6 @@ describe('atlas-api', () => {
           sourceReleaseCode: 'landsd-archive-2026.1',
           sourceReleaseId: 'source-archive-2026.1',
         },
-        failOnRun: query => query.includes('INSERT INTO accessAnalyticsIdempotency'),
       },
     )
 
@@ -517,12 +523,8 @@ describe('atlas-api', () => {
 
     expect(
       operations.some(operation => operation.query.includes('accessAnalytics')),
-    ).toBe(true)
-    expect(res.status).toBe(503)
-    expect((await res.json()) as unknown).toEqual({
-      error: 'service_unavailable',
-      message: 'The API is temporarily unavailable. Please retry.',
-    })
+    ).toBe(false)
+    expect(res.status).toBe(200)
   })
 
   test('records first-party API requests separately from API_USAGE billing events', async () => {
