@@ -46,7 +46,7 @@ function sanitiseUrl(url: string) {
       <ReleaseNotesHeading
         {depth}
         id={getMarkdownHeadingId(slug(text))}
-        tableLabel={depth === 3 && /^(Primary|Supporting|主要|支援) · /.test(text)}
+        tableLabel={depth === 3 && /^(Primary|Supporting|主要|支援|支持) · /.test(text)}
       >
         {@render children?.()}
       </ReleaseNotesHeading>
