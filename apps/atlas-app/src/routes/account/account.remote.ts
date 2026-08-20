@@ -86,11 +86,10 @@ export const unlinkAccountForCurrentUser = command(
         message: getAccountMessage(locale, 'account_unlink_error'),
       } as const
 
-    const [accounts, passkeys] = await Promise.all([
-      event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
-      event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
-    ])
-    if (accounts.length + passkeys.length <= 1) {
+    const accounts = await event.locals.auth.api.listUserAccounts({
+      headers: event.request.headers,
+    })
+    if (accounts.length <= 1) {
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_last_sign_in_method'),
