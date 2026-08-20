@@ -1,87 +1,22 @@
 import { expect, test } from 'bun:test'
-import { Database, type SQLQueryBindings } from 'bun:sqlite'
+import type { ProductUsageDataset } from '@repo/core/productUsage'
 
 import {
   completeAccessAnalyticsDownload,
   getAccessMetrics,
-  rebuildAccessAnalyticsAllTimeCache,
   recordAccessAnalyticsEvent,
   resolveApiReleaseSetAccessAttribution,
 } from './accessAnalytics'
 
-function createAnalyticsD1() {
-  const sqlite = new Database(':memory:')
-  sqlite.exec(`
-    CREATE TABLE accessAnalyticsDaily (
-      day TEXT NOT NULL,
-      scope TEXT NOT NULL,
-      entityId TEXT NOT NULL,
-      metrics TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      PRIMARY KEY (day, scope, entityId)
-    );
-    CREATE TABLE accessAnalyticsIdempotency (
-      eventType TEXT NOT NULL,
-      requestIdentity TEXT PRIMARY KEY,
-      eligible INTEGER NOT NULL,
-      counted INTEGER NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE accessAnalyticsRollups (
-      period TEXT NOT NULL,
-      scope TEXT NOT NULL,
-      entityId TEXT NOT NULL,
-      metrics TEXT NOT NULL,
-      asOf TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      PRIMARY KEY (period, scope, entityId)
-    );
-  `)
-
-  function statement(query: string) {
-    const prepared = sqlite.query(query)
-    let values: SQLQueryBindings[] = []
-    const bound = {
-      bind(...nextValues: SQLQueryBindings[]) {
-        values = nextValues
-        return bound
-      },
-      async all<T>() {
-        return { results: prepared.all(...values) as T[] }
-      },
-      async first<T>() {
-        return (prepared.get(...values) as T | null) ?? null
-      },
-      async run() {
-        const result = prepared.run(...values)
-        return { meta: { changes: result.changes } }
-      },
-    }
-    return bound
-  }
-
+function createDataset() {
+  const points: AnalyticsEngineDataPoint[] = []
   return {
-    db: {
-      prepare: statement,
-      async batch(statements: Array<{ run: () => Promise<unknown> }>) {
-        sqlite.exec('BEGIN')
-        try {
-          const results = []
-          for (const prepared of statements) results.push(await prepared.run())
-          sqlite.exec('COMMIT')
-          return results
-        } catch (error) {
-          sqlite.exec('ROLLBACK')
-          throw error
-        }
+    points,
+    dataset: {
+      writeDataPoint(point: AnalyticsEngineDataPoint) {
+        points.push(point)
       },
-    } as unknown as D1Database,
-    close() {
-      sqlite.close()
-    },
+    } as unknown as ProductUsageDataset,
   }
 }
 
@@ -124,9 +59,6 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
         },
       }
     },
-    async batch(statements: Array<{ run: () => Promise<unknown> }>) {
-      return Promise.all(statements.map(statement => statement.run()))
-    },
   } as unknown as D1Database
 
   await expect(
@@ -142,32 +74,53 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
   expect(queries[0]).toContain("snapshotSources.role <> 'lookup'")
 })
 
-test('deduplicates a serving retry without retaining the request event', async () => {
-  const { db, close } = createAnalyticsD1()
-  const event = {
-    eventType: 'api_request' as const,
+test('emits one successful API hit for every attributed dimension', () => {
+  const { dataset, points } = createDataset()
+  recordAccessAnalyticsEvent(dataset, {
+    eventType: 'api_request',
     httpStatus: 200,
-    publisherCodes: ['overture'],
-    requestIdentity: 'cf-ray:retry-1',
+    publisherCodes: ['overture', 'hkgov', 'hkgov'],
+    route: '/v0.1/divisions',
     sourceReleaseId: 'source-1',
-    surface: 'source' as const,
-    occurredAt: '2026-08-21T00:00:00.000Z',
-  }
+    apiReleaseSetId: 'set-1',
+    surface: 'api_release_set',
+  })
 
-  try {
-    await recordAccessAnalyticsEvent(db, event)
-    await recordAccessAnalyticsEvent(db, event)
-
-    await expect(getAccessMetrics(db, 'publisher', 'overture')).resolves.toEqual({
-      metrics: { apiRequests: 1 },
-      asOf: '2026-08-21T00:00:00.000Z',
-    })
-  } finally {
-    close()
-  }
+  expect(points).toHaveLength(4)
+  expect(points.map(point => point.blobs?.slice(5))).toEqual([
+    ['source_release', 'source-1', '', 'success', '200', 'apiRequests'],
+    ['api_release_set', 'set-1', '', 'success', '200', 'apiRequests'],
+    ['publisher', 'hkgov', '', 'success', '200', 'apiRequests'],
+    ['publisher', 'overture', '', 'success', '200', 'apiRequests'],
+  ])
 })
 
-test('metrics count successful requests and completed downloads only', async () => {
+test('does not emit failed or unconsumed downloads', () => {
+  const { dataset, points } = createDataset()
+  const download = {
+    eventType: 'download' as const,
+    httpStatus: 200,
+    publisherCodes: ['hkgov'],
+    route: '/v0/assets/:id',
+    sourceReleaseId: 'source-1',
+    surface: 'source' as const,
+  }
+
+  recordAccessAnalyticsEvent(dataset, download)
+  expect(points).toHaveLength(0)
+
+  completeAccessAnalyticsDownload(dataset, download)
+  expect(points).toHaveLength(2)
+  expect(points.every(point => point.blobs?.[10] === 'downloads')).toBe(true)
+
+  recordAccessAnalyticsEvent(dataset, {
+    ...download,
+    httpStatus: 500,
+  })
+  expect(points).toHaveLength(2)
+})
+
+test('reads metrics from a selected periodised D1 cache', async () => {
   let query = ''
   const db = {
     prepare(value: string) {
@@ -177,7 +130,7 @@ test('metrics count successful requests and completed downloads only', async () 
           return {
             async first() {
               return {
-                metrics: JSON.stringify({ requests: 4, downloads: 2 }),
+                metrics: JSON.stringify({ apiRequests: 4, downloads: 2 }),
                 asOf: '2026-08-21T00:00:00.000Z',
               }
             },
@@ -187,143 +140,11 @@ test('metrics count successful requests and completed downloads only', async () 
     },
   } as unknown as D1Database
 
-  await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toEqual({
-    metrics: { requests: 4, downloads: 2 },
+  await expect(
+    getAccessMetrics(db, 'publisher', 'hkgov', 'week:2026-W34'),
+  ).resolves.toEqual({
+    metrics: { apiRequests: 4, downloads: 2 },
     asOf: '2026-08-21T00:00:00.000Z',
   })
-  expect(query).toContain('FROM accessAnalyticsRollups')
-})
-
-test('records a direct source request once for its publisher and source release', async () => {
-  const { db, close } = createAnalyticsD1()
-  try {
-    await recordAccessAnalyticsEvent(db, {
-      eventType: 'api_request',
-      httpStatus: 200,
-      publisherCodes: ['hkgov'],
-      requestIdentity: 'request-direct-source',
-      sourceReleaseCode: 'landsd-2026.1',
-      sourceReleaseId: 'source-landsd-2026.1',
-      surface: 'source',
-    })
-
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { apiRequests: 1 },
-    })
-    await expect(
-      getAccessMetrics(db, 'source_release', 'source-landsd-2026.1'),
-    ).resolves.toMatchObject({ metrics: { apiRequests: 1 } })
-  } finally {
-    close()
-  }
-})
-
-test('attributes one API ReleaseSet request to each distinct publisher', async () => {
-  const { db, close } = createAnalyticsD1()
-  try {
-    await recordAccessAnalyticsEvent(db, {
-      apiReleaseSetCode: 'api-divisions-2026.1',
-      apiReleaseSetId: 'set-divisions-2026.1',
-      contributingSourceReleaseCodes: [
-        'landsd-2026.1',
-        'landsd-2026.1',
-        'overture-2026.1',
-      ],
-      contributingSourceReleaseIds: ['source-1', 'source-1', 'source-2'],
-      eventType: 'api_request',
-      httpStatus: 200,
-      publisherCodes: ['hkgov', 'hkgov', 'overture'],
-      requestIdentity: 'request-release-set',
-      surface: 'api_release_set',
-    })
-
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { apiRequests: 1 },
-    })
-    await expect(getAccessMetrics(db, 'publisher', 'overture')).resolves.toMatchObject({
-      metrics: { apiRequests: 1 },
-    })
-    await expect(
-      getAccessMetrics(db, 'api_release_set', 'set-divisions-2026.1'),
-    ).resolves.toMatchObject({ metrics: { apiRequests: 1 } })
-  } finally {
-    close()
-  }
-})
-
-test('excludes failed, incomplete, and unconsumed downloads', async () => {
-  const { db, close } = createAnalyticsD1()
-  try {
-    const download = {
-      eventType: 'download' as const,
-      httpStatus: 200,
-      publisherCodes: ['hkgov'],
-      requestIdentity: 'request-completed-download',
-      sourceReleaseCode: 'landsd-archive-2026.1',
-      sourceReleaseId: 'source-archive-2026.1',
-      surface: 'source' as const,
-    }
-    await recordAccessAnalyticsEvent(db, download)
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toBeNull()
-
-    await completeAccessAnalyticsDownload(db, download, '2026-08-21T01:00:00.000Z')
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { downloads: 1 },
-    })
-
-    await completeAccessAnalyticsDownload(db, download, '2026-08-21T01:00:00.000Z')
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { downloads: 1 },
-    })
-
-    await recordAccessAnalyticsEvent(db, {
-      ...download,
-      httpStatus: 500,
-      requestIdentity: 'request-failed-download',
-    })
-    await recordAccessAnalyticsEvent(db, {
-      ...download,
-      requestIdentity: 'request-unconsumed-download',
-    })
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { downloads: 1 },
-    })
-  } finally {
-    close()
-  }
-})
-
-test('rebuilds the periodised all-time cache from daily canonical data', async () => {
-  const { db, close } = createAnalyticsD1()
-  try {
-    await recordAccessAnalyticsEvent(db, {
-      eventType: 'api_request',
-      httpStatus: 200,
-      publisherCodes: ['hkgov'],
-      requestIdentity: 'request-day-one',
-      surface: 'source',
-      sourceReleaseId: 'source-1',
-      occurredAt: '2026-08-20T23:59:00.000Z',
-    })
-    await recordAccessAnalyticsEvent(db, {
-      eventType: 'api_request',
-      httpStatus: 200,
-      publisherCodes: ['hkgov'],
-      requestIdentity: 'request-day-two',
-      surface: 'source',
-      sourceReleaseId: 'source-1',
-      occurredAt: '2026-08-21T00:01:00.000Z',
-    })
-
-    await rebuildAccessAnalyticsAllTimeCache(db)
-
-    await expect(getAccessMetrics(db, 'publisher', 'hkgov')).resolves.toMatchObject({
-      metrics: { apiRequests: 2 },
-    })
-    await expect(
-      getAccessMetrics(db, 'publisher', 'hkgov', 'week:2026-W34'),
-    ).resolves.toBeNull()
-  } finally {
-    close()
-  }
+  expect(query).toContain('period = ?')
 })
