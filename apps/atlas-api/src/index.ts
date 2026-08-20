@@ -306,9 +306,8 @@ function isSuccessfulStatus(status: number) {
 
 function isCompletedDownloadRequest(c: Context<AppEnv>) {
   return (
-    c.req.query('download') === '1' ||
     c.res.headers.get('content-disposition')?.toLowerCase().startsWith('attachment') ===
-      true
+    true
   )
 }
 
