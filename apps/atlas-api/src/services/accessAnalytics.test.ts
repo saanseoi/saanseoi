@@ -32,6 +32,7 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
               return {
                 results: [
                   {
+                    datasetId: 'dataset-1',
                     apiReleaseSetId: 'set-1',
                     apiReleaseSetCode: 'api-divisions-2026.0',
                     sourceReleaseId: 'source-1',
@@ -39,6 +40,7 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
                     publisherCode: 'hkgov',
                   },
                   {
+                    datasetId: 'dataset-1',
                     apiReleaseSetId: 'set-1',
                     apiReleaseSetCode: 'api-divisions-2026.0',
                     sourceReleaseId: 'source-2',
@@ -46,6 +48,7 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
                     publisherCode: 'hkgov',
                   },
                   {
+                    datasetId: 'dataset-2',
                     apiReleaseSetId: 'set-1',
                     apiReleaseSetCode: 'api-divisions-2026.0',
                     sourceReleaseId: 'source-3',
@@ -66,6 +69,7 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
   ).resolves.toEqual({
     apiReleaseSetId: 'set-1',
     apiReleaseSetCode: 'api-divisions-2026.0',
+    contributingDatasetIds: ['dataset-1', 'dataset-2'],
     contributingSourceReleaseIds: ['source-1', 'source-2', 'source-3'],
     contributingSourceReleaseCodes: ['dr-one', 'dr-two', 'dr-three'],
     publisherCodes: ['hkgov', 'overture'],
@@ -81,17 +85,61 @@ test('emits one successful API hit for every attributed dimension', () => {
     httpStatus: 200,
     publisherCodes: ['overture', 'hkgov', 'hkgov'],
     route: '/v0.1/divisions',
-    sourceReleaseId: 'source-1',
+    contributingDatasetIds: ['dataset-1', 'dataset-2'],
+    contributingSourceReleaseIds: ['source-2', 'source-1', 'source-1'],
     apiReleaseSetId: 'set-1',
     surface: 'api_release_set',
   })
 
-  expect(points).toHaveLength(4)
+  expect(points).toHaveLength(7)
   expect(points.map(point => point.blobs?.slice(5))).toEqual([
-    ['source_release', 'source-1', '', 'success', '200', 'apiRequests'],
-    ['api_release_set', 'set-1', '', 'success', '200', 'apiRequests'],
-    ['publisher', 'hkgov', '', 'success', '200', 'apiRequests'],
-    ['publisher', 'overture', '', 'success', '200', 'apiRequests'],
+    [
+      'source_release',
+      'source-1',
+      '',
+      'success',
+      '200',
+      'apiRequests.via_api_release_set',
+    ],
+    [
+      'source_release',
+      'source-2',
+      '',
+      'success',
+      '200',
+      'apiRequests.via_api_release_set',
+    ],
+    [
+      'api_release_set',
+      'set-1',
+      '',
+      'success',
+      '200',
+      'apiRequests.via_api_release_set',
+    ],
+    ['dataset', 'dataset-1', '', 'success', '200', 'apiRequests.via_api_release_set'],
+    ['dataset', 'dataset-2', '', 'success', '200', 'apiRequests.via_api_release_set'],
+    ['publisher', 'hkgov', '', 'success', '200', 'apiRequests.via_api_release_set'],
+    ['publisher', 'overture', '', 'success', '200', 'apiRequests.via_api_release_set'],
+  ])
+})
+
+test('keeps direct source access separate from composition access', () => {
+  const { dataset, points } = createDataset()
+  recordAccessAnalyticsEvent(dataset, {
+    eventType: 'api_request',
+    httpStatus: 200,
+    publisherCodes: ['hkgov'],
+    route: '/v0/sources',
+    datasetId: 'dataset-1',
+    sourceReleaseId: 'source-1',
+    surface: 'source',
+  })
+
+  expect(points.map(point => point.blobs?.slice(5))).toEqual([
+    ['source_release', 'source-1', '', 'success', '200', 'apiRequests.direct'],
+    ['dataset', 'dataset-1', '', 'success', '200', 'apiRequests.direct'],
+    ['publisher', 'hkgov', '', 'success', '200', 'apiRequests.direct'],
   ])
 })
 
@@ -102,6 +150,7 @@ test('does not emit failed or unconsumed downloads', () => {
     httpStatus: 200,
     publisherCodes: ['hkgov'],
     route: '/v0/assets/:id',
+    datasetId: 'dataset-1',
     sourceReleaseId: 'source-1',
     surface: 'source' as const,
   }
@@ -110,14 +159,14 @@ test('does not emit failed or unconsumed downloads', () => {
   expect(points).toHaveLength(0)
 
   completeAccessAnalyticsDownload(dataset, download)
-  expect(points).toHaveLength(2)
-  expect(points.every(point => point.blobs?.[10] === 'downloads')).toBe(true)
+  expect(points).toHaveLength(3)
+  expect(points.every(point => point.blobs?.[10] === 'downloads.direct')).toBe(true)
 
   recordAccessAnalyticsEvent(dataset, {
     ...download,
     httpStatus: 500,
   })
-  expect(points).toHaveLength(2)
+  expect(points).toHaveLength(3)
 })
 
 test('reads metrics from a selected periodised D1 cache', async () => {
