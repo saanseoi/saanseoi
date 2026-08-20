@@ -161,6 +161,12 @@ function createRegistryReleasesDb() {
       resourceType TEXT NOT NULL
     );
 
+    CREATE TABLE datasetI18n (
+      datasetId TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
       releaseId TEXT NOT NULL,
@@ -275,6 +281,10 @@ describe('listRegistryReleases', () => {
         ('dataset-b', 'address'),
         ('dataset-c', 'division');
 
+      INSERT INTO datasetI18n (datasetId, locale, name) VALUES
+        ('dataset-a', 'en', 'Hong Kong addresses'),
+        ('dataset-a', 'zh-Hant', '香港地址');
+
       INSERT INTO releases (id, datasetId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
         ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
@@ -328,6 +338,10 @@ describe('listRegistryReleases', () => {
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
           subType: null,
+          datasetI18n: [
+            { datasetId: 'dataset-a', locale: 'en', name: 'Hong Kong addresses' },
+            { datasetId: 'dataset-a', locale: 'zh-Hant', name: '香港地址' },
+          ],
         }),
         expect.objectContaining({
           publisherCode: 'landsd',

@@ -387,57 +387,70 @@ export async function listRegistryReleases(
     ...new Set(snapshotSources.map(source => source.sourceReleaseId)),
   ]
   const datasetIds = [...new Set(snapshotSources.map(source => source.datasetId))]
-  const [sourceReleases, processingActions, datasetResourceTypes] = await Promise.all([
-    queryInBatches(sourceReleaseIds, ids =>
-      db
-        .select({
-          id: metaReleases.id,
-          code: metaReleases.code,
-          datasetCode: metaDatasets.code,
-          publisherCode: metaPublishers.code,
-          sourceVersion: metaReleases.sourceVersion,
-          subType: metaDatasets.subType,
-          ingestedAt: metaReleases.ingestedAt,
-          processingRules: metaReleases.processingRules,
-        })
-        .from(metaReleases)
-        .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-        .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-        .where(inArray(metaReleases.id, ids))
-        .all(),
-    ),
-    queryInBatches(sourceReleaseIds, ids =>
-      db
-        .select({
-          id: releaseProcessingActions.id,
-          releaseId: releaseProcessingActions.releaseId,
-          action: releaseProcessingActions.action,
-          mode: releaseProcessingActions.mode,
-          summary: releaseProcessingActions.summary,
-          affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-          evidence: releaseProcessingActions.evidence,
-          createdAt: releaseProcessingActions.createdAt,
-          updatedAt: releaseProcessingActions.updatedAt,
-        })
-        .from(releaseProcessingActions)
-        .where(inArray(releaseProcessingActions.releaseId, ids))
-        .orderBy(
-          desc(releaseProcessingActions.createdAt),
-          desc(releaseProcessingActions.id),
-        )
-        .all(),
-    ),
-    queryInBatches(datasetIds, ids =>
-      db
-        .select({
-          datasetId: metaDatasetResourceTypes.datasetId,
-          resourceType: metaDatasetResourceTypes.resourceType,
-        })
-        .from(metaDatasetResourceTypes)
-        .where(inArray(metaDatasetResourceTypes.datasetId, ids))
-        .all(),
-    ),
-  ])
+  const [sourceReleases, processingActions, datasetResourceTypes, datasetI18n] =
+    await Promise.all([
+      queryInBatches(sourceReleaseIds, ids =>
+        db
+          .select({
+            id: metaReleases.id,
+            datasetId: metaReleases.datasetId,
+            code: metaReleases.code,
+            datasetCode: metaDatasets.code,
+            publisherCode: metaPublishers.code,
+            sourceVersion: metaReleases.sourceVersion,
+            subType: metaDatasets.subType,
+            ingestedAt: metaReleases.ingestedAt,
+            processingRules: metaReleases.processingRules,
+          })
+          .from(metaReleases)
+          .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+          .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+          .where(inArray(metaReleases.id, ids))
+          .all(),
+      ),
+      queryInBatches(sourceReleaseIds, ids =>
+        db
+          .select({
+            id: releaseProcessingActions.id,
+            releaseId: releaseProcessingActions.releaseId,
+            action: releaseProcessingActions.action,
+            mode: releaseProcessingActions.mode,
+            summary: releaseProcessingActions.summary,
+            affectedRecordCount: releaseProcessingActions.affectedRecordCount,
+            evidence: releaseProcessingActions.evidence,
+            createdAt: releaseProcessingActions.createdAt,
+            updatedAt: releaseProcessingActions.updatedAt,
+          })
+          .from(releaseProcessingActions)
+          .where(inArray(releaseProcessingActions.releaseId, ids))
+          .orderBy(
+            desc(releaseProcessingActions.createdAt),
+            desc(releaseProcessingActions.id),
+          )
+          .all(),
+      ),
+      queryInBatches(datasetIds, ids =>
+        db
+          .select({
+            datasetId: metaDatasetResourceTypes.datasetId,
+            resourceType: metaDatasetResourceTypes.resourceType,
+          })
+          .from(metaDatasetResourceTypes)
+          .where(inArray(metaDatasetResourceTypes.datasetId, ids))
+          .all(),
+      ),
+      queryInBatches(datasetIds, ids =>
+        db
+          .select({
+            datasetId: metaDatasetI18n.datasetId,
+            locale: metaDatasetI18n.locale,
+            name: metaDatasetI18n.name,
+          })
+          .from(metaDatasetI18n)
+          .where(inArray(metaDatasetI18n.datasetId, ids))
+          .all(),
+      ),
+    ])
   const resourceTypesByDatasetId = new Map<string, Set<string>>()
   for (const resource of datasetResourceTypes) {
     const resourceTypes = resourceTypesByDatasetId.get(resource.datasetId) ?? new Set()
@@ -531,6 +544,9 @@ export async function listRegistryReleases(
                   {
                     sourceCode: release.datasetCode,
                     sourceReleaseCode: release.code,
+                    datasetI18n: datasetI18n.filter(
+                      row => row.datasetId === release.datasetId,
+                    ),
                     publisherCode: release.publisherCode,
                     snapshotCode: snapshot.snapshot.code,
                     role: releaseAsRole({
