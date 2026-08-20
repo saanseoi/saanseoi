@@ -20,7 +20,7 @@ let { attribution, actions }: Props = $props()
       {#if attribution}
         <Popover.Root>
           <Popover.Trigger
-            class="inline-flex size-10 shrink-0 items-center justify-center rounded-default text-data-on-surface-variant transition-colors hover:bg-data-surface-container-low hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
+            class="-ml-4 inline-flex size-10 shrink-0 items-center justify-center rounded-default text-data-on-surface-variant transition-colors hover:bg-data-surface-container-low hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
             aria-label="Show copyright notice"
             title="Copyright"
           >
@@ -31,7 +31,7 @@ let { attribution, actions }: Props = $props()
               class="z-70 w-[calc(100vw-3rem)] border border-data-outline-variant/70 bg-white px-6 py-2.5 font-body text-caption leading-5 text-data-on-surface shadow-popover data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:zoom-in-95 dark:border-white/10 dark:bg-black dark:text-white/80"
               side="top"
               align="start"
-              alignOffset={-24}
+              alignOffset={-9}
               sideOffset={8}
               collisionPadding={12}
             >
