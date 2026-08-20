@@ -168,7 +168,7 @@ describe('fixture version hashes', () => {
     expect(areaTypeMembers).toEqual([
       expect.objectContaining({
         resourceType: 'divisionArea',
-        isRequired: false,
+        isRequired: true,
         role: 'geometry',
         cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
         configJson: expect.stringContaining('"variant":"overture"'),
