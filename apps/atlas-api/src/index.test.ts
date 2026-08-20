@@ -4,7 +4,12 @@ import app from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
-  asset?: { assetKey: string } | null
+  asset?: {
+    assetKey: string
+    publisherCode?: string
+    sourceReleaseCode?: string
+    sourceReleaseId?: string
+  } | null
   apiKey?: {
     id?: string
     revokedAt?: number | null
@@ -111,6 +116,17 @@ function createMockDb(options: MockDbOptions = {}) {
               throw error
             }
 
+            if (options.asset && query.includes('from "assets"')) {
+              return [
+                [
+                  options.asset.assetKey,
+                  options.asset.publisherCode ?? null,
+                  options.asset.sourceReleaseCode ?? null,
+                  options.asset.sourceReleaseId ?? null,
+                ] as T,
+              ]
+            }
+
             if (options.asset) return [[options.asset.assetKey] as T]
 
             if (
@@ -128,6 +144,9 @@ function createMockDb(options: MockDbOptions = {}) {
             return [] as T[]
           },
         }
+      },
+      async batch(statements: Array<{ run: () => Promise<unknown> }>) {
+        return Promise.all(statements.map(statement => statement.run()))
       },
     } as unknown as D1Database,
     operations,
@@ -472,6 +491,38 @@ describe('atlas-api', () => {
         '404',
       ],
     ])
+  })
+
+  test('returns 503 when the serving analytics acknowledgement fails', async () => {
+    const { bucket } = createAssetBucket()
+    const { env, operations } = createEnv(
+      { R2_ASSETS: bucket },
+      {
+        asset: {
+          assetKey: 'source-archives/example.zip',
+          publisherCode: 'hkgov',
+          sourceReleaseCode: 'landsd-archive-2026.1',
+          sourceReleaseId: 'source-archive-2026.1',
+        },
+        failOnRun: query => query.includes('INSERT INTO accessAnalyticsIdempotency'),
+      },
+    )
+
+    const res = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000001', {
+        headers: { 'x-request-id': 'analytics-failure-request' },
+      }),
+      env,
+    )
+
+    expect(
+      operations.some(operation => operation.query.includes('accessAnalytics')),
+    ).toBe(true)
+    expect(res.status).toBe(503)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'service_unavailable',
+      message: 'The API is temporarily unavailable. Please retry.',
+    })
   })
 
   test('records first-party API requests separately from API_USAGE billing events', async () => {
