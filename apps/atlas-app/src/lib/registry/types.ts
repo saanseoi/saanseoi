@@ -13,6 +13,12 @@ export type RegistryPublisher = {
   contactPhone?: string | null
   parentPublisherId?: string | null
   publisherI18n?: LocalisedRow[]
+  accessMetrics?: AccessMetrics | null
+}
+
+export type AccessMetrics = {
+  metrics: Record<string, number>
+  asOf: string | null
 }
 
 export type ApiRelease = {
@@ -92,6 +98,7 @@ export type ApiRelease = {
   createdAt: string
   updatedAt: string
   primaryRecordCount?: number | null
+  accessMetrics?: AccessMetrics | null
 }
 
 export type BasemapSchemaVersion = `protomaps-v4.${number}`
@@ -199,6 +206,7 @@ export type SourceVersion = {
   }>
   createdAt: string
   updatedAt: string
+  accessMetrics?: AccessMetrics | null
   license?: {
     id: string | null
     code: string | null
