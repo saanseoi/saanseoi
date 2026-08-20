@@ -4,6 +4,7 @@ import { paraglideMiddleware } from '@repo/i18n/server'
 import { createAuth } from '#lib/server/auth.js'
 import { svelteKitHandler } from 'better-auth/svelte-kit'
 import { initTheme, THEME_STORAGE_KEY } from '#lib/bits/internal/theme.js'
+import { recordProductUsage } from '@repo/core/productUsage'
 
 const themeInitScript = '('.concat(
   initTheme.toString(),
@@ -58,7 +59,32 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
     event.locals.user = session.user
   }
 
-  return svelteKitHandler({ event, resolve, auth, building })
+  const response = await svelteKitHandler({ event, resolve, auth, building })
+  if (event.url.pathname.startsWith('/api/auth/')) {
+    const path = event.url.pathname
+    const method = path.includes('sign-up')
+      ? 'sign_up'
+      : path.includes('sign-in')
+        ? 'sign_in'
+        : path.includes('reset-password') || path.includes('request-password-reset')
+          ? 'password_reset'
+          : path.includes('passkey')
+            ? 'passkey'
+            : path.includes('callback')
+              ? 'social_callback'
+              : 'other'
+    recordProductUsage(event.platform?.env.PRODUCT_USAGE, {
+      event: 'auth.outcome',
+      producer: 'atlas-app',
+      surface: 'auth',
+      route: path,
+      entityType: 'auth_method',
+      entityId: method,
+      outcome: response.status >= 200 && response.status < 400 ? 'success' : 'failure',
+      httpStatus: response.status,
+    })
+  }
+  return response
 }
 
 export const handle: Handle = sequence(handleTheme, handleI18n, handleBetterAuth)

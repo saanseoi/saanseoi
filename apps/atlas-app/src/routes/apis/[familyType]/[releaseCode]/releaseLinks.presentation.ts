@@ -107,6 +107,7 @@ export function buildApiReleaseLinksPresentation(
                   icon: 'ion:download-outline',
                   id: 'download-source-archive',
                   label: `${m.source_download_archive()}${archiveExtension ? ` (${archiveExtension})` : ''}`,
+                  analyticsSurface: 'api_release' as const,
                 },
               ]
             : undefined,

@@ -17,9 +17,11 @@ import {
 import type { AuditAction } from './releaseAudit.types'
 import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
+import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
 type Props = {
   actions?: AuditAction[]
+  analyticsSurface: ReleaseAnalyticsSurface
   bulkActions?: AuditBulkRule[]
   locale: string
   showBulkActions?: boolean
@@ -29,6 +31,7 @@ type Props = {
 
 let {
   actions = [],
+  analyticsSurface,
   bulkActions = [],
   locale,
   showBulkActions = false,
@@ -498,7 +501,7 @@ function closeEvidenceFullscreen() {
 }
 
 async function copyEvidence(id: string, evidence: unknown) {
-  if (!navigator.clipboard) return
+  if (!navigator.clipboard) return false
 
   try {
     await navigator.clipboard.writeText(JSON.stringify(evidence, null, 2))
@@ -507,8 +510,10 @@ async function copyEvidence(id: string, evidence: unknown) {
     copiedEvidenceTimeout = setTimeout(() => {
       copiedEvidenceId = null
     }, 2_000)
+    return true
   } catch {
     copiedEvidenceId = null
+    return false
   }
 }
 
@@ -576,6 +581,7 @@ $effect(() => {
       bind:query
     />
     <ReleaseAuditResults
+      {analyticsSurface}
       {bulkActions}
       {copiedEvidenceId}
       {evidenceTransitionName}
@@ -595,6 +601,7 @@ $effect(() => {
   </ReleaseAuditPanel>
 
   <ReleaseAuditEvidenceDialog
+    {analyticsSurface}
     bind:open={evidenceDialogOpen}
     {copiedEvidenceId}
     evidence={selectedEvidence}

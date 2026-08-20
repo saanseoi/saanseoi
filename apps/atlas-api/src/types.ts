@@ -10,6 +10,7 @@ export type AppBindings = CloudflareBindings &
     API_RATE_LIMIT: RateLimit
     NEWSLETTER_RATE_LIMIT: RateLimit
     API_USAGE: AnalyticsEngineDataset
+    PRODUCT_USAGE?: AnalyticsEngineDataset
     ANALYTICS_ENGINE_ACCOUNT_ID: string
     ANALYTICS_ENGINE_READ_TOKEN: string
     AUTH_MODE: 'disabled' | 'required'

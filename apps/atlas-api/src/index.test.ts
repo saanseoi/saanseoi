@@ -312,6 +312,7 @@ function createEnv(
         limit: async () => ({ success: true }),
       } as RateLimit,
       API_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
+      PRODUCT_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
       PUBLIC_KEY_LEASES: {
         get: async () => ({
           keyId: 'api-key-1',
@@ -413,9 +414,101 @@ describe('atlas-api', () => {
     )
   })
 
+  test('records successful and failed asset downloads without changing API_USAGE', async () => {
+    const productEvents: AnalyticsEngineDataPoint[] = []
+    const { bucket } = createAssetBucket()
+    const { env } = createEnv(
+      {
+        PRODUCT_USAGE: {
+          writeDataPoint: event => productEvents.push(event ?? {}),
+        } as AnalyticsEngineDataset,
+        R2_ASSETS: bucket,
+      },
+      { asset: { assetKey: 'source-archives/example.zip' } },
+    )
+    const assetId = '00000000-0000-4000-8000-000000000001'
+    const success = await app.fetch(
+      new Request(`http://localhost/v0/assets/${assetId}`),
+      env,
+    )
+    expect(success.status).toBe(200)
+
+    const missing = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000002'),
+      createEnv(
+        {
+          PRODUCT_USAGE: {
+            writeDataPoint: event => productEvents.push(event ?? {}),
+          } as AnalyticsEngineDataset,
+          R2_ASSETS: { get: async () => null } as unknown as R2Bucket,
+        },
+        { asset: { assetKey: 'source-archives/example.zip' } },
+      ).env,
+    )
+    expect(missing.status).toBe(404)
+    expect(productEvents.map(event => event.blobs)).toEqual([
+      [
+        'v1',
+        'api.asset_download',
+        'atlas-api',
+        'asset_request',
+        '/v0/assets/:id',
+        'asset',
+        assetId,
+        '',
+        'success',
+        '200',
+      ],
+      [
+        'v1',
+        'api.asset_download',
+        'atlas-api',
+        'asset_request',
+        '/v0/assets/:id',
+        'asset',
+        '00000000-0000-4000-8000-000000000002',
+        '',
+        'failure',
+        '404',
+      ],
+    ])
+  })
+
+  test('records first-party API requests separately from API_USAGE billing events', async () => {
+    const productEvents: AnalyticsEngineDataPoint[] = []
+    const { env } = createAuthenticatedEnv({
+      PRODUCT_USAGE: {
+        writeDataPoint: event => productEvents.push(event ?? {}),
+      } as AnalyticsEngineDataset,
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+      env,
+    )
+    expect(res.status).toBe(503)
+    expect(productEvents[0]?.blobs).toEqual([
+      'v1',
+      'api.request',
+      'atlas-api',
+      'api',
+      '/v0/divisions',
+      '',
+      '',
+      '',
+      'failure',
+      '503',
+    ])
+  })
+
   test('GET /v0/styles streams public immutable style artefacts from R2', async () => {
     const reads: string[] = []
+    const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createAuthenticatedEnv({
+      PRODUCT_USAGE: {
+        writeDataPoint: event => productEvents.push(event ?? {}),
+      } as AnalyticsEngineDataset,
       R2_ASSETS: {
         async get(key: string) {
           reads.push(key)
@@ -440,6 +533,75 @@ describe('atlas-api', () => {
     expect(res.headers.get('access-control-allow-origin')).toBe('*')
     expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
     expect(res.headers.get('etag')).toBe('"style-etag"')
+    const missing = await app.fetch(
+      new Request('http://localhost/v0/styles/midnight/9.9.9.json'),
+      createAuthenticatedEnv({
+        PRODUCT_USAGE: {
+          writeDataPoint: event => productEvents.push(event ?? {}),
+        } as AnalyticsEngineDataset,
+        R2_ASSETS: { get: async () => null } as unknown as R2Bucket,
+      }).env,
+    )
+    expect(missing.status).toBe(404)
+    expect(productEvents.map(event => event.blobs)).toEqual([
+      [
+        'v1',
+        'api.style_request',
+        'atlas-api',
+        'style_request',
+        '/v0/styles/midnight/1.0.0.json',
+        'style',
+        'midnight:1.0.0',
+        '',
+        'success',
+        '200',
+      ],
+      [
+        'v1',
+        'api.style_request',
+        'atlas-api',
+        'style_request',
+        '/v0/styles/midnight/9.9.9.json',
+        'style',
+        'midnight:9.9.9',
+        '',
+        'failure',
+        '404',
+      ],
+    ])
+  })
+
+  test('records newsletter subscription outcomes without recording the email', async () => {
+    const productEvents: AnalyticsEngineDataPoint[] = []
+    const { env } = createEnv({
+      PRODUCT_USAGE: {
+        writeDataPoint: event => productEvents.push(event ?? {}),
+      } as AnalyticsEngineDataset,
+      SUBSTACK_SESSION_COOKIE: '',
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/substack', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: 'subscriber@example.com' }),
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(500)
+    expect(productEvents[0]?.blobs).toEqual([
+      'v1',
+      'newsletter.subscription',
+      'atlas-api',
+      'newsletter',
+      '/v0/meta/substack',
+      '',
+      '',
+      '',
+      'failure',
+      '500',
+    ])
+    expect(JSON.stringify(productEvents)).not.toContain('subscriber@example.com')
   })
 
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
@@ -981,15 +1143,25 @@ describe('atlas-api', () => {
   })
 
   test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
+    const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createEnv(
-      {},
+      {
+        PRODUCT_USAGE: {
+          writeDataPoint: event => productEvents.push(event ?? {}),
+        } as AnalyticsEngineDataset,
+      },
       {
         failOnAll: () => true,
         failOnFirst: () => true,
         failOnRaw: () => true,
       },
     )
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+      env,
+    )
     const body = (await res.json()) as {
       error: string
       message: string
@@ -1000,6 +1172,18 @@ describe('atlas-api', () => {
       error: 'service_unavailable',
       message: 'The atlas API is temporarily unavailable.',
     })
+    expect(productEvents[0]?.blobs).toEqual([
+      'v1',
+      'api.request',
+      'atlas-api',
+      'api',
+      '/v0/divisions',
+      '',
+      '',
+      '',
+      'failure',
+      '503',
+    ])
   })
 
   test('GET /v0/divisions rejects invalid locale syntax', async () => {

@@ -19,6 +19,7 @@
     "./d1ImportApi": "./src/lib/d1ImportApi.ts",
     "./apiLocales": "./src/lib/apiLocales.ts",
     "./publicApiKey": "./src/publicApiKey.ts",
+    "./productUsage": "./src/productUsage.ts",
     "./pipeline/*": "./src/pipeline/*",
     "./testing/localDb": "./src/testing/localDb.ts",
     "./parquetInspector": "./src/lib/parquetInspector.ts",

@@ -1,15 +1,20 @@
 <script lang="ts">
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
-import type { ReleaseLinkRequestExample } from './releaseLinks.types'
+import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
+import type {
+  ReleaseAnalyticsSurface,
+  ReleaseLinkRequestExample,
+} from './releaseLinks.types'
 
 type Props = {
   copyLabel: string
   label: string
   request: ReleaseLinkRequestExample
+  analyticsSurface: ReleaseAnalyticsSurface
 }
 
-let { copyLabel, label, request }: Props = $props()
+let { analyticsSurface, copyLabel, label, request }: Props = $props()
 let copied = $state(false)
 let copiedTimeout: ReturnType<typeof setTimeout> | undefined
 const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
@@ -31,12 +36,25 @@ async function copyRequest() {
 
   try {
     await navigator.clipboard.writeText(requestText(request))
+    trackClientProductUsage({
+      event: 'client.copy_request',
+      surface: analyticsSurface,
+      entityType: 'action',
+      entityId: 'request',
+    })
     copied = true
     if (copiedTimeout) clearTimeout(copiedTimeout)
     copiedTimeout = setTimeout(() => {
       copied = false
     }, 2_000)
   } catch {
+    trackClientProductUsage({
+      event: 'client.copy_request',
+      surface: analyticsSurface,
+      entityType: 'action',
+      entityId: 'request',
+      outcome: 'failure',
+    })
     copied = false
   }
 }

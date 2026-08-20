@@ -27,6 +27,11 @@ import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
+import {
+  isFirstPartyWebOrigin,
+  productApiOutcome,
+  writeProductUsage,
+} from './lib/productUsage'
 import type { AppBindings, AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -72,6 +77,73 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       createHistoryDb(c.env.DB_HISTORY_HK_2026),
     ])
     await next()
+  })
+}
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    const startedAt = performance.now()
+    let requestStatus = 500
+    try {
+      await next()
+      requestStatus = c.res.status
+    } catch (error) {
+      requestStatus = isTransientD1ReadError(error) ? 503 : 500
+      throw error
+    } finally {
+      const requestPath = c.req.path
+      const status = requestStatus
+      const outcome = productApiOutcome(status)
+      const origin = c.req.header('origin')
+      const assetMatch = requestPath.match(/^\/v0(?:\.1)?\/assets\/([^/]+)$/)
+      const styleMatch = requestPath.match(
+        /^\/v0(?:\.1)?\/styles\/([a-z0-9-]+)\/(\d+\.\d+\.\d+\.json)$/,
+      )
+
+      if (assetMatch) {
+        writeProductUsage(c, {
+          event: 'api.asset_download',
+          surface: 'asset_request',
+          route: requestPath,
+          entityType: 'asset',
+          entityId: assetMatch[1],
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (styleMatch?.[1] && styleMatch[2]) {
+        writeProductUsage(c, {
+          event: 'api.style_request',
+          surface: 'style_request',
+          route: requestPath,
+          entityType: 'style',
+          entityId: `${styleMatch[1]}:${styleMatch[2].replace('.json', '')}`,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (requestPath === '/v0/meta/substack') {
+        writeProductUsage(c, {
+          event: 'newsletter.subscription',
+          surface: 'newsletter',
+          route: requestPath,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      } else if (
+        isFirstPartyWebOrigin(origin) &&
+        !requestPath.startsWith('/v0/meta/health')
+      ) {
+        writeProductUsage(c, {
+          event: 'api.request',
+          surface: 'api',
+          route: requestPath,
+          outcome,
+          httpStatus: status,
+          durationMs: performance.now() - startedAt,
+        })
+      }
+    }
   })
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
