@@ -122,6 +122,7 @@ export async function createApiReleaseSetRevisionDraft(
   const frontmatter = {
     ...previousFixture.frontmatter,
     apiReleaseSet: input.apiReleaseSetCode,
+    apiReleaseSetRevision: String(parsedCode.sequence),
     createdAt: now,
     updatedAt: now,
   }
@@ -202,6 +203,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     apiFamily: selectedFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: releaseSet.code,
+    apiReleaseSetRevision: String(releaseSet.parsedCode.sequence),
     regionCode: releaseSet.parsedCode.regionCode,
     cohortKey: releaseSet.parsedCode.cohortKey,
   }
@@ -1165,6 +1167,7 @@ function frontmatterForApiReleaseSetRow(
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
+    apiReleaseSetRevision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
     regionCode: row.parsedCode.regionCode,
