@@ -22,5 +22,5 @@ export function compressJsonBrotli(
 }
 
 export function decompressJsonBrotli(value: ArrayBuffer | Uint8Array): unknown {
-  return JSON.parse(brotliDecompressSync(value).toString('utf8')) as unknown
+  return JSON.parse(new TextDecoder().decode(brotliDecompressSync(value))) as unknown
 }
