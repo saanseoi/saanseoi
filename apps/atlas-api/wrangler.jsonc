@@ -27,6 +27,7 @@
     "AUTH_MODE": "disabled",
     "ENVIRONMENT": "local",
     "HARBOUR_BASE_URL": "http://localhost:8788",
+    "PRODUCT_USAGE_DATASET": "ss-product-usage-local",
     "SUBSTACK_PUBLICATION": "saanseoi",
     "USAGE_ROLLUP_DATASETS": "ss-api-usage-local"
   },
@@ -109,7 +110,7 @@
     { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-local" }
   ],
   "triggers": {
-    "crons": ["*/5 * * * *"]
+    "crons": ["*/5 * * * *", "15 0 * * *"]
   },
   "ratelimits": [
     {
@@ -176,6 +177,7 @@
         "AUTH_MODE": "required",
         "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
+        "PRODUCT_USAGE_DATASET": "ss-product-usage-preview",
         "SUBSTACK_PUBLICATION": "saanseoi",
         "USAGE_ROLLUP_DATASETS": "ss-api-usage-preview"
       },
@@ -305,6 +307,7 @@
         "AUTH_MODE": "required",
         "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
+        "PRODUCT_USAGE_DATASET": "ss-product-usage-production",
         "SUBSTACK_PUBLICATION": "saanseoi",
         "USAGE_ROLLUP_DATASETS": "ss-api-usage-production,ss-tile-usage-production"
       },
