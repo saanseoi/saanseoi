@@ -1,4 +1,13 @@
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
@@ -14,7 +23,6 @@ import {
   type PreparedSourceArchive,
   prepareCsdiSourceArchive,
 } from './sourceArchives.ts'
-import { assertSafeZipArchive } from './zipArchive.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_ROOT = resolve(REPO_ROOT, 'fixtures/meta/datasets')
@@ -28,6 +36,7 @@ const CSDI_ARCHIVE_ORIGIN = 'https://static.csdi.gov.hk'
 const CSDI_ARCHIVE_DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000
 const MAX_CSDI_ARCHIVE_BYTES = 1024 * 1024 * 1024
 const MAX_DATA_GOV_HK_ARCHIVE_BYTES = 2 * 1024 * 1024 * 1024
+const DATA_GOV_HK_DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000
 const MAX_CSDI_ARCHIVE_REDIRECTS = 5
 const HTTP_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
 const overtureDownloadJobs = new Map<string, Promise<string>>()
@@ -2109,10 +2118,17 @@ async function downloadCsdiArchive(url: string, targetPath: string) {
   )
   if (!response.ok)
     throw new Error(`Download failed with HTTP ${response.status}: ${url}`)
-  const bytes = await readBoundedResponseBytes(response, MAX_CSDI_ARCHIVE_BYTES)
-  assertCsdiArchiveDownload(bytes, response.headers.get('content-type'), url)
-  await mkdir(dirname(targetPath), { recursive: true })
-  await writeFile(targetPath, bytes)
+  const prefix = await readBoundedResponseBytes(
+    response,
+    MAX_CSDI_ARCHIVE_BYTES,
+    targetPath,
+  )
+  try {
+    assertCsdiArchiveDownload(prefix, response.headers.get('content-type'), url)
+  } catch (error) {
+    await rm(targetPath, { force: true })
+    throw error
+  }
   return readContentDispositionFileName(response.headers.get('content-disposition'))
 }
 
@@ -2165,6 +2181,7 @@ export function assertCsdiArchiveUrl(value: string) {
 async function readBoundedResponseBytes(
   response: Response,
   maxBytes: number,
+  targetPath: string,
   label = 'CSDI archive',
 ) {
   const contentLength = Number(response.headers.get('content-length'))
@@ -2175,32 +2192,43 @@ async function readBoundedResponseBytes(
     )
   }
 
-  if (!response.body) return new Uint8Array()
+  await mkdir(dirname(targetPath), { recursive: true })
+  if (!response.body) {
+    await writeFile(targetPath, new Uint8Array())
+    return new Uint8Array()
+  }
 
-  const reader = response.body.getReader()
-  const chunks: Uint8Array[] = []
+  const file = await open(targetPath, 'w')
+  const prefix = new Uint8Array(512)
+  let prefixLength = 0
   let byteLength = 0
+  const reader = response.body.getReader()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    byteLength += value.byteLength
-    if (byteLength > maxBytes) {
-      await reader.cancel()
-      throw new Error(
-        `${label} exceeds the ${maxBytes.toLocaleString('en-US')} byte download limit.`,
-      )
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      byteLength += value.byteLength
+      if (byteLength > maxBytes) {
+        await reader.cancel()
+        throw new Error(
+          `${label} exceeds the ${maxBytes.toLocaleString('en-US')} byte download limit.`,
+        )
+      }
+      await file.write(value)
+      if (prefixLength < prefix.byteLength) {
+        const prefixValue = value.subarray(0, prefix.byteLength - prefixLength)
+        prefix.set(prefixValue, prefixLength)
+        prefixLength += prefixValue.byteLength
+      }
     }
-    chunks.push(value)
+    await file.close()
+  } catch (error) {
+    await file.close().catch(() => undefined)
+    await rm(targetPath, { force: true })
+    throw error
   }
-
-  const bytes = new Uint8Array(byteLength)
-  let offset = 0
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset)
-    offset += chunk.byteLength
-  }
-  return bytes
+  return prefix.subarray(0, prefixLength)
 }
 
 export function assertCsdiArchiveDownload(
@@ -2726,18 +2754,16 @@ function readVersionCorrection(version: string, base: string) {
 
 async function downloadResponse(url: string, targetPath: string) {
   const response = await fetch(url, {
-    signal: AbortSignal.timeout(CSDI_ARCHIVE_DOWNLOAD_TIMEOUT_MS),
+    signal: AbortSignal.timeout(DATA_GOV_HK_DOWNLOAD_TIMEOUT_MS),
   })
   if (!response.ok)
     throw new Error(`Download failed with HTTP ${response.status}: ${url}`)
-  await mkdir(dirname(targetPath), { recursive: true })
-  const bytes = await readBoundedResponseBytes(
+  await readBoundedResponseBytes(
     response,
     MAX_DATA_GOV_HK_ARCHIVE_BYTES,
+    targetPath,
     'DATA.GOV.HK archive',
   )
-  if (targetPath.toLowerCase().endsWith('.zip')) assertSafeZipArchive(bytes)
-  await writeFile(targetPath, bytes)
   return targetPath
 }
 
