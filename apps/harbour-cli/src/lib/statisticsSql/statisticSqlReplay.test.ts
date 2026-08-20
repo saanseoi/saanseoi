@@ -229,6 +229,7 @@ describe('replayStatisticSqlBatches', () => {
       name: string
       sql: string
     }> = []
+    const progress: string[] = []
 
     await replayStatisticSqlBatches(
       { environment: 'preview', remote: true },
@@ -261,6 +262,11 @@ describe('replayStatisticSqlBatches', () => {
           return 0
         },
         importOptions: { accountId: 'account', apiToken: 'token' },
+        onProgress(event) {
+          progress.push(
+            `${event.phase}:${event.completedBatches}/${event.totalBatches}`,
+          )
+        },
       },
     )
 
@@ -272,6 +278,16 @@ describe('replayStatisticSqlBatches', () => {
     ])
     expect(calls[0]?.sql).toBe(calls[2]?.sql)
     expect(calls[1]?.sql).toBe(calls[3]?.sql)
+    expect(progress).toEqual([
+      'local-replay:0/4',
+      'local-replay:1/4',
+      'local-replay:1/4',
+      'local-replay:2/4',
+      'remote-source-replay:2/4',
+      'remote-source-replay:3/4',
+      'remote-history-replay:3/4',
+      'remote-history-replay:4/4',
+    ])
   })
 
   test('stops before history import when remote source replay fails', async () => {
