@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-22T00:00:00.000Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
+updatedAt: "2026-08-20T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2025-11-19.0"
 regionCode: "hk"
@@ -142,3 +142,17 @@ village        199
 
 - `hierarchies[][]` - the top-level country ancestor is implicit for every division in
   the Hong Kong SAR, and the division itself is redundant with the row being described.
+
+# ZH-HANT
+
+## 更新紀錄
+
+- <orange>上游</orange> 於 <black>2025-11-06</black> 更新 OSM 資料
+- <orange>上游</orange> 對資料作出輕微、逐步的更新
+
+# ZH-HANS
+
+## 更新记录
+
+- <orange>上游</orange> 于 <black>2025-11-06</black> 更新 OSM 数据
+- <orange>上游</orange> 对数据作出轻微、渐进式更新
