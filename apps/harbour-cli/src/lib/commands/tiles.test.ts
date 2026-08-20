@@ -5,7 +5,35 @@ import {
   boundariesToOsmiumPolygon,
   historicalBorderSourceRequired,
   polygoniseCoastlineFeatures,
+  resolveTilesRetractionArtefacts,
 } from './tiles.ts'
+
+describe('resolveTilesRetractionArtefacts', () => {
+  const region = {
+    area: 'hong kong',
+    code: 'hk' as const,
+    description: 'Hong Kong',
+    name: 'hongkong',
+  }
+
+  test('derives every deletion key from the requested region and version', () => {
+    expect(
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/hk/hongkong-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
+      }),
+    ).toContain('basemap/hk/hongkong-2026-08-20.pmtiles')
+  })
+
+  test('rejects catalogue keys outside the requested release', () => {
+    expect(() =>
+      resolveTilesRetractionArtefacts(region, '2026-08-20', {
+        key: 'basemap/mo/macau-2026-08-20.pmtiles',
+        manifestKey: 'basemap/hk/hongkong-2026-08-20.json',
+      }),
+    ).toThrow('catalogue archive key does not match')
+  })
+})
 
 describe('historicalBorderSourceRequired', () => {
   test('requires the companion GBA archive for a Macao-only historical source', () => {
