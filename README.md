@@ -16,7 +16,16 @@ This project is a monorepo managed by [Turborepo](https://turbo.build/).
 ```bash
 git clone git@github.com:saanseoi/saanseoi.git && cd saanseoi
 bun install
-bun run dev
+bun run dev:atlas
+```
+
+Run the focused local services you need:
+
+```bash
+bun run dev:atlas    # Atlas API and public site
+bun run dev:harbour  # Harbour API and queue Worker
+bun run dev:basemap  # Basemap release viewer
+bun run dev:all      # All services currently included in the full stack
 ```
 
 For more detail on contributing, workflows, and project expectations, see
