@@ -206,7 +206,7 @@ test('keeps daily rows unchanged when a large atomic refresh fails', async () =>
         metricKey: 'apiRequests',
         metricValue: 1,
       })),
-    })) as typeof fetch
+    })) as unknown as typeof fetch
 
   try {
     await expect(

@@ -1266,14 +1266,18 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
           groupValue: stats.groupValue,
           metric: stats.metric,
           metricUnit: stats.metricUnit,
-          releaseCode: metaReleases.code,
+          releaseCode: metaSourceReleases.code,
           value: stats.value,
         })
         .from(stats)
         .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
+        .innerJoin(
+          metaSourceReleases,
+          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+        )
         .where(
           and(
-            inArray(metaReleases.code, sourceReleaseCodes),
+            inArray(metaSourceReleases.code, sourceReleaseCodes),
             eq(stats.dimension, 'records'),
             eq(stats.metric, 'distribution'),
             eq(stats.groupBy, 'district'),
