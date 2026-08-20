@@ -8,6 +8,7 @@ import ReleaseAuditEmptyState from './releaseAuditEmptyState.svelte'
 import ReleaseAuditRecordSections from './releaseAuditRecordSections.svelte'
 import type {
   AuditBulkRule,
+  AuditEvidenceCopyHandler,
   AuditRowPresentation,
   AuditSection,
 } from './releaseAudit.types'
@@ -21,7 +22,7 @@ type Props = {
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
   locale: string
-  onCopy: (id: string, evidence: unknown) => void
+  onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
   onToggle: (id: string) => void
   presentRow: (

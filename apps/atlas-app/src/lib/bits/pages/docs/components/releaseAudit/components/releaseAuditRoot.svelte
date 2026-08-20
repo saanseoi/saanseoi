@@ -501,7 +501,7 @@ function closeEvidenceFullscreen() {
 }
 
 async function copyEvidence(id: string, evidence: unknown) {
-  if (!navigator.clipboard) return
+  if (!navigator.clipboard) return false
 
   try {
     await navigator.clipboard.writeText(JSON.stringify(evidence, null, 2))
@@ -510,8 +510,10 @@ async function copyEvidence(id: string, evidence: unknown) {
     copiedEvidenceTimeout = setTimeout(() => {
       copiedEvidenceId = null
     }, 2_000)
+    return true
   } catch {
     copiedEvidenceId = null
+    return false
   }
 }
 
