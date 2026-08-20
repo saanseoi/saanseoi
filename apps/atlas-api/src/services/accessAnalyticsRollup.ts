@@ -8,7 +8,6 @@ const ANALYTICS_ENGINE_SQL_URL = (accountId: string) =>
 const ACCESS_ANALYTICS_EVENT = 'api.access'
 const ROLLUP_DELAY_MS = 15 * 60_000
 const ROLLUP_DAYS = 2
-const D1_BATCH_SIZE = 50
 const ACCESS_SCOPES = new Set<AccessAnalyticsScope>([
   'publisher',
   'dataset',
@@ -215,9 +214,7 @@ async function writeDailyRows(
         ),
     ),
   ]
-  for (let index = 0; index < statements.length; index += D1_BATCH_SIZE) {
-    await db.batch(statements.slice(index, index + D1_BATCH_SIZE))
-  }
+  await db.batch(statements)
 }
 
 async function rebuildAccessAnalyticsAllTimeCache(db: D1Database) {

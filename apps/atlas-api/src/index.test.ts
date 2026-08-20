@@ -6,6 +6,7 @@ import type { AppBindings } from './types'
 type MockDbOptions = {
   asset?: {
     assetKey: string
+    datasetId?: string
     publisherCode?: string
     sourceReleaseCode?: string
     sourceReleaseId?: string
@@ -120,6 +121,7 @@ function createMockDb(options: MockDbOptions = {}) {
               return [
                 [
                   options.asset.assetKey,
+                  options.asset.datasetId ?? null,
                   options.asset.publisherCode ?? null,
                   options.asset.sourceReleaseCode ?? null,
                   options.asset.sourceReleaseId ?? null,
@@ -332,6 +334,7 @@ function createEnv(
       } as RateLimit,
       API_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
       PRODUCT_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
+      PRODUCT_USAGE_DATASET: 'test-product-usage',
       PUBLIC_KEY_LEASES: {
         get: async () => ({
           keyId: 'api-key-1',
@@ -495,10 +498,12 @@ describe('atlas-api', () => {
 
   test('does not block serving when Analytics Engine telemetry fails', async () => {
     const { bucket } = createAssetBucket()
+    let telemetryWrites = 0
     const { env, operations } = createEnv(
       {
         PRODUCT_USAGE: {
           writeDataPoint: () => {
+            telemetryWrites += 1
             throw new Error('Analytics Engine unavailable')
           },
         } as AnalyticsEngineDataset,
@@ -507,6 +512,7 @@ describe('atlas-api', () => {
       {
         asset: {
           assetKey: 'source-archives/example.zip',
+          datasetId: 'dataset-1',
           publisherCode: 'hkgov',
           sourceReleaseCode: 'landsd-archive-2026.1',
           sourceReleaseId: 'source-archive-2026.1',
@@ -521,6 +527,7 @@ describe('atlas-api', () => {
       env,
     )
 
+    expect(telemetryWrites).toBeGreaterThan(0)
     expect(
       operations.some(operation => operation.query.includes('accessAnalytics')),
     ).toBe(false)
