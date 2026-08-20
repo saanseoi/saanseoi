@@ -25,10 +25,10 @@ import {
   metaAssets,
   metaDataShards,
   metaReleases,
+  metaSourceReleases,
   metaSnapshotLineages,
   metaSnapshotShardAssignments,
   metaSnapshots,
-  metaSourceReleases,
   metaApiComposition,
   metaApiCompositionMembers,
   stats,
@@ -1140,14 +1140,18 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
         .select({
           assetId: metaAssets.id,
           mediaType: metaAssets.mediaType,
-          releaseCode: metaReleases.code,
+          releaseCode: metaSourceReleases.code,
         })
         .from(metaAssets)
         .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+        .innerJoin(
+          metaSourceReleases,
+          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+        )
         .where(
           and(
             eq(metaAssets.role, 'sourceArchive'),
-            inArray(metaReleases.code, sourceReleaseCodes),
+            inArray(metaSourceReleases.code, sourceReleaseCodes),
           ),
         )
         .orderBy(desc(metaAssets.retrievedAt))
