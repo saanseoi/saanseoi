@@ -59,7 +59,10 @@ import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { createApiReleaseSetRevisionDraft } from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
-import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
+import {
+  linkManagedSourceAssetToRelease,
+  uploadSourceReleaseAsset,
+} from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
 import {
   appendPhaseDetails,
@@ -376,11 +379,22 @@ ${mutedBar}  `)
         'UPLOAD RESULT',
       )
 
+      const sourceArchive = sourceArchiveReference(args)
+      const releaseId =
+        typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : null
+      if (sourceArchive) {
+        if (!releaseId) {
+          throw new Error('Source archive linkage requires a registered release.')
+        }
+        await linkManagedSourceAssetToRelease(target, {
+          assetKey: sourceArchive.key,
+          releaseId,
+        })
+      }
+
       if (previewResult.plan.source === 'overture') {
         const datasetId =
           typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
-        const releaseId =
-          typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : null
         if (!datasetId || !releaseId) {
           throw new Error('Overture source retention requires release identifiers.')
         }
