@@ -3,6 +3,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
+import { normaliseExternalUrl } from '#lib/externalUrl.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import type { RegistrySource } from '#lib/registry/types.js'
 
@@ -16,6 +17,7 @@ let seoTitle = $derived(publisher?.name ?? publisherPageData.publisher.code)
 let seoDescription = $derived(
   publisher?.description ?? `${m.source_publisher()}: ${seoTitle}.`,
 )
+let publisherUrl = $derived(normaliseExternalUrl(publisherPageData.publisher.url))
 
 const sourceHref = (source: RegistrySource) => {
   const latestVersion = source.sourceVersions?.[0]
@@ -51,10 +53,10 @@ const sourceHref = (source: RegistrySource) => {
           </p>
         {/if}
       </div>
-      {#if publisherPageData.publisher.url}
+      {#if publisherUrl}
         <a
           class="inline-flex items-center gap-1 rounded-full border border-outline-variant px-4 py-2 font-body text-label-md font-semibold text-primary hover:border-secondary hover:text-secondary"
-          href={publisherPageData.publisher.url}
+          href={publisherUrl}
           target="_blank"
           rel="noopener noreferrer"
         >

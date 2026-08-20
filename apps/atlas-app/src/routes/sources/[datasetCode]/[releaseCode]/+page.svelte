@@ -7,11 +7,11 @@ import { fade } from 'svelte/transition'
 
 import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
+import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
-import ReleaseHeaderSourceVariant from '#lib/bits/pages/docs/components/releaseHeader/variants/releaseHeaderSourceVariant.svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 
@@ -34,7 +34,6 @@ import type {
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import { getDistrictCoverageMapData } from '#lib/registry/meta.remote.js'
-import SourceReleaseContentSkeleton from './sourceReleaseContentSkeleton.svelte'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import {
   getSourceReleaseContentQuery,
@@ -337,7 +336,7 @@ $effect(() => {
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   {#if source && shellVersion && version}
-    <ReleaseHeaderSourceVariant {source} {version} {locale} />
+    <ReleaseHeader.SourceVariant {source} {version} {locale} />
 
     <ReleaseNav.Root
       {versions}
@@ -355,7 +354,11 @@ $effect(() => {
       bind:activeTab
     >
       {#if isContentLoading && contentResource.showSkeleton}
-        <SourceReleaseContentSkeleton tab={activeTab} diff={showNoteDiff} />
+        <ReleaseNav.ContentSkeleton
+          tab={activeTab}
+          diff={showNoteDiff}
+          linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
+        />
       {:else if releaseQueryError}
         <section
           class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"

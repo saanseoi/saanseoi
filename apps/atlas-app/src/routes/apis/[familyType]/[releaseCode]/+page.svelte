@@ -46,7 +46,6 @@ import type {
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { error } from '@sveltejs/kit'
-import ApiReleaseContentSkeleton from './apiReleaseContentSkeleton.svelte'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
 
 let { params, data } = $props()
@@ -489,7 +488,7 @@ $effect(() => {
     bind:activeTab
   >
     {#if isContentLoading && contentResource.showSkeleton}
-      <ApiReleaseContentSkeleton tab={activeTab} diff={showNoteDiff} />
+      <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
     {:else if contentResource.error}
       <section
         class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
