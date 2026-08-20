@@ -130,6 +130,8 @@ export async function replayStatisticSqlBatches(
     databaseId: null,
     name: 'history',
   }
+  const localBatchCount = batches.source.length + batches.history.length
+  const totalBatchCount = remoteReplay ? localBatchCount * 2 : localBatchCount
 
   await replayBatches(
     execute,
@@ -138,6 +140,8 @@ export async function replayStatisticSqlBatches(
     { isLocal: true },
     'local-replay',
     options.onProgress,
+    0,
+    totalBatchCount,
   )
   await replayBatches(
     execute,
@@ -147,7 +151,7 @@ export async function replayStatisticSqlBatches(
     'local-replay',
     options.onProgress,
     batches.source.length,
-    batches.source.length + batches.history.length,
+    totalBatchCount,
   )
 
   if (!remoteReplay) return
@@ -163,6 +167,8 @@ export async function replayStatisticSqlBatches(
     },
     'remote-source-replay',
     options.onProgress,
+    localBatchCount,
+    totalBatchCount,
   )
   await replayBatches(
     execute,
@@ -175,6 +181,8 @@ export async function replayStatisticSqlBatches(
     },
     'remote-history-replay',
     options.onProgress,
+    localBatchCount + batches.source.length,
+    totalBatchCount,
   )
 }
 
