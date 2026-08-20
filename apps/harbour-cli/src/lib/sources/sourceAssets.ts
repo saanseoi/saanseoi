@@ -4,7 +4,7 @@ import { basename, dirname, join, resolve } from 'node:path'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
-import { eq, metaAssets } from '@repo/db'
+import { and, eq, isNull, metaAssets, metaReleases } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
@@ -368,6 +368,79 @@ export async function uploadManagedSourceAsset(
   return { assetId: payload.assetId, url: payload.assetUrl }
 }
 
+export async function linkManagedSourceAssetToRelease(
+  target: UploadTarget,
+  input: { assetKey: string; releaseId: string },
+  localOptions: Pick<LocalSourceAssetUploadOptions, 'withMetaDb'> = {},
+) {
+  if (target.remote) {
+    const response = await fetch(
+      `${resolveHarbourApiUrl(target)}/v1/assets/link-release`,
+      {
+        body: JSON.stringify(input),
+        headers: { 'content-type': 'application/json', ...getAuthHeaders() },
+        method: 'POST',
+      },
+    )
+    const payload = (await response.json().catch(() => null)) as unknown
+    if (!response.ok || !isLinkedSourceAsset(payload)) {
+      const message =
+        payload &&
+        typeof payload === 'object' &&
+        typeof (payload as { message?: unknown }).message === 'string'
+          ? (payload as { message: string }).message
+          : `Harbour source asset linkage failed with HTTP ${response.status}.`
+      throw new Error(message)
+    }
+    return payload
+  }
+
+  const withMetaDb = localOptions.withMetaDb ?? withLocalMetaDb
+  return queueLocalSourceAssetRegistration(() =>
+    runWithWriteRetry(() =>
+      withMetaDb(async metaDb => {
+        const [asset, targetRelease] = await Promise.all([
+          metaDb
+            .select({ assetId: metaAssets.id, releaseId: metaAssets.releaseId })
+            .from(metaAssets)
+            .where(eq(metaAssets.assetKey, input.assetKey))
+            .get(),
+          metaDb
+            .select({ sourceReleaseId: metaReleases.sourceReleaseId })
+            .from(metaReleases)
+            .where(eq(metaReleases.id, input.releaseId))
+            .get(),
+        ])
+        if (!asset) throw new Error(`Source asset not found: ${input.assetKey}`)
+        if (!targetRelease) throw new Error(`Release not found: ${input.releaseId}`)
+
+        if (asset.releaseId) {
+          const linkedRelease = await metaDb
+            .select({ sourceReleaseId: metaReleases.sourceReleaseId })
+            .from(metaReleases)
+            .where(eq(metaReleases.id, asset.releaseId))
+            .get()
+          if (linkedRelease?.sourceReleaseId !== targetRelease.sourceReleaseId) {
+            throw new Error(
+              `Source asset ${input.assetKey} is already linked to a different source release.`,
+            )
+          }
+          return { assetId: asset.assetId, status: 'existing' as const }
+        }
+
+        await metaDb
+          .update(metaAssets)
+          .set({ releaseId: input.releaseId })
+          .where(
+            and(eq(metaAssets.assetKey, input.assetKey), isNull(metaAssets.releaseId)),
+          )
+          .run()
+        return { assetId: asset.assetId, status: 'linked' as const }
+      }),
+    ),
+  )
+}
+
 async function uploadLocalManagedSourceAsset(
   target: UploadTarget,
   input: ManagedSourceAssetUpload,
@@ -533,6 +606,19 @@ function isUploadedSourceAsset(value: unknown): value is {
     typeof value === 'object' &&
     typeof (value as { assetId?: unknown }).assetId === 'string' &&
     typeof (value as { assetUrl?: unknown }).assetUrl === 'string'
+  )
+}
+
+function isLinkedSourceAsset(value: unknown): value is {
+  assetId: string
+  status: 'existing' | 'linked'
+} {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    typeof (value as { assetId?: unknown }).assetId === 'string' &&
+    ((value as { status?: unknown }).status === 'existing' ||
+      (value as { status?: unknown }).status === 'linked')
   )
 }
 
