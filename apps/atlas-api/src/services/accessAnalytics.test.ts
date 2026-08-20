@@ -107,6 +107,21 @@ test('retries optional attribution reads and fails open when they remain unavail
   expect(permanentAttempts).toBe(1)
 })
 
+test('does not record failed download metrics', () => {
+  const { dataset, points } = createDataset()
+
+  completeAccessAnalyticsDownload(dataset, {
+    eventType: 'download',
+    httpStatus: 500,
+    publisherCodes: ['hkgov'],
+    route: '/v0/assets/asset-1',
+    sourceReleaseId: 'source-1',
+    surface: 'source',
+  })
+
+  expect(points).toHaveLength(0)
+})
+
 test('emits one successful API hit for every attributed dimension', () => {
   const { dataset, points } = createDataset()
   recordAccessAnalyticsEvent(dataset, {

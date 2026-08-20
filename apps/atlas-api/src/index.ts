@@ -165,24 +165,24 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     if (!attribution) return c.res
 
     const status = c.res.status
-    const eventType = isCompletedDownloadRequest(c) ? 'download' : 'api_request'
     const event = {
       ...attribution,
-      eventType,
+      eventType: 'api_request' as const,
       route: c.req.path,
       httpStatus: status,
-    } as const
+    }
 
     recordAccessAnalyticsEvent(c.env.PRODUCT_USAGE, event)
 
-    if (eventType === 'download' && isSuccessfulStatus(status) && c.res.body) {
+    if (isCompletedDownloadRequest(c) && isSuccessfulStatus(status) && c.res.body) {
+      const downloadEvent = { ...event, eventType: 'download' as const }
       const body = c.res.body.pipeThrough(
         new TransformStream<Uint8Array, Uint8Array>({
           transform(chunk, controller) {
             controller.enqueue(chunk)
           },
           async flush() {
-            completeAccessAnalyticsDownload(c.env.PRODUCT_USAGE, event)
+            completeAccessAnalyticsDownload(c.env.PRODUCT_USAGE, downloadEvent)
           },
         }),
       )

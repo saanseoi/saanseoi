@@ -159,7 +159,7 @@ export function completeAccessAnalyticsDownload(
   dataset: ProductUsageDataset | undefined,
   input: AccessEvent,
 ): void {
-  if (input.eventType !== 'download') return
+  if (input.eventType !== 'download' || !isSuccessfulStatus(input.httpStatus)) return
   writeAccessMetrics(dataset, input, 'downloads')
 }
 

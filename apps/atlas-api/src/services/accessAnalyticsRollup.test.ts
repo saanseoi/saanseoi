@@ -9,7 +9,9 @@ afterEach(() => {
   globalThis.fetch = originalFetch
 })
 
-function createAnalyticsD1() {
+function createAnalyticsD1(
+  options: { failOnRun?: (query: string, values: unknown[]) => boolean } = {},
+) {
   const sqlite = new Database(':memory:')
   sqlite.exec(`
     CREATE TABLE accessAnalyticsDaily (
@@ -42,6 +44,9 @@ function createAnalyticsD1() {
         return bound
       },
       async run() {
+        if (options.failOnRun?.(query, values)) {
+          throw new Error('Injected batch failure')
+        }
         const result = prepared.run(...values)
         return { meta: { changes: result.changes } }
       },
@@ -164,6 +169,70 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
         allTime.find(row => row.metrics.includes('downloads'))?.metrics ?? '{}',
       ),
     ).toEqual({ apiRequests: 3, downloads: 1 })
+  } finally {
+    close()
+  }
+})
+
+test('keeps daily rows unchanged when a large atomic refresh fails', async () => {
+  const { db, rows, close } = createAnalyticsD1({
+    failOnRun: (query, values) =>
+      query.includes('INSERT INTO accessAnalyticsDaily') &&
+      values.includes('entity-49'),
+  })
+  await db
+    .prepare(`
+    INSERT INTO accessAnalyticsDaily
+      (day, scope, entityId, metrics, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `)
+    .bind(
+      '2026-08-20',
+      'publisher',
+      'original',
+      '{"apiRequests":99}',
+      'original',
+      'original',
+    )
+    .run()
+
+  globalThis.fetch = (async () =>
+    Response.json({
+      success: true,
+      data: Array.from({ length: 49 }, (_, index) => ({
+        day: '2026-08-20 00:00:00',
+        scope: 'publisher',
+        entityId: `entity-${index + 1}`,
+        metricKey: 'apiRequests',
+        metricValue: 1,
+      })),
+    })) as typeof fetch
+
+  try {
+    await expect(
+      rollUpAccessAnalyticsDaily(
+        {
+          ANALYTICS_ENGINE_ACCOUNT_ID: 'account-123',
+          ANALYTICS_ENGINE_READ_TOKEN: 'read-token',
+          DB_META: db,
+          PRODUCT_USAGE_DATASET: 'ss-product-usage-local',
+        },
+        Date.parse('2026-08-21T00:15:00Z'),
+      ),
+    ).rejects.toThrow('Injected batch failure')
+
+    expect(
+      rows<{ day: string; scope: string; entityId: string; metrics: string }>(
+        'SELECT day, scope, entityId, metrics FROM accessAnalyticsDaily',
+      ),
+    ).toEqual([
+      {
+        day: '2026-08-20',
+        scope: 'publisher',
+        entityId: 'original',
+        metrics: '{"apiRequests":99}',
+      },
+    ])
   } finally {
     close()
   }
