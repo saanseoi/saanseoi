@@ -1,13 +1,21 @@
 #!/usr/bin/env sh
 
-# Keep ignored local environment files available in linked worktrees.
-# This hook is intentionally non-blocking: a missing Bun executable or a copy
-# failure must not make `git worktree add` fail.
+# Keep ignored local environment files and the local metadata D1 schema
+# available in linked worktrees.
+# This hook is intentionally non-blocking: a missing Bun executable, a copy
+# failure, or a database setup failure must not make `git worktree add` fail.
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
 
 if [ -n "$repo_root" ] && command -v bun >/dev/null 2>&1; then
 	if ! bun "$repo_root/scripts/copy-worktree-local-files.ts"; then
 		echo "warning: could not copy local environment files into this worktree" >&2
+	fi
+
+	if ! (
+		cd "$repo_root" &&
+		bun run --filter @repo/db db:reset:local:meta
+	); then
+		echo "warning: could not initialise the local metadata database" >&2
 	fi
 fi
 
