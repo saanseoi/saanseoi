@@ -160,7 +160,7 @@ const sourceCountLabel = (count: number) =>
     </div>
 
     <dl
-      class="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] items-start gap-x-8 gap-y-5 border-t border-outline-variant/60 px-6 py-6 font-body text-label-md dark:border-outline-variant md:px-8 min-[60rem]:grid-cols-[max-content_minmax(12rem,2fr)_repeat(3,max-content)] min-[70rem]:grid-cols-[repeat(6,minmax(max-content,1fr))] min-[70rem]:gap-x-10"
+      class="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] items-start gap-x-8 gap-y-5 border-t border-outline-variant/60 px-6 py-6 font-body text-label-md dark:border-outline-variant md:px-8 min-[60rem]:grid-cols-[repeat(5,minmax(max-content,1fr))] min-[70rem]:grid-cols-[repeat(6,minmax(max-content,1fr))] min-[70rem]:gap-x-10"
     >
       <div class="min-w-0 max-w-full">
         <dt
