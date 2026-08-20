@@ -1,8 +1,8 @@
 import type { PolicyDocument } from './types'
 
 export const privacyPolicy: PolicyDocument = {
-  version: '2',
-  effectiveDate: '8 August 2026',
+  version: '3',
+  effectiveDate: '20 August 2026',
   contactEmail: 'policy@saanseoi.hk',
   i18n: {
     en: {
@@ -18,6 +18,7 @@ export const privacyPolicy: PolicyDocument = {
             'Email address - when you subscribe to our informational updates.',
             'Email address, name, and profile image - when you register for our API portal. These may be supplied by an OAuth provider (e.g. Facebook, GitHub, or Google).',
             'Server logs and Cloudflare Analytics data - including IP addresses, request paths, timestamps, browser/client information, and referrer URLs. This is collected automatically when you visit our website or use our APIs.',
+            'Product-usage event data - including allowlisted interaction or endpoint event names, the producing service, a normalised route, public dataset/release/style/asset identifiers where relevant, outcome, HTTP status, and optional duration or count. This telemetry does not include email addresses, passwords, API keys or key names, copied text, tokens, arbitrary query strings, IP addresses, user IDs, or full user-agent values.',
             'We do not collect phone numbers, payment details, or any sensitive personal data as defined under the PDPO.',
           ],
         },
@@ -86,7 +87,7 @@ export const privacyPolicy: PolicyDocument = {
         {
           heading: '8. Cookies and analytics',
           paragraphs: [
-            'We use Cloudflare Analytics, which is a privacy-friendly analytics solution that does not use cookies to track individual users across the web. Our server logs may capture technical request data as described above.',
+            'We use Cloudflare Analytics, which is a privacy-friendly analytics solution that does not use cookies to track individual users across the web. We also use a separate, privacy-minimised product-usage dataset for meaningful endpoint and interaction telemetry as described above; it is not designed to identify unique users. Our server logs may capture technical request data as described above.',
           ],
         },
         {
@@ -116,6 +117,7 @@ export const privacyPolicy: PolicyDocument = {
             '電郵地址 - 當你訂閱我們的資訊更新時。',
             '電郵地址、姓名及個人頭像 - 當你註冊 API 平台時。這些資料可能由 OAuth 服務供應商（如 Facebook、GitHub 或 Google）提供。',
             '伺服器日誌及 Cloudflare Analytics 數據 - 包括 IP 地址、請求路徑、時間戳記、瀏覽器/客戶端資訊及來源網址。當你瀏覽本網站或使用 API 時，此類資料會自動收集。',
+            '產品使用事件數據 - 包括列入允許清單的互動或端點事件名稱、產生事件的服務、標準化路徑、相關公開數據集／版本／樣式／資產識別碼、結果、HTTP 狀態，以及可選的持續時間或數量。此遙測不包括電郵地址、密碼、API 金鑰或金鑰名稱、複製的文字、權杖、任意查詢字串、IP 地址、用戶 ID 或完整的 user-agent 值。',
             '我們不收集電話號碼、付款資料，或私隱條例下定義的任何敏感個人資料。',
           ],
         },
@@ -182,7 +184,7 @@ export const privacyPolicy: PolicyDocument = {
         {
           heading: '八、Cookies 及分析',
           paragraphs: [
-            '我們使用 Cloudflare Analytics，這是一個不使用 cookies 跨網站追蹤個別用戶的私隱友好型分析方案。我們的伺服器日誌可能如上所述記錄技術請求資料。',
+            '我們使用 Cloudflare Analytics，這是一個不使用 cookies 跨網站追蹤個別用戶的私隱友好型分析方案。我們亦使用獨立且以私隱為本的產品使用數據集，記錄上文所述的有意義端點及互動遙測；此數據集並非用於識別獨立用戶。我們的伺服器日誌可能如上所述記錄技術請求資料。',
           ],
         },
         {
