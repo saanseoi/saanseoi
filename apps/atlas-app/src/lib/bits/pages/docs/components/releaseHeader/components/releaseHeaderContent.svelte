@@ -1,13 +1,17 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
+import ReleaseHeaderMetrics from './releaseHeaderMetrics.svelte'
+import type { ReleaseHeaderMetric } from './releaseHeaderMetric'
+
 type Props = {
   main: Snippet
   card?: Snippet
+  metrics?: ReleaseHeaderMetric[]
   showBackground?: boolean
 }
 
-let { main, card: aside, showBackground = false }: Props = $props()
+let { main, card: aside, metrics = [], showBackground = false }: Props = $props()
 </script>
 
 <div
@@ -16,6 +20,11 @@ let { main, card: aside, showBackground = false }: Props = $props()
   {@render main()}
   {#if aside}
     {@render aside()}
+  {/if}
+  {#if metrics.length}
+    <div class="lg:hidden">
+      <ReleaseHeaderMetrics metrics={metrics} />
+    </div>
   {/if}
 </div>
 
