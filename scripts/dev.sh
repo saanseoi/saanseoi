@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/.." && pwd)"
-
 mode="${1:-all}"
 filters=()
 
@@ -28,8 +26,4 @@ for filter in "${filters[@]}"; do
   turbo_filters+=("--filter=$filter")
 done
 
-# Migrate before any local Worker opens the shared persisted D1 databases.
-bash "$repo_root/libs/db/scripts/migrate-local-db.sh"
-
-export SAANSEOI_LOCAL_D1_MIGRATIONS_READY=1
 exec bun x turbo run dev "${turbo_filters[@]}"
