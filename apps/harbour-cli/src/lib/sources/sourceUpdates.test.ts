@@ -54,6 +54,11 @@ describe('dataset update registry', () => {
       assertCsdiArchiveUrl('https://static.csdi.gov.hk.example/download/source.zip'),
     ).toThrow('Refusing CSDI archive download outside the official origin')
     expect(() =>
+      assertCsdiArchiveUrl(
+        'https://operator:secret@static.csdi.gov.hk/download/source.zip',
+      ),
+    ).toThrow('Refusing CSDI archive download outside the official origin')
+    expect(() =>
       resolveCsdiArchiveRedirect(
         'https://static.csdi.gov.hk/download/source.zip',
         'http://127.0.0.1/internal',
