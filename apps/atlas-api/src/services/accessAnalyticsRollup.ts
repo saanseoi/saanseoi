@@ -11,6 +11,7 @@ const ROLLUP_DAYS = 2
 const D1_BATCH_SIZE = 50
 const ACCESS_SCOPES = new Set<AccessAnalyticsScope>([
   'publisher',
+  'dataset',
   'source_release',
   'api_release_set',
 ])
