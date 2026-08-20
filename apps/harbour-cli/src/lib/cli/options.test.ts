@@ -17,4 +17,10 @@ describe('resolvePipelineEnvironment', () => {
       'preview',
     )
   })
+
+  test('uses preview shard metadata for local production-shaped targets', () => {
+    expect(
+      resolvePipelineEnvironment({ environment: 'production', remote: false }),
+    ).toBe('preview')
+  })
 })

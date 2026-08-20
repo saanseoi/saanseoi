@@ -22,7 +22,7 @@ export type UploadTarget = {
 export function resolvePipelineEnvironment(
   target: UploadTarget,
 ): 'preview' | 'production' {
-  return target.environment === 'production' ? 'production' : 'preview'
+  return target.remote && target.environment === 'production' ? 'production' : 'preview'
 }
 
 /**
