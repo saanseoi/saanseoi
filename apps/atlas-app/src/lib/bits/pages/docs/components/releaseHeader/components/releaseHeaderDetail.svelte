@@ -42,7 +42,7 @@ let { detail, isOpen, onToggle }: Props = $props()
       />
     </span>
     <span
-      class={`mt-2 block min-w-0 wrap-break-word text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
+      class="mt-2 block min-w-0 wrap-break-word font-mono text-sm font-semibold text-primary"
     >
       {detail.value}
     </span>
@@ -61,7 +61,7 @@ let { detail, isOpen, onToggle }: Props = $props()
             {item.label}
           </dt>
           <dd
-            class={`mt-1.5 min-w-0 wrap-break-word text-sm font-semibold leading-5 text-primary ${item.isMonospace ? 'font-mono' : ''}`}
+            class="mt-1.5 min-w-0 wrap-break-word font-mono text-sm font-semibold leading-5 text-primary"
           >
             {#if item.href}
               <a
