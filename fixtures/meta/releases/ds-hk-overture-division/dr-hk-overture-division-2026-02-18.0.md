@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-14T05:04:52.993Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
+updatedAt: "2026-08-20T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2026-02-18.0"
 regionCode: "hk"
@@ -16,6 +16,7 @@ cohortKey: "2026-02-18.0"
 
 ## Changelog
 
+- <orange>Upstream</orange> Refreshed OSM data
 - <orange>Upstream</orange> Added a new `admin_level` property to better represent a
   division's position in its country's administrative hierarchy, i.e. lower numbers
   correspond to higher level administrative units (0, 1, and 2).
