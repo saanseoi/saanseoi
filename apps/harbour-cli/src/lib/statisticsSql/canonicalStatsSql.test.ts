@@ -62,6 +62,33 @@ describe('buildCanonicalStatsSqlBatches', () => {
 })
 
 describe('replayCanonicalStatsSqlBatches', () => {
+  test('checks remote prerequisites before mutating the local cache', async () => {
+    const executed: string[] = []
+    await expect(
+      replayCanonicalStatsSqlBatches(
+        { environment: 'preview', remote: true },
+        {
+          currentBinding: {
+            prepare(sql: string) {
+              return {
+                async run() {
+                  executed.push(sql)
+                },
+              }
+            },
+          },
+          historyBinding: undefined,
+          historyTargets: [],
+          state: { bindings: {} },
+        } as never,
+        '2021',
+        { current: ['SELECT 1;'], history: [] },
+        { importOptions: { accountId: 'account', apiToken: 'token' } },
+      ),
+    ).rejects.toThrow('current.databaseId')
+    expect(executed).toEqual([])
+  })
+
   test('reports each local canonical SQL batch', async () => {
     const executed: string[] = []
     const binding = {
