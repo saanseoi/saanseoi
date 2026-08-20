@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c0c12c9b3460e6fac3860dbb1b122918afe0907f3d7ad72cd1ce7db8549720d9",
+  "versionHash": "sha256:0448fa3ef0d0539e2fefbd5b4f27979f85b877538d70a3b96270752e0d11d150",
   "code": "hkgov-had",
   "parentCode": "hkgov",
   "url": "https://www.had.gov.hk/en/index.htm",
@@ -8,7 +8,7 @@
     {
       "locale": "en",
       "name": "Home Affairs Department",
-      "description": "The Home Affairs Department promotes district governance, enhances communication between the Government and the people, and connects with and cares for the people."
+      "description": "Promotes district governance and connects the Government with Hong Kong communities."
     },
     {
       "locale": "zh-hant",
