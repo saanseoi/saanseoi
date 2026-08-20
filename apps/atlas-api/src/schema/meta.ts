@@ -87,7 +87,7 @@ export const DatasetsResponseSchema = z
 
 export const SubstackSubscribeRequestSchema = z
   .object({
-    email: z.email(),
+    email: z.email().max(254),
   })
   .openapi('SubstackSubscribeRequest')
 

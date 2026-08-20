@@ -17,6 +17,7 @@ import {
   replayHongKongStreetChangelog,
 } from '../../services/streets'
 import type { AppEnv } from '../../types'
+import { sanitiseResponseUrl } from '../../lib/api'
 
 const streetDetailRoute = createRoute({
   method: 'get',
@@ -119,7 +120,7 @@ export const streetRoutes = [
       const result = await replayHongKongStreetChangelog({
         historyDbs: c.var.historyDbs,
         metaDb: c.var.metaDb,
-        requestUrl: c.req.url,
+        requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
       if (result.status === 503) return c.json(result.body, 503)
       return c.json(result.body, 200)
@@ -133,7 +134,7 @@ export const streetRoutes = [
         currentDb: c.var.currentDb,
         id,
         metaDb: c.var.metaDb,
-        requestUrl: c.req.url,
+        requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
       if (result.status === 503) return c.json(result.body, 503)
       if (result.status === 404) return c.json(result.body, 404)
@@ -148,7 +149,7 @@ export const streetRoutes = [
         historyDbs: c.var.historyDbs,
         id,
         metaDb: c.var.metaDb,
-        requestUrl: c.req.url,
+        requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
       if (result.status === 503) return c.json(result.body, 503)
       if (result.status === 404) return c.json(result.body, 404)
@@ -163,7 +164,7 @@ export const streetRoutes = [
         historyDbs: c.var.historyDbs,
         id,
         metaDb: c.var.metaDb,
-        requestUrl: c.req.url,
+        requestUrl: sanitiseResponseUrl(c.req.url).toString(),
         version,
       })
       if (result.status === 503) return c.json(result.body, 503)

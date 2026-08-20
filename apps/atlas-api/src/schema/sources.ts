@@ -3,12 +3,13 @@ import { z } from '@hono/zod-openapi'
 const SourceReleaseCodeSchema = z
   .string()
   .min(1)
+  .max(200)
   .openapi({
     description: 'Globally unique source release code.',
     examples: ['dr-hk-overture-division-2026-07-22.0'],
   })
 
-const SourceRecordCursorSchema = z.string().min(1).openapi({
+const SourceRecordCursorSchema = z.string().min(1).max(2048).openapi({
   description: 'Opaque cursor returned by a prior source-record response.',
 })
 
