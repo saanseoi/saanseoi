@@ -50,6 +50,7 @@ tmp/*
 apps/atlas-api/.env.local
 
 # Data
+data
 data/
 !apps/atlas-app/src/routes/data/
 !apps/atlas-app/src/routes/data/**
