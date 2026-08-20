@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:be9d9069143dade8c69c7cb3efaa124708f9b7b64dffbb56f96ddbd163181c10",
+  "versionHash": "sha256:4ceba5c4064d681991ecf32760a0c814051ce7b41673769e3778c768a859a2e2",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-street",
   "regionCode": "hk",
@@ -12,7 +12,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
-  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/302b904e3769eae0dc5bfc349288953f2556eb8467288b8226344767031bdafd",
+  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/302b904e3769eae0dc5bfc349288953f2556eb8467288b8226344767031bdafd",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
