@@ -6,7 +6,9 @@
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "places",
-  "resourceTypes": ["place"],
+  "resourceTypes": [
+    "place"
+  ],
   "licenseCode": "CDLA-Permissive-2.0",
   "attribution": "© Meta; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"]
+        "discoveries": [
+          "new-release"
+        ]
       }
     },
     "archives": {

@@ -6,7 +6,9 @@
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": ["street"],
+  "resourceTypes": [
+    "street"
+  ],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178",
@@ -31,7 +33,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["new-release"],
+        "discoveries": [
+          "new-release"
+        ],
         "includeInitialDownload": true
       }
     },
