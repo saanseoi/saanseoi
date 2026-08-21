@@ -15,7 +15,6 @@ if [ -z "$STAGED_FILES" ]; then
 fi
 
 BIOME_FILES=""
-TAILWIND_FILES=""
 MARKDOWN_FILES=""
 
 for file in $STAGED_FILES; do
@@ -35,32 +34,11 @@ for file in $STAGED_FILES; do
       ;;
   esac
 
-  case "$file" in
-    apps/atlas-app/*|package.json|bun.lock)
-      if [ -f "$file" ]; then
-        TAILWIND_FILES="$TAILWIND_FILES $file"
-      fi
-      ;;
-  esac
 done
 
-if [ -z "$BIOME_FILES" ] && [ -z "$TAILWIND_FILES" ] && [ -z "$MARKDOWN_FILES" ]; then
+if [ -z "$BIOME_FILES" ] && [ -z "$MARKDOWN_FILES" ]; then
   echo "No staged files supported by pre-commit checks."
   exit 0
-fi
-
-if [ -n "$TAILWIND_FILES" ]; then
-  echo "Running Tailwind upgrade..."
-
-  set +e
-  TAILWIND_OUTPUT=$(bun x @tailwindcss/upgrade --force 2>&1)
-  TAILWIND_STATUS=$?
-  set -e
-
-  if [ $TAILWIND_STATUS -ne 0 ]; then
-    echo "$TAILWIND_OUTPUT"
-    exit $TAILWIND_STATUS
-  fi
 fi
 
 if [ -n "$BIOME_FILES" ]; then
