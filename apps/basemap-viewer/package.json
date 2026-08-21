@@ -22,7 +22,7 @@
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
     "bits-ui": "^2.19.0",
-    "maplibre-gl": "^6.4.1",
+    "maplibre-gl": "^6.5.0",
     "svelte": "^5.56.10"
   },
   "devDependencies": {

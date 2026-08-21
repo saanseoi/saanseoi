@@ -41,12 +41,12 @@
     "bits-ui": "^2.19.0",
     "diff": "^9.0.0",
     "github-slugger": "^2.0.0",
-    "maplibre-gl": "^6.4.1",
+    "maplibre-gl": "^6.5.0",
     "svelte-maplibre-gl": "^2.2.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@sveltejs/adapter-cloudflare": "next",
+    "@sveltejs/adapter-cloudflare": "7.2.9",
     "@sveltejs/kit": "next",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/typography": "^0.5.20",
