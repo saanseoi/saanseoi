@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   TURBO_TELEMETRY_DISABLED: 1
@@ -39,12 +39,33 @@ jobs:
     steps:
       - name: 'GIT :: Checkout'
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 'CHECK :: Deployment Baseline'
+        id: deployment-baseline
+        env:
+          DEPLOYMENT_TAG: 'saanseoi-deployed-preview'
+        shell: fish {0}
+        run: |
+          set baseline_sha (git rev-parse "refs/tags/$DEPLOYMENT_TAG" 2>/dev/null)
+          set initial false
+          if test (string length -- "$baseline_sha") -eq 0
+            set initial true
+            set baseline_sha (git rev-parse "$GITHUB_SHA^" 2>/dev/null)
+            if test (string length -- "$baseline_sha") -eq 0
+              set baseline_sha "$GITHUB_SHA"
+            end
+          end
+          echo "sha=$baseline_sha" >> "$GITHUB_OUTPUT"
+          echo "initial=$initial" >> "$GITHUB_OUTPUT"
 
       - name: 'CHECK :: Changed Workers'
         id: changed-workers
         uses: dorny/paths-filter@v4
         with:
-          base: ${{ github.ref }}
+          base: ${{ steps.deployment-baseline.outputs.sha }}
+          ref: ${{ github.sha }}
           filters: |
             atlas-api:
               - 'bun.lock'
@@ -113,7 +134,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
         working-directory: apps/atlas-api
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-api == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.atlas-api == 'true'
 
       - name: 'DEPLOY :: Atlas App'
         env:
@@ -121,7 +142,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
         working-directory: apps/atlas-app
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-app == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.atlas-app == 'true'
 
       - name: 'DEPLOY :: Harbour API'
         env:
@@ -129,7 +150,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
         working-directory: apps/harbour-api
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-api == 'true'
 
       - name: 'DEPLOY :: Harbour Workers'
         env:
@@ -137,7 +158,25 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
         working-directory: apps/harbour-workers
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-workers == 'true'
+
+      - name: 'CHECK :: Record Deployment Baseline'
+        if: success()
+        env:
+          DEPLOYMENT_TAG: 'saanseoi-deployed-preview'
+          GH_TOKEN: ${{ github.token }}
+        shell: fish {0}
+        run: |
+          set ref "refs/tags/$DEPLOYMENT_TAG"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$DEPLOYMENT_TAG" \
+              --field sha="$GITHUB_SHA" \
+              --field force=true >/dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              --field ref="$ref" \
+              --field sha="$GITHUB_SHA" >/dev/null
+          end
 
   build-production:
     if: github.ref == 'refs/heads/main'
@@ -161,12 +200,33 @@ jobs:
     steps:
       - name: 'GIT :: Checkout'
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 'CHECK :: Deployment Baseline'
+        id: deployment-baseline
+        env:
+          DEPLOYMENT_TAG: 'saanseoi-deployed-production'
+        shell: fish {0}
+        run: |
+          set baseline_sha (git rev-parse "refs/tags/$DEPLOYMENT_TAG" 2>/dev/null)
+          set initial false
+          if test (string length -- "$baseline_sha") -eq 0
+            set initial true
+            set baseline_sha (git rev-parse "$GITHUB_SHA^" 2>/dev/null)
+            if test (string length -- "$baseline_sha") -eq 0
+              set baseline_sha "$GITHUB_SHA"
+            end
+          end
+          echo "sha=$baseline_sha" >> "$GITHUB_OUTPUT"
+          echo "initial=$initial" >> "$GITHUB_OUTPUT"
 
       - name: 'CHECK :: Changed Workers'
         id: changed-workers
         uses: dorny/paths-filter@v4
         with:
-          base: ${{ github.ref }}
+          base: ${{ steps.deployment-baseline.outputs.sha }}
+          ref: ${{ github.sha }}
           filters: |
             atlas-api:
               - 'bun.lock'
@@ -251,7 +311,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
         working-directory: apps/atlas-api
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-api == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.atlas-api == 'true'
 
       - name: 'DEPLOY :: Atlas App'
         env:
@@ -259,7 +319,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
         working-directory: apps/atlas-app
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-app == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.atlas-app == 'true'
 
       - name: 'DEPLOY :: Basemap Tiles'
         env:
@@ -267,7 +327,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy
         working-directory: apps/basemap-tiles
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.basemap-tiles == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.basemap-tiles == 'true'
 
       - name: 'DEPLOY :: Basemap Viewer'
         env:
@@ -275,7 +335,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
         working-directory: apps/basemap-viewer
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.basemap-viewer == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.basemap-viewer == 'true'
 
       - name: 'DEPLOY :: Harbour API'
         env:
@@ -283,7 +343,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
         working-directory: apps/harbour-api
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-api == 'true'
 
       - name: 'DEPLOY :: Harbour Workers'
         env:
@@ -291,7 +351,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
         working-directory: apps/harbour-workers
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-workers == 'true'
 
       - name: 'DEPLOY :: Telegram Discord Bridge'
         env:
@@ -301,4 +361,23 @@ jobs:
         working-directory: apps/telegram-discord-bridge
         if:
           github.event_name == 'workflow_dispatch' ||
+          steps.deployment-baseline.outputs.initial == 'true' ||
           steps.changed-workers.outputs.telegram-discord-bridge == 'true'
+
+      - name: 'CHECK :: Record Deployment Baseline'
+        if: success()
+        env:
+          DEPLOYMENT_TAG: 'saanseoi-deployed-production'
+          GH_TOKEN: ${{ github.token }}
+        shell: fish {0}
+        run: |
+          set ref "refs/tags/$DEPLOYMENT_TAG"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$DEPLOYMENT_TAG" \
+              --field sha="$GITHUB_SHA" \
+              --field force=true >/dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              --field ref="$ref" \
+              --field sha="$GITHUB_SHA" >/dev/null
+          end
