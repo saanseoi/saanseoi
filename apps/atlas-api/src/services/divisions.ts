@@ -77,7 +77,7 @@ type DivisionResourcePayload = {
   type: 'divisions'
   id: string
   attributes: {
-    level: number
+    level: number | null
     type: string
     divisionCode?: string
     snapshotId?: string
