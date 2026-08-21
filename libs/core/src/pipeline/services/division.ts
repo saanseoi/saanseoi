@@ -510,10 +510,12 @@ export async function processDivisionDataset(
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
       const divisionCodeDomain = divisionCodeDomainFor(message, normalised.base)
       if (divisionCodeDomain) {
-        normalised.base.divisionCode =
-          divisionCodeAssignments.get(
-            `${divisionCodeDomain}\u0000${normalised.base.level}\u0000${normalised.base.id}`,
-          ) ?? null
+        Object.assign(normalised.base, {
+          divisionCode:
+            divisionCodeAssignments.get(
+              `${divisionCodeDomain}\u0000${normalised.base.level}\u0000${normalised.base.id}`,
+            ) ?? null,
+        })
       }
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
       if (message.source === 'overture' && message.type === 'division') {
@@ -1170,6 +1172,7 @@ export function normaliseDivisionRow(
       bbox: normalisedGeometry ? calculateGeoJsonBbox(normalisedGeometry) : null,
       cartography: row.cartography ?? null,
       createdAt: now,
+      divisionCode: null,
       geometry: normalisedGeometry,
       hierarchy: normalisedHierarchies,
       id,
@@ -1229,6 +1232,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>
       bbox: calculateGeoJsonBbox(geometry),
       cartography: null,
       createdAt: now,
+      divisionCode: null,
       geometry,
       hierarchy: [],
       id,
@@ -1286,6 +1290,7 @@ export function buildDivisionBaseHashInput(
   return {
     bbox: base.bbox,
     cartography: base.cartography,
+    divisionCode: base.divisionCode ?? null,
     geometry: base.geometry,
     hierarchy: base.hierarchy,
     id: base.id,
