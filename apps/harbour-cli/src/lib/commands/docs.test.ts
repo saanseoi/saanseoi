@@ -87,15 +87,19 @@ Publishes revision r{{ apiReleaseSetRevision }}.
 
 ## Constituent source releases
 
-- Old hand-written source list.
+{{apiReleaseSetSources:en}}
 
 ## Using the Divisions API
 
 ## 組成來源發布
 
-- 舊的來源清單。
+{{apiReleaseSetSources:zh-Hant}}
 
 ## 使用 Divisions API
+
+## 组成来源发布
+
+{{apiReleaseSetSources:zh-Hans}}
 `,
         frontmatter: {},
       },
@@ -131,8 +135,47 @@ Publishes revision r{{ apiReleaseSetRevision }}.
       '| [Overture](/publishers/overture) | [Divisions](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) | [2025-09-24.0](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) |',
     )
     expect(rendered).toContain('### Supporting · Division Area')
-    expect(rendered).not.toContain('Old hand-written source list')
-    expect(rendered).not.toContain('舊的來源清單')
+    expect(rendered).toContain('### 主要 · 區劃')
+    expect(rendered).toContain('### 支持 · 区划面')
+    expect(rendered).not.toContain('{{apiReleaseSetSources:')
+  })
+
+  test('requires one constituent-source directive for each supported locale', async () => {
+    await expect(
+      renderMarkdownFixtureBody(
+        {
+          body: '{{apiReleaseSetSources:en}}\n',
+          frontmatter: {},
+        },
+        {},
+        [
+          {
+            datasetCode: 'ds-hk-overture-division',
+            datasetI18n: [],
+            publisherCode: 'overture',
+            publisherI18n: [],
+            releaseCode: 'dr-hk-overture-division-2025-09-24.0',
+            resourceType: 'division',
+            role: 'primary',
+            sourceVersion: '2025-09-24.0',
+            variant: 'default',
+          },
+        ],
+      ),
+    ).rejects.toThrow(
+      'API release-set notes must contain exactly one Traditional Chinese constituent-source directive: {{apiReleaseSetSources:zh-Hant}}',
+    )
+  })
+
+  test('does not publish constituent-source directives without source rows', async () => {
+    await expect(
+      renderMarkdownFixtureBody({
+        body: '{{apiReleaseSetSources:en}}\n',
+        frontmatter: {},
+      }),
+    ).rejects.toThrow(
+      'API release-set notes contain constituent-source directives but the release set has no sources.',
+    )
   })
 
   test('rejects unknown frontmatter tags', async () => {
