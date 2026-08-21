@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  resolveShardBindingName,
+  type LocalAddressDbContext,
+} from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,
@@ -17,19 +20,18 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 
-export type CanonicalStatsTable =
-  | 'statsDimensions'
-  | 'statsMeasures'
-  | 'statsMeasuresI18n'
-  | 'statsRecords'
-  | 'statsValues'
+export type CanonicalStatsDictionaryTable =
+  | 'statsFields'
+  | 'statsFieldsI18n'
   | 'statsValuesI18n'
+export type CanonicalStatsRecordTable = 'statsRecords'
+type CanonicalStatsTable = CanonicalStatsRecordTable | CanonicalStatsDictionaryTable
 
 type Row = Record<string, unknown>
 
 export type CanonicalStatsSqlBatches = {
   current: string[]
-  history: string[]
+  history: Array<{ batches: string[]; shardYear: string }>
 }
 
 export type CanonicalStatsSqlReplayProgress = {
@@ -39,43 +41,85 @@ export type CanonicalStatsSqlReplayProgress = {
     | 'local-history-replay'
     | 'remote-current-replay'
     | 'remote-history-replay'
+  shardYear?: string
   totalBatches: number
 }
 
 export function buildCanonicalStatsSqlBatches(input: {
   current: Array<{ rows: Row[]; table: CanonicalStatsTable }>
-  history: Array<{ rows: Row[]; table: CanonicalStatsTable }>
+  history: Array<{
+    rows: Row[]
+    table: CanonicalStatsTable
+    shardYear?: string
+  }>
+  dictionaries: Array<{ rows: Row[]; table: CanonicalStatsDictionaryTable }>
 }) {
+  const historyGroupsByYear = new Map<
+    string,
+    Array<{ rows: Row[]; table: CanonicalStatsTable }>
+  >()
+  for (const group of input.history) {
+    const rowsByYear = new Map<string, Row[]>()
+    for (const row of group.rows) {
+      const shardYear =
+        group.shardYear ??
+        requiredString(row.referencePeriodEndYear, 'referencePeriodEndYear')
+      const rows = rowsByYear.get(shardYear) ?? []
+      rows.push(row)
+      rowsByYear.set(shardYear, rows)
+    }
+    for (const [shardYear, rows] of rowsByYear) {
+      const groups = historyGroupsByYear.get(shardYear) ?? []
+      groups.push({ rows, table: group.table })
+      historyGroupsByYear.set(shardYear, groups)
+    }
+  }
+  const historyYears = [...historyGroupsByYear.keys()]
+  for (const group of input.dictionaries) {
+    for (const shardYear of historyYears) {
+      const groups = historyGroupsByYear.get(shardYear)
+      groups?.push({ rows: group.rows, table: group.table })
+    }
+  }
+  const currentGroups: Array<{ rows: Row[]; table: CanonicalStatsTable }> = [
+    ...input.current,
+    ...input.dictionaries.map(group => ({
+      rows: group.rows.map(stripHistoryDictionaryVersion),
+      table: group.table,
+    })),
+  ]
   return {
-    current: chunkSql(
-      input.current.flatMap(group => [
-        ...buildUpsertStatements(
+    current: chunkSql([
+      ...buildReplaceCurrentDictionaryStatements(currentGroups),
+      ...currentGroups.flatMap(group =>
+        buildUpsertStatements(
           group.table,
           group.rows,
           currentConflictColumns(group.table),
         ),
-      ]),
-    ),
-    history: chunkSql(
-      input.history.flatMap(group => [
-        ...buildCloseHistoryStatements(group.table, group.rows),
-        ...buildUpsertStatements(group.table, group.rows, [
-          ...historyIdentityColumns(group.table),
-          'versionHash',
+      ),
+    ]),
+    history: [...historyGroupsByYear.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([shardYear, groups]) => ({
+        batches: chunkSql([
+          ...groups.flatMap(group => [
+            ...buildCloseHistoryStatements(group.table, group.rows),
+            ...buildUpsertStatements(group.table, group.rows, [
+              ...historyIdentityColumns(group.table),
+              'versionHash',
+            ]),
+          ]),
         ]),
-      ]),
-    ),
+        shardYear,
+      })),
   } satisfies CanonicalStatsSqlBatches
 }
 
 /** Replays latest-view and immutable history changes through the same SQL path. */
 export async function replayCanonicalStatsSqlBatches(
   target: UploadTarget,
-  context: Pick<
-    LocalAddressDbContext,
-    'currentBinding' | 'historyBinding' | 'historyTargets' | 'state'
-  >,
-  shardYear: string,
+  context: Pick<LocalAddressDbContext, 'currentBinding' | 'historyTargets' | 'state'>,
   batches: CanonicalStatsSqlBatches,
   options: {
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
@@ -83,30 +127,50 @@ export async function replayCanonicalStatsSqlBatches(
   } = {},
 ) {
   const remoteReplay = target.remote
-    ? resolveRemoteReplay(target, context, shardYear, batches, options)
+    ? resolveRemoteReplay(target, context, batches, options)
     : null
-  const localBatchCount = batches.current.length + batches.history.length
+  const historyBatchCount = batches.history.reduce(
+    (total, target) => total + target.batches.length,
+    0,
+  )
+  const localBatchCount = batches.current.length + historyBatchCount
   const totalBatches = localBatchCount * (target.remote ? 2 : 1)
+  let completedBatches = 0
   await replay(
     { binding: context.currentBinding, databaseId: null, name: 'current' },
     batches.current,
     { isLocal: true },
     'local-current-replay',
     options.onProgress,
-    0,
+    completedBatches,
     totalBatches,
   )
-  await replay(
-    { binding: context.historyBinding, databaseId: null, name: 'history' },
-    batches.history,
-    { isLocal: true },
-    'local-history-replay',
-    options.onProgress,
-    batches.current.length,
-    totalBatches,
-  )
+  completedBatches += batches.current.length
+  for (const history of batches.history) {
+    const bindingName = resolveShardBindingName('history', 'HK', history.shardYear)
+    const historyTarget = context.historyTargets.find(
+      entry => entry.bindingName === bindingName,
+    )
+    if (history.batches.length > 0 && !historyTarget?.binding) {
+      throw new Error(`Local canonical statistic replay requires ${bindingName}.`)
+    }
+    await replay(
+      {
+        binding: historyTarget?.binding,
+        databaseId: null,
+        name: 'history',
+      },
+      history.batches,
+      { isLocal: true },
+      'local-history-replay',
+      options.onProgress,
+      completedBatches,
+      totalBatches,
+      history.shardYear,
+    )
+    completedBatches += history.batches.length
+  }
   if (!remoteReplay) return
-
   await replay(
     { databaseId: remoteReplay.currentDatabaseId ?? null, name: 'current' },
     batches.current,
@@ -120,25 +184,33 @@ export async function replayCanonicalStatsSqlBatches(
     localBatchCount,
     totalBatches,
   )
-  await replay(
-    { databaseId: remoteReplay.historyDatabaseId ?? null, name: 'history' },
-    batches.history,
-    {
-      accountId: remoteReplay.accountId,
-      apiToken: remoteReplay.apiToken,
-      isLocal: false,
-    },
-    'remote-history-replay',
-    options.onProgress,
-    localBatchCount + batches.current.length,
-    totalBatches,
-  )
+  completedBatches += batches.current.length
+  for (const history of batches.history) {
+    const bindingName = resolveShardBindingName('history', 'HK', history.shardYear)
+    const databaseId = context.historyTargets.find(
+      entry => entry.bindingName === bindingName,
+    )?.databaseId
+    await replay(
+      { databaseId: databaseId ?? null, name: 'history' },
+      history.batches,
+      {
+        accountId: remoteReplay.accountId,
+        apiToken: remoteReplay.apiToken,
+        isLocal: false,
+      },
+      'remote-history-replay',
+      options.onProgress,
+      completedBatches,
+      totalBatches,
+      history.shardYear,
+    )
+    completedBatches += history.batches.length
+  }
 }
 
 function resolveRemoteReplay(
   target: UploadTarget,
   context: Pick<LocalAddressDbContext, 'historyTargets' | 'state'>,
-  shardYear: string,
   batches: CanonicalStatsSqlBatches,
   options: {
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
@@ -149,19 +221,24 @@ function resolveRemoteReplay(
   const apiToken =
     options.importOptions?.apiToken ?? process.env.CLOUDFLARE_D1_TOKEN?.trim()
   const currentDatabaseId = context.state.bindings.DB_CURRENT?.databaseId
-  const historyDatabaseId = context.historyTargets.find(
-    entry => entry.year === shardYear,
-  )?.databaseId
   const missing = [
     !accountId && 'CLOUDFLARE_ACCOUNT_ID',
     !apiToken && 'CLOUDFLARE_D1_TOKEN',
     batches.current.length > 0 && !currentDatabaseId && 'current.databaseId',
-    batches.history.length > 0 && !historyDatabaseId && 'history.databaseId',
+    ...batches.history.map(history => {
+      const bindingName = resolveShardBindingName('history', 'HK', history.shardYear)
+      const databaseId = context.historyTargets.find(
+        entry => entry.bindingName === bindingName,
+      )?.databaseId
+      return history.batches.length > 0 && !databaseId
+        ? `${bindingName}.databaseId`
+        : false
+    }),
   ].filter(Boolean)
   if (missing.length) {
     throw new Error(`Canonical statistic D1 replay requires ${missing.join(', ')}.`)
   }
-  return { accountId, apiToken, currentDatabaseId, historyDatabaseId }
+  return { accountId, apiToken, currentDatabaseId }
 }
 
 function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {
@@ -227,24 +304,51 @@ function buildUpsertStatements(
 }
 
 function currentConflictColumns(table: CanonicalStatsTable) {
-  return historyIdentityColumns(table)
+  return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
 }
 
 function historyIdentityColumns(table: CanonicalStatsTable) {
+  return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
+}
+
+function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
   switch (table) {
-    case 'statsRecords':
-      return ['id']
-    case 'statsMeasures':
-      return ['datasetCode', 'measureCode']
-    case 'statsMeasuresI18n':
-      return ['datasetCode', 'measureCode', 'locale']
-    case 'statsDimensions':
-      return ['datasetCode', 'dimensionCode']
-    case 'statsValues':
-      return ['datasetCode', 'dimensionCode', 'valueCode']
+    case 'statsFields':
+      return ['datasetCode', 'fieldName']
+    case 'statsFieldsI18n':
+      return ['datasetCode', 'fieldName', 'locale']
     case 'statsValuesI18n':
       return ['datasetCode', 'dimensionCode', 'valueCode', 'locale']
   }
+}
+
+function stripHistoryDictionaryVersion(row: Row) {
+  const {
+    isCurrent: _isCurrent,
+    sourceReleaseId: _sourceReleaseId,
+    versionHash: _versionHash,
+    ...current
+  } = row
+  return current
+}
+
+function buildReplaceCurrentDictionaryStatements(
+  groups: Array<{ rows: Row[]; table: CanonicalStatsTable }>,
+) {
+  const scopes = uniqueTuples(
+    groups.filter(group => group.table !== 'statsRecords').flatMap(group => group.rows),
+    ['datasetCode'],
+  )
+  if (scopes.length === 0) return []
+  const condition = scopes
+    .map(([datasetCode]) => `"datasetCode" = ${sqlValue(datasetCode)}`)
+    .join(' OR ')
+  const tables: CanonicalStatsDictionaryTable[] = [
+    'statsFieldsI18n',
+    'statsValuesI18n',
+    'statsFields',
+  ]
+  return tables.map(table => `DELETE FROM ${identifier(table)} WHERE ${condition};`)
 }
 
 async function replay(
@@ -256,6 +360,7 @@ async function replay(
     undefined,
   completedBefore = 0,
   totalBatches = batches.length,
+  shardYear?: string,
 ) {
   if (batches.length === 0) return
   for (let index = 0; index < batches.length; index += 1) {
@@ -264,6 +369,7 @@ async function replay(
     await onProgress({
       completedBatches: completedBefore + index,
       phase,
+      shardYear,
       totalBatches,
     })
     await executeSqlText(destination, sql, options)
@@ -271,6 +377,7 @@ async function replay(
   await onProgress({
     completedBatches: completedBefore + batches.length,
     phase,
+    shardYear,
     totalBatches,
   })
 }

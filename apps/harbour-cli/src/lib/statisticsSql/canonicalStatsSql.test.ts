@@ -12,13 +12,14 @@ describe('buildCanonicalStatsSqlBatches', () => {
       id: 'stats:2016',
       datasetCode: 'stats',
       dimensions: {},
-      geographyCohortId: null,
+      geography: null,
       divisionId: null,
       referencePeriodCode: '2016',
       referencePeriodEnd: null,
+      referencePeriodEndYear: '2016',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureId: 'feature',
+      sourceFeatureRef: 'feature',
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: {},
@@ -26,6 +27,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
     const batches = buildCanonicalStatsSqlBatches({
       current: [{ rows: [record], table: 'statsRecords' }],
       history: [],
+      dictionaries: [],
     })
 
     expect(batches.current.join('\n')).not.toContain('DELETE FROM "statsRecords"')
@@ -38,13 +40,14 @@ describe('buildCanonicalStatsSqlBatches', () => {
       id: `stats:${index}`,
       datasetCode: 'stats',
       dimensions: {},
-      geographyCohortId: null,
+      geography: null,
       divisionId: null,
       referencePeriodCode: '2021',
       referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureId: `feature:${index}`,
+      sourceFeatureRef: `feature:${index}`,
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: { population: { numericValue: String(index) } },
@@ -52,12 +55,83 @@ describe('buildCanonicalStatsSqlBatches', () => {
     const batches = buildCanonicalStatsSqlBatches({
       current: [{ rows, table: 'statsRecords' }],
       history: [],
+      dictionaries: [],
     })
 
     expect(batches.current).toHaveLength(1)
     expect(batches.current[0]?.match(/INSERT INTO/g)).toHaveLength(1)
     expect(batches.current[0]).toContain("'stats:0'")
     expect(batches.current[0]).toContain("'stats:99'")
+  })
+
+  test('groups history by period end year and versions dictionaries in each shard', () => {
+    const base = {
+      createdAt: '2026-08-20T00:00:00.000Z',
+      datasetCode: 'stats',
+      dimensions: {},
+      divisionId: null,
+      geography: null,
+      isCurrent: true,
+      referencePeriodEnd: null,
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: 'feature',
+      sourceReleaseId: 'release-2026',
+      updatedAt: '2026-08-20T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [
+        {
+          rows: [
+            {
+              ...base,
+              id: 'stats:2024',
+              referencePeriodCode: '2024',
+              referencePeriodEndYear: '2024',
+            },
+            {
+              ...base,
+              id: 'stats:2024-25',
+              referencePeriodCode: '2024/25',
+              referencePeriodEndYear: '2025',
+            },
+          ],
+          table: 'statsRecords',
+        },
+      ],
+      dictionaries: [
+        {
+          rows: [
+            {
+              createdAt: base.createdAt,
+              datasetCode: 'stats',
+              fieldName: 'population',
+              isCurrent: true,
+              sourceReleaseId: base.sourceReleaseId,
+              updatedAt: base.updatedAt,
+              versionHash: 'field-version',
+            },
+          ],
+          table: 'statsFields',
+        },
+      ],
+    })
+
+    expect(batches.history.map(target => target.shardYear)).toEqual(['2024', '2025'])
+    expect(batches.history[0]?.batches.join('\n')).toContain("'stats:2024'")
+    expect(batches.history[1]?.batches.join('\n')).toContain("'stats:2024-25'")
+    expect(batches.history[0]?.batches.join('\n')).toContain(
+      'ON CONFLICT ("datasetCode", "fieldName", "versionHash")',
+    )
+    expect(batches.history[1]?.batches.join('\n')).toContain("'field-version'")
+    expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
+    expect(batches.current.join('\n')).toContain(
+      'ON CONFLICT ("datasetCode", "fieldName")',
+    )
+    expect(batches.current.join('\n')).not.toContain('"isCurrent"')
   })
 })
 
@@ -77,11 +151,9 @@ describe('replayCanonicalStatsSqlBatches', () => {
               }
             },
           },
-          historyBinding: undefined,
           historyTargets: [],
           state: { bindings: {} },
         } as never,
-        '2021',
         { current: ['SELECT 1;'], history: [] },
         { importOptions: { accountId: 'account', apiToken: 'token' } },
       ),
@@ -106,14 +178,18 @@ describe('replayCanonicalStatsSqlBatches', () => {
       { environment: 'dev', remote: false },
       {
         currentBinding: binding,
-        historyBinding: binding,
-        historyTargets: [],
+        historyTargets: [
+          {
+            binding,
+            bindingName: 'DB_HISTORY_HK_BEFORE',
+            year: 'BEFORE',
+          },
+        ],
         state: { bindings: {} },
       } as never,
-      '2021',
       {
         current: ['SELECT 1;', 'SELECT 2;'],
-        history: ['SELECT 3;'],
+        history: [{ batches: ['SELECT 3;'], shardYear: '2021' }],
       },
       {
         onProgress(event) {
