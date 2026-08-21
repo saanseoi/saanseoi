@@ -75,6 +75,8 @@ export type CanonicalStatsRows = {
 export type HkgovCenstatdStatisticSourceRow = {
   datasetCode: string
   divisionId?: string | null
+  /** Reviewed public geography; source identifiers remain in the raw row/ref. */
+  geography?: CanonicalStatsGeography
   properties: Record<string, unknown>
   sourceFeatureRef: string
   sourceReleaseId: string
@@ -108,7 +110,8 @@ export function normaliseHkgovCenstatdStatistics(
     series.set(seriesId, {
       datasetCode: row.datasetCode,
       divisionId: row.divisionId ?? null,
-      geography: geographyFor(profile.dimensions, row.sourceFeatureRef),
+      geography:
+        row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
       id: seriesId,
       referencePeriodCode: profile.referencePeriodCode,
       referencePeriodEnd: referencePeriod.end,
