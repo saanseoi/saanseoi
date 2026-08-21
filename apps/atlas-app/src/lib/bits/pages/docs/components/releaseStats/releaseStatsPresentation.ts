@@ -340,6 +340,7 @@ export function createReleaseStatsPresentation({
         !row.groupBy &&
         ((row.dimension === 'observations' && row.metric === 'count') ||
           (row.dimension === 'measures' && row.metric === 'count') ||
+          (row.dimension === 'fields' && row.metric === 'count') ||
           (row.dimension === 'reference_periods' && row.metric === 'count') ||
           (row.dimension === 'dimensions' &&
             ['definition_count', 'value_definition_count'].includes(row.metric ?? ''))),
