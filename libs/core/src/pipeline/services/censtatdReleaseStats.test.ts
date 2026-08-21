@@ -22,29 +22,29 @@ describe('buildCenstatdReleaseStats', () => {
           { dimensionCode: 'housing-market-area' },
           { dimensionCode: 'building-group' },
         ],
-        measures: [
+        fields: [
           {
             aggregation: 'total',
-            measureCode: 't_pop',
+            fieldName: 't_pop',
             statisticKind: 'count',
             unitCode: 'person',
           },
           {
             aggregation: 'none',
-            measureCode: 'status',
+            fieldName: 'status',
             statisticKind: 'quantity',
             unitCode: 'category',
           },
         ],
         observations: [
           {
-            measureCode: 't_pop',
+            fieldName: 't_pop',
             numericValue: '100',
             observationStatus: 'published',
             referencePeriodCode: '2021',
           },
           {
-            measureCode: 'status',
+            fieldName: 'status',
             numericValue: null,
             observationStatus: 'suppressed',
             referencePeriodCode: '2021',
@@ -96,17 +96,17 @@ describe('buildCenstatdReleaseStats', () => {
       [{ featureId: '11', layerName: 'Density_2024' }],
       {
         dimensions: [{ dimensionCode: 'district' }],
-        measures: [
+        fields: [
           {
             aggregation: 'total',
-            measureCode: 'MYPOPN_LAND',
+            fieldName: 'MYPOPN_LAND',
             statisticKind: 'count',
             unitCode: 'person',
           },
         ],
         observations: [
           {
-            measureCode: 'MYPOPN_LAND',
+            fieldName: 'MYPOPN_LAND',
             numericValue: '243300',
             observationStatus: 'published',
             referencePeriodCode: '2024',
@@ -169,29 +169,29 @@ describe('buildCenstatdReleaseStats', () => {
           { dimensionCode: 'district' },
           { dimensionCode: 'district-class' },
         ],
-        measures: [
+        fields: [
           {
             aggregation: 'total',
-            measureCode: 'population',
+            fieldName: 'population',
             statisticKind: 'count',
             unitCode: 'person',
           },
           {
             aggregation: 'total',
-            measureCode: 'households',
+            fieldName: 'households',
             statisticKind: 'count',
             unitCode: 'household',
           },
         ],
         observations: [
           {
-            measureCode: 'population',
+            fieldName: 'population',
             numericValue: '999999',
             observationStatus: 'published',
             referencePeriodCode: '2025',
           },
           {
-            measureCode: 'households',
+            fieldName: 'households',
             numericValue: '1',
             observationStatus: 'published',
             referencePeriodCode: '2025',
@@ -210,7 +210,7 @@ describe('buildCenstatdReleaseStats', () => {
         row =>
           !(
             (row.dimension === 'observations' &&
-              row.groupBy === 'measure' &&
+              row.groupBy === 'field' &&
               row.groupValue === 'households') ||
             (row.dimension === 'dimensions' &&
               row.groupBy === 'definitionCode' &&
@@ -234,7 +234,7 @@ describe('buildCenstatdReleaseStats', () => {
       expect.objectContaining({
         dimension: 'added_count',
         groupBy: 'structural',
-        groupValue: 'measures',
+        groupValue: 'fields',
         value: 1,
       }),
     )
