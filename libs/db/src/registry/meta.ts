@@ -44,6 +44,7 @@ export const metaRegistryRequiredTables = [
   'apiCompositionMembers',
   'apiEndpoints',
   'dataShards',
+  'divisionCodes',
   'identifierBridges',
 ] as const
 
@@ -365,6 +366,20 @@ type InitialDataShardSeed = {
   year?: string
 }
 
+export type DivisionCodeFixtureAssignment = {
+  divisionCode: string
+  canonicalId: string
+  level: number
+  /** Retained only to document the reviewed lookup used during ingestion. */
+  sourceBridge?: Record<string, string>
+}
+
+type DivisionCodeFixture = {
+  versionHash: string
+  domainCode: string
+  assignments: DivisionCodeFixtureAssignment[]
+}
+
 export type MetaRegistrySyncEnvironment = Extract<
   DataShardEnvironment,
   'preview' | 'production'
@@ -425,6 +440,7 @@ const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersion
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
+const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
 const identifierBridgeFixtures = readFixtureDir<{
   resourceType: ResourceType
   sourceDatasetCode: string
@@ -654,6 +670,14 @@ export const initialIdentifierBridges = identifierBridgeFixtures.flatMap(fixture
   })),
 )
 
+export const initialDivisionCodes = divisionCodeFixtures.flatMap(fixture =>
+  fixture.assignments.map(assignment => ({
+    ...assignment,
+    domainCode: fixture.domainCode,
+    versionHash: fixture.versionHash,
+  })),
+)
+
 export function resolveInitialDataShardsForEnvironment(
   environment: DataShardEnvironment,
 ) {
@@ -815,6 +839,32 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
   mappingMethod = excluded.mappingMethod,
   reviewStatus = excluded.reviewStatus,
   updatedAt = excluded.updatedAt;`.trim(),
+    )
+  }
+
+  for (const divisionCode of initialDivisionCodes) {
+    statements.push(
+      `
+INSERT INTO divisionCodes (
+  domainCode, level, divisionCode, canonicalId, sourceBridge, versionHash, createdAt, updatedAt
+) VALUES (
+  ${sqlString(divisionCode.domainCode)},
+  ${divisionCode.level},
+  ${sqlString(divisionCode.divisionCode)},
+  ${sqlString(divisionCode.canonicalId)},
+  ${sqlNullable(
+    divisionCode.sourceBridge ? JSON.stringify(divisionCode.sourceBridge) : undefined,
+  )},
+  ${sqlString(divisionCode.versionHash)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(domainCode, level, divisionCode) DO UPDATE SET
+  canonicalId = excluded.canonicalId,
+  sourceBridge = excluded.sourceBridge,
+  versionHash = excluded.versionHash,
+  updatedAt = excluded.updatedAt
+WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 

@@ -69,6 +69,7 @@ const DivisionAttributesSchema = z
   .object({
     level: z.number().int(),
     type: z.string(),
+    divisionCode: z.string().optional(),
     snapshotId: z.string().optional(),
     geometry: z.union([GeometrySchema, z.null()]).optional(),
     bbox: z.union([BBoxSchema, z.null()]).optional(),

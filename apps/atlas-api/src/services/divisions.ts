@@ -79,6 +79,7 @@ type DivisionResourcePayload = {
   attributes: {
     level: number
     type: string
+    divisionCode?: string
     snapshotId?: string
     geometry?: JsonObject | null
     bbox?: [number, number, number, number] | null
@@ -486,6 +487,7 @@ function createDivisionResource(args: {
   const attributes: DivisionResourcePayload['attributes'] = {
     level: division.level,
     type: division.type,
+    ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
   }
 
   if (isDefaultDivisionProfile(routeState.profile)) {
