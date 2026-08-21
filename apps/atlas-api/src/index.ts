@@ -26,6 +26,7 @@ import { registryRoutes } from './routes/v0/registry'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
+import { statisticRoutes } from './routes/v0/statistics'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
 import {
@@ -355,6 +356,7 @@ app.openapiRoutes([
   ...managedAssetRoutes,
   ...styleRoutes,
   ...streetRoutes,
+  ...statisticRoutes,
 ] as const)
 
 app.get('/openapi', c =>
