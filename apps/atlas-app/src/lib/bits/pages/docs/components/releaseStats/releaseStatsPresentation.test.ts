@@ -586,6 +586,20 @@ describe('createReleaseStatsPresentation', () => {
         value: 3,
       },
       { dimension: 'fields', metric: 'count', value: 3 },
+      {
+        dimension: 'fields',
+        metric: 'count',
+        groupBy: 'field',
+        groupValue: 'POPULATION',
+        value: 3,
+      },
+      {
+        dimension: 'fields',
+        metric: 'count',
+        groupBy: 'unitCode',
+        groupValue: 'person',
+        value: 1,
+      },
       { dimension: 'reference_periods', metric: 'count', value: 1 },
       { dimension: 'dimensions', metric: 'definition_count', value: 2 },
       { dimension: 'dimensions', metric: 'value_definition_count', value: 4 },
@@ -626,8 +640,14 @@ describe('createReleaseStatsPresentation', () => {
       'referencePeriod',
     ])
     expect(model.genericGroups.map(group => group.label)).not.toContain('valueKind')
+    expect(model.genericGroups.map(group => group.label)).toEqual([
+      'field',
+      'statisticKind',
+      'unitCode',
+      'aggregation',
+    ])
     expect(model.genericGroups.flatMap(group => group.rows)).not.toContainEqual(
-      expect.objectContaining({ dimension: 'fields' }),
+      expect.objectContaining({ dimension: 'fields', groupValue: 'Unspecified' }),
     )
     expect(model.genericGroups).toEqual(
       expect.arrayContaining([
