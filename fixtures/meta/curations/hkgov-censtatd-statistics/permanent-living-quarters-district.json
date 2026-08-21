@@ -1,6 +1,6 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
@@ -23,7 +23,8 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "permanentLivingQuarters",
+      "fieldName": "permanentLivingQuarters",
+      "dimensions": {},
       "schemaSpecification": {
         "sha256": "1bc3759c4436f2467b7c2cafe30ce7d6ad49c6ce456f71fea9446a83a22363e8",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/b3f0372efef6e9b26d05f13d02d52fd631e1767f0d88f763b8bd86d500ed7bf4"
