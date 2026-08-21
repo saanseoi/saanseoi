@@ -55,7 +55,7 @@ let localisedPublisher = $derived(selectLocalisedRow(publisher.publisherI18n, lo
       {localisedPublisher?.description ?? ''}
       <Icon
         icon="ion:arrow-forward-outline"
-        class="relative top-[-1px] inline size-5 text-(--publisher-card-foreground) transition-transform group-hover:translate-x-1"
+        class="relative -top-px inline size-5 text-(--publisher-card-foreground) transition-transform group-hover:translate-x-1"
         aria-hidden="true"
       />
     </p>
@@ -85,7 +85,7 @@ let localisedPublisher = $derived(selectLocalisedRow(publisher.publisherI18n, lo
         class="relative z-10 inline-flex shrink-0 items-baseline gap-[7px] font-mono text-label-sm font-semibold tracking-[0.08em] uppercase text-(--publisher-card-foreground)"
       >
         <span
-          class="relative top-[-1px] font-body text-[0.6125rem] font-semibold tracking-[0.08em] uppercase opacity-80"
+          class="relative -top-px font-body text-[0.6125rem] font-semibold tracking-[0.08em] uppercase opacity-80"
           >{m.publishers_datasets_label()}</span
         >
         <span class="font-mono text-label-sm font-semibold"
