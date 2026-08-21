@@ -9,6 +9,7 @@ sourceVersion: "2021"
 releaseVersion: "2021.0"
 type: "divisionStatistic"
 cohortKey: "2021"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872"
 hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/housing-market-areas-building-groups-2021.json"
 ---
 

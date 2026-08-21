@@ -10,6 +10,7 @@ releaseVersion: "2021.0"
 sourceSchemaVersion: "1.0"
 type: "divisionArea"
 cohortKey: "2021"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946"
 ---
 
 # EN
