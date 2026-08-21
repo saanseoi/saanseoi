@@ -114,6 +114,15 @@ describe('buildCanonicalStatsSqlBatches', () => {
               updatedAt: base.updatedAt,
               versionHash: 'field-version',
             },
+            {
+              createdAt: base.createdAt,
+              datasetCode: 'stats',
+              fieldName: 'population',
+              isCurrent: true,
+              sourceReleaseId: 'release-2025',
+              updatedAt: base.updatedAt,
+              versionHash: 'field-version',
+            },
           ],
           table: 'statsFields',
         },
@@ -124,10 +133,16 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.history[0]?.batches.join('\n')).toContain("'stats:2024'")
     expect(batches.history[1]?.batches.join('\n')).toContain("'stats:2024-25'")
     expect(batches.history[0]?.batches.join('\n')).toContain(
-      'ON CONFLICT ("datasetCode", "fieldName", "versionHash")',
+      'ON CONFLICT ("datasetCode", "fieldName", "sourceReleaseId", "versionHash")',
     )
     expect(batches.history[1]?.batches.join('\n')).toContain("'field-version'")
     expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
+    expect(batches.history[0]?.batches.join('\n')).toContain(
+      '"sourceReleaseId" = \'release-2026\'',
+    )
+    expect(batches.history[0]?.batches.join('\n')).toContain(
+      '"sourceReleaseId" = \'release-2025\'',
+    )
     expect(batches.current.join('\n')).toContain(
       'ON CONFLICT ("datasetCode", "fieldName")',
     )
