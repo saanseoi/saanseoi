@@ -6,6 +6,8 @@
     "check": "tsc --noEmit",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "build": "mkdir -p dist && wrangler deploy --dry-run --outdir dist --minify",
+    "build:preview": "bun run build",
+    "build:production": "bun run build",
     "deploy": "wrangler deploy --minify",
     "lint": "biome lint .",
     "test": "bun test"
