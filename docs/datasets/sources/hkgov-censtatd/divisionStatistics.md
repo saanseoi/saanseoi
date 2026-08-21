@@ -91,6 +91,11 @@ hand-edited without repeating completed measures. The release page presents the
 resulting measure dictionary in Stats, while Audit remains for processing decisions and
 their evidence.
 
+Publisher identifiers, including GML references, are retained as source references and
+are never materialised as statistics. Units describe the numeric value: people,
+households, percentages, living quarters, and subdivided units are reviewed separately
+from any category or range encoded in a source-field name.
+
 The curation prompt permits `total` only for counts and quantities. Other statistic
 kinds can be direct (`none`) or use a mean, median, minimum, maximum, or percentile, but
 a sum would not preserve a proportion, ratio, rate, density, or index.
