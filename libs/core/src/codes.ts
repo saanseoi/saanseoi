@@ -145,6 +145,10 @@ export function datasetVariantForSource(
     transform?: string
   } = {},
 ) {
+  if (resourceType === 'divisionStatistic') {
+    return options.datasetCode ?? 'default'
+  }
+
   if (
     resourceType !== 'division' &&
     resourceType !== 'divisionArea' &&
