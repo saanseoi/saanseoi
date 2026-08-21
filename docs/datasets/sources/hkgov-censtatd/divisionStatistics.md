@@ -129,6 +129,22 @@ of never-married population aged 15 and over by sex - male”. Its description s
 state the proportion and its scope; the curation fields record `proportion`, `none`, the
 reviewed unit, and a denominator measure when one is canonical and available.
 
+## Analytical dimensions
+
+Each curated field declares the explicit analytical slice expressed by its English CSDI
+description. These include demographic categories such as sex, age group, marital
+status, educational attainment, economic activity and ethnicity; household, housing,
+income, tenure and occupancy categories; and study, work, transport, literacy and
+migration categories. A field can carry more than one dimension, for example a female,
+aged 15-and-over, never-married population field.
+
+The field map does not duplicate measurement semantics. Units, statistic kinds,
+aggregations and denominator fields remain their own reviewed metadata: a median or
+quartile is not an analytical dimension. Likewise, fields with no categorical slice,
+such as land area, population density and a single total count, retain `{}`. A value of
+`all` is used only where the same field family has an explicit alternative category, for
+example the total population alongside male and female population fields.
+
 The importer never creates a parallel statistical-geography registry. Area/type maps its
 three C&SD source codes to the Overture Hong Kong Island, Kowloon, and New Territories
 identities, then publishes only its source-specific `divisionArea` geometry. HMA
