@@ -206,7 +206,7 @@ const providerDetails = (providerId: string) =>
                 >{m.account_change_password()}</Button
               >
             {/if}
-            {#if accounts.length > 1}
+            {#if accounts.length + passkeys.length > 1}
               <Button
                 onclick={() => unlink(account.id, account.providerId)}
                 disabled={unlinkingAccountId !== null}
