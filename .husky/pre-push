@@ -2,6 +2,7 @@
 
 ./.husky/check-merge.sh
 bun run lint:branch
+./.husky/check-tailwind.sh
 bun run test:run
 echo "Running workspace checks..."
 bun run check
