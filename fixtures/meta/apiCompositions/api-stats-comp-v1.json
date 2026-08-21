@@ -28,13 +28,70 @@
       "members": [
         {
           "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
           "role": "primary",
-          "isRequired": true,
+          "isRequired": false,
           "cohortMatchingMode": "exact_ref",
           "priority": 0
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 1
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 2
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 3
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 4
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 5
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 6
+        },
+        {
+          "resourceType": "divisionStatistic",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "role": "primary",
+          "isRequired": false,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 7
         }
       ]
     }
   ],
-  "versionHash": "sha256:5652a26a426b75607fb606776bb904118551cb9729dd0c5e50942a19cee218f7"
+  "versionHash": "sha256:4f6bff3661bafe38273b5070004bc2a9e76be6ea2cb1e9c202114281d8767f7f"
 }
