@@ -1073,35 +1073,41 @@ function renderApiReleaseSetSourcesTables(
   markdown: string,
   sources: ApiReleaseSetSourceDocsRow[],
 ) {
-  if (sources.length === 0) return markdown
+  const directives = [
+    { locale: 'en', label: 'English' },
+    { locale: 'zh-Hant', label: 'Traditional Chinese' },
+    { locale: 'zh-Hans', label: 'Simplified Chinese' },
+  ] as const
 
-  const english = replaceMarkdownSection(
-    markdown,
-    '## Constituent source releases',
-    renderApiReleaseSetSourcesTable(sources, 'en'),
-  )
-  if (!english.matched) {
-    throw new Error(
-      'API release-set notes are missing the English source table heading.',
-    )
+  if (sources.length === 0) {
+    if (
+      directives.some(({ locale }) =>
+        markdown.includes(`{{apiReleaseSetSources:${locale}}}`),
+      )
+    ) {
+      throw new Error(
+        'API release-set notes contain constituent-source directives but the release set has no sources.',
+      )
+    }
+    return markdown
   }
 
-  const traditionalChinese = replaceMarkdownSection(
-    english.markdown,
-    '## 組成來源發布',
-    renderApiReleaseSetSourcesTable(sources, 'zh-Hant'),
-  )
-  if (!traditionalChinese.matched) {
-    throw new Error(
-      'API release-set notes are missing the Traditional Chinese source table heading.',
-    )
-  }
-  return traditionalChinese.markdown
+  return directives.reduce((rendered, { locale, label }) => {
+    const directive = `{{apiReleaseSetSources:${locale}}}`
+    const occurrences = rendered.split(directive).length - 1
+    if (occurrences !== 1) {
+      throw new Error(
+        `API release-set notes must contain exactly one ${label} constituent-source directive: ${directive}`,
+      )
+    }
+
+    return rendered.replace(directive, renderApiReleaseSetSourcesTable(sources, locale))
+  }, markdown)
 }
 
 function renderApiReleaseSetSourcesTable(
   sources: ApiReleaseSetSourceDocsRow[],
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
 ) {
   const groups = new Map<string, ApiReleaseSetSourceDocsRow[]>()
   const sortedSources = [...sources].sort(
@@ -1129,7 +1135,9 @@ function renderApiReleaseSetSourcesTable(
       '',
       locale === 'en'
         ? '| Publisher | Source dataset | Release |'
-        : '| 發布者 | 來源資料集 | 發布版本 |',
+        : locale === 'zh-Hant'
+          ? '| 發布者 | 來源資料集 | 發布版本 |'
+          : '| 发布者 | 来源数据集 | 发布版本 |',
       '| --- | --- | --- |',
     )
 
@@ -1156,32 +1164,25 @@ function renderApiReleaseSetSourcesTable(
   return lines.join('\n').trimEnd()
 }
 
-function replaceMarkdownSection(markdown: string, heading: string, body: string) {
-  const headingPattern = new RegExp(
-    `(^|\\n)${escapeRegExp(heading)}\\n[\\s\\S]*?(?=\\n## |$)`,
-  )
-  let matched = false
-
-  const replaced = markdown.replace(headingPattern, (_match, prefix: string) => {
-    matched = true
-    return `${prefix}${heading}\n\n${body}\n`
-  })
-  return { markdown: replaced, matched }
-}
-
 function roleOrder(role: ApiReleaseSetSourceDocsRow['role']) {
   return role === 'primary' ? 0 : 1
 }
 
+type ApiReleaseSetSourceDocsLocale = 'en' | 'zh-Hant' | 'zh-Hans'
+
 function sourceRoleLabel(
   role: ApiReleaseSetSourceDocsRow['role'],
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
 ) {
   if (locale === 'zh-Hant') return role === 'primary' ? '主要' : '支援'
+  if (locale === 'zh-Hans') return role === 'primary' ? '主要' : '支持'
   return role === 'primary' ? 'Primary' : 'Supporting'
 }
 
-function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
+function resourceTypeLabel(
+  resourceType: string,
+  locale: ApiReleaseSetSourceDocsLocale,
+) {
   if (locale === 'zh-Hant') {
     return (
       {
@@ -1189,6 +1190,17 @@ function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
         divisionArea: '區劃面',
         divisionBoundary: '區劃邊界',
         divisionStatistic: '區劃統計',
+      }[resourceType] ?? humaniseResourceType(resourceType)
+    )
+  }
+
+  if (locale === 'zh-Hans') {
+    return (
+      {
+        division: '区划',
+        divisionArea: '区划面',
+        divisionBoundary: '区划边界',
+        divisionStatistic: '区划统计',
       }[resourceType] ?? humaniseResourceType(resourceType)
     )
   }
@@ -1205,12 +1217,17 @@ function humaniseResourceType(value: string) {
 
 function selectDocsLocalisedName(
   rows: Array<{ locale: string; name: string }>,
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
   fallback: string,
 ) {
   const normalisedLocale = locale.toLowerCase()
+  const relatedChineseLocale =
+    locale === 'zh-Hant' ? 'zh-hans' : locale === 'zh-Hans' ? 'zh-hant' : null
   return (
     rows.find(row => row.locale.toLowerCase() === normalisedLocale)?.name ??
+    (relatedChineseLocale
+      ? rows.find(row => row.locale.toLowerCase() === relatedChineseLocale)?.name
+      : undefined) ??
     rows.find(row => row.locale.toLowerCase() === 'en')?.name ??
     rows[0]?.name ??
     fallback
@@ -1230,7 +1247,7 @@ type CenstatdMeasureTableManifest = {
       locale: CenstatdMeasureTableLocale
       name: string
     }>
-    measureCode: string
+    fieldName: string
     sourceField: string
   }>
 }
@@ -1254,11 +1271,11 @@ function parseCenstatdMeasureTableManifest(
 
     const entry = measure as {
       localisations?: unknown
-      measureCode?: unknown
+      fieldName?: unknown
       sourceField?: unknown
     }
     if (
-      typeof entry.measureCode !== 'string' ||
+      typeof entry.fieldName !== 'string' ||
       typeof entry.sourceField !== 'string' ||
       !Array.isArray(entry.localisations)
     ) {
@@ -1290,7 +1307,7 @@ function parseCenstatdMeasureTableManifest(
 
     return {
       localisations,
-      measureCode: entry.measureCode,
+      fieldName: entry.fieldName,
       sourceField: entry.sourceField,
     }
   })
@@ -1309,7 +1326,7 @@ function renderCenstatdMeasureTable(
   locale: CenstatdMeasureTableLocale,
 ) {
   const lines = [
-    '| sourceField | measureCode | name | description |',
+    '| sourceField | fieldName | name | description |',
     '| --- | --- | --- | --- |',
   ]
 
@@ -1321,7 +1338,7 @@ function renderCenstatdMeasureTable(
       )
     }
     lines.push(
-      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
+      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.fieldName)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
     )
   }
 
@@ -1330,10 +1347,6 @@ function renderCenstatdMeasureTable(
 
 function escapeMarkdownTableCell(value: string) {
   return value.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>')
-}
-
-function escapeRegExp(value: string) {
-  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function frontmatterForApiReleaseSetRow(
