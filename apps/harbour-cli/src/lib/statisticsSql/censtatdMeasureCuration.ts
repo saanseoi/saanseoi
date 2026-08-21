@@ -4,6 +4,8 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import {
   statsAggregations,
+  statsFieldComparabilityReasons,
+  statsFieldComparabilityStatuses,
   statsStatisticKinds,
   computeVersionHash,
   type StatsAggregation,
@@ -647,8 +649,8 @@ export function parseCenstatdFieldCuration(value: unknown, path: string) {
         Array.isArray(comparability) ||
         Object.keys(comparability).sort().join(',') !==
           'affectedReferencePeriods,reason,status' ||
-        comparability.status !== 'caution' ||
-        comparability.reason !== 'economic-activity-status-classification-changed' ||
+        !statsFieldComparabilityStatuses.includes(comparability.status) ||
+        !statsFieldComparabilityReasons.includes(comparability.reason) ||
         !Array.isArray(comparability.affectedReferencePeriods) ||
         comparability.affectedReferencePeriods.length === 0 ||
         comparability.affectedReferencePeriods.some(
