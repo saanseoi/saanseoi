@@ -315,7 +315,7 @@ test('normalises localisations for equivalent C&SD source fields', async () => {
   const majorHousingEstates =
     'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'
 
-  for (const [leftDataset, leftSourceField, rightDataset, rightSourceField] of [
+  const equivalentFields: Array<[string, string, string, string]> = [
     [newTowns, 'lfpr_t', populationHouseholds, 't_lfpr'],
     [newTowns, 'lfpr_m', populationHouseholds, 'lfpr_m'],
     [newTowns, 'lfpr_f', populationHouseholds, 'lfpr_f'],
@@ -323,7 +323,14 @@ test('normalises localisations for equivalent C&SD source fields', async () => {
     [newTowns, 'ma_hh', majorHousingEstates, 'ma_hh'],
     [newTowns, 'ma_econhh', populationHouseholds, 'ma_econhh'],
     [newTowns, 'ma_econhh', majorHousingEstates, 'ma_econhh'],
-  ]) {
+  ]
+
+  for (const [
+    leftDataset,
+    leftSourceField,
+    rightDataset,
+    rightSourceField,
+  ] of equivalentFields) {
     const left = field(leftDataset, leftSourceField)
     const right = field(rightDataset, rightSourceField)
     expect(left).toBeDefined()
