@@ -89,6 +89,28 @@
       ]
     },
     {
+      "code": "living-quarter",
+      "dimension": "housing",
+      "symbol": "quarters",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Living quarters",
+          "description": "Count of living quarters."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "居住單位",
+          "description": "居住單位數目。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "居住单位",
+          "description": "居住单位数目。"
+        }
+      ]
+    },
+    {
       "code": "per-thousand",
       "dimension": "ratio",
       "symbol": "‰",
@@ -243,6 +265,28 @@
       ]
     },
     {
+      "code": "subdivided-unit",
+      "dimension": "housing",
+      "symbol": "subdivided units",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Subdivided units",
+          "description": "Count of subdivided units."
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "分間單位",
+          "description": "分間單位數目。"
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "分间单位",
+          "description": "分间单位数目。"
+        }
+      ]
+    },
+    {
       "code": "year",
       "dimension": "time",
       "symbol": "years",
@@ -265,5 +309,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:df7394e10815e66b31f51c8079058241ea00e1bd4d6120ecb653272cb8144771"
+  "versionHash": "sha256:4e66928901c05611abd3b172064c5c81e4d1da79c717f941bbc2964e4a7c9a49"
 }
