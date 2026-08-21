@@ -132,6 +132,7 @@ function dependencies() {
         datasetCode: statistic.datasetCode,
         fieldName: 'totalPopulation',
         sourceField: 'T_POP',
+        dimensions: { sex: 'all' },
         sourceNullOption: null,
         statisticKind: 'count' as const,
         aggregation: 'total' as const,
@@ -250,6 +251,54 @@ describe('Statistics service', () => {
     expect(result.body.links.permalink).toContain(
       'include=areas%3Ahkgov-censtatd%3A2021%2Cdivisions',
     )
+  })
+
+  test('includes only field definitions used by the returned packed records', async () => {
+    const result = await listStatistics({
+      currentDb: {} as never,
+      historyDbs: [],
+      metaDb: {} as never,
+      requestUrl: 'https://api.saanseoi.hk/v0.1/stats?include=fields',
+      requestedVersionPath: 'v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      query: { include: 'fields', locales: 'en,zh-hant' },
+      dependencies: dependencies() as never,
+    })
+
+    expect(result.status).toBe(200)
+    if (result.status !== 200) return
+    expect(result.body.included).toEqual([
+      {
+        type: 'statistic-fields',
+        id: `${statistic.datasetCode}:totalPopulation`,
+        attributes: {
+          datasetCode: statistic.datasetCode,
+          fieldName: 'totalPopulation',
+          sourceField: 'T_POP',
+          dimensions: { sex: 'all' },
+          sourceNullOption: null,
+          statisticKind: 'count',
+          aggregation: 'total',
+          aggregationPercentile: null,
+          comparability: {
+            affectedReferencePeriods: ['2011', '2016'],
+            reason: 'economic-activity-status-classification-changed',
+            status: 'caution',
+          },
+          denominatorFieldName: null,
+          valueKind: 'numeric',
+          unitCode: 'person',
+          i18n: {
+            en: {
+              name: 'Total population',
+              description: null,
+              isTranslationVerified: true,
+            },
+          },
+        },
+      },
+    ])
   })
 
   test('resolves New Town statistics through the Planning Department domain', async () => {

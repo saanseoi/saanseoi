@@ -583,6 +583,29 @@ describe('Statistics API responses through the Worker route', () => {
       expect(await detail.json()).toMatchObject({
         data: { id: STATISTIC_ID, type: 'statistics' },
       })
+
+      const fields = await app.fetch(
+        new Request(
+          `http://localhost/v0.1/stats/${STATISTIC_ID}?include=fields&locales=en,zh-hant,zh-hans`,
+        ),
+        fixture.env,
+      )
+      expect(fields.status).toBe(200)
+      expect(await fields.json()).toMatchObject({
+        data: { id: STATISTIC_ID, type: 'statistics' },
+        included: [
+          {
+            type: 'statistic-fields',
+            id: `${DATASET_CODE}:totalPopulation`,
+            attributes: {
+              fieldName: 'totalPopulation',
+              i18n: {
+                en: { name: 'Total population', description: 'Number of people.' },
+              },
+            },
+          },
+        ],
+      })
     } finally {
       fixture.close()
     }

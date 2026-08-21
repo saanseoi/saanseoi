@@ -43,6 +43,7 @@ export type StatisticFieldDefinition = {
   datasetCode: string
   fieldName: string
   sourceField: string
+  dimensions: Record<string, string>
   sourceNullOption: string | null
   statisticKind: StatsStatisticKind
   aggregation: StatsAggregation
@@ -332,6 +333,7 @@ export async function listStatisticFieldDefinitions(
       datasetCode: row.datasetCode,
       fieldName: row.fieldName,
       sourceField: row.sourceField,
+      dimensions: row.dimensions,
       sourceNullOption: row.sourceNullOption,
       statisticKind: row.statisticKind,
       aggregation: row.aggregation,
