@@ -13,6 +13,10 @@ bridges, then records the canonical `divisionId`, canonical `districtCode`, refe
 year and measures. This prevents a publisher identifier from being mistaken for a
 SaanSeoi district code.
 
+Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
+`geography.code`; the publisher's numeric `DC` remains only in source provenance and the
+constructed `sourceFeatureRef`.
+
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
 records the mirrored archive's managed key and SHA-256 in source provenance. Only GML
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
