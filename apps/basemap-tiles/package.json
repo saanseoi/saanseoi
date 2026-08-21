@@ -6,6 +6,8 @@
     "dev": "wrangler dev --var AUTH_MODE:disabled --var ENVIRONMENT:local",
     "dev:auth": "wrangler dev --var AUTH_MODE:required --var ENVIRONMENT:local",
     "build": "mkdir -p dist && wrangler deploy --dry-run --outdir dist --minify",
+    "build:preview": "bun run build",
+    "build:production": "bun run build",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "check": "tsc --noEmit",
