@@ -34,7 +34,11 @@ describe('getReleaseCodeParts', () => {
       family: 'data-hk-stats',
       version: '2023-h2-r1',
     })
-    expect(getReleaseVersionLabel('data-hk-stats-2023-q3', 'stats')).toBe('v2023-q3')
+    expect(getReleaseVersionLabel('data-hk-stats-2023-q3', 'stats')).toBe("v2023'Q3")
+    expect(getReleaseVersionLabel("data-hk-stats-2023'Q3", 'stats')).toBe("v2023'Q3")
+    expect(getReleaseVersionLabel("data-hk-stats-2023'H1-R2", 'stats')).toBe(
+      "v2023'H1-R2",
+    )
   })
 
   test('labels a release set with its concise version', () => {
