@@ -11,7 +11,7 @@ releaseVersion: "2022.0"
 type: "divisionStatistic"
 cohortKey: "2022"
 releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json"
+measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json"
 ---
 
 # EN
