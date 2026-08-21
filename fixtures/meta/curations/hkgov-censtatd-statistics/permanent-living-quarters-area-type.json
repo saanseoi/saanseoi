@@ -1,6 +1,6 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
@@ -23,7 +23,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "publicRentalHousing",
+      "fieldName": "publicRentalHousing",
+      "dimensions": {
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -55,7 +58,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "publicRentalHousingHousingAuthorityRentalFlats",
+      "fieldName": "publicRentalHousingHousingAuthorityRentalFlats",
+      "dimensions": {
+        "housing-provider": "housing-authority",
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -87,7 +94,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "publicRentalHousingHousingSocietyRentalFlats",
+      "fieldName": "publicRentalHousingHousingSocietyRentalFlats",
+      "dimensions": {
+        "housing-provider": "housing-society",
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -119,7 +130,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "subsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlats",
+      "dimensions": {
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -151,7 +165,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "subsidisedSaleFlatsHousingAuthoritySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsHousingAuthoritySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "housing-authority",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -183,7 +201,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "subsidisedSaleFlatsHousingSocietySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsHousingSocietySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "housing-society",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -215,7 +237,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "subsidisedSaleFlatsUrbanRenewalAuthoritySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsUrbanRenewalAuthoritySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "urban-renewal-authority",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -247,7 +273,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousing",
+      "fieldName": "privateHousing",
+      "dimensions": {
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -279,7 +308,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousingPrivateResidentialFlats",
+      "fieldName": "privateHousingPrivateResidentialFlats",
+      "dimensions": {
+        "dwelling-type": "private-residential-flats",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -311,7 +344,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousingVillasBungalowsModernVillageHouses",
+      "fieldName": "privateHousingVillasBungalowsModernVillageHouses",
+      "dimensions": {
+        "dwelling-type": "villas-bungalows-or-modern-village-houses",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -343,7 +380,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousingSimpleStoneStructuresTraditionalVillageHouses",
+      "fieldName": "privateHousingSimpleStoneStructuresTraditionalVillageHouses",
+      "dimensions": {
+        "dwelling-type": "simple-stone-or-traditional-village-houses",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -375,7 +416,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousingStaffQuarters",
+      "fieldName": "privateHousingStaffQuarters",
+      "dimensions": {
+        "dwelling-type": "staff-quarters",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -407,7 +452,11 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "privateHousingNonDomesticQuarters",
+      "fieldName": "privateHousingNonDomesticQuarters",
+      "dimensions": {
+        "dwelling-type": "non-domestic-quarters",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -439,7 +488,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "total",
+      "fieldName": "total",
+      "dimensions": {
+        "housing-sector": "all"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
