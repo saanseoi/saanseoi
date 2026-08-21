@@ -6,57 +6,61 @@ Repo-local operating notes for Codex and similar agents.
 
 - Monorepo: Bun workspace managed by Turborepo
 - Primary apps:
-  - `apps/atlas-api`: Cloudflare Workers API built with Hono
-  - `apps/harbour-api`: Cloudflare Workers API
+  - `apps/atlas-api`: Public Hono API
+  - `apps/atlas-app`: Public SvelteKit App
+  - `apps/harbour-api`: Private Hono API for dataset ingestion
+  - `apps/harbour-cli`: Private Bun CLI for dataset mgmt
+- Secondary apps:
+  - `apps/harbour-dataops`: Bun CLI for data-processing operations
   - `apps/harbour-workers`: Cloudflare Workers snapshot-cleanup queue consumer
-  - `apps/harbour-cli`: Bun CLI for uploads and related data tasks
+  - `apps/basemap-tiles`: Cloudflare Workers vector-tile service
+  - `apps/basemap-viewer`: Svelte/Vite basemap viewer
+  - `apps/telegram-discord-bridge`: Cloudflare Workers Telegram–Discord bridge
 - Shared libs:
   - `libs/core`
   - `libs/db`
   - `libs/i18n`
   - `libs/config-typescript`
 
-## Tooling and conventions
+## Tooling Conventions
 
-- Package manager/runtime: `bun` (`packageManager: bun@1.3.0`)
+- Package manager/runtime: `bun` (`packageManager: bun@1.4.0`)
 - Task runner: `turbo`
 - Formatter/linter: `biome`
 - Type checking: `tsc --noEmit` in package scripts
 - Worker build/deploy tooling: `wrangler`
 - Prefer `rg`/`rg --files` for search
-- Use Fish for all shell commands and scripts; do not use Bash or POSIX shell syntax.
-- Use British English in prose, documentation, and identifiers where applicable.
-- After finishing a run that touched Markdown files, run `bun run format:markdown`.
-- The product is pre-release: do not retain legacy compatibility paths or migration
-  shims unless explicitly requested.
-- Use `playwright` to validate front-end design changes. Ignore content changes.
-- Keep Playwright and browser-validation output out of chat where possible; report only
-  concise pass/fail results and relevant findings rather than raw tool output.
+- Use `bash` for scripts running on CI; use `fish` for scripts run locally.
+- The product is pre-release: avoid legacy compatibility paths or migration shims.
+- Validate complex front-end design changes with `playwright`. Ignore content changes.
 
 ## Component and styling conventions
 
+- Svelte routes are responsible for orchestration and component composition. They should
+  never see raw HTML in their bodies.
 - Keep distinct visual elements in dedicated components rather than embedding them in a
-  parent.
+  parent. See `apps/atlas-app/docs/components.md` for the full guide.
 - Prefer inline Tailwind utility classes over component-local style blocks; use scoped
   CSS only when utilities cannot express the needed styling.
 
 ## Documentation
 
+- Use British English in prose, documentation, and identifiers where applicable.
+- In user-facing documentation use 'SaanSeoi' instead of 'Atlas', as the latter is the
+- We are pre-release, do not mention how it was previously done or how something
+  changed.
+- After finishing a run that touched Markdown files, run `bun run format:markdown`.
 - Whenever source-data processing changes, document it in the relevant
   `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
-- In user-facing documentation use 'SaanSeoi' instead of 'Atlas', as the latter is the
   internal name.
 - When changing the Places API route, schema, pagination, category vocabulary, token
   requirements, basemap token exchange, map-style contract, or supported basemap
-  regions, review and update the `/guides/create-a-map` tutorial and its planned sushi
-  restaurants example before merging. Update the associated coverage matrix in
-  `docs/guides/create-a-map-coverage.md` too.
+  regions, review and update the `/guides/create-a-map` tutorial. Update the associated
+  coverage matrix in `docs/guides/create-a-map-coverage.md` too.
 
 ## Migration workflow
 
 - When adding a Drizzle table, add it to the relevant local reset drop script under
   `libs/db/scripts/sql/` (including `drop-all-db.sql`).
-- Do not handcraft Drizzle migration snapshots when a schema change requires interactive
-  snapshot generation or rename resolution.
-- In that case, stop and ask the user to run the snapshot-generation command locally and
-  provide the generated migration artefacts for follow-up changes.
+- Call `bun run db:migration:generate:*` to generate migration schemas. This command can
+  be interactive. Do not handcraft migrations.
