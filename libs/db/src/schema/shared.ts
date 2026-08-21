@@ -149,10 +149,11 @@ export const geoBbox = {
 
 export const canonicalDivision = {
   id: text('id').notNull(),
-  /** Curated statistical key, scoped by the selected Divisions domain and level. */
+  /** Curated statistical key, scoped by the selected Divisions domain. */
   divisionCode: text('divisionCode'),
   identifiers: jsonText('identifiers'),
-  level: integer('level').notNull(),
+  /** Canonical hierarchy level; absent for non-hierarchical geographies. */
+  level: integer('level'),
   type: text('type').notNull(),
   sourceKeys: jsonText('sourceKeys'),
   wikidata: text('wikidata'),

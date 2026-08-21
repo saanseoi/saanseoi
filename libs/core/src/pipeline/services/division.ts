@@ -195,7 +195,6 @@ type DivisionCodeAssignment = {
   canonicalId: string
   divisionCode: string
   domainCode: string
-  level: number
 }
 
 async function loadDivisionCodeAssignments(metaDb: HarbourReadableDb) {
@@ -204,13 +203,12 @@ async function loadDivisionCodeAssignments(metaDb: HarbourReadableDb) {
       canonicalId: metaSchema.metaDivisionCodes.canonicalId,
       divisionCode: metaSchema.metaDivisionCodes.divisionCode,
       domainCode: metaSchema.metaDivisionCodes.domainCode,
-      level: metaSchema.metaDivisionCodes.level,
     })
     .from(metaSchema.metaDivisionCodes)
     .all()
   const assignments = new Map<string, string>()
   for (const row of rows as DivisionCodeAssignment[]) {
-    const key = `${row.domainCode}\u0000${row.level}\u0000${row.canonicalId}`
+    const key = `${row.domainCode}\u0000${row.canonicalId}`
     if (assignments.has(key)) {
       throw new Error(`Duplicate curated Division code target for ${key}.`)
     }
@@ -513,7 +511,7 @@ export async function processDivisionDataset(
         Object.assign(normalised.base, {
           divisionCode:
             divisionCodeAssignments.get(
-              `${divisionCodeDomain}\u0000${normalised.base.level}\u0000${normalised.base.id}`,
+              `${divisionCodeDomain}\u0000${normalised.base.id}`,
             ) ?? null,
         })
       }
@@ -1217,9 +1215,11 @@ export function normaliseDivisionRow(
 function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>) {
   const id = asNonEmptyString(row.id)
   const type = asNonEmptyString(row.canonical_type)
-  const level = Number(row.canonical_level)
-  if (!id || !type || !Number.isInteger(level)) {
-    throw new Error('C&SD statistic geography requires id, canonical_type and level.')
+  const level = asOptionalInteger(row.canonical_level)
+  if (!id || !type || (level === null && type !== 'housing-market-area')) {
+    throw new Error(
+      'C&SD statistic geography requires id, canonical_type and a hierarchy level when applicable.',
+    )
   }
   const names = parseJsonRecord(row.names, 'names')
   const geometry = parseJsonGeometry(row.geometry, 'geometry')
@@ -1295,7 +1295,7 @@ export function buildDivisionBaseHashInput(
     hierarchy: base.hierarchy,
     id: base.id,
     identifiers: base.identifiers ?? null,
-    level: base.level,
+    level: base.level ?? null,
     sourceKeys: base.sourceKeys,
     sources: base.sources,
     type: base.type,
