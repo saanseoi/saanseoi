@@ -186,9 +186,10 @@ dimension. District releases record the approved C&SD-to-canonical district brid
 automatic processing action with authority, cohort, domain and source-field evidence. A
 missing required district bridge member stops ingestion. Building-group and
 major-housing-estate geometries are candidate domains, not failed district links.
-Area/type and HMA use reviewed native source-code identities. C&SD new towns are an
-existing-domain candidate for review against the Planning new-town domain, not an
-assumed match.
+Area/type and HMA use reviewed native source-code identities. The archived 2021 C&SD New
+Town codes resolve through the reviewed `new-town` identifier bridge to the
+corresponding 2021 Planning Division identities. The curation is an explicit source-code
+bridge, not a translated-name or spatial match.
 
 If source geometry is suitable for delivery, it is reviewed and published through a
 Divisions-domain workflow. Area/type and HMA are the approved exception: their shared
@@ -217,10 +218,11 @@ by a name or spatial-match guess.
 
 Area/type observations resolve through the reviewed mapping to deterministic Overture
 area identities; HMA observations use their deterministic C&SD source-code identities.
-No name or spatial matching is used. Building-group, new-town, and housing-estate
-observations remain without a `divisionId` until their respective geographies are
-reviewed and released as Divisions domains, not by assigning an arbitrary district
-parent.
+The archived 2021 New Town observations resolve only through the reviewed thirteen-code
+identifier bridge to Planning's 2021 New Town Divisions. No name or spatial matching is
+used. Building-group and housing-estate observations remain without a `divisionId` until
+their respective geographies are reviewed and released as Divisions domains, not by
+assigning an arbitrary district parent.
 
 ## District land area, population and density ingestion
 

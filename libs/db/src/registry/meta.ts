@@ -370,8 +370,6 @@ export type DivisionCodeFixtureAssignment = {
   divisionCode: string
   canonicalId: string
   level: number
-  /** Retained only to document the reviewed lookup used during ingestion. */
-  sourceBridge?: Record<string, string>
 }
 
 type DivisionCodeFixture = {
@@ -887,22 +885,18 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO divisionCodes (
-  domainCode, level, divisionCode, canonicalId, sourceBridge, versionHash, createdAt, updatedAt
+  domainCode, level, divisionCode, canonicalId, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlString(divisionCode.domainCode)},
   ${divisionCode.level},
   ${sqlString(divisionCode.divisionCode)},
   ${sqlString(divisionCode.canonicalId)},
-  ${sqlNullable(
-    divisionCode.sourceBridge ? JSON.stringify(divisionCode.sourceBridge) : undefined,
-  )},
   ${sqlString(divisionCode.versionHash)},
   ${nowSql},
   ${nowSql}
 )
 ON CONFLICT(domainCode, level, divisionCode) DO UPDATE SET
   canonicalId = excluded.canonicalId,
-  sourceBridge = excluded.sourceBridge,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
