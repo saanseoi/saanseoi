@@ -261,12 +261,21 @@ export const statsAggregations = [
 
 export type StatsAggregation = (typeof statsAggregations)[number]
 
+/** A source-declared caveat about comparisons between reference periods. */
+export type StatsFieldComparability = {
+  affectedReferencePeriods: string[]
+  reason: 'economic-activity-status-classification-changed'
+  status: 'caution'
+}
+
 export const canonicalStatsField = {
   datasetCode: text('datasetCode').notNull(),
   fieldName: text('fieldName').notNull(),
   sourceField: text('sourceField').notNull(),
   /** Curated analytical dimensions associated with this source field. */
   dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Source-declared caveat about comparisons between reference periods. */
+  comparability: jsonText<StatsFieldComparability>('comparability'),
   /** Exact publisher nullability declaration, when its schema supplies one. */
   sourceNullOption: text('sourceNullOption'),
   /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
