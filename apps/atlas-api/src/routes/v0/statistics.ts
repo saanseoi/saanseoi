@@ -8,10 +8,16 @@ import {
   StatisticsListQuerySchema,
   StatisticsListResponseSchema,
   StatisticSnapshotNotReadyErrorResponseSchema,
+  StatisticsGeographiesQuerySchema,
+  StatisticsGeographiesResponseSchema,
   ValidationErrorOpenAPIResponse,
+  StatisticsSeriesQuerySchema,
+  StatisticsSeriesResponseSchema,
 } from '../../schema'
 import {
   getStatisticDetail,
+  getStatisticsGeographies,
+  getStatisticsSeries,
   listStatistics,
   type RequestedStatisticApiVersion,
   type RequestedStatisticVersion,
@@ -26,6 +32,8 @@ const ROUTE_VARIANTS = [
     resolvedApiVersion: 'api-stats-v0.1' as const,
     listPath: '/v0/stats',
     detailPath: '/v0/stats/{id}',
+    geographiesPath: '/v0/stats/geographies',
+    seriesPath: '/v0/stats/series',
     listOperationId: 'listDivisionStatisticsV0',
     detailOperationId: 'getDivisionStatisticByIdV0',
   },
@@ -35,6 +43,8 @@ const ROUTE_VARIANTS = [
     resolvedApiVersion: 'api-stats-v0.1' as const,
     listPath: '/v0.1/stats',
     detailPath: '/v0.1/stats/{id}',
+    geographiesPath: '/v0.1/stats/geographies',
+    seriesPath: '/v0.1/stats/series',
     listOperationId: 'listDivisionStatisticsV01',
     detailOperationId: 'getDivisionStatisticByIdV01',
   },
@@ -44,6 +54,8 @@ const ROUTE_VARIANTS = [
   resolvedApiVersion: ResolvedStatisticApiVersion
   listPath: string
   detailPath: string
+  geographiesPath: string
+  seriesPath: string
   listOperationId: string
   detailOperationId: string
 }>
@@ -113,7 +125,107 @@ const detailRoutes = ROUTE_VARIANTS.map(variant =>
   }),
 )
 
+const geographyRoutes = ROUTE_VARIANTS.map(variant =>
+  createRoute({
+    method: 'get',
+    path: variant.geographiesPath,
+    operationId: `${variant.listOperationId}Geographies`,
+    tags: ['Statistics'],
+    request: { query: StatisticsGeographiesQuerySchema },
+    responses: {
+      200: {
+        content: {
+          'application/json': { schema: StatisticsGeographiesResponseSchema },
+        },
+        description: 'Get one selected reference-period geography map.',
+      },
+      404: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'No matching statistic.',
+      },
+      409: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description:
+          'The selected statistic does not form one complete geography dimension.',
+      },
+      503: {
+        content: {
+          'application/json': { schema: StatisticSnapshotNotReadyErrorResponseSchema },
+        },
+        description: 'Statistic snapshot is not ready.',
+      },
+      422: ValidationErrorOpenAPIResponse,
+    },
+  }),
+)
+
+const seriesRoutes = ROUTE_VARIANTS.map(variant =>
+  createRoute({
+    method: 'get',
+    path: variant.seriesPath,
+    operationId: `${variant.listOperationId}Series`,
+    tags: ['Statistics'],
+    request: { query: StatisticsSeriesQuerySchema },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: StatisticsSeriesResponseSchema } },
+        description: 'Get a multi-period geography series.',
+      },
+      404: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'No matching statistic.',
+      },
+      409: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'The selected series mixes geography or analytical dimensions.',
+      },
+      503: {
+        content: {
+          'application/json': { schema: StatisticSnapshotNotReadyErrorResponseSchema },
+        },
+        description: 'Statistic snapshot is not ready.',
+      },
+      422: ValidationErrorOpenAPIResponse,
+    },
+  }),
+)
+
 export const statisticRoutes = [
+  ...geographyRoutes.map((route, index) =>
+    defineOpenAPIRoute<typeof route, AppEnv>({
+      route,
+      handler: async c => {
+        const variant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
+        const result = await getStatisticsGeographies({
+          currentDb: c.var.currentDb,
+          historyDbs: c.var.historyDbs,
+          metaDb: c.var.metaDb,
+          query: c.req.valid('query'),
+        })
+        if (result.status === 503) return c.json(result.body as never, 503)
+        if (result.status === 404) return c.json(result.body as never, 404)
+        if (result.status === 409) return c.json(result.body as never, 409)
+        return c.json(result.body as never, 200)
+      },
+    }),
+  ),
+  ...seriesRoutes.map((route, index) =>
+    defineOpenAPIRoute<typeof route, AppEnv>({
+      route,
+      handler: async c => {
+        const result = await getStatisticsSeries({
+          currentDb: c.var.currentDb,
+          historyDbs: c.var.historyDbs,
+          metaDb: c.var.metaDb,
+          query: c.req.valid('query'),
+        })
+        if (result.status === 503) return c.json(result.body as never, 503)
+        if (result.status === 404) return c.json(result.body as never, 404)
+        if (result.status === 409) return c.json(result.body as never, 409)
+        return c.json(result.body as never, 200)
+      },
+    }),
+  ),
   ...listRoutes.map((route, index) =>
     defineOpenAPIRoute<typeof route, AppEnv>({
       route,
