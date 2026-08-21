@@ -41,7 +41,7 @@ export type DivisionRecord = {
   division: {
     snapshotId: string
     id: string
-    divisionCode: string | null
+    divisionCode?: string | null
     level: number
     type: string
     geometry: typeof divisions.$inferSelect.geometry
@@ -91,7 +91,7 @@ type DivisionIdsLookup = {
 type DivisionRow = {
   snapshotId: string
   id: string
-  divisionCode: string | null
+  divisionCode?: string | null
   level: number
   type: string
   geometry: typeof divisions.$inferSelect.geometry
@@ -437,6 +437,7 @@ export async function listDivisionRecordsCurrent(
     .select({
       snapshotId: divisions.snapshotId,
       id: divisions.id,
+      divisionCode: divisions.divisionCode,
       level: divisions.level,
       type: divisions.type,
       geometry: divisions.geometry,
@@ -500,6 +501,7 @@ export async function listDivisionRecordsCurrentByIds(
           .select({
             snapshotId: divisions.snapshotId,
             id: divisions.id,
+            divisionCode: divisions.divisionCode,
             level: divisions.level,
             type: divisions.type,
             geometry: divisions.geometry,
