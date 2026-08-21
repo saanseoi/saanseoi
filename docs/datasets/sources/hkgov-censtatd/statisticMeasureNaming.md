@@ -4,7 +4,7 @@
 
 ### EN
 
-`measureCode` is the stable lower-camel-case identifier for a published C&SD statistic
+`fieldName` is the stable lower-camel-case identifier for a published C&SD statistic
 measure. It expands the publisher's abbreviated `sourceField` into the smallest useful
 description that a reader can understand without consulting the publisher's data
 definition. It describes the subject and its meaningful qualifiers, rather than copying
@@ -25,7 +25,7 @@ convention guides new curation and does not silently rename a published measure.
 
 ### ZH-HANT
 
-`measureCode` 是已發布 C&SD 統計指標的穩定 lower camel case 識別碼。它會把發布者縮寫的
+`fieldName` 是已發布 C&SD 統計指標的穩定 lower camel case 識別碼。它會把發布者縮寫的
 `sourceField`
 擴展為無須查閱發布者資料定義也能理解的最精簡描述。它描述統計對象及有意義的限定，而不是複製來源欄位縮寫或數值的呈現方式。
 
@@ -38,7 +38,7 @@ camel case、盡量採用單數概念，並以簡潔而通用的限定詞表示�
 
 ### ZH-HANS
 
-`measureCode` 是已发布 C&SD 统计指标的稳定 lower camel case 标识符。它会把发布者缩写的
+`fieldName` 是已发布 C&SD 统计指标的稳定 lower camel case 标识符。它会把发布者缩写的
 `sourceField`
 扩展为无需查阅发布者数据定义也能理解的最精简描述。它描述统计对象及有意义的限定，而不是复制来源字段缩写或数值的呈现方式。
 
