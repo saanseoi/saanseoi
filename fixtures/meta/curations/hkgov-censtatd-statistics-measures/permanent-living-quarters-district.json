@@ -1,0 +1,30 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "permanent living quarters",
+          "description": "Number of permanent living quarters",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "永久性居住屋宇單位數字",
+          "description": "永久性居住屋宇單位數字",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "永久性居住屋宇单位数字",
+          "description": "永久性居住屋宇单位数字",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "permanentLivingQuarters"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:f0e098881435398d38729a5112e38afc6789fc67d44e2a977abe6f4212d5f9a7"
+}
