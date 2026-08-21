@@ -11,6 +11,7 @@ type Localisation = {
 }
 
 type Field = {
+  aggregation: string
   comparability?: {
     affectedReferencePeriods: string[]
     reason: string
@@ -191,6 +192,167 @@ test('uses reviewed registered units for C&SD statistic values', async () => {
       unitCode: 'percent',
     }),
   )
+})
+
+test('keeps derived median values on their canonical measures and units', async () => {
+  const fields = (await readFieldManifests()).flatMap(manifest => manifest.fields)
+  const medianAgeSourceFields = new Set([
+    'lbnp_ma_t',
+    'lbnp_ma_m',
+    'lbnp_ma_f',
+    'lbnp_ma_t_xfdh',
+    'lbnp_ma_m_xfdh',
+    'lbnp_ma_f_xfdh',
+    'lf_ma_t',
+    'lf_ma_m',
+    'lf_ma_f',
+    'lf_ma_t_xfdh',
+    'lf_ma_m_xfdh',
+    'lf_ma_f_xfdh',
+  ])
+  const medianEmploymentIncomeSourceFields = new Set([
+    't_mmearn',
+    'mmearn_m',
+    'mmearn_f',
+    't_mmearn_xfdh',
+    'mmearn_xfdh_m',
+    'mmearn_xfdh_f',
+  ])
+
+  expect(
+    fields
+      .filter(field => medianAgeSourceFields.has(field.sourceField))
+      .every(
+        field =>
+          field.measureCode === 'medianAge' &&
+          field.statisticKind === 'quantity' &&
+          field.aggregation === 'median' &&
+          field.unitCode === 'year',
+      ),
+  ).toBe(true)
+  expect(
+    fields
+      .filter(field => medianEmploymentIncomeSourceFields.has(field.sourceField))
+      .every(
+        field =>
+          field.measureCode === 'medianMonthlyEmploymentIncome' &&
+          field.statisticKind === 'quantity' &&
+          field.aggregation === 'median' &&
+          field.unitCode === 'hong-kong-dollar',
+      ),
+  ).toBe(true)
+})
+
+test('keeps subdivided-unit quarters and units distinct', async () => {
+  const fields = (await readFieldManifests()).flatMap(manifest => manifest.fields)
+
+  expect(fields.find(field => field.sourceField === 'sdu_oq')).toEqual(
+    expect.objectContaining({
+      dimensions: {
+        'occupancy-status': 'occupied',
+        'subdivision-status': 'contains-subdivided-units',
+      },
+      fieldName: 'occupiedQuartersWithSubdividedUnits',
+      measureCode: 'occupiedQuarters',
+      statisticKind: 'count',
+      unitCode: 'living-quarter',
+    }),
+  )
+  expect(fields.find(field => field.sourceField === 'sdu_n')).toEqual(
+    expect.objectContaining({
+      dimensions: { 'occupancy-status': 'occupied' },
+      fieldName: 'occupiedSubdividedUnits',
+      measureCode: 'subdividedUnits',
+      statisticKind: 'count',
+      unitCode: 'subdivided-unit',
+    }),
+  )
+})
+
+test('encodes every exclusion stated in the English field description', async () => {
+  const fields = (await readFieldManifests()).flatMap(manifest => manifest.fields)
+
+  for (const field of fields) {
+    const description = field.localisations
+      .find(localisation => localisation.locale === 'en')
+      ?.description.toLowerCase()
+    if (!description) continue
+    if (
+      /exclu(?:ding|des).*foreign domestic helper/.test(description) &&
+      /exclu(?:ding|des).*unpaid family worker/.test(description)
+    ) {
+      expect(field.dimensions['foreign-domestic-helper']).toBe('excluded')
+      expect(field.dimensions['unpaid-family-worker']).toBe('excluded')
+    }
+  }
+})
+
+test('keeps canonical measure localisations identical across datasets', async () => {
+  const fixtures = await readMeasureFixtures()
+  const localisationsByMeasure = new Map<string, Set<string>>()
+  for (const fixture of fixtures) {
+    for (const measure of fixture.measures) {
+      const variants = localisationsByMeasure.get(measure.measureCode) ?? new Set()
+      variants.add(JSON.stringify(measure.localisations))
+      localisationsByMeasure.set(measure.measureCode, variants)
+    }
+  }
+
+  expect(
+    [...localisationsByMeasure.values()].every(variants => variants.size === 1),
+  ).toBe(true)
+})
+
+test('keeps reviewed names readable and range identifiers explicit', async () => {
+  const manifests = await readFieldManifests()
+  const fields = manifests.flatMap(manifest => manifest.fields)
+
+  expect(
+    fields.every(
+      field =>
+        !/Aged\d{3,}|Hkd(?:60009999|1000019999|2000029999|3000039999|4000059999|2000039999|20005999)|HK\d|percentageShare|EconomicallyActiveExcluded/.test(
+          field.fieldName,
+        ),
+    ),
+  ).toBe(true)
+  expect(
+    fields.every(field =>
+      field.localisations.every(localisation => {
+        const balance = [...localisation.name].reduce(
+          (value, character) =>
+            value + (character === '(' ? 1 : character === ')' ? -1 : 0),
+          0,
+        )
+        return (
+          balance === 0 &&
+          !localisation.name.includes('&#') &&
+          !/^[a-z]/.test(localisation.name) &&
+          !/\d:\s+\d/.test(localisation.name)
+        )
+      }),
+    ),
+  ).toBe(true)
+
+  for (const manifest of manifests) {
+    for (const locale of ['en', 'zh-Hant', 'zh-Hans'] as const) {
+      const names = manifest.fields.map(
+        field =>
+          field.localisations.find(localisation => localisation.locale === locale)
+            ?.name,
+      )
+      expect(new Set(names).size).toBe(names.length)
+    }
+  }
+
+  expect(
+    fields
+      .filter(field => field.sourceField === 'nwp_care')
+      .every(
+        field =>
+          field.localisations.find(localisation => localisation.locale === 'en')
+            ?.name === 'Non-working population: Unpaid carers',
+      ),
+  ).toBe(true)
 })
 
 test('keeps C&SD field names and dimensions canonical', async () => {
