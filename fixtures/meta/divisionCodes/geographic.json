@@ -1,24 +1,33 @@
 {
-  "versionHash": "sha256:75829c8633737cbdd12512d539168ea520b45598ed0a453e5a72c09b083bb394",
+  "versionHash": "sha256:dae09a5d918c9b23d342ff255ceb96ac7a3f0c35e77af8c5bda6d09b9c65b82e",
   "domainCode": "geographic",
   "assignments": [
     {
       "divisionCode": "HK",
       "canonicalId": "25cec859-44f3-5e1d-a72b-952f804e56ab",
       "level": 1,
-      "sourceBridge": { "authority": "saanseoi", "sourceCode": "hong-kong-island" }
+      "sourceBridge": {
+        "authority": "saanseoi",
+        "sourceCode": "hong-kong-island"
+      }
     },
     {
       "divisionCode": "KL",
       "canonicalId": "17009785-57fd-4e5b-af86-2d27352e4718",
       "level": 1,
-      "sourceBridge": { "authority": "saanseoi", "sourceCode": "kowloon" }
+      "sourceBridge": {
+        "authority": "saanseoi",
+        "sourceCode": "kowloon"
+      }
     },
     {
       "divisionCode": "NT",
       "canonicalId": "780c42b7-213b-5076-9d36-6ae0024e3bd3",
       "level": 1,
-      "sourceBridge": { "authority": "saanseoi", "sourceCode": "new-territories" }
+      "sourceBridge": {
+        "authority": "saanseoi",
+        "sourceCode": "new-territories"
+      }
     },
     {
       "divisionCode": "CW",
@@ -181,7 +190,7 @@
       }
     },
     {
-      "divisionCode": "KC",
+      "divisionCode": "KTS",
       "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb",
       "level": 2,
       "sourceBridge": {
