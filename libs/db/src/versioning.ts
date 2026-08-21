@@ -55,13 +55,29 @@ export function normaliseCohortKey(value: string) {
     throw new Error('cohortKey must not be empty.')
   }
 
-  if (!/^[a-z0-9._-]+$/i.test(trimmed)) {
-    throw new Error(
-      `Invalid cohortKey="${value}". Use letters, numbers, ".", "_" or "-".`,
-    )
+  if (
+    [...trimmed].some(character => {
+      const code = character.charCodeAt(0)
+      return code <= 31 || code === 127
+    })
+  ) {
+    throw new Error(`Invalid cohortKey="${value}". Control characters are not allowed.`)
   }
 
   return trimmed
+}
+
+function normaliseCohortCodeSegment(value: string) {
+  const normalised = normaliseCohortKey(value)
+    .replace(/[^a-z0-9._-]+/gi, '-')
+    .replace(/^[._-]+|[._-]+$/g, '')
+    .toLowerCase()
+
+  if (!normalised) {
+    throw new Error(`Could not derive a code segment from cohortKey="${value}".`)
+  }
+
+  return normalised
 }
 
 export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
@@ -102,7 +118,7 @@ export function buildSnapshotVersionCode(
       : `-${normalisedVariant}`
   const revisionSegment = revision === 0 ? '' : `-r${revision}`
 
-  return `ss-${normaliseCodeSlug(regionCode)}-${normaliseCodeSlug(resourceType)}${variantSegment}-${normaliseCohortKey(cohortKey)}${revisionSegment}`
+  return `ss-${normaliseCodeSlug(regionCode)}-${normaliseCodeSlug(resourceType)}${variantSegment}-${normaliseCohortCodeSegment(cohortKey)}${revisionSegment}`
 }
 
 export function buildSnapshotLineageCode(
@@ -139,7 +155,7 @@ export function buildDataReleaseSetCode(
 
   const revisionSegment = revision === 0 ? '' : `-r${revision}`
 
-  return `data-${regionCode}-${apiFamily}-${normaliseCohortKey(cohortKey)}${revisionSegment}`
+  return `data-${regionCode}-${apiFamily}-${normaliseCohortCodeSegment(cohortKey)}${revisionSegment}`
 }
 
 export function buildApiCatalogRevisionCode(
@@ -165,11 +181,35 @@ export function buildApiCatalogRevisionCode(
 
 export function cohortKeyEffectiveFrom(cohortKey: string) {
   const normalised = normaliseCohortKey(cohortKey)
-  const date = normalised.match(/^(20\d{2}-\d{2}-\d{2})/)?.[1]
+  const date = normalised.match(
+    /^(20\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))(?:$|[._-])/,
+  )?.[1]
   if (date) return `${date}T00:00:00.000Z`
 
-  const month = normalised.match(/^(20\d{2}-\d{2})(?:$|[._-])/)?.[1]
+  const quarter = normalised.match(/^(20\d{2})-Q([1-4])$/i)
+  if (quarter?.[1] && quarter[2]) {
+    const month = (Number(quarter[2]) - 1) * 3 + 1
+    return `${quarter[1]}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`
+  }
+
+  const halfYear = normalised.match(/^(20\d{2})-H([12])$/i)
+  if (halfYear?.[1] && halfYear[2]) {
+    return `${halfYear[1]}-${halfYear[2] === '1' ? '01' : '07'}-01T00:00:00.000Z`
+  }
+
+  const month = normalised.match(/^(20\d{2}-(?:0[1-9]|1[0-2]))(?:$|[._-])/)?.[1]
   if (month) return `${month}-01T00:00:00.000Z`
+
+  const shortYearSpan = normalised.match(/^(20\d{2})\/(\d{2})$/)
+  if (shortYearSpan?.[1] && shortYearSpan[2]) {
+    const startYear = Number(shortYearSpan[1])
+    let endYear = Math.floor(startYear / 100) * 100 + Number(shortYearSpan[2])
+    if (endYear < startYear) endYear += 100
+    return `${endYear}-01-01T00:00:00.000Z`
+  }
+
+  const yearSpan = normalised.match(/^20\d{2}\s*[-\u2013]\s*(20\d{2})$/)
+  if (yearSpan?.[1]) return `${yearSpan[1]}-01-01T00:00:00.000Z`
 
   const year = normalised.match(/^(20\d{2})(?:$|[._-])/)?.[1]
   if (year) return `${year}-01-01T00:00:00.000Z`

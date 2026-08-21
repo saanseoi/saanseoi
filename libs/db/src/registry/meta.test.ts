@@ -56,7 +56,12 @@ describe('fixture version hashes', () => {
       '/v0/divisions/{id}',
     ])
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
-    expect(statsPaths).toEqual(['/v0.1/stats', '/v0/stats'])
+    expect(statsPaths).toEqual([
+      '/v0.1/stats',
+      '/v0.1/stats/{id}',
+      '/v0/stats',
+      '/v0/stats/{id}',
+    ])
   })
 
   test('provides localised explanatory text for every API family', () => {
@@ -118,6 +123,23 @@ describe('fixture version hashes', () => {
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
     ).toMatchObject({ defaultDomainCode: 'default' })
+    expect(
+      initialApiCompositionMembers
+        .filter(
+          member =>
+            member.apiCompositionCode === 'comp-stats-v1' &&
+            member.resourceType === 'divisionStatistic',
+        )
+        .map(member => member.variant)
+        .sort(),
+    ).toEqual(censtatdStats.map(dataset => dataset.code).sort())
+    expect(
+      initialApiCompositionMembers
+        .filter(member => member.apiCompositionCode === 'comp-stats-v1')
+        .every(
+          member => !member.isRequired && member.cohortMatchingMode === 'exact_ref',
+        ),
+    ).toBe(true)
     expect(
       censtatdStats.every(dataset =>
         dataset.processingRules?.rulesets.some(
