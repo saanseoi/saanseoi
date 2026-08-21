@@ -1,8 +1,8 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
-  canonicalStatsMeasure,
-  canonicalStatsMeasureI18n,
+  canonicalStatsField,
+  canonicalStatsFieldI18n,
   canonicalStatsRecord,
   canonicalStatsValueI18n,
 } from '../shared'
@@ -27,25 +27,25 @@ export const statsRecords = sqliteTable(
   ],
 )
 
-export const statsMeasures = sqliteTable(
-  'statsMeasures',
-  { ...canonicalStatsMeasure, ...historyStatisticVersioning },
+export const statsFields = sqliteTable(
+  'statsFields',
+  { ...canonicalStatsField, ...historyStatisticVersioning },
   table => [
-    primaryKey({ columns: [table.datasetCode, table.measureCode, table.versionHash] }),
-    index('statsMeasures_current_lookup_idx').on(
+    primaryKey({ columns: [table.datasetCode, table.fieldName, table.versionHash] }),
+    index('statsFields_current_lookup_idx').on(
       table.datasetCode,
-      table.measureCode,
+      table.fieldName,
       table.isCurrent,
     ),
   ],
 )
 
-export const statsMeasuresI18n = sqliteTable(
-  'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...historyStatisticVersioning },
+export const statsFieldsI18n = sqliteTable(
+  'statsFieldsI18n',
+  { ...canonicalStatsFieldI18n, ...historyStatisticVersioning },
   table => [
     primaryKey({
-      columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
+      columns: [table.datasetCode, table.fieldName, table.locale, table.versionHash],
     }),
   ],
 )

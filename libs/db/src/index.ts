@@ -20,7 +20,7 @@ export {
   statsStatisticKinds,
   toIsoTimestamp,
   type EvidenceAsset,
-  type CanonicalStatsRecordValue,
+  type CanonicalStatsGeography,
   type StreetChangelogKind,
   type StreetEvidenceAsset,
   type StreetEvidenceAssetRole,
