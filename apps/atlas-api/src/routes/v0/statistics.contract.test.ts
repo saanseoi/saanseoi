@@ -314,12 +314,30 @@ function seedHistory(sqlite: Database) {
       dimensions, "values", versionHash, isCurrent, createdAt, updatedAt
     )
     SELECT
+      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
+      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
+      referencePeriodGranularity, referencePeriodEndYear, geography,
+      dimensions, '{"totalPopulation":"230000"}', 'record-version-hash-superseded', 0,
+      createdAt, updatedAt
+    FROM statsRecords
+    WHERE id = ? AND isCurrent = 1`,
+    [STATISTIC_ID],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsRecords (
+      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
+      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
+      referencePeriodGranularity, referencePeriodEndYear, geography,
+      dimensions, "values", versionHash, isCurrent, createdAt, updatedAt
+    )
+    SELECT
       'statistic-population-households-2020-district-1', datasetCode,
       sourceReleaseId, sourceFeatureRef, divisionId, '2020', NULL, NULL,
       'year', '2020', geography, dimensions, "values",
       'record-version-hash-2020', isCurrent, createdAt, updatedAt
     FROM statsRecords
-    WHERE id = ?`,
+    WHERE id = ? AND isCurrent = 1`,
     [STATISTIC_ID],
   )
   run(

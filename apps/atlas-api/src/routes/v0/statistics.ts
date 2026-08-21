@@ -10,6 +10,7 @@ import {
   StatisticSnapshotNotReadyErrorResponseSchema,
   StatisticsGeographiesQuerySchema,
   StatisticsGeographiesResponseSchema,
+  StatisticAggregateConflictErrorResponseSchema,
   ValidationErrorOpenAPIResponse,
   StatisticsSeriesQuerySchema,
   StatisticsSeriesResponseSchema,
@@ -144,9 +145,11 @@ const geographyRoutes = ROUTE_VARIANTS.map(variant =>
         description: 'No matching statistic.',
       },
       409: {
-        content: { 'application/json': { schema: ErrorResponseSchema } },
+        content: {
+          'application/json': { schema: StatisticAggregateConflictErrorResponseSchema },
+        },
         description:
-          'The selected statistic does not form one complete geography dimension.',
+          'The field remains ambiguous after the supplied filters, or does not form one complete geography dimension.',
       },
       503: {
         content: {
@@ -176,8 +179,11 @@ const seriesRoutes = ROUTE_VARIANTS.map(variant =>
         description: 'No matching statistic.',
       },
       409: {
-        content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'The selected series mixes geography or analytical dimensions.',
+        content: {
+          'application/json': { schema: StatisticAggregateConflictErrorResponseSchema },
+        },
+        description:
+          'The field remains ambiguous after the supplied filters, or the selected series mixes geography or analytical dimensions.',
       },
       503: {
         content: {
@@ -191,11 +197,10 @@ const seriesRoutes = ROUTE_VARIANTS.map(variant =>
 )
 
 export const statisticRoutes = [
-  ...geographyRoutes.map((route, index) =>
+  ...geographyRoutes.map(route =>
     defineOpenAPIRoute<typeof route, AppEnv>({
       route,
       handler: async c => {
-        const variant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
         const result = await getStatisticsGeographies({
           currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
@@ -209,7 +214,7 @@ export const statisticRoutes = [
       },
     }),
   ),
-  ...seriesRoutes.map((route, index) =>
+  ...seriesRoutes.map(route =>
     defineOpenAPIRoute<typeof route, AppEnv>({
       route,
       handler: async c => {
