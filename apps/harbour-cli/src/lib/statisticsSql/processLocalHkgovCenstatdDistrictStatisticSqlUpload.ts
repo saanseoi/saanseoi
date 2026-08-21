@@ -190,16 +190,21 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           ),
         ),
     )
-    const canonicalInput = sourceRows.map(row => ({
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-      divisionId:
-        resolutionBySourceDistrictCode.get(row.districtCode)?.divisionId ?? null,
-      properties: object(row.rawProperties, 'rawProperties'),
-      sourceFeatureRef: `hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district/${plan.sourceVersion}/Density:${row.districtCode}`,
-      sourceReleaseId: releaseId,
-      sourceVersion: plan.sourceVersion,
-    }))
+    const canonicalInput = sourceRows.map(row => {
+      const resolution = resolutionBySourceDistrictCode.get(row.districtCode)
+      return {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        divisionId: resolution?.divisionId ?? null,
+        geography: resolution
+          ? { code: resolution.districtCode, kind: 'district' }
+          : undefined,
+        properties: object(row.rawProperties, 'rawProperties'),
+        sourceFeatureRef: `hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district/${plan.sourceVersion}/Density:${row.districtCode}`,
+        sourceReleaseId: releaseId,
+        sourceVersion: plan.sourceVersion,
+      }
+    })
     let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
     const fieldMetadata = await runStatisticProgressStep(
       progress,
