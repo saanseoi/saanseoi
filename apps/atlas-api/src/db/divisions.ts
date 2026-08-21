@@ -168,7 +168,6 @@ export async function listDivisionAreasCurrentByDivisionIds(
       ),
     )
   ).flat()
-
   return rows.map(row => ({
     ...row,
     geometry: decodeStoredDivisionGeometry(row.geometry),
