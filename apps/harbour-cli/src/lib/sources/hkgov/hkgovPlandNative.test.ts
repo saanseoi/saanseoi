@@ -7,7 +7,13 @@ import {
   prepareHkgovPlandTpuNativeShpZip,
   readHkgovPlandTpuNativeShpZip,
 } from './hkgovPland.ts'
-import { readHkgovPlandNewTownNativeShpZip } from './hkgovPlandNewTown.ts'
+import {
+  prepareHkgovPlandNewTownNativeShpZip,
+  readHkgovPlandNewTownNativeShpZip,
+} from './hkgovPlandNewTown.ts'
+import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet'
+import { compressors } from 'hyparquet-compressors'
+import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../..')
 
@@ -112,4 +118,72 @@ describe('Planning Department native New Town SHP intake', () => {
       )
     }
   })
+
+  test('proves C&SD code 28 and its Planning domain code use the prepared 2021 division', async () => {
+    const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-pland-new-town-2021-'))
+    const outputFile = join(outputDir, 'division.parquet')
+    try {
+      await prepareHkgovPlandNewTownNativeShpZip({
+        inputFile: resolve(
+          REPO_ROOT,
+          'data/hkgov/csdi/archive/pland_rcd_1634023103904_16865/2023-Q4/source.zip',
+        ),
+        outputFile,
+        sourceVersion: '2021',
+        type: 'division',
+      })
+      const file = await asyncBufferFromFile(outputFile)
+      const preparedRows = await parquetReadObjects({
+        compressors,
+        file,
+        metadata: await parquetMetadataAsync(file),
+      })
+      const prepared = preparedRows.find(
+        row =>
+          jsonRecord(row.identifiers)['PLAND:NEWTOWN'] === 'tsuen wan-tsing yi area',
+      )
+      const [bridgeFixture, divisionCodeFixture] = await Promise.all([
+        readFixture<IdentifierBridgeFixture>(
+          'identifierBridges/dr-hk-hkgov-censtatd-division-statistic-new-towns-2021.json',
+        ),
+        readFixture<DivisionCodeFixture>('divisionCodes/hkgov-pland-new-town.json'),
+      ])
+      const bridge = bridgeFixture.mappings.find(mapping => mapping.externalId === '28')
+      const divisionCode = divisionCodeFixture.assignments.find(
+        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+      )
+
+      expect(prepared).toMatchObject({
+        id: 'd0b06deb-4842-507b-8284-a3254615e5aa',
+        identifiers: { 'PLAND:NEWTOWN': 'tsuen wan-tsing yi area' },
+        source_version: '2021',
+      })
+      expect(bridge?.canonicalId).toBe(prepared?.id)
+      expect(divisionCode?.canonicalId).toBe(prepared?.id)
+    } finally {
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  })
 })
+
+type IdentifierBridgeFixture = {
+  mappings: Array<{ canonicalId: string; externalId: string }>
+}
+
+type DivisionCodeFixture = {
+  assignments: Array<{ canonicalId: string; divisionCode: string }>
+}
+
+async function readFixture<T>(path: string) {
+  return JSON.parse(
+    await readFile(resolve(REPO_ROOT, 'fixtures/meta', path), 'utf8'),
+  ) as T
+}
+
+function jsonRecord(value: unknown) {
+  if (typeof value === 'string') return JSON.parse(value) as Record<string, unknown>
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  throw new Error('Prepared Planning Division identifiers must be a JSON object.')
+}

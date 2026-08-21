@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ffd19b9b6a4bc33705c9dac4bb84320f8c38e5b4fe2481346a12d73ac162a3fc",
+  "versionHash": "sha256:45ca6604480e1a79a115b3483713274f50bd267ec1f3e7001b3dc864da377b73",
   "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "resourceType": "division",
   "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-new-towns-2021",
@@ -51,7 +51,7 @@
     },
     {
       "externalId": "28",
-      "canonicalId": "d0b06deb-4842-5076-9d36-6ae0024e3bd3"
+      "canonicalId": "d0b06deb-4842-507b-8284-a3254615e5aa"
     },
     {
       "externalId": "30",
