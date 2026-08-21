@@ -1572,7 +1572,8 @@
       ],
       "fieldName": "firstQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "dimensions": {
-        "foreign-domestic-helper": "excluded"
+        "foreign-domestic-helper": "excluded",
+        "unpaid-family-worker": "excluded"
       },
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
@@ -1609,7 +1610,8 @@
       ],
       "fieldName": "medianMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "dimensions": {
-        "foreign-domestic-helper": "excluded"
+        "foreign-domestic-helper": "excluded",
+        "unpaid-family-worker": "excluded"
       },
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
@@ -1646,7 +1648,8 @@
       ],
       "fieldName": "thirdQuartileMonthlyEmploymentIncomeExclFDHAndUnpaidFamilyWorkers",
       "dimensions": {
-        "foreign-domestic-helper": "excluded"
+        "foreign-domestic-helper": "excluded",
+        "unpaid-family-worker": "excluded"
       },
       "schemaSpecification": {
         "sha256": "a7c33006b4515ee0965cdea171003a9802b01993b4833b6dc3b507e231f7ec36",
