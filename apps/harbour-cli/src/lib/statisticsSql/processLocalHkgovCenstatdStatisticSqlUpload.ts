@@ -160,6 +160,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         sourceFeatureRef,
         sourceReleaseId: releaseId,
         sourceVersion: plan.sourceVersion,
+        ...(districtsBySourceCode
+          ? {
+              geography: geographyForSourceProperties(
+                datasetCode,
+                properties,
+                districtsBySourceCode,
+              ),
+            }
+          : {}),
       }
     })
     let canonical = await runStatisticProgressStep(
@@ -444,7 +453,10 @@ function divisionIdForSourceProperties(
   datasetCode: string,
   properties: Record<string, unknown>,
   rawSourceFeatureId: string,
-  districtsBySourceCode: ReadonlyMap<number, { divisionId: string }> | null,
+  districtsBySourceCode: ReadonlyMap<
+    number,
+    { districtCode: string; divisionId: string }
+  > | null,
   newTownsBySourceCode: ReadonlyMap<string, { divisionId: string }> | null,
 ) {
   if (
@@ -470,11 +482,45 @@ function divisionIdForSourceProperties(
     return newTownsBySourceCode?.get(code)?.divisionId ?? null
   }
   if (!districtsBySourceCode) return null
+  return (
+    districtResolutionForSourceProperties(
+      datasetCode,
+      properties,
+      districtsBySourceCode,
+    )?.divisionId ?? null
+  )
+}
+
+function geographyForSourceProperties(
+  datasetCode: string,
+  properties: Record<string, unknown>,
+  districtsBySourceCode: ReadonlyMap<
+    number,
+    { districtCode: string; divisionId: string }
+  >,
+) {
+  const district = districtResolutionForSourceProperties(
+    datasetCode,
+    properties,
+    districtsBySourceCode,
+  )
+  return district ? { code: district.districtCode, kind: 'district' } : undefined
+}
+
+function districtResolutionForSourceProperties(
+  datasetCode: string,
+  properties: Record<string, unknown>,
+  districtsBySourceCode: ReadonlyMap<
+    number,
+    { districtCode: string; divisionId: string }
+  >,
+) {
+  if (!datasetCode.endsWith('-district')) return null
   const rawCode = properties.DC ?? properties.dc
   if (typeof rawCode !== 'string' && typeof rawCode !== 'number') return null
   const districtCode = Number(rawCode)
   if (!Number.isInteger(districtCode)) return null
-  return districtsBySourceCode.get(districtCode)?.divisionId ?? null
+  return districtsBySourceCode.get(districtCode) ?? null
 }
 
 function canonicalCurrentRows(

@@ -99,6 +99,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        geography: { code: 'CW', kind: 'district' },
         divisionId: 'district-central-western',
         properties: {
           DC: '11',
@@ -129,6 +130,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     )
     expect(rows.records).toEqual([
       expect.objectContaining({
+        geography: { code: 'CW', kind: 'district' },
         dimensions: {},
         values: expect.objectContaining({
           LA: '12.4',
