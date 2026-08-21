@@ -36,7 +36,9 @@ import {
 } from './canonicalStatsSql.ts'
 import {
   resolveCenstatdDistrictBridgeCohort,
+  resolveCenstatdNewTownBridgeCohort,
   resolveHkgovCenstatdDistrictBridge,
+  resolveHkgovCenstatdNewTownBridge,
 } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import { resolveCenstatdFieldMetadata } from './censtatdMeasureCuration.ts'
@@ -120,8 +122,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       datasetCode,
       plan.sourceVersion,
     )
+    const newTownBridgeCohort = resolveCenstatdNewTownBridgeCohort(
+      datasetCode,
+      plan.sourceVersion,
+    )
     const districtsBySourceCode = bridgeCohort
       ? await resolveHkgovCenstatdDistrictBridge(metaDb, bridgeCohort)
+      : null
+    const newTownsBySourceCode = newTownBridgeCohort
+      ? await resolveHkgovCenstatdNewTownBridge(metaDb, newTownBridgeCohort)
       : null
     const canonicalInput = rows.map(row => {
       const properties = object(row.rawProperties, 'rawProperties')
@@ -137,10 +146,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         properties,
         rawSourceFeatureId,
         districtsBySourceCode,
+        newTownsBySourceCode,
       )
-      if (bridgeCohort && !divisionId) {
+      if ((bridgeCohort || newTownBridgeCohort) && !divisionId) {
         throw new Error(
-          `C&SD ${datasetCode} feature ${rawSourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
+          `C&SD ${datasetCode} feature ${rawSourceFeatureId} does not resolve through its reviewed canonical Division bridge.`,
         )
       }
       return {
@@ -435,6 +445,7 @@ function divisionIdForSourceProperties(
   properties: Record<string, unknown>,
   rawSourceFeatureId: string,
   districtsBySourceCode: ReadonlyMap<number, { divisionId: string }> | null,
+  newTownsBySourceCode: ReadonlyMap<string, { divisionId: string }> | null,
 ) {
   if (
     datasetCode ===
@@ -452,6 +463,11 @@ function divisionIdForSourceProperties(
     if (!rawSourceFeatureId.startsWith('HMA_21C:')) return null
     const code = typeof properties.hma === 'string' ? properties.hma : ''
     return hkgovCenstatdStatisticDivisionId(datasetCode, code)
+  }
+  if (datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-new-towns') {
+    if (!rawSourceFeatureId.startsWith('NewTown_21C:')) return null
+    const code = typeof properties.newtown === 'string' ? properties.newtown.trim() : ''
+    return newTownsBySourceCode?.get(code)?.divisionId ?? null
   }
   if (!districtsBySourceCode) return null
   const rawCode = properties.DC ?? properties.dc
