@@ -78,34 +78,21 @@ the newest revision of that observation’s period release set. It is not a comp
 history: when a monthly series has a 2026-08 observation, its 2026-01 through 2026-07
 observations are older and are not returned by a latest selection.
 
-Temporal selectors make the requested scope explicit:
+Use the exact reference-period filter when the requested scope needs to be explicit:
 
 ```url
-/v0.1/stats?filter[period]=2026
+/v0.1/stats?filter[referencePeriod]=2016
 ```
 
-This selects each series’ latest native observation in 2026: an annual 2026 observation
-where the series is annual, the latest available quarter where it is quarterly, and the
-latest available month where it is monthly.
+This selects records with the exact reference-period code within the resolved release
+set. The API does not currently provide range, all-period, or latest-per-series temporal
+selection modes.
 
-```url
-/v0.1/stats?filter[period]=all
-```
-
-This selects all published native periods.
-
-```url
-/v0.1/stats?filter[periodCode]=2026-Q1
-```
-
-This selects one exact period release set.
-
-| Family                        | Default temporal selection                           |
-| ----------------------------- | ---------------------------------------------------- |
-| Divisions                     | Latest cohort for the selected domain                |
-| Statistics                    | Latest observation of each independent native series |
-| Statistics with `period=2026` | Latest native 2026 observation of each series        |
-| Statistics with `period=all`  | Complete published history                           |
+| Family                                 | Default temporal selection                           |
+| -------------------------------------- | ---------------------------------------------------- |
+| Divisions                              | Latest cohort for the selected domain                |
+| Statistics                             | Latest observation of each independent native series |
+| Statistics with `referencePeriod=2016` | Exact reference-period records                       |
 
 Without selectors, the endpoint resolves the latest effective release in the current
 [catalogue](saanseoi:en:definition/catalogue/v1). To select this exact release, set
@@ -262,32 +249,20 @@ Statistics 的預設檢視因此是：
 它會從該觀測期 release
 set 的最新 revision，為每個獨立統計序列選取最新的原生觀測值。這不是完整歷史：若月度序列已有 2026-08 觀測值，2026-01 至 2026-07 均屬較早觀測值，不會由最新選取回傳。
 
-時間 selector 會清楚表明所要求的範圍：
+如需清楚表明所要求的確切參考期，請使用確切的 reference-period filter：
 
 ```url
-/v0.1/stats?filter[period]=2026
+/v0.1/stats?filter[referencePeriod]=2016
 ```
 
-此選項會為每個序列選取 2026 年內最新的原生觀測值：年度序列選取 2026 年觀測值；季度序列選取最新可用季度；月度序列選取最新可用月份。
+此選項會在已解析的 release
+set 內，選取具有確切參考期代碼的記錄。API 目前不提供時間範圍、所有參考期或按序列選取最新觀測值的模式。
 
-```url
-/v0.1/stats?filter[period]=all
-```
-
-此選項會選取所有已發布的原生參考期。
-
-```url
-/v0.1/stats?filter[periodCode]=2026-Q1
-```
-
-此選項會選取一個確切的參考期 release set。
-
-| Family                      | 預設時間選取                   |
-| --------------------------- | ------------------------------ |
-| Divisions                   | 所選 domain 的最新 cohort      |
-| Statistics                  | 每個獨立原生序列的最新觀測值   |
-| `period=2026` 的 Statistics | 每個序列最新的 2026 原生觀測值 |
-| `period=all` 的 Statistics  | 完整已發布歷史                 |
+| Family                               | 預設時間選取                 |
+| ------------------------------------ | ---------------------------- |
+| Divisions                            | 所選 domain 的最新 cohort    |
+| Statistics                           | 每個獨立原生序列的最新觀測值 |
+| `referencePeriod=2016` 的 Statistics | 確切參考期的記錄             |
 
 沒有 selector 時，端點會在目前 [catalogue](saanseoi:zh-hant:definition/catalogue/v1)
 中解析至最新有效 release。要選取此確切 release，請設定 <black>cohort</black> 和
@@ -430,32 +405,20 @@ Statistics 的默认视图因此是：
 它会从该观测期 release
 set 的最新 revision，为每个独立统计序列选取最新的原生观测值。这不是完整历史：若月度序列已有 2026-08 观测值，2026-01 至 2026-07 均属较早观测值，不会由最新选取返回。
 
-时间 selector 会清楚表明所要求的范围：
+如需清楚表明所要求的确切参考期，请使用确切的 reference-period filter：
 
 ```url
-/v0.1/stats?filter[period]=2026
+/v0.1/stats?filter[referencePeriod]=2016
 ```
 
-此选项会为每个序列选取 2026 年内最新的原生观测值：年度序列选取 2026 年观测值；季度序列选取最新可用季度；月度序列选取最新可用月份。
+此选项会在已解析的 release
+set 内，选取具有确切参考期代码的记录。API 目前不提供时间范围、所有参考期或按序列选取最新观测值的模式。
 
-```url
-/v0.1/stats?filter[period]=all
-```
-
-此选项会选取所有已发布的原生参考期。
-
-```url
-/v0.1/stats?filter[periodCode]=2026-Q1
-```
-
-此选项会选取一个确切的参考期 release set。
-
-| Family                      | 默认时间选取                   |
-| --------------------------- | ------------------------------ |
-| Divisions                   | 所选 domain 的最新 cohort      |
-| Statistics                  | 每个独立原生序列的最新观测值   |
-| `period=2026` 的 Statistics | 每个序列最新的 2026 原生观测值 |
-| `period=all` 的 Statistics  | 完整已发布历史                 |
+| Family                               | 默认时间选取                 |
+| ------------------------------------ | ---------------------------- |
+| Divisions                            | 所选 domain 的最新 cohort    |
+| Statistics                           | 每个独立原生序列的最新观测值 |
+| `referencePeriod=2016` 的 Statistics | 确切参考期的记录             |
 
 没有 selector 时，端点会在目前 [catalogue](saanseoi:zh-hans:definition/catalogue/v1)
 中解析至最新有效 release。要选取此确切 release，请设置 <black>cohort</black> 和
