@@ -38,7 +38,18 @@ const majorHousingEstateStatistic = {
   dimensions: { 'housing-estate': 'estate-1', sex: 'all' },
 } as const
 
-function releaseSelection(type: string) {
+const newTownStatistic = {
+  ...statistic,
+  id: 'statistic-new-town-population-2021',
+  datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+  sourceFeatureRef:
+    'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-new-towns/2021/NewTown:1',
+  divisionId: 'division-new-town-shatin',
+  geography: { kind: 'new-town', code: 'NT-1' },
+  dimensions: { 'new-town': 'NT-1', sex: 'all' },
+} as const
+
+function releaseSelection(type: string, domainCode = 'geographic') {
   if (type === 'divisionStatistic') {
     return {
       releaseSet: {
@@ -67,7 +78,7 @@ function releaseSelection(type: string) {
       apiCatalogRevision: 'catalog-hk-divisions-v0.1-2026-08-14-r0',
       catalogPublishedAt: '2026-08-14T00:00:00.000Z',
       cohortKey: '2025-09-24.0',
-      domainCode: 'geographic',
+      domainCode,
       effectiveFrom: '2025-09-24T00:00:00.000Z',
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -75,15 +86,24 @@ function releaseSelection(type: string) {
     snapshots: [
       {
         snapshotResourceType: 'division',
-        snapshotId: 'snapshot-divisions',
+        snapshotId:
+          domainCode === 'hkgov-pland-new-town'
+            ? 'snapshot-divisions-new-town'
+            : 'snapshot-divisions',
         role: 'primary',
         variant: 'overture',
       },
       {
         snapshotResourceType: 'divisionArea',
-        snapshotId: 'snapshot-areas-censtatd-2021',
+        snapshotId:
+          domainCode === 'hkgov-pland-new-town'
+            ? 'snapshot-areas-new-town'
+            : 'snapshot-areas-censtatd-2021',
         role: 'geometry',
-        variant: 'hkgov-censtatd:2021',
+        variant:
+          domainCode === 'hkgov-pland-new-town'
+            ? 'hkgov-pland-new-town'
+            : 'hkgov-censtatd:2021',
       },
     ],
   }
@@ -91,8 +111,11 @@ function releaseSelection(type: string) {
 
 function dependencies() {
   return {
-    resolveApiReleaseSetSnapshotsForRequest: async (_db: unknown, type: string) =>
-      releaseSelection(type),
+    resolveApiReleaseSetSnapshotsForRequest: async (
+      _db: unknown,
+      type: string,
+      options?: { domainCode?: string },
+    ) => releaseSelection(type, options?.domainCode),
     listSnapshotSourceReleases: async () => [
       {
         datasetCode: statistic.datasetCode,
@@ -226,6 +249,55 @@ describe('Statistics service', () => {
     ])
     expect(result.body.links.permalink).toContain(
       'include=areas%3Ahkgov-censtatd%3A2021%2Cdivisions',
+    )
+  })
+
+  test('resolves New Town statistics through the Planning Department domain', async () => {
+    const mocks = dependencies()
+    const requestedDomains: string[] = []
+    mocks.resolveApiReleaseSetSnapshotsForRequest = async (
+      _db: unknown,
+      type: string,
+      options?: { domainCode?: string },
+    ) => {
+      if (type === 'division') requestedDomains.push(options?.domainCode ?? '')
+      return releaseSelection(type, options?.domainCode)
+    }
+    mocks.listSnapshotSourceReleases = (async () => [
+      {
+        datasetCode: newTownStatistic.datasetCode,
+        snapshotId: 'snapshot-statistics-2021',
+        sourceReleaseId: newTownStatistic.sourceReleaseId,
+      },
+    ]) as never
+    mocks.listStatisticRecords = (async () => [newTownStatistic]) as never
+    mocks.countStatisticRecords = async () => 1
+
+    const result = await listStatistics({
+      currentDb: {} as never,
+      historyDbs: [],
+      metaDb: {} as never,
+      requestUrl:
+        'https://api.saanseoi.hk/v0.1/stats?include=divisions,areas&page[limit]=10',
+      requestedVersionPath: 'v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      query: {
+        include: 'divisions,areas',
+        'page[limit]': 10,
+      },
+      dependencies: mocks as never,
+    })
+
+    expect(result.status).toBe(200)
+    if (result.status !== 200) return
+    expect(requestedDomains).toEqual(['hkgov-pland-new-town'])
+    expect(result.body.included?.map(resource => resource.type)).toEqual([
+      'divisions',
+      'division-areas',
+    ])
+    expect(result.body.links.permalink).toContain(
+      'include=areas%3Ahkgov-pland-new-town%2Cdivisions',
     )
   })
 
