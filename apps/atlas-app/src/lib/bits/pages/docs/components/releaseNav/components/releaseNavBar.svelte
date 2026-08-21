@@ -61,7 +61,7 @@ let {
       </h2>
       {#if showRevisionToggle}
         <button
-          class={`inline-flex h-6 items-center rounded-default border px-1.5 font-mono text-label-sm font-semibold transition ${showAllRevisions ? 'border-data-primary bg-data-secondary-container text-data-primary' : 'border-data-outline-variant/60 bg-data-surface-container-lowest text-foreground-alt hover:border-data-primary hover:text-data-primary'}`}
+          class={`inline-flex h-6 items-center rounded-default border px-1.5 font-mono text-label-sm font-semibold transition ${showAllRevisions ? 'border-secondary bg-secondary-container text-on-secondary-container' : 'border-outline-variant/60 bg-surface-container-lowest text-foreground-alt hover:border-secondary hover:text-secondary'}`}
           type="button"
           aria-pressed={showAllRevisions}
           title={showAllRevisions ? 'Show latest revisions only' : 'Show all revisions'}
