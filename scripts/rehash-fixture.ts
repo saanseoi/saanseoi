@@ -16,6 +16,7 @@ const fixtureGroups = [
   'dataPublishers',
   'datasets',
   'dataShards',
+  'divisionCodes',
   'identifierBridges',
   'rulesetVersions',
   'schemaVersions',

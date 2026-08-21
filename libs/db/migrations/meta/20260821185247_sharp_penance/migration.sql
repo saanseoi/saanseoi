@@ -1,0 +1,1 @@
+ALTER TABLE `divisionCodes` DROP COLUMN `sourceBridge`;

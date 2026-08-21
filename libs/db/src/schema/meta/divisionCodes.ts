@@ -1,8 +1,8 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from '../shared'
+import { timestamps } from '../shared'
 
-/** Reviewed statistical keys for canonical Divisions, scoped by domain and level. */
+/** Reviewed Division codes scoped by domain and level. */
 export const metaDivisionCodes = sqliteTable(
   'divisionCodes',
   {
@@ -10,7 +10,6 @@ export const metaDivisionCodes = sqliteTable(
     level: integer('level').notNull(),
     divisionCode: text('divisionCode').notNull(),
     canonicalId: text('canonicalId').notNull(),
-    sourceBridge: jsonText('sourceBridge'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
