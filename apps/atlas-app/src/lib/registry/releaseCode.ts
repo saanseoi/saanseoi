@@ -3,7 +3,8 @@ export type ReleaseCodeParts = {
   version: string
 }
 
-const releaseVersionPattern = /^(.*)-(\d{4}(?:-\d{2}-\d{2})?(?:\.\d+)?(?:-r\d+)?)$/
+const releaseVersionPattern =
+  /^(.*)-(\d{4}(?:-(?:\d{2}-\d{2}|q[1-4]|h[1-2]))?(?:\.\d+)?(?:-r\d+)?)$/i
 
 export function getReleaseCodeParts(code: string, apiFamily: string): ReleaseCodeParts {
   const codeWithoutDomain = code.split('--', 1)[0] ?? code

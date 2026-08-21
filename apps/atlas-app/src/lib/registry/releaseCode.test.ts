@@ -25,6 +25,18 @@ describe('getReleaseCodeParts', () => {
     })
   })
 
+  test('extracts quarterly and half-yearly versions', () => {
+    expect(getReleaseCodeParts('data-hk-stats-2023-q3', 'stats')).toEqual({
+      family: 'data-hk-stats',
+      version: '2023-q3',
+    })
+    expect(getReleaseCodeParts('data-hk-stats-2023-h2-r1', 'stats')).toEqual({
+      family: 'data-hk-stats',
+      version: '2023-h2-r1',
+    })
+    expect(getReleaseVersionLabel('data-hk-stats-2023-q3', 'stats')).toBe('v2023-q3')
+  })
+
   test('labels a release set with its concise version', () => {
     expect(getReleaseVersionLabel('data-hk-divisions-2025-09-24.0', 'divisions')).toBe(
       'v2025-09-24.0',

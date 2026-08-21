@@ -52,7 +52,7 @@ const indent = (depth: number) => `${0.5 + Math.max(0, depth - 2) * 0.5}rem`
         ></span>
       {/if}
       <a
-        class={`relative z-10 block rounded-md font-body leading-5 transition hover:bg-black/5 dark:hover:bg-white/10 ${mobile ? 'px-2 py-2 text-label-md' : 'py-1.5 text-label-sm'} ${activeId === node.id ? 'bg-secondary-container font-semibold text-[#edf2ee]! hover:text-secondary!' : 'text-foreground-alt'}`}
+        class={`relative z-10 block rounded-md font-body leading-5 transition hover:bg-black/5 dark:hover:bg-white/10 ${mobile ? 'px-2 py-2 text-label-md' : 'py-1.5 text-label-sm'} ${activeId === node.id ? 'bg-secondary-container font-semibold text-foreground-alt dark:text-[#edf2ee]! hover:text-secondary!' : 'text-foreground-alt'}`}
         class:px-2={!mobile && depth === 2}
         class:pl-3={!mobile && depth !== 2}
         class:pr-2={!mobile && depth !== 2}
