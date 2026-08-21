@@ -361,6 +361,33 @@ function seedHistory(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
+  const translations = [
+    { locale: 'zh-Hant', name: '總人口', description: '人口數目。' },
+    { locale: 'zh-Hans', name: '总人口', description: '人口数目。' },
+  ] as const
+  for (const translation of translations) {
+    run(
+      sqlite,
+      `INSERT INTO statsFieldsI18n (
+        datasetCode, fieldName, locale, name, description,
+        isTranslationVerified, versionHash, sourceReleaseId,
+        isCurrent, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        DATASET_CODE,
+        'totalPopulation',
+        translation.locale,
+        translation.name,
+        translation.description,
+        1,
+        `field-i18n-${translation.locale}`,
+        RELEASE_ID,
+        1,
+        PUBLISHED_AT,
+        PUBLISHED_AT,
+      ],
+    )
+  }
 }
 
 function seedSelectedDivision(sqlite: Database) {
@@ -601,6 +628,8 @@ describe('Statistics API responses through the Worker route', () => {
               fieldName: 'totalPopulation',
               i18n: {
                 en: { name: 'Total population', description: 'Number of people.' },
+                'zh-hant': { name: '總人口', description: '人口數目。' },
+                'zh-hans': { name: '总人口', description: '人口数目。' },
               },
             },
           },

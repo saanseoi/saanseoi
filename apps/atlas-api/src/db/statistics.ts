@@ -314,7 +314,12 @@ export async function listStatisticFieldDefinitions(
                         inArray(statsFieldsI18n.sourceReleaseId, sourceReleaseIds),
                         inArray(statsFieldsI18n.datasetCode, datasetCodes),
                         eq(statsFieldsI18n.isCurrent, true),
-                        locales ? inArray(statsFieldsI18n.locale, locales) : undefined,
+                        locales
+                          ? inArray(
+                              sql`lower(${statsFieldsI18n.locale})`,
+                              locales.map(locale => locale.toLowerCase()),
+                            )
+                          : undefined,
                       ),
                     )
                     .all(),
