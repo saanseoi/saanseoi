@@ -28,7 +28,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households",
+          "name": "Domestic households",
           "description": "Number of domestic households",
           "isTranslationVerified": false
         },
@@ -167,23 +167,46 @@
         {
           "locale": "en",
           "name": "Median monthly domestic household income",
-          "description": "Median monthly domestic household income (HK$)",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "家庭住戶每月收入中位數（港元）",
-          "description": "家庭住戶每月收入中位數（港元）",
+          "name": "家庭住戶每月收入中位數",
+          "description": "家庭住戶每月收入中位數，單位為港元。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "家庭住户每月收入中位数（港元）",
-          "description": "家庭住户每月收入中位数（港元）",
+          "name": "家庭住户每月收入中位数",
+          "description": "家庭住户每月收入中位数，单位为港元。",
           "isTranslationVerified": false
         }
       ],
       "measureCode": "medianMonthlyDomesticHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly employment income",
+          "description": "Median monthly employment income",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入中位數",
+          "description": "每月主要職業收入中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入中位数",
+          "description": "每月主要职业收入中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyEmploymentIncome"
     },
     {
       "localisations": [
@@ -394,5 +417,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:c4019fc35e226cc5e511244ea54507ebac092316c47dba833bc8000c01026c22"
+  "versionHash": "sha256:5610e2c0390d378538e1cb0edd2d639b82b312c76342e04c66ca5012c74b18f9"
 }
