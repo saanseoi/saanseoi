@@ -62,7 +62,7 @@ These source values are converted before being returned through
 
 ## Measure mapping
 
-The measureCode [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
+The fieldName [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
 and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
 readable statistical name from its exact definition. The mapping below is generated from
 this release's C&SD

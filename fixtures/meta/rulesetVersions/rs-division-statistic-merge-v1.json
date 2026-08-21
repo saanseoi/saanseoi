@@ -92,7 +92,7 @@
       "operationCode": "curate_censtatd_measure_metadata",
       "type": "bulk",
       "sourceFieldPath": "raw_properties.<publisher field>",
-      "targetFieldPath": "statsMeasures.measureCode, statisticKind, aggregation, unitCode, denominatorMeasureCode, sourceNullOption",
+      "targetFieldPath": "statsFields.fieldName, statisticKind, aggregation, unitCode, denominatorFieldName, sourceNullOption",
       "condition": "Applies once to each reviewed numeric C&SD publisher field used by the release.",
       "i18n": [
         {
