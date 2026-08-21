@@ -9,6 +9,7 @@ import type {
   sourceSchema,
   SourceDatabase,
 } from '@repo/db'
+import { metaSchema } from '@repo/db'
 import type {
   DivisionI18nPayload,
   DivisionRow,
@@ -190,6 +191,46 @@ const HONG_KONG_AREA_NAMES = new Set([
   '新界',
 ])
 
+type DivisionCodeAssignment = {
+  canonicalId: string
+  divisionCode: string
+  domainCode: string
+  level: number
+}
+
+async function loadDivisionCodeAssignments(metaDb: HarbourReadableDb) {
+  const rows = await metaDb
+    .select({
+      canonicalId: metaSchema.metaDivisionCodes.canonicalId,
+      divisionCode: metaSchema.metaDivisionCodes.divisionCode,
+      domainCode: metaSchema.metaDivisionCodes.domainCode,
+      level: metaSchema.metaDivisionCodes.level,
+    })
+    .from(metaSchema.metaDivisionCodes)
+    .all()
+  const assignments = new Map<string, string>()
+  for (const row of rows as DivisionCodeAssignment[]) {
+    const key = `${row.domainCode}\u0000${row.level}\u0000${row.canonicalId}`
+    if (assignments.has(key)) {
+      throw new Error(`Duplicate curated Division code target for ${key}.`)
+    }
+    assignments.set(key, row.divisionCode)
+  }
+  return assignments
+}
+
+function divisionCodeDomainFor(
+  message: Pick<DatasetProcessingMessage, 'source'>,
+  division: Pick<NewDivisionRow, 'type'>,
+) {
+  if (message.source === 'overture') return 'geographic'
+  if (message.source === 'hkgov-pland-new-town') return 'hkgov-pland-new-town'
+  if (message.source === 'hkgov-censtatd' && division.type === 'housing-market-area') {
+    return 'hkgov-censtatd-hma'
+  }
+  return null
+}
+
 function collectOwnerShardKeys(
   ownerShardKeys: string[] | undefined,
   fallbackKey: string,
@@ -263,6 +304,10 @@ export async function processDivisionDataset(
   const versionInsertContext = await timings.measure(
     'prepareVersionInsertContextMs',
     () => prepareDivisionVersionInsertContext(metaRepoDb, message, environment),
+  )
+  const divisionCodeAssignments = await timings.measure(
+    'loadDivisionCodeAssignmentsMs',
+    () => loadDivisionCodeAssignments(metaRepoDb),
   )
   const traceDivisionIds = resolveDivisionTraceIds()
   const historyBaselineSources = [
@@ -463,6 +508,13 @@ export async function processDivisionDataset(
 
     for (const row of batch) {
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      const divisionCodeDomain = divisionCodeDomainFor(message, normalised.base)
+      if (divisionCodeDomain) {
+        normalised.base.divisionCode =
+          divisionCodeAssignments.get(
+            `${divisionCodeDomain}\u0000${normalised.base.level}\u0000${normalised.base.id}`,
+          ) ?? null
+      }
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
       if (message.source === 'overture' && message.type === 'division') {
         processingActions.push(

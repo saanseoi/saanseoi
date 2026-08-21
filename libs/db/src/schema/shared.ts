@@ -149,6 +149,8 @@ export const geoBbox = {
 
 export const canonicalDivision = {
   id: text('id').notNull(),
+  /** Curated statistical key, scoped by the selected Divisions domain and level. */
+  divisionCode: text('divisionCode'),
   identifiers: jsonText('identifiers'),
   level: integer('level').notNull(),
   type: text('type').notNull(),
