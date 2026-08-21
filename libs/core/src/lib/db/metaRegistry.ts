@@ -2709,7 +2709,7 @@ export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohort
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { publisherCode?: string } = {},
+  options: { datasetCode?: string; publisherCode?: string } = {},
 ) {
   return db
     .select({
@@ -2736,6 +2736,7 @@ export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohort
         options.publisherCode
           ? eq(metaPublishers.code, options.publisherCode)
           : undefined,
+        options.datasetCode ? eq(metaDatasets.code, options.datasetCode) : undefined,
       ),
     )
     .orderBy(
@@ -2756,7 +2757,7 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { publisherCode?: string } = {},
+  options: { datasetCode?: string; publisherCode?: string } = {},
 ) {
   const [snapshot] =
     await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
@@ -2829,7 +2830,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { publisherCode?: string; variant?: string } = {},
+  options: { datasetCode?: string; publisherCode?: string; variant?: string } = {},
 ) {
   const candidates = await db
     .select({
@@ -2861,6 +2862,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
         options.publisherCode
           ? eq(metaPublishers.code, options.publisherCode)
           : undefined,
+        options.datasetCode ? eq(metaDatasets.code, options.datasetCode) : undefined,
         options.variant ? eq(metaSnapshotLineages.variant, options.variant) : undefined,
       ),
     )
@@ -2917,6 +2919,7 @@ export async function ensureDraftSnapshotForRelease(
       and(
         eq(metaSnapshotSources.sourceReleaseId, args.sourceReleaseId),
         eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshots.cohortKey, args.cohortKey),
         eq(metaSnapshotLineages.variant, variant),
       ),
     )
@@ -3183,6 +3186,7 @@ export async function resolveSnapshotForRelease(
   if (options.variant) {
     const variantSnapshot = await db
       .select({
+        cohortKey: metaSnapshots.cohortKey,
         id: metaSnapshots.id,
         code: metaSnapshots.code,
         resourceType: metaSnapshots.resourceType,
@@ -3211,6 +3215,7 @@ export async function resolveSnapshotForRelease(
   return (
     (await db
       .select({
+        cohortKey: metaSnapshots.cohortKey,
         id: metaSnapshots.id,
         code: metaSnapshots.code,
         resourceType: metaSnapshots.resourceType,
@@ -3229,6 +3234,44 @@ export async function resolveSnapshotForRelease(
       .limit(1)
       .get()) ?? null
   )
+}
+
+/** Returns the latest snapshot revision for every cohort materialised by a release. */
+export async function listSnapshotsForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+  resourceType: ResourceType,
+  options: { variant?: string } = {},
+) {
+  const rows = await db
+    .select({
+      cohortKey: metaSnapshots.cohortKey,
+      code: metaSnapshots.code,
+      id: metaSnapshots.id,
+      revision: metaSnapshots.revision,
+      status: metaSnapshots.status,
+    })
+    .from(metaSnapshotSources)
+    .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
+    .where(
+      and(
+        eq(metaSnapshotSources.sourceReleaseId, releaseId),
+        eq(metaSnapshots.resourceType, resourceType),
+        options.variant ? eq(metaSnapshotLineages.variant, options.variant) : undefined,
+      ),
+    )
+    .orderBy(asc(metaSnapshots.cohortKey), desc(metaSnapshots.revision))
+    .all()
+
+  const latestByCohort = new Map<string, (typeof rows)[number]>()
+  for (const row of rows) {
+    if (!latestByCohort.has(row.cohortKey)) latestByCohort.set(row.cohortKey, row)
+  }
+  return [...latestByCohort.values()]
 }
 
 export async function resolveReleaseSetForType(
@@ -3306,7 +3349,6 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
   cohortKey: string,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
-  const codePrefix = `data-${regionCode}-${getApiFamilyForType(type)}-${cohortKey}-r`
 
   return (
     (await db
@@ -3326,25 +3368,16 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
       .where(
         and(
           eq(metaApiVersions.code, apiVersionCode),
+          eq(metaApiReleaseSets.regionCode, regionCode),
           eq(metaApiReleaseSets.domainCode, domainCode),
           ne(metaApiReleaseSets.status, 'draft'),
-          sql`(${metaApiReleaseSets.cohortKey} = ${cohortKey} OR ${metaApiReleaseSets.code} LIKE ${`${codePrefix}%`})`,
+          eq(metaApiReleaseSets.cohortKey, cohortKey),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.revision), desc(metaApiReleaseSets.publishedAt))
       .limit(1)
       .get()) ?? null
   )
-}
-
-function getApiFamilyForType(type: ResourceType) {
-  if (type === 'division' || type === 'divisionArea' || type === 'divisionBoundary') {
-    return 'divisions'
-  }
-  if (type === 'divisionStatistic') return 'stats'
-  if (type === 'address') return 'addresses'
-  if (type === 'place') return 'places'
-  return 'streets'
 }
 
 /**
@@ -3412,6 +3445,7 @@ export async function listDraftReleaseSets(
 ) {
   return db
     .select({
+      cohortKey: metaApiReleaseSets.cohortKey,
       code: metaApiReleaseSets.code,
       id: metaApiReleaseSets.id,
     })
@@ -3576,6 +3610,7 @@ export async function ensureDraftReleaseSetForRelease(
     ? null
     : await db
         .select({
+          cohortKey: metaApiReleaseSets.cohortKey,
           id: metaApiReleaseSets.id,
           code: metaApiReleaseSets.code,
           status: metaApiReleaseSets.status,
@@ -3703,6 +3738,7 @@ export async function ensureDraftReleaseSetForRelease(
     .run()
 
   return {
+    cohortKey: release.cohortKey,
     id: releaseSetId,
     code: releaseSetCode,
     status: 'draft' as const,
@@ -3720,6 +3756,7 @@ export async function resolveReleaseSetForRelease(
   return (
     (await db
       .select({
+        cohortKey: metaApiReleaseSets.cohortKey,
         id: metaApiReleaseSets.id,
         code: metaApiReleaseSets.code,
         domainCode: metaApiReleaseSets.domainCode,
@@ -5002,6 +5039,33 @@ export async function listApiReleaseSetSnapshots(
     )
     .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, releaseSetId))
     .all()
+}
+
+export async function listSnapshotSourceReleases(
+  db: HarbourReadableDb,
+  snapshotIds: string[],
+) {
+  if (snapshotIds.length === 0) return []
+
+  return queryInBatches(
+    snapshotIds,
+    async ids =>
+      await db
+        .select({
+          datasetCode: metaDatasets.code,
+          snapshotId: metaSnapshotSources.snapshotId,
+          sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+        })
+        .from(metaSnapshotSources)
+        .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+        .where(
+          and(
+            inArray(metaSnapshotSources.snapshotId, ids),
+            ne(metaSnapshotSources.role, 'lookup'),
+          ),
+        )
+        .all(),
+  )
 }
 
 export async function listCurrentSnapshotCleanupCandidates(
