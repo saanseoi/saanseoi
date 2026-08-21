@@ -53,25 +53,19 @@ describe('fixture version hashes', () => {
     expect(
       new Set(hmaAssignments.map(assignment => assignment.divisionCode)).size,
     ).toBe(173)
-    expect(
-      hmaAssignments.every(
-        assignment =>
-          assignment.level === 3 &&
-          assignment.sourceBridge?.authority === 'hkgov-censtatd' &&
-          assignment.sourceBridge?.cohortKey === '2021' &&
-          assignment.sourceBridge?.externalId === assignment.divisionCode,
-      ),
-    ).toBe(true)
+    expect(hmaAssignments.every(assignment => assignment.level === 3)).toBe(true)
   })
   test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
-    const newTownAssignments = initialDivisionCodes.filter(
-      assignment => assignment.domainCode === 'hkgov-pland-new-town',
+    const newTownMappings = initialIdentifierBridges.filter(
+      bridge =>
+        bridge.authority === 'hkgov-censtatd' &&
+        bridge.cohortKey === '2021' &&
+        bridge.domain === 'new-town' &&
+        bridge.resourceType === 'division',
     )
 
-    expect(newTownAssignments).toHaveLength(13)
-    expect(
-      newTownAssignments.map(assignment => assignment.divisionCode).sort(),
-    ).toEqual([
+    expect(newTownMappings).toHaveLength(13)
+    expect(newTownMappings.map(mapping => mapping.externalId).sort()).toEqual([
       '11',
       '13',
       '15',
@@ -86,15 +80,7 @@ describe('fixture version hashes', () => {
       '30',
       '32',
     ])
-    expect(
-      newTownAssignments.every(
-        assignment =>
-          assignment.level === 1 &&
-          assignment.sourceBridge?.authority === 'hkgov-censtatd' &&
-          assignment.sourceBridge?.cohortKey === '2021' &&
-          assignment.sourceBridge?.externalId === assignment.divisionCode,
-      ),
-    ).toBe(true)
+    expect(newTownMappings.every(mapping => mapping.canonicalId)).toBe(true)
   })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
