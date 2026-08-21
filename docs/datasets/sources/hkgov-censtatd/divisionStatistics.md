@@ -54,8 +54,10 @@ measure-value map. Each packed value retains its exact source property name and 
 decimal value or categorical code, precision (when known), and status. Measure and
 localised-value dictionaries remain normalised and are stored in the current shard and
 in each touched reference-period history shard with the corresponding source-release
-version. This keeps dictionary selection alongside the statistic records. The current
-shard contains the latest version of each feature and exact period across source
+version. Their history identity is scoped by source release as well as field and content
+version, so repeated metadata does not transfer an older release's association to a
+newer release. This keeps dictionary selection alongside the statistic records. The
+current shard contains the latest version of each feature and exact period across source
 compilations; the period's history shard retains superseded record revisions. A
 Population and Household compilation can therefore carry annual observations for
 2016–2025 without collapsing them to the compilation release period. Its raw assertions

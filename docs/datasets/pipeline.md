@@ -33,6 +33,8 @@ year, groups canonical records by `referencePeriodEndYear`, and replays each gro
 its history shard. Years before 2025 resolve to the `BEFORE` shard. The current shard
 holds the latest dataset-scoped measure and localised value dictionaries, and each
 touched history shard holds the source-release dictionary version used by its records.
+History dictionary identity and current-state closure are scoped by `sourceReleaseId`,
+so identical semantic metadata remains available to every release that uses it.
 
 The required order is: stage processing, load the minimal cache profile, resolve any
 reviewed identifier bridges, build deterministic source and history SQL, apply it to the
