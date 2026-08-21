@@ -22,42 +22,77 @@ const AREA_TYPE_DATASET =
 const HMA_DATASET =
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
 
+type CenstatdStatisticLayer = {
+  name: string
+  required: string[]
+  expectedRowCount?: number
+  rowsPerReferencePeriod?: {
+    field: string
+    count: number
+  }
+}
+
+type CenstatdStatisticProfile = {
+  layers: CenstatdStatisticLayer[]
+  sourceVersions: string[]
+}
+
 export const CENSTATD_STATISTIC_PROFILES = {
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
     layers: [
-      { count: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
-      { count: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
+      { expectedRowCount: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
+      { expectedRowCount: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
     ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates': {
-    layers: [{ count: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
+    layers: [{ expectedRowCount: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-new-towns': {
-    layers: [{ count: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] }],
+    layers: [
+      { expectedRowCount: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] },
+    ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': {
-    layers: [{ count: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] }],
+    layers: [
+      { expectedRowCount: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] },
+    ],
     sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
-    layers: [{ count: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] }],
+    layers: [
+      { expectedRowCount: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] },
+    ],
     sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
-    layers: [{ count: 180, name: 'DC_GHS', required: ['dc', 'dc_class', 'year'] }],
+    layers: [
+      {
+        name: 'DC_GHS',
+        required: ['dc', 'dc_class', 'year'],
+        rowsPerReferencePeriod: { field: 'year', count: 18 },
+      },
+    ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
     layers: [
-      { count: 18, name: 'DC_16BC_SDU', required: ['dc', 'dc_class', 'sdu_pop'] },
-      { count: 18, name: 'DC_21C_SDU', required: ['dc', 'dc_class', 'sdu_pop'] },
+      {
+        expectedRowCount: 18,
+        name: 'DC_16BC_SDU',
+        required: ['dc', 'dc_class', 'sdu_pop'],
+      },
+      {
+        expectedRowCount: 18,
+        name: 'DC_21C_SDU',
+        required: ['dc', 'dc_class', 'sdu_pop'],
+      },
     ],
     sourceVersions: ['2016', '2021'],
   },
-} as const
+} as const satisfies Record<string, CenstatdStatisticProfile>
 
 export type CenstatdStatisticDatasetCode = keyof typeof CENSTATD_STATISTIC_PROFILES
 
@@ -307,9 +342,13 @@ export function readHkgovCenstatdStatisticArchive(input: {
     const gml = input.inputGml[`${layer.name}.gml`]
     if (!gml) throw new Error(`CSDI archive is missing ${layer.name}.gml.`)
     const layerRows = parseCsdiGml(gml, layer.name)
-    if (layerRows.length !== layer.count) {
+    if (
+      'expectedRowCount' in layer &&
+      layer.expectedRowCount !== undefined &&
+      layerRows.length !== layer.expectedRowCount
+    ) {
       throw new Error(
-        `${layer.name}.gml must contain ${layer.count} rows; found ${layerRows.length}.`,
+        `${layer.name}.gml must contain ${layer.expectedRowCount} rows; found ${layerRows.length}.`,
       )
     }
     for (const row of layerRows) {
@@ -321,6 +360,9 @@ export function readHkgovCenstatdStatisticArchive(input: {
         }
       }
     }
+    if ('rowsPerReferencePeriod' in layer && layer.rowsPerReferencePeriod) {
+      assertRowsPerReferencePeriod(layerRows, layer.rowsPerReferencePeriod, layer.name)
+    }
     rows.push(...layerRows)
   }
   const ids = new Set<string>()
@@ -330,6 +372,32 @@ export function readHkgovCenstatdStatisticArchive(input: {
     ids.add(id)
   }
   return rows
+}
+
+function assertRowsPerReferencePeriod(
+  rows: readonly SourceRow[],
+  rule: NonNullable<CenstatdStatisticLayer['rowsPerReferencePeriod']>,
+  layerName: string,
+) {
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    const value = row.properties[rule.field]
+    const period =
+      typeof value === 'string'
+        ? value.trim()
+        : typeof value === 'number' && Number.isFinite(value)
+          ? String(value)
+          : ''
+    if (!period) continue
+    counts.set(period, (counts.get(period) ?? 0) + 1)
+  }
+  const invalid = [...counts.entries()].filter(([, count]) => count !== rule.count)
+  if (invalid.length > 0) {
+    const detail = invalid.map(([period, count]) => `${period}=${count}`).join(', ')
+    throw new Error(
+      `${layerName}.gml must contain ${rule.count} rows for each ${rule.field}; found ${detail}.`,
+    )
+  }
 }
 
 export async function prepareHkgovCenstatdStatisticUpload(input: {

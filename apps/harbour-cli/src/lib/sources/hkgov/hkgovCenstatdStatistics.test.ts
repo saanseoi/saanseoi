@@ -78,6 +78,30 @@ const CASES: Array<{
   },
   {
     archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2023-Q4/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 126,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2024-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 144,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 162,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635932488538_10765/2026-Q2/source.zip',
     datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
     rowCount: 18,
