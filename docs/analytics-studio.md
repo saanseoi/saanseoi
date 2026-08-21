@@ -120,7 +120,7 @@ SELECT
   blob11 AS metric_key,
   double1 AS duration_ms,
   double2 AS count
-FROM ss_product_usage_production
+FROM "ss-product-usage-production"
 WHERE timestamp > NOW() - INTERVAL '1' DAY
 ORDER BY timestamp DESC
 LIMIT 100
@@ -134,7 +134,7 @@ SELECT
   blob9 AS outcome,
   blob10 AS http_status,
   SUM(_sample_interval * double2) AS requests
-FROM ss_product_usage_production
+FROM "ss-product-usage-production"
 WHERE index1 = 'api.request'
   AND blob3 = 'atlas-api'
   AND timestamp > NOW() - INTERVAL '7' DAY
@@ -151,7 +151,7 @@ SELECT
   blob4 AS surface,
   blob9 AS outcome,
   SUM(_sample_interval * double2) AS events
-FROM ss_product_usage_production
+FROM "ss-product-usage-production"
 WHERE (index1 LIKE 'client.%' OR index1 LIKE 'guide.%')
   AND timestamp > NOW() - INTERVAL '7' DAY
 GROUP BY event, surface, outcome
@@ -172,7 +172,7 @@ SELECT
   blob7 AS entity_id,
   blob11 AS metric_key,
   SUM(_sample_interval * double2) AS metric_value
-FROM ss_product_usage_production
+FROM "ss-product-usage-production"
 WHERE index1 = 'api.access'
   AND timestamp > NOW() - INTERVAL '7' DAY
 GROUP BY day, scope, entity_id, metric_key
@@ -194,7 +194,7 @@ SELECT
   blob7 AS entity_id,
   blob11 AS metric_key,
   SUM(_sample_interval * double2) AS metric_value
-FROM ss_product_usage_production
+FROM "ss-product-usage-production"
 WHERE index1 = 'api.access'
   AND timestamp >= NOW() - INTERVAL '3' DAY
 GROUP BY day, scope, entity_id, metric_key
@@ -235,7 +235,7 @@ SELECT
   index1 AS api_key_id,
   toStartOfMinute(timestamp) AS minute,
   SUM(_sample_interval * double1) AS requests
-FROM ss_api_usage_production
+FROM "ss-api-usage-production"
 WHERE timestamp > NOW() - INTERVAL '1' DAY
 GROUP BY api_key_id, minute
 ORDER BY minute DESC, requests DESC
