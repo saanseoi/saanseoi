@@ -308,7 +308,9 @@ function currentConflictColumns(table: CanonicalStatsTable) {
 }
 
 function historyIdentityColumns(table: CanonicalStatsTable) {
-  return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
+  return table === 'statsRecords'
+    ? ['id']
+    : [...dictionaryIdentityColumns(table), 'sourceReleaseId']
 }
 
 function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
