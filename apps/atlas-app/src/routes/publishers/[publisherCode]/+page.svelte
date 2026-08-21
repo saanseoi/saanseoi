@@ -109,9 +109,7 @@ let latestReleaseDisplayCode = $derived(
 )
 
 const displayDate = (value?: string | null) =>
-  value
-    ? new Date(value).toISOString().slice(0, 10)
-    : unavailable
+  value ? new Date(value).toISOString().slice(0, 10) : unavailable
 
 const sourceCountLabel = (count: number) =>
   (count === 1 ? m.publishers_dataset_count() : m.publishers_datasets_count()).replace(
@@ -175,7 +173,7 @@ const sourceCountLabel = (count: number) =>
           {m.data_latest_release()}
         </dt>
         <dd
-          class="mt-2 break-words font-mono text-sm font-semibold text-primary"
+          class="mt-2 wrap-break-word font-mono text-sm font-semibold text-primary"
           title={latestRelease?.code ?? unavailable}
         >
           {latestReleaseDisplayCode}
@@ -211,9 +209,7 @@ const sourceCountLabel = (count: number) =>
         >
           {m.publishers_api_requests()}
         </dt>
-        <dd class="mt-2 font-mono text-sm font-semibold text-primary">
-          N/A
-        </dd>
+        <dd class="mt-2 font-mono text-sm font-semibold text-primary">N/A</dd>
       </div>
       <div class="min-w-0 max-w-full">
         <dt
@@ -221,9 +217,7 @@ const sourceCountLabel = (count: number) =>
         >
           {m.publishers_downloads()}
         </dt>
-        <dd class="mt-2 font-mono text-sm font-semibold text-primary">
-          N/A
-        </dd>
+        <dd class="mt-2 font-mono text-sm font-semibold text-primary">N/A</dd>
       </div>
     </dl>
   </section>

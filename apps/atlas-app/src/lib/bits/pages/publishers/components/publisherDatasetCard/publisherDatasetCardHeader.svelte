@@ -43,7 +43,7 @@ let {
         <img class="size-14 shrink-0 object-contain" src={publisherLogo} alt="">
         <div class="min-w-0">
           <p
-            class="truncate font-body text-caption font-semibold tracking-[0.1em] uppercase text-data-primary"
+            class="truncate font-body text-caption font-semibold tracking-widest uppercase text-data-primary"
           >
             {resourceType}
             {#if region}
