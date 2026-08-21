@@ -29,6 +29,7 @@ export {
   type StreetNameChangeStreetRole,
   type StreetStatus,
   type StatsAggregation,
+  type StatsFieldComparability,
   type StatsStatisticKind,
 } from './schema/shared'
 export type {

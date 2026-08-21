@@ -72,6 +72,15 @@ Azure Translator supplies new Chinese defaults; accepting those machine values u
 records `isTranslationVerified=false`. Official CSDI locale rows remain verified.
 `--yes` refuses every uncurated field.
 
+When a publisher explicitly says that a classification changed between reference
+periods, the field dictionary records a structured `comparability` caution with the
+reason and affected earlier periods. It warns consumers to treat cross-period comparisons
+carefully; it neither invalidates the value nor becomes an analytical dimension.
+
+Source identifiers are retained as provenance or geography references and are not
+statistic values. A reviewed unit always describes the reported numeric value, rather
+than a category or range embedded in the publisher field name.
+
 The curation prompt permits `none`, `mean`, `median`, `minimum`, `maximum`, and
 `percentile` for every statistic kind. It permits `total` only for `count` and
 `quantity`: summing a proportion, ratio, rate, density, or index does not preserve that
