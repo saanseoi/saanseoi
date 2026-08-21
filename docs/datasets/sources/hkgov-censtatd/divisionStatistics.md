@@ -169,7 +169,9 @@ The statistical `division` output is therefore limited to the reviewed 2021 HMA 
 (`hkgov-censtatd-hma`). Area/type is optional source-specific Geographic geometry
 selected at the latest compatible cohort and linked to the Overture identity snapshot.
 HMA is its domain's primary canonical division input, paired with the required native
-`hkgov-censtatd-hma` geometry.
+`hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
+Division level, so the generated Division record has no `level` value and an empty
+hierarchy.
 
 ## Source-release statistics and geography audit
 

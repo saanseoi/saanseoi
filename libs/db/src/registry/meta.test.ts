@@ -20,7 +20,7 @@ describe('fixture version hashes', () => {
   test('validates curated Division code fixtures directly', () => {
     const valid = {
       domainCode: 'geographic',
-      assignments: [{ divisionCode: 'HK', canonicalId: 'division-hk', level: 1 }],
+      assignments: [{ divisionCode: 'HK', canonicalId: 'division-hk' }],
     }
     expect(() =>
       validateDivisionCodeFixtures([valid], new Set(['division-hk'])),
@@ -29,9 +29,7 @@ describe('fixture version hashes', () => {
       validateDivisionCodeFixtures([
         {
           ...valid,
-          assignments: [
-            { divisionCode: 'bad code', canonicalId: 'division-hk', level: 1 },
-          ],
+          assignments: [{ divisionCode: 'bad code', canonicalId: 'division-hk' }],
         },
       ]),
     ).toThrow('Invalid Division code')
@@ -53,7 +51,7 @@ describe('fixture version hashes', () => {
     expect(
       new Set(hmaAssignments.map(assignment => assignment.divisionCode)).size,
     ).toBe(173)
-    expect(hmaAssignments.every(assignment => assignment.level === 3)).toBe(true)
+    expect(hmaAssignments.every(assignment => !('level' in assignment))).toBe(true)
   })
   test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
     const newTownMappings = initialIdentifierBridges.filter(
