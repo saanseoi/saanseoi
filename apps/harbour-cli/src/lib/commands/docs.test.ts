@@ -210,16 +210,25 @@ Schema \`1.15.0\`
     const rendered = await renderMarkdownFixtureBody({
       body: '{{hkgovCenstatdMeasureTable:en}}\n',
       frontmatter: {
-        hkgovCenstatdCuration:
-          'fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json',
+        measureCuration:
+          'fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json',
       },
     })
 
     expect(rendered).toContain(
-      '| `LA` | `landArea` | Land area | Land area of the District Council district, in square kilometres. |',
+      '| `landArea` | Land area | Land area of the District Council district, in square kilometres. |',
     )
     expect(rendered).toContain(
-      '| `POPN_D` | `populationDensity` | Population density | Mid-year population density of the District Council district, in persons per square kilometre. |',
+      '| `populationDensity` | Population density | Mid-year population density of the District Council district, in persons per square kilometre. |',
     )
+  })
+
+  test('rejects measure curations outside the curation fixture root', async () => {
+    await expect(
+      renderMarkdownFixtureBody({
+        body: '{{hkgovCenstatdMeasureTable:en}}\n',
+        frontmatter: { measureCuration: 'package.json' },
+      }),
+    ).rejects.toThrow('Invalid curation fixture path: package.json')
   })
 })

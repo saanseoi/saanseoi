@@ -78,10 +78,7 @@ type PublishDocsScope = DocsScope | 'all'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const API_RELEASE_SET_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiReleaseSets')
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
-const CENSTATD_CURATION_ROOT = resolve(
-  REPO_ROOT,
-  'fixtures/meta/curations/hkgov-censtatd-statistics',
-)
+const CURATION_ROOT = resolve(REPO_ROOT, 'fixtures/meta/curations')
 
 type ApiReleaseSetRevisionDraft = {
   apiReleaseSetCode: string
@@ -862,6 +859,14 @@ function resolveReleaseDocsFixturePath(datasetCode: string, code: string) {
   return resolve(RELEASE_DOCS_ROOT, datasetCode, `${code}.md`)
 }
 
+function resolveCurationFixturePath(curationPath: string) {
+  const path = resolve(REPO_ROOT, curationPath)
+  if (!path.startsWith(`${CURATION_ROOT}/`) || !path.endsWith('.json')) {
+    throw new Error(`Invalid curation fixture path: ${curationPath}`)
+  }
+  return path
+}
+
 function isParsedReleaseSetRow(
   row: ApiReleaseSetDocsRow & { parsedCode: ParsedReleaseSetCode | null },
 ): row is ParsedApiReleaseSetDocsRow {
@@ -1047,17 +1052,14 @@ async function renderCenstatdMeasureTables(
 
   if (!directive.test(markdown)) return markdown
 
-  const curationPath = frontmatter.hkgovCenstatdCuration
+  const curationPath = frontmatter.measureCuration
   if (!curationPath) {
     throw new Error(
-      'C&SD measure-table directives require hkgovCenstatdCuration in fixture frontmatter.',
+      'C&SD measure-table directives require measureCuration in fixture frontmatter.',
     )
   }
 
-  const path = resolve(REPO_ROOT, curationPath)
-  if (!path.startsWith(`${CENSTATD_CURATION_ROOT}/`) || !path.endsWith('.json')) {
-    throw new Error(`Invalid C&SD measure curation path: ${curationPath}`)
-  }
+  const path = resolveCurationFixturePath(curationPath)
 
   const manifest = parseCenstatdMeasureTableManifest(
     JSON.parse(await readFile(path, 'utf8')),
@@ -1247,8 +1249,7 @@ type CenstatdMeasureTableManifest = {
       locale: CenstatdMeasureTableLocale
       name: string
     }>
-    fieldName: string
-    sourceField: string
+    measureCode: string
   }>
 }
 
@@ -1259,6 +1260,7 @@ function parseCenstatdMeasureTableManifest(
   if (
     !value ||
     typeof value !== 'object' ||
+    (value as { schemaVersion?: unknown }).schemaVersion !== 1 ||
     !Array.isArray((value as { measures?: unknown }).measures)
   ) {
     throw new Error(`Invalid C&SD measure curation manifest: ${path}`)
@@ -1271,12 +1273,11 @@ function parseCenstatdMeasureTableManifest(
 
     const entry = measure as {
       localisations?: unknown
-      fieldName?: unknown
-      sourceField?: unknown
+      measureCode?: unknown
     }
     if (
-      typeof entry.fieldName !== 'string' ||
-      typeof entry.sourceField !== 'string' ||
+      typeof entry.measureCode !== 'string' ||
+      !/^[a-z][A-Za-z0-9]*$/.test(entry.measureCode) ||
       !Array.isArray(entry.localisations)
     ) {
       throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
@@ -1307,8 +1308,7 @@ function parseCenstatdMeasureTableManifest(
 
     return {
       localisations,
-      fieldName: entry.fieldName,
-      sourceField: entry.sourceField,
+      measureCode: entry.measureCode,
     }
   })
 
@@ -1325,20 +1325,17 @@ function renderCenstatdMeasureTable(
   manifest: CenstatdMeasureTableManifest,
   locale: CenstatdMeasureTableLocale,
 ) {
-  const lines = [
-    '| sourceField | fieldName | name | description |',
-    '| --- | --- | --- | --- |',
-  ]
+  const lines = ['| measureCode | name | description |', '| --- | --- | --- |']
 
   for (const measure of manifest.measures) {
     const localisation = measure.localisations.find(entry => entry.locale === locale)
     if (!localisation) {
       throw new Error(
-        `C&SD measure ${measure.sourceField} has no ${locale} localisation for the release-note table.`,
+        `C&SD measure ${measure.measureCode} has no ${locale} localisation for the release-note table.`,
       )
     }
     lines.push(
-      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.fieldName)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
+      `| \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
     )
   }
 
