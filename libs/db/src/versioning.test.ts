@@ -5,6 +5,7 @@ import {
   buildDeterministicUuidV5,
   buildSnapshotLineageCode,
   buildSnapshotVersionCode,
+  cohortKeyEffectiveFrom,
   computeVersionHash,
 } from './versioning'
 
@@ -57,6 +58,17 @@ describe('snapshot identifiers', () => {
       ),
     ).toBe('ss-hk-division-area-hkgov-censtatd-2016-simplified-2016')
   })
+
+  test('keeps exact period identity out of safe snapshot code segments', () => {
+    expect(
+      buildSnapshotVersionCode(
+        'hk',
+        'divisionStatistic',
+        '2024/25',
+        'official-statistics',
+      ),
+    ).toBe('ss-hk-division-statistic-official-statistics-2024-25')
+  })
 })
 
 describe('API release-set identifiers', () => {
@@ -70,6 +82,16 @@ describe('API release-set identifiers', () => {
     expect(buildDataReleaseSetCode('hk', 'divisions', '2025-09-24.0', 2)).toBe(
       'data-hk-divisions-2025-09-24.0-r2',
     )
+  })
+
+  test('normalises an exact spanning period only in the generated code', () => {
+    expect(buildDataReleaseSetCode('hk', 'stats', '2024/25')).toBe(
+      'data-hk-stats-2024-25',
+    )
+    expect(cohortKeyEffectiveFrom('2024/25')).toBe('2025-01-01T00:00:00.000Z')
+    expect(cohortKeyEffectiveFrom('2016-2021')).toBe('2021-01-01T00:00:00.000Z')
+    expect(cohortKeyEffectiveFrom('2023-Q3')).toBe('2023-07-01T00:00:00.000Z')
+    expect(cohortKeyEffectiveFrom('2024-H2')).toBe('2024-07-01T00:00:00.000Z')
   })
 })
 
