@@ -56,6 +56,8 @@ export async function runCenstatdStatsResetCommand(
   const datasetCodes = splitCsv(args.options.dataset)
   const context = await resolveLocalAddressDbContext(target, 'hk', '2021', {
     cacheTableProfile: 'statistics',
+    includeAllHistoryShardYears: true,
+    includeAllSourceShardYears: true,
   })
 
   try {
@@ -118,25 +120,34 @@ async function describeResetPlan(
   releases: ResetRelease[],
 ) {
   const releaseIds = values(releases.map(release => release.id))
-  const datasetCodes = values([
-    ...new Set(releases.map(release => release.datasetCode)),
-  ])
-  const source = context.sourceDb as ResetDb
   const current = context.currentDb as ResetDb
-  const history = context.historyDb as ResetDb
   const meta = context.metaDb as ResetDb
   const counts: ResetCount[] = []
 
-  await appendCounts(counts, source, 'source', [
-    ['hkgovCenstatdStatistics', sql`"releaseId" IN (${releaseIds})`],
-    [
-      'hkgovCenstatdDistrictLandAreaPopulationDensities',
-      sql`"releaseId" IN (${releaseIds})`,
-    ],
-  ])
+  for (const sourceTarget of context.sourceTargets) {
+    await appendCounts(counts, sourceTarget.db as ResetDb, 'source', [
+      ['hkgovCenstatdStatistics', sql`"releaseId" IN (${releaseIds})`],
+      [
+        'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        sql`"releaseId" IN (${releaseIds})`,
+      ],
+    ])
+  }
   await appendCounts(counts, current, 'current', [
     ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
     ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
+    [
+      'statsFields',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsFieldsI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsValuesI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
     [
       'statsObservations',
       sql`"seriesId" IN (SELECT "id" FROM "statsSeries" WHERE "sourceReleaseId" IN (${releaseIds}))`,
@@ -146,32 +157,25 @@ async function describeResetPlan(
       sql`"seriesId" IN (SELECT "id" FROM "statsSeries" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
     ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ...datasetScopedStatsTables(datasetCodes),
   ])
-  await appendCounts(counts, history, 'history', [
-    ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsObservations', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsSeriesDimensions', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ...datasetScopedStatsTables(datasetCodes),
-  ])
+  for (const historyTarget of context.historyTargets) {
+    await appendCounts(counts, historyTarget.db as ResetDb, 'history', [
+      ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsFields', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsFieldsI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsValuesI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsObservations', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsSeriesDimensions', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
+    ])
+  }
   await appendCounts(counts, meta, 'meta', [
     ['stats', sql`"releaseId" IN (${releaseIds})`],
     ['releaseProcessingActions', sql`"releaseId" IN (${releaseIds})`],
     ['ingestRuns', sql`"releaseId" IN (${releaseIds})`],
   ])
   return counts
-}
-
-function datasetScopedStatsTables(datasetCodes: SQL) {
-  return [
-    ['statsDimensions', sql`"datasetCode" IN (${datasetCodes})`],
-    ['statsMeasures', sql`"datasetCode" IN (${datasetCodes})`],
-    ['statsMeasuresI18n', sql`"datasetCode" IN (${datasetCodes})`],
-    ['statsValues', sql`"datasetCode" IN (${datasetCodes})`],
-    ['statsValuesI18n', sql`"datasetCode" IN (${datasetCodes})`],
-  ] as const
 }
 
 async function appendCounts(
@@ -192,21 +196,18 @@ async function clearStatisticRows(
   releases: ResetRelease[],
 ) {
   const releaseIds = values(releases.map(release => release.id))
-  const datasetCodes = values([
-    ...new Set(releases.map(release => release.datasetCode)),
-  ])
-  const source = context.sourceDb as ResetDb
   const current = context.currentDb as ResetDb
-  const history = context.historyDb as ResetDb
   const meta = context.metaDb as ResetDb
 
-  await deleteExisting(source, [
-    ['hkgovCenstatdStatistics', sql`"releaseId" IN (${releaseIds})`],
-    [
-      'hkgovCenstatdDistrictLandAreaPopulationDensities',
-      sql`"releaseId" IN (${releaseIds})`,
-    ],
-  ])
+  for (const sourceTarget of context.sourceTargets) {
+    await deleteExisting(sourceTarget.db as ResetDb, [
+      ['hkgovCenstatdStatistics', sql`"releaseId" IN (${releaseIds})`],
+      [
+        'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        sql`"releaseId" IN (${releaseIds})`,
+      ],
+    ])
+  }
   await deleteExisting(current, [
     [
       'statsObservations',
@@ -216,19 +217,34 @@ async function clearStatisticRows(
       'statsSeriesDimensions',
       sql`"seriesId" IN (SELECT "id" FROM "statsSeries" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
+    [
+      'statsFields',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsFieldsI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsValuesI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
     ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
     ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
     ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ...datasetScopedStatsTables(datasetCodes),
   ])
-  await deleteExisting(history, [
-    ['statsObservations', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsSeriesDimensions', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
-    ...datasetScopedStatsTables(datasetCodes),
-  ])
+  for (const historyTarget of context.historyTargets) {
+    await deleteExisting(historyTarget.db as ResetDb, [
+      ['statsObservations', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsSeriesDimensions', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsSeries', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsFields', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsFieldsI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsValuesI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
+    ])
+  }
   await deleteExisting(meta, [
     ['stats', sql`"releaseId" IN (${releaseIds})`],
     ['releaseProcessingActions', sql`"releaseId" IN (${releaseIds})`],
