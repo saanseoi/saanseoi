@@ -10,6 +10,7 @@ releaseVersion: "2026-04-15.0"
 sourceSchemaVersion: "1.16.0"
 type: "divisionBoundary"
 cohortKey: "2026-04-15.0"
+releaseNotesUrl: "https://docs.overturemaps.org/blog/2026/04/15/release-notes/#divisions"
 ---
 
 # EN

@@ -10,6 +10,7 @@ releaseVersion: "2025-08-13.0"
 sourceSchemaVersion: "3.2"
 type: "address"
 cohortKey: "2025-08-13.0"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
 ---
 
 # EN
