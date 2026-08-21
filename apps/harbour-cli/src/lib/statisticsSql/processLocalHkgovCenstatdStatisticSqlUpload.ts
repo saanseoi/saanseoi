@@ -1,11 +1,11 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
 import {
   buildCenstatdGeographyLinkAuditActions,
-  buildCenstatdMeasureCurationAuditActions,
+  buildCenstatdFieldCurationAuditActions,
   buildCenstatdNormalisationAuditActions,
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
@@ -39,7 +39,7 @@ import {
   resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
-import { resolveCenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
+import { resolveCenstatdFieldMetadata } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
@@ -50,6 +50,7 @@ import {
   completeStatisticCache,
   runStatisticProgressStep,
 } from './statisticProgress.ts'
+import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot.ts'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
@@ -76,6 +77,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       plan.sourceVersion.slice(0, 4),
       {
         cacheTableProfile: 'statistics',
+        includeAllHistoryShardYears: true,
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -93,16 +95,9 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
-    ? createHarbourControlClient(target)
+    ? (createHarbourControlClient(target) as HarbourClient)
     : createLocalControlClient(metaDb, {
-        publishClient: {
-          async publishDataset(id) {
-            await updateDatasetStatus(metaDb, id, 'published')
-          },
-          async stageCompleted() {},
-          async stageFailed() {},
-          async stageRunning() {},
-        },
+        publishClient: createHarbourControlClient(target) as HarbourClient,
       })
   let processingStarted = false
   let cacheMutationStarted = false
@@ -130,23 +125,29 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       : null
     const canonicalInput = rows.map(row => {
       const properties = object(row.rawProperties, 'rawProperties')
-      const sourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
+      const rawSourceFeatureId = `${requiredString(row.layerName, 'layerName')}:${requiredString(row.featureId, 'featureId')}`
+      const sourceFeatureRef = [
+        'hkgov-censtatd',
+        datasetCode,
+        plan.sourceVersion,
+        rawSourceFeatureId,
+      ].join('/')
       const divisionId = divisionIdForSourceProperties(
         datasetCode,
         properties,
-        sourceFeatureId,
+        rawSourceFeatureId,
         districtsBySourceCode,
       )
       if (bridgeCohort && !divisionId) {
         throw new Error(
-          `C&SD ${datasetCode} feature ${sourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
+          `C&SD ${datasetCode} feature ${rawSourceFeatureId} does not resolve through the reviewed ${bridgeCohort} district bridge.`,
         )
       }
       return {
         datasetCode: requiredString(row.datasetCode, 'datasetCode'),
         divisionId,
         properties,
-        sourceFeatureId,
+        sourceFeatureRef,
         sourceReleaseId: releaseId,
         sourceVersion: plan.sourceVersion,
       }
@@ -156,19 +157,19 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       { action: 'Normalise', count: rows.length, subject: 'records' },
       () => normaliseHkgovCenstatdStatistics(canonicalInput),
     )
-    const measureMetadata = await runStatisticProgressStep(
+    const fieldMetadata = await runStatisticProgressStep(
       progress,
-      { action: 'Review', count: canonical.measures.length, subject: 'measures' },
+      { action: 'Review', count: canonical.fields.length, subject: 'fields' },
       () =>
-        resolveCenstatdMeasureMetadata({
-          measures: canonical.measures,
+        resolveCenstatdFieldMetadata({
+          fields: canonical.fields,
           promptForCuration: options.promptForCuration,
         }),
     )
     canonical = await runStatisticProgressStep(
       progress,
-      { action: 'Curate', count: canonical.measures.length, subject: 'measures' },
-      () => normaliseHkgovCenstatdStatistics(canonicalInput, { measureMetadata }),
+      { action: 'Curate', count: canonical.fields.length, subject: 'fields' },
+      () => normaliseHkgovCenstatdStatistics(canonicalInput, { fieldMetadata }),
     )
     const batches = await runStatisticProgressStep(
       progress,
@@ -180,7 +181,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           source: { rows, table: 'hkgovCenstatdStatistics' },
         }),
     )
-    const canonicalHistoryBatches = await runStatisticProgressStep(
+    const canonicalBatches = await runStatisticProgressStep(
       progress,
       {
         action: 'Generate SQL',
@@ -189,27 +190,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
       () =>
         buildCanonicalStatsSqlBatches({
-          current: [],
-          history: canonicalHistoryRows(canonical, releaseId),
-        }),
-    )
-    const canonicalCurrentBatches = await runStatisticProgressStep(
-      progress,
-      {
-        action: 'Generate SQL',
-        count: canonical.records.length,
-        subject: 'current',
-      },
-      () =>
-        buildCanonicalStatsSqlBatches({
           current: canonicalCurrentRows(canonical),
-          history: [],
+          history: canonicalHistoryRows(canonical, releaseId),
+          dictionaries: canonicalDictionaries(canonical, releaseId),
         }),
     )
-    const canonicalBatches = {
-      current: canonicalCurrentBatches.current,
-      history: canonicalHistoryBatches.history,
-    }
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -246,24 +231,22 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       {
         action: 'Import canonical SQL',
         count:
-          (canonicalBatches.current.length + canonicalBatches.history.length) *
+          (canonicalBatches.current.length +
+            canonicalBatches.history.reduce(
+              (total, history) => total + history.batches.length,
+              0,
+            )) *
           (target.remote ? 2 : 1),
         subject: 'batches',
       },
       () =>
-        replayCanonicalStatsSqlBatches(
-          target,
-          context,
-          plan.sourceVersion.slice(0, 4),
-          canonicalBatches,
-          {
-            onProgress(event) {
-              progress.update(event.completedBatches, {
-                label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
-              })
-            },
+        replayCanonicalStatsSqlBatches(target, context, canonicalBatches, {
+          onProgress(event) {
+            progress.update(event.completedBatches, {
+              label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+            })
           },
-        ),
+        }),
     )
     const statsProfile = censtatdReleaseStatsProfileFor(datasetCode, plan.sourceVersion)
     const structuralStats = buildCenstatdReleaseStats(
@@ -294,7 +277,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
                 statsProfile,
                 sourceFeatures.length,
               ),
-              ...buildCenstatdMeasureCurationAuditActions(canonical),
+              ...buildCenstatdFieldCurationAuditActions(canonical),
               ...buildCenstatdNormalisationAuditActions(canonical),
             ])
           await replayReleaseStatsMetaToRemote(
@@ -322,6 +305,13 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
       releaseCode,
     )
+    await materialiseStatisticSnapshots({
+      datasetCode,
+      metaDb,
+      referencePeriods: uniqueReferencePeriods(canonical.records),
+      releaseId,
+      target,
+    })
     const published = await runStatisticProgressStep(
       progress,
       { action: 'Publish', subject: 'statistic release' },
@@ -379,7 +369,20 @@ async function readRows(filePath: string, releaseId: string, releaseCode: string
         datasetCode: requiredString(row.dataset_code, 'dataset_code'),
         featureId: requiredString(row.feature_id, 'feature_id'),
         layerName: requiredString(row.layer_name, 'layer_name'),
-        referenceYear: requiredString(row.reference_year, 'reference_year'),
+        referencePeriodCode: requiredString(
+          row.reference_period_code,
+          'reference_period_code',
+        ),
+        referencePeriodEnd: optionalString(row.reference_period_end),
+        referencePeriodEndYear: requiredString(
+          row.reference_period_end_year,
+          'reference_period_end_year',
+        ),
+        referencePeriodGranularity: requiredString(
+          row.reference_period_granularity,
+          'reference_period_granularity',
+        ),
+        referencePeriodStart: optionalString(row.reference_period_start),
         sourceGeometry: json(row.source_geometry, 'source_geometry'),
         sources: source,
         rawProperties: properties,
@@ -416,6 +419,10 @@ function requiredString(value: unknown, field: string) {
   return value
 }
 
+function optionalString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
 function object(value: unknown, field: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`Expected ${field} object.`)
@@ -426,7 +433,7 @@ function object(value: unknown, field: string) {
 function divisionIdForSourceProperties(
   datasetCode: string,
   properties: Record<string, unknown>,
-  sourceFeatureId: string,
+  rawSourceFeatureId: string,
   districtsBySourceCode: ReadonlyMap<number, { divisionId: string }> | null,
 ) {
   if (
@@ -435,14 +442,14 @@ function divisionIdForSourceProperties(
   ) {
     return hkgovCenstatdStatisticDivisionId(
       datasetCode,
-      sourceFeatureId.split(':').at(-1) ?? '',
+      rawSourceFeatureId.split(':').at(-1) ?? '',
     )
   }
   if (
     datasetCode ===
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
-    if (!sourceFeatureId.startsWith('HMA_21C:')) return null
+    if (!rawSourceFeatureId.startsWith('HMA_21C:')) return null
     const code = typeof properties.hma === 'string' ? properties.hma : ''
     return hkgovCenstatdStatisticDivisionId(datasetCode, code)
   }
@@ -467,38 +474,6 @@ function canonicalCurrentRows(
       })),
       table: 'statsRecords' as const,
     },
-    {
-      rows: canonical.measures.map(row => ({ ...row, createdAt: now, updatedAt: now })),
-      table: 'statsMeasures' as const,
-    },
-    {
-      rows: canonical.measuresI18n.map(row => ({
-        ...row,
-        createdAt: now,
-        updatedAt: now,
-      })),
-      table: 'statsMeasuresI18n' as const,
-    },
-    {
-      rows: canonical.dimensions.map(row => ({
-        ...row,
-        createdAt: now,
-        updatedAt: now,
-      })),
-      table: 'statsDimensions' as const,
-    },
-    {
-      rows: canonical.values.map(row => ({ ...row, createdAt: now, updatedAt: now })),
-      table: 'statsValues' as const,
-    },
-    {
-      rows: canonical.valuesI18n.map(row => ({
-        ...row,
-        createdAt: now,
-        updatedAt: now,
-      })),
-      table: 'statsValuesI18n' as const,
-    },
   ]
 }
 
@@ -517,12 +492,43 @@ function canonicalHistoryRows(
       .update(stableJsonStringify(row) ?? JSON.stringify(row))
       .digest('hex'),
   })
+  return [{ rows: canonical.records.map(version), table: 'statsRecords' as const }]
+}
+
+function canonicalDictionaries(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+  sourceReleaseId: string,
+) {
+  const now = new Date().toISOString()
+  const version = (row: Record<string, unknown>) => ({
+    ...row,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: createHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
+  })
   return [
-    { rows: canonical.records.map(version), table: 'statsRecords' as const },
-    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
-    { rows: canonical.measuresI18n.map(version), table: 'statsMeasuresI18n' as const },
-    { rows: canonical.dimensions.map(version), table: 'statsDimensions' as const },
-    { rows: canonical.values.map(version), table: 'statsValues' as const },
+    { rows: canonical.fields.map(version), table: 'statsFields' as const },
+    { rows: canonical.fieldsI18n.map(version), table: 'statsFieldsI18n' as const },
     { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
+  ]
+}
+
+function uniqueReferencePeriods(
+  records: ReturnType<typeof normaliseHkgovCenstatdStatistics>['records'],
+) {
+  return [
+    ...new Map(
+      records.map(record => [
+        record.referencePeriodCode,
+        {
+          code: record.referencePeriodCode,
+          endYear: record.referencePeriodEndYear,
+        },
+      ]),
+    ).values(),
   ]
 }
