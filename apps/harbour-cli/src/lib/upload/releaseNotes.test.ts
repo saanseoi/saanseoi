@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'bun:test'
+import { resolve } from 'node:path'
 
 import { buildDatasetCode, buildDatasetReleaseCode, type UploadPlan } from '@repo/core'
 
-import { resolveReleaseNotesUrl } from './releaseNotes.ts'
+import { parseFixtureReleaseNotesUrl, resolveReleaseNotesUrl } from './releaseNotes.ts'
 
 function buildOvertureDivisionPlan(
   type: 'division' | 'divisionArea' | 'divisionBoundary',
@@ -34,7 +35,9 @@ function buildOvertureDivisionPlan(
   } satisfies UploadPlan
 }
 
-describe('Overture release notes', () => {
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+
+describe('release-notes fixtures', () => {
   test('uses the divisions notes for all division resource types', async () => {
     const urls = await Promise.all(
       (['division', 'divisionArea', 'divisionBoundary'] as const).map(type =>
@@ -49,7 +52,7 @@ describe('Overture release notes', () => {
     ])
   })
 
-  test('uses the release code as the cache key', async () => {
+  test('uses the release code to resolve fixture metadata', async () => {
     const plan = buildOvertureDivisionPlan('division')
     plan.sourceVersion = '2025-09-25.0'
 
@@ -58,7 +61,7 @@ describe('Overture release notes', () => {
     )
   })
 
-  test('uses the built-in release notes mapping for 2026-07-22.0', async () => {
+  test('uses fixture metadata for 2026-07-22.0', async () => {
     const plan = buildOvertureDivisionPlan('division')
     plan.sourceVersion = '2026-07-22.0'
     plan.releaseCode = buildDatasetReleaseCode(
@@ -91,5 +94,55 @@ describe('Overture release notes', () => {
     ).rejects.toThrow(
       'No upstream release-notes URL is cached for dr-hk-overture-division-2026-09-16.0. Pass --release-notes-url URL.\n\nRun interactively with:\n./bin/saanseoi update --target local --dataset ds-hk-overture-division --download --check-now',
     )
+  })
+
+  test('includes a valid URL in every release fixture', async () => {
+    const paths = [] as string[]
+
+    for await (const path of new Bun.Glob('fixtures/meta/releases/**/*.md').scan({
+      cwd: REPO_ROOT,
+    })) {
+      paths.push(path)
+    }
+
+    expect(paths.length).toBeGreaterThan(0)
+
+    for (const path of paths) {
+      const content = await Bun.file(resolve(REPO_ROOT, path)).text()
+      const datasetCode = content.match(/^dataset:\s*"([^"]+)"$/m)?.[1]
+      const releaseCode = content.match(/^release:\s*"([^"]+)"$/m)?.[1]
+      const url = parseFixtureReleaseNotesUrl(content)
+
+      if (!datasetCode || !releaseCode || !url) {
+        throw new Error(`Incomplete release fixture: ${path}`)
+      }
+
+      expect(url).toMatch(/^https?:\/\//)
+      await expect(
+        resolveReleaseNotesUrl({ datasetCode, releaseCode } as UploadPlan, {
+          skipPrompt: true,
+        }),
+      ).resolves.toBe(url)
+    }
+  })
+})
+
+describe('fixture release notes', () => {
+  test('reads a release-notes URL from frontmatter', () => {
+    expect(
+      parseFixtureReleaseNotesUrl(`---
+release: "dr-hk-hkgov-had-division-area-district-2022"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218"
+---
+`),
+    ).toBe(
+      'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218',
+    )
+  })
+
+  test('ignores fixtures without release-notes metadata', () => {
+    expect(
+      parseFixtureReleaseNotesUrl('---\nrelease: "dr-hk-example"\n---\n'),
+    ).toBeUndefined()
   })
 })
