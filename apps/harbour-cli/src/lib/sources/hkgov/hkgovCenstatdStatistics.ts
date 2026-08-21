@@ -71,7 +71,7 @@ type SourceRow = {
 type StatisticGeography = {
   code: string
   layerName: string
-  level: number
+  level?: number
   nameEn: string
   nameZhHant: string
   type: 'area' | 'housing-market-area'
@@ -177,7 +177,9 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
         geography.type === 'area'
           ? null
           : {
-              canonical_level: geography.level,
+              ...(geography.level === undefined
+                ? {}
+                : { canonical_level: geography.level }),
               canonical_type: geography.type,
               geometry: feature.geometry,
               id: divisionId,
@@ -249,7 +251,7 @@ function statisticGeographyIdentity(datasetCode: string, sourceCode: string) {
     return { code, level: 1, type: 'area' as const }
   }
   if (datasetCode === HMA_DATASET && /^HMA\d+$/i.test(code)) {
-    return { code: code.toUpperCase(), level: 3, type: 'housing-market-area' as const }
+    return { code: code.toUpperCase(), type: 'housing-market-area' as const }
   }
   return null
 }
