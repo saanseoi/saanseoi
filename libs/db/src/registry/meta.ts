@@ -369,7 +369,6 @@ type InitialDataShardSeed = {
 export type DivisionCodeFixtureAssignment = {
   divisionCode: string
   canonicalId: string
-  level: number
 }
 
 type DivisionCodeFixture = {
@@ -391,9 +390,6 @@ export function validateDivisionCodeFixtures(
       if (!assignment.divisionCode.trim() || /\s/.test(assignment.divisionCode)) {
         throw new Error(`Invalid Division code=${assignment.divisionCode}.`)
       }
-      if (!Number.isInteger(assignment.level) || assignment.level < 0) {
-        throw new Error(`Invalid Division code level=${assignment.level}.`)
-      }
       if (!assignment.canonicalId.trim()) {
         throw new Error(
           `Division code=${assignment.divisionCode} has no canonical target.`,
@@ -404,8 +400,8 @@ export function validateDivisionCodeFixtures(
           `Division code=${assignment.divisionCode} targets unknown canonical Division ${assignment.canonicalId}.`,
         )
       }
-      const codeKey = `${fixture.domainCode}\u0000${assignment.level}\u0000${assignment.divisionCode}`
-      const targetKey = `${fixture.domainCode}\u0000${assignment.level}\u0000${assignment.canonicalId}`
+      const codeKey = `${fixture.domainCode}\u0000${assignment.divisionCode}`
+      const targetKey = `${fixture.domainCode}\u0000${assignment.canonicalId}`
       if (codes.has(codeKey))
         throw new Error(`Duplicate Division code=${assignment.divisionCode}.`)
       if (targets.has(targetKey))
@@ -885,17 +881,16 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO divisionCodes (
-  domainCode, level, divisionCode, canonicalId, versionHash, createdAt, updatedAt
+  domainCode, divisionCode, canonicalId, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlString(divisionCode.domainCode)},
-  ${divisionCode.level},
   ${sqlString(divisionCode.divisionCode)},
   ${sqlString(divisionCode.canonicalId)},
   ${sqlString(divisionCode.versionHash)},
   ${nowSql},
   ${nowSql}
 )
-ON CONFLICT(domainCode, level, divisionCode) DO UPDATE SET
+ON CONFLICT(domainCode, divisionCode) DO UPDATE SET
   canonicalId = excluded.canonicalId,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
