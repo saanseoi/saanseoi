@@ -6,7 +6,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households",
+          "name": "Domestic households",
           "description": "Number of domestic households",
           "isTranslationVerified": false
         },
@@ -148,7 +148,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 4 persons",
+          "name": "Domestic households: Household size: 4 persons",
           "description": "Number of domestic households - Household size: 4 persons",
           "isTranslationVerified": false
         },
@@ -184,7 +184,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 5 persons and over",
+          "name": "Domestic households: Household size: 5 persons and over",
           "description": "Number of domestic households - Household size: 5 persons and over",
           "isTranslationVerified": false
         },
@@ -220,7 +220,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 5 persons",
+          "name": "Domestic households: Household size: 5 persons",
           "description": "Number of domestic households - Household size: 5 persons",
           "isTranslationVerified": false
         },
@@ -256,7 +256,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 6 persons and over",
+          "name": "Domestic households: Household size: 6 persons and over",
           "description": "Number of domestic households - Household size: 6 persons and over",
           "isTranslationVerified": false
         },
@@ -309,7 +309,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictHouseholdSize1Person",
+      "fieldName": "domesticHouseholds1PersonProportion",
       "dimensions": {
         "household-size": "1-person"
       },
@@ -345,7 +345,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictHouseholdSize2Persons",
+      "fieldName": "domesticHouseholds2PersonsProportion",
       "dimensions": {
         "household-size": "2-persons"
       },
@@ -381,7 +381,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictHouseholdSize3Persons",
+      "fieldName": "domesticHouseholds3PersonsProportion",
       "dimensions": {
         "household-size": "3-persons"
       },
@@ -417,7 +417,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictHouseholdSize4Persons",
+      "fieldName": "domesticHouseholds4PersonsProportion",
       "dimensions": {
         "household-size": "4-persons"
       },
@@ -489,7 +489,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictHouseholdSize5Persons",
+      "fieldName": "domesticHouseholds5PersonsProportion",
       "dimensions": {
         "household-size": "5-persons"
       },
@@ -544,7 +544,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Type of accommodation: Whole flat/ floor/ house",
+          "name": "Domestic households: Type of accommodation: Whole flat/ floor/ house",
           "description": "Number of domestic households - Type of accommodation: Whole flat/ floor/ house",
           "isTranslationVerified": false
         },
@@ -580,7 +580,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Type of accommodation: Others",
+          "name": "Domestic households: Type of accommodation: Others",
           "description": "Number of domestic households - Type of accommodation: Others (i.e. Including rooms/cubicles, cockloft, bedspaces and non-domestic quarters)",
           "isTranslationVerified": false
         },
@@ -669,7 +669,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfDomesticHouseholdsInRespectiveDistrictTypeOfAccommodationOthers",
+      "fieldName": "domesticHouseholdsOtherAccommodationProportion",
       "dimensions": {
         "accommodation-type": "other"
       },
@@ -688,7 +688,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Tenure of accommodation: Owner-occupiers",
+          "name": "Domestic households: Tenure of accommodation: Owner-occupiers",
           "description": "Number of domestic households - Tenure of accommodation: Owner-occupiers",
           "isTranslationVerified": false
         },
@@ -724,7 +724,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Tenure of accommodation: Sole tenants",
+          "name": "Domestic households: Tenure of accommodation: Sole tenants",
           "description": "Number of domestic households - Tenure of accommodation: Sole tenants",
           "isTranslationVerified": false
         },
@@ -760,7 +760,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Tenure of accommodation: Others",
+          "name": "Domestic households: Tenure of accommodation: Others",
           "description": "Number of domestic households - Tenure of accommodation: Others (i.e. Including co-tenants, main tenants, sub-tenants, rent free households and households with accommodation provided by employers.)",
           "isTranslationVerified": false
         },
@@ -1045,7 +1045,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of domestic households in respective district: Monthly domestic household income: HK$10,000: 29,999",
+          "name": "Percentage share of domestic households in respective district: Monthly domestic household income: HK$10,000 to 29,999",
           "description": "Percentage share of domestic households in respective district (%) - Monthly domestic household income: HK$10,000 - 29,999",
           "isTranslationVerified": false
         },
@@ -1117,7 +1117,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically active households being economically active): Monthly domestic household income: Less than HK$10,000",
+          "name": "Economically active households: Monthly domestic household income: Less than HK$10,000",
           "description": "Number of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: Less than HK$10,000",
           "isTranslationVerified": false
         },
@@ -1134,7 +1134,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedLessThanHkd10000",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHLessThanHkd10000",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1155,7 +1155,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically active households being economically active): Monthly domestic household income: HK$10,000-29,999",
+          "name": "Economically active households: Monthly domestic household income: HK$10,000-29,999",
           "description": "Number of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$10,000-29,999",
           "isTranslationVerified": false
         },
@@ -1172,7 +1172,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd10000To29999",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd10000To29999",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1193,7 +1193,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically active households being economically active): Monthly domestic household income: HK$30,000 and over",
+          "name": "Economically active households: Monthly domestic household income: HK$30,000 and over",
           "description": "Number of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$30,000 and over",
           "isTranslationVerified": false
         },
@@ -1210,7 +1210,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd30000AndOver",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd30000AndOver",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1231,7 +1231,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of economically active households being economically active) in respective district: Monthly domestic household income: Less than HK$10,000",
+          "name": "Proportion of economically active households in the district: Monthly domestic household income: Less than HK$10,000",
           "description": "Percentage share of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) in respective district (%) - Monthly domestic household income: Less than HK$10,000",
           "isTranslationVerified": false
         },
@@ -1248,7 +1248,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedLessThanHkd10000Proportion",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHLessThanHkd10000Proportion",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1269,7 +1269,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of economically active households being economically active) in respective district: Monthly domestic household income: HK$10,000-29,999",
+          "name": "Proportion of economically active households in the district: Monthly domestic household income: HK$10,000-29,999",
           "description": "Percentage share of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) in respective district (%) - Monthly domestic household income: HK$10,000-29,999",
           "isTranslationVerified": false
         },
@@ -1286,7 +1286,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd10000To29999Proportion",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd10000To29999Proportion",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1307,7 +1307,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of economically active households being economically active) in respective district: Monthly domestic household income: HK$30,000 and over",
+          "name": "Proportion of economically active households in the district: Monthly domestic household income: HK$30,000 and over",
           "description": "Percentage share of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) in respective district (%) - Monthly domestic household income: HK$30,000 and over",
           "isTranslationVerified": false
         },
@@ -1324,7 +1324,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd30000AndOverProportion",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd30000AndOverProportion",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -1345,7 +1345,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Type of households: Economically active domestic households",
+          "name": "Domestic households: Type of households: Economically active domestic households",
           "description": "Number of domestic households - Type of households: Economically active domestic households",
           "isTranslationVerified": false
         },
@@ -1381,7 +1381,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Type of households: Economically inactive domestic households",
+          "name": "Domestic households: Type of households: Economically inactive domestic households",
           "description": "Number of domestic households - Type of households: Economically inactive domestic households",
           "isTranslationVerified": false
         },
@@ -1486,7 +1486,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Median monthly domestic household income of economically active households being economically active)",
+          "name": "Median monthly domestic household income of economically active households",
           "description": "Median monthly domestic household income (HK$) of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active)",
           "isTranslationVerified": false
         },
@@ -1503,7 +1503,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "medianMonthlyDomesticHouseholdIncomeEconomicallyActiveExcluded",
+      "fieldName": "medianMonthlyDomesticHouseholdIncomeEconomicallyActiveExclFDH",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded"
@@ -1524,7 +1524,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Median monthly domestic household income of economically active households being economically active) (excl. FDH)",
+          "name": "Median monthly domestic household income of economically active households (excluding foreign domestic helpers)",
           "description": "Median monthly domestic household income (HK$) of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) (excluding Foreign Domestic Helpers)",
           "isTranslationVerified": false
         },
@@ -1670,7 +1670,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 0: 14",
+          "name": "Land-based non-institutional population aged 0 to 14",
           "description": "Land-based non-institutional population aged 0 - 14",
           "isTranslationVerified": false
         },
@@ -1687,7 +1687,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "landBasedNonInstitutionalPopulationAged014",
+      "fieldName": "landBasedNonInstitutionalPopulationAged0To14",
       "dimensions": {
         "age-group": "0-to-14",
         "sex": "all"
@@ -1707,7 +1707,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 15: 24",
+          "name": "Land-based non-institutional population aged 15 to 24",
           "description": "Land-based non-institutional population aged 15 - 24",
           "isTranslationVerified": false
         },
@@ -1744,7 +1744,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 25: 64",
+          "name": "Land-based non-institutional population aged 25 to 64",
           "description": "Land-based non-institutional population aged 25 - 64",
           "isTranslationVerified": false
         },
@@ -1781,7 +1781,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 25: 34",
+          "name": "Land-based non-institutional population aged 25 to 34",
           "description": "Land-based non-institutional population aged 25 - 34",
           "isTranslationVerified": false
         },
@@ -1818,7 +1818,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 35: 44",
+          "name": "Land-based non-institutional population aged 35 to 44",
           "description": "Land-based non-institutional population aged 35 - 44",
           "isTranslationVerified": false
         },
@@ -1855,7 +1855,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 45: 54",
+          "name": "Land-based non-institutional population aged 45 to 54",
           "description": "Land-based non-institutional population aged 45 - 54",
           "isTranslationVerified": false
         },
@@ -1892,7 +1892,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Land-based non-institutional population aged 55: 64",
+          "name": "Land-based non-institutional population aged 55 to 64",
           "description": "Land-based non-institutional population aged 55 - 64",
           "isTranslationVerified": false
         },
@@ -1966,7 +1966,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 0: 14 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 0 to 14 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 0 - 14 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -1983,7 +1983,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "percentageShareOfLandBasedNonInstitutionalPopulationAged014InRespectiveDistrict",
+      "fieldName": "landBasedNonInstitutionalPopulation0To14Proportion",
       "dimensions": {
         "age-group": "0-to-14",
         "sex": "all"
@@ -2003,7 +2003,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 15: 24 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 15 to 24 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 15 - 24 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2040,7 +2040,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 25: 64 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 25 to 64 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 25 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2077,7 +2077,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 25: 34 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 25 to 34 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 25 - 34 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2114,7 +2114,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 35: 44 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 35 to 44 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 35 - 44 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2151,7 +2151,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 45: 54 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 45 to 54 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 45 - 54 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2188,7 +2188,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of land-based non-institutional population aged 55: 64 in respective district",
+          "name": "Percentage share of land-based non-institutional population aged 55 to 64 in respective district",
           "description": "Percentage share of land-based non-institutional population aged 55 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2262,7 +2262,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 0: 14",
+          "name": "Male land-based non-institutional population aged 0 to 14",
           "description": "Male land-based non-institutional population aged 0 - 14",
           "isTranslationVerified": false
         },
@@ -2279,7 +2279,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "maleLandBasedNonInstitutionalPopulationAged014",
+      "fieldName": "maleLandBasedNonInstitutionalPopulationAged0To14",
       "dimensions": {
         "sex": "male",
         "age-group": "0-to-14"
@@ -2299,7 +2299,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 15: 24",
+          "name": "Male land-based non-institutional population aged 15 to 24",
           "description": "Male land-based non-institutional population aged 15 - 24",
           "isTranslationVerified": false
         },
@@ -2336,7 +2336,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 25: 64",
+          "name": "Male land-based non-institutional population aged 25 to 64",
           "description": "Male land-based non-institutional population aged 25 - 64",
           "isTranslationVerified": false
         },
@@ -2373,7 +2373,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 25: 34",
+          "name": "Male land-based non-institutional population aged 25 to 34",
           "description": "Male land-based non-institutional population aged 25 - 34",
           "isTranslationVerified": false
         },
@@ -2410,7 +2410,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 35: 44",
+          "name": "Male land-based non-institutional population aged 35 to 44",
           "description": "Male land-based non-institutional population aged 35 - 44",
           "isTranslationVerified": false
         },
@@ -2447,7 +2447,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 45: 54",
+          "name": "Male land-based non-institutional population aged 45 to 54",
           "description": "Male land-based non-institutional population aged 45 - 54",
           "isTranslationVerified": false
         },
@@ -2484,7 +2484,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male land-based non-institutional population aged 55: 64",
+          "name": "Male land-based non-institutional population aged 55 to 64",
           "description": "Male land-based non-institutional population aged 55 - 64",
           "isTranslationVerified": false
         },
@@ -2558,7 +2558,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 0: 14 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 0 to 14 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 0 - 14 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2595,7 +2595,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 15: 24 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 15 to 24 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 15 - 24 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2632,7 +2632,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 25: 64 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 25 to 64 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 25 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2669,7 +2669,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 25: 34 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 25 to 34 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 25 - 34 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2706,7 +2706,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 35: 44 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 35 to 44 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 35 - 44 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2743,7 +2743,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 45: 54 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 45 to 54 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 45 - 54 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2780,7 +2780,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of male land-based non-institutional population aged 55: 64 in respective district",
+          "name": "Percentage share of male land-based non-institutional population aged 55 to 64 in respective district",
           "description": "Percentage share of male land-based non-institutional population aged 55 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -2854,7 +2854,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 0: 14",
+          "name": "Female land-based non-institutional population aged 0 to 14",
           "description": "Female land-based non-institutional population aged 0 - 14",
           "isTranslationVerified": false
         },
@@ -2871,7 +2871,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "femaleLandBasedNonInstitutionalPopulationAged014",
+      "fieldName": "femaleLandBasedNonInstitutionalPopulationAged0To14",
       "dimensions": {
         "sex": "female",
         "age-group": "0-to-14"
@@ -2891,7 +2891,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 15: 24",
+          "name": "Female land-based non-institutional population aged 15 to 24",
           "description": "Female land-based non-institutional population aged 15 - 24",
           "isTranslationVerified": false
         },
@@ -2928,7 +2928,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 25: 64",
+          "name": "Female land-based non-institutional population aged 25 to 64",
           "description": "Female land-based non-institutional population aged 25 - 64",
           "isTranslationVerified": false
         },
@@ -2965,7 +2965,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 25: 34",
+          "name": "Female land-based non-institutional population aged 25 to 34",
           "description": "Female land-based non-institutional population aged 25 - 34",
           "isTranslationVerified": false
         },
@@ -3002,7 +3002,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 35: 44",
+          "name": "Female land-based non-institutional population aged 35 to 44",
           "description": "Female land-based non-institutional population aged 35 - 44",
           "isTranslationVerified": false
         },
@@ -3039,7 +3039,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 45: 54",
+          "name": "Female land-based non-institutional population aged 45 to 54",
           "description": "Female land-based non-institutional population aged 45 - 54",
           "isTranslationVerified": false
         },
@@ -3076,7 +3076,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female land-based non-institutional population aged 55: 64",
+          "name": "Female land-based non-institutional population aged 55 to 64",
           "description": "Female land-based non-institutional population aged 55 - 64",
           "isTranslationVerified": false
         },
@@ -3150,7 +3150,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 0: 14 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 0 to 14 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 0 - 14 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3187,7 +3187,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 15: 24 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 15 to 24 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 15 - 24 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3224,7 +3224,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 25: 64 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 25 to 64 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 25 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3261,7 +3261,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 25: 34 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 25 to 34 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 25 - 34 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3298,7 +3298,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 35: 44 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 35 to 44 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 35 - 44 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3335,7 +3335,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 45: 54 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 45 to 54 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 45 - 54 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -3372,7 +3372,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Percentage share of female land-based non-institutional population aged 55: 64 in respective district",
+          "name": "Percentage share of female land-based non-institutional population aged 55 to 64 in respective district",
           "description": "Percentage share of female land-based non-institutional population aged 55 - 64 in respective district (%)",
           "isTranslationVerified": false
         },
@@ -4925,7 +4925,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population with secondary education and above",
+          "name": "Land-based non-institutional population with secondary education and above",
           "description": "Percentage of land-based non-institutional population with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -4962,7 +4962,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 15: 24 with secondary education and above",
+          "name": "Land-based non-institutional population aged 15 to 24 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 15 - 24 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5000,7 +5000,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 25: 44 with secondary education and above",
+          "name": "Land-based non-institutional population aged 25 to 44 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 25 - 44 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5038,7 +5038,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 25: 34 with secondary education and above",
+          "name": "Land-based non-institutional population aged 25 to 34 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 25 - 34 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5076,7 +5076,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 35: 44 with secondary education and above",
+          "name": "Land-based non-institutional population aged 35 to 44 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 35 - 44 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5114,7 +5114,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 45: 64 with secondary education and above",
+          "name": "Land-based non-institutional population aged 45 to 64 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 45 - 64 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5152,7 +5152,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 45: 54 with secondary education and above",
+          "name": "Land-based non-institutional population aged 45 to 54 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 45 - 54 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5190,7 +5190,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 55: 64 with secondary education and above",
+          "name": "Land-based non-institutional population aged 55 to 64 with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 55 - 64 with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -5228,7 +5228,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "land-based non-institutional population aged 65 and over with secondary education and above",
+          "name": "Land-based non-institutional population aged 65 and over with secondary education and above",
           "description": "Percentage of land-based non-institutional population aged 65 and over with secondary education and above (%)",
           "isTranslationVerified": false
         },
@@ -6557,7 +6557,8 @@
       ],
       "fieldName": "medianAgeOfLandBasedNonInstitutionalPopulation",
       "dimensions": {
-        "sex": "all"
+        "sex": "all",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6565,10 +6566,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_t",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6594,7 +6595,8 @@
       ],
       "fieldName": "medianAgeOfMaleLandBasedNonInstitutionalPopulation",
       "dimensions": {
-        "sex": "male"
+        "sex": "male",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6602,10 +6604,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_m",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6631,7 +6633,8 @@
       ],
       "fieldName": "medianAgeOfFemaleLandBasedNonInstitutionalPopulation",
       "dimensions": {
-        "sex": "female"
+        "sex": "female",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6639,10 +6642,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_f",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6669,7 +6672,8 @@
       "fieldName": "medianAgeOfLandBasedNonInstitutionalPopulationExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "all"
+        "sex": "all",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6677,10 +6681,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_t_xfdh",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6707,7 +6711,8 @@
       "fieldName": "medianAgeOfMaleLandBasedNonInstitutionalPopulationExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "male"
+        "sex": "male",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6715,10 +6720,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_m_xfdh",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6745,7 +6750,8 @@
       "fieldName": "medianAgeOfFemaleLandBasedNonInstitutionalPopulationExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "female"
+        "sex": "female",
+        "population-group": "land-based-non-institutional"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6753,10 +6759,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "lbnp_ma_f_xfdh",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "landBasedNonInstitutionalPopulation"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6782,7 +6788,8 @@
       ],
       "fieldName": "medianAgeOfLabourForce",
       "dimensions": {
-        "sex": "all"
+        "sex": "all",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6791,9 +6798,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_t",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6819,7 +6826,8 @@
       ],
       "fieldName": "medianAgeOfMaleLabourForce",
       "dimensions": {
-        "sex": "male"
+        "sex": "male",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6828,9 +6836,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_m",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6856,7 +6864,8 @@
       ],
       "fieldName": "medianAgeOfFemaleLabourForce",
       "dimensions": {
-        "sex": "female"
+        "sex": "female",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6865,9 +6874,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_f",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6894,7 +6903,8 @@
       "fieldName": "medianAgeOfLabourForceExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "all"
+        "sex": "all",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6903,9 +6913,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_t_xfdh",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6932,7 +6942,8 @@
       "fieldName": "medianAgeOfMaleLabourForceExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "male"
+        "sex": "male",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6941,9 +6952,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_m_xfdh",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "median",
@@ -6970,7 +6981,8 @@
       "fieldName": "medianAgeOfFemaleLabourForceExclFDH",
       "dimensions": {
         "foreign-domestic-helper": "excluded",
-        "sex": "female"
+        "sex": "female",
+        "population-group": "labour-force"
       },
       "schemaSpecification": {
         "sha256": "6a6e841f6da27ce1300ae71b3b883206e74fa1a16e97407172dd4eb0aa19d1dc",
@@ -6979,9 +6991,9 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_ma_f_xfdh",
       "statisticKind": "quantity",
-      "unitCode": "person",
+      "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "labourForce"
+      "measureCode": "medianAge"
     },
     {
       "aggregation": "none",

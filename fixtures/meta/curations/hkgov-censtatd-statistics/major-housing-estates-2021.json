@@ -42,7 +42,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population: Male",
+          "name": "Population: Male",
           "description": "Total population - Male",
           "isTranslationVerified": false
         },
@@ -78,7 +78,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population: Female",
+          "name": "Population: Female",
           "description": "Total population - Female",
           "isTranslationVerified": false
         },
@@ -739,7 +739,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "males aged 15 and over: Never married",
+          "name": "Males aged 15 and over: Never married",
           "description": "Number of males aged 15 and over - Never married",
           "isTranslationVerified": false
         },
@@ -777,7 +777,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "males aged 15 and over: Married",
+          "name": "Males aged 15 and over: Married",
           "description": "Number of males aged 15 and over - Married",
           "isTranslationVerified": false
         },
@@ -815,7 +815,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "males aged 15 and over: Widowed/ Divorced/ Separated",
+          "name": "Males aged 15 and over: Widowed/ Divorced/ Separated",
           "description": "Number of males aged 15 and over - Widowed/ Divorced/ Separated",
           "isTranslationVerified": false
         },
@@ -853,7 +853,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "females aged 15 and over: Never married",
+          "name": "Females aged 15 and over: Never married",
           "description": "Number of females aged 15 and over - Never married",
           "isTranslationVerified": false
         },
@@ -891,7 +891,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "females aged 15 and over: Married",
+          "name": "Females aged 15 and over: Married",
           "description": "Number of females aged 15 and over - Married",
           "isTranslationVerified": false
         },
@@ -929,7 +929,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "females aged 15 and over: Widowed/ Divorced/ Separated",
+          "name": "Females aged 15 and over: Widowed/ Divorced/ Separated",
           "description": "Number of females aged 15 and over - Widowed/ Divorced/ Separated",
           "isTranslationVerified": false
         },
@@ -1152,7 +1152,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population aged 5 and over able to read Chinese",
+          "name": "Population aged 5 and over able to read Chinese",
           "description": "Proportion of population aged 5 and over able to read Chinese",
           "isTranslationVerified": false
         },
@@ -1190,7 +1190,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population aged 5 and over able to read English",
+          "name": "Population aged 5 and over able to read English",
           "description": "Proportion of population aged 5 and over able to read English",
           "isTranslationVerified": false
         },
@@ -1228,7 +1228,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population aged 5 and over able to write Chinese",
+          "name": "Population aged 5 and over able to write Chinese",
           "description": "Proportion of population aged 5 and over able to write Chinese",
           "isTranslationVerified": false
         },
@@ -1266,7 +1266,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "population aged 5 and over able to write English",
+          "name": "Population aged 5 and over able to write English",
           "description": "Proportion of population aged 5 and over able to write English",
           "isTranslationVerified": false
         },
@@ -1415,8 +1415,8 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the same district&#160;those who live on Hong Kong Island or in Kowloon and study in the same District Council district; those who live in a new town and study in the same new town; and those who live in other areas in the New Territories and study in areas other than new town areas of the same District Council district)",
-          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the same district (including (a)&#160;those who live on Hong Kong Island or in Kowloon and study in the same District Council district; (b) those who live in a new town and study in the same new town; and (c) those who live in other areas in the New Territories and study in areas other than new town areas of the same District Council district)",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong: Study in the same district",
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the same district (including (a) those who live on Hong Kong Island or in Kowloon and study in the same District Council district; (b) those who live in a new town and study in the same new town; and (c) those who live in other areas in the New Territories and study in areas other than new town areas of the same District Council district)",
           "isTranslationVerified": false
         },
         {
@@ -1451,7 +1451,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district on Hong Kong Island",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong: Study in the another district on Hong Kong Island",
           "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district on Hong Kong Island",
           "isTranslationVerified": false
         },
@@ -1487,7 +1487,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in Kowloon",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in Kowloon",
           "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in Kowloon",
           "isTranslationVerified": false
         },
@@ -1523,7 +1523,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in new towns",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in new towns",
           "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in new towns",
           "isTranslationVerified": false
         },
@@ -1559,7 +1559,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in other areas in the New Territories",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong: Study in the another district in other areas in the New Territories",
           "description": "Number of persons studying full-time courses in educational institutions in Hong Kong - Study in the another district in other areas in the New Territories",
           "isTranslationVerified": false
         },
@@ -1809,7 +1809,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Home-makers",
+          "name": "Non-working population: Home-makers",
           "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Home-makers",
           "isTranslationVerified": false
         },
@@ -1890,7 +1890,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Retired",
+          "name": "Non-working population: Retired",
           "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Retired",
           "isTranslationVerified": false
         },
@@ -1934,7 +1934,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Unpaid carers)",
+          "name": "Non-working population: Unpaid carers",
           "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Unpaid carers (persons who are engaged in unpaid care to family members or other persons (including persons with chronic diseases/disability and old/young persons))",
           "isTranslationVerified": false
         },
@@ -1978,7 +1978,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Non-working population slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census. Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016): Others",
+          "name": "Non-working population: Others",
           "description": "Non-working population (The classification of economic activity status for economically inactive population adopted in the 2021 Population Census (i.e. “Home-makers”, “Students”, “Retired persons”, “Unpaid carers” and “Others”) slightly differs from that adopted in the 2011 Population Census and 2016 Population By-census (i.e. “Home-makers”, “Students”, “Retired persons” and “Others”). Therefore, caution should be taken when comparing figures for 2021 with those for 2011 and/or 2016) - Others",
           "isTranslationVerified": false
         },
@@ -2022,7 +2022,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Working population: Work in the same district those who live on Hong Kong Island or in Kowloon and work in the same District Council district; those who live in a new town and work in the same new town; and those who live in other areas in the New Territories and work in areas other than new town areas of the same District Council district, but excluding persons who work at home)",
+          "name": "Working population: Work in the same district",
           "description": "Working population - Work in the same district (including (a) those who live on Hong Kong Island or in Kowloon and work in the same District Council district; (b) those who live in a new town and work in the same new town; and (c) those who live in other areas in the New Territories and work in areas other than new town areas of the same District Council district, but excluding persons who work at home)",
           "isTranslationVerified": false
         },
@@ -2363,7 +2363,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHkd1000019999",
+      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHkd10000To19999",
       "dimensions": {
         "unpaid-family-worker": "excluded"
       },
@@ -2445,10 +2445,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "t_mmearn",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "workingPopulation"
+      "measureCode": "medianMonthlyEmploymentIncome"
     },
     {
       "aggregation": "total",
@@ -2472,9 +2472,10 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentBelowHK10000ExclFDH",
+      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentLessThanHkd10000ExclFDH",
       "dimensions": {
-        "unpaid-family-worker": "excluded"
+        "unpaid-family-worker": "excluded",
+        "foreign-domestic-helper": "excluded"
       },
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
@@ -2508,9 +2509,10 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHK10000To19999ExclFDH",
+      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHkd10000To19999ExclFDH",
       "dimensions": {
-        "unpaid-family-worker": "excluded"
+        "unpaid-family-worker": "excluded",
+        "foreign-domestic-helper": "excluded"
       },
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
@@ -2544,9 +2546,10 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHK20000AndOverExclFDH",
+      "fieldName": "workingPopulationMonthlyIncomeFromMainEmploymentHkd20000AndOverExclFDH",
       "dimensions": {
-        "unpaid-family-worker": "excluded"
+        "unpaid-family-worker": "excluded",
+        "foreign-domestic-helper": "excluded"
       },
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
@@ -2582,7 +2585,8 @@
       ],
       "fieldName": "medianMonthlyIncomeFromMainEmploymentOfWorkingPopulationExclFDH",
       "dimensions": {
-        "unpaid-family-worker": "excluded"
+        "unpaid-family-worker": "excluded",
+        "foreign-domestic-helper": "excluded"
       },
       "schemaSpecification": {
         "sha256": "d19c219c1132908d6c6d8b7f441134cdde581f7274d70b0f012a415db359cb07",
@@ -2590,10 +2594,10 @@
       },
       "sourceNullOption": "Null",
       "sourceField": "t_mmearn_xfdh",
-      "statisticKind": "count",
-      "unitCode": "person",
+      "statisticKind": "quantity",
+      "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "workingPopulation"
+      "measureCode": "medianMonthlyEmploymentIncome"
     },
     {
       "aggregation": "none",
@@ -3542,7 +3546,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households",
+          "name": "Domestic households",
           "description": "Number of domestic households",
           "isTranslationVerified": false
         },
@@ -3684,7 +3688,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 4 persons",
+          "name": "Domestic households: Household size: 4 persons",
           "description": "Number of domestic households - Household size: 4 persons",
           "isTranslationVerified": false
         },
@@ -3720,7 +3724,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 5 persons",
+          "name": "Domestic households: Household size: 5 persons",
           "description": "Number of domestic households - Household size: 5 persons",
           "isTranslationVerified": false
         },
@@ -3756,7 +3760,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household size: 6 persons and over",
+          "name": "Domestic households: Household size: 6 persons and over",
           "description": "Number of domestic households - Household size: 6 persons and over",
           "isTranslationVerified": false
         },
@@ -3826,7 +3830,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household composition: Nuclear family households without any other related persons; and households comprising a father or mother and his/ her unmarried child without any other related persons. These households may or may not include other unrelated persons.)",
+          "name": "Domestic households: Household composition: Nuclear family households",
           "description": "Number of domestic households - Household composition: Nuclear family households (i.e. comprising a married couple without any other related persons; households comprising a couple and their unmarried child(ren) without any other related persons; and households comprising a father or mother and his/ her unmarried child(ren) without any other related persons. These households may or may not include other unrelated persons (e.g. domestic helpers).)",
           "isTranslationVerified": false
         },
@@ -3862,7 +3866,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household composition: Relative households of the wife and/ or husband) without any other related persons; households comprising a couple, at least one of their parents of the wife and/ or husband) and their unmarried children without any other related persons; and households comprising a group of related persons but not being classified in the other categories. These households may or may not include other unrelated persons.)",
+          "name": "Domestic households: Household composition: Relative households",
           "description": "Number of domestic households - Household composition: Relative households (i.e. comprising a couple and at least one of their parents (including the parent(s) of the wife and/ or husband) without any other related persons; households comprising a couple, at least one of their parents (including the parent(s) of the wife and/ or husband) and their unmarried children without any other related persons; and households comprising a group of related persons but not being classified in the other categories. These households may or may not include other unrelated persons (e.g. domestic helpers).)",
           "isTranslationVerified": false
         },
@@ -3898,7 +3902,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Household composition: Other households.)",
+          "name": "Domestic households: Household composition: Other households",
           "description": "Number of domestic households - Household composition: Other households (i.e. comprising only one person and households comprising unrelated person(s).)",
           "isTranslationVerified": false
         },
@@ -3934,7 +3938,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Monthly domestic household income: Less than HK$10,000",
+          "name": "Domestic households: Monthly domestic household income: Less than HK$10,000",
           "description": "Number of domestic households - Monthly domestic household income: Less than HK$10,000",
           "isTranslationVerified": false
         },
@@ -3970,7 +3974,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Monthly domestic household income: HK$10,000-19,999",
+          "name": "Domestic households: Monthly domestic household income: HK$10,000-19,999",
           "description": "Number of domestic households - Monthly domestic household income: HK$10,000-19,999",
           "isTranslationVerified": false
         },
@@ -3987,7 +3991,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHkd1000019999",
+      "fieldName": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHkd10000To19999",
       "dimensions": {
         "monthly-income-band": "hkd-10-000-to-19-999"
       },
@@ -4006,7 +4010,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Monthly domestic household income: HK$20,000-39,999",
+          "name": "Domestic households: Monthly domestic household income: HK$20,000-39,999",
           "description": "Number of domestic households - Monthly domestic household income: HK$20,000-39,999",
           "isTranslationVerified": false
         },
@@ -4023,7 +4027,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHkd2000039999",
+      "fieldName": "domesticHouseholdsMonthlyDomesticHouseholdIncomeHkd20000To39999",
       "dimensions": {
         "monthly-income-band": "hkd-20-000-to-39-999"
       },
@@ -4042,7 +4046,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households: Monthly domestic household income: HK$40,000 and over",
+          "name": "Domestic households: Monthly domestic household income: HK$40,000 and over",
           "description": "Number of domestic households - Monthly domestic household income: HK$40,000 and over",
           "isTranslationVerified": false
         },
@@ -4113,7 +4117,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically-active households being economically active): Monthly domestic household income: Less than HK$10,000",
+          "name": "Economically-active households: Monthly domestic household income: Less than HK$10,000",
           "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: Less than HK$10,000",
           "isTranslationVerified": false
         },
@@ -4130,7 +4134,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedLessThanHkd10000",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHLessThanHkd10000",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -4151,7 +4155,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically-active households being economically active): Monthly domestic household income: HK$10,000-19,999",
+          "name": "Economically-active households: Monthly domestic household income: HK$10,000-19,999",
           "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$10,000-19,999",
           "isTranslationVerified": false
         },
@@ -4168,7 +4172,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd10000To19999",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd10000To19999",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -4189,7 +4193,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically-active households being economically active): Monthly domestic household income: HK$20,000-39,999",
+          "name": "Economically-active households: Monthly domestic household income: HK$20,000-39,999",
           "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$20,000-39,999",
           "isTranslationVerified": false
         },
@@ -4206,7 +4210,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd20000To39999",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd20000To39999",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -4227,7 +4231,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "economically-active households being economically active): Monthly domestic household income: HK$40,000 and over",
+          "name": "Economically-active households: Monthly domestic household income: HK$40,000 and over",
           "description": "Number of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active) - Monthly domestic household income: HK$40,000 and over",
           "isTranslationVerified": false
         },
@@ -4244,7 +4248,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "domesticHouseholdsEconomicallyActiveExcludedHkd40000AndOver",
+      "fieldName": "domesticHouseholdsEconomicallyActiveExclFDHHkd40000AndOver",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded",
@@ -4265,7 +4269,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Median monthly domestic household income of economically-active households being economically active)",
+          "name": "Median monthly domestic household income of economically active households",
           "description": "Median monthly domestic household income (HK$) of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active)",
           "isTranslationVerified": false
         },
@@ -4282,7 +4286,7 @@
           "isTranslationVerified": false
         }
       ],
-      "fieldName": "medianMonthlyDomesticHouseholdIncomeEconomicallyActiveExcluded",
+      "fieldName": "medianMonthlyDomesticHouseholdIncomeEconomicallyActiveExclFDH",
       "dimensions": {
         "household-economic-activity": "economically-active",
         "foreign-domestic-helper": "excluded"

@@ -26,7 +26,7 @@
       "fieldName": "residentsOfSubdividedUnits",
       "dimensions": {},
       "schemaSpecification": {
-        "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
+        "sha256": "b941abd9751a884dc615b8e7ca79f0213c0c2c892d97914573a3d8f96b586eec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
       },
       "sourceNullOption": "Null",
@@ -60,7 +60,7 @@
       "fieldName": "householdsInSubdividedUnits",
       "dimensions": {},
       "schemaSpecification": {
-        "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
+        "sha256": "b941abd9751a884dc615b8e7ca79f0213c0c2c892d97914573a3d8f96b586eec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
       },
       "sourceNullOption": "Null",
@@ -74,20 +74,57 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Occupied subdivided units",
-          "description": "Number of occupied subdivided units.",
-          "isTranslationVerified": false
+          "name": "Occupied quarters with subdivided units",
+          "description": "Number of occupied quarters with subdivided units.",
+          "isTranslationVerified": true
         },
         {
           "locale": "zh-Hant",
-          "name": "已佔用分間單位",
-          "description": "已佔用分間單位的數目。",
+          "name": "有分間樓宇單位且有人居住的屋宇單位",
+          "description": "有分間樓宇單位且有人居住的屋宇單位數目。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "已占用分间单位",
-          "description": "已占用分间单位的数目。",
+          "name": "有分间楼宇单位且有人居住的屋宇单位",
+          "description": "有分间楼宇单位且有人居住的屋宇单位数目。",
+          "isTranslationVerified": false
+        }
+      ],
+      "fieldName": "occupiedQuartersWithSubdividedUnits",
+      "dimensions": {
+        "occupancy-status": "occupied",
+        "subdivision-status": "contains-subdivided-units"
+      },
+      "schemaSpecification": {
+        "sha256": "b941abd9751a884dc615b8e7ca79f0213c0c2c892d97914573a3d8f96b586eec",
+        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
+      },
+      "sourceNullOption": "Null",
+      "sourceField": "sdu_oq",
+      "statisticKind": "count",
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
+    },
+    {
+      "aggregation": "total",
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Occupied subdivided units",
+          "description": "Number of occupied subdivided units.",
+          "isTranslationVerified": true
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "有人居住的分間樓宇單位",
+          "description": "有人居住的分間樓宇單位數目。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "有人居住的分间楼宇单位",
+          "description": "有人居住的分间楼宇单位数目。",
           "isTranslationVerified": false
         }
       ],
@@ -96,43 +133,7 @@
         "occupancy-status": "occupied"
       },
       "schemaSpecification": {
-        "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
-        "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
-      },
-      "sourceNullOption": "Null",
-      "sourceField": "sdu_oq",
-      "statisticKind": "count",
-      "unitCode": "subdivided-unit",
-      "measureCode": "subdividedUnits"
-    },
-    {
-      "aggregation": "total",
-      "localisations": [
-        {
-          "locale": "en",
-          "name": "Subdivided units",
-          "description": "Number of subdivided units.",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hant",
-          "name": "分間單位",
-          "description": "分間單位的數目。",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hans",
-          "name": "分间单位",
-          "description": "分间单位的数目。",
-          "isTranslationVerified": false
-        }
-      ],
-      "fieldName": "subdividedUnits",
-      "dimensions": {
-        "occupancy-status": "all"
-      },
-      "schemaSpecification": {
-        "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
+        "sha256": "b941abd9751a884dc615b8e7ca79f0213c0c2c892d97914573a3d8f96b586eec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
       },
       "sourceNullOption": "Null",
