@@ -566,7 +566,9 @@ describe('Statistics API responses through the Worker route', () => {
       expect(listBody.links.permalink).toContain('/v0.1/stats?')
 
       const crossPeriod = await app.fetch(
-        new Request('http://localhost/v0.1/stats?filter[referencePeriod]=2020'),
+        new Request(
+          'http://localhost/v0.1/stats?cohort=2021&filter[referencePeriod]=2020',
+        ),
         fixture.env,
       )
       const crossPeriodBody = (await crossPeriod.json()) as StatisticsListDocument

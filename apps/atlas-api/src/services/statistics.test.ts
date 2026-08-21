@@ -329,8 +329,17 @@ describe('Statistics service', () => {
 
   test('always scopes record lookup to the selected exact period', async () => {
     let listLookup: { cohortKey?: string } | undefined
+    let selectedCohort: string | undefined
     const mocks = {
       ...dependencies(),
+      resolveApiReleaseSetSnapshotsForRequest: async (
+        _db: unknown,
+        type: string,
+        options?: { cohortKey?: string; domainCode?: string },
+      ) => {
+        if (type === 'divisionStatistic') selectedCohort = options?.cohortKey
+        return releaseSelection(type, options?.domainCode)
+      },
       listStatisticRecords: async (_dbs: unknown, lookup: { cohortKey?: string }) => {
         listLookup = lookup
         return []
@@ -351,6 +360,7 @@ describe('Statistics service', () => {
     })
 
     expect(result.status).toBe(200)
+    expect(selectedCohort).toBe('2020')
     expect(listLookup?.cohortKey).toBe('2021')
   })
 

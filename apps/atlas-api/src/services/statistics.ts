@@ -369,7 +369,12 @@ async function getActiveStatisticSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
   selectors: Pick<
     StatisticListQuery,
-    'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+    | 'catalogRevision'
+    | 'cohort'
+    | 'effectiveAt'
+    | 'knownAt'
+    | 'releaseSet'
+    | 'filter[referencePeriod]'
   >,
   dependencies: StatisticServiceDependencies,
 ) {
@@ -379,7 +384,10 @@ async function getActiveStatisticSnapshot(
       'divisionStatistic',
       {
         catalogRevision: selectors.catalogRevision,
-        cohortKey: selectors.cohort,
+        // Statistics release sets are published per exact reference period.
+        // Keep explicit publication selectors authoritative, but make the
+        // required geography period useful without a redundant cohort param.
+        cohortKey: selectors.cohort ?? selectors['filter[referencePeriod]'],
         domainCode: 'default',
         effectiveAt: selectors.effectiveAt,
         knownAt: selectors.knownAt,
