@@ -261,11 +261,23 @@ export const statsAggregations = [
 
 export type StatsAggregation = (typeof statsAggregations)[number]
 
+export const statsFieldComparabilityReasons = [
+  'economic-activity-status-classification-changed',
+] as const
+
+export type StatsFieldComparabilityReason =
+  (typeof statsFieldComparabilityReasons)[number]
+
+export const statsFieldComparabilityStatuses = ['caution'] as const
+
+export type StatsFieldComparabilityStatus =
+  (typeof statsFieldComparabilityStatuses)[number]
+
 /** A source-declared caveat about comparisons between reference periods. */
 export type StatsFieldComparability = {
   affectedReferencePeriods: string[]
-  reason: 'economic-activity-status-classification-changed'
-  status: 'caution'
+  reason: StatsFieldComparabilityReason
+  status: StatsFieldComparabilityStatus
 }
 
 export const canonicalStatsField = {

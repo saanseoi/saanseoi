@@ -17,6 +17,8 @@ export {
   streetNameChangeStreetRoles,
   streetStatuses,
   statsAggregations,
+  statsFieldComparabilityReasons,
+  statsFieldComparabilityStatuses,
   statsStatisticKinds,
   toIsoTimestamp,
   type EvidenceAsset,
@@ -30,6 +32,8 @@ export {
   type StreetStatus,
   type StatsAggregation,
   type StatsFieldComparability,
+  type StatsFieldComparabilityReason,
+  type StatsFieldComparabilityStatus,
   type StatsStatisticKind,
 } from './schema/shared'
 export type {
