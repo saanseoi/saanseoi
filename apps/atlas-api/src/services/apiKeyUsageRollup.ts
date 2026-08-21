@@ -3,6 +3,7 @@ const ANALYTICS_ENGINE_SQL_URL = (accountId: string) =>
 const ROLLUP_DELAY_MS = 2 * 60_000
 const ROLLUP_OVERLAP_MS = 20 * 60_000
 const D1_BATCH_SIZE = 100
+const quoteDataset = (dataset: string) => `"${dataset}"`
 
 type AnalyticsUsageRow = {
   apiKeyId: string
@@ -70,7 +71,7 @@ const queryUsage = async (
       index1 AS apiKeyId,
       toStartOfMinute(timestamp) AS windowStartedAt,
       SUM(_sample_interval * double1) AS requestCount
-    FROM ${dataset}
+    FROM ${quoteDataset(dataset)}
     WHERE timestamp >= '${timestamp(start)}' AND timestamp < '${timestamp(end)}'
     GROUP BY index1, windowStartedAt`,
     },
