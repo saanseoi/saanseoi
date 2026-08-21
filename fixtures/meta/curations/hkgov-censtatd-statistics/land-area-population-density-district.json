@@ -1,6 +1,6 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
@@ -24,7 +24,8 @@
         }
       ],
       "statisticKind": "quantity",
-      "measureCode": "landArea",
+      "fieldName": "landArea",
+      "dimensions": {},
       "sourceField": "LA",
       "unitCode": "square-kilometre"
     },
@@ -51,13 +52,14 @@
         }
       ],
       "statisticKind": "count",
-      "measureCode": "populationMidYear",
+      "fieldName": "populationMidYear",
+      "dimensions": {},
       "sourceField": "MYPOPN_LAND",
       "unitCode": "person"
     },
     {
       "aggregation": "none",
-      "denominatorMeasureCode": "landArea",
+      "denominatorFieldName": "landArea",
       "localisations": [
         {
           "locale": "en",
@@ -79,7 +81,8 @@
         }
       ],
       "statisticKind": "density",
-      "measureCode": "populationDensity",
+      "fieldName": "populationDensity",
+      "dimensions": {},
       "sourceField": "POPN_D",
       "unitCode": "person-per-square-kilometre"
     }
