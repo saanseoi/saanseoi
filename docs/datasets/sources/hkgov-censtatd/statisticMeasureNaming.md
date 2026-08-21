@@ -70,10 +70,14 @@ For example, Chinese `收入` and `入息` both mean _income_ and do not create 
 measures; a trailing `(%)` is a unit annotation, not a different definition. Names must
 be sentence-cased, balanced, plain text. Preserve a complete valid source description
 rather than deriving a broken name with unmatched parentheses or encoded HTML entities.
-Within one dataset, each localised field name must distinguish its field: use
-_Non-working population: Unpaid carers_, not the unqualified _Non-working population_,
-and distinguish a count from its proportion. Write numeric intervals as _aged 15 to 24_
-or _HK$10,000 to 29,999_, not _aged 15: 24_ or _HK$10,000: 29,999_.
+When fields in separate datasets have the same measure and dimensions, their field
+localisations must be identical too. Normalise superficial source variants such as a
+trailing `(%)` or `收入` versus `入息`; retain a difference only when it expresses a
+different scope or qualifier. Within one dataset, each localised field name must
+distinguish its field: use _Non-working population: Unpaid carers_, not the unqualified
+_Non-working population_, and distinguish a count from its proportion. Write numeric
+intervals as _aged 15 to 24_ or _HK$10,000 to 29,999_, not _aged 15: 24_ or _HK$10,000:
+29,999_.
 
 Treat `schemaSpecification.sha256` drift as a new review event. Re-read the current
 publisher definitions and verify the field, measure, unit, dimensions, and localisations
@@ -131,7 +135,9 @@ camel case、盡量採用單數概念，並以簡潔而通用的限定詞表示�
 同一 `measureCode`
 的標準在地化內容必須完全一致。若發布者欄位的範圍或術語確有差異，欄位在地化內容則可保留差異。例如中文「收入」和「入息」均指 income，不會構成不同指標；末尾的
 `(%)`
-是單位標註，也不是不同定義。名稱須使用一致句式、括號配對的純文字。與其從來源描述產生括號殘缺或含 HTML 實體的名稱，應保留完整而有效的來源描述。在同一資料集內，每個在地化欄位名稱都必須能區分其欄位：應使用
+是單位標註，也不是不同定義。名稱須使用一致句式、括號配對的純文字。與其從來源描述產生括號殘缺或含 HTML 實體的名稱，應保留完整而有效的來源描述。若不同資料集的欄位具有相同指標和維度，其欄位在地化內容亦必須完全一致。應統一
+`(%)` 結尾或 `收入`／`入息`
+等表面差異；只有表達不同範圍或限定時才保留差異。在同一資料集內，每個在地化欄位名稱都必須能區分其欄位：應使用
 _Non-working population: Unpaid carers_，而非沒有類別限定的 _Non-working
 population_，並須區分數目和比例。數值區間應寫成 _aged 15 to 24_ 或
 _HK$10,000 to 29,999_，不應寫成 _aged 15: 24_ 或
@@ -192,7 +198,9 @@ camel case、尽量采用单数概念，并以简洁而通用的限定词表示�
 同一 `measureCode`
 的标准本地化内容必须完全一致。若发布者字段的范围或术语确有差异，字段本地化内容则可保留差异。例如中文“收入”和“入息”均指 income，不会构成不同指标；末尾的
 `(%)`
-是单位标注，也不是不同定义。名称须使用一致句式、括号配对的纯文本。与其从来源描述产生括号残缺或含 HTML 实体的名称，应保留完整而有效的来源描述。在同一数据集内，每个本地化字段名称都必须能区分其字段：应使用
+是单位标注，也不是不同定义。名称须使用一致句式、括号配对的纯文本。与其从来源描述产生括号残缺或含 HTML 实体的名称，应保留完整而有效的来源描述。若不同数据集的字段具有相同指标和维度，其字段本地化内容也必须完全一致。应统一
+`(%)` 结尾或 `收入`／`入息`
+等表面差异；只有表达不同范围或限定时才保留差异。在同一数据集内，每个本地化字段名称都必须能区分其字段：应使用
 _Non-working population: Unpaid carers_，而非没有类别限定的 _Non-working
 population_，并须区分数目和比例。数值区间应写成 _aged 15 to 24_ 或
 _HK$10,000 to 29,999_，不应写成 _aged 15: 24_ 或

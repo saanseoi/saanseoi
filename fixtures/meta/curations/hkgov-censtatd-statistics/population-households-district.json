@@ -1457,14 +1457,14 @@
         },
         {
           "locale": "zh-Hant",
-          "name": "家庭住戶每月入息中位數（港元）",
-          "description": "家庭住戶每月入息中位數（港元）",
+          "name": "家庭住戶每月收入中位數（港元）",
+          "description": "家庭住戶每月收入中位數（港元）",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "家庭住户每月入息中位数（港元）",
-          "description": "家庭住户每月入息中位数（港元）",
+          "name": "家庭住户每月收入中位数（港元）",
+          "description": "家庭住户每月收入中位数（港元）",
           "isTranslationVerified": false
         }
       ],
@@ -1487,7 +1487,7 @@
         {
           "locale": "en",
           "name": "Median monthly domestic household income of economically active households",
-          "description": "Median monthly domestic household income (HK$) of economically active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active)",
+          "description": "Median monthly domestic household income (HK$) of economically-active households (i.e. a domestic household with at least one member (excluding Foreign Domestic Helpers) being economically active)",
           "isTranslationVerified": false
         },
         {
@@ -8023,19 +8023,19 @@
         {
           "locale": "en",
           "name": "Labour force participation rate",
-          "description": "Labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over) (%)",
+          "description": "Labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over)",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
-          "description": "勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
+          "name": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比）",
+          "description": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比）",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
-          "description": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
+          "name": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）",
+          "description": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）",
           "isTranslationVerified": false
         }
       ],
@@ -8059,20 +8059,20 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Male labour force participation rate",
-          "description": "Male labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over) (%)",
+          "name": "Labour force participation rate: Male",
+          "description": "Labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over) - Male",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "男性勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
-          "description": "男性勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
+          "name": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比） - 男性",
+          "description": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比） - 男性",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "男性劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
-          "description": "男性劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
+          "name": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比） - 男性",
+          "description": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比） - 男性",
           "isTranslationVerified": false
         }
       ],
@@ -8096,20 +8096,20 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Female labour force participation rate",
-          "description": "Female labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over) (%)",
+          "name": "Labour force participation rate: Female",
+          "description": "Labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over) - Female",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "女性勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
-          "description": "女性勞動人口參與率（勞動人口占所有 15 歲及以上人口的百分比）（%）",
+          "name": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比） - 女性",
+          "description": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比） - 女性",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "女性劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
-          "description": "女性劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）（%）",
+          "name": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比） - 女性",
+          "description": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比） - 女性",
           "isTranslationVerified": false
         }
       ],

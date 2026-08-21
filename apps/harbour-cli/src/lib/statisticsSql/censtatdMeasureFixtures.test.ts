@@ -303,6 +303,35 @@ test('keeps canonical measure localisations identical across datasets', async ()
   ).toBe(true)
 })
 
+test('normalises localisations for equivalent C&SD source fields', async () => {
+  const manifests = await readFieldManifests()
+  const field = (datasetCode: string, sourceField: string) =>
+    manifests
+      .find(manifest => manifest.datasetCode === datasetCode)
+      ?.fields.find(candidate => candidate.sourceField === sourceField)
+  const newTowns = 'ds-hk-hkgov-censtatd-division-statistic-new-towns'
+  const populationHouseholds =
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  const majorHousingEstates =
+    'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'
+
+  for (const [leftDataset, leftSourceField, rightDataset, rightSourceField] of [
+    [newTowns, 'lfpr_t', populationHouseholds, 't_lfpr'],
+    [newTowns, 'lfpr_m', populationHouseholds, 'lfpr_m'],
+    [newTowns, 'lfpr_f', populationHouseholds, 'lfpr_f'],
+    [newTowns, 'ma_hh', populationHouseholds, 'ma_hh'],
+    [newTowns, 'ma_hh', majorHousingEstates, 'ma_hh'],
+    [newTowns, 'ma_econhh', populationHouseholds, 'ma_econhh'],
+    [newTowns, 'ma_econhh', majorHousingEstates, 'ma_econhh'],
+  ]) {
+    const left = field(leftDataset, leftSourceField)
+    const right = field(rightDataset, rightSourceField)
+    expect(left).toBeDefined()
+    expect(right).toBeDefined()
+    expect(left?.localisations).toEqual(right?.localisations)
+  }
+})
+
 test('keeps reviewed names readable and range identifiers explicit', async () => {
   const manifests = await readFieldManifests()
   const fields = manifests.flatMap(manifest => manifest.fields)
