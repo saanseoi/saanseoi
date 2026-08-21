@@ -94,7 +94,8 @@ their evidence.
 Where C&SD explicitly declares that an economic-activity-status classification changed,
 the curated field stores a `comparability` caution with the affected earlier reference
 periods. The caution is field metadata, not an analytical dimension: it does not change
-the value or make it invalid, but tells consumers to use care in cross-period comparison.
+the value or make it invalid, but tells consumers to use care in cross-period
+comparison.
 
 Publisher identifiers, including GML references, are retained as source references and
 are never materialised as statistics. Units describe the numeric value: people,
