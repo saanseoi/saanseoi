@@ -296,6 +296,9 @@ function defaultAreaVariant(record: StatisticRecord) {
   ) {
     return 'hkgov-censtatd-hma'
   }
+  if (record.datasetCode === NEW_TOWNS_DATASET) {
+    return 'hkgov-pland-new-town'
+  }
   const sourceVersion = record.sourceFeatureRef.split('/')[2]
   return /^(?:2016|2021)$/.test(sourceVersion ?? '')
     ? `hkgov-censtatd:${sourceVersion}`
@@ -303,6 +306,7 @@ function defaultAreaVariant(record: StatisticRecord) {
 }
 
 function relatedDivisionDomain(record: StatisticRecord) {
+  if (record.datasetCode === NEW_TOWNS_DATASET) return 'hkgov-pland-new-town'
   return record.datasetCode ===
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
     ? 'hkgov-censtatd-hma'
