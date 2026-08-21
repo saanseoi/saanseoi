@@ -46,17 +46,17 @@ jobs:
         id: deployment-baseline
         env:
           DEPLOYMENT_TAG: 'saanseoi-deployed-preview'
-        shell: fish {0}
+        shell: bash
         run: |
-          set baseline_sha (git rev-parse "refs/tags/$DEPLOYMENT_TAG" 2>/dev/null)
-          set initial false
-          if test (string length -- "$baseline_sha") -eq 0
-            set initial true
-            set baseline_sha (git rev-parse "$GITHUB_SHA^" 2>/dev/null)
-            if test (string length -- "$baseline_sha") -eq 0
-              set baseline_sha "$GITHUB_SHA"
-            end
-          end
+          baseline_sha=$(git rev-parse --verify --quiet "refs/tags/$DEPLOYMENT_TAG^{commit}" || true)
+          initial=false
+          if [[ -z "$baseline_sha" ]]; then
+            initial=true
+            baseline_sha=$(git rev-parse --verify --quiet "$GITHUB_SHA^" || true)
+            if [[ -z "$baseline_sha" ]]; then
+              baseline_sha="$GITHUB_SHA"
+            fi
+          fi
           echo "sha=$baseline_sha" >> "$GITHUB_OUTPUT"
           echo "initial=$initial" >> "$GITHUB_OUTPUT"
 
@@ -165,10 +165,10 @@ jobs:
         env:
           DEPLOYMENT_TAG: 'saanseoi-deployed-preview'
           GH_TOKEN: ${{ github.token }}
-        shell: fish {0}
+        shell: bash
         run: |
-          set ref "refs/tags/$DEPLOYMENT_TAG"
-          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1
+          ref="refs/tags/$DEPLOYMENT_TAG"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1; then
             gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$DEPLOYMENT_TAG" \
               --field sha="$GITHUB_SHA" \
               --field force=true >/dev/null
@@ -176,7 +176,7 @@ jobs:
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               --field ref="$ref" \
               --field sha="$GITHUB_SHA" >/dev/null
-          end
+          fi
 
   build-production:
     if: github.ref == 'refs/heads/main'
@@ -207,17 +207,17 @@ jobs:
         id: deployment-baseline
         env:
           DEPLOYMENT_TAG: 'saanseoi-deployed-production'
-        shell: fish {0}
+        shell: bash
         run: |
-          set baseline_sha (git rev-parse "refs/tags/$DEPLOYMENT_TAG" 2>/dev/null)
-          set initial false
-          if test (string length -- "$baseline_sha") -eq 0
-            set initial true
-            set baseline_sha (git rev-parse "$GITHUB_SHA^" 2>/dev/null)
-            if test (string length -- "$baseline_sha") -eq 0
-              set baseline_sha "$GITHUB_SHA"
-            end
-          end
+          baseline_sha=$(git rev-parse --verify --quiet "refs/tags/$DEPLOYMENT_TAG^{commit}" || true)
+          initial=false
+          if [[ -z "$baseline_sha" ]]; then
+            initial=true
+            baseline_sha=$(git rev-parse --verify --quiet "$GITHUB_SHA^" || true)
+            if [[ -z "$baseline_sha" ]]; then
+              baseline_sha="$GITHUB_SHA"
+            fi
+          fi
           echo "sha=$baseline_sha" >> "$GITHUB_OUTPUT"
           echo "initial=$initial" >> "$GITHUB_OUTPUT"
 
@@ -369,10 +369,10 @@ jobs:
         env:
           DEPLOYMENT_TAG: 'saanseoi-deployed-production'
           GH_TOKEN: ${{ github.token }}
-        shell: fish {0}
+        shell: bash
         run: |
-          set ref "refs/tags/$DEPLOYMENT_TAG"
-          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1
+          ref="refs/tags/$DEPLOYMENT_TAG"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$DEPLOYMENT_TAG" >/dev/null 2>&1; then
             gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$DEPLOYMENT_TAG" \
               --field sha="$GITHUB_SHA" \
               --field force=true >/dev/null
@@ -380,4 +380,4 @@ jobs:
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               --field ref="$ref" \
               --field sha="$GITHUB_SHA" >/dev/null
-          end
+          fi
