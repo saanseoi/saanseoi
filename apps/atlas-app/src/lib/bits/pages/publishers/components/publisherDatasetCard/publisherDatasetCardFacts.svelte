@@ -26,7 +26,7 @@ let { facts }: Props = $props()
           {/if}
         </dt>
         <dd
-          class="mt-2 whitespace-normal break-words font-mono text-sm font-semibold text-data-on-surface"
+          class="mt-2 whitespace-normal wrap-break-word font-mono text-sm font-semibold text-data-on-surface"
           title={fact.title}
         >
           {#if fact.href}

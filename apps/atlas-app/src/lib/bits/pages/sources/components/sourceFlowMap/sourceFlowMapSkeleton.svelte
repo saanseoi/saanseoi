@@ -27,7 +27,7 @@ const lanes = [
             aria-hidden="true"
           >
             <span
-              class="size-[4.5rem] rounded-[0.35rem] border border-[color-mix(in_srgb,var(--outline-variant)_68%,transparent)] bg-[color-mix(in_srgb,var(--foreground-alt)_10%,transparent)]"
+              class="size-18 rounded-[0.35rem] border border-[color-mix(in_srgb,var(--outline-variant)_68%,transparent)] bg-[color-mix(in_srgb,var(--foreground-alt)_10%,transparent)]"
             ></span>
             <span class="grid gap-[0.65rem]">
               <span
