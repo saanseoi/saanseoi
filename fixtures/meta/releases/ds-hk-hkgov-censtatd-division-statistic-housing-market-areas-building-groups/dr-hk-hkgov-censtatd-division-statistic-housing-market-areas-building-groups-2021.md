@@ -69,9 +69,9 @@ arbitrary canonical division as they don't have polygonal geometry.
 
 ### Measure offerings
 
-The fieldName [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
-and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
-readable statistical name from its exact definition.
+The fieldName [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1) and
+[detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a readable
+statistical name from its exact definition.
 
 ## Measure mapping
 
