@@ -65,6 +65,12 @@ describe('registry code construction', () => {
     )
     expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('default')
     expect(
+      datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      }),
+    ).toBe('ds-hk-hkgov-censtatd-division-statistic-population-households-district')
+    expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2016',
         sourceVersion: '2016',
