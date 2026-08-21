@@ -74,7 +74,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households",
+          "name": "Domestic households",
           "description": "Number of domestic households",
           "isTranslationVerified": false
         },
@@ -670,5 +670,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:5ddd08621149853703bd3ca86682f4acace0adcc830db2e5d5f1cda6c185d200"
+  "versionHash": "sha256:16f37446a3df9b631daea7cf6389bc60dcb95d9ef705df105ca9d251dcc67613"
 }

@@ -5,7 +5,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "permanent living quarters",
+          "name": "Permanent living quarters",
           "description": "Number of permanent living quarters",
           "isTranslationVerified": false
         },
@@ -26,5 +26,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:7ef0dfaee962743523645b49f0d71864c1ab14f6f6fb0e7c6700afded8b2cc64"
+  "versionHash": "sha256:911583cc93d2ea1275d41fe590de49fb7c1c5b428368c5f34a8dce1437c12fb1"
 }
