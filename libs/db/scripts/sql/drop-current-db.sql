@@ -6,8 +6,6 @@ DROP TABLE IF EXISTS `divisionStatistics`;
 DROP TABLE IF EXISTS `statsRecords`;
 DROP TABLE IF EXISTS `statsObservationDimensions`;
 DROP TABLE IF EXISTS `statsValuesI18n`;
-DROP TABLE IF EXISTS `statsValues`;
-DROP TABLE IF EXISTS `statsDimensions`;
 DROP TABLE IF EXISTS `statsMeasuresI18n`;
 DROP TABLE IF EXISTS `statsMeasures`;
 DROP TABLE IF EXISTS `placesFts`;
