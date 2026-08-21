@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { parseStatisticsReferencePeriod } from './statisticsReferencePeriod'
+import {
+  parseStatisticsReferencePeriod,
+  type StatisticsReferencePeriod,
+} from './statisticsReferencePeriod'
 
 describe('parseStatisticsReferencePeriod', () => {
   test.each([
@@ -15,7 +18,7 @@ describe('parseStatisticsReferencePeriod', () => {
         code,
         end,
         endYear,
-        granularity,
+        granularity: granularity as StatisticsReferencePeriod['granularity'],
         start,
       })
     },
