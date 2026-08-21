@@ -132,7 +132,7 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
       ),
     ).resolves.toEqual({ days: 2, rows: 2 })
 
-    expect(queries[0]).toContain('FROM ss-product-usage-local')
+    expect(queries[0]).toContain('FROM "ss-product-usage-local"')
     expect(queries[0]).toContain("index1 = 'api.access'")
     expect(queries[0]).toContain('HAVING metricValue > 0')
     expect(
