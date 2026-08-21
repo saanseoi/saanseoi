@@ -9,6 +9,7 @@ import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreaForCenstatdCode,
 } from '@repo/core/pipeline/services/overtureHongKongAreas'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
@@ -371,8 +372,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
             'layer_name',
             rows.map(row => row.layerName),
           ),
-          strings(
-            'reference_year',
+          ...statisticsReferencePeriodColumns(
             rows.map(row => referencePeriodFor(row.properties, input.sourceVersion)),
           ),
           strings(
@@ -437,7 +437,7 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
       `${layerName}.${index + 1}`
     return {
       // Preserve the publisher feature identity. The layer is added by the
-      // canonical observation as `<layerName>:<sourceFeatureId>`.
+      // canonical observation as `<layerName>:<sourceFeatureRef>`.
       featureId: string(publisherFeatureId),
       layerName,
       properties,
@@ -472,10 +472,53 @@ function referencePeriodFor(
   properties: Record<string, unknown>,
   sourceVersion: string,
 ) {
-  const year = properties.year
-  return typeof year === 'string' && /^\d{4}$/.test(year.trim())
-    ? year.trim()
-    : sourceVersion
+  const populationYear = stringValue(properties.year)
+  if (/^\d{4}$/.test(populationYear ?? '')) return populationYear as string
+
+  const period = stringValue(properties.PERIOD)
+  if (period) return period
+
+  const year = stringValue(properties.YEAR)
+  const quarter = stringValue(properties.QUARTER)?.replace(/^Q/i, '')
+  if (year && quarter) return `${year}-Q${quarter}`
+
+  return sourceVersion
+}
+
+function statisticsReferencePeriodColumns(codes: string[]) {
+  const periods = codes.map(parseStatisticsReferencePeriod)
+  return [
+    strings(
+      'reference_period_code',
+      periods.map(period => period.code),
+    ),
+    nullableStrings(
+      'reference_period_start',
+      periods.map(period => period.start),
+    ),
+    nullableStrings(
+      'reference_period_end',
+      periods.map(period => period.end),
+    ),
+    strings(
+      'reference_period_granularity',
+      periods.map(period => period.granularity),
+    ),
+    strings(
+      'reference_period_end_year',
+      periods.map(period => period.endYear),
+    ),
+  ]
+}
+
+function nullableStrings(name: string, values: Array<string | null>) {
+  return { name, data: values, nullable: true, type: 'STRING' as const }
+}
+
+function stringValue(value: unknown) {
+  if (typeof value === 'string') return value.trim() || null
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return null
 }
 function array(value: unknown) {
   return Array.isArray(value) ? value : value === undefined ? [] : [value]

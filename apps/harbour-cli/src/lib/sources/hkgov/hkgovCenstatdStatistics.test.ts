@@ -140,11 +140,10 @@ describe('C&SD native statistics archives', () => {
       expect(rows).toHaveLength(entry.rowCount)
       expect(rows[0]).toMatchObject({
         dataset_code: entry.datasetCode,
-        reference_year:
-          entry.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-            ? '2016'
-            : entry.sourceVersion,
+        reference_period_code: expectedFirstReferencePeriod(
+          entry.datasetCode,
+          entry.sourceVersion,
+        ),
       })
       expect(JSON.parse(String(rows[0]?.sources))).toEqual([
         {
@@ -218,6 +217,28 @@ describe('C&SD native statistics archives', () => {
     }
   })
 })
+
+function expectedFirstReferencePeriod(datasetCode: string, sourceVersion: string) {
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  ) {
+    return '2016'
+  }
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+  ) {
+    return '2023'
+  }
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  ) {
+    return '2023-Q3'
+  }
+  return sourceVersion
+}
 
 async function unpack(archive: string) {
   const dir = await mkdtemp(join(tmpdir(), 'hkgov-censtatd-statistics-test-'))
