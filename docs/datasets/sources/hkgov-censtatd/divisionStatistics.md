@@ -66,19 +66,21 @@ Before canonical rows are replayed, every publisher measure requires a reviewed 
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a
 stable canonical `fieldName`, a reviewed `statisticKind`, and a separate reviewed
 `aggregation`, while preserving the publisher `sourceField` in the canonical
-observation. `statisticKind` identifies whether the measure is a count, quantity,
-proportion, ratio, rate, density, or index; a ratio, rate, proportion, or density may
-also identify a canonical `denominatorFieldName`. These fields are deliberately separate
-from the source value representation and unit. The CLI reads the registered CSDI
-Simplified Data Specification through CSDI's static host only to pre-fill a review
-candidate. It displays compact metadata with the stable source-release portal URL rather
-than the expiring specification link, followed by a `sourceField -> fieldName` proposal
-with any compatible previously reviewed unit suggestion and all three locales inline
-before acceptance. On rejection, the CSDI English name and description are editable
-defaults. Changing either invokes Azure Translator for fresh Chinese defaults; accepted
-machine values are stored with `isTranslationVerified=false`, while official CSDI locale
-rows remain verified. `--yes` refuses every uncurated field. The importer retains the
-exact publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
+observation. Median and percentile aggregations also require an `aggregationPercentile`:
+50 for a median, or the explicitly reviewed 0–100 percentile rank. `statisticKind`
+identifies whether the measure is a count, quantity, proportion, ratio, rate, density,
+or index; a ratio, rate, proportion, or density may also identify a canonical
+`denominatorFieldName`. These fields are deliberately separate from the source value
+representation and unit. The CLI reads the registered CSDI Simplified Data Specification
+through CSDI's static host only to pre-fill a review candidate. It displays compact
+metadata with the stable source-release portal URL rather than the expiring
+specification link, followed by a `sourceField -> fieldName` proposal with any
+compatible previously reviewed unit suggestion and all three locales inline before
+acceptance. On rejection, the CSDI English name and description are editable defaults.
+Changing either invokes Azure Translator for fresh Chinese defaults; accepted machine
+values are stored with `isTranslationVerified=false`, while official CSDI locale rows
+remain verified. `--yes` refuses every uncurated field. The importer retains the exact
+publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
 replace SaanSeoi's normalised observation status or automatically admit a unit. When a
 reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
 dimension, symbol, English name, and definition, then writes the unit registry with
@@ -116,10 +118,10 @@ evidence and an editable proposal, not the canonical display name.
 - The English `description` defines the statistic in full: population scope, age range,
   categories, numerator or denominator where relevant, and any publisher-specific
   qualification. Translate that reviewed English meaning into the Chinese localisations.
-- `statisticKind`, `aggregation`, `unitCode`, and `denominatorFieldName` are reviewed
-  independently. Do not mechanically prefix a name with `Proportion of`,
-  `Percentage distribution of`, `Total`, or similar representation language merely
-  because it appears in the publisher's field description.
+- `statisticKind`, `aggregation`, `aggregationPercentile`, `unitCode`, and
+  `denominatorFieldName` are reviewed independently. Do not mechanically prefix a name
+  with `Proportion of`, `Percentage distribution of`, `Total`, or similar representation
+  language merely because it appears in the publisher's field description.
 - Retain a statistical term in the name only when it is the established public identity
   of the measure, such as `Sex ratio`, `Population density`, or `Median age`.
 
