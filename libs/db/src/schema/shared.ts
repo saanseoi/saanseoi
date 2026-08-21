@@ -279,6 +279,8 @@ export const canonicalStatsField = {
   aggregation: text('aggregation', { enum: statsAggregations })
     .notNull()
     .default('unreviewed'),
+  /** Percentile rank (0-100) for percentile and median aggregations. */
+  aggregationPercentile: real('aggregationPercentile'),
   /** Canonical field used as the denominator, when the statistic has one. */
   denominatorFieldName: text('denominatorFieldName'),
   valueKind: text('valueKind').notNull(),
