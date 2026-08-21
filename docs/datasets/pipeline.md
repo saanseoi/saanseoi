@@ -16,7 +16,7 @@ provider artefact
   -> source preparation or backfill
   -> source intake and normalisation
   -> saanseoi upload
-  -> source, history, current and meta data
+  -> source, history and current data
   -> snapshots and API release set
   -> SaanSeoi API and release documentation
 ```
@@ -27,23 +27,32 @@ path. It is not a generic importer.
 
 ## Statistics source/history replay
 
-Statistics datasets are source-only until a Statistics API composition is explicitly
-activated. Their processors must therefore publish the source release without creating
-or waiting for an API snapshot. This does not make them local-only: a remote processor
-must apply the same idempotent SQL batches to its local planning cache and to the
-selected remote D1 source and history shards before marking the release published.
+Statistics datasets keep publisher delivery time separate from observation time. A
+remote processor applies raw assertions to the source shard selected by the release
+year, groups canonical records by `referencePeriodEndYear`, and replays each group to
+its history shard. Years before 2025 resolve to the `BEFORE` shard. The current shard
+holds the latest dataset-scoped measure and localised value dictionaries, and each
+touched history shard holds the source-release dictionary version used by its records.
 
 The required order is: stage processing, load the minimal cache profile, resolve any
 reviewed identifier bridges, build deterministic source and history SQL, apply it to the
 local cache, import those exact batches into remote D1, mark the processing stage
-complete, then publish the source-only release. On failure, mark the stage failed and
-leave the release retryable. Do not publish a statistics release merely because its
-local cache mutations succeeded.
+complete, materialise one dataset snapshot for every distinct exact reference period,
+then publish the source release. Each period snapshot is eligible for its own exact-ref
+Statistics release-set revision. On failure, mark the stage failed and leave the release
+retryable. Do not publish a statistics release merely because its local cache mutations
+succeeded.
+
+Current records use a stable identity that includes the exact reference-period code.
+Consequently, a later compilation replaces the current row independently for each period
+it reports. Periods omitted from that compilation remain current; omission is not a
+deletion signal. Multi-year periods route by their end year.
 
 Each statistics processor should use the shared replay helper rather than directly
-mutating Drizzle tables. Its cache profile must include only the required metadata,
-source assertions and history observations; it must also report cache, normalisation,
-local replay, remote replay and publication progress.
+mutating Drizzle tables. Its cache profile must include release metadata, source
+assertions, the current statistic tables, and every history shard touched by the
+reference periods; it must also report cache, normalisation, local replay, remote replay
+and publication progress.
 
 ## Local pipeline initialisation
 
@@ -257,7 +266,7 @@ source/resource combination needs all of the following, as applicable:
 - source preparation and format detection before source intake;
 - a processing-strategy branch in `resolveUploadProcessingStrategy`;
 - a local SQL processor under `apps/harbour-cli/src/lib/`, normally grouped by resource
-  type, that writes source, history, current and meta SQL artefacts;
+  type, that writes source, history and current SQL artefacts;
 - source, canonicalisation, full-snapshot/deletion, snapshot and rollback behaviour;
 - release, quality/churn and processing-action stats; and
 - cache and shard handling for local and remote targets.
