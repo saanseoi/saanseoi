@@ -234,7 +234,9 @@ EPSG:2326. The source shard retains C&SD's numeric `DC`, labels, publisher geome
 complete property set without a canonical division value. The history processor resolves
 each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
-`districtCode` only to the Division Statistics history observation.
+`districtCode` to the Division Statistics history observation and to `geography.code` on
+canonical Stats records. The publisher's numeric `DC` remains in source provenance and
+the constructed `sourceFeatureRef`.
 
 The dataset fixture selects `map_censtatd_district_code_to_canonical_division` from the
 versioned division merge ruleset. It is a versioned description of the deterministic
