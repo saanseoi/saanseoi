@@ -117,6 +117,12 @@ town. Renames and splits are intentionally separate cohort assertions, so no cro
 cohort or Overture bridge is inferred. This makes the geometry selectable as
 `areas:hkgov-pland-new-town` for the corresponding planning division release.
 
+For the 2021 cohort, the curated Planning-domain `divisionCode` is a URL-safe,
+human-readable rendering of the publisher name, such as `tsuen-wan-tsing-yi-area`. It is
+a SaanSeoi code for addressing the canonical Planning division, not a Planning
+Department source identifier; C&SD's numeric New Town keys remain in their separately
+reviewed identifier bridge.
+
 The trilingual publisher labels are retained verbatim on the native `hkgovPlandNewTowns`
 source row as `nameEn`, `nameZhHant`, and `nameZhHans`, then normalised into the
 associated canonical planning division's `divisionI18n` rows. No source-level locale
