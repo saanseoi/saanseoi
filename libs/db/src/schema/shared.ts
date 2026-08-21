@@ -216,6 +216,15 @@ export type CanonicalStatsRecordValue = {
   sourceValue: string
 }
 
+/** Canonical structured period fields shared by source and API statistic rows. */
+export const statisticsReferencePeriod = {
+  referencePeriodCode: text('referencePeriodCode').notNull(),
+  referencePeriodStart: text('referencePeriodStart'),
+  referencePeriodEnd: text('referencePeriodEnd'),
+  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  referencePeriodEndYear: text('referencePeriodEndYear').notNull(),
+}
+
 /** Shared feature-level context and packed values for a statistic record. */
 export const canonicalStatsRecord = {
   id: text('id').notNull(),
@@ -225,10 +234,7 @@ export const canonicalStatsRecord = {
   sourceFeatureId: text('sourceFeatureId').notNull(),
   /** Present only after a reviewed bridge to a canonical division exists. */
   divisionId: text('divisionId'),
-  referencePeriodCode: text('referencePeriodCode').notNull(),
-  referencePeriodStart: text('referencePeriodStart'),
-  referencePeriodEnd: text('referencePeriodEnd'),
-  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  ...statisticsReferencePeriod,
   /** The source geography cohort used by this series, where applicable. */
   geographyCohortId: text('geographyCohortId'),
   /** Dimension values for this publisher feature, keyed by dimension code. */
@@ -299,17 +305,6 @@ export const canonicalStatsMeasureI18n = {
   isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
     .notNull()
     .default(true),
-}
-
-export const canonicalStatsDimension = {
-  datasetCode: text('datasetCode').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-}
-
-export const canonicalStatsValue = {
-  datasetCode: text('datasetCode').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-  valueCode: text('valueCode').notNull(),
 }
 
 export const canonicalStatsValueI18n = {
