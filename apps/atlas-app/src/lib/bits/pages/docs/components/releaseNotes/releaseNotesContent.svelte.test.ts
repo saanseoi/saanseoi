@@ -71,6 +71,23 @@ test('opens external documentation safely in a new tab', async () => {
     .toHaveAttribute('rel', 'noopener noreferrer')
 })
 
+test('centres generated source-table group headings', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation('### Supporting · Division Boundary', 'en'),
+  )
+
+  await expect
+    .element(screen.getByRole('heading', { name: 'Supporting · Division Boundary' }))
+    .toHaveClass('text-center')
+  await expect
+    .element(screen.getByRole('heading', { name: 'Supporting · Division Boundary' }))
+    .toHaveClass('bg-surface-container-high')
+  await expect
+    .element(screen.getByRole('heading', { name: 'Supporting · Division Boundary' }))
+    .toHaveClass('uppercase')
+})
+
 test('escapes arbitrary HTML while preserving supported release-note tags', async () => {
   const screen = await render(
     ReleaseNotesContent,
