@@ -53,6 +53,35 @@ describe('fixture version hashes', () => {
     ).toBe(173)
     expect(hmaAssignments.every(assignment => !('level' in assignment))).toBe(true)
   })
+  test('retains URL-safe Planning Department New Town Division codes', () => {
+    const newTownAssignments = initialDivisionCodes.filter(
+      assignment => assignment.domainCode === 'hkgov-pland-new-town',
+    )
+
+    expect(newTownAssignments).toHaveLength(13)
+    expect(
+      newTownAssignments.map(assignment => assignment.divisionCode).sort(),
+    ).toEqual([
+      'fanling-sheung-shui-kwu-tung',
+      'hung-shui-kiu-ha-tsuen',
+      'sha-tin-ma-on-shan-area',
+      'sha-tin-sha-tin-area',
+      'tai-po',
+      'tin-shui-wai',
+      'tseung-kwan-o',
+      'tsuen-wan-kwai-chung-area',
+      'tsuen-wan-tsing-yi-area',
+      'tsuen-wan-tsuen-wan-area',
+      'tuen-mun',
+      'tung-chung',
+      'yuen-long',
+    ])
+    expect(
+      newTownAssignments.find(
+        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+      ),
+    ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
+  })
   test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
     const newTownMappings = initialIdentifierBridges.filter(
       bridge =>
