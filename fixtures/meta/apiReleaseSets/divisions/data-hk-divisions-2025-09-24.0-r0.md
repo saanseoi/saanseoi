@@ -40,6 +40,10 @@ reviewed PRC country anchor required for parent and boundary references. The
 referent-only record has names and identity but no country geometry, so it does not add
 a PRC coverage claim.
 
+## Constituent source releases
+
+{{apiReleaseSetSources:en}}
+
 ## Using the Divisions API
 
 The <black>v0.1</black> contract is experimental. Use either <black>GET
@@ -177,6 +181,10 @@ release version。獨立發布的地區面
 [variants](saanseoi:zh-hant:definition/variant/v1)則可選取較早而合資格的日期。
 [Hong Kong extract](saanseoi:zh-hant:note/hong-kong-extract/v1)亦加入用於解析父層級與邊界參照的經審核中國國家 anchor。這個只作參照的記錄有名稱和身分，卻沒有國家幾何，因此不構成中國覆蓋範圍的聲稱。
 
+## 組成來源發布
+
+{{apiReleaseSetSources:zh-Hant}}
+
 ## 使用 Divisions API
 
 <black>v0.1</black> 合約仍屬實驗性質。請使用 <black>GET /v0.1/divisions</black> 或
@@ -299,6 +307,10 @@ variant；不可用的 variant 會回傳錯誤，而不會後備至另一來源�
 release version。独立发布的地区面
 [variants](saanseoi:zh-hans:definition/variant/v1)则可选取较早而合资格的日期。
 [Hong Kong extract](saanseoi:zh-hans:note/hong-kong-extract/v1)亦加入用于解析父级与边界参照的经审核中国国家 anchor。这个只作参照的记录有名称和身份，却没有国家几何，因此不构成中国覆盖范围的声称。
+
+## 组成来源发布
+
+{{apiReleaseSetSources:zh-Hans}}
 
 ## 使用 Divisions API
 
