@@ -380,6 +380,46 @@ type DivisionCodeFixture = {
   assignments: DivisionCodeFixtureAssignment[]
 }
 
+export function validateDivisionCodeFixtures(
+  fixtures: Array<Pick<DivisionCodeFixture, 'assignments' | 'domainCode'>>,
+  knownCanonicalIds?: ReadonlySet<string>,
+) {
+  const codes = new Set<string>()
+  const targets = new Set<string>()
+  for (const fixture of fixtures) {
+    if (!fixture.domainCode.trim())
+      throw new Error('Division code fixture has no domainCode.')
+    for (const assignment of fixture.assignments) {
+      if (!assignment.divisionCode.trim() || /\s/.test(assignment.divisionCode)) {
+        throw new Error(`Invalid Division code=${assignment.divisionCode}.`)
+      }
+      if (!Number.isInteger(assignment.level) || assignment.level < 0) {
+        throw new Error(`Invalid Division code level=${assignment.level}.`)
+      }
+      if (!assignment.canonicalId.trim()) {
+        throw new Error(
+          `Division code=${assignment.divisionCode} has no canonical target.`,
+        )
+      }
+      if (knownCanonicalIds && !knownCanonicalIds.has(assignment.canonicalId)) {
+        throw new Error(
+          `Division code=${assignment.divisionCode} targets unknown canonical Division ${assignment.canonicalId}.`,
+        )
+      }
+      const codeKey = `${fixture.domainCode}\u0000${assignment.level}\u0000${assignment.divisionCode}`
+      const targetKey = `${fixture.domainCode}\u0000${assignment.level}\u0000${assignment.canonicalId}`
+      if (codes.has(codeKey))
+        throw new Error(`Duplicate Division code=${assignment.divisionCode}.`)
+      if (targets.has(targetKey))
+        throw new Error(
+          `Ambiguous canonical Division target=${assignment.canonicalId}.`,
+        )
+      codes.add(codeKey)
+      targets.add(targetKey)
+    }
+  }
+}
+
 export type MetaRegistrySyncEnvironment = Extract<
   DataShardEnvironment,
   'preview' | 'production'
@@ -441,6 +481,7 @@ const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiComposi
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
+validateDivisionCodeFixtures(divisionCodeFixtures)
 const identifierBridgeFixtures = readFixtureDir<{
   resourceType: ResourceType
   sourceDatasetCode: string

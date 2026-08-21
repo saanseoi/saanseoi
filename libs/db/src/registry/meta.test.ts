@@ -9,12 +9,93 @@ import {
   initialDatasets,
   initialDatasetResourceTypes,
   initialDataShards,
+  initialDivisionCodes,
   initialIdentifierBridges,
   initialPublishers,
   resolveInitialDataShardsForEnvironment,
+  validateDivisionCodeFixtures,
 } from './meta'
 
 describe('fixture version hashes', () => {
+  test('validates curated Division code fixtures directly', () => {
+    const valid = {
+      domainCode: 'geographic',
+      assignments: [{ divisionCode: 'HK', canonicalId: 'division-hk', level: 1 }],
+    }
+    expect(() =>
+      validateDivisionCodeFixtures([valid], new Set(['division-hk'])),
+    ).not.toThrow()
+    expect(() =>
+      validateDivisionCodeFixtures([
+        {
+          ...valid,
+          assignments: [
+            { divisionCode: 'bad code', canonicalId: 'division-hk', level: 1 },
+          ],
+        },
+      ]),
+    ).toThrow('Invalid Division code')
+    expect(() =>
+      validateDivisionCodeFixtures([
+        { ...valid, assignments: [...valid.assignments, ...valid.assignments] },
+      ]),
+    ).toThrow('Duplicate Division code')
+    expect(() => validateDivisionCodeFixtures([valid], new Set())).toThrow(
+      'unknown canonical Division',
+    )
+  })
+  test('retains every reviewed 2021 HMA code as an unambiguous Division assignment', () => {
+    const hmaAssignments = initialDivisionCodes.filter(
+      assignment => assignment.domainCode === 'hkgov-censtatd-hma',
+    )
+
+    expect(hmaAssignments).toHaveLength(173)
+    expect(
+      new Set(hmaAssignments.map(assignment => assignment.divisionCode)).size,
+    ).toBe(173)
+    expect(
+      hmaAssignments.every(
+        assignment =>
+          assignment.level === 3 &&
+          assignment.sourceBridge?.authority === 'hkgov-censtatd' &&
+          assignment.sourceBridge?.cohortKey === '2021' &&
+          assignment.sourceBridge?.externalId === assignment.divisionCode,
+      ),
+    ).toBe(true)
+  })
+  test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
+    const newTownAssignments = initialDivisionCodes.filter(
+      assignment => assignment.domainCode === 'hkgov-pland-new-town',
+    )
+
+    expect(newTownAssignments).toHaveLength(13)
+    expect(
+      newTownAssignments.map(assignment => assignment.divisionCode).sort(),
+    ).toEqual([
+      '11',
+      '13',
+      '15',
+      '17',
+      '18',
+      '20',
+      '22',
+      '24',
+      '25',
+      '27',
+      '28',
+      '30',
+      '32',
+    ])
+    expect(
+      newTownAssignments.every(
+        assignment =>
+          assignment.level === 1 &&
+          assignment.sourceBridge?.authority === 'hkgov-censtatd' &&
+          assignment.sourceBridge?.cohortKey === '2021' &&
+          assignment.sourceBridge?.externalId === assignment.divisionCode,
+      ),
+    ).toBe(true)
+  })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
     expect(initialApiEndpoints.length).toBeGreaterThan(0)
@@ -58,8 +139,12 @@ describe('fixture version hashes', () => {
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
     expect(statsPaths).toEqual([
       '/v0.1/stats',
+      '/v0.1/stats/geographies',
+      '/v0.1/stats/series',
       '/v0.1/stats/{id}',
       '/v0/stats',
+      '/v0/stats/geographies',
+      '/v0/stats/series',
       '/v0/stats/{id}',
     ])
   })
