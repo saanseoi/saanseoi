@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2464ad86a2ae79ced6fe5081c6b9ed3b7aa0febc56ee7840d8effc49ff7a66dc",
+  "versionHash": "sha256:200c74bda7d1cccb48a0e2a4c8b322d3ce9bf903e0928dcf5ec16b56debfdcdb",
   "apiVersion": "api-stats-v0.1",
   "endpoints": [
     {
@@ -9,8 +9,18 @@
     },
     {
       "method": "GET",
+      "path": "/v0/stats/{id}",
+      "operationId": "getDivisionStatisticByIdV0"
+    },
+    {
+      "method": "GET",
       "path": "/v0.1/stats",
       "operationId": "listDivisionStatisticsV01"
+    },
+    {
+      "method": "GET",
+      "path": "/v0.1/stats/{id}",
+      "operationId": "getDivisionStatisticByIdV01"
     }
   ]
 }
