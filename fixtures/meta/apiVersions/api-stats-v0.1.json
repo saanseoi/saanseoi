@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:47626a187b2012e008cb5ce7bdde73c571847e71007c4e74be8d1a96bab1a87d",
+  "versionHash": "sha256:b8d16be23a6ef6cdd9c2d7eee2f777d03ef7cd8fb23a7233b0992984625741dd",
   "code": "api-stats-v0.1",
   "familyType": "stats",
   "version": "0.1",
-  "status": "draft",
-  "publishedAt": null,
+  "status": "current",
+  "publishedAt": "2026-08-20T00:00:00.000Z",
   "deprecatedAt": null,
   "retiredAt": null
 }
