@@ -471,6 +471,7 @@ async function resolveDraftReleaseSetForSnapshot(
 ) {
   const releaseSets = await metaDb
     .select({
+      cohortKey: metaSchema.metaApiReleaseSets.cohortKey,
       code: metaSchema.metaApiReleaseSets.code,
       domainCode: metaSchema.metaApiReleaseSets.domainCode,
       id: metaSchema.metaApiReleaseSets.id,

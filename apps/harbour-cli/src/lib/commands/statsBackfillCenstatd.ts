@@ -161,7 +161,12 @@ async function normaliseStatisticRelease(
       sourceRows.map(row => ({
         datasetCode: release.datasetCode,
         properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `${row.layerName}:${row.featureId}`,
+        sourceFeatureRef: [
+          'hkgov-censtatd',
+          release.datasetCode,
+          release.sourceVersion,
+          `${row.layerName}:${row.featureId}`,
+        ].join('/'),
         sourceReleaseId: release.id,
         sourceVersion: release.sourceVersion,
       })),
@@ -202,7 +207,12 @@ async function normaliseDensityRelease(
       sourceRows.map(row => ({
         datasetCode: DENSITY_DATASET_CODE,
         properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `${layerName}:${row.districtCode}`,
+        sourceFeatureRef: [
+          'hkgov-censtatd',
+          DENSITY_DATASET_CODE,
+          release.sourceVersion,
+          `${layerName}:${row.districtCode}`,
+        ].join('/'),
         sourceReleaseId: release.id,
         sourceVersion: release.sourceVersion,
       })),
