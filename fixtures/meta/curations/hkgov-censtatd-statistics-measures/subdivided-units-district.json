@@ -1,0 +1,76 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Households in subdivided units",
+          "description": "Number of domestic households living in subdivided units.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "分間單位住戶",
+          "description": "居住於分間單位的住戶數目。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "分间单位住户",
+          "description": "居住于分间单位的住户数目。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "householdsInSubdividedUnits"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Residents of subdivided units",
+          "description": "Number of people living in subdivided units.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "分間單位居民",
+          "description": "居住於分間單位的人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "分间单位居民",
+          "description": "居住于分间单位的人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "residentsOfSubdividedUnits"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Subdivided units",
+          "description": "Number of subdivided units.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "分間單位",
+          "description": "分間單位的數目。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "分间单位",
+          "description": "分间单位的数目。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "subdividedUnits"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:7cbd54de470c29e56a48fbea3636f1ecc48d9302d9272c216f84ffb366bbdc2c"
+}
