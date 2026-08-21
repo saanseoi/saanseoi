@@ -8,7 +8,7 @@
           "locale": "en",
           "name": "Land area",
           "description": "Land area of the District Council district, in square kilometres.",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
@@ -27,7 +27,8 @@
       "fieldName": "landArea",
       "dimensions": {},
       "sourceField": "LA",
-      "unitCode": "square-kilometre"
+      "unitCode": "square-kilometre",
+      "measureCode": "landArea"
     },
     {
       "aggregation": "total",
@@ -36,7 +37,7 @@
           "locale": "en",
           "name": "Mid-year population",
           "description": "Mid-year population of the District Council district, expressed in persons.",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
@@ -55,7 +56,8 @@
       "fieldName": "populationMidYear",
       "dimensions": {},
       "sourceField": "MYPOPN_LAND",
-      "unitCode": "person"
+      "unitCode": "person",
+      "measureCode": "totalPopulation"
     },
     {
       "aggregation": "none",
@@ -65,7 +67,7 @@
           "locale": "en",
           "name": "Population density",
           "description": "Mid-year population density of the District Council district, in persons per square kilometre.",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
@@ -84,8 +86,9 @@
       "fieldName": "populationDensity",
       "dimensions": {},
       "sourceField": "POPN_D",
-      "unitCode": "person-per-square-kilometre"
+      "unitCode": "person-per-square-kilometre",
+      "measureCode": "populationDensity"
     }
   ],
-  "schemaVersion": 7
+  "schemaVersion": 8
 }

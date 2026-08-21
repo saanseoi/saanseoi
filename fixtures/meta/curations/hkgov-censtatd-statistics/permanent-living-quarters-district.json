@@ -8,19 +8,19 @@
           "locale": "en",
           "name": "permanent living quarters",
           "description": "Number of permanent living quarters",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "永久性居住屋宇單位數字",
           "description": "永久性居住屋宇單位數字",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "永久性居住屋宇单位数字",
           "description": "永久性居住屋宇单位数字",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
       "fieldName": "permanentLivingQuarters",
@@ -32,8 +32,9 @@
       "sourceNullOption": "Null",
       "sourceField": "LQ",
       "statisticKind": "count",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "permanentLivingQuarters"
     }
   ],
-  "schemaVersion": 7
+  "schemaVersion": 8
 }
