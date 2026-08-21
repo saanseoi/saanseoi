@@ -493,7 +493,10 @@ function geographyFor(
   dimensions: Dimension[],
   sourceFeatureRef: string,
 ): CanonicalStatsGeography {
-  const geography = dimensions[0]
+  // A Building Group row also carries its parent HMA. The mapping dimension is
+  // the most specific feature, not its containing Division.
+  const geography =
+    dimensions.find(dimension => dimension.code === 'building-group') ?? dimensions[0]
   if (!geography) return { code: sourceFeatureRef, kind: 'publisher-feature' }
   const geographyClass = dimensions.find(
     dimension => dimension.code === `${geography.code}-class`,

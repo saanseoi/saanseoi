@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { resolveCenstatdDistrictBridgeCohort } from './censtatdDistrictBridge.ts'
+import {
+  createHkgovCenstatdNewTownResolution,
+  resolveCenstatdDistrictBridgeCohort,
+  resolveCenstatdNewTownBridgeCohort,
+} from './censtatdDistrictBridge.ts'
 
 describe('C&SD statistic district bridge selection', () => {
   test('uses the release-specific census bridge for subdivided units', () => {
@@ -32,18 +36,82 @@ describe('C&SD statistic district bridge selection', () => {
     ).toBe('2021')
   })
 
-  test('does not fabricate district IDs for unmatched statistical geographies', () => {
+  test('uses the reviewed 2021 New Town bridge only for the archived census cohort', () => {
     expect(
-      resolveCenstatdDistrictBridgeCohort(
+      resolveCenstatdNewTownBridgeCohort(
         'ds-hk-hkgov-censtatd-division-statistic-new-towns',
         '2021',
       ),
-    ).toBeNull()
+    ).toBe('2021')
+    expect(() =>
+      resolveCenstatdNewTownBridgeCohort(
+        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        '2026',
+      ),
+    ).toThrow('has no reviewed New Town bridge')
     expect(
       resolveCenstatdDistrictBridgeCohort(
         'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
         '2023-H2',
       ),
     ).toBeNull()
+  })
+
+  test('resolves all reviewed C&SD New Town codes without name matching', () => {
+    const codes = [
+      '13',
+      '27',
+      '28',
+      '15',
+      '17',
+      '18',
+      '20',
+      '22',
+      '24',
+      '25',
+      '11',
+      '30',
+      '32',
+    ]
+    const resolved = createHkgovCenstatdNewTownResolution(
+      codes.map(code => ({
+        canonicalId: `planning-${code}`,
+        externalId: code,
+      })),
+      '2021',
+    )
+
+    expect(resolved.get('30')).toEqual({ divisionId: 'planning-30', newTownCode: '30' })
+    expect(resolved).toHaveLength(13)
+  })
+
+  test('rejects incomplete or duplicate reviewed New Town mappings', () => {
+    expect(() => createHkgovCenstatdNewTownResolution([], '2021')).toThrow(
+      'Expected 13 reviewed C&SD New Town mappings',
+    )
+    const codes = [
+      '13',
+      '27',
+      '28',
+      '15',
+      '17',
+      '18',
+      '20',
+      '22',
+      '24',
+      '25',
+      '11',
+      '30',
+      '32',
+    ]
+    expect(() =>
+      createHkgovCenstatdNewTownResolution(
+        [...codes, '30'].map(code => ({
+          canonicalId: `planning-${code}`,
+          externalId: code,
+        })),
+        '2021',
+      ),
+    ).toThrow('Duplicate C&SD New Town code=30')
   })
 })
