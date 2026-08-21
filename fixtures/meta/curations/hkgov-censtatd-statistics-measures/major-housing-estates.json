@@ -97,29 +97,6 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Major housing estate",
-          "description": "Major housing estate (GML reference number)",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hant",
-          "name": "主要屋苑（GML 識別號碼）",
-          "description": "主要屋苑（GML 識別號碼）",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hans",
-          "name": "主要屋苑（GML 识别号码）",
-          "description": "主要屋苑（GML 识别号码）",
-          "isTranslationVerified": false
-        }
-      ],
-      "measureCode": "majorHousingEstate"
-    },
-    {
-      "localisations": [
-        {
-          "locale": "en",
           "name": "Median age",
           "description": "Median age of the population, in years.",
           "isTranslationVerified": false
@@ -417,5 +394,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:d3be766c0a1af25e2eaea9a566a8d30791e24d6bec696a000f9823e34d091f63"
+  "versionHash": "sha256:c4019fc35e226cc5e511244ea54507ebac092316c47dba833bc8000c01026c22"
 }
