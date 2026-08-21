@@ -360,6 +360,8 @@ export async function resolveLocalAddressDbContext(
   options: {
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
+    includeAllHistoryShardYears?: boolean
+    includeAllSourceShardYears?: boolean
     includePreviousShardYears?: boolean
     requireExistingRemoteCache?: boolean
     refreshRemoteCache?: boolean
@@ -394,6 +396,22 @@ export async function resolveLocalAddressDbContext(
     )
 
     if (isRequiredBinding) {
+      return true
+    }
+
+    const isHistoryBinding =
+      targetRecord.bindingName === `DB_HISTORY_${regionCodeToken}_BEFORE` ||
+      parseBindingYear(targetRecord.bindingName, `DB_HISTORY_${regionCodeToken}_`) !==
+        null
+    if (options.includeAllHistoryShardYears && isHistoryBinding) {
+      return true
+    }
+
+    const isSourceBinding =
+      targetRecord.bindingName === `DB_SOURCE_${regionCodeToken}_BEFORE` ||
+      parseBindingYear(targetRecord.bindingName, `DB_SOURCE_${regionCodeToken}_`) !==
+        null
+    if (options.includeAllSourceShardYears && isSourceBinding) {
       return true
     }
 
@@ -467,6 +485,7 @@ export async function resolveLocalAddressDbContext(
     regionCodeToken,
     annualShardYear,
     history,
+    options.includeAllHistoryShardYears,
   )
   const internalSourceTargets = await buildSourceTargets(
     requiredTargetRecordsByBindingName,
@@ -474,6 +493,7 @@ export async function resolveLocalAddressDbContext(
     regionCodeToken,
     annualShardYear,
     source,
+    options.includeAllSourceShardYears,
   )
   const historyTargets = internalHistoryTargets.map(target => ({
     binding: target.binding,
@@ -1058,6 +1078,7 @@ async function buildHistoryTargets(
   regionCodeToken: string,
   shardYear: string,
   primary: OpenSqliteDb<HistoryDatabase>,
+  includeAllShardYears = false,
 ) {
   return buildShardTargets(
     targetRecordsByBindingName,
@@ -1066,6 +1087,7 @@ async function buildHistoryTargets(
     shardYear,
     historySchema,
     primary,
+    includeAllShardYears,
   )
 }
 
@@ -1075,6 +1097,7 @@ async function buildSourceTargets(
   regionCodeToken: string,
   shardYear: string,
   primary: OpenSqliteDb<SourceDatabase>,
+  includeAllShardYears = false,
 ) {
   return buildShardTargets(
     targetRecordsByBindingName,
@@ -1083,6 +1106,7 @@ async function buildSourceTargets(
     shardYear,
     sourceSchema,
     primary,
+    includeAllShardYears,
   )
 }
 
@@ -1093,13 +1117,17 @@ async function buildShardTargets<TSchema extends Record<string, unknown>, TDb>(
   shardYear: string,
   schema: TSchema,
   primary: OpenSqliteDb<TDb>,
+  includeAllShardYears: boolean,
 ) {
   const targets: InternalLocalShardTarget<TDb>[] = []
 
   for (const targetRecord of targetRecordsByBindingName.values()) {
     const scope = parseBindingScope(targetRecord.bindingName, bindingPrefix)
 
-    if (scope === null || scope.year > Number.parseInt(shardYear, 10)) {
+    if (
+      scope === null ||
+      (!includeAllShardYears && scope.year > Number.parseInt(shardYear, 10))
+    ) {
       continue
     }
 
@@ -2120,14 +2148,7 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'statistics') {
-      return [
-        'statsDimensions',
-        'statsMeasures',
-        'statsMeasuresI18n',
-        'statsRecords',
-        'statsValues',
-        'statsValuesI18n',
-      ]
+      return ['statsRecords', 'statsFields', 'statsFieldsI18n', 'statsValuesI18n']
     }
 
     if (cacheTableProfile === 'street') {
@@ -2165,14 +2186,7 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'statistics') {
-      return [
-        'statsDimensions',
-        'statsMeasures',
-        'statsMeasuresI18n',
-        'statsRecords',
-        'statsValues',
-        'statsValuesI18n',
-      ]
+      return ['statsRecords', 'statsFields', 'statsFieldsI18n', 'statsValuesI18n']
     }
 
     if (cacheTableProfile === 'street') {
