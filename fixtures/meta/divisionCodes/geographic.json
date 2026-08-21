@@ -1,213 +1,90 @@
 {
-  "versionHash": "sha256:dae09a5d918c9b23d342ff255ceb96ac7a3f0c35e77af8c5bda6d09b9c65b82e",
+  "versionHash": "sha256:57a5a88575c1388fded8354c1228656f2c0e33f33f792f2f9bc22097c2ccff89",
   "domainCode": "geographic",
   "assignments": [
     {
       "divisionCode": "HK",
-      "canonicalId": "25cec859-44f3-5e1d-a72b-952f804e56ab",
-      "level": 1,
-      "sourceBridge": {
-        "authority": "saanseoi",
-        "sourceCode": "hong-kong-island"
-      }
+      "canonicalId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
     },
     {
       "divisionCode": "KL",
-      "canonicalId": "17009785-57fd-4e5b-af86-2d27352e4718",
-      "level": 1,
-      "sourceBridge": {
-        "authority": "saanseoi",
-        "sourceCode": "kowloon"
-      }
+      "canonicalId": "17009785-57fd-4e5b-af86-2d27352e4718"
     },
     {
       "divisionCode": "NT",
-      "canonicalId": "780c42b7-213b-5076-9d36-6ae0024e3bd3",
-      "level": 1,
-      "sourceBridge": {
-        "authority": "saanseoi",
-        "sourceCode": "new-territories"
-      }
+      "canonicalId": "780c42b7-213b-5076-9d36-6ae0024e3bd3"
     },
     {
       "divisionCode": "CW",
-      "canonicalId": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "A"
-      }
+      "canonicalId": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d"
     },
     {
       "divisionCode": "WC",
-      "canonicalId": "a3f5d985-9d91-4629-a530-f66420a0be01",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "B"
-      }
+      "canonicalId": "a3f5d985-9d91-4629-a530-f66420a0be01"
     },
     {
       "divisionCode": "EST",
-      "canonicalId": "01b58985-268d-4b8a-8e09-64604668b13e",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "C"
-      }
+      "canonicalId": "01b58985-268d-4b8a-8e09-64604668b13e"
     },
     {
       "divisionCode": "STH",
-      "canonicalId": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "D"
-      }
+      "canonicalId": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a"
     },
     {
       "divisionCode": "YTM",
-      "canonicalId": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "E"
-      }
+      "canonicalId": "c8ca7da1-2688-402a-8eb9-199b69b5691c"
     },
     {
       "divisionCode": "SSP",
-      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "F"
-      }
+      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5"
     },
     {
       "divisionCode": "KLC",
-      "canonicalId": "94d17307-4085-457b-93a1-1f2f31f1b6c0",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "G"
-      }
+      "canonicalId": "94d17307-4085-457b-93a1-1f2f31f1b6c0"
     },
     {
       "divisionCode": "WTS",
-      "canonicalId": "8cb650f2-5721-4c32-bb57-330ecc13987d",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "H"
-      }
+      "canonicalId": "8cb650f2-5721-4c32-bb57-330ecc13987d"
     },
     {
       "divisionCode": "KT",
-      "canonicalId": "cf79b69e-8575-4e9b-b15a-a4a8901e685b",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "J"
-      }
+      "canonicalId": "cf79b69e-8575-4e9b-b15a-a4a8901e685b"
     },
     {
       "divisionCode": "TW",
-      "canonicalId": "bfb5966d-812d-4eee-9303-b6abf899b81e",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "K"
-      }
+      "canonicalId": "bfb5966d-812d-4eee-9303-b6abf899b81e"
     },
     {
       "divisionCode": "TM",
-      "canonicalId": "a55585af-2cb4-41a5-93a9-2e22568c9839",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "L"
-      }
+      "canonicalId": "a55585af-2cb4-41a5-93a9-2e22568c9839"
     },
     {
       "divisionCode": "YL",
-      "canonicalId": "d70db334-3685-4475-a252-23bdd13650e8",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "M"
-      }
+      "canonicalId": "d70db334-3685-4475-a252-23bdd13650e8"
     },
     {
       "divisionCode": "NTH",
-      "canonicalId": "e0c8872f-c29e-4ea3-8efd-88afccef2b08",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "N"
-      }
+      "canonicalId": "e0c8872f-c29e-4ea3-8efd-88afccef2b08"
     },
     {
       "divisionCode": "TP",
-      "canonicalId": "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "P"
-      }
+      "canonicalId": "f20e26ca-8ab6-422d-bf31-d4648b931b8c"
     },
     {
       "divisionCode": "SK",
-      "canonicalId": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "Q"
-      }
+      "canonicalId": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2"
     },
     {
       "divisionCode": "ST",
-      "canonicalId": "e70ad27b-857b-45f9-b94f-2168550591da",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "R"
-      }
+      "canonicalId": "e70ad27b-857b-45f9-b94f-2168550591da"
     },
     {
       "divisionCode": "KTS",
-      "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "S"
-      }
+      "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb"
     },
     {
       "divisionCode": "ILD",
-      "canonicalId": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
-      "level": 2,
-      "sourceBridge": {
-        "authority": "hkgov-had",
-        "cohortKey": "2022",
-        "externalId": "T"
-      }
+      "canonicalId": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31"
     }
   ]
 }
