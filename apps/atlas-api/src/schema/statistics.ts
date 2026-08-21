@@ -70,12 +70,12 @@ const RequestedLocalesQuerySchema = z
 const IncludeSchema = z
   .string()
   .regex(
-    /^(none|(divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?)(,(divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?))*)$/,
+    /^(none|(fields|divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?)(,(fields|divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?))*)$/,
   )
   .optional()
   .openapi({
     description:
-      'Include related divisions and/or division-area geometry. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.',
+      'Include field definitions, related divisions and/or division-area geometry. Field definitions include the requested locale labels. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.',
   })
 
 const CommonQueryShape = {
@@ -140,6 +140,38 @@ const StatisticsDocumentMetaSchema = z
 const IncludedStatisticResourceSchema = z.union([
   DivisionResourceSchema,
   DivisionGeometryResourceSchema,
+  z.object({
+    type: z.literal('statistic-fields'),
+    id: IdSchema,
+    attributes: z.object({
+      datasetCode: z.string(),
+      fieldName: z.string(),
+      sourceField: z.string(),
+      dimensions: z.record(z.string(), z.string()),
+      sourceNullOption: z.string().nullable(),
+      statisticKind: z.string(),
+      aggregation: z.string(),
+      aggregationPercentile: z.number().nullable(),
+      comparability: z
+        .object({
+          affectedReferencePeriods: z.array(z.string()),
+          reason: z.enum(statsFieldComparabilityReasons),
+          status: z.enum(statsFieldComparabilityStatuses),
+        })
+        .nullable(),
+      denominatorFieldName: z.string().nullable(),
+      valueKind: z.string(),
+      unitCode: z.string(),
+      i18n: z.record(
+        z.string(),
+        z.object({
+          name: z.string(),
+          description: z.string().nullable(),
+          isTranslationVerified: z.boolean(),
+        }),
+      ),
+    }),
+  }),
 ])
 
 export const StatisticsListResponseSchema = z

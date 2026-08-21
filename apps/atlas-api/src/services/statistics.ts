@@ -185,6 +185,32 @@ type StatisticResourcePayload = {
 type IncludedResourcePayload =
   | ReturnType<typeof createIncludedDivisionResource>
   | ReturnType<typeof createIncludedDivisionGeometryResource>
+  | ReturnType<typeof createIncludedStatisticFieldResource>
+
+function createIncludedStatisticFieldResource(args: {
+  definition: StatisticFieldDefinition
+}) {
+  const { definition } = args
+  return {
+    type: 'statistic-fields' as const,
+    id: `${definition.datasetCode}:${definition.fieldName}`,
+    attributes: {
+      datasetCode: definition.datasetCode,
+      fieldName: definition.fieldName,
+      sourceField: definition.sourceField,
+      dimensions: definition.dimensions,
+      sourceNullOption: definition.sourceNullOption,
+      statisticKind: definition.statisticKind,
+      aggregation: definition.aggregation,
+      aggregationPercentile: definition.aggregationPercentile,
+      comparability: definition.comparability,
+      denominatorFieldName: definition.denominatorFieldName,
+      valueKind: definition.valueKind,
+      unitCode: definition.unitCode,
+      i18n: definition.i18n,
+    },
+  }
+}
 
 type StatisticDocumentMeta = ApiVersionMetadata & {
   apiCatalogRevision: string
@@ -660,6 +686,35 @@ function definitionMap(definitions: StatisticFieldDefinition[]) {
   )
 }
 
+function includedStatisticFieldResources(args: {
+  definitions: StatisticFieldDefinition[]
+  records: StatisticRecord[]
+  include?: string
+}) {
+  if (!requestedIncludes(args.include).has('fields')) return []
+  const fieldKeys = new Set(
+    args.records.flatMap(record =>
+      Object.keys(record.values).map(
+        fieldName => `${record.datasetCode}\u0000${fieldName}`,
+      ),
+    ),
+  )
+  return args.definitions
+    .filter(definition =>
+      fieldKeys.has(`${definition.datasetCode}\u0000${definition.fieldName}`),
+    )
+    .sort((left, right) =>
+      `${left.datasetCode}\u0000${left.fieldName}`.localeCompare(
+        `${right.datasetCode}\u0000${right.fieldName}`,
+      ),
+    )
+    .map(definition =>
+      createIncludedStatisticFieldResource({
+        definition,
+      }),
+    )
+}
+
 export async function listStatistics(args: {
   currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
@@ -731,6 +786,11 @@ export async function listStatistics(args: {
   })
   if (related.status === 409) return related
   const url = new URL(args.requestUrl)
+  const includedFields = includedStatisticFieldResources({
+    definitions,
+    records,
+    include: args.query.include,
+  })
   const meta = documentMeta(activeSnapshot, routeState)
   meta.filters = {
     dataset: filters.datasetCode,
@@ -754,7 +814,7 @@ export async function listStatistics(args: {
           routeState,
         }),
       ),
-      included: related.included,
+      included: [...related.included, ...includedFields],
       meta,
       permalink: buildPermalink({
         activeSnapshot,
@@ -833,6 +893,11 @@ export async function getStatisticDetail(args: {
   })
   if (related.status === 409) return related
   const url = new URL(args.requestUrl)
+  const includedFields = includedStatisticFieldResources({
+    definitions,
+    records: [record],
+    include: args.query.include,
+  })
   return {
     status: 200,
     body: buildJsonApiDetailDocument({
@@ -843,7 +908,7 @@ export async function getStatisticDetail(args: {
         record,
         routeState,
       }),
-      included: related.included,
+      included: [...related.included, ...includedFields],
       meta: documentMeta(activeSnapshot, routeState),
       permalink: buildPermalink({
         activeSnapshot,
