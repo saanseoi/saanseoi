@@ -204,7 +204,11 @@ describe('C&SD native statistics archives', () => {
           metadata: await parquetMetadataAsync(divisionFile),
         })
         expect(divisions).toHaveLength(result.divisionCount)
-        expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+        expect(divisions[0]).toMatchObject({
+          canonical_type: 'housing-market-area',
+          source: 'hkgov-censtatd',
+        })
+        expect(divisions[0]).not.toHaveProperty('canonical_level')
       }
     }
     for (const area of overtureHongKongAreas) {
