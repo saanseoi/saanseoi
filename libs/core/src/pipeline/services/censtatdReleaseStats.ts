@@ -27,6 +27,7 @@ export type CenstatdCanonicalObservation = {
 
 export type CenstatdCanonicalField = {
   aggregation: string
+  aggregationPercentile: number | null
   denominatorFieldName?: string | null
   dimensions: Record<string, string>
   fieldName: string
@@ -289,6 +290,7 @@ export function buildCenstatdFieldCurationAuditActions(
       affectedRecordCount: observationCounts.get(field.sourceField!) ?? 0,
       evidence: {
         aggregation: field.aggregation,
+        aggregationPercentile: field.aggregationPercentile,
         denominatorFieldName: field.denominatorFieldName ?? null,
         fieldName: field.fieldName,
         sourceField: field.sourceField,
