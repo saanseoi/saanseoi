@@ -18,36 +18,51 @@ records the mirrored archive's managed key and SHA-256 in source provenance. Onl
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
 publication still builds SQL using the corresponding local target-database cache.
 
-The current shard materialises the latest version of each observation across all source
-compilations. The history shard keeps superseded observations and dictionaries, so a
-later compilation may revise historic reference periods without duplicating them in
-current data. This is deliberately not a cohort-based Stats API model: a new optional
-dataset member, or historic dimensions added to an existing member, creates the next
-Stats family revision. It does not require a shared base cohort across datasets.
+Publisher delivery and statistical reference time are separate storage concerns. Raw
+assertions remain in the source shard selected by the publisher release's delivery year.
+Canonical `statsRecords` history is split by `referencePeriodEndYear`; periods ending
+before 2025 use `DB_HISTORY_HK_BEFORE`. A period spanning more than one year uses its
+end year. For example, a 2026 compilation row for 2016 remains raw source evidence in
+the 2026 source shard while its canonical history record and snapshot belong to `BEFORE`
+and cohort `2016`.
+
+The current shard materialises the latest version independently for each stable dataset,
+source feature, and exact `referencePeriodCode`. Replaying a later compilation updates
+only the periods it contains; an omitted period does not delete an existing current
+observation. History retains every source-release-specific record revision in the
+reference period's shard.
+
+Each source release materialises one dataset snapshot per distinct exact reference
+period. Statistics release sets use that period code as their cohort and composition
+members match it with `exact_ref`. Dataset-code members are optional because not every
+dataset publishes every period; a later dataset or corrected compilation creates a new
+immutable revision only for the affected period.
 
 Each packed measure value stores exact decimal text (not floats), its original source
 literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
-dimension dictionaries remain normalised because they are small shared metadata. This
-avoids a D1 write per measure while retaining a queryable, independently versioned
-record per publisher feature. There is no multiplier column and no separate
+localised value dictionaries remain normalised because they are small shared metadata.
+The current shard keeps the latest dataset dictionaries, while each touched
+reference-year history shard keeps the source-release version used with that period's
+records. This keeps dictionary selection local to the statistics data and avoids a
+cross-shard metadata lookup. There is no multiplier column and no separate
 statistical-geography registry. Source geometry stays in provenance until a reviewed
 geometry is released through the Divisions family.
 
 Every C&SD publisher field requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset assigns
-its stable canonical `measureCode`, retains the publisher `sourceField`, assigns a
+its stable canonical `fieldName`, retains the publisher `sourceField`, assigns a
 reviewed `statisticKind` (`count`, `quantity`, `proportion`, `ratio`, `rate`, `density`,
 or `index`) and a separate `aggregation` (`none`, `total`, `mean`, `median`, and related
 forms), and supplies the English, Traditional Chinese, and Simplified Chinese measure
 dictionary. A proportion, ratio, rate, or density can also name its canonical
-`denominatorMeasureCode`. These semantics are independent of `valueKind` (numeric or
+`denominatorFieldName`. These semantics are independent of `valueKind` (numeric or
 categorical) and `unitCode`. Units are registered metadata in `fixtures/meta/units`; an
 unrecognised unit prompts for its dimension, symbol, English name, and definition before
 it is persisted and synchronised. Azure Translator fills Traditional and Simplified
 Chinese unit names and definitions from those English prompt values. The registered CSDI
 Simplified Data Specification is a review candidate retained as provenance. The CLI
 first displays compact metadata with the stable source-release portal URL, then a
-proposal of `sourceField -> measureCode`, its reviewed-unit suggestion, and the
+proposal of `sourceField -> fieldName`, its reviewed-unit suggestion, and the
 English/Traditional Chinese/Simplified Chinese name and description together. The unit
 suggestion is drawn only from compatible, previously reviewed canonical measure names;
 it is never admitted without review. On rejection, CSDI's English name and description
