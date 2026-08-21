@@ -11,7 +11,11 @@ import {
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/metaFixtures'
-import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
+import {
+  ensureDraftSnapshotForRelease,
+  getDatasetRecordByReleaseId,
+  upsertSnapshotSource,
+} from '@repo/core/db/metaRegistry'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
@@ -56,34 +60,110 @@ function initDb(dbPath: string) {
   return db
 }
 
-test('publishes a source-only division statistic without an API snapshot', async () => {
+test('publishes a dataset snapshot as an exact reference-period Statistics release', async () => {
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistic.sqlite'))
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-hkgov-censtatd-district-statistic-2022',
-    source: 'overture',
-    regionCode: 'hk',
-    cohortKey: '2022',
-    type: 'division',
-    sourceVersion: '2022',
-    rawObjectKey: 'hk/hkgov-censtatd/2022/division-statistic.parquet',
-    originalFileName: 'division-statistic.parquet',
-    status: 'processing',
-    ingestedAt: '2026-08-16T00:00:00.000Z',
-    createdAt: '2026-08-16T00:00:00.000Z',
-    updatedAt: '2026-08-16T00:00:00.000Z',
-  })
+  const datasetCode =
+    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  sqlite.exec(`
+    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES (
+      'publisher-hkgov-censtatd', 'hkgov-censtatd',
+      'vh-publisher-hkgov-censtatd', 1761264000000, 1761264000000
+    );
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'dataset-censtatd-density', 'publisher-hkgov-censtatd', '${datasetCode}',
+      'hk', 'static', 'yearly', 'stats', 'official-statistics',
+      'vh-dataset-censtatd-density', 1761264000000, 1761264000000
+    );
+    INSERT INTO datasetResourceTypes (datasetId, resourceType)
+    VALUES ('dataset-censtatd-density', 'divisionStatistic');
+    INSERT INTO apiVersions (
+      id, code, familyType, version, status, publishedAt,
+      versionHash, createdAt, updatedAt
+    ) VALUES (
+      'api-version-stats-v0.1', 'api-stats-v0.1', 'stats', '0.1', 'current',
+      1761264000000, 'vh-api-stats-v0.1', 1761264000000, 1761264000000
+    );
+    INSERT INTO apiComposition (
+      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode,
+      status, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'api-composition-stats-v1', 'api-version-stats-v0.1', 'comp-stats-v1', 1,
+      'divisionStatistic', 'default', 'current', 'vh-comp-stats-v1',
+      1761264000000, 1761264000000
+    );
+    INSERT INTO apiCompositionMembers (
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+      cohortMatchingMode, priority
+    ) VALUES
+      (
+        'api-composition-stats-v1', 'default', 'divisionStatistic',
+        '${datasetCode}', 'primary', 0, 'exact_ref', 0
+      ),
+      (
+        'api-composition-stats-v1', 'default', 'divisionStatistic',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'primary', 0, 'exact_ref', 1
+      );
+  `)
+  const dataset = sqlite
+    .query('SELECT id FROM datasets WHERE code = ?')
+    .get(datasetCode) as { id: string }
+  const releaseId = 'release-hkgov-censtatd-district-statistic-2024'
   sqlite
-    .query('UPDATE releases SET resourceType = ? WHERE id = ?')
-    .run('divisionStatistic', releaseId)
+    .query(
+      `INSERT INTO releases (
+        id, datasetId, resourceType, code, sourceVersion, cohortKey,
+        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      releaseId,
+      dataset.id,
+      'divisionStatistic',
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024',
+      '2024',
+      '2024',
+      'hk/hkgov-censtatd/2024/division-statistic.parquet',
+      'division-statistic.parquet',
+      'processing',
+      '2026-08-16T00:00:00.000Z',
+      '2026-08-16T00:00:00.000Z',
+      '2026-08-16T00:00:00.000Z',
+    )
+  const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
+    cohortKey: '2024/25',
+    datasetCode,
+    datasetId: dataset.id,
+    regionCode: 'hk',
+    sourceReleaseId: releaseId,
+    variant: datasetCode,
+  })
+  await upsertSnapshotSource(db, snapshot.id, dataset.id, releaseId, 'primary')
 
   const result = await handlePublishDataset(db, { releaseId })
   const release = sqlite
     .query('SELECT status FROM releases WHERE id = ?')
     .get(releaseId) as { status: string }
 
-  expect(result).toMatchObject({ releaseId, status: 'published' })
+  expect(result).toMatchObject({
+    apiReleaseSetCode: 'data-hk-stats-2024-25',
+    apiReleaseSetStatus: 'current',
+    releaseId,
+    snapshotId: snapshot.id,
+    status: 'current',
+  })
+  if (!result.apiReleaseSetId) throw new Error('Expected an API release-set ID.')
+  expect(
+    sqlite
+      .query('SELECT cohortKey FROM apiReleaseSets WHERE id = ?')
+      .get(result.apiReleaseSetId),
+  ).toEqual({ cohortKey: '2024/25' })
   expect(release.status).toBe('published')
   sqlite.close()
 })
