@@ -1,11 +1,9 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
-  canonicalStatsDimension,
   canonicalStatsMeasure,
   canonicalStatsMeasureI18n,
   canonicalStatsRecord,
-  canonicalStatsValue,
   canonicalStatsValueI18n,
 } from '../shared'
 import { historyStatisticVersioning } from './shared'
@@ -48,31 +46,6 @@ export const statsMeasuresI18n = sqliteTable(
   table => [
     primaryKey({
       columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
-    }),
-  ],
-)
-
-export const statsDimensions = sqliteTable(
-  'statsDimensions',
-  { ...canonicalStatsDimension, ...historyStatisticVersioning },
-  table => [
-    primaryKey({
-      columns: [table.datasetCode, table.dimensionCode, table.versionHash],
-    }),
-  ],
-)
-
-export const statsValues = sqliteTable(
-  'statsValues',
-  { ...canonicalStatsValue, ...historyStatisticVersioning },
-  table => [
-    primaryKey({
-      columns: [
-        table.datasetCode,
-        table.dimensionCode,
-        table.valueCode,
-        table.versionHash,
-      ],
     }),
   ],
 )
