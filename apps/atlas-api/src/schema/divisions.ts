@@ -67,7 +67,7 @@ const DivisionHierarchyRelationshipSchema = z
 
 const DivisionAttributesSchema = z
   .object({
-    level: z.number().int(),
+    level: z.number().int().nullable(),
     type: z.string(),
     divisionCode: z.string().optional(),
     snapshotId: z.string().optional(),

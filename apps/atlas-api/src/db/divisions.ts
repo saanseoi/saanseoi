@@ -42,7 +42,7 @@ export type DivisionRecord = {
     snapshotId: string
     id: string
     divisionCode?: string | null
-    level: number
+    level: number | null
     type: string
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
@@ -92,7 +92,7 @@ type DivisionRow = {
   snapshotId: string
   id: string
   divisionCode?: string | null
-  level: number
+  level: number | null
   type: string
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
