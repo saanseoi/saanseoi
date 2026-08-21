@@ -1,6 +1,6 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
@@ -23,7 +23,8 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "residentsOfSubdividedUnits",
+      "fieldName": "residentsOfSubdividedUnits",
+      "dimensions": {},
       "schemaSpecification": {
         "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
@@ -55,7 +56,8 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "householdsInSubdividedUnits",
+      "fieldName": "householdsInSubdividedUnits",
+      "dimensions": {},
       "schemaSpecification": {
         "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
@@ -87,7 +89,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "occupiedSubdividedUnits",
+      "fieldName": "occupiedSubdividedUnits",
+      "dimensions": {
+        "occupancy-status": "occupied"
+      },
       "schemaSpecification": {
         "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
@@ -119,7 +124,10 @@
           "isTranslationVerified": true
         }
       ],
-      "measureCode": "subdividedUnits",
+      "fieldName": "subdividedUnits",
+      "dimensions": {
+        "occupancy-status": "all"
+      },
       "schemaSpecification": {
         "sha256": "2dfb37eb038e81bacb29f0a81c9b8ec3e0a7f520022d20cc3da9ba096be8df5e",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54"
