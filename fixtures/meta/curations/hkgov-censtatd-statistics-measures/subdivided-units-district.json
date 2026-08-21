@@ -27,6 +27,29 @@
     {
       "localisations": [
         {
+          "description": "Number of occupied quarters.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Occupied quarters"
+        },
+        {
+          "description": "有人居住的屋宇單位數目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "有人居住的屋宇單位數目"
+        },
+        {
+          "description": "有人居住的屋宇单位数目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "有人居住的屋宇单位数目"
+        }
+      ],
+      "measureCode": "occupiedQuarters"
+    },
+    {
+      "localisations": [
+        {
           "locale": "en",
           "name": "Residents of subdivided units",
           "description": "Number of people living in subdivided units.",
@@ -72,5 +95,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:a4032b65c7879a889257e78ae0b29945185a2de8f4e1066959a5d21f8ddfdd85"
+  "versionHash": "sha256:cd571e934eae05149c30167e97be6b1b0df82299aef3894e6bc543b43241280b"
 }

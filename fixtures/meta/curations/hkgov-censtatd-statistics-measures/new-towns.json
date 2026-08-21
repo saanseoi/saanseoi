@@ -28,7 +28,7 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "domestic households",
+          "name": "Domestic households",
           "description": "Number of domestic households",
           "isTranslationVerified": false
         },
@@ -167,19 +167,19 @@
         {
           "locale": "en",
           "name": "Labour force participation rate",
-          "description": "Labour force participation rate (i.e. the proportion of labour force in the total population aged 15 and over)",
+          "description": "Labour force participation rate, defined as the labour force as a proportion of the population aged 15 and over.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比）",
-          "description": "勞動人口參與率（勞動人口佔所有 15 歲及以上人口的百分比）",
+          "name": "勞動人口參與率",
+          "description": "勞動人口參與率，即勞動人口佔所有15歲及以上人口的比例。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）",
-          "description": "劳动人口参与率（劳动人口占所有 15 岁及以上人口的百分比）",
+          "name": "劳动人口参与率",
+          "description": "劳动人口参与率，即劳动人口占所有15岁及以上人口的比例。",
           "isTranslationVerified": false
         }
       ],
@@ -259,19 +259,19 @@
         {
           "locale": "en",
           "name": "Median monthly domestic household income",
-          "description": "Median monthly domestic household income (HK$)",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "家庭住戶每月收入中位數（港元）",
-          "description": "家庭住戶每月收入中位數（港元）",
+          "name": "家庭住戶每月收入中位數",
+          "description": "家庭住戶每月收入中位數，單位為港元。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "家庭住户每月收入中位数（港元）",
-          "description": "家庭住户每月收入中位数（港元）",
+          "name": "家庭住户每月收入中位数",
+          "description": "家庭住户每月收入中位数，单位为港元。",
           "isTranslationVerified": false
         }
       ],
@@ -601,5 +601,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:9f5a013e72788d47e0180545e1f91f1178e50022e339d1493dcceb9ce87a5284"
+  "versionHash": "sha256:7cd52a2216de2ce9dc17ad6b9a08935b035a126c4c9df2f29a7c9e8d5bacfa88"
 }
