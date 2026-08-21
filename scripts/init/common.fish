@@ -131,9 +131,9 @@ function init_run_upload
     end
 
     set -l retry_args
-    if test "$saanseoi_init_target" != local
-        # Remote registration happens before the local cache clone. If the clone
-        # fails, the release remains staged and must be safely re-entrant.
+    if test "$saanseoi_init_continue" -eq 1
+        # An interrupted upload leaves its release staged. Completed releases
+        # were skipped above, so re-enter only the incomplete release.
         set retry_args --force
     end
     set -l cache_artefact_args
