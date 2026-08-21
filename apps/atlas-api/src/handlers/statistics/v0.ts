@@ -4,12 +4,16 @@
  */
 export {
   getStatisticDetail,
+  getStatisticsGeographies,
+  getStatisticsSeries,
   listStatistics,
   type RequestedStatisticApiVersion,
   type RequestedStatisticVersion,
   type ResolvedStatisticApiVersion,
   type StatisticDetailQuery,
   type StatisticDetailResult,
+  type StatisticGeographiesQuery,
   type StatisticListQuery,
   type StatisticListResult,
+  type StatisticSeriesQuery,
 } from '../../services/statistics'
