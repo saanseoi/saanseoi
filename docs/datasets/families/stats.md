@@ -74,8 +74,9 @@ records `isTranslationVerified=false`. Official CSDI locale rows remain verified
 
 When a publisher explicitly says that a classification changed between reference
 periods, the field dictionary records a structured `comparability` caution with the
-reason and affected earlier periods. It warns consumers to treat cross-period comparisons
-carefully; it neither invalidates the value nor becomes an analytical dimension.
+reason and affected earlier periods. It warns consumers to treat cross-period
+comparisons carefully; it neither invalidates the value nor becomes an analytical
+dimension.
 
 Source identifiers are retained as provenance or geography references and are not
 statistic values. A reviewed unit always describes the reported numeric value, rather
