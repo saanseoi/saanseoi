@@ -102,6 +102,7 @@ type PreparedDivision = {
   base: {
     bbox: unknown
     cartography: null
+    divisionCode: string | null
     geometry: unknown
     hierarchy: unknown
     id: string
@@ -301,7 +302,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       progress,
       'Normalise',
       `${previewPlan.rowCount.toLocaleString('en-US')} planning divisions`,
-      () => readPreparedDivisions(bucket, rawObjectKey),
+      async () =>
+        readPreparedDivisions(
+          bucket,
+          rawObjectKey,
+          previewPlan.source === 'hkgov-pland-new-town'
+            ? await loadPlandNewTownDivisionCodes(metaDb)
+            : new Map(),
+        ),
     )
     validatePreparedDivisions(records, previewPlan.rowCount)
     const now = toIsoTimestamp()
@@ -664,16 +672,44 @@ async function listCurrentHistoryRows(
   })
 }
 
-async function readPreparedDivisions(bucket: LocalPipelineBucket, key: string) {
+async function loadPlandNewTownDivisionCodes(metaDb: HarbourReadableDb) {
+  const rows = await metaDb
+    .select({
+      canonicalId: metaSchema.metaDivisionCodes.canonicalId,
+      divisionCode: metaSchema.metaDivisionCodes.divisionCode,
+    })
+    .from(metaSchema.metaDivisionCodes)
+    .where(eq(metaSchema.metaDivisionCodes.domainCode, 'hkgov-pland-new-town'))
+    .all()
+  const divisionCodesByCanonicalId = new Map<string, string>()
+  for (const row of rows) {
+    if (divisionCodesByCanonicalId.has(row.canonicalId)) {
+      throw new Error(`Duplicate curated New Town Division target=${row.canonicalId}.`)
+    }
+    divisionCodesByCanonicalId.set(row.canonicalId, row.divisionCode)
+  }
+  return divisionCodesByCanonicalId
+}
+
+async function readPreparedDivisions(
+  bucket: LocalPipelineBucket,
+  key: string,
+  divisionCodesByCanonicalId: ReadonlyMap<string, string>,
+) {
   const file = await createAsyncBufferFromR2(bucket, key)
   const records: PreparedDivision[] = []
   for await (const batch of readParquetObjectsInBatches(file, 512)) {
-    for (const raw of batch) records.push(await normalisePreparedDivision(raw))
+    for (const raw of batch) {
+      records.push(await normalisePreparedDivision(raw, divisionCodesByCanonicalId))
+    }
   }
   return records
 }
 
-async function normalisePreparedDivision(value: Record<string, unknown>) {
+async function normalisePreparedDivision(
+  value: Record<string, unknown>,
+  divisionCodesByCanonicalId: ReadonlyMap<string, string>,
+) {
   const id = requireString(value.id, 'id')
   const level = requireString(value.planning_level, 'planning_level')
   const sourceProperties = asRecord(value.source_properties)
@@ -685,6 +721,7 @@ async function normalisePreparedDivision(value: Record<string, unknown>) {
   const base = {
     bbox: calculateGeoJsonBbox(geometry),
     cartography: null,
+    divisionCode: resolvePlandDivisionCode(level, id, divisionCodesByCanonicalId),
     geometry,
     hierarchy: value.hierarchy ?? [],
     id,
@@ -711,6 +748,16 @@ async function normalisePreparedDivision(value: Record<string, unknown>) {
     sourceCellIds,
     versionHash,
   } satisfies PreparedDivision
+}
+
+export function resolvePlandDivisionCode(
+  planningLevel: string,
+  canonicalId: string,
+  divisionCodesByCanonicalId: ReadonlyMap<string, string>,
+) {
+  return planningLevel === 'newtown'
+    ? (divisionCodesByCanonicalId.get(canonicalId) ?? null)
+    : null
 }
 
 function wasPlanningGeometryRepaired(record: PreparedDivision) {
