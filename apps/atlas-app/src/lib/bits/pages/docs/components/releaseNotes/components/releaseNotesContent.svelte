@@ -1,6 +1,6 @@
 <script lang="ts">
 import SvelteMarkdown, {
-  buildUnsupportedHTML,
+  allowHtmlOnly,
   defaultRenderers,
   defaultSanitizeUrl,
 } from '@humanspeak/svelte-markdown'
@@ -13,9 +13,11 @@ import type {
   ReleaseNotesTransclusion,
 } from '../releaseNotes.types'
 import ReleaseNotesBadge from './releaseNotesBadge.svelte'
+import ReleaseNotesCallout from './releaseNotesCallout.svelte'
 import ReleaseNotesCodeSpan from './releaseNotesCodeSpan.svelte'
 import ReleaseNotesHeading from './releaseNotesHeading.svelte'
 import ReleaseNotesLink from './releaseNotesLink.svelte'
+import ReleaseNotesTooltip from './releaseNotesTooltip.svelte'
 
 type Props = {
   markdown: string
@@ -28,11 +30,22 @@ let { markdown, labels, transclusions, nested = false }: Props = $props()
 
 const releaseNotesRenderers = {
   ...defaultRenderers,
-  html: buildUnsupportedHTML(),
+  // Glossary and definition content uses a small amount of presentational HTML
+  // (`<i>` and `<br>`). Render those elements rather than exposing their source
+  // text, while keeping every other ordinary HTML element escaped.
+  html: allowHtmlOnly(['br', 'i']),
 }
 
 function sanitiseUrl(url: string) {
   return transclusions[url] ? url : defaultSanitizeUrl(url, { type: 'link', tag: 'a' })
+}
+
+function stringAttribute(
+  attributes: Record<string, string | number | boolean | undefined> | undefined,
+  name: string,
+) {
+  const value = attributes?.[name]
+  return typeof value === 'string' ? value : undefined
 }
 </script>
 
@@ -93,6 +106,19 @@ function sanitiseUrl(url: string) {
     {#snippet html_black({ children })}
       <ReleaseNotesBadge tone="black" {nested}
         >{@render children?.()}</ReleaseNotesBadge
+      >
+    {/snippet}
+
+    {#snippet html_note({ attributes, children })}
+      <ReleaseNotesCallout title={stringAttribute(attributes, 'title')}
+        >{@render children?.()}</ReleaseNotesCallout
+      >
+    {/snippet}
+
+    {#snippet html_tooltip({ attributes, children })}
+      <ReleaseNotesTooltip
+        description={stringAttribute(attributes, 'description') ?? ''}
+        >{@render children?.()}</ReleaseNotesTooltip
       >
     {/snippet}
 
