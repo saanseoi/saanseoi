@@ -155,10 +155,10 @@ can exceed the number of HMA records. The association does not alter HMA canonic
 division IDs and it does not emit Geometry by District measurements: whole-HMA area or
 perimeter must never be attributed to every district it crosses.
 
-The generated HMA division rows include the shared Parquet hierarchy columns (`subtype`,
-`class`, and `parent_division_id`) as empty values for structural compatibility. Their
-authoritative classification remains the C&SD `canonical_type` of `housing-market-area`;
-these fields do not create a hierarchy.
+The generated HMA division rows include the shared Parquet hierarchy columns. Their
+`class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
+HMAs have no hierarchy. Their authoritative classification remains the C&SD
+`canonical_type` of `housing-market-area`.
 
 ## Ingestion
 
