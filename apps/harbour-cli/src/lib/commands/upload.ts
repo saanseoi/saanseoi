@@ -60,6 +60,7 @@ import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { createApiReleaseSetRevisionDraft } from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import {
+  assertRetainableSourceReleaseInput,
   linkManagedSourceAssetToRelease,
   uploadSourceReleaseAsset,
 } from '../sources/sourceAssets.ts'
@@ -123,6 +124,9 @@ export async function runUploadCommand(
     throw new Error('Missing file path.')
   }
   const sourceArtefactPath = resolve(options.invocationCwd, inputFile)
+  if (!sourceArchiveReference(args)) {
+    assertRetainableSourceReleaseInput(inputFile)
+  }
 
   if (!options.quiet)
     intro(`

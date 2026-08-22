@@ -133,9 +133,16 @@ export function buildSnapshotLineageCode(
   // already represented by the dataset code.
   const normalisedDatasetCode = normaliseCodeSlug(datasetCode)
   const normalisedResourceType = normaliseCodeSlug(resourceType)
+  // `division` is a prefix of the more specific resource types. A dataset
+  // such as `…-division-statistic-…` can also publish its geography as
+  // divisions, so the prefix must not make both lineages share one code.
+  const hasMoreSpecificDivisionResourceType =
+    resourceType === 'division' &&
+    /-division-(?:area|boundary|statistic)(?:-|$)/.test(normalisedDatasetCode)
   const resourceTypeIsInDatasetCode =
-    normalisedDatasetCode.endsWith(`-${normalisedResourceType}`) ||
-    normalisedDatasetCode.includes(`-${normalisedResourceType}-`)
+    !hasMoreSpecificDivisionResourceType &&
+    (normalisedDatasetCode.endsWith(`-${normalisedResourceType}`) ||
+      normalisedDatasetCode.includes(`-${normalisedResourceType}-`))
   const resourceTypeSegment = resourceTypeIsInDatasetCode
     ? ''
     : `-${normalisedResourceType}`

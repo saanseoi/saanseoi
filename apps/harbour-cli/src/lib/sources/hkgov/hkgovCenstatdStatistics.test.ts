@@ -230,8 +230,11 @@ describe('C&SD native statistics archives', () => {
         expect(divisions).toHaveLength(result.divisionCount)
         expect(divisions[0]).toMatchObject({
           canonical_type: 'housing-market-area',
+          class: '',
           source: 'hkgov-censtatd',
+          subtype: '',
         })
+        expect(divisions[0]).toHaveProperty('parent_division_id', '')
         expect(divisions[0]).not.toHaveProperty('canonical_level')
       }
     }
