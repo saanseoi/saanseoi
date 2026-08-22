@@ -7,7 +7,7 @@ apiReleaseSet: "data-hk-stats-2016-r0"
 revision: "0"
 regionCode: "hk"
 cohortKey: "2016"
-domainCode: "default"
+domainCode: "official"
 primarySourceRelease: "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
 primarySourceReleaseUrl: "/sources/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
 ---
@@ -47,7 +47,7 @@ The <black>v0.1</black> contract is experimental. Use either <black>GET
 /v0.1/stats</black> or <black>GET /v0.1/stats/{id}</black>; the <black>/v0</black>
 aliases resolve to the same contract today.
 
-Start with the default statistics collection:
+Start with the official statistics collection:
 
 ```url
 /v0.1/stats
@@ -67,7 +67,7 @@ latest cohort or release set. Statistics has many independent series: a populati
 measure may be annual, another quarterly, another monthly, and a census measure may have
 no later observation.
 
-The default Statistics view is therefore:
+The official Statistics view is therefore:
 
 ```url
 /v0.1/stats
@@ -223,7 +223,7 @@ set 的新不可變 revision，不會改變本 revision。
 <black>v0.1</black> 合約仍屬實驗性質。請使用 <black>GET /v0.1/stats</black> 或
 <black>GET /v0.1/stats/{id}</black>；現時 <black>/v0</black> 別名解析至相同合約。
 
-先從預設統計 collection 開始：
+先從官方統計 collection 開始：
 
 ```url
 /v0.1/stats
@@ -240,7 +240,7 @@ set 的新不可變 revision，不會改變本 revision。
 Divisions 在每個 domain 實際上只有一個時間序列，因此預設會選取一個最新 cohort 或 release
 set。Statistics 則有多個獨立序列：人口指標可以是年度、季度或月度，而人口普查指標未必有較新的觀測值。
 
-Statistics 的預設檢視因此是：
+Statistics 的官方檢視因此是：
 
 ```url
 /v0.1/stats
@@ -379,7 +379,7 @@ set 的新不可变 revision，不会改变本 revision。
 <black>v0.1</black> 合约仍属实验性质。请使用 <black>GET /v0.1/stats</black> 或
 <black>GET /v0.1/stats/{id}</black>；现时 <black>/v0</black> 别名解析至相同合约。
 
-先从默认统计 collection 开始：
+先从官方统计 collection 开始：
 
 ```url
 /v0.1/stats
@@ -396,7 +396,7 @@ set 的新不可变 revision，不会改变本 revision。
 Divisions 在每个 domain 实际上只有一个时间序列，因此默认会选取一个最新 cohort 或 release
 set。Statistics 则有多个独立序列：人口指标可以是年度、季度或月度，而人口普查指标未必有较新的观测值。
 
-Statistics 的默认视图因此是：
+Statistics 的官方视图因此是：
 
 ```url
 /v0.1/stats

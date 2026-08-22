@@ -6,22 +6,22 @@
   "status": "current",
   "domains": [
     {
-      "code": "hkgov-landsd",
+      "code": "official",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "HK Gov",
+          "name": "Official",
           "description": "Explore Hong Kong’s street network, including official street names, road centre lines, and related geography."
         },
         {
           "locale": "zh-hant",
-          "name": "香港政府",
+          "name": "官方",
           "description": "探索香港的街道網絡，包括官方街道名稱、道路中心線及相關地理資料。"
         },
         {
           "locale": "zh-hans",
-          "name": "香港政府",
+          "name": "官方",
           "description": "探索香港的街道网络，包括官方街道名称、道路中心线及相关地理资料。"
         }
       ],
@@ -45,5 +45,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:8ec84c7b47d0a26758d3fdaaeb4fa662c3ccdaba841026a5c7264a3fb763726e"
+  "versionHash": "sha256:4f92b583f11511666d8c4002420985953614dc588bfa76198a227d487077a575"
 }
