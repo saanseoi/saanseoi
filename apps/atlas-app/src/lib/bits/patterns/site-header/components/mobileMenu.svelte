@@ -1,5 +1,6 @@
 <script lang="ts">
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import { authClient } from '#lib/auth-client.js'
 import { Dialog } from 'bits-ui'
 
 import { m } from '#lib/bits/internal/i18n.js'
@@ -17,6 +18,12 @@ let { user = null }: { user?: User | null } = $props()
 
 const closeMobileMenu = () => {
   mobileMenuOpen = false
+}
+
+const handleSignOut = async () => {
+  const { error } = await authClient.signOut()
+  if (error) return
+  window.location.assign('/')
 }
 </script>
 
@@ -68,21 +75,29 @@ const closeMobileMenu = () => {
       <div
         class="-mt-2 flex items-center justify-between gap-3 border-t border-border-card/60 pt-4"
       >
-        <div class="flex flex-row items-center gap-2">
+        <div class="flex items-center gap-2">
           <LanguageSelector side="right" align="end" />
           <DarkModeToggle class="inline-grid" />
         </div>
-        {#if user}
-          <Button
-            class="min-h-11 rounded-default px-6 text-body-md font-medium text-nowrap"
-            href="/api-keys"
-            onclick={closeMobileMenu}
-            variant="primary"
-          >
-            API keys
-          </Button>
-        {:else}
-          <div class="flex items-center gap-3">
+        <div class="ml-auto flex shrink-0 items-center gap-4">
+          {#if user}
+            <Button
+              class="min-h-11 !px-0 text-body-md !font-medium text-nowrap"
+              onclick={handleSignOut}
+              size="compact"
+              variant="text"
+            >
+              Sign out
+            </Button>
+            <Button
+              class="min-h-11 rounded-default px-4 text-body-md font-medium text-nowrap"
+              href="/account"
+              onclick={closeMobileMenu}
+              variant="primary"
+            >
+              Settings
+            </Button>
+          {:else}
             <Button
               class="min-h-11 px-0 text-body-md font-medium text-nowrap"
               href="/sign-in"
@@ -91,7 +106,6 @@ const closeMobileMenu = () => {
             >
               {m.auth_sign_in_title()}
             </Button>
-            <span aria-hidden="true" class="h-5 w-px bg-border-card/70"></span>
             <Button
               class="min-h-11 px-4 text-body-md font-medium text-nowrap"
               href="/sign-up"
@@ -100,8 +114,8 @@ const closeMobileMenu = () => {
             >
               {m.nav_sign_up()}
             </Button>
-          </div>
-        {/if}
+          {/if}
+        </div>
       </div>
     </Dialog.Content>
   </Dialog.Portal>
