@@ -94,7 +94,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
       status, versionHash, createdAt, updatedAt
     ) VALUES (
       'api-composition-stats-v1', 'api-version-stats-v0.1', 'comp-stats-v1', 1,
-      'divisionStatistic', 'default', 'current', 'vh-comp-stats-v1',
+      'divisionStatistic', 'official', 'current', 'vh-comp-stats-v1',
       1761264000000, 1761264000000
     );
     INSERT INTO apiCompositionMembers (
@@ -102,11 +102,11 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
       cohortMatchingMode, priority
     ) VALUES
       (
-        'api-composition-stats-v1', 'default', 'divisionStatistic',
+        'api-composition-stats-v1', 'official', 'divisionStatistic',
         '${datasetCode}', 'primary', 0, 'exact_ref', 0
       ),
       (
-        'api-composition-stats-v1', 'default', 'divisionStatistic',
+        'api-composition-stats-v1', 'official', 'divisionStatistic',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
         'primary', 0, 'exact_ref', 1
       );

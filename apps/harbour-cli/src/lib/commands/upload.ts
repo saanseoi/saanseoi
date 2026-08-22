@@ -1377,7 +1377,7 @@ export function formatAddressApiReleaseSetReadiness(
   releaseSetCode?: string,
   divisionCohortKey?: string | null,
 ) {
-  const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'default'
+  const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'official'
 
   return [
     `${plan.regionCode.toUpperCase()} / ${domainCode} / ${plan.cohortKey}`,

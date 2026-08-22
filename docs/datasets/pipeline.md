@@ -68,7 +68,7 @@ bun run db:reset:local
 ./bin/saanseoi init:divisions:hkgov-pland-new-town
 ./bin/saanseoi init:divisions:hkgov-landsd
 ./bin/saanseoi init:streets:hkgov-landsd
-./bin/saanseoi init:addresses:default
+./bin/saanseoi init:addresses:official
 ```
 
 The four focused division initialisers also accept a remote target. They process the

@@ -88,7 +88,5 @@ aside while cutting the release.
 
 ### Untracked
 
-- `apps/atlas-app/src/routes/guides/+page.svelte`
 - `apps/atlas-app/src/routes/guides/download-dataset/+page.svelte`
-- `apps/atlas-app/src/routes/guides/use-the-api/+page.svelte`
 - `apps/atlas-app/src/routes/themes/+page.svelte`

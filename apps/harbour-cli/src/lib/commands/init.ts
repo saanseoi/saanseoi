@@ -10,7 +10,7 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
-  'init:addresses:default': {
+  'init:addresses:official': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
     supportsTarget: true,

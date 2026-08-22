@@ -130,7 +130,7 @@ async function main() {
         validateGeometry,
       })
       return
-    case 'init:addresses:default':
+    case 'init:addresses:official':
     case 'init':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':

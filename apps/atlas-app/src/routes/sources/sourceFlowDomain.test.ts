@@ -20,8 +20,12 @@ const source = (overrides: Partial<SourcesPageSource>): SourcesPageSource =>
   }) as SourcesPageSource
 
 describe('sourceFlowDomain', () => {
-  test('keeps census statistics in the default Stats domain', () => {
-    expect(sourceFlowDomain(source({}), 'stats')).toBe('default')
+  test('keeps census statistics in the Official Stats domain', () => {
+    expect(sourceFlowDomain(source({}), 'stats')).toBe('official')
+  })
+
+  test.each(['addresses', 'streets'])('uses the Official %s domain', familyType => {
+    expect(sourceFlowDomain(source({}), familyType)).toBe('official')
   })
 
   test('uses the published API domain for division sources', () => {

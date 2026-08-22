@@ -3306,12 +3306,27 @@ export async function resolveReleaseSetForType(
   )
 }
 
+async function resolveDomainCodeForType(
+  db: HarbourReadableDb,
+  type: ResourceType,
+  domainCode?: string,
+) {
+  if (domainCode) return domainCode
+
+  const composition = await resolveCurrentApiCompositionSafely(
+    db,
+    getApiVersionCodeForType(type),
+  )
+  return composition?.defaultDomainCode ?? 'default'
+}
+
 export async function resolveActiveReleaseSetForType(
   db: HarbourReadableDb,
   type: ResourceType,
-  domainCode = 'default',
+  domainCode?: string,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
+  const resolvedDomainCode = await resolveDomainCodeForType(db, type, domainCode)
 
   return (
     (await db
@@ -3332,7 +3347,7 @@ export async function resolveActiveReleaseSetForType(
         and(
           eq(metaApiVersions.code, apiVersionCode),
           eq(metaApiReleaseSets.status, 'current'),
-          eq(metaApiReleaseSets.domainCode, domainCode),
+          eq(metaApiReleaseSets.domainCode, resolvedDomainCode),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
@@ -3749,9 +3764,10 @@ export async function resolveReleaseSetForRelease(
   db: HarbourReadableDb,
   releaseId: string,
   type: ResourceType,
-  domainCode = 'default',
+  domainCode?: string,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
+  const resolvedDomainCode = await resolveDomainCodeForType(db, type, domainCode)
 
   return (
     (await db
@@ -3782,7 +3798,7 @@ export async function resolveReleaseSetForRelease(
         and(
           eq(metaSnapshotSources.sourceReleaseId, releaseId),
           eq(metaApiVersions.code, apiVersionCode),
-          eq(metaApiReleaseSets.domainCode, domainCode),
+          eq(metaApiReleaseSets.domainCode, resolvedDomainCode),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.createdAt))
@@ -5148,6 +5164,7 @@ export async function resolveActiveSnapshotForType(
     variant?: string
   } = {},
 ) {
+  const domainCode = await resolveDomainCodeForType(db, type, options.domainCode)
   if (options.regionCode) {
     return (
       (await db
@@ -5180,7 +5197,7 @@ export async function resolveActiveSnapshotForType(
           and(
             eq(metaApiVersions.code, getApiVersionCodeForType(type)),
             eq(metaApiReleaseSets.status, 'current'),
-            eq(metaApiReleaseSets.domainCode, options.domainCode ?? 'default'),
+            eq(metaApiReleaseSets.domainCode, domainCode),
             eq(metaSnapshots.resourceType, resourceType),
             options.variant
               ? eq(metaApiReleaseSetSnapshots.variant, options.variant)
@@ -5198,11 +5215,7 @@ export async function resolveActiveSnapshotForType(
     )
   }
 
-  const activeReleaseSet = await resolveActiveReleaseSetForType(
-    db,
-    type,
-    options.domainCode ?? 'default',
-  )
+  const activeReleaseSet = await resolveActiveReleaseSetForType(db, type, domainCode)
 
   if (!activeReleaseSet) {
     return null
