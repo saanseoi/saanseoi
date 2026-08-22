@@ -277,6 +277,13 @@ source/resource combination needs all of the following, as applicable:
 - release, quality/churn and processing-action stats; and
 - cache and shard handling for local and remote targets.
 
+The retained publisher artefact is source evidence, not a processing intermediate.
+`upload` retains a supplied ZIP archive or source Parquet as an immutable managed R2
+asset. A direct GML or GeoJSON input remains available to its local preparer, but its
+retained copy is losslessly wrapped in a ZIP; the asset manifest records the original
+filename, MIME type, byte length and SHA-256. Do not retain normalised rows, generated
+Parquet or generated SQL in R2.
+
 ### Release presentation metadata
 
 The source-release page presents pipeline metadata in two data-driven tabs. Persist this

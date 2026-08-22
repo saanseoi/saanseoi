@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { expect, test } from 'bun:test'
 import type { MetaDatabase } from '@repo/db'
+import { unzipSync } from 'fflate'
 
 import type { withLocalMetaDb } from '../dbCache/localDbCache.ts'
 import {
@@ -150,6 +151,89 @@ test('retains a published source archive with its original filename and media ty
     expect(uploads[0]?.metadata.manifest).toMatchObject({
       artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
     })
+  } finally {
+    await rm(outputDir, { force: true, recursive: true })
+  }
+})
+
+test.each([
+  ['boundaries.geojson', 'application/geo+json'],
+  ['boundaries.gml', 'application/gml+xml'],
+] as const)(
+  'losslessly ZIP-compresses a direct %s source before retaining it',
+  async (sourceFileName, sourceMediaType) => {
+    const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
+    const sourcePath = join(outputDir, sourceFileName)
+    const sourceBytes = new TextEncoder().encode('publisher source bytes')
+    const uploads: ManagedSourceAssetUpload[] = []
+    let retainedBytes: Uint8Array | undefined
+
+    await writeFile(sourcePath, sourceBytes)
+    try {
+      await uploadSourceReleaseAsset(
+        { environment: 'dev', remote: false },
+        {
+          datasetCode: 'ds-hk-example-division',
+          datasetId: 'dataset-id',
+          fileName: sourceFileName,
+          filePath: sourcePath,
+          publisherCode: 'example',
+          releaseCode: 'dr-hk-example-division-2026-08-22.0',
+          releaseId: 'release-id',
+          sourceVersion: '2026-08-22.0',
+        },
+        {
+          upload: async (_target, input) => {
+            retainedBytes = await readFile(input.filePath)
+            uploads.push(input)
+            return { assetId: 'asset-id', url: 'https://example.test/asset-id' }
+          },
+        },
+      )
+
+      expect(uploads).toHaveLength(1)
+      expect(uploads[0]?.fileName).toBe(`${sourceFileName}.zip`)
+      expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
+      expect(uploads[0]?.metadata.manifest).toMatchObject({
+        artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
+        original: {
+          byteLength: sourceBytes.byteLength,
+          fileName: sourceFileName,
+          mediaType: sourceMediaType,
+          sha256: hash(sourceBytes),
+        },
+        packaging: 'saanseoi-lossless-zip',
+      })
+      expect(unzipSync(retainedBytes as Uint8Array)[sourceFileName]).toEqual(
+        sourceBytes,
+      )
+    } finally {
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  },
+)
+
+test('rejects a direct source asset that is neither ZIP nor Parquet', async () => {
+  const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
+  const sourcePath = join(outputDir, 'source.csv')
+  await writeFile(sourcePath, 'name,value\nexample,1\n', 'utf8')
+
+  try {
+    await expect(
+      uploadSourceReleaseAsset(
+        { environment: 'dev', remote: false },
+        {
+          datasetCode: 'ds-hk-example-division',
+          datasetId: 'dataset-id',
+          fileName: 'source.csv',
+          filePath: sourcePath,
+          publisherCode: 'example',
+          releaseCode: 'dr-hk-example-division-2026-08-22.0',
+          releaseId: 'release-id',
+          sourceVersion: '2026-08-22.0',
+        },
+      ),
+    ).rejects.toThrow('R2 source retention accepts ZIP or Parquet')
   } finally {
     await rm(outputDir, { force: true, recursive: true })
   }
