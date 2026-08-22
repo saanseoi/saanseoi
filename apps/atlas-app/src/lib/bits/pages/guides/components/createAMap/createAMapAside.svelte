@@ -2,6 +2,7 @@
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
+import GuideColophon from '#lib/bits/pages/guides/components/shared/guideColophon.svelte'
 import { Button } from '#lib/bits/primitives/button/index.js'
 
 type ShareLink = {
@@ -10,26 +11,9 @@ type ShareLink = {
   label: string
 }
 
-type GuideDetail = {
-  href?: string
-  label: string
-  value: string
-}
-
 const cardClass = 'border border-border-card bg-surface-container-low p-6 shadow-card'
 const shareActionClass =
   'inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary transition-colors hover:bg-secondary-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary'
-const guideDetails: GuideDetail[] = [
-  {
-    label: 'Author',
-    value: 'Mart van de Ven',
-    href: 'https://type.hk',
-  },
-  { label: 'Published', value: '8 August 2026' },
-  { label: 'Last revised', value: '-' },
-  { label: 'Version', value: 'v1' },
-]
-
 type Props = {
   guideLinkCopied: boolean
   guideLinkCopyFailed: boolean
@@ -53,11 +37,7 @@ let {
 
 <div class="space-y-6">
   <aside class={cardClass} aria-labelledby="llm-guide-heading">
-    <div
-      class="flex size-11 items-center justify-center bg-secondary-container text-secondary"
-    >
-      <Icon icon="proicons:sparkles" class="size-5" />
-    </div>
+    <div aria-hidden="true" class="size-11 bg-secondary-container"></div>
     <h2
       id="llm-guide-heading"
       class="mt-5 font-display text-headline-sm font-bold text-primary"
@@ -135,25 +115,6 @@ let {
         </p>
       {/if}
     </section>
-    <dl class="mt-6 space-y-[5px] font-body leading-5">
-      {#each guideDetails as detail}
-        <div class="flex items-baseline justify-between gap-4">
-          <dt class="text-secondary">{detail.label}</dt>
-          <dd class="text-right text-foreground-alt">
-            {#if detail.href}
-              <a
-                class="underline decoration-secondary/40 underline-offset-3 transition-colors hover:text-secondary"
-                href={detail.href}
-                target="_blank"
-                rel="noreferrer"
-                >{detail.value}</a
-              >
-            {:else}
-              {detail.value}
-            {/if}
-          </dd>
-        </div>
-      {/each}
-    </dl>
+    <GuideColophon class="mt-6" published="8 August 2026" />
   </div>
 </div>
