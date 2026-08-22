@@ -374,6 +374,113 @@ function createAuthenticatedEnv(
 }
 
 describe('atlas-api', () => {
+  test('dispatches both scheduled roll-ups with their matching cron', async () => {
+    const originalFetch = globalThis.fetch
+    const queries: string[] = []
+    globalThis.fetch = (async (_input, init) => {
+      queries.push(String(init?.body))
+      return Response.json({ success: true, data: [] })
+    }) as typeof fetch
+
+    const { env } = createEnv({
+      ANALYTICS_ENGINE_ACCOUNT_ID: 'a6eeace4b6d9f8e07ab307964e74d801',
+      ANALYTICS_ENGINE_READ_TOKEN: 'read-token',
+      USAGE_ROLLUP_DATASETS: 'ss-api-usage-local',
+    })
+    const tasks: Promise<unknown>[] = []
+    const ctx = {
+      waitUntil(task: Promise<unknown>) {
+        tasks.push(task)
+      },
+    } as ExecutionContext
+
+    try {
+      await app.scheduled(
+        {
+          cron: '*/5 * * * *',
+          scheduledTime: Date.parse('2026-08-21T00:05:00Z'),
+        } as ScheduledController,
+        env,
+        ctx,
+      )
+      await app.scheduled(
+        {
+          cron: '15 0 * * *',
+          scheduledTime: Date.parse('2026-08-21T00:15:00Z'),
+        } as ScheduledController,
+        env,
+        ctx,
+      )
+
+      await expect(Promise.all(tasks)).resolves.toEqual([
+        { apiKeys: 0, minuteWindows: 0 },
+        { days: 2, rows: 0 },
+      ])
+      expect(queries).toHaveLength(2)
+      expect(queries[0]).toContain('SUM(_sample_interval * double1)')
+      expect(queries[1]).toContain("index1 = 'api.access'")
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('logs sanitised scheduled roll-up failures with job context', async () => {
+    const originalFetch = globalThis.fetch
+    const originalConsoleError = console.error
+    const logs: unknown[][] = []
+    globalThis.fetch = (async () =>
+      Response.json(
+        {
+          success: false,
+          errors: [{ message: 'Authorization: Bearer read-token' }],
+        },
+        { status: 401 },
+      )) as unknown as typeof fetch
+    console.error = (...args: unknown[]) => {
+      logs.push(args)
+    }
+
+    const { env } = createEnv({
+      ANALYTICS_ENGINE_ACCOUNT_ID: 'a6eeace4b6d9f8e07ab307964e74d801',
+      ANALYTICS_ENGINE_READ_TOKEN: 'read-token',
+    })
+    const tasks: Promise<unknown>[] = []
+    const ctx = {
+      waitUntil(task: Promise<unknown>) {
+        tasks.push(task)
+      },
+    } as ExecutionContext
+
+    try {
+      await app.scheduled(
+        {
+          cron: '15 0 * * *',
+          scheduledTime: Date.parse('2026-08-21T00:15:00Z'),
+        } as ScheduledController,
+        env,
+        ctx,
+      )
+
+      await expect(tasks[0]).rejects.toMatchObject({
+        phase: 'analytics_engine_query',
+        httpStatus: 401,
+      })
+      expect(logs).toHaveLength(1)
+      expect(JSON.parse(String(logs[0]?.[0]))).toEqual({
+        job: 'access_analytics_daily_rollup',
+        cron: '15 0 * * *',
+        scheduledTime: '2026-08-21T00:15:00.000Z',
+        phase: 'analytics_engine_query',
+        httpStatus: 401,
+        message:
+          'Analytics Engine access query failed (401): Authorization: [REDACTED]',
+      })
+    } finally {
+      globalThis.fetch = originalFetch
+      console.error = originalConsoleError
+    }
+  })
+
   test('GET / redirects to the OpenAPI document', async () => {
     const res = await app.request('http://localhost/')
 

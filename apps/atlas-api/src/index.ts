@@ -34,6 +34,7 @@ import {
   recordAccessAnalyticsEvent,
 } from './services/accessAnalytics'
 import { rollUpAccessAnalyticsDaily } from './services/accessAnalyticsRollup'
+import { asRollupJobError, type RollupPhase } from './services/rollupRetry'
 import {
   isFirstPartyWebOrigin,
   productApiOutcome,
@@ -392,13 +393,63 @@ const worker = Object.assign(app, {
     ctx: ExecutionContext,
   ) {
     if (controller.cron === '*/5 * * * *') {
-      ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+      ctx.waitUntil(
+        runScheduledRollup({
+          job: 'api_key_usage_rollup',
+          cron: controller.cron,
+          scheduledTime: controller.scheduledTime,
+          task: () => rollUpApiKeyUsage(env, controller.scheduledTime),
+        }),
+      )
       return
     }
     if (controller.cron === '15 0 * * *') {
-      ctx.waitUntil(rollUpAccessAnalyticsDaily(env, controller.scheduledTime))
+      ctx.waitUntil(
+        runScheduledRollup({
+          job: 'access_analytics_daily_rollup',
+          cron: controller.cron,
+          scheduledTime: controller.scheduledTime,
+          task: () => rollUpAccessAnalyticsDaily(env, controller.scheduledTime),
+        }),
+      )
     }
   },
 })
 
 export default worker
+
+type ScheduledRollup = {
+  job: 'api_key_usage_rollup' | 'access_analytics_daily_rollup'
+  cron: string
+  scheduledTime: number
+  task: () => Promise<unknown>
+}
+
+async function runScheduledRollup({ job, cron, scheduledTime, task }: ScheduledRollup) {
+  try {
+    return await task()
+  } catch (error) {
+    const rollupError = asRollupJobError('d1_write', error)
+    console.error(
+      JSON.stringify({
+        job,
+        cron,
+        scheduledTime: new Date(scheduledTime).toISOString(),
+        phase: rollupError.phase satisfies RollupPhase,
+        httpStatus: rollupError.httpStatus,
+        message: sanitiseScheduledErrorMessage(rollupError.message),
+      }),
+    )
+    throw error
+  }
+}
+
+function sanitiseScheduledErrorMessage(message: string) {
+  return message
+    .replace(
+      /((?:token|secret|authorization)\s*[:=]\s*)(?:bearer\s+)?[^\s,;]+/gi,
+      '$1[REDACTED]',
+    )
+    .replace(/(bearer\s+)[^\s,;]+/gi, '$1[REDACTED]')
+    .slice(0, 500)
+}
