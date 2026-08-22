@@ -17,7 +17,6 @@ import ReleaseNotesCallout from './releaseNotesCallout.svelte'
 import ReleaseNotesCodeSpan from './releaseNotesCodeSpan.svelte'
 import ReleaseNotesHeading from './releaseNotesHeading.svelte'
 import ReleaseNotesLink from './releaseNotesLink.svelte'
-import ReleaseNotesTooltip from './releaseNotesTooltip.svelte'
 
 type Props = {
   markdown: string
@@ -112,13 +111,6 @@ function stringAttribute(
     {#snippet html_note({ attributes, children })}
       <ReleaseNotesCallout title={stringAttribute(attributes, 'title')}
         >{@render children?.()}</ReleaseNotesCallout
-      >
-    {/snippet}
-
-    {#snippet html_tooltip({ attributes, children })}
-      <ReleaseNotesTooltip
-        description={stringAttribute(attributes, 'description') ?? ''}
-        >{@render children?.()}</ReleaseNotesTooltip
       >
     {/snippet}
 

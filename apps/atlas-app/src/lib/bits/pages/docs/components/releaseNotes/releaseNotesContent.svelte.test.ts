@@ -136,22 +136,15 @@ test('renders allowed presentational HTML in transcluded definitions', async () 
   expect(screen.container.querySelector('br')).not.toBeNull()
 })
 
-test('renders release-note callouts and tooltip definitions', async () => {
+test('renders release-note callouts', async () => {
   const screen = await render(
     ReleaseNotesContent,
     getReleaseNotesPresentation(
-      '<note title="API key required">Use a key.</note> <tooltip description="A cohort identifies source data from the same reference release or period.">cohort</tooltip>',
+      '<note title="API key required">Use a key.</note>',
       'en',
     ),
   )
 
   await expect.element(screen.getByText('API key required')).toBeVisible()
   await expect.element(screen.getByText('Use a key.')).toBeVisible()
-  await expect
-    .element(
-      screen.getByRole('button', {
-        name: 'A cohort identifies source data from the same reference release or period.',
-      }),
-    )
-    .toBeVisible()
 })

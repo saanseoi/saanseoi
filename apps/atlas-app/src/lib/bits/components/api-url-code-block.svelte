@@ -133,7 +133,7 @@ async function copyUrl() {
 
 {#if lang === 'url'}
   <div
-    class="relative m-0 overflow-x-auto border border-data-outline-variant/60 bg-data-surface-container-lowest px-3 py-2 pr-8 font-mono text-sm leading-6"
+    class="relative m-0 overflow-x-auto border border-data-outline-variant/60 bg-data-surface-container-lowest py-2 pl-6 font-mono text-sm leading-6"
   >
     <button
       class="absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"
@@ -152,7 +152,7 @@ async function copyUrl() {
       {#each tokens as line, lineIndex}
         {#if lineIndex === 0}
           <span
-            class="mr-[2ch] inline-block w-[4ch] font-body text-label-sm font-black uppercase tracking-[0.12em] text-foreground-alt"
+            class="mr-3 inline-block w-[4ch] font-body text-xs leading-none font-black! uppercase tracking-[0.12em] text-foreground"
             >GET</span
           >
         {:else}
@@ -164,7 +164,8 @@ async function copyUrl() {
             class:font-semibold={token.kind === 'parameter'}
             class:text-orange-200={token.kind === 'family'}
             class:text-secondary-fixed={token.kind === 'parameter'}
-            class:text-data-secondary={token.kind === 'parameterQualifier' || token.kind === 'value'}
+            class:text-blue-300={token.kind === 'parameterQualifier'}
+            class:text-data-secondary={token.kind === 'value'}
             class:px-1={token.kind === 'separator' && token.value !== '?'}
             class:text-outline={token.kind === 'bracket' || token.kind === 'separator'}
             >{token.value}</span
