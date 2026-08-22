@@ -9,7 +9,7 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
-    expect(resolveInitialisationCommand('init:divisions:overture')).toEqual({
+    expect(resolveInitialisationCommand('init:divisions:geophraphic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
       supportsTarget: true,

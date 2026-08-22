@@ -30,7 +30,7 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
-  'init:divisions:overture': {
+  'init:divisions:geophraphic': {
     script: 'scripts/init/divisions-overture.fish',
     supportsContinue: true,
     supportsTarget: true,

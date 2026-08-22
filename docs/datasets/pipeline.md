@@ -63,7 +63,7 @@ starting a fresh run, then use the focused command for the domain under review:
 
 ```sh
 bun run db:reset:local
-./bin/saanseoi init:divisions:overture
+./bin/saanseoi init:divisions:geophraphic
 ./bin/saanseoi init:divisions:hkgov-pland-pu
 ./bin/saanseoi init:divisions:hkgov-pland-new-town
 ./bin/saanseoi init:divisions:hkgov-landsd
@@ -76,7 +76,7 @@ same checked-in source cohorts in dependency order and publish to the selected H
 environment:
 
 ```sh
-./bin/saanseoi init:divisions:overture --target preview
+./bin/saanseoi init:divisions:geophraphic --target preview
 ./bin/saanseoi init:divisions:hkgov-pland-pu --target preview
 ./bin/saanseoi init:divisions:hkgov-pland-new-town --target preview
 ./bin/saanseoi init:divisions:hkgov-landsd --target preview

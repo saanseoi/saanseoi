@@ -14,7 +14,7 @@ if test "$saanseoi_init_cache_artefacts" -eq 1
 end
 
 for command in \
-    init:divisions:overture \
+    init:divisions:geophraphic \
     init:divisions:hkgov-pland-pu \
     init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd \
