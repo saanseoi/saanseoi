@@ -1,7 +1,6 @@
 <script lang="ts">
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
-import { GuideCodeBlock } from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
@@ -10,11 +9,17 @@ import { createGuideApiKey } from './createAMapApiKeys.remote'
 
 type Props = {
   apiKeyReady?: boolean
+  onApiKeyCreated?: (key: string) => void
   onApiKeyReadyChange?: (ready: boolean) => void
   showHeading?: boolean
 }
 
-let { apiKeyReady = false, onApiKeyReadyChange, showHeading = true }: Props = $props()
+let {
+  apiKeyReady = false,
+  onApiKeyCreated,
+  onApiKeyReadyChange,
+  showHeading = true,
+}: Props = $props()
 let hasConfirmedApiKey = $state<boolean>()
 let isApiKeyReady = $derived(hasConfirmedApiKey ?? apiKeyReady)
 let apiKeyOptionsExpanded = $state(false)
@@ -24,15 +29,13 @@ let newKey = $state<string>()
 let newKeyName = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
-const saveApiKeyCommand =
-  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const key=(await rl.question("Paste your SaanSeoi public key: ")).trim(); rl.close(); const path=".env"; const current=await Bun.file(path).text().catch(()=>""); const line="VITE_SAANSEOI_API_KEY="+key; const next=/^VITE_SAANSEOI_API_KEY=.*$/m.test(current)?current.replace(/^VITE_SAANSEOI_API_KEY=.*$/m,line):current+(current&&!current.endsWith("\\n")?"\\n":"")+line+"\\n"; await Bun.write(path,next)\''
-const verifyApiKeyCommand = 'cat .env'
 
 const createKey = async () => {
   error = undefined
   try {
     const result = await createGuideApiKey({ name })
     newKey = result.rawKey
+    onApiKeyCreated?.(result.rawKey)
     newKeyName = name.trim()
     isNewKeyRevealed = false
     copied = false
@@ -82,7 +85,7 @@ $effect(() => {
 
 <section
   id="basemap-api-key-readiness"
-  class="mt-8 max-w-3xl"
+  class="mt-8 min-w-0 max-w-3xl"
   aria-labelledby="guide-api-keys-title"
 >
   {#if showHeading}
@@ -101,13 +104,13 @@ $effect(() => {
     <button
       aria-controls="guide-api-key-options"
       aria-expanded={apiKeyOptionsExpanded}
-      class="mt-5 flex w-full cursor-pointer items-center justify-between gap-4 border-l-4 border-[#6fdec9] bg-[#6fdec9]/12 px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6fdec9]"
+      class="mt-5 flex w-full cursor-pointer items-center justify-between gap-4 border-l-4 border-[#149b75] bg-[#e2f5ed] px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08745b] dark:border-[#6fdec9] dark:bg-[#6fdec9]/12 dark:focus-visible:outline-[#6fdec9]"
       onclick={() => (apiKeyOptionsExpanded = !apiKeyOptionsExpanded)}
       type="button"
     >
-      <div>
+      <div class="min-w-0">
         <p
-          class="font-body text-label-sm font-semibold tracking-[0.12em] text-[#6fdec9] uppercase"
+          class="font-body text-label-sm font-semibold tracking-[0.12em] text-[#08745b] uppercase dark:text-[#6fdec9]"
         >
           {m.guide_basemap_api_key_complete_eyebrow()}
         </p>
@@ -117,140 +120,126 @@ $effect(() => {
       </div>
       <Icon
         aria-label={m.guide_basemap_api_key_complete()}
-        class="size-5 shrink-0 text-[#6fdec9]"
+        class="size-5 shrink-0 text-[#08745b] dark:text-[#6fdec9]"
         icon="ion:checkmark-circle"
       />
     </button>
   {/if}
 
   {#if !isApiKeyReady || apiKeyOptionsExpanded}
-    <div
-      id="guide-api-key-options"
-      class="mt-6 border border-border-card bg-surface-container-low p-5"
-    >
-      <h4 class="font-body text-body-md font-semibold text-foreground">
-        {m.api_keys_create_heading()}
-      </h4>
-      <form
-        class="mt-4 flex flex-col gap-3 sm:flex-row"
-        onsubmit={event => {
-        event.preventDefault()
-        createKey()
-      }}
+    {#if !newKey}
+      <div
+        id="guide-api-key-options"
+        class="mt-6 min-w-0 max-w-full border border-border-card bg-surface-container-low p-5"
       >
-        <input
-          bind:value={name}
-          class="min-h-12 flex-1 border border-border-input bg-background-alt px-4 font-body text-foreground"
-          maxlength="64"
-          placeholder={m.api_keys_name_placeholder()}
-          required
+        <h4 class="font-body text-body-md font-semibold text-foreground">
+          {m.api_keys_create_heading()}
+        </h4>
+        <form
+          class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
+          onsubmit={event => {
+          event.preventDefault()
+          createKey()
+        }}
         >
-        <Button
-          disabled={createGuideApiKey.pending > 0}
-          type="submit"
-          variant="primary"
-        >
-          {createGuideApiKey.pending > 0
-          ? m.api_keys_creating()
-          : m.api_keys_create_button()}
-        </Button>
-        {#if isApiKeyReady}
-          <Button
-            onclick={resetApiKeyConfirmation}
-            size="compact"
-            type="button"
-            variant="secondary"
+          <input
+            bind:value={name}
+            class="col-span-2 min-h-12 min-w-0 border border-border-input bg-background-alt px-4 font-body text-foreground md:col-span-1"
+            maxlength="64"
+            placeholder={m.api_keys_name_placeholder()}
+            required
           >
-            <Icon
-              aria-hidden="true"
-              class="size-5"
-              icon="material-symbols-light:restart-alt-rounded"
-            />
-            {@html m.guide_readiness_reset()}
-          </Button>
-        {:else}
           <Button
-            onclick={() => (hasConfirmedApiKey = true)}
-            type="button"
-            variant="secondary"
+            class="w-full whitespace-nowrap md:w-auto"
+            disabled={createGuideApiKey.pending > 0}
+            type="submit"
+            variant="primary"
           >
-            {m.guide_basemap_api_key_already_have()}
+            {createGuideApiKey.pending > 0
+            ? m.api_keys_creating()
+            : m.api_keys_create_button()}
           </Button>
+          {#if isApiKeyReady}
+            <Button
+              class="w-full whitespace-nowrap md:w-auto"
+              onclick={resetApiKeyConfirmation}
+              size="compact"
+              type="button"
+              variant="secondary"
+            >
+              <Icon
+                aria-hidden="true"
+                class="size-5"
+                icon="material-symbols-light:restart-alt-rounded"
+              />
+              {@html m.guide_readiness_reset()}
+            </Button>
+          {:else}
+            <Button
+              class="w-full whitespace-nowrap md:w-auto"
+              onclick={() => (hasConfirmedApiKey = true)}
+              type="button"
+              variant="secondary"
+            >
+              {m.guide_basemap_api_key_already_have()}
+            </Button>
+          {/if}
+        </form>
+        {#if error}
+          <p class="mt-3 font-body text-body-sm text-destructive" role="alert">
+            {error}
+          </p>
         {/if}
-      </form>
-      {#if error}
-        <p class="mt-3 font-body text-body-sm text-destructive" role="alert">{error}</p>
-      {/if}
-    </div>
+      </div>
+    {/if}
 
     {#if newKey}
       <div
-        class="mt-5 border border-secondary bg-secondary-container/20 p-5"
+        class="mt-6 border border-secondary bg-secondary-container/20 p-5"
         role="status"
       >
         <p class="font-body text-body-md font-semibold text-foreground">
-          {m.api_keys_store_title()}
+          {m.api_keys_store_title().replace('{name}', newKeyName ?? '')}
         </p>
         <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
           {m.api_keys_store_description()}
         </p>
-        <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
-          {m.api_keys_name_label()}
-          <strong class="font-semibold text-foreground">{newKeyName}</strong>
-        </p>
-        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div
+          class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
+        >
           <code
-            class="min-w-0 flex-1 overflow-x-auto border border-border-card bg-background-alt px-4 py-3 font-mono text-sm text-foreground"
+            class="flex h-12 min-h-12 w-full min-w-0 items-center overflow-x-auto border border-border-card bg-background-alt px-4 font-mono text-sm text-foreground"
             >{isNewKeyRevealed ? newKey : '••••••••••••••••••••••••••••••••'}</code
           >
-          <Button
-            onclick={() => {
+          <div class="grid grid-cols-2 gap-3 sm:contents">
+            <Button
+              class="h-12 w-full sm:w-auto"
+              onclick={() => {
               isNewKeyRevealed = !isNewKeyRevealed
               trackClientProductUsage({ event: 'api_key.reveal', surface: 'guide', entityType: 'key_action', entityId: isNewKeyRevealed ? 'reveal' : 'hide' })
             }}
-            size="compact"
-            variant="secondary"
-          >
-            <Icon
-              icon={isNewKeyRevealed ? 'ion:eye-off-outline' : 'ion:eye-outline'}
-              class="size-4"
-            />
-            {isNewKeyRevealed ? m.api_keys_hide() : m.api_keys_reveal()}
-          </Button>
-          <Button onclick={copyNewKey} size="compact" variant="primary">
-            <Icon icon={copied ? 'ion:checkmark' : 'ion:copy-outline'} class="size-4" />
-            {copied ? m.api_keys_copied() : m.api_keys_copy()}
-          </Button>
-        </div>
-        <div class="mt-6">
-          <GuideCodeBlock
-            code={saveApiKeyCommand}
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-            label={m.guide_basemap_api_key_env_title()}
-            language="bash"
-          />
-          <p
-            class="mt-3 font-body text-body-sm leading-6 tracking-[0.01em] text-foreground-alt"
-          >
-            {m.guide_basemap_api_key_env_description_before()}
-            <strong class="font-semibold text-foreground">VITE_SAANSEOI_API_KEY</strong>
-            {@html m.guide_basemap_api_key_env_description_after()}
-          </p>
-        </div>
-        <div class="mt-6">
-          <GuideCodeBlock
-            code={verifyApiKeyCommand}
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-            label={m.guide_basemap_api_key_verify_title()}
-            language="bash"
-          />
-          <p
-            class="mt-3 font-body text-body-sm leading-6 tracking-[0.01em] text-foreground-alt"
-          >
-            {@html m.guide_basemap_api_key_verify_description()}
-          </p>
+              size="compact"
+              variant="secondary"
+            >
+              <Icon
+                icon={isNewKeyRevealed ? 'ion:eye-off-outline' : 'ion:eye-outline'}
+                class="size-4"
+              />
+              {isNewKeyRevealed ? m.api_keys_hide() : m.api_keys_reveal()}
+            </Button>
+            <Button
+              class="h-12 w-full sm:w-auto"
+              onclick={copyNewKey}
+              size="compact"
+              variant="primary"
+            >
+              <Icon
+                icon={copied ? 'ion:checkmark' : 'ion:copy-outline'}
+                class="size-4"
+              />
+              {copied ? m.api_keys_copied() : m.api_keys_copy()}
+            </Button>
+          </div>
         </div>
         <div class="mt-6 flex justify-end">
           <Button
