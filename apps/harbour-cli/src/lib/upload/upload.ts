@@ -40,6 +40,8 @@ type DispatchUploadOptions = {
   /** Restricted local repair path for a source-specific deterministic reprocess. */
   allowReprocessPublished?: boolean
   force?: boolean
+  /** Re-enter an already staged release without permitting a published repair. */
+  resumeStagedRelease?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
 }
 
@@ -135,7 +137,9 @@ async function registerUploadLocally(
       ? options.allowReprocessPublished
         ? ['staged', 'published']
         : ['staged']
-      : undefined
+      : options.resumeStagedRelease
+        ? ['staged']
+        : undefined
     const registered = await registerLocalUpload(metaDb, {
       ...registerOptions,
       allowExistingDatasetStatuses,
@@ -191,6 +195,7 @@ async function requestRemoteRegistration(
       body: JSON.stringify({
         fileName: previewResult.plan.fileName,
         force: Boolean(options.force),
+        resumeStagedRelease: Boolean(options.resumeStagedRelease),
         inspection: previewResult.inspection,
         plan: {
           cohortKey: previewResult.plan.cohortKey,

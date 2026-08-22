@@ -104,6 +104,14 @@ export async function runUploadCommand(
   const commandStartedAt = Date.now()
   const mutedBar = '\u001B[90m│\u001B[39m'
   const cacheArtefacts = shouldCacheArtefacts(args.options)
+  const resumeStagedRelease = args.options.continue === true
+
+  if (args.options.continue !== undefined && !resumeStagedRelease) {
+    throw new Error('`upload --continue` does not take a value.')
+  }
+  if (resumeStagedRelease && options.forceUpload) {
+    throw new Error('Use either `upload --continue` or `upload --force`, not both.')
+  }
 
   if (args.options.verbose) {
     process.env.HARBOUR_VERBOSE = '1'
@@ -353,6 +361,7 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
+          resumeStagedRelease,
           allowReprocessPublished:
             options.forceUpload || options.allowReprocessPublished,
         },
