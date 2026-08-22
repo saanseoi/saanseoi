@@ -1,0 +1,306 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average household size",
+          "description": "Average number of people in a domestic household.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平均住戶人數",
+          "description": "家庭住戶平均人數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平均住户人数",
+          "description": "家庭住户平均人数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageDomesticHouseholdSize"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Domestic households",
+          "description": "Number of domestic households",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目",
+          "description": "家庭住戶數目",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目",
+          "description": "家庭住户数目",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholds"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly household income",
+          "description": "First quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第一四分位數",
+          "description": "家庭住戶每月收入：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第一四分位数",
+          "description": "家庭住户每月收入：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Labour force",
+          "description": "Labour force",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "勞動人口",
+          "description": "勞動人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "劳动人口",
+          "description": "劳动人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "labourForce"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Labour force participation rate",
+          "description": "Labour force participation rate, defined as the labour force as a proportion of the population aged 15 and over.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "勞動人口參與率",
+          "description": "勞動人口參與率，即勞動人口佔所有15歲及以上人口的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "劳动人口参与率",
+          "description": "劳动人口参与率，即劳动人口占所有15岁及以上人口的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "labourForceParticipationRate"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Land-based non-institutional population",
+          "description": "Land-based non-institutional population",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "陸上非住院人口",
+          "description": "陸上非住院人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "陆上非住院人口",
+          "description": "陆上非住院人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "landBasedNonInstitutionalPopulation"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age",
+          "description": "Median age of the population, in years.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數",
+          "description": "人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数",
+          "description": "人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAge"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly domestic household income",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶每月收入中位數",
+          "description": "家庭住戶每月收入中位數，單位為港元。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户每月收入中位数",
+          "description": "家庭住户每月收入中位数，单位为港元。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyDomesticHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household income",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入中位數",
+          "description": "家庭住戶每月收入：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入中位数",
+          "description": "家庭住户每月收入：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Overall dependency ratio",
+          "description": "Overall dependency ratio",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "總撫養比率",
+          "description": "總撫養比率",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "总抚养比率",
+          "description": "总抚养比率",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "overallDependencyRatio"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Sex ratio",
+          "description": "Number of males per 1,000 females.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "性別比例",
+          "description": "每1,000名女性中男性的人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "性别比例",
+          "description": "每1,000名女性中男性的人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "sexRatio"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly household income",
+          "description": "Third quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第三四分位數",
+          "description": "家庭住戶每月收入：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第三四分位数",
+          "description": "家庭住户每月收入：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "description": "Number of persons.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Total population"
+        },
+        {
+          "description": "人口數目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "總人口"
+        },
+        {
+          "description": "人口数目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "总人口"
+        }
+      ],
+      "measureCode": "totalPopulation"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:137ad7b89be157ceb97cfcb91eb74e0429e1faf2730a08ef28e697a4331ce8c7"
+}

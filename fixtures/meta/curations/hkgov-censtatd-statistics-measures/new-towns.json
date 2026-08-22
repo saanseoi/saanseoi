@@ -1,0 +1,605 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Average household size",
+          "description": "Average number of people in a domestic household.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "平均住戶人數",
+          "description": "家庭住戶平均人數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "平均住户人数",
+          "description": "家庭住户平均人数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "averageDomesticHouseholdSize"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Domestic households",
+          "description": "Number of domestic households",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶數目",
+          "description": "家庭住戶數目",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户数目",
+          "description": "家庭住户数目",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "domesticHouseholds"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly employment income",
+          "description": "First quartile of monthly employment income",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入第一四分位數",
+          "description": "每月主要職業收入第一四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入第一四分位数",
+          "description": "每月主要职业收入第一四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyEmploymentIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of monthly household income",
+          "description": "First quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第一四分位數",
+          "description": "家庭住戶每月收入：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第一四分位数",
+          "description": "家庭住户每月收入：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "First quartile of weekly working hours",
+          "description": "First quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第一四分位數",
+          "description": "所有工作的每周通常工作時數：下四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第一四分位数",
+          "description": "所有工作的每周通常工作时数：下四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "firstQuartileWeeklyWorkingHours"
+    },
+    {
+      "localisations": [
+        {
+          "description": "Number of persons studying full-time courses in educational institutions in Hong Kong.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Persons studying full-time courses in educational institutions in Hong Kong"
+        },
+        {
+          "description": "於香港院校就讀全日制課程的人口",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "於香港院校就讀全日制課程的人口"
+        },
+        {
+          "description": "于香港院校就读全日制课程的人口",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "于香港院校就读全日制课程的人口"
+        }
+      ],
+      "measureCode": "fullTimeStudentsInHongKong"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Labour force",
+          "description": "Labour force",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "勞動人口",
+          "description": "勞動人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "劳动人口",
+          "description": "劳动人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "labourForce"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Labour force participation rate",
+          "description": "Labour force participation rate, defined as the labour force as a proportion of the population aged 15 and over.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "勞動人口參與率",
+          "description": "勞動人口參與率，即勞動人口佔所有15歲及以上人口的比例。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "劳动人口参与率",
+          "description": "劳动人口参与率，即劳动人口占所有15岁及以上人口的比例。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "labourForceParticipationRate"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median age",
+          "description": "Median age of the population, in years.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "年齡中位數",
+          "description": "人口的年齡中位數，單位為歲。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "年龄中位数",
+          "description": "人口的年龄中位数，单位为岁。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianAge"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median household floor area",
+          "description": "Median domestic household accommodation floor area, excluding common areas and households living in unsheltered accommodation or on board vessels, in square metres.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶居所樓面面積中位數",
+          "description": "家庭住戶的居所樓面面積（平方米）（不包括居於非屋宇單位或船艇的家庭住戶。與其他住戶共同佔用的樓面面積不包括在內。）：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户居所楼面面积中位数",
+          "description": "家庭住户的居所楼面面积（平方米）（不包括居于非屋宇单位或船艇的家庭住户。与其他住户共同占用的楼面面积不包括在内。）：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianHouseholdFloorArea"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median rent-to-income ratio",
+          "description": "Median ratio of monthly domestic household rent to income.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "住戶租金與收入比率中位數",
+          "description": "家庭住戶每月租金與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "住户租金与收入比率中位数",
+          "description": "家庭住户每月租金与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianHouseholdRentToIncomeRatio"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly domestic household income",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "家庭住戶每月收入中位數",
+          "description": "家庭住戶每月收入中位數，單位為港元。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "家庭住户每月收入中位数",
+          "description": "家庭住户每月收入中位数，单位为港元。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyDomesticHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly employment income",
+          "description": "Median monthly employment income",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入中位數",
+          "description": "每月主要職業收入中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入中位数",
+          "description": "每月主要职业收入中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyEmploymentIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household income",
+          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入中位數",
+          "description": "家庭住戶每月收入：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入中位数",
+          "description": "家庭住户每月收入：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly household rent",
+          "description": "Median monthly domestic household rent, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶租金中位數",
+          "description": "家庭住戶每月租金中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户租金中位数",
+          "description": "家庭住户每月租金中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyHouseholdRent"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median monthly mortgage or loan repayment",
+          "description": "Median monthly domestic household mortgage payment or loan repayment, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月按揭或貸款還款額中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月按揭或贷款还款额中位数",
+          "description": "家庭住户每月按揭供款及借贷还款中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMonthlyMortgageOrLoanRepayment"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median mortgage or loan repayment-to-income ratio",
+          "description": "Median ratio of monthly domestic household mortgage payment or loan repayment to income.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "按揭或貸款還款與收入比率中位數",
+          "description": "家庭住戶每月按揭供款及借貸還款與收入比率中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "按揭或贷款还款与收入比率中位数",
+          "description": "家庭住户每月按揭供款及借贷还款与收入比率中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianMortgageOrLoanRepaymentToIncomeRatio"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Median weekly working hours",
+          "description": "Median usual weekly working hours across all employment.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數中位數",
+          "description": "所有工作的每周通常工作時數：中位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数中位数",
+          "description": "所有工作的每周通常工作时数：中位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "medianWeeklyWorkingHours"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Non-working population",
+          "description": "Number of people not in the working population.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "非工作人口",
+          "description": "非工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "nonWorkingPopulation"
+    },
+    {
+      "localisations": [
+        {
+          "description": "Number of occupied quarters.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Occupied quarters"
+        },
+        {
+          "description": "有人居住的屋宇單位數目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "有人居住的屋宇單位數目"
+        },
+        {
+          "description": "有人居住的屋宇单位数目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "有人居住的屋宇单位数目"
+        }
+      ],
+      "measureCode": "occupiedQuarters"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Sex ratio",
+          "description": "Number of males per 1,000 females.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "性別比例",
+          "description": "每1,000名女性中男性的人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "性别比例",
+          "description": "每1,000名女性中男性的人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "sexRatio"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly employment income",
+          "description": "Third quartile of monthly employment income",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月主要職業收入第三四分位數",
+          "description": "每月主要職業收入第三四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月主要职业收入第三四分位数",
+          "description": "每月主要职业收入第三四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyEmploymentIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of monthly household income",
+          "description": "Third quartile of monthly domestic household income, in Hong Kong dollars.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每月住戶收入第三四分位數",
+          "description": "家庭住戶每月收入：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每月住户收入第三四分位数",
+          "description": "家庭住户每月收入：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileMonthlyHouseholdIncome"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Third quartile of weekly working hours",
+          "description": "Third quartile of usual weekly working hours across all employment.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "每周通常工作時數第三四分位數",
+          "description": "所有工作的每周通常工作時數：上四分位數",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "每周通常工作时数第三四分位数",
+          "description": "所有工作的每周通常工作时数：上四分位数",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "thirdQuartileWeeklyWorkingHours"
+    },
+    {
+      "localisations": [
+        {
+          "description": "Number of persons.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Total population"
+        },
+        {
+          "description": "人口數目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "總人口"
+        },
+        {
+          "description": "人口数目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "总人口"
+        }
+      ],
+      "measureCode": "totalPopulation"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Working population",
+          "description": "Number of people in the working population.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "工作人口",
+          "description": "工作人口",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "workingPopulation"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:7cd52a2216de2ce9dc17ad6b9a08935b035a126c4c9df2f29a7c9e8d5bacfa88"
+}

@@ -46,6 +46,12 @@ test('combines dataset totals and refreshes derived D1 windows', async () => {
   expect(
     analyticsQueries.every(query => query.includes('toStartOfMinute(timestamp)')),
   ).toBe(true)
+  expect(analyticsQueries).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining('FROM "api-usage"'),
+      expect.stringContaining('FROM "tile-usage"'),
+    ]),
+  )
   expect(statements).toHaveLength(3)
   expect(statements[0]?.values).toEqual([
     Date.parse('2026-08-13T12:20:00Z'),

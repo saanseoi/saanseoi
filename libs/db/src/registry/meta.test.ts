@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildMetaRegistrySyncStatements,
+  apiDomainCodeRenames,
   initialApiCompositions,
   initialApiCompositionMembers,
   initialApiEndpoints,
@@ -9,12 +10,106 @@ import {
   initialDatasets,
   initialDatasetResourceTypes,
   initialDataShards,
+  initialDivisionCodes,
   initialIdentifierBridges,
   initialPublishers,
   resolveInitialDataShardsForEnvironment,
+  validateDivisionCodeFixtures,
 } from './meta'
 
 describe('fixture version hashes', () => {
+  test('validates curated Division code fixtures directly', () => {
+    const valid = {
+      domainCode: 'geographic',
+      assignments: [{ divisionCode: 'HK', canonicalId: 'division-hk' }],
+    }
+    expect(() =>
+      validateDivisionCodeFixtures([valid], new Set(['division-hk'])),
+    ).not.toThrow()
+    expect(() =>
+      validateDivisionCodeFixtures([
+        {
+          ...valid,
+          assignments: [{ divisionCode: 'bad code', canonicalId: 'division-hk' }],
+        },
+      ]),
+    ).toThrow('Invalid Division code')
+    expect(() =>
+      validateDivisionCodeFixtures([
+        { ...valid, assignments: [...valid.assignments, ...valid.assignments] },
+      ]),
+    ).toThrow('Duplicate Division code')
+    expect(() => validateDivisionCodeFixtures([valid], new Set())).toThrow(
+      'unknown canonical Division',
+    )
+  })
+  test('retains every reviewed 2021 HMA code as an unambiguous Division assignment', () => {
+    const hmaAssignments = initialDivisionCodes.filter(
+      assignment => assignment.domainCode === 'hkgov-censtatd-hma',
+    )
+
+    expect(hmaAssignments).toHaveLength(173)
+    expect(
+      new Set(hmaAssignments.map(assignment => assignment.divisionCode)).size,
+    ).toBe(173)
+    expect(hmaAssignments.every(assignment => !('level' in assignment))).toBe(true)
+  })
+  test('retains URL-safe Planning Department New Town Division codes', () => {
+    const newTownAssignments = initialDivisionCodes.filter(
+      assignment => assignment.domainCode === 'hkgov-pland-new-town',
+    )
+
+    expect(newTownAssignments).toHaveLength(13)
+    expect(
+      newTownAssignments.map(assignment => assignment.divisionCode).sort(),
+    ).toEqual([
+      'fanling-sheung-shui-kwu-tung',
+      'hung-shui-kiu-ha-tsuen',
+      'sha-tin-ma-on-shan-area',
+      'sha-tin-sha-tin-area',
+      'tai-po',
+      'tin-shui-wai',
+      'tseung-kwan-o',
+      'tsuen-wan-kwai-chung-area',
+      'tsuen-wan-tsing-yi-area',
+      'tsuen-wan-tsuen-wan-area',
+      'tuen-mun',
+      'tung-chung',
+      'yuen-long',
+    ])
+    expect(
+      newTownAssignments.find(
+        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+      ),
+    ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
+  })
+  test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
+    const newTownMappings = initialIdentifierBridges.filter(
+      bridge =>
+        bridge.authority === 'hkgov-censtatd' &&
+        bridge.cohortKey === '2021' &&
+        bridge.domain === 'new-town' &&
+        bridge.resourceType === 'division',
+    )
+
+    expect(newTownMappings).toHaveLength(13)
+    expect(newTownMappings.map(mapping => mapping.externalId).sort()).toEqual([
+      '11',
+      '13',
+      '15',
+      '17',
+      '18',
+      '20',
+      '22',
+      '24',
+      '25',
+      '27',
+      '28',
+      '30',
+      '32',
+    ])
+    expect(newTownMappings.every(mapping => mapping.canonicalId)).toBe(true)
+  })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
     expect(initialApiEndpoints.length).toBeGreaterThan(0)
@@ -56,7 +151,16 @@ describe('fixture version hashes', () => {
       '/v0/divisions/{id}',
     ])
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
-    expect(statsPaths).toEqual(['/v0.1/stats', '/v0/stats'])
+    expect(statsPaths).toEqual([
+      '/v0.1/stats',
+      '/v0.1/stats/geographies',
+      '/v0.1/stats/series',
+      '/v0.1/stats/{id}',
+      '/v0/stats',
+      '/v0/stats/geographies',
+      '/v0/stats/series',
+      '/v0/stats/{id}',
+    ])
   })
 
   test('provides localised explanatory text for every API family', () => {
@@ -76,7 +180,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the default Stats domain', () => {
+  test('registers C&SD statistics under the official Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -117,7 +221,24 @@ describe('fixture version hashes', () => {
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'default' })
+    ).toMatchObject({ defaultDomainCode: 'official' })
+    expect(
+      initialApiCompositionMembers
+        .filter(
+          member =>
+            member.apiCompositionCode === 'comp-stats-v1' &&
+            member.resourceType === 'divisionStatistic',
+        )
+        .map(member => member.variant)
+        .sort(),
+    ).toEqual(censtatdStats.map(dataset => dataset.code).sort())
+    expect(
+      initialApiCompositionMembers
+        .filter(member => member.apiCompositionCode === 'comp-stats-v1')
+        .every(
+          member => !member.isRequired && member.cohortMatchingMode === 'exact_ref',
+        ),
+    ).toBe(true)
     expect(
       censtatdStats.every(dataset =>
         dataset.processingRules?.rulesets.some(
@@ -177,11 +298,18 @@ describe('fixture version hashes', () => {
     ])
   })
 
-  test('reconciles composition members without rewriting historical domains', () => {
+  test('renames legacy official domain labels in published registry metadata', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
-    expect(statements).not.toContain('UPDATE apiCatalogRevisionReleaseSets')
-    expect(statements).not.toContain('UPDATE apiReleaseSets\nSET domainCode =')
+    expect(apiDomainCodeRenames).toEqual([
+      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'official' },
+      { apiVersion: 'api-stats-v0.1', from: 'default', to: 'official' },
+      { apiVersion: 'api-streets-v0.1', from: 'hkgov-landsd', to: 'official' },
+    ])
+    expect(statements).toContain(
+      'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
+    )
+    expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
   })
 
   test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {

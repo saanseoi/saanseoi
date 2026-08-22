@@ -14,6 +14,7 @@ import {
   metaSnapshotShardAssignments,
   metaSnapshotSources,
   metaSnapshots,
+  metaDivisionCodes,
   releaseProcessingActions,
   stats,
 } from '@repo/db'
@@ -524,6 +525,7 @@ export async function processLocalDivisionSqlUpload(
         buildDivisionSqlState(
           bucket,
           initialMessage,
+          dbContext.metaDb,
           currentRows,
           currentSourceRows,
           versionInsertContext.snapshotId,
@@ -1166,6 +1168,7 @@ async function assertDivisionCurrentSnapshotComplete(
 async function buildDivisionSqlState(
   bucket: LocalPipelineBucket,
   message: DatasetProcessingMessage,
+  metaDb: MetaDatabase,
   currentRows: Map<string, OwnedDivisionVersionSnapshot>,
   currentSourceRows: Map<string, OwnedCurrentSourceRecord>,
   snapshotId: string,
@@ -1182,6 +1185,10 @@ async function buildDivisionSqlState(
   const isInitialSourceLoad = currentSourceRows.size === 0
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   const hierarchyLookup = await buildDivisionHierarchyLookup(file)
+  const divisionCodeAssignments =
+    message.source === 'overture'
+      ? await loadDivisionCodeAssignments(metaDb)
+      : new Map<string, string>()
 
   let processedRows = 0
   let insertedVersions = 0
@@ -1210,6 +1217,13 @@ async function buildDivisionSqlState(
     for (const row of batch) {
       const raw = row as Record<string, unknown>
       const normalised = normaliseDivisionRow(raw, { hierarchyLookup })
+      if (message.source === 'overture') {
+        Object.assign(normalised.base, {
+          divisionCode:
+            divisionCodeAssignments.get(`geographic\u0000${normalised.base.id}`) ??
+            null,
+        })
+      }
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
       processingActions.push(
         ...buildOvertureDivisionLocaleProcessingActions({
@@ -1481,6 +1495,21 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   )
 }
 
+async function loadDivisionCodeAssignments(metaDb: MetaDatabase) {
+  const rows = await metaDb
+    .select({
+      canonicalId: metaDivisionCodes.canonicalId,
+      divisionCode: metaDivisionCodes.divisionCode,
+      domainCode: metaDivisionCodes.domainCode,
+    })
+    .from(metaDivisionCodes)
+    .all()
+
+  return new Map(
+    rows.map(row => [`${row.domainCode}\u0000${row.canonicalId}`, row.divisionCode]),
+  )
+}
+
 async function buildDivisionHistorySqlFile(
   message: DatasetProcessingMessage,
   state: DivisionSqlState,
@@ -1505,6 +1534,7 @@ async function buildDivisionHistorySqlFile(
         sourceReleaseId: message.releaseId ?? message.datasetId,
         snapshotId: state.snapshotId,
         isCurrent: true,
+        divisionCode: record.base.divisionCode,
         level: record.base.level,
         type: record.base.type,
         sourceKeys: jsonText(record.base.sourceKeys),
@@ -1560,6 +1590,7 @@ async function buildDivisionHistorySqlFile(
         'sourceReleaseId',
         'snapshotId',
         'isCurrent',
+        'divisionCode',
         'level',
         'type',
         'sourceKeys',
@@ -1691,11 +1722,11 @@ async function buildDivisionCurrentInitSqlFile(
     statements.push(
       `
 INSERT INTO divisions (
-  snapshotId, id, level, type, sourceKeys, wikidata, hierarchy,
+  snapshotId, id, divisionCode, level, type, sourceKeys, wikidata, hierarchy,
   cartography, sources, geometry, bbox, createdAt, updatedAt
 )
 SELECT
-  ${sqlLiteral(snapshotId)}, id, level, type, sourceKeys, wikidata, hierarchy,
+  ${sqlLiteral(snapshotId)}, id, divisionCode, level, type, sourceKeys, wikidata, hierarchy,
   cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisions
 WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
@@ -1743,6 +1774,7 @@ async function buildDivisionCurrentSqlFile(
         baseRows.push({
           snapshotId: state.snapshotId,
           id: record.id,
+          divisionCode: record.base.divisionCode,
           level: record.base.level,
           type: record.base.type,
           sourceKeys: jsonText(record.base.sourceKeys),
@@ -1781,6 +1813,7 @@ async function buildDivisionCurrentSqlFile(
       [
         'snapshotId',
         'id',
+        'divisionCode',
         'level',
         'type',
         'sourceKeys',

@@ -3,7 +3,7 @@ import apiDivisionsV01FixtureOverture116To118 from '../../../fixtures/meta/apiFi
 import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
 import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
 import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
-import apiAddressesV01FixtureDefaultLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@default-lineage.json'
+import apiAddressesV01FixtureOfficialLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
 
@@ -43,7 +43,7 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
-  apiAddressesV01FixtureDefaultLineage as ApiFieldFixture,
+  apiAddressesV01FixtureOfficialLineage as ApiFieldFixture,
 ]
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {

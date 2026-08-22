@@ -19,6 +19,7 @@ export const divisions = sqliteTable(
     primaryKey({
       columns: [table.snapshotId, table.id],
     }),
+    index('divisions_divisionCode_idx').on(table.snapshotId, table.divisionCode),
     index('divisions_level_idx').on(table.level),
   ],
 )

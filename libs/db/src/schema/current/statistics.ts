@@ -1,11 +1,9 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
-  canonicalStatsDimension,
-  canonicalStatsMeasure,
-  canonicalStatsMeasureI18n,
+  canonicalStatsField,
+  canonicalStatsFieldI18n,
   canonicalStatsRecord,
-  canonicalStatsValue,
   canonicalStatsValueI18n,
   timestamps,
 } from '../shared'
@@ -28,31 +26,17 @@ export const statsRecords = sqliteTable(
   ],
 )
 
-export const statsMeasures = sqliteTable(
-  'statsMeasures',
-  { ...canonicalStatsMeasure, ...timestamps },
-  table => [primaryKey({ columns: [table.datasetCode, table.measureCode] })],
+export const statsFields = sqliteTable(
+  'statsFields',
+  { ...canonicalStatsField, ...timestamps },
+  table => [primaryKey({ columns: [table.datasetCode, table.fieldName] })],
 )
 
-export const statsMeasuresI18n = sqliteTable(
-  'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...timestamps },
+export const statsFieldsI18n = sqliteTable(
+  'statsFieldsI18n',
+  { ...canonicalStatsFieldI18n, ...timestamps },
   table => [
-    primaryKey({ columns: [table.datasetCode, table.measureCode, table.locale] }),
-  ],
-)
-
-export const statsDimensions = sqliteTable(
-  'statsDimensions',
-  { ...canonicalStatsDimension, ...timestamps },
-  table => [primaryKey({ columns: [table.datasetCode, table.dimensionCode] })],
-)
-
-export const statsValues = sqliteTable(
-  'statsValues',
-  { ...canonicalStatsValue, ...timestamps },
-  table => [
-    primaryKey({ columns: [table.datasetCode, table.dimensionCode, table.valueCode] }),
+    primaryKey({ columns: [table.datasetCode, table.fieldName, table.locale] }),
   ],
 )
 

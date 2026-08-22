@@ -18,17 +18,19 @@ export type CenstatdValidatedSourceFeature = {
 }
 
 export type CenstatdCanonicalObservation = {
-  measureCode: string
+  fieldName: string
   numericValue: string | null
   observationStatus: string
   referencePeriodCode: string
   sourceField?: string
 }
 
-export type CenstatdCanonicalMeasure = {
+export type CenstatdCanonicalField = {
   aggregation: string
-  denominatorMeasureCode?: string | null
-  measureCode: string
+  aggregationPercentile: number | null
+  denominatorFieldName?: string | null
+  dimensions: Record<string, string>
+  fieldName: string
   sourceField?: string
   sourceNullOption?: string | null
   statisticKind: string
@@ -46,7 +48,7 @@ export type CenstatdCanonicalDimensionValue = {
 
 export type CenstatdCanonicalStatistics = {
   dimensions: CenstatdCanonicalDimension[]
-  measures: CenstatdCanonicalMeasure[]
+  fields: CenstatdCanonicalField[]
   observations: CenstatdCanonicalObservation[]
   values: CenstatdCanonicalDimensionValue[]
 }
@@ -106,7 +108,7 @@ export function censtatdReleaseStatsProfileFor(
 /**
  * Produces structural facts about one publisher source release. It deliberately
  * counts assertions and definitions only: publisher values are neither parsed
- * as JavaScript numbers nor compared across incomparable measures.
+ * as JavaScript numbers nor compared across incomparable fields.
  */
 export function buildCenstatdReleaseStats(
   features: readonly CenstatdValidatedSourceFeature[],
@@ -157,8 +159,8 @@ export function buildCenstatdReleaseStats(
   add('observations', 'count', canonical.observations.length)
   distribution(
     'observations',
-    'measure',
-    canonical.observations.map(row => row.measureCode),
+    'field',
+    canonical.observations.map(row => row.fieldName),
   )
   distribution(
     'observations',
@@ -178,21 +180,21 @@ export function buildCenstatdReleaseStats(
     ),
   )
 
-  add('measures', 'count', canonical.measures.length)
+  add('fields', 'count', canonical.fields.length)
   distribution(
-    'measures',
+    'fields',
     'statisticKind',
-    canonical.measures.map(row => row.statisticKind),
+    canonical.fields.map(row => row.statisticKind),
   )
   distribution(
-    'measures',
+    'fields',
     'aggregation',
-    canonical.measures.map(row => row.aggregation),
+    canonical.fields.map(row => row.aggregation),
   )
   distribution(
-    'measures',
+    'fields',
     'unitCode',
-    canonical.measures.map(row => row.unitCode),
+    canonical.fields.map(row => row.unitCode),
   )
 
   add(
@@ -266,10 +268,10 @@ export function buildCenstatdNormalisationAuditActions(
 }
 
 /**
- * Makes every reviewed source-field-to-measure decision inspectable alongside the
+ * Makes every reviewed source-field-to-field decision inspectable alongside the
  * release that used it. These are manual curation decisions, not value transforms.
  */
-export function buildCenstatdMeasureCurationAuditActions(
+export function buildCenstatdFieldCurationAuditActions(
   canonical: CenstatdCanonicalStatistics,
 ): ReleaseProcessingAction[] {
   const observationCounts = new Map<string, number>()
@@ -280,30 +282,31 @@ export function buildCenstatdMeasureCurationAuditActions(
       (observationCounts.get(observation.sourceField) ?? 0) + 1,
     )
   }
-  return canonical.measures
-    .filter(measure => measure.sourceField)
+  return canonical.fields
+    .filter(field => field.sourceField)
     .sort((left, right) => left.sourceField!.localeCompare(right.sourceField!))
-    .map(measure => ({
+    .map(field => ({
       action: 'curate_censtatd_measure_metadata',
-      affectedRecordCount: observationCounts.get(measure.sourceField!) ?? 0,
+      affectedRecordCount: observationCounts.get(field.sourceField!) ?? 0,
       evidence: {
-        aggregation: measure.aggregation,
-        denominatorMeasureCode: measure.denominatorMeasureCode ?? null,
-        measureCode: measure.measureCode,
-        sourceField: measure.sourceField,
-        sourceNullOption: measure.sourceNullOption ?? null,
-        statisticKind: measure.statisticKind,
-        unitCode: measure.unitCode,
+        aggregation: field.aggregation,
+        aggregationPercentile: field.aggregationPercentile,
+        denominatorFieldName: field.denominatorFieldName ?? null,
+        fieldName: field.fieldName,
+        sourceField: field.sourceField,
+        sourceNullOption: field.sourceNullOption ?? null,
+        statisticKind: field.statisticKind,
+        unitCode: field.unitCode,
       },
       mode: 'manual',
-      summary: `Reviewed C&SD metadata for publisher field ${measure.sourceField}.`,
+      summary: `Reviewed C&SD metadata for publisher field ${field.sourceField}.`,
     }))
 }
 
 /**
  * Compares frozen structural facts from compatible source releases. It avoids
  * value churn entirely: compilation releases may legitimately revise historic
- * measures and periods without being comparable numerical series.
+ * fields and periods without being comparable numerical series.
  */
 export function buildCenstatdStructuralChurnStats(
   current: readonly ReleaseScopedStatsRow[],
@@ -314,7 +317,7 @@ export function buildCenstatdStructuralChurnStats(
 
   const rows: ReleaseScopedStatsRow[] = []
   for (const [groupValue, dimension, groupBy] of [
-    ['measures', 'observations', 'measure'],
+    ['fields', 'observations', 'field'],
     ['dimensions', 'dimensions', 'definitionCode'],
     ['reference_periods', 'observations', 'referencePeriod'],
   ] as const) {

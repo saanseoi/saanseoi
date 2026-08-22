@@ -1,9 +1,11 @@
 # Census and Statistics Department division statistics
 
 The following C&SD datasets are registered as Stats-family sources. They preserve
-publisher releases with their published geography cohort and measures; they never write
-an API-release-set statistic. Each source release does write structural release-owned
-facts to `meta.stats` before publication.
+publisher releases with their published geography cohort and measures. Each source
+release writes structural release-owned facts to `meta.stats` and materialises one
+dataset-code Statistics snapshot per exact reference period. Each snapshot contributes
+to that period's independently versioned Statistics release set; datasets that do not
+publish the period are not required companions.
 
 | Dataset                                                          | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -49,40 +51,58 @@ assertions, then writes one normalised `statsRecords` row for each publisher fea
 reference period, with its dataset, source release, `<layer>:<feature>` identity,
 optional reviewed `divisionId`, geography cohort, dimension-value map, and complete
 measure-value map. Each packed value retains its exact source property name and literal,
-decimal value or categorical code, precision (when known), and status. Measure,
-dimension, and localised-value dictionaries remain normalised. This avoids one D1 write
-per publisher measure while retaining feature-level revision and lookup. The current
-shard contains the latest version of each record, composed across source compilations;
-the history shard retains superseded records and definitions. A Population and Household
-compilation can therefore carry annual observations for 2016–2025 without collapsing
-them to the compilation release period.
+decimal value or categorical code, precision (when known), and status. Measure and
+localised-value dictionaries remain normalised and are stored in the current shard and
+in each touched reference-period history shard with the corresponding source-release
+version. Their history identity is scoped by source release as well as field and content
+version, so repeated metadata does not transfer an older release's association to a
+newer release. This keeps dictionary selection alongside the statistic records. The
+current shard contains the latest version of each feature and exact period across source
+compilations; the period's history shard retains superseded record revisions. A
+Population and Household compilation can therefore carry annual observations for
+2016–2025 without collapsing them to the compilation release period. Its raw assertions
+stay in the delivery-year source shard, while canonical history uses each row's period
+end year; periods before 2025 use `DB_HISTORY_HK_BEFORE`.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a
-stable canonical `measureCode`, a reviewed `statisticKind`, and a separate reviewed
+stable canonical `fieldName`, a reviewed `statisticKind`, and a separate reviewed
 `aggregation`, while preserving the publisher `sourceField` in the canonical
-observation. `statisticKind` identifies whether the measure is a count, quantity,
-proportion, ratio, rate, density, or index; a ratio, rate, proportion, or density may
-also identify a canonical `denominatorMeasureCode`. These fields are deliberately
-separate from the source value representation and unit. The CLI reads the registered
-CSDI Simplified Data Specification through CSDI's static host only to pre-fill a review
-candidate. It displays compact metadata with the stable source-release portal URL rather
-than the expiring specification link, followed by a `sourceField -> measureCode`
-proposal with any compatible previously reviewed unit suggestion and all three locales
-inline before acceptance. On rejection, the CSDI English name and description are
-editable defaults. Changing either invokes Azure Translator for fresh Chinese defaults;
-accepted machine values are stored with `isTranslationVerified=false`, while official
-CSDI locale rows remain verified. `--yes` refuses every uncurated field. The importer
-retains the exact publisher `Null Option` as the measure's nullable `sourceNullOption`.
-It does not replace SaanSeoi's normalised observation status or automatically admit a
-unit. When a reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the
-unit's dimension, symbol, English name, and definition, then writes the unit registry
-with Azure-generated Traditional and Simplified Chinese names and definitions before it
+observation. Median and percentile aggregations also require an `aggregationPercentile`:
+50 for a median, or the explicitly reviewed 0–100 percentile rank. `statisticKind`
+identifies whether the measure is a count, quantity, proportion, ratio, rate, density,
+or index; a ratio, rate, proportion, or density may also identify a canonical
+`denominatorFieldName`. These fields are deliberately separate from the source value
+representation and unit. The CLI reads the registered CSDI Simplified Data Specification
+through CSDI's static host only to pre-fill a review candidate. It displays compact
+metadata with the stable source-release portal URL rather than the expiring
+specification link, followed by a `sourceField -> fieldName` proposal with any
+compatible previously reviewed unit suggestion and all three locales inline before
+acceptance. On rejection, the CSDI English name and description are editable defaults.
+Changing either invokes Azure Translator for fresh Chinese defaults; accepted machine
+values are stored with `isTranslationVerified=false`, while official CSDI locale rows
+remain verified. `--yes` refuses every uncurated field. The importer retains the exact
+publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
+replace SaanSeoi's normalised observation status or automatically admit a unit. When a
+reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
+dimension, symbol, English name, and definition, then writes the unit registry with
+Azure-generated Traditional and Simplified Chinese names and definitions before it
 writes that measure's curation decision. Each completed measure decision is written
 immediately to the curation manifest, so an interrupted review can be resumed or
 hand-edited without repeating completed measures. The release page presents the
 resulting measure dictionary in Stats, while Audit remains for processing decisions and
 their evidence.
+
+Where C&SD explicitly declares that an economic-activity-status classification changed,
+the curated field stores a `comparability` caution with the affected earlier reference
+periods. The caution is field metadata, not an analytical dimension: it does not change
+the value or make it invalid, but tells consumers to use care in cross-period
+comparison.
+
+Publisher identifiers, including GML references, are retained as source references and
+are never materialised as statistics. Units describe the numeric value: people,
+households, percentages, living quarters, and subdivided units are reviewed separately
+from any category or range encoded in a source-field name.
 
 The curation prompt permits `total` only for counts and quantities. Other statistic
 kinds can be direct (`none`) or use a mean, median, minimum, maximum, or percentile, but
@@ -103,7 +123,7 @@ identifiers, not statistics, so one reviewed measure dictionary applies to both 
 Use this policy whenever reviewing C&SD measure metadata. The CSDI field description is
 evidence and an editable proposal, not the canonical display name.
 
-- `measureCode` is a stable lower-camel-case identifier for the measure's semantic
+- `fieldName` is a stable lower-camel-case identifier for the measure's semantic
   subject. Keep it concise and specific enough to distinguish the measure.
 - The English `name` is a clear, accessible noun phrase that a reader can understand
   without knowing the metadata model. It identifies the population, category, or
@@ -111,10 +131,10 @@ evidence and an editable proposal, not the canonical display name.
 - The English `description` defines the statistic in full: population scope, age range,
   categories, numerator or denominator where relevant, and any publisher-specific
   qualification. Translate that reviewed English meaning into the Chinese localisations.
-- `statisticKind`, `aggregation`, `unitCode`, and `denominatorMeasureCode` are reviewed
-  independently. Do not mechanically prefix a name with `Proportion of`,
-  `Percentage distribution of`, `Total`, or similar representation language merely
-  because it appears in the publisher's field description.
+- `statisticKind`, `aggregation`, `aggregationPercentile`, `unitCode`, and
+  `denominatorFieldName` are reviewed independently. Do not mechanically prefix a name
+  with `Proportion of`, `Percentage distribution of`, `Total`, or similar representation
+  language merely because it appears in the publisher's field description.
 - Retain a statistical term in the name only when it is the established public identity
   of the measure, such as `Sex ratio`, `Population density`, or `Median age`.
 
@@ -123,6 +143,22 @@ For example, use `neverMarriedMalePopulationAged15AndOver` /
 of never-married population aged 15 and over by sex - male”. Its description should
 state the proportion and its scope; the curation fields record `proportion`, `none`, the
 reviewed unit, and a denominator measure when one is canonical and available.
+
+## Analytical dimensions
+
+Each curated field declares the explicit analytical slice expressed by its English CSDI
+description. These include demographic categories such as sex, age group, marital
+status, educational attainment, economic activity and ethnicity; household, housing,
+income, tenure and occupancy categories; and study, work, transport, literacy and
+migration categories. A field can carry more than one dimension, for example a female,
+aged 15-and-over, never-married population field.
+
+The field map does not duplicate measurement semantics. Units, statistic kinds,
+aggregations and denominator fields remain their own reviewed metadata: a median or
+quartile is not an analytical dimension. Likewise, fields with no categorical slice,
+such as land area, population density and a single total count, retain `{}`. A value of
+`all` is used only where the same field family has an explicit alternative category, for
+example the total population alongside male and female population fields.
 
 The importer never creates a parallel statistical-geography registry. Area/type maps its
 three C&SD source codes to the Overture Hong Kong Island, Kowloon, and New Territories
@@ -135,7 +171,9 @@ The statistical `division` output is therefore limited to the reviewed 2021 HMA 
 (`hkgov-censtatd-hma`). Area/type is optional source-specific Geographic geometry
 selected at the latest compatible cohort and linked to the Overture identity snapshot.
 HMA is its domain's primary canonical division input, paired with the required native
-`hkgov-censtatd-hma` geometry.
+`hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
+Division level, so the generated Division record has no `level` value and an empty
+hierarchy.
 
 ## Source-release statistics and geography audit
 
@@ -152,9 +190,10 @@ dimension. District releases record the approved C&SD-to-canonical district brid
 automatic processing action with authority, cohort, domain and source-field evidence. A
 missing required district bridge member stops ingestion. Building-group and
 major-housing-estate geometries are candidate domains, not failed district links.
-Area/type and HMA use reviewed native source-code identities. C&SD new towns are an
-existing-domain candidate for review against the Planning new-town domain, not an
-assumed match.
+Area/type and HMA use reviewed native source-code identities. The archived 2021 C&SD New
+Town codes resolve through the reviewed `new-town` identifier bridge to the
+corresponding 2021 Planning Division identities. The curation is an explicit source-code
+bridge, not a translated-name or spatial match.
 
 If source geometry is suitable for delivery, it is reviewed and published through a
 Divisions-domain workflow. Area/type and HMA are the approved exception: their shared
@@ -183,10 +222,11 @@ by a name or spatial-match guess.
 
 Area/type observations resolve through the reviewed mapping to deterministic Overture
 area identities; HMA observations use their deterministic C&SD source-code identities.
-No name or spatial matching is used. Building-group, new-town, and housing-estate
-observations remain without a `divisionId` until their respective geographies are
-reviewed and released as Divisions domains, not by assigning an arbitrary district
-parent.
+The archived 2021 New Town observations resolve only through the reviewed thirteen-code
+identifier bridge to Planning's 2021 New Town Divisions. No name or spatial matching is
+used. Building-group and housing-estate observations remain without a `divisionId` until
+their respective geographies are reviewed and released as Divisions domains, not by
+assigning an arbitrary district parent.
 
 ## District land area, population and density ingestion
 
@@ -196,7 +236,9 @@ EPSG:2326. The source shard retains C&SD's numeric `DC`, labels, publisher geome
 complete property set without a canonical division value. The history processor resolves
 each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
-`districtCode` only to the Division Statistics history observation.
+`districtCode` to the Division Statistics history observation and to `geography.code` on
+canonical Stats records. The publisher's numeric `DC` remains in source provenance and
+the constructed `sourceFeatureRef`.
 
 The dataset fixture selects `map_censtatd_district_code_to_canonical_division` from the
 versioned division merge ruleset. It is a versioned description of the deterministic
@@ -217,18 +259,18 @@ assertions. The archive quarter is never a dataset version: the fixture's
 `sourceVersion` creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
-`schemaURL`. The updater prepares and mirrors the publisher ZIP, then passes that local
-prepared ZIP, its managed-asset key and its SHA-256 to the importer. The importer
-verifies the local ZIP against that hash before parsing it; it never reloads the ZIP
-from object storage. The source assertion retains both archive references while the
-target-aware SQL processor uses its local target-database cache to generate and publish
-the release for local, preview or production. That processor materialises release facts
-and audited processing actions locally, then replays the exact stored `DB_META` rows to
-preview or production before publication. It mirrors the identifier bridges, C&SD
-density assertions, and division-statistics history required for this dataset; its
-console progress identifies the cache and processing stage currently in progress.
-Publish through `saanseoi update`, or invoke the importer with the already-prepared
-archive:
+`schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
+passes that local prepared ZIP, its managed-asset key and its SHA-256 to the importer.
+The importer verifies the local ZIP against that hash before parsing it; it never
+reloads the ZIP from object storage. The source assertion retains both archive
+references while the target-aware SQL processor uses its local target-database cache to
+generate and publish the release for local, preview or production. That processor
+materialises release facts and audited processing actions locally, then replays the
+exact stored current and history statistic rows to preview or production before
+publication. It mirrors the identifier bridges, C&SD density assertions, and
+division-statistics history required for this dataset; its console progress identifies
+the cache and processing stage currently in progress. Publish through `saanseoi update`,
+or invoke the importer with the already-prepared archive:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \
@@ -250,8 +292,8 @@ releases unchanged; follow it with the normal local Stats update.
 
 Each C&SD statistics release fixture declares its corresponding manifest under
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. The documentation publisher
-expands `{{hkgovCenstatdMeasureTable:LOCALE}}` from that JSON at publish time, producing
-the reviewed `sourceField | measureCode | name | description` table for each supported
+expands `{{hkgovCenstatdFieldTable:LOCALE}}` from that JSON at publish time, producing
+the reviewed `sourceField | fieldName | name | description` table for each supported
 locale. Release notes therefore present exactly the curated offering names and inclusion
 criteria that the statistics processor publishes, without a second hand-maintained
 Markdown copy.

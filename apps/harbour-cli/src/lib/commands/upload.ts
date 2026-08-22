@@ -10,7 +10,7 @@ import {
 } from '@clack/prompts'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -60,6 +60,7 @@ import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { createApiReleaseSetRevisionDraft } from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import {
+  assertRetainableSourceReleaseInput,
   linkManagedSourceAssetToRelease,
   uploadSourceReleaseAsset,
 } from '../sources/sourceAssets.ts'
@@ -104,6 +105,14 @@ export async function runUploadCommand(
   const commandStartedAt = Date.now()
   const mutedBar = '\u001B[90m│\u001B[39m'
   const cacheArtefacts = shouldCacheArtefacts(args.options)
+  const resumeStagedRelease = args.options.continue === true
+
+  if (args.options.continue !== undefined && !resumeStagedRelease) {
+    throw new Error('`upload --continue` does not take a value.')
+  }
+  if (resumeStagedRelease && options.forceUpload) {
+    throw new Error('Use either `upload --continue` or `upload --force`, not both.')
+  }
 
   if (args.options.verbose) {
     process.env.HARBOUR_VERBOSE = '1'
@@ -113,6 +122,10 @@ export async function runUploadCommand(
   if (!inputFile) {
     options.printUsage()
     throw new Error('Missing file path.')
+  }
+  const sourceArtefactPath = resolve(options.invocationCwd, inputFile)
+  if (!sourceArchiveReference(args)) {
+    assertRetainableSourceReleaseInput(inputFile)
   }
 
   if (!options.quiet)
@@ -353,6 +366,7 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
+          resumeStagedRelease,
           allowReprocessPublished:
             options.forceUpload || options.allowReprocessPublished,
         },
@@ -408,6 +422,23 @@ ${mutedBar}  `)
           sourceVersion: previewResult.plan.sourceVersion,
         })
         log.message(`Retained Overture source: ${sourceAsset.url}`)
+      } else if (!sourceArchive) {
+        const datasetId =
+          typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
+        if (!datasetId || !releaseId) {
+          throw new Error('Source retention requires release identifiers.')
+        }
+        const sourceAsset = await uploadSourceReleaseAsset(target, {
+          datasetCode: previewResult.plan.datasetCode,
+          datasetId,
+          fileName: inputFile,
+          filePath: sourceArtefactPath,
+          publisherCode: previewResult.plan.source,
+          releaseCode: previewResult.plan.releaseCode,
+          releaseId,
+          sourceVersion: previewResult.plan.sourceVersion,
+        })
+        log.message(`Retained published source artefact: ${sourceAsset.url}`)
       }
 
       if (processingStrategy.mode === 'local-address-sql') {
@@ -1346,7 +1377,7 @@ export function formatAddressApiReleaseSetReadiness(
   releaseSetCode?: string,
   divisionCohortKey?: string | null,
 ) {
-  const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'default'
+  const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'official'
 
   return [
     `${plan.regionCode.toUpperCase()} / ${domainCode} / ${plan.cohortKey}`,

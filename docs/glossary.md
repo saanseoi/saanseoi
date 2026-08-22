@@ -1,3 +1,20 @@
+# Authentication
+
+## v1
+
+### EN
+
+Authentication confirms <i>who</i> is making a request. Apps proves their identity by
+sending an API key with the request.
+
+### ZH-HANT
+
+身分驗證用來確認<i>誰</i>正在發出請求。在這裡，應用程式會隨請求傳送 API 金鑰，以證明其身分。
+
+### ZH-HANS
+
+身份验证用于确认<i>谁</i>正在发出请求。在这里，应用程序会随请求发送 API 密钥，以证明其身份。
+
 # API
 
 ## v1
@@ -89,6 +106,23 @@ or other display environment.
 ### ZH-HANS
 
 渲染地图是把<i>地理数据和视觉指令转换成像素</i>，让人看见并与之互动。地图渲染器会在浏览器、应用程序或其他显示环境中完成这项工作。
+
+# Request
+
+## v1
+
+### EN
+
+A request is a message sent to a server asking it to send data. That is why it is called
+a <i>request</i>. The message it sends back is—you guessed it!—a <i>response</i>.
+
+### ZH-HANT
+
+請求是傳送到伺服器、要求它傳回資料的訊息，因此稱為<i>請求</i>。伺服器傳回的訊息則稱為<i>回應</i>。
+
+### ZH-HANS
+
+请求是发送到服务器、要求它返回数据的消息，因此称为<i>请求</i>。服务器返回的消息则称为<i>响应</i>。
 
 # Catalogue
 

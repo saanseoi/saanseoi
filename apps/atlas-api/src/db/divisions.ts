@@ -41,7 +41,8 @@ export type DivisionRecord = {
   division: {
     snapshotId: string
     id: string
-    level: number
+    divisionCode?: string | null
+    level: number | null
     type: string
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
@@ -90,7 +91,8 @@ type DivisionIdsLookup = {
 type DivisionRow = {
   snapshotId: string
   id: string
-  level: number
+  divisionCode?: string | null
+  level: number | null
   type: string
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
@@ -168,7 +170,6 @@ export async function listDivisionAreasCurrentByDivisionIds(
       ),
     )
   ).flat()
-
   return rows.map(row => ({
     ...row,
     geometry: decodeStoredDivisionGeometry(row.geometry),
@@ -343,6 +344,7 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
     division: {
       snapshotId: row.snapshotId,
       id: row.id,
+      divisionCode: row.divisionCode,
       level: row.level,
       type: row.type,
       geometry: row.geometry,
@@ -422,6 +424,7 @@ export async function listDivisionRecordsCurrent(
     .select({
       snapshotId: divisions.snapshotId,
       id: divisions.id,
+      divisionCode: divisions.divisionCode,
     })
     .from(divisions)
     .where(and(...buildDivisionConditions(lookup)))
@@ -434,6 +437,7 @@ export async function listDivisionRecordsCurrent(
     .select({
       snapshotId: divisions.snapshotId,
       id: divisions.id,
+      divisionCode: divisions.divisionCode,
       level: divisions.level,
       type: divisions.type,
       geometry: divisions.geometry,
@@ -497,6 +501,7 @@ export async function listDivisionRecordsCurrentByIds(
           .select({
             snapshotId: divisions.snapshotId,
             id: divisions.id,
+            divisionCode: divisions.divisionCode,
             level: divisions.level,
             type: divisions.type,
             geometry: divisions.geometry,

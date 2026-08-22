@@ -7,7 +7,7 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { binaryText, geoBbox, jsonText } from '../shared'
+import { binaryText, geoBbox, jsonText, statisticsReferencePeriod } from '../shared'
 import {
   sourceAssertionColumns,
   sourceSpatialAssertionColumns,
@@ -54,7 +54,7 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
     districtCode: integer('districtCode').notNull(),
     districtEn: text('districtEn').notNull(),
     districtZhHant: text('districtZhHant').notNull(),
-    referenceYear: text('referenceYear').notNull(),
+    ...statisticsReferencePeriod,
     landAreaSqKm: real('landAreaSqKm').notNull(),
     midYearPopulation: integer('midYearPopulation').notNull(),
     midYearPopulationDensityPerSqKm: integer(
@@ -67,8 +67,9 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
     index('hkgovCenstatdDistrictLandAreaPopulationDensities_districtCode_idx').on(
       table.districtCode,
     ),
-    index('hkgovCenstatdDistrictLandAreaPopulationDensities_referenceYear_idx').on(
-      table.referenceYear,
+    index('hkgovCenstatdDistrictLandAreaPopulationDensities_referencePeriod_idx').on(
+      table.referencePeriodEndYear,
+      table.referencePeriodCode,
     ),
   ],
 )
@@ -85,7 +86,7 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
     ...sourceAssertionColumns(),
     datasetCode: text('datasetCode').notNull(),
     layerName: text('layerName').notNull(),
-    referenceYear: text('referenceYear').notNull(),
+    ...statisticsReferencePeriod,
     featureId: text('featureId').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
   },
@@ -96,7 +97,10 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
       table.datasetCode,
       table.layerName,
     ),
-    index('hkgovCenstatdStatistics_referenceYear_idx').on(table.referenceYear),
+    index('hkgovCenstatdStatistics_referencePeriod_idx').on(
+      table.referencePeriodEndYear,
+      table.referencePeriodCode,
+    ),
   ],
 )
 

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2464ad86a2ae79ced6fe5081c6b9ed3b7aa0febc56ee7840d8effc49ff7a66dc",
+  "versionHash": "sha256:56b9c1119c94092e3c8e325cffc01c76c80357836754c85d7d98f65e21ec1690",
   "apiVersion": "api-stats-v0.1",
   "endpoints": [
     {
@@ -9,8 +9,38 @@
     },
     {
       "method": "GET",
+      "path": "/v0/stats/geographies",
+      "operationId": "listDivisionStatisticsV0Geographies"
+    },
+    {
+      "method": "GET",
+      "path": "/v0/stats/series",
+      "operationId": "listDivisionStatisticsV0Series"
+    },
+    {
+      "method": "GET",
+      "path": "/v0/stats/{id}",
+      "operationId": "getDivisionStatisticByIdV0"
+    },
+    {
+      "method": "GET",
       "path": "/v0.1/stats",
       "operationId": "listDivisionStatisticsV01"
+    },
+    {
+      "method": "GET",
+      "path": "/v0.1/stats/geographies",
+      "operationId": "listDivisionStatisticsV01Geographies"
+    },
+    {
+      "method": "GET",
+      "path": "/v0.1/stats/series",
+      "operationId": "listDivisionStatisticsV01Series"
+    },
+    {
+      "method": "GET",
+      "path": "/v0.1/stats/{id}",
+      "operationId": "getDivisionStatisticByIdV01"
     }
   ]
 }

@@ -38,6 +38,12 @@ export type MarkdownGlossaryEntry = MarkdownTransclusion & {
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
 
 const markdownReferences: Record<string, MarkdownReferenceSource> = {
+  authentication: {
+    title: 'Authentication',
+    displayTitleKey: 'reference_authentication',
+    glossary: true,
+    source: glossary,
+  },
   api: {
     title: 'API',
     displayTitleKey: 'reference_api',
@@ -59,6 +65,12 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
   render: {
     title: 'Render',
     displayTitleKey: 'reference_render',
+    glossary: true,
+    source: glossary,
+  },
+  request: {
+    title: 'Request',
+    displayTitleKey: 'reference_request',
     glossary: true,
     source: glossary,
   },

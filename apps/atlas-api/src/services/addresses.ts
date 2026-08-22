@@ -386,7 +386,7 @@ async function getActiveAddressSnapshot(
     resolveApiReleaseSetSnapshotsForRequest(metaDb as never, 'address', {
       catalogRevision: selectors.catalogRevision,
       cohortKey: selectors.cohort,
-      domainCode: 'default',
+      domainCode: 'official',
       effectiveAt: selectors.effectiveAt,
       knownAt: selectors.knownAt,
       regionCode: 'hk',

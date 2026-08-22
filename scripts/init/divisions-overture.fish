@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
-init_configure "saanseoi init:divisions:overture" $argv
+init_configure "saanseoi init:divisions:geophraphic" $argv
 
 set -l root "$saanseoi_init_repo/data/overture"
 set -l releases \
@@ -62,14 +62,6 @@ end
 
 for year in 2016 2021
     set -l file "$saanseoi_init_repo/data/hkgov/censtatd/district-council-districts-$year.gml"
-    set -l release_notes_url
-
-    switch $year
-        case 2016
-            set release_notes_url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765"
-        case 2021
-            set release_notes_url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946"
-    end
 
     if not test -f "$file"
         echo "C&SD input file not found: $file" >&2
@@ -81,7 +73,7 @@ for year in 2016 2021
     init_run_upload "dr-hk-hkgov-censtatd-division-area-district-$year" "$file" \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
-        --release-notes-url "$release_notes_url" --yes
+        --yes
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 

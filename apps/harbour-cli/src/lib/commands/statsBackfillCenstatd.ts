@@ -10,6 +10,7 @@ import { eq } from 'drizzle-orm'
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { resolveCenstatdFieldMetadata } from '../statisticsSql/censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from '../statisticsSql/censtatdReleaseChurn.ts'
 import { normaliseHkgovCenstatdStatistics } from '../statisticsSql/normaliseHkgovCenstatdStatistics.ts'
 
@@ -98,7 +99,14 @@ async function listPublishedCenstatdReleases(
     )
     .all()
   return rows
-    .filter(row => row.status === 'published')
+    .filter(
+      row =>
+        row.status === 'published' ||
+        // A source release can remain published while its local registry
+        // release records a failed processing attempt. An explicit release
+        // repair must still be able to rebuild its structural statistics.
+        filters.releaseCodes.includes(row.code),
+    )
     .filter(row => row.datasetCode.startsWith(CENSTATD_STATISTICS_DATASET_PREFIX))
     .filter(
       row =>
@@ -120,10 +128,18 @@ async function buildReleaseStatsRows(
     release.datasetCode,
     release.sourceVersion,
   )
-  const canonical =
+  const prepared =
     release.datasetCode === DENSITY_DATASET_CODE
       ? await normaliseDensityRelease(context, release)
       : await normaliseStatisticRelease(context, release)
+  const fieldMetadata = await resolveCenstatdFieldMetadata({
+    fields: prepared.rows.fields,
+    promptForCuration: false,
+  })
+  const canonical = {
+    ...prepared,
+    rows: normaliseHkgovCenstatdStatistics(prepared.input, { fieldMetadata }),
+  }
   const structural = buildCenstatdReleaseStats(
     canonical.features,
     canonical.rows,
@@ -155,17 +171,22 @@ async function normaliseStatisticRelease(
     featureId: row.featureId,
     layerName: row.layerName,
   }))
+  const input = sourceRows.map(row => ({
+    datasetCode: release.datasetCode,
+    properties: object(row.rawProperties, 'rawProperties'),
+    sourceFeatureRef: [
+      'hkgov-censtatd',
+      release.datasetCode,
+      release.sourceVersion,
+      `${row.layerName}:${row.featureId}`,
+    ].join('/'),
+    sourceReleaseId: release.id,
+    sourceVersion: release.sourceVersion,
+  }))
   return {
     features,
-    rows: normaliseHkgovCenstatdStatistics(
-      sourceRows.map(row => ({
-        datasetCode: release.datasetCode,
-        properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `${row.layerName}:${row.featureId}`,
-        sourceReleaseId: release.id,
-        sourceVersion: release.sourceVersion,
-      })),
-    ),
+    input,
+    rows: normaliseHkgovCenstatdStatistics(input),
   }
 }
 
@@ -193,20 +214,25 @@ async function normaliseDensityRelease(
   if (!sourceRows.length)
     throw new Error(`No retained source assertions for ${release.code}.`)
   const layerName = `Density_${release.sourceVersion}`
+  const input = sourceRows.map(row => ({
+    datasetCode: DENSITY_DATASET_CODE,
+    properties: object(row.rawProperties, 'rawProperties'),
+    sourceFeatureRef: [
+      'hkgov-censtatd',
+      DENSITY_DATASET_CODE,
+      release.sourceVersion,
+      `${layerName}:${row.districtCode}`,
+    ].join('/'),
+    sourceReleaseId: release.id,
+    sourceVersion: release.sourceVersion,
+  }))
   return {
     features: sourceRows.map(row => ({
       featureId: String(row.districtCode),
       layerName,
     })),
-    rows: normaliseHkgovCenstatdStatistics(
-      sourceRows.map(row => ({
-        datasetCode: DENSITY_DATASET_CODE,
-        properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureId: `${layerName}:${row.districtCode}`,
-        sourceReleaseId: release.id,
-        sourceVersion: release.sourceVersion,
-      })),
-    ),
+    input,
+    rows: normaliseHkgovCenstatdStatistics(input),
   }
 }
 

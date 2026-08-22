@@ -1,6 +1,6 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
@@ -8,22 +8,25 @@
           "locale": "en",
           "name": "Public rental housing",
           "description": "Public rental housing",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "公共租住房屋",
           "description": "公共租住房屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "公共租住房屋",
           "description": "公共租住房屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "publicRentalHousing",
+      "fieldName": "publicRentalHousing",
+      "dimensions": {
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -31,7 +34,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PRH",
       "statisticKind": "quantity",
-      "unitCode": "hong-kong-dollar"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -40,22 +44,26 @@
           "locale": "en",
           "name": "Public rental housing: Housing Authority rental flats",
           "description": "Public rental housing - Housing Authority rental flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "公共租住房屋 - 房屋委員會租住單位",
           "description": "公共租住房屋 - 房屋委員會租住單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "公共租住房屋 - 房屋委员会租住单位",
           "description": "公共租住房屋 - 房屋委员会租住单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "publicRentalHousingHousingAuthorityRentalFlats",
+      "fieldName": "publicRentalHousingHousingAuthorityRentalFlats",
+      "dimensions": {
+        "housing-provider": "housing-authority",
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -63,7 +71,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PRH_HA",
       "statisticKind": "quantity",
-      "unitCode": "hong-kong-dollar"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -72,22 +81,26 @@
           "locale": "en",
           "name": "Public rental housing: Housing Society rental flats",
           "description": "Public rental housing - Housing Society rental flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "公共租住房屋 - 房屋協會租住單位",
           "description": "公共租住房屋 - 房屋協會租住單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "公共租住房屋 - 房屋协会租住单位",
           "description": "公共租住房屋 - 房屋协会租住单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "publicRentalHousingHousingSocietyRentalFlats",
+      "fieldName": "publicRentalHousingHousingSocietyRentalFlats",
+      "dimensions": {
+        "housing-provider": "housing-society",
+        "housing-sector": "public-rental"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -95,7 +108,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PRH_HS",
       "statisticKind": "quantity",
-      "unitCode": "hong-kong-dollar"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -104,22 +118,25 @@
           "locale": "en",
           "name": "Subsidised sale flats",
           "description": "Subsidised sale flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "資助出售單位",
           "description": "資助出售單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "资助出售单位",
           "description": "资助出售单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "subsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlats",
+      "dimensions": {
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -127,7 +144,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_SSF",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -136,22 +154,26 @@
           "locale": "en",
           "name": "Subsidised sale flats: Housing Authority subsidised sale flats",
           "description": "Subsidised sale flats - Housing Authority subsidised sale flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "資助出售單位 - 房屋委員會資助出售單位",
           "description": "資助出售單位 - 房屋委員會資助出售單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "资助出售单位 - 房屋委员会资助出售单位",
           "description": "资助出售单位 - 房屋委员会资助出售单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "subsidisedSaleFlatsHousingAuthoritySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsHousingAuthoritySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "housing-authority",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -159,7 +181,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_SSF_HA",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -168,22 +191,26 @@
           "locale": "en",
           "name": "Subsidised sale flats: Housing Society subsidised sale flats",
           "description": "Subsidised sale flats - Housing Society subsidised sale flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "資助出售單位 - 房屋協會資助出售單位",
           "description": "資助出售單位 - 房屋協會資助出售單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "资助出售单位 - 房屋协会资助出售单位",
           "description": "资助出售单位 - 房屋协会资助出售单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "subsidisedSaleFlatsHousingSocietySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsHousingSocietySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "housing-society",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -191,7 +218,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_SSF_HS",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -200,22 +228,26 @@
           "locale": "en",
           "name": "Subsidised sale flats: Urban Renewal Authority subsidised sale flats",
           "description": "Subsidised sale flats - Urban Renewal Authority subsidised sale flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "資助出售單位 - 市區重建局資助出售單位",
           "description": "資助出售單位 - 市區重建局資助出售單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "资助出售单位 - 市区重建局资助出售单位",
           "description": "资助出售单位 - 市区重建局资助出售单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "subsidisedSaleFlatsUrbanRenewalAuthoritySubsidisedSaleFlats",
+      "fieldName": "subsidisedSaleFlatsUrbanRenewalAuthoritySubsidisedSaleFlats",
+      "dimensions": {
+        "housing-provider": "urban-renewal-authority",
+        "housing-sector": "subsidised-sale"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -223,7 +255,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_SSF_URA",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -232,22 +265,25 @@
           "locale": "en",
           "name": "Private housing",
           "description": "Private housing",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋",
           "description": "私人房屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋",
           "description": "私人房屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousing",
+      "fieldName": "privateHousing",
+      "dimensions": {
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -255,7 +291,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -264,22 +301,26 @@
           "locale": "en",
           "name": "Private housing: Private residential flats",
           "description": "Private housing - Private residential flats",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋 - 私人住宅單位",
           "description": "私人房屋 - 私人住宅單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋 - 私人住宅单位",
           "description": "私人房屋 - 私人住宅单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousingPrivateResidentialFlats",
+      "fieldName": "privateHousingPrivateResidentialFlats",
+      "dimensions": {
+        "dwelling-type": "private-residential-flats",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -287,7 +328,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH_PRF",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -296,22 +338,26 @@
           "locale": "en",
           "name": "Private housing: Villas/Bungalows/Modern village houses",
           "description": "Private housing - Villas/Bungalows/Modern village houses",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋 - 別墅／平房／新型村屋",
           "description": "私人房屋 - 別墅／平房／新型村屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋 - 别墅／平房／新型村屋",
           "description": "私人房屋 - 别墅／平房／新型村屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousingVillasBungalowsModernVillageHouses",
+      "fieldName": "privateHousingVillasBungalowsModernVillageHouses",
+      "dimensions": {
+        "dwelling-type": "villas-bungalows-or-modern-village-houses",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -319,7 +365,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH_VBM",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -328,22 +375,26 @@
           "locale": "en",
           "name": "Private housing: Simple stone structures/Traditional village houses",
           "description": "Private housing - Simple stone structures/Traditional village houses",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋 - 簡單磚石蓋搭建築物／傳統村屋",
           "description": "私人房屋 - 簡單磚石蓋搭建築物／傳統村屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋 - 简单砖石盖搭建筑物／传统村屋",
           "description": "私人房屋 - 简单砖石盖搭建筑物／传统村屋",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousingSimpleStoneStructuresTraditionalVillageHouses",
+      "fieldName": "privateHousingSimpleStoneStructuresTraditionalVillageHouses",
+      "dimensions": {
+        "dwelling-type": "simple-stone-or-traditional-village-houses",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -351,7 +402,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH_SSTV",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -360,22 +412,26 @@
           "locale": "en",
           "name": "Private housing: Staff quarters",
           "description": "Private housing - Staff quarters",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋 - 員工宿舍",
           "description": "私人房屋 - 員工宿舍",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋 - 员工宿舍",
           "description": "私人房屋 - 员工宿舍",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousingStaffQuarters",
+      "fieldName": "privateHousingStaffQuarters",
+      "dimensions": {
+        "dwelling-type": "staff-quarters",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -383,7 +439,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH_SQ",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -392,22 +449,26 @@
           "locale": "en",
           "name": "Private housing: Non-domestic quarters",
           "description": "Private housing - Non-domestic quarters",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "私人房屋 - 非住宅用屋宇單位",
           "description": "私人房屋 - 非住宅用屋宇單位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "私人房屋 - 非住宅用屋宇单位",
           "description": "私人房屋 - 非住宅用屋宇单位",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "privateHousingNonDomesticQuarters",
+      "fieldName": "privateHousingNonDomesticQuarters",
+      "dimensions": {
+        "dwelling-type": "non-domestic-quarters",
+        "housing-sector": "private"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -415,7 +476,8 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_PH_NDQ",
       "statisticKind": "quantity",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     },
     {
       "aggregation": "total",
@@ -424,22 +486,25 @@
           "locale": "en",
           "name": "Total",
           "description": "Total",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "總計",
           "description": "總計",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "总计",
           "description": "总计",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "total",
+      "fieldName": "total",
+      "dimensions": {
+        "housing-sector": "all"
+      },
       "schemaSpecification": {
         "sha256": "b8b8c37d4dad66c1e4f33a3884885f0508da7208d8bdb6389ddfb551803c4fec",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2"
@@ -447,8 +512,9 @@
       "sourceNullOption": "Null",
       "sourceField": "QTR_ALL",
       "statisticKind": "count",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "occupiedQuarters"
     }
   ],
-  "schemaVersion": 6
+  "schemaVersion": 8
 }

@@ -3,10 +3,10 @@ import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
 /**
  * Source variants describe publisher material (for example, a census), while
  * flow domains describe the API-facing domain. Statistics currently use the
- * single default Stats domain.
+ * single Official Statistics domain.
  */
 export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) => {
-  if (familyType === 'stats') return 'default'
+  if (['addresses', 'stats', 'streets'].includes(familyType)) return 'official'
 
   if (
     source.theme !== 'divisions' &&

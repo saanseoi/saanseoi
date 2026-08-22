@@ -9,7 +9,7 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
-    expect(resolveInitialisationCommand('init:divisions:overture')).toEqual({
+    expect(resolveInitialisationCommand('init:divisions:geophraphic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
       supportsTarget: true,
@@ -36,7 +36,7 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
-    expect(resolveInitialisationCommand('init:addresses:default')).toEqual({
+    expect(resolveInitialisationCommand('init:addresses:official')).toEqual({
       script: 'scripts/init/addresses-hkgov-dpo.fish',
       supportsContinue: true,
       supportsTarget: true,

@@ -118,6 +118,7 @@ import IconSimpleIconsGo from '@iconify-svelte/simple-icons/go'
 import IconSimpleIconsGooglecolab from '@iconify-svelte/simple-icons/googlecolab'
 import IconSimpleIconsGooglegemini from '@iconify-svelte/simple-icons/googlegemini'
 import IconSimpleIconsInstagram from '@iconify-svelte/simple-icons/instagram'
+import IconSimpleIconsJavascript from '@iconify-svelte/simple-icons/javascript'
 import IconSimpleIconsLeaflet from '@iconify-svelte/simple-icons/leaflet'
 import IconSimpleIconsLinkedin from '@iconify-svelte/simple-icons/linkedin'
 import IconSimpleIconsLinux from '@iconify-svelte/simple-icons/linux'
@@ -291,6 +292,7 @@ export const localIconComponents = {
   'simple-icons:googlecolab': IconSimpleIconsGooglecolab,
   'simple-icons:googlegemini': IconSimpleIconsGooglegemini,
   'simple-icons:instagram': IconSimpleIconsInstagram,
+  'simple-icons:javascript': IconSimpleIconsJavascript,
   'simple-icons:leaflet': IconSimpleIconsLeaflet,
   'simple-icons:linkedin': IconSimpleIconsLinkedin,
   'simple-icons:linux': IconSimpleIconsLinux,

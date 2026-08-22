@@ -8,7 +8,7 @@ export async function runWithD1ReadRetry<T>(
   try {
     return await operation()
   } catch (error) {
-    if (!isTransientD1ReadError(error) || attempt >= TRANSIENT_D1_READ_RETRY_LIMIT) {
+    if (!isTransientD1Error(error) || attempt >= TRANSIENT_D1_READ_RETRY_LIMIT) {
       throw error
     }
 
@@ -18,6 +18,10 @@ export async function runWithD1ReadRetry<T>(
 }
 
 export function isTransientD1ReadError(error: unknown) {
+  return isTransientD1Error(error)
+}
+
+export function isTransientD1Error(error: unknown) {
   return collectErrorMessages(error).some(message =>
     /sqlite_busy|database is locked|failed to parse body as json, got: error: internal error|d1_error: .*internal error/i.test(
       message,

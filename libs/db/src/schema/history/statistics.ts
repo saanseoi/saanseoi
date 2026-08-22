@@ -1,11 +1,9 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
-  canonicalStatsDimension,
-  canonicalStatsMeasure,
-  canonicalStatsMeasureI18n,
+  canonicalStatsField,
+  canonicalStatsFieldI18n,
   canonicalStatsRecord,
-  canonicalStatsValue,
   canonicalStatsValueI18n,
 } from '../shared'
 import { historyStatisticVersioning } from './shared'
@@ -29,48 +27,36 @@ export const statsRecords = sqliteTable(
   ],
 )
 
-export const statsMeasures = sqliteTable(
-  'statsMeasures',
-  { ...canonicalStatsMeasure, ...historyStatisticVersioning },
+export const statsFields = sqliteTable(
+  'statsFields',
+  { ...canonicalStatsField, ...historyStatisticVersioning },
   table => [
-    primaryKey({ columns: [table.datasetCode, table.measureCode, table.versionHash] }),
-    index('statsMeasures_current_lookup_idx').on(
+    primaryKey({
+      columns: [
+        table.datasetCode,
+        table.fieldName,
+        table.sourceReleaseId,
+        table.versionHash,
+      ],
+    }),
+    index('statsFields_current_lookup_idx').on(
       table.datasetCode,
-      table.measureCode,
+      table.fieldName,
       table.isCurrent,
     ),
   ],
 )
 
-export const statsMeasuresI18n = sqliteTable(
-  'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...historyStatisticVersioning },
-  table => [
-    primaryKey({
-      columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
-    }),
-  ],
-)
-
-export const statsDimensions = sqliteTable(
-  'statsDimensions',
-  { ...canonicalStatsDimension, ...historyStatisticVersioning },
-  table => [
-    primaryKey({
-      columns: [table.datasetCode, table.dimensionCode, table.versionHash],
-    }),
-  ],
-)
-
-export const statsValues = sqliteTable(
-  'statsValues',
-  { ...canonicalStatsValue, ...historyStatisticVersioning },
+export const statsFieldsI18n = sqliteTable(
+  'statsFieldsI18n',
+  { ...canonicalStatsFieldI18n, ...historyStatisticVersioning },
   table => [
     primaryKey({
       columns: [
         table.datasetCode,
-        table.dimensionCode,
-        table.valueCode,
+        table.fieldName,
+        table.locale,
+        table.sourceReleaseId,
         table.versionHash,
       ],
     }),
@@ -87,6 +73,7 @@ export const statsValuesI18n = sqliteTable(
         table.dimensionCode,
         table.valueCode,
         table.locale,
+        table.sourceReleaseId,
         table.versionHash,
       ],
     }),

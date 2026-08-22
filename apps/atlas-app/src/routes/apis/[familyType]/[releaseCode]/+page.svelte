@@ -563,6 +563,7 @@ $effect(() => {
                 headings={noteHeadings}
                 labels={notesPresentation.labels}
                 transclusions={notesPresentation.transclusions}
+                sourceTableColumns
                 bind:activeHeadingId
               />
             {/if}

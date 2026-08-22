@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:31956f9f1c4624cfdd426dc3b74bccddbd14c7a63ab93ac808e349e77f354157",
+  "versionHash": "sha256:9823ed87a1f4d4876d82372644dacdd190098a571cea2840b0e4deae4766b36b",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -77,7 +77,7 @@
     {
       "locale": "en",
       "name": "Census: New Towns",
-      "description": "Planned C&SD source for Census statistics and boundaries for 10 new towns."
+      "description": "C&SD source for 2021 Census statistics across 13 New Town areas."
     }
   ]
 }

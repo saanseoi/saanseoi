@@ -16,7 +16,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           my_lp: '243300',
           year: '2016',
         },
-        sourceFeatureId: 'DC_GHS:11-2016',
+        sourceFeatureRef: 'DC_GHS:11-2016',
         sourceReleaseId: 'release-compilation-2026-q2',
         sourceVersion: '2026-Q2',
       },
@@ -24,21 +24,21 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(rows.observations).toEqual([
       expect.objectContaining({
-        measureCode: 'my_lp',
+        fieldName: 'my_lp',
         referencePeriodCode: '2016',
         sourceValue: '243300',
       }),
     ])
-    expect(rows.series).toEqual([
+    expect(rows.records).toEqual([
       expect.objectContaining({
         referencePeriodCode: '2016',
-        sourceFeatureId: 'DC_GHS:11-2016',
+        sourceFeatureRef: 'DC_GHS:11-2016',
       }),
     ])
-    expect(rows.seriesDimensions).toHaveLength(2)
+    expect(rows.records).toHaveLength(1)
   })
 
-  test('uses half-year periods and preserves suppression literals', () => {
+  test('uses the row quarter and preserves suppression literals', () => {
     const rows = normaliseHkgovCenstatdStatistics([
       {
         datasetCode:
@@ -51,7 +51,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           QUARTER: '3',
           YEAR: '2023',
         },
-        sourceFeatureId: 'DCD_LQ_Q32023:11',
+        sourceFeatureRef: 'DCD_LQ_Q32023:11',
         sourceReleaseId: 'release-2023-h2',
         sourceVersion: '2023-H2',
       },
@@ -60,10 +60,38 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.observations[0]).toMatchObject({
       numericValue: null,
       observationStatus: 'suppressed',
-      referencePeriodCode: '2023-H2',
+      referencePeriodCode: '2023-Q3',
       sourceValue: '**',
       valueCode: 'suppressed',
     })
+  })
+
+  test('keeps Major Housing Estate GML references out of statistics', () => {
+    const rows = normaliseHkgovCenstatdStatistics([
+      {
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+        properties: {
+          estate: '1',
+          estate_chi: '測試屋苑',
+          estate_eng: 'Example Estate',
+          gml_id: 'MHE_21C.1',
+          t_pop: '1000',
+        },
+        sourceFeatureRef: 'MHE_21C:1',
+        sourceReleaseId: 'release-2021',
+        sourceVersion: '2021',
+      },
+    ])
+
+    expect(rows.observations).toEqual([
+      expect.objectContaining({ sourceField: 't_pop', sourceValue: '1000' }),
+    ])
+    expect(rows.records).toEqual([
+      expect.objectContaining({
+        geography: { code: '1', kind: 'housing-estate' },
+        values: { t_pop: '1000' },
+      }),
+    ])
   })
 
   test('stores density population as actual people without a multiplier', () => {
@@ -71,6 +99,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        geography: { code: 'CW', kind: 'district' },
         divisionId: 'district-central-western',
         properties: {
           DC: '11',
@@ -81,7 +110,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           PERIOD: '2024',
           POPN_D: '19620',
         },
-        sourceFeatureId: 'Density_2024:11',
+        sourceFeatureRef: 'Density_2024:11',
         sourceReleaseId: 'release-2024',
         sourceVersion: '2024',
       },
@@ -89,44 +118,42 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(rows.observations).toContainEqual(
       expect.objectContaining({
-        measureCode: 'MYPOPN_LAND',
+        fieldName: 'MYPOPN_LAND',
         numericValue: '243300',
         sourceValue: '243.3',
         unitCode: 'person',
         valuePrecision: '100',
       }),
     )
-    expect(rows.series).toContainEqual(
+    expect(rows.records).toContainEqual(
       expect.objectContaining({ divisionId: 'district-central-western' }),
     )
     expect(rows.records).toEqual([
       expect.objectContaining({
-        dimensions: { district: '11' },
+        geography: { code: 'CW', kind: 'district' },
+        dimensions: {},
         values: expect.objectContaining({
-          LA: expect.objectContaining({ numericValue: '12.4' }),
-          MYPOPN_LAND: expect.objectContaining({
-            numericValue: '243300',
-            valuePrecision: '100',
-          }),
-          POPN_D: expect.objectContaining({ numericValue: '19620' }),
+          LA: '12.4',
+          MYPOPN_LAND: '243300',
+          POPN_D: '19620',
         }),
       }),
     ])
   })
 
-  test('uses reviewed measure metadata without changing publisher literals', () => {
+  test('uses reviewed field metadata without changing publisher literals', () => {
     const rows = normaliseHkgovCenstatdStatistics(
       [
         {
           datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
           properties: { AREA: '12' },
-          sourceFeatureId: 'example:1',
+          sourceFeatureRef: 'example:1',
           sourceReleaseId: 'release-example',
           sourceVersion: '2026',
         },
       ],
       {
-        measureMetadata: new Map([
+        fieldMetadata: new Map([
           [
             'ds-hk-hkgov-censtatd-division-statistic-example\u0000AREA',
             {
@@ -150,9 +177,16 @@ describe('normaliseHkgovCenstatdStatistics', () => {
                   name: '土地面积',
                 },
               ],
-              aggregation: 'total',
+              aggregation: 'median',
+              aggregationPercentile: 50,
+              comparability: {
+                affectedReferencePeriods: ['2011', '2016'],
+                reason: 'economic-activity-status-classification-changed',
+                status: 'caution',
+              },
               statisticKind: 'quantity',
-              measureCode: 'landArea',
+              fieldName: 'landArea',
+              dimensions: {},
               sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
             },
@@ -161,17 +195,24 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       },
     )
 
-    expect(rows.measures).toContainEqual(
+    expect(rows.fields).toContainEqual(
       expect.objectContaining({
-        measureCode: 'landArea',
-        aggregation: 'total',
+        fieldName: 'landArea',
+        dimensions: {},
+        aggregation: 'median',
+        aggregationPercentile: 50,
+        comparability: {
+          affectedReferencePeriods: ['2011', '2016'],
+          reason: 'economic-activity-status-classification-changed',
+          status: 'caution',
+        },
         statisticKind: 'quantity',
         sourceField: 'AREA',
         sourceNullOption: 'Null',
         unitCode: 'square-kilometre',
       }),
     )
-    expect(rows.measuresI18n).toContainEqual(
+    expect(rows.fieldsI18n).toContainEqual(
       expect.objectContaining({
         description: 'Land area represented by the publisher feature.',
         name: 'Land area',
@@ -179,13 +220,13 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     )
     expect(rows.observations).toContainEqual(
       expect.objectContaining({
-        measureCode: 'landArea',
+        fieldName: 'landArea',
         sourceField: 'AREA',
         sourceValue: '12',
         unitCode: 'square-kilometre',
       }),
     )
-    expect(rows.measuresI18n).toEqual(
+    expect(rows.fieldsI18n).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Land area' }),
         expect.objectContaining({ locale: 'zh-Hant', name: '土地面積' }),
@@ -210,7 +251,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           LA: '12.4',
           PERIOD: '2024',
         },
-        sourceFeatureId: 'Density_2024:11',
+        sourceFeatureRef: 'Density_2024:11',
         sourceReleaseId: 'release-2024',
         sourceVersion: '2024',
       },
@@ -218,14 +259,75 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(record).toMatchObject({
       referencePeriodCode: '2024',
-      dimensions: { district: '11' },
+      dimensions: {},
       values: {
-        LA: {
-          numericValue: '12.4',
-          sourceField: 'LA',
-          sourceValue: '12.4',
-        },
+        LA: '12.4',
       },
     })
+  })
+
+  test('groups fields only when their curated analytical dimensions match', () => {
+    const rows = normaliseHkgovCenstatdStatistics(
+      [
+        {
+          datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          properties: { ALL: '10', FEMALE: '6', MALE: '4' },
+          sourceFeatureRef: 'hkgov-censtatd/example/2024/Example:1',
+          sourceReleaseId: 'release-example',
+          sourceVersion: '2024',
+        },
+      ],
+      {
+        fieldMetadata: new Map([
+          [
+            'ds-hk-hkgov-censtatd-division-statistic-example\u0000ALL',
+            {
+              aggregation: 'total' as const,
+              dimensions: { sex: 'all' },
+              fieldName: 'populationAll',
+              localisations: [],
+              statisticKind: 'count' as const,
+              unitCode: 'person',
+            },
+          ],
+          [
+            'ds-hk-hkgov-censtatd-division-statistic-example\u0000FEMALE',
+            {
+              aggregation: 'total' as const,
+              dimensions: { sex: 'female' },
+              fieldName: 'populationFemale',
+              localisations: [],
+              statisticKind: 'count' as const,
+              unitCode: 'person',
+            },
+          ],
+          [
+            'ds-hk-hkgov-censtatd-division-statistic-example\u0000MALE',
+            {
+              aggregation: 'total' as const,
+              dimensions: { sex: 'female' },
+              fieldName: 'populationMale',
+              localisations: [],
+              statisticKind: 'count' as const,
+              unitCode: 'person',
+            },
+          ],
+        ]),
+      },
+    )
+
+    expect(rows.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dimensions: { sex: 'all' },
+          values: { populationAll: '10' },
+        }),
+        expect.objectContaining({
+          dimensions: { sex: 'female' },
+          values: { populationFemale: '6', populationMale: '4' },
+        }),
+      ]),
+    )
+    expect(rows.records).toHaveLength(2)
   })
 })

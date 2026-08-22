@@ -194,7 +194,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`w-full max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`w-full min-w-0 max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
@@ -260,7 +260,7 @@ const selectManualCopyText = () => {
     {/if}
   </div>
   <pre
-    class={`m-0 whitespace-pre-wrap wrap-break-word p-4 ${
+    class={`m-0 min-w-0 max-w-full whitespace-pre-wrap wrap-break-word p-4 ${
       variant === 'prompt'
         ? 'min-h-0 overflow-y-auto overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
         : variant === 'editor'

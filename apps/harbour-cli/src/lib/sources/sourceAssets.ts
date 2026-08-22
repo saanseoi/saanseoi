@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { basename, dirname, join, resolve } from 'node:path'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { basename, dirname, extname, join, resolve } from 'node:path'
+
+import { zipSync } from 'fflate'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
 import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
@@ -80,6 +83,8 @@ export type SourceReleaseAssetInput = {
   datasetCode: string
   datasetId: string
   filePath: string
+  fileName?: string
+  mediaType?: string
   publisherCode: string
   releaseCode: string
   releaseId: string
@@ -246,9 +251,12 @@ export function buildSourceAssetObjectKey(sha256: string, fileName: string) {
 
 export function buildSourceReleaseAssetFileName(input: {
   datasetCode: string
+  fileName?: string
   sourceVersion: string
 }) {
-  return safeFileName(`${input.datasetCode}-${input.sourceVersion}.parquet`)
+  return input.fileName
+    ? safeFileName(input.fileName)
+    : safeFileName(`${input.datasetCode}-${input.sourceVersion}.parquet`)
 }
 
 export function buildSourceReleaseAssetObjectKey(input: {
@@ -277,8 +285,8 @@ export function buildSourceReleaseAssetObjectKey(input: {
 }
 
 /**
- * Retains the exact file consumed by the source-release pipeline. Unlike the
- * CSDI archive flow, Overture's retained source is the prepared Parquet itself.
+ * Retains publisher evidence as an immutable source Parquet or ZIP. Overture
+ * supplies Parquet directly; loose GML and GeoJSON are losslessly packaged.
  */
 export async function uploadSourceReleaseAsset(
   target: UploadTarget,
@@ -288,47 +296,157 @@ export async function uploadSourceReleaseAsset(
     upload?: typeof uploadManagedSourceAsset
   } = {},
 ) {
-  const bytes = await readFile(input.filePath)
-  const contentHash = hash(bytes)
-  const fileName = buildSourceReleaseAssetFileName(input)
-  const assetKey = buildSourceReleaseAssetObjectKey({
-    datasetCode: input.datasetCode,
-    fileName,
-    publisherCode: input.publisherCode,
-    releaseCode: input.releaseCode,
-    sha256: contentHash,
-  })
-  const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
-  const upload = options.upload ?? uploadManagedSourceAsset
+  const retained = await prepareSourceReleaseAsset(input)
+  try {
+    const contentHash = hash(retained.bytes)
+    const assetKey = buildSourceReleaseAssetObjectKey({
+      datasetCode: input.datasetCode,
+      fileName: retained.fileName,
+      publisherCode: input.publisherCode,
+      releaseCode: input.releaseCode,
+      sha256: contentHash,
+    })
+    const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
+    const upload = options.upload ?? uploadManagedSourceAsset
 
-  return upload(target, {
-    fileName,
-    filePath: input.filePath,
-    metadata: {
-      assetKey,
-      contentHash,
-      datasetId: input.datasetId,
-      manifest: {
-        schemaVersion: 1,
-        artefact: {
-          byteLength: bytes.byteLength,
-          mediaType: 'application/vnd.apache.parquet',
-          objectKey: assetKey,
-          role: 'sourceArchive',
-          sha256: contentHash,
+    return await upload(target, {
+      fileName: retained.fileName,
+      filePath: retained.filePath,
+      metadata: {
+        assetKey,
+        contentHash,
+        datasetId: input.datasetId,
+        manifest: {
+          schemaVersion: 1,
+          artefact: {
+            byteLength: retained.bytes.byteLength,
+            mediaType: retained.mediaType,
+            objectKey: assetKey,
+            role: 'sourceArchive',
+            sha256: contentHash,
+          },
+          dataset: { code: input.datasetCode },
+          ...(retained.original ? { original: retained.original } : {}),
+          ...(retained.packaging ? { packaging: retained.packaging } : {}),
+          provenance: {
+            releaseCode: input.releaseCode,
+            sourceVersion: input.sourceVersion,
+          },
         },
-        dataset: { code: input.datasetCode },
-        provenance: {
-          releaseCode: input.releaseCode,
-          sourceVersion: input.sourceVersion,
-        },
+        mediaType: retained.mediaType,
+        releaseId: input.releaseId,
+        retrievedAt,
+        role: 'sourceArchive',
       },
-      mediaType: 'application/vnd.apache.parquet',
-      releaseId: input.releaseId,
-      retrievedAt,
-      role: 'sourceArchive',
+    })
+  } finally {
+    await retained.cleanup()
+  }
+}
+
+export function assertRetainableSourceReleaseInput(fileName: string) {
+  if (shouldWrapSourceReleaseAsset(fileName)) return
+  retainedSourceMediaType(fileName)
+}
+
+type RetainedSourceReleaseAsset = {
+  bytes: Uint8Array
+  cleanup: () => Promise<void>
+  fileName: string
+  filePath: string
+  mediaType: 'application/vnd.apache.parquet' | 'application/zip'
+  original?: {
+    byteLength: number
+    fileName: string
+    mediaType: string
+    sha256: string
+  }
+  packaging?: 'saanseoi-lossless-zip'
+}
+
+/**
+ * Retain publisher evidence only as source Parquet or ZIP. GML and GeoJSON
+ * uploads still feed their local preparers directly, but their retained copy
+ * is a lossless ZIP with the original bytes and identity in its manifest.
+ */
+async function prepareSourceReleaseAsset(
+  input: SourceReleaseAssetInput,
+): Promise<RetainedSourceReleaseAsset> {
+  const originalFileName = buildSourceReleaseAssetFileName(input)
+  assertRetainableSourceReleaseInput(originalFileName)
+  const originalBytes = await readFile(input.filePath)
+  const originalMediaType =
+    input.mediaType ?? mediaTypeForSourceReleaseFile(originalFileName)
+
+  if (!shouldWrapSourceReleaseAsset(originalFileName)) {
+    return {
+      bytes: originalBytes,
+      cleanup: async () => {},
+      fileName: originalFileName,
+      filePath: input.filePath,
+      mediaType: retainedSourceMediaType(originalFileName),
+    }
+  }
+
+  const archiveBytes = zipSync({ [safeFileName(originalFileName)]: originalBytes })
+  const tempDir = await mkdtemp(join(tmpdir(), 'saanseoi-source-release-'))
+  const fileName = `${originalFileName}.zip`
+  const filePath = join(tempDir, fileName)
+  await writeFile(filePath, archiveBytes)
+
+  return {
+    bytes: archiveBytes,
+    cleanup: async () => rm(tempDir, { force: true, recursive: true }),
+    fileName,
+    filePath,
+    mediaType: 'application/zip',
+    original: {
+      byteLength: originalBytes.byteLength,
+      fileName: originalFileName,
+      mediaType: originalMediaType,
+      sha256: hash(originalBytes),
     },
-  })
+    packaging: 'saanseoi-lossless-zip',
+  }
+}
+
+function shouldWrapSourceReleaseAsset(fileName: string) {
+  const extension = extname(fileName).toLowerCase()
+  return extension === '.geojson' || extension === '.gml'
+}
+
+function retainedSourceMediaType(
+  fileName: string,
+): 'application/vnd.apache.parquet' | 'application/zip' {
+  switch (extname(fileName).toLowerCase()) {
+    case '.parquet':
+      return 'application/vnd.apache.parquet'
+    case '.zip':
+      return 'application/zip'
+    default:
+      throw new Error(
+        `R2 source retention accepts ZIP or Parquet; compress ${safeFileName(fileName)} as ZIP before upload.`,
+      )
+  }
+}
+
+function mediaTypeForSourceReleaseFile(fileName: string) {
+  const extension = fileName.toLowerCase().split('.').at(-1)
+  switch (extension) {
+    case 'csv':
+      return 'text/csv; charset=utf-8'
+    case 'geojson':
+    case 'json':
+      return 'application/geo+json'
+    case 'gml':
+      return 'application/gml+xml'
+    case 'parquet':
+      return 'application/vnd.apache.parquet'
+    case 'zip':
+      return 'application/zip'
+    default:
+      return 'application/octet-stream'
+  }
 }
 
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {

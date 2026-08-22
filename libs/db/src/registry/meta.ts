@@ -44,6 +44,7 @@ export const metaRegistryRequiredTables = [
   'apiCompositionMembers',
   'apiEndpoints',
   'dataShards',
+  'divisionCodes',
   'identifierBridges',
 ] as const
 
@@ -365,6 +366,54 @@ type InitialDataShardSeed = {
   year?: string
 }
 
+export type DivisionCodeFixtureAssignment = {
+  divisionCode: string
+  canonicalId: string
+}
+
+type DivisionCodeFixture = {
+  versionHash: string
+  domainCode: string
+  assignments: DivisionCodeFixtureAssignment[]
+}
+
+export function validateDivisionCodeFixtures(
+  fixtures: Array<Pick<DivisionCodeFixture, 'assignments' | 'domainCode'>>,
+  knownCanonicalIds?: ReadonlySet<string>,
+) {
+  const codes = new Set<string>()
+  const targets = new Set<string>()
+  for (const fixture of fixtures) {
+    if (!fixture.domainCode.trim())
+      throw new Error('Division code fixture has no domainCode.')
+    for (const assignment of fixture.assignments) {
+      if (!assignment.divisionCode.trim() || /\s/.test(assignment.divisionCode)) {
+        throw new Error(`Invalid Division code=${assignment.divisionCode}.`)
+      }
+      if (!assignment.canonicalId.trim()) {
+        throw new Error(
+          `Division code=${assignment.divisionCode} has no canonical target.`,
+        )
+      }
+      if (knownCanonicalIds && !knownCanonicalIds.has(assignment.canonicalId)) {
+        throw new Error(
+          `Division code=${assignment.divisionCode} targets unknown canonical Division ${assignment.canonicalId}.`,
+        )
+      }
+      const codeKey = `${fixture.domainCode}\u0000${assignment.divisionCode}`
+      const targetKey = `${fixture.domainCode}\u0000${assignment.canonicalId}`
+      if (codes.has(codeKey))
+        throw new Error(`Duplicate Division code=${assignment.divisionCode}.`)
+      if (targets.has(targetKey))
+        throw new Error(
+          `Ambiguous canonical Division target=${assignment.canonicalId}.`,
+        )
+      codes.add(codeKey)
+      targets.add(targetKey)
+    }
+  }
+}
+
 export type MetaRegistrySyncEnvironment = Extract<
   DataShardEnvironment,
   'preview' | 'production'
@@ -425,6 +474,8 @@ const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersion
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
+const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
+validateDivisionCodeFixtures(divisionCodeFixtures)
 const identifierBridgeFixtures = readFixtureDir<{
   resourceType: ResourceType
   sourceDatasetCode: string
@@ -614,6 +665,30 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
     })),
   )
 
+/**
+ * Canonical domain-code renames applied to published registry metadata.
+ *
+ * A domain identifies a lineage, so these are deliberately limited to cases
+ * where the previous code was only a label for the same official lineage.
+ */
+export const apiDomainCodeRenames = [
+  {
+    apiVersion: 'api-addresses-v0.1',
+    from: 'default',
+    to: 'official',
+  },
+  {
+    apiVersion: 'api-stats-v0.1',
+    from: 'default',
+    to: 'official',
+  },
+  {
+    apiVersion: 'api-streets-v0.1',
+    from: 'hkgov-landsd',
+    to: 'official',
+  },
+] as const
+
 export const initialApiEndpoints: InitialApiEndpointSeed[] =
   apiEndpointFixtures.flatMap(fixture =>
     fixture.endpoints.map(endpoint => ({
@@ -651,6 +726,14 @@ export const initialIdentifierBridges = identifierBridgeFixtures.flatMap(fixture
     authority: fixture.authority,
     mappingMethod: fixture.mappingMethod,
     reviewStatus: fixture.reviewStatus,
+  })),
+)
+
+export const initialDivisionCodes = divisionCodeFixtures.flatMap(fixture =>
+  fixture.assignments.map(assignment => ({
+    ...assignment,
+    domainCode: fixture.domainCode,
+    versionHash: fixture.versionHash,
   })),
 )
 
@@ -815,6 +898,27 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
   mappingMethod = excluded.mappingMethod,
   reviewStatus = excluded.reviewStatus,
   updatedAt = excluded.updatedAt;`.trim(),
+    )
+  }
+
+  for (const divisionCode of initialDivisionCodes) {
+    statements.push(
+      `
+INSERT INTO divisionCodes (
+  domainCode, divisionCode, canonicalId, versionHash, createdAt, updatedAt
+) VALUES (
+  ${sqlString(divisionCode.domainCode)},
+  ${sqlString(divisionCode.divisionCode)},
+  ${sqlString(divisionCode.canonicalId)},
+  ${sqlString(divisionCode.versionHash)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(domainCode, divisionCode) DO UPDATE SET
+  canonicalId = excluded.canonicalId,
+  versionHash = excluded.versionHash,
+  updatedAt = excluded.updatedAt
+WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
@@ -1003,6 +1107,38 @@ ON CONFLICT(code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  // Keep published release and catalogue metadata aligned when a composition
+  // renames an existing domain without changing its lineage.
+  for (const rename of apiDomainCodeRenames) {
+    const apiVersionId = `(SELECT id FROM apiVersions WHERE code = ${sqlString(rename.apiVersion)})`
+    statements.push(
+      `
+UPDATE apiReleaseSets
+SET domainCode = ${sqlString(rename.to)},
+    updatedAt = ${nowSql}
+WHERE apiVersionId = ${apiVersionId}
+  AND domainCode = ${sqlString(rename.from)};`.trim(),
+    )
+    statements.push(
+      `
+UPDATE apiCatalogRevisions
+SET defaultDomainCode = ${sqlString(rename.to)}
+WHERE apiVersionId = ${apiVersionId}
+  AND defaultDomainCode = ${sqlString(rename.from)};`.trim(),
+    )
+    statements.push(
+      `
+UPDATE apiCatalogRevisionReleaseSets
+SET domainCode = ${sqlString(rename.to)}
+WHERE domainCode = ${sqlString(rename.from)}
+  AND apiReleaseSetId IN (
+    SELECT id
+    FROM apiReleaseSets
+    WHERE apiVersionId = ${apiVersionId}
+  );`.trim(),
     )
   }
 

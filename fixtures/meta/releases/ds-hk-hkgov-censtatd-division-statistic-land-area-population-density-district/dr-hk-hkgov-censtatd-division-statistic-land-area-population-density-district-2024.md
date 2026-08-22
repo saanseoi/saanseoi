@@ -10,7 +10,8 @@ sourceSchemaVersion: "1.0"
 releaseVersion: "2024.0"
 type: "divisionStatistic"
 cohortKey: "2024"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/land-area-population-density-district.json"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451"
+measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json"
 ---
 
 # EN
@@ -61,10 +62,10 @@ These source values are converted before being returned through
 
 ## Measure mapping
 
-The measureCode [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
-and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
-readable statistical name from its exact definition. The mapping below is generated from
-this release's C&SD
+The fieldName [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1) and
+[detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a readable
+statistical name from its exact definition. The mapping below is generated from this
+release's C&SD
 [measure curation manifest](saanseoi:en:definition/hkgov-censtatd-measure-curation-manifest/v1).
 
 {{hkgovCenstatdMeasureTable:en}}
