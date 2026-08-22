@@ -10,7 +10,7 @@ import {
 } from '@clack/prompts'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -122,6 +122,7 @@ export async function runUploadCommand(
     options.printUsage()
     throw new Error('Missing file path.')
   }
+  const sourceArtefactPath = resolve(options.invocationCwd, inputFile)
 
   if (!options.quiet)
     intro(`
@@ -417,6 +418,23 @@ ${mutedBar}  `)
           sourceVersion: previewResult.plan.sourceVersion,
         })
         log.message(`Retained Overture source: ${sourceAsset.url}`)
+      } else if (!sourceArchive) {
+        const datasetId =
+          typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
+        if (!datasetId || !releaseId) {
+          throw new Error('Source retention requires release identifiers.')
+        }
+        const sourceAsset = await uploadSourceReleaseAsset(target, {
+          datasetCode: previewResult.plan.datasetCode,
+          datasetId,
+          fileName: inputFile,
+          filePath: sourceArtefactPath,
+          publisherCode: previewResult.plan.source,
+          releaseCode: previewResult.plan.releaseCode,
+          releaseId,
+          sourceVersion: previewResult.plan.sourceVersion,
+        })
+        log.message(`Retained published source artefact: ${sourceAsset.url}`)
       }
 
       if (processingStrategy.mode === 'local-address-sql') {

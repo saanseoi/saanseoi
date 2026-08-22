@@ -239,13 +239,10 @@ export async function runUpdateCommand(
       }))
       .filter(plan => plan.updates.length > 0)
 
-    logPhaseHeading(phase)
     if (phasePlans.length === 0) {
-      log.message(`No actionable ${phaseHeading(phase).toLowerCase()}.`, {
-        spacing: 0,
-      })
       continue
     }
+    logPhaseHeading(phase)
     for (const plan of phasePlans) {
       await processPlannedUpdates(plan, {
         added,
@@ -296,11 +293,7 @@ export async function runUpdateCommand(
     })),
     errors,
   })
-  const family =
-    selectedFamily === 'all'
-      ? colorFamilyLabel('API family', 'all')
-      : colorFamilyLabel(familyLabel(selectedFamily), selectedFamily)
-  outro(`Checked all ${family} datasets for new releases`)
+  outro('Update check complete')
   if (errors.length > 0) process.exitCode = 1
 }
 
