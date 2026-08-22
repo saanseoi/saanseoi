@@ -9,7 +9,8 @@ sourceVersion: "2021"
 releaseVersion: "2021.0"
 type: "divisionStatistic"
 cohortKey: "2021"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/housing-market-areas-building-groups-2021.json"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872"
+measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/housing-market-areas-building-groups.json"
 ---
 
 # EN
@@ -41,12 +42,12 @@ record value:
 The source assertion also retains the complete publisher property set, geometry, archive
 identity, and feature identity. The canonical series identity qualifies that feature as
 <black>&lt;layer&gt;:&lt;feature&gt;</black>. These provenance values do not become
-canonical <black>measureCode</black>s or API selection fields.
+canonical <black>fieldName</black>s or API selection fields.
 
 ### Normalised Fields
 
 Each reviewed C&SD measure becomes a canonical observation with a stable
-<black>measureCode</black>, statistic kind, aggregation, unit, status, reference period,
+<black>fieldName</black>, statistic kind, aggregation, unit, status, reference period,
 and localised offering. A measure will not be published until its metadata has been
 reviewed in this release's curation manifest.
 
@@ -69,9 +70,9 @@ arbitrary canonical division as they don't have polygonal geometry.
 
 ### Measure offerings
 
-The measureCode [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1)
-and [detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a
-readable statistical name from its exact definition.
+The fieldName [naming convention](saanseoi:en:note/hkgov-censtatd-measure-naming/v1) and
+[detailing](saanseoi:en:note/hkgov-censtatd-measure-offerings/v1) separate a readable
+statistical name from its exact definition.
 
 ## Measure mapping
 
@@ -106,12 +107,12 @@ The reviewed mapping below is generated from this release's C&SD
 
 來源斷言亦保留完整發布者屬性集、幾何、歸檔識別及要素識別。標準 series 會把該要素限定為
 <black>&lt;layer&gt;:&lt;feature&gt;</black>。這些來源追溯數值不會成為標準
-<black>measureCode</black> 或 API 選擇欄位。
+<black>fieldName</black> 或 API 選擇欄位。
 
 ### 正規化欄位
 
 每個經審核的 C&SD 指標均會成為標準觀測，並附有穩定的
-<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化 offering。指標的中繼資料必須先在此發布的整理清單完成審核，才會發布。
+<black>fieldName</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化 offering。指標的中繼資料必須先在此發布的整理清單完成審核，才會發布。
 
 - 數字字面值會成為 <black>numericValue</black>；分類字面值會成為 value code。
 - <black>**</black> 會成為受抑制觀測；<black>-</black>、<black>N.A.</black> 及
@@ -127,7 +128,7 @@ Division 及 Division Area 幾何。<black>BG_21C</black>
 
 ### 指標 offering
 
-已發布的 <black>measureCode</black> 遵循
+已發布的 <black>fieldName</black> 遵循
 [統計指標命名慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-naming/v1)。其易讀名稱及精確納入準則遵循
 [指標 offering 慣例](saanseoi:zh-hant:note/hkgov-censtatd-measure-offerings/v1)。
 
@@ -165,12 +166,12 @@ SaanSeoi 保留 C&SD 的发布者断言，并将经审核的数值呈现为规�
 
 来源断言亦保留完整发布者属性集、几何、归档识别及要素识别。规范 series 会把该要素限定为
 <black>&lt;layer&gt;:&lt;feature&gt;</black>。这些来源追溯数值不会成为规范
-<black>measureCode</black> 或 API 选择字段。
+<black>fieldName</black> 或 API 选择字段。
 
 ### 规范化字段
 
 每个经审核的 C&SD 指标均会成为规范观测，并附有稳定的
-<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化 offering。指标的元数据必须先在此发布的整理清单完成审核，才会发布。
+<black>fieldName</black>、统计种类、汇总方式、单位、状态、参考时段及本地化 offering。指标的元数据必须先在此发布的整理清单完成审核，才会发布。
 
 - 数字字面值会成为 <black>numericValue</black>；分类字面值会成为 value code。
 - <black>**</black> 会成为受抑制观测；<black>-</black>、<black>N.A.</black> 及
@@ -186,7 +187,7 @@ Division 及 Division Area 几何。<black>BG_21C</black>
 
 ### 指标 offering
 
-已发布的 <black>measureCode</black> 遵循
+已发布的 <black>fieldName</black> 遵循
 [统计指标命名惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-naming/v1)。其易读名称及精确纳入准则遵循
 [指标 offering 惯例](saanseoi:zh-hans:note/hkgov-censtatd-measure-offerings/v1)。
 

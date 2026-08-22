@@ -10,13 +10,14 @@ type Props = {
 }
 let { currentCohortKey, currentVersionCode, onVersionPreload, versions }: Props =
   $props()
-let currentVersionIndex = $derived(
-  versions.findIndex(
-    version =>
-      version.code === currentVersionCode ||
-      (currentCohortKey !== undefined && version.cohortKey === currentCohortKey),
-  ),
-)
+let currentVersionIndex = $derived.by(() => {
+  const exactIndex = versions.findIndex(version => version.code === currentVersionCode)
+  if (exactIndex >= 0) return exactIndex
+
+  return versions.findIndex(
+    version => currentCohortKey !== undefined && version.cohortKey === currentCohortKey,
+  )
+})
 let controls = $derived([
   {
     icon: 'ion:chevron-back-outline',

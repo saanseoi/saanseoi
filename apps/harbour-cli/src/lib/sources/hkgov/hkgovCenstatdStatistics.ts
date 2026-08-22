@@ -9,6 +9,7 @@ import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreaForCenstatdCode,
 } from '@repo/core/pipeline/services/overtureHongKongAreas'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
@@ -21,42 +22,77 @@ const AREA_TYPE_DATASET =
 const HMA_DATASET =
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
 
+type CenstatdStatisticLayer = {
+  name: string
+  required: string[]
+  expectedRowCount?: number
+  rowsPerReferencePeriod?: {
+    field: string
+    count: number
+  }
+}
+
+type CenstatdStatisticProfile = {
+  layers: CenstatdStatisticLayer[]
+  sourceVersions: string[]
+}
+
 export const CENSTATD_STATISTIC_PROFILES = {
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
     layers: [
-      { count: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
-      { count: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
+      { expectedRowCount: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
+      { expectedRowCount: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
     ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates': {
-    layers: [{ count: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
+    layers: [{ expectedRowCount: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-new-towns': {
-    layers: [{ count: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] }],
+    layers: [
+      { expectedRowCount: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] },
+    ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': {
-    layers: [{ count: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] }],
+    layers: [
+      { expectedRowCount: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] },
+    ],
     sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
-    layers: [{ count: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] }],
+    layers: [
+      { expectedRowCount: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] },
+    ],
     sourceVersions: ['2023-H2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
-    layers: [{ count: 180, name: 'DC_GHS', required: ['dc', 'dc_class', 'year'] }],
+    layers: [
+      {
+        name: 'DC_GHS',
+        required: ['dc', 'dc_class', 'year'],
+        rowsPerReferencePeriod: { field: 'year', count: 18 },
+      },
+    ],
     sourceVersions: ['2021'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
     layers: [
-      { count: 18, name: 'DC_16BC_SDU', required: ['dc', 'dc_class', 'sdu_pop'] },
-      { count: 18, name: 'DC_21C_SDU', required: ['dc', 'dc_class', 'sdu_pop'] },
+      {
+        expectedRowCount: 18,
+        name: 'DC_16BC_SDU',
+        required: ['dc', 'dc_class', 'sdu_pop'],
+      },
+      {
+        expectedRowCount: 18,
+        name: 'DC_21C_SDU',
+        required: ['dc', 'dc_class', 'sdu_pop'],
+      },
     ],
     sourceVersions: ['2016', '2021'],
   },
-} as const
+} as const satisfies Record<string, CenstatdStatisticProfile>
 
 export type CenstatdStatisticDatasetCode = keyof typeof CENSTATD_STATISTIC_PROFILES
 
@@ -70,7 +106,7 @@ type SourceRow = {
 type StatisticGeography = {
   code: string
   layerName: string
-  level: number
+  level?: number
   nameEn: string
   nameZhHant: string
   type: 'area' | 'housing-market-area'
@@ -176,17 +212,26 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
         geography.type === 'area'
           ? null
           : {
-              canonical_level: geography.level,
+              ...(geography.level === undefined
+                ? {}
+                : { canonical_level: geography.level }),
               canonical_type: geography.type,
+              // The shared division Parquet reader builds its hierarchy lookup
+              // before applying the C&SD-specific normaliser. Keep its required
+              // structural columns present, while canonical_type remains the
+              // authoritative C&SD classification.
+              class: 'housing-market-area',
               geometry: feature.geometry,
               id: divisionId,
               identifiers: {
                 hkgovCenstatd: { code: geography.code, geographyType: geography.type },
               },
               names,
+              parent_division_id: '',
               source: 'hkgov-censtatd',
               source_properties: sourceRow.properties,
               sources: provenance,
+              subtype: '',
               type: 'division',
             },
     }
@@ -248,7 +293,7 @@ function statisticGeographyIdentity(datasetCode: string, sourceCode: string) {
     return { code, level: 1, type: 'area' as const }
   }
   if (datasetCode === HMA_DATASET && /^HMA\d+$/i.test(code)) {
-    return { code: code.toUpperCase(), level: 3, type: 'housing-market-area' as const }
+    return { code: code.toUpperCase(), type: 'housing-market-area' as const }
   }
   return null
 }
@@ -304,9 +349,13 @@ export function readHkgovCenstatdStatisticArchive(input: {
     const gml = input.inputGml[`${layer.name}.gml`]
     if (!gml) throw new Error(`CSDI archive is missing ${layer.name}.gml.`)
     const layerRows = parseCsdiGml(gml, layer.name)
-    if (layerRows.length !== layer.count) {
+    if (
+      'expectedRowCount' in layer &&
+      layer.expectedRowCount !== undefined &&
+      layerRows.length !== layer.expectedRowCount
+    ) {
       throw new Error(
-        `${layer.name}.gml must contain ${layer.count} rows; found ${layerRows.length}.`,
+        `${layer.name}.gml must contain ${layer.expectedRowCount} rows; found ${layerRows.length}.`,
       )
     }
     for (const row of layerRows) {
@@ -318,6 +367,9 @@ export function readHkgovCenstatdStatisticArchive(input: {
         }
       }
     }
+    if ('rowsPerReferencePeriod' in layer && layer.rowsPerReferencePeriod) {
+      assertRowsPerReferencePeriod(layerRows, layer.rowsPerReferencePeriod, layer.name)
+    }
     rows.push(...layerRows)
   }
   const ids = new Set<string>()
@@ -327,6 +379,32 @@ export function readHkgovCenstatdStatisticArchive(input: {
     ids.add(id)
   }
   return rows
+}
+
+function assertRowsPerReferencePeriod(
+  rows: readonly SourceRow[],
+  rule: NonNullable<CenstatdStatisticLayer['rowsPerReferencePeriod']>,
+  layerName: string,
+) {
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    const value = row.properties[rule.field]
+    const period =
+      typeof value === 'string'
+        ? value.trim()
+        : typeof value === 'number' && Number.isFinite(value)
+          ? String(value)
+          : ''
+    if (!period) continue
+    counts.set(period, (counts.get(period) ?? 0) + 1)
+  }
+  const invalid = [...counts.entries()].filter(([, count]) => count !== rule.count)
+  if (invalid.length > 0) {
+    const detail = invalid.map(([period, count]) => `${period}=${count}`).join(', ')
+    throw new Error(
+      `${layerName}.gml must contain ${rule.count} rows for each ${rule.field}; found ${detail}.`,
+    )
+  }
 }
 
 export async function prepareHkgovCenstatdStatisticUpload(input: {
@@ -371,8 +449,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
             'layer_name',
             rows.map(row => row.layerName),
           ),
-          strings(
-            'reference_year',
+          ...statisticsReferencePeriodColumns(
             rows.map(row => referencePeriodFor(row.properties, input.sourceVersion)),
           ),
           strings(
@@ -437,7 +514,7 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
       `${layerName}.${index + 1}`
     return {
       // Preserve the publisher feature identity. The layer is added by the
-      // canonical observation as `<layerName>:<sourceFeatureId>`.
+      // canonical observation as `<layerName>:<sourceFeatureRef>`.
       featureId: string(publisherFeatureId),
       layerName,
       properties,
@@ -472,10 +549,53 @@ function referencePeriodFor(
   properties: Record<string, unknown>,
   sourceVersion: string,
 ) {
-  const year = properties.year
-  return typeof year === 'string' && /^\d{4}$/.test(year.trim())
-    ? year.trim()
-    : sourceVersion
+  const populationYear = stringValue(properties.year)
+  if (/^\d{4}$/.test(populationYear ?? '')) return populationYear as string
+
+  const period = stringValue(properties.PERIOD)
+  if (period) return period
+
+  const year = stringValue(properties.YEAR)
+  const quarter = stringValue(properties.QUARTER)?.replace(/^Q/i, '')
+  if (year && quarter) return `${year}-Q${quarter}`
+
+  return sourceVersion
+}
+
+function statisticsReferencePeriodColumns(codes: string[]) {
+  const periods = codes.map(parseStatisticsReferencePeriod)
+  return [
+    strings(
+      'reference_period_code',
+      periods.map(period => period.code),
+    ),
+    nullableStrings(
+      'reference_period_start',
+      periods.map(period => period.start),
+    ),
+    nullableStrings(
+      'reference_period_end',
+      periods.map(period => period.end),
+    ),
+    strings(
+      'reference_period_granularity',
+      periods.map(period => period.granularity),
+    ),
+    strings(
+      'reference_period_end_year',
+      periods.map(period => period.endYear),
+    ),
+  ]
+}
+
+function nullableStrings(name: string, values: Array<string | null>) {
+  return { name, data: values, nullable: true, type: 'STRING' as const }
+}
+
+function stringValue(value: unknown) {
+  if (typeof value === 'string') return value.trim() || null
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return null
 }
 function array(value: unknown) {
   return Array.isArray(value) ? value : value === undefined ? [] : [value]

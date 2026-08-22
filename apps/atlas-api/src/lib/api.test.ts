@@ -26,18 +26,25 @@ describe('api helpers', () => {
       jsonapi: {
         version: '1.1',
       },
+      meta: {
+        profile: 'default',
+      },
+      data: [{ id: 'division-1' }],
+      included: [{ id: 'division-parent' }],
       links: {
         self: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=10',
         first: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
         prev: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
         next: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=20',
       },
-      data: [{ id: 'division-1' }],
-      included: [{ id: 'division-parent' }],
-      meta: {
-        profile: 'default',
-      },
     })
+    expect(Object.keys(document)).toEqual([
+      'jsonapi',
+      'meta',
+      'data',
+      'included',
+      'links',
+    ])
   })
 
   test('buildJsonApiDetailDocument omits included when empty', () => {
@@ -54,14 +61,15 @@ describe('api helpers', () => {
       jsonapi: {
         version: '1.1',
       },
-      links: {
-        self: 'http://localhost/v0/divisions/hk',
-      },
-      data: { id: 'hk' },
       meta: {
         profile: 'default',
       },
+      data: { id: 'hk' },
+      links: {
+        self: 'http://localhost/v0/divisions/hk',
+      },
     })
+    expect(Object.keys(document)).toEqual(['jsonapi', 'meta', 'data', 'links'])
   })
 
   test('response links omit query-string credentials and preserve other filters', () => {

@@ -73,7 +73,7 @@ $effect(() => {
         class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
       >
         <div
-          class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-primary dark:text-[#edf2ee]!"
+          class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt dark:text-[#edf2ee]!"
         >
           {#if canExpand}
             <button

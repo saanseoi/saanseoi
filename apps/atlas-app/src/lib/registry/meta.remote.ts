@@ -908,8 +908,8 @@ async function getSourceReleaseMeasures(input: {
   datasetCode: string
   releaseId: string
 }) {
-  const db = getCurrentDb()
-  const records = await db
+  const currentDb = getCurrentDb()
+  const records = await currentDb
     .select({ values: currentSchema.statsRecords.values })
     .from(currentSchema.statsRecords)
     .where(eq(currentSchema.statsRecords.sourceReleaseId, input.releaseId))
@@ -918,54 +918,73 @@ async function getSourceReleaseMeasures(input: {
 
   const countsByMeasure = new Map<string, number>()
   for (const record of records) {
-    for (const measureCode of Object.keys(record.values)) {
-      countsByMeasure.set(measureCode, (countsByMeasure.get(measureCode) ?? 0) + 1)
+    for (const fieldName of Object.keys(record.values)) {
+      countsByMeasure.set(fieldName, (countsByMeasure.get(fieldName) ?? 0) + 1)
     }
   }
-  const rows = await db
-    .select({
-      definition: currentSchema.statsMeasuresI18n.description,
-      aggregation: currentSchema.statsMeasures.aggregation,
-      measureCode: currentSchema.statsMeasures.measureCode,
-      name: currentSchema.statsMeasuresI18n.name,
-      sourceField: currentSchema.statsMeasures.sourceField,
-      statisticKind: currentSchema.statsMeasures.statisticKind,
-      unitCode: currentSchema.statsMeasures.unitCode,
-      valueKind: currentSchema.statsMeasures.valueKind,
-    })
-    .from(currentSchema.statsMeasures)
-    .leftJoin(
-      currentSchema.statsMeasuresI18n,
-      and(
-        eq(
-          currentSchema.statsMeasuresI18n.datasetCode,
-          currentSchema.statsMeasures.datasetCode,
-        ),
-        eq(
-          currentSchema.statsMeasuresI18n.measureCode,
-          currentSchema.statsMeasures.measureCode,
-        ),
-        eq(currentSchema.statsMeasuresI18n.locale, 'en'),
+  const rows = (
+    await Promise.all(
+      ['DB_HISTORY_HK_BEFORE', 'DB_HISTORY_HK_2025', 'DB_HISTORY_HK_2026'].map(
+        async bindingName =>
+          getHistoryDb(bindingName)
+            .select({
+              definition: historySchema.statsFieldsI18n.description,
+              aggregation: historySchema.statsFields.aggregation,
+              fieldName: historySchema.statsFields.fieldName,
+              name: historySchema.statsFieldsI18n.name,
+              sourceField: historySchema.statsFields.sourceField,
+              statisticKind: historySchema.statsFields.statisticKind,
+              unitCode: historySchema.statsFields.unitCode,
+              valueKind: historySchema.statsFields.valueKind,
+            })
+            .from(historySchema.statsFields)
+            .leftJoin(
+              historySchema.statsFieldsI18n,
+              and(
+                eq(
+                  historySchema.statsFieldsI18n.sourceReleaseId,
+                  historySchema.statsFields.sourceReleaseId,
+                ),
+                eq(
+                  historySchema.statsFieldsI18n.datasetCode,
+                  historySchema.statsFields.datasetCode,
+                ),
+                eq(
+                  historySchema.statsFieldsI18n.fieldName,
+                  historySchema.statsFields.fieldName,
+                ),
+                eq(historySchema.statsFieldsI18n.locale, 'en'),
+              ),
+            )
+            .where(
+              and(
+                eq(historySchema.statsFields.sourceReleaseId, input.releaseId),
+                eq(historySchema.statsFields.datasetCode, input.datasetCode),
+              ),
+            )
+            .orderBy(historySchema.statsFields.sourceField)
+            .all(),
       ),
     )
-    .where(
-      and(
-        eq(currentSchema.statsMeasures.datasetCode, input.datasetCode),
-        inArray(currentSchema.statsMeasures.measureCode, [...countsByMeasure.keys()]),
-      ),
-    )
-    .orderBy(currentSchema.statsMeasures.sourceField)
-    .all()
-  return rows.map(row => ({
-    definition: row.definition,
-    aggregation: row.aggregation,
-    name: row.name ?? row.sourceField,
-    observationCount: countsByMeasure.get(row.measureCode) ?? 0,
-    sourceField: row.sourceField,
-    statisticKind: row.statisticKind,
-    unitCode: row.unitCode,
-    valueKind: row.valueKind,
-  }))
+  ).flat()
+  const uniqueRows = [...new Map(rows.map(row => [row.fieldName, row])).values()]
+  return uniqueRows.flatMap(row => {
+    const observationCount = countsByMeasure.get(row.fieldName)
+    return observationCount === undefined
+      ? []
+      : [
+          {
+            definition: row.definition,
+            aggregation: row.aggregation,
+            name: row.name ?? row.sourceField,
+            observationCount,
+            sourceField: row.sourceField,
+            statisticKind: row.statisticKind,
+            unitCode: row.unitCode,
+            valueKind: row.valueKind,
+          },
+        ]
+  })
 }
 
 async function loadDataPageApis(): Promise<DataPageApi[]> {

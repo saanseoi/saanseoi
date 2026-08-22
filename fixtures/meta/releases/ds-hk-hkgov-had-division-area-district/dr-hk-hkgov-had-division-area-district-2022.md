@@ -10,6 +10,7 @@ releaseVersion: "2022.0"
 sourceSchemaVersion: "1.2"
 type: "divisionArea"
 cohortKey: "2022"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218"
 ---
 
 # EN

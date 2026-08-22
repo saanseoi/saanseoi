@@ -340,6 +340,7 @@ export function createReleaseStatsPresentation({
         !row.groupBy &&
         ((row.dimension === 'observations' && row.metric === 'count') ||
           (row.dimension === 'measures' && row.metric === 'count') ||
+          (row.dimension === 'fields' && row.metric === 'count') ||
           (row.dimension === 'reference_periods' && row.metric === 'count') ||
           (row.dimension === 'dimensions' &&
             ['definition_count', 'value_definition_count'].includes(row.metric ?? ''))),
@@ -586,6 +587,7 @@ export function createReleaseStatsPresentation({
   )
 
   const generic = new Map<string, Row[]>()
+  const genericGroupOrder = ['field', 'statisticKind', 'unitCode', 'aggregation']
   rows
     .filter(row => !claimed.has(row.index))
     .forEach(row => {
@@ -594,6 +596,12 @@ export function createReleaseStatsPresentation({
     })
   const genericGroups = [...generic]
     .sort(([left], [right]) => {
+      const leftOrder = genericGroupOrder.indexOf(left)
+      const rightOrder = genericGroupOrder.indexOf(right)
+      const orderDifference =
+        (leftOrder < 0 ? genericGroupOrder.length : leftOrder) -
+        (rightOrder < 0 ? genericGroupOrder.length : rightOrder)
+      if (orderDifference) return orderDifference
       const leftLabel = left === 'summary' ? copy.labels.stats : copy.statLabel(left)
       const rightLabel = right === 'summary' ? copy.labels.stats : copy.statLabel(right)
       return leftLabel.localeCompare(rightLabel) || left.localeCompare(right)

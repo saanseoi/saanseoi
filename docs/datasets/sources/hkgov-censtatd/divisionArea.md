@@ -144,16 +144,21 @@ The 2021 Housing Market Areas and Building Groups release is different. Its 173 
 Market Area polygons have their own deterministic canonical division IDs and therefore
 form the separate `hkgov-censtatd-hma` domain. Its native area variant is
 `hkgov-censtatd-hma`; Building Groups remain source-only because their upstream geometry
-is point-like. A Housing Market Area is not presented as a District Council district.
-The source-release fan-out publishes its HMA `division` snapshot before the companion
-`divisionArea` snapshot; the latter validates against that exact HMA snapshot. For the
-source-release Records by district map only, each HMA is spatially associated with every
-official exact 2021 C&SD district polygon with which it has a positive-area
-intersection. A boundary-only touch does not count. Consequently, an HMA spanning a
-district boundary increments each intersected district and the map total can exceed the
-number of HMA records. The association does not alter HMA canonical division IDs and it
-does not emit Geometry by District measurements: whole-HMA area or perimeter must never
-be attributed to every district it crosses.
+is point-like. A Housing Market Area is non-hierarchical and is not presented as a
+District Council district. The source-release fan-out publishes its HMA `division`
+snapshot before the companion `divisionArea` snapshot; the latter validates against that
+exact HMA snapshot. For the source-release Records by district map only, each HMA is
+spatially associated with every official exact 2021 C&SD district polygon with which it
+has a positive-area intersection. A boundary-only touch does not count. Consequently, an
+HMA spanning a district boundary increments each intersected district and the map total
+can exceed the number of HMA records. The association does not alter HMA canonical
+division IDs and it does not emit Geometry by District measurements: whole-HMA area or
+perimeter must never be attributed to every district it crosses.
+
+The generated HMA division rows include the shared Parquet hierarchy columns. Their
+`class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
+HMAs have no hierarchy. Their authoritative classification remains the C&SD
+`canonical_type` of `housing-market-area`.
 
 ## Ingestion
 

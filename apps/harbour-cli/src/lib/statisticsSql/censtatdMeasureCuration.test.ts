@@ -1,25 +1,113 @@
 import { expect, test } from 'bun:test'
 
 import {
-  emptyCenstatdMeasureCuration,
-  formatCenstatdMeasureProposal,
-  formatCenstatdMeasureReviewContext,
-  parseCenstatdMeasureCuration,
+  emptyCenstatdFieldCuration,
+  formatCenstatdFieldProposal,
+  formatCenstatdFieldReviewContext,
+  loadCenstatdFieldCuration,
+  parseCenstatdFieldCuration,
   parseCsdiSimplifiedDataSpecification,
   resolveChineseLocalisationProposals,
   resolveUnitLocalisations,
-  resolveCenstatdMeasureCuration,
+  resolveCenstatdFieldCuration,
   suggestAggregation,
-  suggestSeriesMeasureMetadata,
+  suggestAggregationPercentile,
+  suggestSeriesFieldMetadata,
   suggestStatisticKind,
   suggestUnitCode,
   suggestMeasureName,
   validAggregationsForStatisticKind,
 } from './censtatdMeasureCuration.ts'
 
-test('shows the proposed name and description before prompting for measure metadata', () => {
-  const output = formatCenstatdMeasureReviewContext({
-    measure: {
+test('curates C&SD analytical dimensions without turning scalar statistics into dimensions', async () => {
+  const registry = await loadCenstatdFieldCuration()
+  const dimensionsFor = (datasetCode: string, sourceField: string) =>
+    registry.fields.find(
+      field => field.datasetCode === datasetCode && field.sourceField === sourceField,
+    )?.dimensions
+
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      'nm_f',
+    ),
+  ).toEqual({
+    'age-group': '15-and-over',
+    'marital-status': 'never-married',
+    sex: 'female',
+  })
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+      'readeng_ablepctn',
+    ),
+  ).toEqual({
+    'age-group': '5-and-over',
+    'literacy-language': 'english',
+    'literacy-skill': 'reading',
+  })
+  expect(
+    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhi_e3'),
+  ).toEqual({
+    'foreign-domestic-helper': 'excluded',
+    'household-economic-activity': 'economically-active',
+    'monthly-income-band': 'hkd-10-000-to-19-999',
+  })
+  expect(
+    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhm_2'),
+  ).toEqual({ 'monthly-mortgage-repayment-band': 'hkd-1-to-3-999' })
+  expect(
+    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhr_2'),
+  ).toEqual({ 'monthly-rent-band': 'hkd-2-000-to-5-999' })
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      'lbnp15_ms_nm_f',
+    ),
+  ).toEqual({
+    'age-group': '15-and-over',
+    'marital-status': 'never-married',
+    sex: 'female',
+  })
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      'QTR_PRH_HA',
+    ),
+  ).toEqual({
+    'housing-provider': 'housing-authority',
+    'housing-sector': 'public-rental',
+  })
+
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      'whr_1',
+    ),
+  ).toEqual({})
+  expect(
+    dimensionsFor(
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      'POPN_D',
+    ),
+  ).toEqual({})
+
+  const rankedFields = registry.fields.filter(
+    field => field.aggregation === 'median' || field.aggregation === 'percentile',
+  )
+  expect(rankedFields).not.toHaveLength(0)
+  expect(
+    rankedFields.every(field =>
+      field.aggregation === 'median'
+        ? field.aggregationPercentile === 50
+        : field.aggregationPercentile === 25 || field.aggregationPercentile === 75,
+    ),
+  ).toBeTrue()
+})
+
+test('shows the proposed name and description before prompting for field metadata', () => {
+  const output = formatCenstatdFieldReviewContext({
+    field: {
       datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
       sourceField: 't_pop',
       unitCode: 'publisher-unknown',
@@ -45,24 +133,24 @@ test('shows the proposed name and description before prompting for measure metad
   expect(output).not.toContain('source field')
 })
 
-test('identifies C&SD measure fields that require a reviewed decision', () => {
-  const measure = {
+test('identifies C&SD field fields that require a reviewed decision', () => {
+  const field = {
     datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
     sourceField: 'TOTAL',
     unitCode: 'publisher-unknown',
     valueKind: 'numeric',
   }
-  const unresolved = resolveCenstatdMeasureCuration({
-    registry: emptyCenstatdMeasureCuration(),
-    measures: [measure],
+  const unresolved = resolveCenstatdFieldCuration({
+    registry: emptyCenstatdFieldCuration(),
+    fields: [field],
   })
-  expect(unresolved.unresolved).toEqual([measure])
+  expect(unresolved.unresolved).toEqual([field])
 
-  const resolved = resolveCenstatdMeasureCuration({
+  const resolved = resolveCenstatdFieldCuration({
     registry: {
-      measures: [
+      fields: [
         {
-          datasetCode: measure.datasetCode,
+          datasetCode: field.datasetCode,
           localisations: [
             {
               description: 'Total publisher count.',
@@ -73,17 +161,19 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
           ],
           aggregation: 'total',
           statisticKind: 'count',
+          fieldName: 'totalPopulation',
           measureCode: 'totalPopulation',
-          sourceField: measure.sourceField,
+          dimensions: {},
+          sourceField: field.sourceField,
           unitCode: 'person',
         },
       ],
     },
-    measures: [measure],
+    fields: [field],
   })
   expect(resolved.unresolved).toEqual([])
   expect(
-    resolved.metadata.get(`${measure.datasetCode}\u0000${measure.sourceField}`),
+    resolved.metadata.get(`${field.datasetCode}\u0000${field.sourceField}`),
   ).toEqual({
     localisations: [
       {
@@ -94,18 +184,19 @@ test('identifies C&SD measure fields that require a reviewed decision', () => {
       },
     ],
     aggregation: 'total',
-    measureCode: 'totalPopulation',
+    fieldName: 'totalPopulation',
+    dimensions: {},
     statisticKind: 'count',
     unitCode: 'person',
   })
 })
 
-test('rejects duplicate localised measure names within a C&SD dataset', () => {
+test('rejects duplicate localised field names within a C&SD dataset', () => {
   expect(() =>
-    parseCenstatdMeasureCuration(
+    parseCenstatdFieldCuration(
       {
         datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
-        measures: [
+        fields: [
           {
             aggregation: 'none',
             localisations: [
@@ -113,10 +204,12 @@ test('rejects duplicate localised measure names within a C&SD dataset', () => {
                 description: 'The first distinct statistic.',
                 isTranslationVerified: true,
                 locale: 'en',
-                name: 'A repeated measure name',
+                name: 'A repeated field name',
               },
             ],
+            fieldName: 'firstMeasure',
             measureCode: 'firstMeasure',
+            dimensions: {},
             sourceField: 'first',
             statisticKind: 'count',
             unitCode: 'person',
@@ -128,28 +221,30 @@ test('rejects duplicate localised measure names within a C&SD dataset', () => {
                 description: 'The second distinct statistic.',
                 isTranslationVerified: true,
                 locale: 'en',
-                name: 'A repeated measure name',
+                name: 'A repeated field name',
               },
             ],
+            fieldName: 'secondMeasure',
             measureCode: 'secondMeasure',
+            dimensions: {},
             sourceField: 'second',
             statisticKind: 'count',
             unitCode: 'person',
           },
         ],
-        schemaVersion: 6,
+        schemaVersion: 8,
       },
       'fixture.json',
     ),
-  ).toThrow('Duplicate C&SD localised measure name')
+  ).toThrow('Duplicate C&SD localised field name')
 })
 
 test('requires the C&SD dataset code at the manifest root', () => {
   expect(() =>
-    parseCenstatdMeasureCuration(
+    parseCenstatdFieldCuration(
       {
         datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
-        measures: [
+        fields: [
           {
             aggregation: 'none',
             datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
@@ -161,21 +256,90 @@ test('requires the C&SD dataset code at the manifest root', () => {
                 name: 'Distinct statistic',
               },
             ],
+            fieldName: 'distinctStatistic',
             measureCode: 'distinctStatistic',
+            dimensions: {},
             sourceField: 'distinct',
             statisticKind: 'count',
             unitCode: 'person',
           },
         ],
-        schemaVersion: 6,
+        schemaVersion: 8,
       },
       'fixture.json',
     ),
   ).toThrow('C&SD dataset code belongs in the manifest root')
 })
 
+test('accepts only reviewed source comparability cautions', () => {
+  const manifest = {
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+    fields: [
+      {
+        aggregation: 'total',
+        comparability: {
+          affectedReferencePeriods: ['2011', '2016'],
+          reason: 'economic-activity-status-classification-changed',
+          status: 'caution',
+        },
+        dimensions: { 'economic-activity-status': 'home-maker' },
+        fieldName: 'nonWorkingPopulationHomeMaker',
+        localisations: [
+          {
+            description: 'Non-working population who are home-makers.',
+            isTranslationVerified: true,
+            locale: 'en',
+            name: 'Home-makers outside the working population',
+          },
+        ],
+        measureCode: 'nonWorkingPopulation',
+        sourceField: 'nwp_hm',
+        statisticKind: 'count',
+        unitCode: 'person',
+      },
+    ],
+    schemaVersion: 8,
+  }
+
+  expect(() => parseCenstatdFieldCuration(manifest, 'example.json')).not.toThrow()
+  expect(() =>
+    parseCenstatdFieldCuration(
+      {
+        ...manifest,
+        fields: [
+          {
+            ...manifest.fields[0],
+            comparability: {
+              ...(manifest.fields[0]?.comparability ?? {}),
+              status: 'warning',
+            },
+          },
+        ],
+      },
+      'example.json',
+    ),
+  ).toThrow('Invalid C&SD field comparability')
+  expect(() =>
+    parseCenstatdFieldCuration(
+      {
+        ...manifest,
+        fields: [
+          {
+            ...manifest.fields[0],
+            comparability: {
+              ...(manifest.fields[0]?.comparability ?? {}),
+              extra: true,
+            },
+          },
+        ],
+      },
+      'example.json',
+    ),
+  ).toThrow('Invalid C&SD field comparability')
+})
+
 test('formats every proposed localisation and canonical key for review', () => {
-  const output = formatCenstatdMeasureProposal({
+  const output = formatCenstatdFieldProposal({
     candidate: {
       localisations: [
         {
@@ -197,7 +361,7 @@ test('formats every proposed localisation and canonical key for review', () => {
           name: '总人口',
         },
       ],
-      measureCode: 'totalPopulation',
+      fieldName: 'totalPopulation',
     },
     sourceField: 't_pop',
     suggestedUnitCode: 'person',
@@ -211,12 +375,12 @@ test('formats every proposed localisation and canonical key for review', () => {
   expect(output).toContain('总人口')
 })
 
-test('suggests a compatible reviewed unit for a similarly named measure', () => {
+test('suggests a compatible reviewed unit for a similarly named field', () => {
   expect(
     suggestUnitCode('totalPopulation', [
-      { measureCode: 'landArea', unitCode: 'square-kilometre' },
-      { measureCode: 'populationDensity', unitCode: 'person-per-square-kilometre' },
-      { measureCode: 'populationMidYear', unitCode: 'person' },
+      { fieldName: 'landArea', unitCode: 'square-kilometre' },
+      { fieldName: 'populationDensity', unitCode: 'person-per-square-kilometre' },
+      { fieldName: 'populationMidYear', unitCode: 'person' },
     ]),
   ).toBe('person')
 })
@@ -224,18 +388,18 @@ test('suggests a compatible reviewed unit for a similarly named measure', () => 
 test('suggests a statistic kind separately from its unit', () => {
   expect(
     suggestStatisticKind({
-      measureCode: 'sexRatio',
+      fieldName: 'sexRatio',
       unitCode: 'publisher-unknown',
     }),
   ).toBe('ratio')
   expect(
     suggestStatisticKind({
-      measureCode: 'populationDensity',
+      fieldName: 'populationDensity',
       unitCode: 'person-per-square-kilometre',
     }),
   ).toBe('density')
   expect(
-    suggestStatisticKind({ measureCode: 'landArea', unitCode: 'square-kilometre' }),
+    suggestStatisticKind({ fieldName: 'landArea', unitCode: 'square-kilometre' }),
   ).toBe('quantity')
   expect(
     suggestStatisticKind({
@@ -247,7 +411,7 @@ test('suggests a statistic kind separately from its unit', () => {
           name: 'Sex ratio (number of males per 1 000 females)',
         },
       ],
-      measureCode: 'sexComparison',
+      fieldName: 'sexComparison',
       unitCode: 'publisher-unknown',
     }),
   ).toBe('ratio')
@@ -262,7 +426,7 @@ test('suggests a statistic kind separately from its unit', () => {
           name: 'Never-married male population aged 15 and over',
         },
       ],
-      measureCode: 'neverMarriedAged15AndOverBySexMale',
+      fieldName: 'neverMarriedAged15AndOverBySexMale',
       unitCode: 'publisher-unknown',
     }),
   ).toBe('proportion')
@@ -301,6 +465,28 @@ test('suggests an aggregation stated in the proposed English semantic text', () 
   ).toBeNull()
 })
 
+test('infers review defaults for median and named quartile ranks', () => {
+  const localisations = (name: string) => [
+    {
+      description: name,
+      isTranslationVerified: true,
+      locale: 'en' as const,
+      name,
+    },
+  ]
+
+  expect(suggestAggregationPercentile(localisations('Median age'))).toBe(50)
+  expect(
+    suggestAggregationPercentile(localisations('First quartile of household income')),
+  ).toBe(25)
+  expect(
+    suggestAggregationPercentile(localisations('Third quartile of household income')),
+  ).toBe(75)
+  expect(suggestAggregation(localisations('First quartile of household income'))).toBe(
+    'percentile',
+  )
+})
+
 test('excludes totals from non-additive statistic kinds', () => {
   expect(validAggregationsForStatisticKind('count')).toContain('total')
   for (const statisticKind of [
@@ -315,11 +501,11 @@ test('excludes totals from non-additive statistic kinds', () => {
 })
 
 test('reuses a unique reviewed metadata decision for an age-group series', () => {
-  const metadata = suggestSeriesMeasureMetadata({
+  const metadata = suggestSeriesFieldMetadata({
     decisions: [
       {
         aggregation: 'none',
-        denominatorMeasureCode: 'totalPopulation',
+        denominatorFieldName: 'totalPopulation',
         localisations: [
           {
             description: 'Percentage distribution of population aged under 15',
@@ -328,7 +514,9 @@ test('reuses a unique reviewed metadata decision for an age-group series', () =>
             name: 'Population aged under 15',
           },
         ],
-        measureCode: 'agedUnder15',
+        fieldName: 'agedUnder15',
+        measureCode: 'totalPopulation',
+        dimensions: {},
         sourceField: 'age_1',
         statisticKind: 'proportion',
         unitCode: 'percent',
@@ -346,7 +534,8 @@ test('reuses a unique reviewed metadata decision for an age-group series', () =>
 
   expect(metadata).toEqual({
     aggregation: 'none',
-    denominatorMeasureCode: 'totalPopulation',
+    aggregationPercentile: null,
+    denominatorFieldName: 'totalPopulation',
     statisticKind: 'proportion',
   })
 })

@@ -1,10 +1,9 @@
 <script lang="ts">
 import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
-import { tick } from 'svelte'
+import { tick, type ComponentProps } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ExpressionSpecification } from 'maplibre-gl'
-import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { MultiPolygon, Polygon } from 'geojson'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { layers, namedFlavor } from '@protomaps/basemaps'
@@ -13,6 +12,7 @@ import type { StyleSpecification } from 'maplibre-gl'
 setWorkerUrl(maplibreWorkerUrl)
 
 type Geometry = Polygon | MultiPolygon
+type MapLibreMap = ComponentProps<typeof MapLibre>['map']
 
 export type ChoroplethFeature = {
   geometry: Geometry

@@ -3,7 +3,17 @@ export type ReleaseCodeParts = {
   version: string
 }
 
-const releaseVersionPattern = /^(.*)-(\d{4}(?:-\d{2}-\d{2})?(?:\.\d+)?(?:-r\d+)?)$/
+const releaseVersionPattern =
+  /^(.*)-(\d{4}(?:-(?:\d{2}-\d{2})|['-](?:q[1-4]|h[1-2]))?(?:\.\d+)?(?:-r\d+)?)$/i
+const releasePeriodVersionPattern = /^(\d{4})['-]([q][1-4]|h[1-2])(?:-r(\d+))?$/i
+
+function formatReleaseVersion(version: string) {
+  const period = version.match(releasePeriodVersionPattern)
+  if (!period?.[1] || !period[2]) return version
+
+  const revision = period[3] ? `-R${period[3]}` : ''
+  return `${period[1]}'${period[2].toUpperCase()}${revision}`
+}
 
 export function getReleaseCodeParts(code: string, apiFamily: string): ReleaseCodeParts {
   const codeWithoutDomain = code.split('--', 1)[0] ?? code
@@ -15,5 +25,5 @@ export function getReleaseCodeParts(code: string, apiFamily: string): ReleaseCod
 }
 
 export function getReleaseVersionLabel(code: string, apiFamily: string) {
-  return `v${getReleaseCodeParts(code, apiFamily).version}`
+  return `v${formatReleaseVersion(getReleaseCodeParts(code, apiFamily).version)}`
 }

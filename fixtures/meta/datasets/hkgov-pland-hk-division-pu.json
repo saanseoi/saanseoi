@@ -9,7 +9,10 @@
   "subType": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": ["division", "divisionArea"],
+  "resourceTypes": [
+    "division",
+    "divisionArea"
+  ],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",

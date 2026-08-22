@@ -67,8 +67,9 @@ const DivisionHierarchyRelationshipSchema = z
 
 const DivisionAttributesSchema = z
   .object({
-    level: z.number().int(),
+    level: z.number().int().nullable(),
     type: z.string(),
+    divisionCode: z.string().optional(),
     snapshotId: z.string().optional(),
     geometry: z.union([GeometrySchema, z.null()]).optional(),
     bbox: z.union([BBoxSchema, z.null()]).optional(),
@@ -109,7 +110,7 @@ const DivisionRelationshipsSchema = z
   })
   .openapi('DivisionRelationships')
 
-const DivisionGeometryResourceSchema = z
+export const DivisionGeometryResourceSchema = z
   .object({
     type: z.union([z.literal('division-areas'), z.literal('division-boundaries')]),
     id: IdSchema,
@@ -145,7 +146,7 @@ const RequestedLocalesQuerySchema = z
     examples: ['en,zh-hant', '*', 'null'],
   })
 
-const DivisionResourceSchema = z
+export const DivisionResourceSchema = z
   .object({
     type: z.literal('divisions'),
     id: IdSchema,

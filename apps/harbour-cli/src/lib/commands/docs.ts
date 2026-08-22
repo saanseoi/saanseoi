@@ -78,10 +78,7 @@ type PublishDocsScope = DocsScope | 'all'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const API_RELEASE_SET_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiReleaseSets')
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
-const CENSTATD_CURATION_ROOT = resolve(
-  REPO_ROOT,
-  'fixtures/meta/curations/hkgov-censtatd-statistics',
-)
+const CURATION_ROOT = resolve(REPO_ROOT, 'fixtures/meta/curations')
 
 type ApiReleaseSetRevisionDraft = {
   apiReleaseSetCode: string
@@ -135,7 +132,7 @@ export async function createApiReleaseSetRevisionDraft(
   const frontmatter = {
     ...previousFixture.frontmatter,
     apiReleaseSet: input.apiReleaseSetCode,
-    apiReleaseSetRevision: String(parsedCode.sequence),
+    revision: String(parsedCode.sequence),
     createdAt: now,
     updatedAt: now,
   }
@@ -216,7 +213,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     apiFamily: selectedFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: releaseSet.code,
-    apiReleaseSetRevision: String(releaseSet.parsedCode.sequence),
+    revision: String(releaseSet.parsedCode.sequence),
     regionCode: releaseSet.parsedCode.regionCode,
     cohortKey: releaseSet.parsedCode.cohortKey,
   }
@@ -862,6 +859,14 @@ function resolveReleaseDocsFixturePath(datasetCode: string, code: string) {
   return resolve(RELEASE_DOCS_ROOT, datasetCode, `${code}.md`)
 }
 
+function resolveCurationFixturePath(curationPath: string) {
+  const path = resolve(REPO_ROOT, curationPath)
+  if (!path.startsWith(`${CURATION_ROOT}/`) || !path.endsWith('.json')) {
+    throw new Error(`Invalid curation fixture path: ${curationPath}`)
+  }
+  return path
+}
+
 function isParsedReleaseSetRow(
   row: ApiReleaseSetDocsRow & { parsedCode: ParsedReleaseSetCode | null },
 ): row is ParsedApiReleaseSetDocsRow {
@@ -1014,16 +1019,8 @@ export async function renderMarkdownFixtureBody(
   }
 
   const markdown = fixture.body.replace(
-    /\{\{\s*([a-z][A-Za-z0-9_-]*)\s*\}\}/g,
-    (tag, key: string) => {
-      const value = frontmatter[key]
-
-      if (value === undefined) {
-        throw new Error(`Unknown markdown fixture frontmatter tag: ${tag}`)
-      }
-
-      return value
-    },
+    /\{\{\s*([a-z][A-Za-z0-9_-]*(?::[A-Za-z-]+)?)\s*\}\}/g,
+    (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
   )
 
   const renderedCenstatdTables = await renderCenstatdMeasureTables(
@@ -1031,6 +1028,45 @@ export async function renderMarkdownFixtureBody(
     frontmatter,
   )
   return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
+}
+
+function resolveMarkdownTemplateValue(
+  tag: string,
+  key: string,
+  frontmatter: Record<string, string>,
+) {
+  if (/^(apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(key)) {
+    return tag
+  }
+
+  if (key === 'apiVersionPath') {
+    const apiVersion = frontmatter.apiVersion
+    const path = apiVersion?.match(/^api-[a-z-]+-(v\d+(?:\.\d+)*)$/)?.[1]
+    if (path) return path
+    throw new Error(
+      `Cannot derive API version path from apiVersion: ${apiVersion ?? '-'}`,
+    )
+  }
+
+  const regionName = /^regionName:(en|zh-Hant|zh-Hans)$/.exec(key)
+  if (regionName) {
+    const names = {
+      hk: { en: 'Hong Kong', 'zh-Hant': '香港', 'zh-Hans': '香港' },
+      mo: { en: 'Macao', 'zh-Hant': '澳門', 'zh-Hans': '澳门' },
+    } as const
+    const value =
+      names[frontmatter.regionCode as keyof typeof names]?.[
+        regionName[1] as 'en' | 'zh-Hant' | 'zh-Hans'
+      ]
+    if (value) return value
+    throw new Error(`Cannot localise region code: ${frontmatter.regionCode ?? '-'}`)
+  }
+
+  const value = frontmatter[key]
+  if (value === undefined) {
+    throw new Error(`Unknown markdown fixture frontmatter tag: ${tag}`)
+  }
+  return value
 }
 
 /**
@@ -1047,17 +1083,14 @@ async function renderCenstatdMeasureTables(
 
   if (!directive.test(markdown)) return markdown
 
-  const curationPath = frontmatter.hkgovCenstatdCuration
+  const curationPath = frontmatter.measureCuration
   if (!curationPath) {
     throw new Error(
-      'C&SD measure-table directives require hkgovCenstatdCuration in fixture frontmatter.',
+      'C&SD measure-table directives require measureCuration in fixture frontmatter.',
     )
   }
 
-  const path = resolve(REPO_ROOT, curationPath)
-  if (!path.startsWith(`${CENSTATD_CURATION_ROOT}/`) || !path.endsWith('.json')) {
-    throw new Error(`Invalid C&SD measure curation path: ${curationPath}`)
-  }
+  const path = resolveCurationFixturePath(curationPath)
 
   const manifest = parseCenstatdMeasureTableManifest(
     JSON.parse(await readFile(path, 'utf8')),
@@ -1073,35 +1106,41 @@ function renderApiReleaseSetSourcesTables(
   markdown: string,
   sources: ApiReleaseSetSourceDocsRow[],
 ) {
-  if (sources.length === 0) return markdown
+  const directives = [
+    { locale: 'en', label: 'English' },
+    { locale: 'zh-Hant', label: 'Traditional Chinese' },
+    { locale: 'zh-Hans', label: 'Simplified Chinese' },
+  ] as const
 
-  const english = replaceMarkdownSection(
-    markdown,
-    '## Constituent source releases',
-    renderApiReleaseSetSourcesTable(sources, 'en'),
-  )
-  if (!english.matched) {
-    throw new Error(
-      'API release-set notes are missing the English source table heading.',
-    )
+  if (sources.length === 0) {
+    if (
+      directives.some(({ locale }) =>
+        markdown.includes(`{{apiReleaseSetSources:${locale}}}`),
+      )
+    ) {
+      throw new Error(
+        'API release-set notes contain constituent-source directives but the release set has no sources.',
+      )
+    }
+    return markdown
   }
 
-  const traditionalChinese = replaceMarkdownSection(
-    english.markdown,
-    '## 組成來源發布',
-    renderApiReleaseSetSourcesTable(sources, 'zh-Hant'),
-  )
-  if (!traditionalChinese.matched) {
-    throw new Error(
-      'API release-set notes are missing the Traditional Chinese source table heading.',
-    )
-  }
-  return traditionalChinese.markdown
+  return directives.reduce((rendered, { locale, label }) => {
+    const directive = `{{apiReleaseSetSources:${locale}}}`
+    const occurrences = rendered.split(directive).length - 1
+    if (occurrences !== 1) {
+      throw new Error(
+        `API release-set notes must contain exactly one ${label} constituent-source directive: ${directive}`,
+      )
+    }
+
+    return rendered.replace(directive, renderApiReleaseSetSourcesTable(sources, locale))
+  }, markdown)
 }
 
 function renderApiReleaseSetSourcesTable(
   sources: ApiReleaseSetSourceDocsRow[],
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
 ) {
   const groups = new Map<string, ApiReleaseSetSourceDocsRow[]>()
   const sortedSources = [...sources].sort(
@@ -1129,7 +1168,9 @@ function renderApiReleaseSetSourcesTable(
       '',
       locale === 'en'
         ? '| Publisher | Source dataset | Release |'
-        : '| 發布者 | 來源資料集 | 發布版本 |',
+        : locale === 'zh-Hant'
+          ? '| 發布者 | 來源資料集 | 發布版本 |'
+          : '| 发布者 | 来源数据集 | 发布版本 |',
       '| --- | --- | --- |',
     )
 
@@ -1156,32 +1197,25 @@ function renderApiReleaseSetSourcesTable(
   return lines.join('\n').trimEnd()
 }
 
-function replaceMarkdownSection(markdown: string, heading: string, body: string) {
-  const headingPattern = new RegExp(
-    `(^|\\n)${escapeRegExp(heading)}\\n[\\s\\S]*?(?=\\n## |$)`,
-  )
-  let matched = false
-
-  const replaced = markdown.replace(headingPattern, (_match, prefix: string) => {
-    matched = true
-    return `${prefix}${heading}\n\n${body}\n`
-  })
-  return { markdown: replaced, matched }
-}
-
 function roleOrder(role: ApiReleaseSetSourceDocsRow['role']) {
   return role === 'primary' ? 0 : 1
 }
 
+type ApiReleaseSetSourceDocsLocale = 'en' | 'zh-Hant' | 'zh-Hans'
+
 function sourceRoleLabel(
   role: ApiReleaseSetSourceDocsRow['role'],
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
 ) {
   if (locale === 'zh-Hant') return role === 'primary' ? '主要' : '支援'
+  if (locale === 'zh-Hans') return role === 'primary' ? '主要' : '支持'
   return role === 'primary' ? 'Primary' : 'Supporting'
 }
 
-function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
+function resourceTypeLabel(
+  resourceType: string,
+  locale: ApiReleaseSetSourceDocsLocale,
+) {
   if (locale === 'zh-Hant') {
     return (
       {
@@ -1189,6 +1223,17 @@ function resourceTypeLabel(resourceType: string, locale: 'en' | 'zh-Hant') {
         divisionArea: '區劃面',
         divisionBoundary: '區劃邊界',
         divisionStatistic: '區劃統計',
+      }[resourceType] ?? humaniseResourceType(resourceType)
+    )
+  }
+
+  if (locale === 'zh-Hans') {
+    return (
+      {
+        division: '区划',
+        divisionArea: '区划面',
+        divisionBoundary: '区划边界',
+        divisionStatistic: '区划统计',
       }[resourceType] ?? humaniseResourceType(resourceType)
     )
   }
@@ -1205,12 +1250,17 @@ function humaniseResourceType(value: string) {
 
 function selectDocsLocalisedName(
   rows: Array<{ locale: string; name: string }>,
-  locale: 'en' | 'zh-Hant',
+  locale: ApiReleaseSetSourceDocsLocale,
   fallback: string,
 ) {
   const normalisedLocale = locale.toLowerCase()
+  const relatedChineseLocale =
+    locale === 'zh-Hant' ? 'zh-hans' : locale === 'zh-Hans' ? 'zh-hant' : null
   return (
     rows.find(row => row.locale.toLowerCase() === normalisedLocale)?.name ??
+    (relatedChineseLocale
+      ? rows.find(row => row.locale.toLowerCase() === relatedChineseLocale)?.name
+      : undefined) ??
     rows.find(row => row.locale.toLowerCase() === 'en')?.name ??
     rows[0]?.name ??
     fallback
@@ -1231,7 +1281,6 @@ type CenstatdMeasureTableManifest = {
       name: string
     }>
     measureCode: string
-    sourceField: string
   }>
 }
 
@@ -1242,6 +1291,7 @@ function parseCenstatdMeasureTableManifest(
   if (
     !value ||
     typeof value !== 'object' ||
+    (value as { schemaVersion?: unknown }).schemaVersion !== 1 ||
     !Array.isArray((value as { measures?: unknown }).measures)
   ) {
     throw new Error(`Invalid C&SD measure curation manifest: ${path}`)
@@ -1255,11 +1305,10 @@ function parseCenstatdMeasureTableManifest(
     const entry = measure as {
       localisations?: unknown
       measureCode?: unknown
-      sourceField?: unknown
     }
     if (
       typeof entry.measureCode !== 'string' ||
-      typeof entry.sourceField !== 'string' ||
+      !/^[a-z][A-Za-z0-9]*$/.test(entry.measureCode) ||
       !Array.isArray(entry.localisations)
     ) {
       throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}`)
@@ -1291,7 +1340,6 @@ function parseCenstatdMeasureTableManifest(
     return {
       localisations,
       measureCode: entry.measureCode,
-      sourceField: entry.sourceField,
     }
   })
 
@@ -1308,20 +1356,17 @@ function renderCenstatdMeasureTable(
   manifest: CenstatdMeasureTableManifest,
   locale: CenstatdMeasureTableLocale,
 ) {
-  const lines = [
-    '| sourceField | measureCode | name | description |',
-    '| --- | --- | --- | --- |',
-  ]
+  const lines = ['| measureCode | name | description |', '| --- | --- | --- |']
 
   for (const measure of manifest.measures) {
     const localisation = measure.localisations.find(entry => entry.locale === locale)
     if (!localisation) {
       throw new Error(
-        `C&SD measure ${measure.sourceField} has no ${locale} localisation for the release-note table.`,
+        `C&SD measure ${measure.measureCode} has no ${locale} localisation for the release-note table.`,
       )
     }
     lines.push(
-      `| \`${escapeMarkdownTableCell(measure.sourceField)}\` | \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
+      `| \`${escapeMarkdownTableCell(measure.measureCode)}\` | ${escapeMarkdownTableCell(localisation.name)} | ${escapeMarkdownTableCell(localisation.description)} |`,
     )
   }
 
@@ -1332,17 +1377,13 @@ function escapeMarkdownTableCell(value: string) {
   return value.replaceAll('\\', '\\\\').replaceAll('|', '\\|').replaceAll('\n', '<br>')
 }
 
-function escapeRegExp(value: string) {
-  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 function frontmatterForApiReleaseSetRow(
   row: ParsedApiReleaseSetDocsRow,
 ): Record<string, string> {
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
-    apiReleaseSetRevision: String(row.parsedCode.sequence),
+    revision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
     regionCode: row.parsedCode.regionCode,

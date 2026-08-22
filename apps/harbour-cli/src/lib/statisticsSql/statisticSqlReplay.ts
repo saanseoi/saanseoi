@@ -78,7 +78,15 @@ export function buildStatisticSqlBatches(
       input.source.table,
       sourceRows,
       ['sourceRecordId', 'versionHash'],
-      ['isCurrent', 'releaseId', 'updatedAt', 'validFromRelease', 'validToRelease'],
+      [
+        'isCurrent',
+        'releaseId',
+        'updatedAt',
+        'validFromRelease',
+        'validToRelease',
+        'sourceGeometry',
+      ],
+      ['sourceGeometry'],
     ),
   ]
 
@@ -251,21 +259,74 @@ function buildUpsertStatements(
   rows: StatisticRow[],
   conflictColumns: string[],
   updateColumns: string[],
+  chunkedColumns: string[] = [],
 ) {
-  return rows.map(row => {
+  return rows.flatMap(row => {
     const values = recordFor(row)
     const columns = Object.keys(values).sort()
     for (const column of columns) assertIdentifier(column, 'column')
-    return [
-      `INSERT INTO ${sqlIdentifier(table)} (${columns.map(sqlIdentifier).join(', ')})`,
-      `VALUES (${columns.map(column => sqlValue(values[column])).join(', ')})`,
-      `ON CONFLICT (${conflictColumns.map(sqlIdentifier).join(', ')}) DO UPDATE SET`,
-      updateColumns
-        .map(column => `${sqlIdentifier(column)} = excluded.${sqlIdentifier(column)}`)
-        .join(', '),
-      ';',
-    ].join(' ')
+    const statement = buildUpsertStatement(
+      table,
+      columns,
+      values,
+      conflictColumns,
+      updateColumns,
+    )
+    if (Buffer.byteLength(statement) <= SQL_STATEMENT_BYTE_LIMIT) return statement
+
+    for (const column of chunkedColumns) {
+      const value = values[column]
+      if (value === null || value === undefined) continue
+      const inlineValues = { ...values, [column]: null }
+      const baseStatement = buildUpsertStatement(
+        table,
+        columns,
+        inlineValues,
+        conflictColumns,
+        updateColumns,
+      )
+      if (Buffer.byteLength(baseStatement) > SQL_STATEMENT_BYTE_LIMIT) continue
+
+      const text = sqlText(value)
+      const appendStatements = chunkSqlText(text, chunk =>
+        buildAppendStatement(table, column, chunk, conflictColumns, values),
+      )
+      return [baseStatement, ...appendStatements]
+    }
+
+    throw new Error('A statistic SQL statement exceeds the D1 limit.')
   })
+}
+
+function buildUpsertStatement(
+  table: string,
+  columns: string[],
+  values: Record<string, unknown>,
+  conflictColumns: string[],
+  updateColumns: string[],
+) {
+  return [
+    `INSERT INTO ${sqlIdentifier(table)} (${columns.map(sqlIdentifier).join(', ')})`,
+    `VALUES (${columns.map(column => sqlValue(values[column])).join(', ')})`,
+    `ON CONFLICT (${conflictColumns.map(sqlIdentifier).join(', ')}) DO UPDATE SET`,
+    updateColumns
+      .map(column => `${sqlIdentifier(column)} = excluded.${sqlIdentifier(column)}`)
+      .join(', '),
+    ';',
+  ].join(' ')
+}
+
+function buildAppendStatement(
+  table: string,
+  column: string,
+  value: string,
+  conflictColumns: string[],
+  row: Record<string, unknown>,
+) {
+  return [
+    `UPDATE ${sqlIdentifier(table)} SET ${sqlIdentifier(column)} = COALESCE(${sqlIdentifier(column)}, '') || ${sqlValue(value)}`,
+    `WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(row[key])}`).join(' AND ')};`,
+  ].join(' ')
 }
 
 async function replayBatches(
@@ -379,6 +440,31 @@ function chunk<T>(items: T[], size: number) {
   return chunks
 }
 
+function chunkSqlText(value: string, buildStatement: (chunk: string) => string) {
+  const codePoints = [...value]
+  const chunks: string[] = []
+  let offset = 0
+  while (offset < codePoints.length) {
+    let low = offset + 1
+    let high = Math.min(codePoints.length, offset + 65_536)
+    let end = offset
+    while (low <= high) {
+      const middle = Math.floor((low + high) / 2)
+      const candidate = codePoints.slice(offset, middle).join('')
+      if (Buffer.byteLength(buildStatement(candidate)) <= SQL_STATEMENT_BYTE_LIMIT) {
+        end = middle
+        low = middle + 1
+      } else {
+        high = middle - 1
+      }
+    }
+    if (end === offset) throw new Error('A statistic SQL value exceeds the D1 limit.')
+    chunks.push(codePoints.slice(offset, end).join(''))
+    offset = end
+  }
+  return chunks.map(chunk => buildStatement(chunk))
+}
+
 function sqlIdentifier(value: string) {
   assertIdentifier(value, 'identifier')
   return `"${value}"`
@@ -399,6 +485,14 @@ function sqlValue(value: unknown): string {
   }
   const text = typeof value === 'string' ? value : JSON.stringify(value)
   return `'${text.replaceAll("'", "''")}'`
+}
+
+function sqlText(value: unknown) {
+  if (typeof value === 'string') return value
+  const text = JSON.stringify(value)
+  if (text === undefined)
+    throw new Error('Cannot import an unserialisable statistic value.')
+  return text
 }
 
 function recordFor(value: StatisticRow) {

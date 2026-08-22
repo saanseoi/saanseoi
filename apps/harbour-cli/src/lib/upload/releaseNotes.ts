@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path'
 
 import { cancel, isCancel, text } from '@clack/prompts'
 
-import { buildDatasetReleaseCode, type UploadPlan } from '@repo/core'
+import type { UploadPlan } from '@repo/core'
 
 import { formatInteractiveRetry } from '../cli/interactiveRetry.ts'
 
@@ -15,47 +15,8 @@ type ReleaseNoteCache = {
   entries: Record<string, string>
 }
 
-const overtureVersions = [
-  '2025-07-23.0',
-  '2025-08-20.0',
-  '2025-09-24.0',
-  '2025-10-22.0',
-  '2025-11-19.0',
-  '2025-12-17.0',
-  '2026-01-21.0',
-  '2026-02-18.0',
-  '2026-03-18.0',
-  '2026-04-15.0',
-  '2026-05-20.0',
-  '2026-06-17.0',
-  '2026-07-22.0',
-  '2026-08-19.0',
-] as const
-
-const overtureReleaseNotesThemes = [
-  { type: 'address', theme: 'addresses' },
-  { type: 'division', theme: 'divisions' },
-  { type: 'divisionArea', theme: 'divisions' },
-  { type: 'divisionBoundary', theme: 'divisions' },
-  { type: 'place', theme: 'places' },
-] as const
-
-const builtInEntries = Object.fromEntries(
-  overtureVersions.flatMap(sourceVersion =>
-    overtureReleaseNotesThemes.map(({ type, theme }) => [
-      cacheKey(buildDatasetReleaseCode('hk', 'overture', sourceVersion, type)),
-      `${overtureReleaseNotesUrl(sourceVersion)}#${theme}`,
-    ]),
-  ),
-)
-
 function cacheKey(releaseCode: string) {
   return releaseCode.trim().toLowerCase()
-}
-
-function overtureReleaseNotesUrl(sourceVersion: string) {
-  const [year, month, day] = sourceVersion.split('.')[0]?.split('-') ?? []
-  return `https://docs.overturemaps.org/blog/${year}/${month}/${day}/release-notes/`
 }
 
 function isHttpUrl(value: string) {
@@ -121,6 +82,28 @@ async function writeCache(cache: ReleaseNoteCache) {
   await writeFile(CACHE_PATH, `${JSON.stringify(cache, null, 2)}\n`)
 }
 
+export function parseFixtureReleaseNotesUrl(content: string) {
+  const match = content.match(/^releaseNotesUrl:\s*(?:"([^"]+)"|'([^']+)'|(\S+))\s*$/m)
+  return (match?.[1] ?? match?.[2] ?? match?.[3])?.trim()
+}
+
+async function readFixtureReleaseNotesUrl(plan: UploadPlan) {
+  const fixturePath = resolve(
+    REPO_ROOT,
+    'fixtures/meta/releases',
+    plan.datasetCode,
+    `${plan.releaseCode}.md`,
+  )
+  const content = await readFile(fixturePath, 'utf8').catch(() => null)
+  const url = content ? parseFixtureReleaseNotesUrl(content) : undefined
+
+  if (url && !isHttpUrl(url)) {
+    throw new Error(`Release fixture has an invalid releaseNotesUrl: ${fixturePath}`)
+  }
+
+  return url
+}
+
 export async function resolveReleaseNotesUrl(
   plan: UploadPlan,
   options: {
@@ -143,7 +126,8 @@ export async function resolveReleaseNotesUrl(
     return explicitUrl
   }
 
-  const cachedUrl = builtInEntries[key] ?? (await readCache()).entries[key]
+  const fixtureUrl = await readFixtureReleaseNotesUrl(plan)
+  const cachedUrl = fixtureUrl ?? (await readCache()).entries[key]
   if (cachedUrl) return cachedUrl
 
   if (options.skipPrompt) {

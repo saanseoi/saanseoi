@@ -91,12 +91,12 @@ export async function listHongKongStreetVersions(input: {
     status: 200 as const,
     body: {
       jsonapi: { version: '1.1' as const },
+      data,
       links: {
         self: input.requestUrl,
         version: versionUrl(input.requestUrl, input.id, versions.at(-1)?.version ?? 1),
         versions: input.requestUrl,
       },
-      data,
     },
   }
 }
@@ -179,8 +179,8 @@ export async function replayHongKongStreetChangelog(input: {
     status: 200 as const,
     body: {
       jsonapi: { version: '1.1' as const },
-      links: { self: input.requestUrl },
       data,
+      links: { self: input.requestUrl },
     },
   }
 }
@@ -303,8 +303,8 @@ function detailDocument(
 ) {
   return {
     jsonapi: { version: '1.1' as const },
-    links: { self: requestUrl, ...links },
     data: resource(state, links),
+    links: { self: requestUrl, ...links },
   }
 }
 

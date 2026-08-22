@@ -2,16 +2,18 @@ import { createHash } from 'node:crypto'
 import type {
   CenstatdCanonicalDimension,
   CenstatdCanonicalDimensionValue,
-  CenstatdCanonicalMeasure,
+  CenstatdCanonicalField,
   CenstatdCanonicalObservation,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
 import type {
-  CanonicalStatsRecordValue,
+  CanonicalStatsGeography,
   StatsAggregation,
+  StatsFieldComparability,
   StatsStatisticKind,
 } from '@repo/db'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
 
-import type { CenstatdMeasureMetadata } from './censtatdMeasureCuration.ts'
+import type { CenstatdFieldMetadata } from './censtatdMeasureCuration.ts'
 
 type Row = Record<string, unknown>
 
@@ -28,53 +30,44 @@ type CanonicalObservation = CenstatdCanonicalObservation & {
 type CanonicalSeries = {
   datasetCode: string
   divisionId: string | null
-  geographyCohortId: string | null
+  geography: CanonicalStatsGeography
   id: string
   referencePeriodCode: string
   referencePeriodEnd: string | null
+  referencePeriodEndYear: string
   referencePeriodGranularity: string
   referencePeriodStart: string | null
-  sourceFeatureId: string
+  sourceFeatureRef: string
   sourceReleaseId: string
-}
-
-type CanonicalSeriesDimension = {
-  dimensionCode: string
-  seriesId: string
-  valueCode: string
 }
 
 type CanonicalRecord = CanonicalSeries & {
   dimensions: Record<string, string>
-  values: Record<string, CanonicalStatsRecordValue>
+  values: Record<string, string>
 }
 
-type CanonicalMeasure = CenstatdCanonicalMeasure & {
+type CanonicalField = CenstatdCanonicalField & {
   aggregation: StatsAggregation
+  comparability: StatsFieldComparability | null
   datasetCode: string
-  denominatorMeasureCode: string | null
+  denominatorFieldName: string | null
   sourceField: string
   sourceNullOption: string | null
   statisticKind: StatsStatisticKind
   valueKind: 'categorical' | 'numeric'
 }
 
-type CanonicalDimension = CenstatdCanonicalDimension & {
-  datasetCode: string
-}
-
+type CanonicalDimension = CenstatdCanonicalDimension & { datasetCode: string }
 type CanonicalDimensionValue = CenstatdCanonicalDimensionValue & {
   datasetCode: string
 }
 
 export type CanonicalStatsRows = {
   dimensions: CanonicalDimension[]
-  measures: CanonicalMeasure[]
-  measuresI18n: Row[]
+  fields: CanonicalField[]
+  fieldsI18n: Row[]
   observations: CanonicalObservation[]
   records: CanonicalRecord[]
-  series: CanonicalSeries[]
-  seriesDimensions: CanonicalSeriesDimension[]
   values: CanonicalDimensionValue[]
   valuesI18n: Row[]
 }
@@ -82,8 +75,10 @@ export type CanonicalStatsRows = {
 export type HkgovCenstatdStatisticSourceRow = {
   datasetCode: string
   divisionId?: string | null
+  /** Reviewed public geography; source identifiers remain in the raw row/ref. */
+  geography?: CanonicalStatsGeography
   properties: Record<string, unknown>
-  sourceFeatureId: string
+  sourceFeatureRef: string
   sourceReleaseId: string
   sourceVersion: string
 }
@@ -96,95 +91,47 @@ export type HkgovCenstatdStatisticSourceRow = {
  */
 export function normaliseHkgovCenstatdStatistics(
   input: HkgovCenstatdStatisticSourceRow[],
-  options: { measureMetadata?: ReadonlyMap<string, CenstatdMeasureMetadata> } = {},
+  options: { fieldMetadata?: ReadonlyMap<string, CenstatdFieldMetadata> } = {},
 ): CanonicalStatsRows {
   const observations: CanonicalObservation[] = []
-  const measures = new Map<string, CanonicalMeasure>()
-  const measuresI18n = new Map<string, Row>()
-  const dimensions = new Map<string, CanonicalDimension>()
-  const values = new Map<string, CanonicalDimensionValue>()
-  const valuesI18n = new Map<string, Row>()
+  const fields = new Map<string, CanonicalField>()
+  const fieldsI18n = new Map<string, Row>()
   const series = new Map<string, CanonicalSeries>()
-  const seriesDimensions = new Map<string, CanonicalSeriesDimension>()
-  const recordDimensions = new Map<string, Record<string, string>>()
   const observationsBySeries = new Map<string, CanonicalObservation[]>()
 
   for (const row of input) {
     const profile = profileFor(row.datasetCode, row.properties, row.sourceVersion)
-    const dimensionEntries = profile.dimensions
+    const referencePeriod = parseStatisticsReferencePeriod(profile.referencePeriodCode)
     const seriesId = seriesIdentifier({
       datasetCode: row.datasetCode,
       referencePeriodCode: profile.referencePeriodCode,
-      sourceFeatureId: row.sourceFeatureId,
+      sourceFeatureRef: row.sourceFeatureRef,
     })
     series.set(seriesId, {
       datasetCode: row.datasetCode,
       divisionId: row.divisionId ?? null,
-      geographyCohortId: profile.geographyCohortId,
+      geography:
+        row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
       id: seriesId,
       referencePeriodCode: profile.referencePeriodCode,
-      referencePeriodEnd: null,
-      referencePeriodGranularity: profile.referencePeriodGranularity,
-      referencePeriodStart: null,
-      sourceFeatureId: row.sourceFeatureId,
+      referencePeriodEnd: referencePeriod.end,
+      referencePeriodEndYear: referencePeriod.endYear,
+      referencePeriodGranularity: referencePeriod.granularity,
+      referencePeriodStart: referencePeriod.start,
+      sourceFeatureRef: row.sourceFeatureRef,
       sourceReleaseId: row.sourceReleaseId,
     })
-    for (const dimension of dimensionEntries) {
-      const key = [row.datasetCode, dimension.code].join('\u0000')
-      dimensions.set(key, {
-        datasetCode: row.datasetCode,
-        dimensionCode: dimension.code,
-      })
-      const valueKey = [row.datasetCode, dimension.code, dimension.valueCode].join(
-        '\u0000',
-      )
-      values.set(valueKey, {
-        datasetCode: row.datasetCode,
-        dimensionCode: dimension.code,
-        valueCode: dimension.valueCode,
-      })
-      const seriesDimensionKey = [seriesId, dimension.code, dimension.valueCode].join(
-        '\u0000',
-      )
-      seriesDimensions.set(seriesDimensionKey, {
-        dimensionCode: dimension.code,
-        seriesId,
-        valueCode: dimension.valueCode,
-      })
-      const recordDimensionValues = recordDimensions.get(seriesId) ?? {}
-      recordDimensionValues[dimension.code] = dimension.valueCode
-      recordDimensions.set(seriesId, recordDimensionValues)
-      if (dimension.nameEn) {
-        valuesI18n.set(`${valueKey}\u0000en`, {
-          datasetCode: row.datasetCode,
-          dimensionCode: dimension.code,
-          valueCode: dimension.valueCode,
-          locale: 'en',
-          name: dimension.nameEn,
-        })
-      }
-      if (dimension.nameZhHant) {
-        valuesI18n.set(`${valueKey}\u0000zh-Hant`, {
-          datasetCode: row.datasetCode,
-          dimensionCode: dimension.code,
-          valueCode: dimension.valueCode,
-          locale: 'zh-Hant',
-          name: dimension.nameZhHant,
-        })
-      }
-    }
-
     for (const [sourceField, raw] of Object.entries(row.properties)) {
       if (profile.identifierFields.has(sourceField)) continue
       const sourceValue = literal(raw)
       if (sourceValue === null) continue
-      const parsed = parseObservationValue(row.datasetCode, sourceField, sourceValue)
-      const metadata = options.measureMetadata?.get(
+      const parsed = parseObservationValue(sourceField, sourceValue)
+      const metadata = options.fieldMetadata?.get(
         `${row.datasetCode}\u0000${sourceField}`,
       )
-      const measureCode = metadata?.measureCode ?? sourceField
+      const fieldName = metadata?.fieldName ?? sourceField
       const observationId = observationIdentifier({
-        measureCode,
+        fieldName,
         seriesId,
       })
       const observation = {
@@ -192,7 +139,7 @@ export function normaliseHkgovCenstatdStatistics(
         seriesId,
         sourceField,
         referencePeriodCode: profile.referencePeriodCode,
-        measureCode,
+        fieldName,
         numericValue: parsed.numericValue,
         valueCode: parsed.valueCode,
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
@@ -204,12 +151,15 @@ export function normaliseHkgovCenstatdStatistics(
       const recordObservations = observationsBySeries.get(seriesId) ?? []
       recordObservations.push(observation)
       observationsBySeries.set(seriesId, recordObservations)
-      const measureKey = [row.datasetCode, measureCode].join('\u0000')
-      measures.set(measureKey, {
+      const fieldKey = [row.datasetCode, fieldName].join('\u0000')
+      fields.set(fieldKey, {
         aggregation: metadata?.aggregation ?? 'unreviewed',
+        aggregationPercentile: metadata?.aggregationPercentile ?? null,
+        comparability: metadata?.comparability ?? null,
         datasetCode: row.datasetCode,
-        denominatorMeasureCode: metadata?.denominatorMeasureCode ?? null,
-        measureCode,
+        dimensions: metadata?.dimensions ?? {},
+        denominatorFieldName: metadata?.denominatorFieldName ?? null,
+        fieldName,
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
         statisticKind: metadata?.statisticKind ?? 'unreviewed',
@@ -224,9 +174,9 @@ export function normaliseHkgovCenstatdStatistics(
           name: sourceField,
         },
       ]) {
-        measuresI18n.set(`${measureKey}\u0000${localisation.locale}`, {
+        fieldsI18n.set(`${fieldKey}\u0000${localisation.locale}`, {
           datasetCode: row.datasetCode,
-          measureCode,
+          fieldName,
           locale: localisation.locale,
           name: localisation.name,
           description: localisation.description,
@@ -240,7 +190,7 @@ export function normaliseHkgovCenstatdStatistics(
   for (const observation of observations) {
     if (!isPopulationThousands(observation.sourceField, observation.sourceValue))
       continue
-    const key = `${observation.sourceField}\u0000${observation.measureCode}`
+    const key = `${observation.sourceField}\u0000${observation.fieldName}`
     scaledPrecisionByMeasure.set(
       key,
       Math.max(
@@ -250,44 +200,48 @@ export function normaliseHkgovCenstatdStatistics(
     )
   }
   for (const observation of observations) {
-    const key = `${observation.sourceField}\u0000${observation.measureCode}`
+    const key = `${observation.sourceField}\u0000${observation.fieldName}`
     const decimalCount = scaledPrecisionByMeasure.get(key)
     if (decimalCount !== undefined)
       observation.valuePrecision = precisionAfterScaling(3, decimalCount)
   }
 
   return {
-    dimensions: [...dimensions.values()],
-    measures: [...measures.values()],
-    measuresI18n: [...measuresI18n.values()],
+    dimensions: [],
+    fields: [...fields.values()],
+    fieldsI18n: [...fieldsI18n.values()],
     observations,
-    records: [...series.values()].map(seriesRow => {
-      const packedValues: Record<string, CanonicalStatsRecordValue> = {}
+    records: [...series.values()].flatMap(seriesRow => {
+      const recordsByDimensions = new Map<string, CanonicalRecord>()
       for (const observation of observationsBySeries.get(seriesRow.id) ?? []) {
-        if (packedValues[observation.measureCode]) {
+        const field = fields.get(
+          `${seriesRow.datasetCode}\u0000${observation.fieldName}`,
+        )
+        const dimensions = field?.dimensions ?? {}
+        const id = recordIdentifier({
+          dimensions,
+          referencePeriodCode: seriesRow.referencePeriodCode,
+          sourceFeatureRef: seriesRow.sourceFeatureRef,
+        })
+        const record = recordsByDimensions.get(id) ?? {
+          ...seriesRow,
+          dimensions,
+          id,
+          values: {},
+        }
+        if (record.values[observation.fieldName]) {
           throw new Error(
-            `C&SD ${seriesRow.datasetCode} series ${seriesRow.id} has duplicate measure ${observation.measureCode}.`,
+            `C&SD ${seriesRow.datasetCode} record ${record.id} has duplicate field ${observation.fieldName}.`,
           )
         }
-        packedValues[observation.measureCode] = {
-          numericValue: observation.numericValue,
-          observationStatus: observation.observationStatus,
-          sourceField: observation.sourceField,
-          sourceValue: observation.sourceValue,
-          valueCode: observation.valueCode,
-          valuePrecision: observation.valuePrecision,
-        }
+        record.values[observation.fieldName] =
+          observation.numericValue ?? observation.valueCode ?? observation.sourceValue
+        recordsByDimensions.set(id, record)
       }
-      return {
-        ...seriesRow,
-        dimensions: recordDimensions.get(seriesRow.id) ?? {},
-        values: packedValues,
-      }
+      return [...recordsByDimensions.values()]
     }),
-    series: [...series.values()],
-    seriesDimensions: [...seriesDimensions.values()],
-    values: [...values.values()],
-    valuesI18n: [...valuesI18n.values()],
+    values: [],
+    valuesI18n: [],
   }
 }
 
@@ -333,6 +287,7 @@ function profileFor(
       return censusProfile(sourceVersion, dimensions, identifierFields)
     case 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates':
       add('housing-estate', 'estate', 'estate_eng', 'estate_chi')
+      reference('gml_id')
       return censusProfile(sourceVersion, dimensions, identifierFields)
     case 'ds-hk-hkgov-censtatd-division-statistic-new-towns':
       add('new-town', 'newtown', 'newtown_eng', 'newtown_chi')
@@ -343,22 +298,33 @@ function profileFor(
       reference('PERIOD')
       return {
         dimensions,
-        geographyCohortId: null,
         identifierFields,
-        referencePeriodCode: sourceVersion,
-        referencePeriodGranularity: 'half-year',
+        referencePeriodCode: requiredPeriodProperty(
+          properties,
+          'PERIOD',
+          'C&SD permanent living quarters area row',
+        ),
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district':
+    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
       add('district', 'DC', 'DC_ENG', 'DC_CHI')
       reference('YEAR')
       reference('QUARTER')
+      const year = requiredPeriodProperty(
+        properties,
+        'YEAR',
+        'C&SD permanent living quarters district row',
+      )
+      const quarter = requiredPeriodProperty(
+        properties,
+        'QUARTER',
+        'C&SD permanent living quarters district row',
+      )
       return {
         dimensions,
-        geographyCohortId: null,
         identifierFields,
-        referencePeriodCode: sourceVersion,
-        referencePeriodGranularity: 'half-year',
+        referencePeriodCode: `${year}-Q${quarter.replace(/^Q/i, '')}`,
       }
+    }
     case 'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
       add('district', 'dc', 'dc_eng', 'dc_chi')
       add('district-class', 'dc_class')
@@ -367,10 +333,8 @@ function profileFor(
       reference('year')
       return {
         dimensions,
-        geographyCohortId: null,
         identifierFields,
         referencePeriodCode: year,
-        referencePeriodGranularity: 'year',
       }
     }
     case 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district':
@@ -382,18 +346,18 @@ function profileFor(
       reference('PERIOD')
       return {
         dimensions,
-        geographyCohortId: null,
         identifierFields,
-        referencePeriodCode: sourceVersion,
-        referencePeriodGranularity: 'year',
+        referencePeriodCode: requiredPeriodProperty(
+          properties,
+          'PERIOD',
+          'C&SD land area and population density row',
+        ),
       }
     default:
       return {
         dimensions,
-        geographyCohortId: null,
         identifierFields,
         referencePeriodCode: sourceVersion,
-        referencePeriodGranularity: 'unknown',
       }
   }
 }
@@ -405,18 +369,22 @@ function censusProfile(
 ) {
   return {
     dimensions,
-    geographyCohortId: sourceVersion,
     identifierFields,
     referencePeriodCode: sourceVersion,
-    referencePeriodGranularity: 'census',
   }
 }
 
-function parseObservationValue(
-  datasetCode: string,
-  sourceField: string,
-  sourceValue: string,
+function requiredPeriodProperty(
+  properties: Record<string, unknown>,
+  field: string,
+  label: string,
 ) {
+  const value = literal(properties[field])
+  if (!value) throw new Error(`${label} has no ${field}.`)
+  return value
+}
+
+function parseObservationValue(sourceField: string, sourceValue: string) {
   if (/^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)) {
     const isScaledPopulation = isPopulationThousands(sourceField, sourceValue)
     return {
@@ -486,9 +454,9 @@ function unitFor(datasetCode: string, sourceField: string) {
   return 'publisher-unknown'
 }
 
-function observationIdentifier(input: { measureCode: string; seriesId: string }) {
+function observationIdentifier(input: { fieldName: string; seriesId: string }) {
   const basis = JSON.stringify({
-    measureCode: input.measureCode,
+    fieldName: input.fieldName,
     seriesId: input.seriesId,
   })
   return `stats:${createHash('sha256').update(basis).digest('hex')}`
@@ -497,10 +465,50 @@ function observationIdentifier(input: { measureCode: string; seriesId: string })
 function seriesIdentifier(input: {
   datasetCode: string
   referencePeriodCode: string
-  sourceFeatureId: string
+  sourceFeatureRef: string
 }) {
   const basis = JSON.stringify(input)
   return `stats-series:${createHash('sha256').update(basis).digest('hex')}`
+}
+
+function recordIdentifier(input: {
+  dimensions: Record<string, string>
+  referencePeriodCode: string
+  sourceFeatureRef: string
+}) {
+  const dimensions = Object.fromEntries(
+    Object.entries(input.dimensions).sort(([left], [right]) =>
+      left.localeCompare(right),
+    ),
+  )
+  return `stats:${createHash('sha256')
+    .update(
+      JSON.stringify({
+        dimensions,
+        referencePeriodCode: input.referencePeriodCode,
+        sourceFeatureRef: input.sourceFeatureRef,
+      }),
+    )
+    .digest('hex')}`
+}
+
+function geographyFor(
+  dimensions: Dimension[],
+  sourceFeatureRef: string,
+): CanonicalStatsGeography {
+  // A Building Group row also carries its parent HMA. The mapping dimension is
+  // the most specific feature, not its containing Division.
+  const geography =
+    dimensions.find(dimension => dimension.code === 'building-group') ?? dimensions[0]
+  if (!geography) return { code: sourceFeatureRef, kind: 'publisher-feature' }
+  const geographyClass = dimensions.find(
+    dimension => dimension.code === `${geography.code}-class`,
+  )
+  return {
+    code: geography.valueCode,
+    ...(geographyClass ? { class: geographyClass.valueCode } : {}),
+    kind: geography.code,
+  }
 }
 
 function literal(value: unknown) {

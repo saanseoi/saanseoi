@@ -257,12 +257,12 @@ describe('address API release set readiness display', () => {
       formatAddressApiReleaseSetReadiness(
         { cohortKey: '2025-09-24.0', regionCode: 'hk' },
         true,
-        'data-hk-addresses-2025-09-24.0--default',
+        'data-hk-addresses-2025-09-24.0--official',
         '2025-12-17.0',
       ),
     ).toBe(
       [
-        'HK / default / 2025-09-24.0',
+        'HK / official / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m address  available',
         '',
         'Out of Cohort',

@@ -304,6 +304,37 @@ describe('missingOvertureHongKongAreaRows', () => {
 })
 
 describe('normaliseDivisionRow i18n', () => {
+  test('keeps C&SD Housing Market Areas outside the Division hierarchy', () => {
+    const normalised = normaliseDivisionRow({
+      canonical_type: 'housing-market-area',
+      geometry: {
+        coordinates: [
+          [
+            [114.15, 22.28],
+            [114.16, 22.28],
+            [114.16, 22.29],
+            [114.15, 22.28],
+          ],
+        ],
+        type: 'Polygon',
+      },
+      id: 'CENSTATD:HMA:HMA001',
+      identifiers: { hkgovCenstatd: { code: 'HMA001' } },
+      names: { common: { en: ['Example HMA'], 'zh-hant': ['示例樓市片區'] } },
+      source: 'hkgov-censtatd',
+      source_properties: { hma: 'HMA001' },
+      sources: [],
+    })
+
+    expect(normalised).toMatchObject({
+      base: {
+        hierarchy: [],
+        level: null,
+        type: 'housing-market-area',
+      },
+    })
+  })
+
   test('retains LandsD settlement classification and full source provenance', () => {
     const normalised = normaliseDivisionRow({
       class: 'Town',

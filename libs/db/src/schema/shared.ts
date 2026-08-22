@@ -149,8 +149,11 @@ export const geoBbox = {
 
 export const canonicalDivision = {
   id: text('id').notNull(),
+  /** Curated statistical key, scoped by the selected Divisions domain. */
+  divisionCode: text('divisionCode'),
   identifiers: jsonText('identifiers'),
-  level: integer('level').notNull(),
+  /** Canonical hierarchy level; absent for non-hierarchical geographies. */
+  level: integer('level'),
   type: text('type').notNull(),
   sourceKeys: jsonText('sourceKeys'),
   wikidata: text('wikidata'),
@@ -198,22 +201,19 @@ export const canonicalDivisionStatistic = {
   sources: jsonText('sources').notNull(),
 }
 
-/**
- * One publisher feature and reference period, with its complete statistic
- * payload. Keeping values together avoids one D1 write per measure.
- */
-export type CanonicalStatsRecordValue = {
-  /** Exact publisher property key, such as `t_pop` or `QTR_PH`. */
-  sourceField: string
-  /** Decimal text, never a floating point approximation. */
-  numericValue: string | null
-  /** Categorical value where no numeric observation exists. */
-  valueCode: string | null
-  /** Decimal increment, e.g. `100` for a value rounded to the nearest hundred. */
-  valuePrecision: string | null
-  observationStatus: string
-  /** Original publisher literal, retained even when the numeric value is scaled. */
-  sourceValue: string
+export type CanonicalStatsGeography = {
+  kind: string
+  code: string
+  class?: string
+}
+
+/** Canonical structured period fields shared by source and API statistic rows. */
+export const statisticsReferencePeriod = {
+  referencePeriodCode: text('referencePeriodCode').notNull(),
+  referencePeriodStart: text('referencePeriodStart'),
+  referencePeriodEnd: text('referencePeriodEnd'),
+  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
+  referencePeriodEndYear: text('referencePeriodEndYear').notNull(),
 }
 
 /** Shared feature-level context and packed values for a statistic record. */
@@ -221,20 +221,17 @@ export const canonicalStatsRecord = {
   id: text('id').notNull(),
   datasetCode: text('datasetCode').notNull(),
   sourceReleaseId: text('sourceReleaseId').notNull(),
-  /** `<layerName>:<gml:id>` (or the equivalent stable publisher feature ID). */
-  sourceFeatureId: text('sourceFeatureId').notNull(),
+  /** Stable constructed reference to the retained raw publisher feature. */
+  sourceFeatureRef: text('sourceFeatureRef').notNull(),
   /** Present only after a reviewed bridge to a canonical division exists. */
   divisionId: text('divisionId'),
-  referencePeriodCode: text('referencePeriodCode').notNull(),
-  referencePeriodStart: text('referencePeriodStart'),
-  referencePeriodEnd: text('referencePeriodEnd'),
-  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
-  /** The source geography cohort used by this series, where applicable. */
-  geographyCohortId: text('geographyCohortId'),
-  /** Dimension values for this publisher feature, keyed by dimension code. */
+  ...statisticsReferencePeriod,
+  /** Reviewed feature-level geography; source variants remain distinguished by `sourceFeatureRef`. */
+  geography: jsonText<CanonicalStatsGeography>('geography').notNull(),
+  /** Curated analytical dimensions, keyed by dimension code. */
   dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
-  /** Values keyed by stable reviewed measure code. */
-  values: jsonText<Record<string, CanonicalStatsRecordValue>>('values').notNull(),
+  /** Publisher literals keyed by the stable reviewed field name. */
+  values: jsonText<Record<string, string>>('values').notNull(),
 }
 
 /**
@@ -267,10 +264,33 @@ export const statsAggregations = [
 
 export type StatsAggregation = (typeof statsAggregations)[number]
 
-export const canonicalStatsMeasure = {
+export const statsFieldComparabilityReasons = [
+  'economic-activity-status-classification-changed',
+] as const
+
+export type StatsFieldComparabilityReason =
+  (typeof statsFieldComparabilityReasons)[number]
+
+export const statsFieldComparabilityStatuses = ['caution'] as const
+
+export type StatsFieldComparabilityStatus =
+  (typeof statsFieldComparabilityStatuses)[number]
+
+/** A source-declared caveat about comparisons between reference periods. */
+export type StatsFieldComparability = {
+  affectedReferencePeriods: string[]
+  reason: StatsFieldComparabilityReason
+  status: StatsFieldComparabilityStatus
+}
+
+export const canonicalStatsField = {
   datasetCode: text('datasetCode').notNull(),
-  measureCode: text('measureCode').notNull(),
+  fieldName: text('fieldName').notNull(),
   sourceField: text('sourceField').notNull(),
+  /** Curated analytical dimensions associated with this source field. */
+  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Source-declared caveat about comparisons between reference periods. */
+  comparability: jsonText<StatsFieldComparability>('comparability'),
   /** Exact publisher nullability declaration, when its schema supplies one. */
   sourceNullOption: text('sourceNullOption'),
   /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
@@ -283,15 +303,17 @@ export const canonicalStatsMeasure = {
   aggregation: text('aggregation', { enum: statsAggregations })
     .notNull()
     .default('unreviewed'),
-  /** Canonical measure used as the denominator, when the statistic has one. */
-  denominatorMeasureCode: text('denominatorMeasureCode'),
+  /** Percentile rank (0-100) for percentile and median aggregations. */
+  aggregationPercentile: real('aggregationPercentile'),
+  /** Canonical field used as the denominator, when the statistic has one. */
+  denominatorFieldName: text('denominatorFieldName'),
   valueKind: text('valueKind').notNull(),
   unitCode: text('unitCode').notNull(),
 }
 
-export const canonicalStatsMeasureI18n = {
+export const canonicalStatsFieldI18n = {
   datasetCode: text('datasetCode').notNull(),
-  measureCode: text('measureCode').notNull(),
+  fieldName: text('fieldName').notNull(),
   locale: text('locale').notNull(),
   name: text('name').notNull(),
   description: text('description'),
@@ -299,17 +321,6 @@ export const canonicalStatsMeasureI18n = {
   isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
     .notNull()
     .default(true),
-}
-
-export const canonicalStatsDimension = {
-  datasetCode: text('datasetCode').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-}
-
-export const canonicalStatsValue = {
-  datasetCode: text('datasetCode').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-  valueCode: text('valueCode').notNull(),
 }
 
 export const canonicalStatsValueI18n = {

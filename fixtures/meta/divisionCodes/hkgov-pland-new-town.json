@@ -1,0 +1,58 @@
+{
+  "versionHash": "sha256:806529567b1055bd8f244a72fe8fbcc23adfa57387aa489c587de56c45a0f81f",
+  "domainCode": "hkgov-pland-new-town",
+  "assignments": [
+    {
+      "divisionCode": "fanling-sheung-shui-kwu-tung",
+      "canonicalId": "ecea60da-b31f-58c7-b32b-55ebb124039e"
+    },
+    {
+      "divisionCode": "hung-shui-kiu-ha-tsuen",
+      "canonicalId": "c8f38f4d-2d3e-5dc4-b8f2-0eac3b05b23a"
+    },
+    {
+      "divisionCode": "sha-tin-ma-on-shan-area",
+      "canonicalId": "84de4d2a-467f-5395-86cd-f873c84b4793"
+    },
+    {
+      "divisionCode": "sha-tin-sha-tin-area",
+      "canonicalId": "81587600-8b6a-5490-877a-358f82647bf4"
+    },
+    {
+      "divisionCode": "tai-po",
+      "canonicalId": "a529f49f-abe0-5a0b-8726-f9a78a6e5754"
+    },
+    {
+      "divisionCode": "tin-shui-wai",
+      "canonicalId": "47b64bdd-0605-58aa-b67f-824f143d4106"
+    },
+    {
+      "divisionCode": "tsuen-wan-kwai-chung-area",
+      "canonicalId": "c13f1abe-eb5d-5255-b454-ef5e868913c1"
+    },
+    {
+      "divisionCode": "tsuen-wan-tsing-yi-area",
+      "canonicalId": "d0b06deb-4842-507b-8284-a3254615e5aa"
+    },
+    {
+      "divisionCode": "tsuen-wan-tsuen-wan-area",
+      "canonicalId": "14dfb76e-4e82-5312-8fce-cfde214c04d5"
+    },
+    {
+      "divisionCode": "tseung-kwan-o",
+      "canonicalId": "9598a407-bc95-5bce-84e1-d284b6322315"
+    },
+    {
+      "divisionCode": "tuen-mun",
+      "canonicalId": "355a5363-54d4-5784-9cdb-fcb10d826a9d"
+    },
+    {
+      "divisionCode": "tung-chung",
+      "canonicalId": "9e97c5d6-a99e-53ea-9e4f-61af2299ff50"
+    },
+    {
+      "divisionCode": "yuen-long",
+      "canonicalId": "9da8edd6-58fa-51bd-8220-4269eea60585"
+    }
+  ]
+}

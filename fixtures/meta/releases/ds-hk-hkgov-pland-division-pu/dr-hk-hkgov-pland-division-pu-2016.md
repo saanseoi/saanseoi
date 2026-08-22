@@ -10,6 +10,7 @@ releaseVersion: "2016.0"
 sourceSchemaVersion: "1.0"
 type: "division"
 cohortKey: "2016"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281887222_15002"
 ---
 
 # EN

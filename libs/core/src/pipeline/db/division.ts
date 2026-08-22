@@ -32,9 +32,9 @@ import {
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
-const CURRENT_DIVISION_COLUMN_COUNT = 13
+const CURRENT_DIVISION_COLUMN_COUNT = 14
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 16
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 17
 const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 13
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
@@ -149,6 +149,7 @@ export async function getCurrentDivisionVersionMap(
   const rows = (await db
     .select({
       id: historySchema.divisions.id,
+      divisionCode: historySchema.divisions.divisionCode,
       bbox: historySchema.divisions.bbox,
       cartography: historySchema.divisions.cartography,
       geometry: historySchema.divisions.geometry,
@@ -244,6 +245,7 @@ export async function getDivisionVersionMapForSnapshot(
   const rows = (await db
     .select({
       id: currentSchema.divisions.id,
+      divisionCode: currentSchema.divisions.divisionCode,
       bbox: currentSchema.divisions.bbox,
       cartography: currentSchema.divisions.cartography,
       geometry: currentSchema.divisions.geometry,

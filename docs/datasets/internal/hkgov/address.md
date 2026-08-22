@@ -17,7 +17,7 @@ Related docs:
   Overture division snapshot is recorded and reported as an out-of-cohort processing
   dependency. The addresses composition, rather than the ALS source dataset, declares
   that lookup requirement and its selection rule.
-- The addresses API has one composition domain, `default`; its release codes therefore
+- The addresses API has one composition domain, `official`; its release codes therefore
   do not include a domain suffix.
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.

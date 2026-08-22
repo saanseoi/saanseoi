@@ -4,9 +4,12 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import {
   statsAggregations,
+  statsFieldComparabilityReasons,
+  statsFieldComparabilityStatuses,
   statsStatisticKinds,
   computeVersionHash,
   type StatsAggregation,
+  type StatsFieldComparability,
   type StatsStatisticKind,
 } from '@repo/db'
 
@@ -20,12 +23,17 @@ import {
   colorYellow,
 } from '../localPipeline/progressFormatting.ts'
 
-export type CenstatdMeasureCurationEntry = {
+export type CenstatdFieldCurationEntry = {
   aggregation: Exclude<StatsAggregation, 'unreviewed'>
-  denominatorMeasureCode?: string | null
-  localisations: readonly CenstatdMeasureLocalisation[]
-  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+  aggregationPercentile?: number
+  comparability?: StatsFieldComparability
+  denominatorFieldName?: string | null
+  dimensions: Readonly<Record<string, string>>
+  localisations: readonly CenstatdFieldLocalisation[]
+  /** The dimension-free statistic represented by this source-field mapping. */
   measureCode: string
+  statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
+  fieldName: string
   schemaSpecification?: {
     sha256: string
     url: string
@@ -34,34 +42,37 @@ export type CenstatdMeasureCurationEntry = {
   sourceField: string
   unitCode: string
 }
-export type CenstatdMeasureCurationManifest = {
+export type CenstatdFieldCurationManifest = {
   datasetCode: string
-  measures: CenstatdMeasureCurationEntry[]
-  schemaVersion: 6
+  fields: CenstatdFieldCurationEntry[]
+  schemaVersion: 8
 }
-type CenstatdMeasureCurationDecision = CenstatdMeasureCurationEntry & {
+type CenstatdFieldCurationDecision = CenstatdFieldCurationEntry & {
   datasetCode: string
 }
-type CenstatdMeasureCurationRegistry = {
-  measures: CenstatdMeasureCurationDecision[]
+type CenstatdFieldCurationRegistry = {
+  fields: CenstatdFieldCurationDecision[]
 }
-export type CenstatdMeasureForCuration = {
+export type CenstatdFieldForCuration = {
   datasetCode: string
   sourceField: string
   unitCode: string
   valueKind: string
 }
-export type CenstatdMeasureMetadata = {
+export type CenstatdFieldMetadata = {
   aggregation: Exclude<StatsAggregation, 'unreviewed'>
-  denominatorMeasureCode?: string | null
-  localisations: readonly CenstatdMeasureLocalisation[]
+  aggregationPercentile?: number
+  comparability?: StatsFieldComparability
+  denominatorFieldName?: string | null
+  dimensions: Readonly<Record<string, string>>
+  localisations: readonly CenstatdFieldLocalisation[]
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
-  measureCode: string
+  fieldName: string
   sourceNullOption?: string | null
   unitCode: string
 }
 
-export type CenstatdMeasureLocalisation = {
+export type CenstatdFieldLocalisation = {
   description: string
   isTranslationVerified: boolean
   locale: 'en' | 'zh-Hans' | 'zh-Hant'
@@ -69,8 +80,8 @@ export type CenstatdMeasureLocalisation = {
 }
 
 type CenstatdSchemaMeasureCandidate = {
-  localisations: readonly CenstatdMeasureLocalisation[]
-  measureCode: string
+  localisations: readonly CenstatdFieldLocalisation[]
+  fieldName: string
   sourceReleaseUrl: string
   schemaSpecification: {
     sha256: string
@@ -102,35 +113,35 @@ type UnitRegistryFixture = {
   }>
 }
 
-export async function resolveCenstatdMeasureMetadata(input: {
-  measures: readonly CenstatdMeasureForCuration[]
+export async function resolveCenstatdFieldMetadata(input: {
+  fields: readonly CenstatdFieldForCuration[]
   promptForCuration: boolean
 }) {
-  let registry = await loadCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY)
-  const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.measures)
-  let resolved = resolveCenstatdMeasureCuration({
+  let registry = await loadCenstatdFieldCuration(DEFAULT_CURATION_DIRECTORY)
+  const schemaCandidates = await resolveCenstatdSchemaMeasureCandidates(input.fields)
+  let resolved = resolveCenstatdFieldCuration({
     registry,
-    measures: input.measures,
+    fields: input.fields,
   })
   if (resolved.unresolved.length && input.promptForCuration) {
-    registry = await promptForCenstatdMeasureCuration({
+    registry = await promptForCenstatdFieldCuration({
       registry,
-      measures: resolved.unresolved,
+      fields: resolved.unresolved,
       persist: registry =>
-        saveCenstatdMeasureCuration(DEFAULT_CURATION_DIRECTORY, registry),
+        saveCenstatdFieldCuration(DEFAULT_CURATION_DIRECTORY, registry),
       schemaCandidates,
     })
-    resolved = resolveCenstatdMeasureCuration({ registry, measures: input.measures })
+    resolved = resolveCenstatdFieldCuration({ registry, fields: input.fields })
   }
   if (resolved.unresolved.length) {
     throw new Error(
-      `C&SD measure metadata requires curation for ${resolved.unresolved.map(measure => `${measure.datasetCode}/${measure.sourceField}`).join(', ')}. Rerun without --yes to review the measures.`,
+      `C&SD field metadata requires curation for ${resolved.unresolved.map(field => `${field.datasetCode}/${field.sourceField}`).join(', ')}. Rerun without --yes to review the fields.`,
     )
   }
   return resolved.metadata
 }
 
-export async function loadCenstatdMeasureCuration(
+export async function loadCenstatdFieldCuration(
   directory = DEFAULT_CURATION_DIRECTORY,
 ) {
   try {
@@ -141,39 +152,39 @@ export async function loadCenstatdMeasureCuration(
       .sort((left, right) => left.localeCompare(right))
     const manifests = await Promise.all(
       paths.map(async path =>
-        parseCenstatdMeasureCuration(JSON.parse(await readFile(path, 'utf8')), path),
+        parseCenstatdFieldCuration(JSON.parse(await readFile(path, 'utf8')), path),
       ),
     )
     const datasetCodes = new Set(manifests.map(manifest => manifest.datasetCode))
     if (datasetCodes.size !== manifests.length)
-      throw new Error(`Duplicate C&SD measure curation dataset: ${directory}.`)
+      throw new Error(`Duplicate C&SD field curation dataset: ${directory}.`)
     return {
-      measures: manifests.flatMap(({ datasetCode, measures }) =>
-        measures.map(measure => ({ ...measure, datasetCode })),
+      fields: manifests.flatMap(({ datasetCode, fields }) =>
+        fields.map(field => ({ ...field, datasetCode })),
       ),
     }
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
-      return emptyCenstatdMeasureCuration()
+      return emptyCenstatdFieldCuration()
     throw error
   }
 }
 
-export async function saveCenstatdMeasureCuration(
+export async function saveCenstatdFieldCuration(
   directory: string,
-  registry: CenstatdMeasureCurationRegistry,
+  registry: CenstatdFieldCurationRegistry,
 ) {
-  const checked = validateCenstatdMeasureCurationRegistry(registry, directory)
+  const checked = validateCenstatdFieldCurationRegistry(registry, directory)
   await mkdir(directory, { recursive: true })
-  const byDataset = new Map<string, CenstatdMeasureCurationDecision[]>()
-  for (const measure of checked.measures) {
-    const measures = byDataset.get(measure.datasetCode) ?? []
-    measures.push(measure)
-    byDataset.set(measure.datasetCode, measures)
+  const byDataset = new Map<string, CenstatdFieldCurationDecision[]>()
+  for (const field of checked.fields) {
+    const fields = byDataset.get(field.datasetCode) ?? []
+    fields.push(field)
+    byDataset.set(field.datasetCode, fields)
   }
   const filenames = new Set<string>()
   await Promise.all(
-    [...byDataset.entries()].map(async ([datasetCode, measures]) => {
+    [...byDataset.entries()].map(async ([datasetCode, fields]) => {
       const filename = curationDatasetFilename(datasetCode)
       filenames.add(filename)
       await writeFile(
@@ -181,8 +192,8 @@ export async function saveCenstatdMeasureCuration(
         `${JSON.stringify(
           {
             datasetCode,
-            measures: measures.map(({ datasetCode: _, ...measure }) => measure),
-            schemaVersion: 6,
+            fields: fields.map(({ datasetCode: _, ...field }) => field),
+            schemaVersion: 8,
           },
           null,
           2,
@@ -272,31 +283,36 @@ function unitLocalisationFromTranslation(
   return { description, locale, name }
 }
 
-export function resolveCenstatdMeasureCuration(input: {
-  registry: CenstatdMeasureCurationRegistry
-  measures: readonly CenstatdMeasureForCuration[]
+export function resolveCenstatdFieldCuration(input: {
+  registry: CenstatdFieldCurationRegistry
+  fields: readonly CenstatdFieldForCuration[]
 }) {
   const decisions = new Map(
-    input.registry.measures.map(item => [measureKey(item), item] as const),
+    input.registry.fields.map(item => [measureKey(item), item] as const),
   )
-  const unresolved = input.measures.filter(
-    measure => !decisions.has(measureKey(measure)),
-  )
+  const unresolved = input.fields.filter(field => !decisions.has(measureKey(field)))
   return {
     metadata: new Map(
-      input.measures.flatMap(measure => {
-        const decision = decisions.get(measureKey(measure))
+      input.fields.flatMap(field => {
+        const decision = decisions.get(measureKey(field))
         return decision
           ? [
               [
-                measureKey(measure),
+                measureKey(field),
                 {
                   aggregation: decision.aggregation,
-                  ...(decision.denominatorMeasureCode === undefined
+                  ...(decision.aggregationPercentile === undefined
                     ? {}
-                    : { denominatorMeasureCode: decision.denominatorMeasureCode }),
+                    : { aggregationPercentile: decision.aggregationPercentile }),
+                  ...(decision.comparability === undefined
+                    ? {}
+                    : { comparability: decision.comparability }),
+                  ...(decision.denominatorFieldName === undefined
+                    ? {}
+                    : { denominatorFieldName: decision.denominatorFieldName }),
+                  dimensions: decision.dimensions,
                   localisations: decision.localisations,
-                  measureCode: decision.measureCode,
+                  fieldName: decision.fieldName,
                   ...(decision.sourceNullOption === undefined
                     ? {}
                     : { sourceNullOption: decision.sourceNullOption }),
@@ -312,57 +328,57 @@ export function resolveCenstatdMeasureCuration(input: {
   }
 }
 
-export async function promptForCenstatdMeasureCuration(input: {
-  registry: CenstatdMeasureCurationRegistry
-  measures: readonly CenstatdMeasureForCuration[]
-  persist?: (registry: CenstatdMeasureCurationRegistry) => Promise<void>
+export async function promptForCenstatdFieldCuration(input: {
+  registry: CenstatdFieldCurationRegistry
+  fields: readonly CenstatdFieldForCuration[]
+  persist?: (registry: CenstatdFieldCurationRegistry) => Promise<void>
   schemaCandidates: ReadonlyMap<string, CenstatdSchemaMeasureCandidate>
 }) {
-  const decisions = [...input.registry.measures]
-  const persist = () => input.persist?.({ measures: decisions }) ?? Promise.resolve()
-  for (const measure of input.measures) {
-    const schemaCandidate = input.schemaCandidates.get(measureKey(measure))
+  const decisions = [...input.registry.fields]
+  const persist = () => input.persist?.({ fields: decisions }) ?? Promise.resolve()
+  for (const field of input.fields) {
+    const schemaCandidate = input.schemaCandidates.get(measureKey(field))
     note(
-      formatCenstatdMeasureReviewContext({ measure, schemaCandidate }),
+      formatCenstatdFieldReviewContext({ field, schemaCandidate }),
       'MEASURE METADATA',
     )
 
-    let measureCode: string | null = null
-    let localisations: readonly CenstatdMeasureLocalisation[] | null = null
+    let fieldName: string | null = null
+    let localisations: readonly CenstatdFieldLocalisation[] | null = null
     let acceptedSchemaCandidate = false
     if (schemaCandidate) {
       note(
-        formatCenstatdMeasureProposal({
+        formatCenstatdFieldProposal({
           candidate: schemaCandidate,
-          sourceField: measure.sourceField,
-          suggestedUnitCode: suggestUnitCode(schemaCandidate.measureCode, decisions),
+          sourceField: field.sourceField,
+          suggestedUnitCode: suggestUnitCode(schemaCandidate.fieldName, decisions),
         }),
         'PROPOSALS',
       )
       const accepted = await confirm({
         initialValue: true,
-        message: 'Accept the proposed CSDI measure name and description?',
+        message: 'Accept the proposed CSDI field name and description?',
       })
-      if (isCancel(accepted)) throw new Error('C&SD measure curation cancelled.')
+      if (isCancel(accepted)) throw new Error('C&SD field curation cancelled.')
       if (accepted) {
         acceptedSchemaCandidate = true
-        measureCode = schemaCandidate.measureCode
+        fieldName = schemaCandidate.fieldName
         localisations = schemaCandidate.localisations
       }
     }
 
-    if (!measureCode || !localisations) {
-      measureCode = await requiredMeasureCode(
-        'Canonical measure key',
-        schemaCandidate?.measureCode ?? suggestMeasureName(measure.sourceField),
+    if (!fieldName || !localisations) {
+      fieldName = await requiredFieldName(
+        'Canonical field key',
+        schemaCandidate?.fieldName ?? suggestMeasureName(field.sourceField),
       )
       const englishName = await requiredText(
-        'English measure name',
+        'English field name',
         schemaCandidateLocalisation(schemaCandidate, 'en')?.name ??
-          suggestMeasureName(measure.sourceField),
+          suggestMeasureName(field.sourceField),
       )
       const englishDescription = await requiredText(
-        'English measure description',
+        'English field description',
         schemaCandidateLocalisation(schemaCandidate, 'en')?.description,
       )
       const chineseProposals = await resolveChineseLocalisationProposals({
@@ -371,19 +387,19 @@ export async function promptForCenstatdMeasureCuration(input: {
         englishName,
       })
       const traditionalChineseName = await requiredText(
-        'Traditional Chinese measure name',
+        'Traditional Chinese field name',
         chineseProposals.zhHant?.name,
       )
       const traditionalChineseDescription = await requiredText(
-        'Traditional Chinese measure description',
+        'Traditional Chinese field description',
         chineseProposals.zhHant?.description,
       )
       const simplifiedChineseName = await requiredText(
-        'Simplified Chinese measure name',
+        'Simplified Chinese field name',
         chineseProposals.zhHans?.name,
       )
       const simplifiedChineseDescription = await requiredText(
-        'Simplified Chinese measure description',
+        'Simplified Chinese field description',
         chineseProposals.zhHans?.description,
       )
       localisations = [
@@ -416,15 +432,16 @@ export async function promptForCenstatdMeasureCuration(input: {
       ]
     }
 
-    const suggestedUnitCode = suggestUnitCode(measureCode, decisions)
-    const seriesMetadata = suggestSeriesMeasureMetadata({
+    const suggestedUnitCode = suggestUnitCode(fieldName, decisions)
+    const measureCode = await requiredFieldName('Canonical measure code', fieldName)
+    const seriesMetadata = suggestSeriesFieldMetadata({
       decisions,
       localisations,
     })
     const statisticKind = await selectStatisticKind({
       localisations,
-      measure,
-      measureCode,
+      field,
+      fieldName,
       suggestedStatisticKind: seriesMetadata.statisticKind,
       suggestedUnitCode,
     })
@@ -433,19 +450,28 @@ export async function promptForCenstatdMeasureCuration(input: {
       suggestedAggregation:
         seriesMetadata.aggregation ?? suggestAggregation(localisations),
     })
-    const denominatorMeasureCode = await optionalDenominatorMeasureCode({
+    const aggregationPercentile = await selectAggregationPercentile({
+      aggregation,
+      suggestedAggregationPercentile:
+        seriesMetadata.aggregationPercentile ??
+        suggestAggregationPercentile(localisations),
+    })
+    const denominatorFieldName = await optionalDenominatorFieldName({
       statisticKind,
-      suggestedDenominatorMeasureCode: seriesMetadata.denominatorMeasureCode,
+      suggestedDenominatorFieldName: seriesMetadata.denominatorFieldName,
     })
     const resolvedUnitCode = acceptedSchemaCandidate
-      ? (suggestedUnitCode ?? measure.unitCode)
-      : await promptForCenstatdUnitCode(measure.unitCode, suggestedUnitCode)
+      ? (suggestedUnitCode ?? field.unitCode)
+      : await promptForCenstatdUnitCode(field.unitCode, suggestedUnitCode)
     await ensureCenstatdUnit({ code: resolvedUnitCode, path: DEFAULT_UNITS_PATH })
     decisions.push({
       aggregation,
-      datasetCode: measure.datasetCode,
-      ...(denominatorMeasureCode ? { denominatorMeasureCode } : {}),
+      ...(aggregationPercentile === undefined ? {} : { aggregationPercentile }),
+      datasetCode: field.datasetCode,
+      ...(denominatorFieldName ? { denominatorFieldName } : {}),
+      dimensions: {},
       localisations,
+      fieldName,
       measureCode,
       ...(schemaCandidate
         ? {
@@ -453,13 +479,13 @@ export async function promptForCenstatdMeasureCuration(input: {
             sourceNullOption: schemaCandidate.sourceNullOption,
           }
         : {}),
-      sourceField: measure.sourceField,
+      sourceField: field.sourceField,
       statisticKind,
       unitCode: resolvedUnitCode,
     })
     await persist()
   }
-  return { measures: decisions }
+  return { fields: decisions }
 }
 
 async function promptForCenstatdUnitCode(
@@ -473,13 +499,13 @@ async function promptForCenstatdUnitCode(
         : sourceUnitCode,
     message: 'Canonical unit code (leave blank when no unit mapping is reviewed)',
   })
-  if (isCancel(unitCode)) throw new Error('C&SD measure curation cancelled.')
+  if (isCancel(unitCode)) throw new Error('C&SD field curation cancelled.')
   return (unitCode ?? '').trim() || 'publisher-unknown'
 }
 
-/** Gives enough semantic context to review a measure before choosing its kind. */
-export function formatCenstatdMeasureReviewContext(input: {
-  measure: CenstatdMeasureForCuration
+/** Gives enough semantic context to review a field before choosing its kind. */
+export function formatCenstatdFieldReviewContext(input: {
+  field: CenstatdFieldForCuration
   schemaCandidate?: Pick<
     CenstatdSchemaMeasureCandidate,
     'localisations' | 'sourceReleaseUrl'
@@ -487,57 +513,74 @@ export function formatCenstatdMeasureReviewContext(input: {
 }) {
   const proposed = schemaCandidateLocalisation(input.schemaCandidate, 'en')
   return [
-    formatField('dataset', input.measure.datasetCode),
+    formatField('dataset', input.field.datasetCode),
     formatField(
       'proposed name',
-      proposed?.name ?? suggestMeasureName(input.measure.sourceField),
+      proposed?.name ?? suggestMeasureName(input.field.sourceField),
     ),
     ...(proposed?.description
       ? [formatField('proposed description', proposed.description)]
       : []),
-    formatField('value kind', input.measure.valueKind),
+    formatField('value kind', input.field.valueKind),
     ...(input.schemaCandidate
       ? [formatField('source release', input.schemaCandidate.sourceReleaseUrl)]
       : []),
   ].join('\n')
 }
 
-export function emptyCenstatdMeasureCuration(): CenstatdMeasureCurationRegistry {
-  return { measures: [] }
+export function emptyCenstatdFieldCuration(): CenstatdFieldCurationRegistry {
+  return { fields: [] }
 }
 
 function measureKey(
-  measure: Pick<CenstatdMeasureForCuration, 'datasetCode' | 'sourceField'>,
+  field: Pick<CenstatdFieldForCuration, 'datasetCode' | 'sourceField'>,
 ) {
-  return `${measure.datasetCode}\u0000${measure.sourceField}`
+  return `${field.datasetCode}\u0000${field.sourceField}`
 }
 
-export function parseCenstatdMeasureCuration(value: unknown, path: string) {
+export function parseCenstatdFieldCuration(value: unknown, path: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
-  const manifest = value as Partial<CenstatdMeasureCurationManifest>
+    throw new Error(`Invalid C&SD field curation manifest: ${path}.`)
+  const manifest = value as Partial<CenstatdFieldCurationManifest>
   if (
-    manifest.schemaVersion !== 6 ||
+    manifest.schemaVersion !== 8 ||
     typeof manifest.datasetCode !== 'string' ||
     !manifest.datasetCode.trim() ||
-    !Array.isArray(manifest.measures)
+    !Array.isArray(manifest.fields)
   ) {
-    throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
+    throw new Error(`Invalid C&SD field curation manifest: ${path}.`)
   }
-  const measures = manifest.measures.map((measure, index) => {
-    if (!measure || typeof measure !== 'object' || Array.isArray(measure))
-      throw new Error(`Invalid C&SD measure curation entry ${index + 1}: ${path}.`)
-    const entry = measure as Partial<CenstatdMeasureCurationEntry>
+  const fields = manifest.fields.map((field, index) => {
+    if (!field || typeof field !== 'object' || Array.isArray(field))
+      throw new Error(`Invalid C&SD field curation entry ${index + 1}: ${path}.`)
+    const entry = field as Partial<CenstatdFieldCurationEntry>
     if ('datasetCode' in entry)
       throw new Error(`C&SD dataset code belongs in the manifest root: ${path}.`)
     for (const field of ['sourceField', 'unitCode'] as const)
       if (typeof entry[field] !== 'string' || !entry[field].trim())
-        throw new Error(`Invalid C&SD measure curation ${field}: ${path}.`)
+        throw new Error(`Invalid C&SD field curation ${field}: ${path}.`)
+    if (
+      typeof entry.fieldName !== 'string' ||
+      !/^[a-z][A-Za-z0-9]*$/.test(entry.fieldName)
+    ) {
+      throw new Error(`Invalid C&SD canonical field key: ${path}.`)
+    }
     if (
       typeof entry.measureCode !== 'string' ||
       !/^[a-z][A-Za-z0-9]*$/.test(entry.measureCode)
     ) {
-      throw new Error(`Invalid C&SD canonical measure key: ${path}.`)
+      throw new Error(`Invalid C&SD measure code: ${path}.`)
+    }
+    if (
+      !entry.dimensions ||
+      typeof entry.dimensions !== 'object' ||
+      Array.isArray(entry.dimensions) ||
+      Object.entries(entry.dimensions).some(
+        ([code, value]) =>
+          !/^[a-z][a-z0-9-]*$/.test(code) || typeof value !== 'string' || !value.trim(),
+      )
+    ) {
+      throw new Error(`Invalid C&SD analytical dimensions: ${path}.`)
     }
     if (
       typeof entry.statisticKind !== 'string' ||
@@ -549,8 +592,21 @@ export function parseCenstatdMeasureCuration(value: unknown, path: string) {
       !statsAggregations.includes(entry.aggregation as StatsAggregation)
     )
       throw new Error(`Invalid C&SD aggregation: ${path}.`)
+    if (entry.aggregation === 'median' || entry.aggregation === 'percentile') {
+      if (
+        typeof entry.aggregationPercentile !== 'number' ||
+        !Number.isFinite(entry.aggregationPercentile) ||
+        entry.aggregationPercentile < 0 ||
+        entry.aggregationPercentile > 100 ||
+        (entry.aggregation === 'median' && entry.aggregationPercentile !== 50)
+      ) {
+        throw new Error(`Invalid C&SD aggregation percentile: ${path}.`)
+      }
+    } else if (entry.aggregationPercentile !== undefined) {
+      throw new Error(`Unexpected C&SD aggregation percentile: ${path}.`)
+    }
     if (!Array.isArray(entry.localisations) || entry.localisations.length === 0)
-      throw new Error(`Missing C&SD measure localisations: ${path}.`)
+      throw new Error(`Missing C&SD field localisations: ${path}.`)
     const locales = new Set<string>()
     for (const localisation of entry.localisations) {
       if (
@@ -565,26 +621,47 @@ export function parseCenstatdMeasureCuration(value: unknown, path: string) {
         typeof localisation.isTranslationVerified !== 'boolean' ||
         locales.has(localisation.locale)
       ) {
-        throw new Error(`Invalid C&SD measure localisation: ${path}.`)
+        throw new Error(`Invalid C&SD field localisation: ${path}.`)
       }
       locales.add(localisation.locale)
     }
     if (!locales.has('en'))
-      throw new Error(`Missing English C&SD measure localisation: ${path}.`)
+      throw new Error(`Missing English C&SD field localisation: ${path}.`)
     if (
       entry.sourceNullOption !== undefined &&
       entry.sourceNullOption !== null &&
       typeof entry.sourceNullOption !== 'string'
     ) {
-      throw new Error(`Invalid C&SD measure source null option: ${path}.`)
+      throw new Error(`Invalid C&SD field source null option: ${path}.`)
     }
     if (
-      entry.denominatorMeasureCode !== undefined &&
-      entry.denominatorMeasureCode !== null &&
-      (typeof entry.denominatorMeasureCode !== 'string' ||
-        !/^[a-z][A-Za-z0-9]*$/.test(entry.denominatorMeasureCode))
+      entry.denominatorFieldName !== undefined &&
+      entry.denominatorFieldName !== null &&
+      (typeof entry.denominatorFieldName !== 'string' ||
+        !/^[a-z][A-Za-z0-9]*$/.test(entry.denominatorFieldName))
     )
-      throw new Error(`Invalid C&SD denominator measure key: ${path}.`)
+      throw new Error(`Invalid C&SD denominator field key: ${path}.`)
+    if (entry.comparability !== undefined) {
+      const comparability = entry.comparability
+      if (
+        !comparability ||
+        typeof comparability !== 'object' ||
+        Array.isArray(comparability) ||
+        Object.keys(comparability).sort().join(',') !==
+          'affectedReferencePeriods,reason,status' ||
+        !statsFieldComparabilityStatuses.includes(comparability.status) ||
+        !statsFieldComparabilityReasons.includes(comparability.reason) ||
+        !Array.isArray(comparability.affectedReferencePeriods) ||
+        comparability.affectedReferencePeriods.length === 0 ||
+        comparability.affectedReferencePeriods.some(
+          period => typeof period !== 'string' || !/^\d{4}$/.test(period),
+        ) ||
+        new Set(comparability.affectedReferencePeriods).size !==
+          comparability.affectedReferencePeriods.length
+      ) {
+        throw new Error(`Invalid C&SD field comparability: ${path}.`)
+      }
+    }
     if (entry.schemaSpecification !== undefined) {
       const schemaSpecification = entry.schemaSpecification
       if (
@@ -596,53 +673,53 @@ export function parseCenstatdMeasureCuration(value: unknown, path: string) {
         typeof schemaSpecification.sha256 !== 'string' ||
         !/^[a-f0-9]{64}$/i.test(schemaSpecification.sha256)
       ) {
-        throw new Error(`Invalid C&SD measure schema specification: ${path}.`)
+        throw new Error(`Invalid C&SD field schema specification: ${path}.`)
       }
     }
-    return entry as CenstatdMeasureCurationEntry
+    return entry as CenstatdFieldCurationEntry
   })
-  const keys = new Set(measures.map(measure => measure.sourceField))
-  if (keys.size !== measures.length)
-    throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
-  const measureCodes = new Set(measures.map(measure => measure.measureCode))
-  if (measureCodes.size !== measures.length)
-    throw new Error(`Duplicate C&SD canonical measure key: ${path}.`)
-  const localisedMeasureNames = new Map<string, CenstatdMeasureCurationEntry>()
-  for (const measure of measures) {
-    for (const localisation of measure.localisations) {
+  const keys = new Set(fields.map(field => field.sourceField))
+  if (keys.size !== fields.length)
+    throw new Error(`Duplicate C&SD field curation entry: ${path}.`)
+  const fieldNames = new Set(fields.map(field => field.fieldName))
+  if (fieldNames.size !== fields.length)
+    throw new Error(`Duplicate C&SD canonical field key: ${path}.`)
+  const localisedMeasureNames = new Map<string, CenstatdFieldCurationEntry>()
+  for (const field of fields) {
+    for (const localisation of field.localisations) {
       const key = `${localisation.locale}\u0000${localisation.name.trim()}`
       const existing = localisedMeasureNames.get(key)
       if (existing) {
         throw new Error(
-          `Duplicate C&SD localised measure name for ${manifest.datasetCode}/${localisation.locale}: ${localisation.name} (${existing.sourceField}, ${measure.sourceField}): ${path}.`,
+          `Duplicate C&SD localised field name for ${manifest.datasetCode}/${localisation.locale}: ${localisation.name} (${existing.sourceField}, ${field.sourceField}): ${path}.`,
         )
       }
-      localisedMeasureNames.set(key, measure)
+      localisedMeasureNames.set(key, field)
     }
   }
   return {
     datasetCode: manifest.datasetCode,
-    measures,
-    schemaVersion: 6 as const,
+    fields,
+    schemaVersion: 8 as const,
   }
 }
 
-function validateCenstatdMeasureCurationRegistry(
-  registry: CenstatdMeasureCurationRegistry,
+function validateCenstatdFieldCurationRegistry(
+  registry: CenstatdFieldCurationRegistry,
   path: string,
 ) {
-  const byDataset = new Map<string, CenstatdMeasureCurationDecision[]>()
-  for (const decision of registry.measures) {
-    const measures = byDataset.get(decision.datasetCode) ?? []
-    measures.push(decision)
-    byDataset.set(decision.datasetCode, measures)
+  const byDataset = new Map<string, CenstatdFieldCurationDecision[]>()
+  for (const decision of registry.fields) {
+    const fields = byDataset.get(decision.datasetCode) ?? []
+    fields.push(decision)
+    byDataset.set(decision.datasetCode, fields)
   }
-  for (const [datasetCode, measures] of byDataset)
-    parseCenstatdMeasureCuration(
+  for (const [datasetCode, fields] of byDataset)
+    parseCenstatdFieldCuration(
       {
         datasetCode,
-        measures: measures.map(({ datasetCode: _, ...measure }) => measure),
-        schemaVersion: 6,
+        fields: fields.map(({ datasetCode: _, ...field }) => field),
+        schemaVersion: 8,
       },
       path,
     )
@@ -656,34 +733,35 @@ function validateCenstatdMeasureCurationRegistry(
  * gate. A retrieval failure deliberately falls back to manual curation.
  */
 export async function resolveCenstatdSchemaMeasureCandidates(
-  measures: readonly CenstatdMeasureForCuration[],
+  fields: readonly CenstatdFieldForCuration[],
 ) {
-  const datasetCodes = new Set(measures.map(measure => measure.datasetCode))
+  const datasetCodes = new Set(fields.map(field => field.datasetCode))
   const fixtures = await loadDatasetFixtures(datasetCodes)
   const candidates = new Map<string, CenstatdSchemaMeasureCandidate>()
 
   await Promise.all(
     fixtures.map(async dataset => {
-      const specificationUrl = staticCsdiSpecificationUrl(
-        dataset.schemaURL,
-      )
+      const specificationUrl = staticCsdiSpecificationUrl(dataset.schemaURL)
       if (!specificationUrl) return
-      const fields = await fetchCsdiSpecification(specificationUrl)
-      if (!fields.length) return
-      const matches = measures.flatMap(measure => {
-        if (measure.datasetCode !== dataset.code) return []
-        const schema = uniqueSchemaField(
-          fields.filter(field => field.sourceField === measure.sourceField),
-        )
-        return schema ? [{ measure, schema }] : []
-      })
+      const schemaFields = await fetchCsdiSpecification(specificationUrl)
+      if (!schemaFields.length) return
+      const matches = fields
+        .filter(field => field.datasetCode === dataset.code)
+        .flatMap(field => {
+          const schema = uniqueSchemaField(
+            schemaFields.filter(
+              candidate => candidate.sourceField === field.sourceField,
+            ),
+          )
+          return schema ? [{ field, schema }] : []
+        })
       const translations = await resolveMissingCsdiLocalisations(
         matches.map(match => match.schema),
       )
-      for (const { measure, schema } of matches) {
+      for (const { field, schema } of matches) {
         const zhHant = resolvedCsdiLocalisation(schema, 'zh-Hant', translations.zhHant)
         const zhHans = resolvedCsdiLocalisation(schema, 'zh-Hans', translations.zhHans)
-        candidates.set(measureKey(measure), {
+        candidates.set(measureKey(field), {
           localisations: [
             {
               description: schema.descriptionEn,
@@ -704,7 +782,7 @@ export async function resolveCenstatdSchemaMeasureCandidates(
               name: zhHans,
             },
           ],
-          measureCode: suggestMeasureName(schema.descriptionEn),
+          fieldName: suggestMeasureName(schema.descriptionEn),
           sourceReleaseUrl: dataset.sourceUrl ?? specificationUrl,
           schemaSpecification: {
             sha256: schema.sha256,
@@ -855,7 +933,7 @@ function htmlText(value: string) {
 }
 
 /**
- * Canonical measure names are stable camelCase identifiers. Publisher
+ * Canonical field names are stable camelCase identifiers. Publisher
  * descriptions remain the localised descriptions, including their units.
  */
 export function suggestMeasureName(description: string) {
@@ -873,8 +951,8 @@ export function suggestMeasureName(description: string) {
     .join('')
 }
 
-export function formatCenstatdMeasureProposal(input: {
-  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations' | 'measureCode'>
+export function formatCenstatdFieldProposal(input: {
+  candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations' | 'fieldName'>
   sourceField: string
   suggestedUnitCode: string | null
 }) {
@@ -884,7 +962,7 @@ export function formatCenstatdMeasureProposal(input: {
   if (!english || !zhHant || !zhHans)
     throw new Error('C&SD proposal is missing a required localisation.')
   return [
-    `${colorRed(input.sourceField)}${colorTeal(' -> ')}${colorYellow(input.candidate.measureCode)}${input.suggestedUnitCode ? colorGrey(` (${input.suggestedUnitCode})`) : ''}`,
+    `${colorRed(input.sourceField)}${colorTeal(' -> ')}${colorYellow(input.candidate.fieldName)}${input.suggestedUnitCode ? colorGrey(` (${input.suggestedUnitCode})`) : ''}`,
     '',
     formatProposalLocalisation('name', english.name, zhHant.name, zhHans.name),
     formatProposalLocalisation(
@@ -897,19 +975,19 @@ export function formatCenstatdMeasureProposal(input: {
 }
 
 export function suggestUnitCode(
-  measureCode: string,
+  fieldName: string,
   reviewedMeasures: readonly Pick<
-    CenstatdMeasureCurationEntry,
-    'measureCode' | 'unitCode'
+    CenstatdFieldCurationEntry,
+    'fieldName' | 'unitCode'
   >[],
 ) {
-  const measureTokens = canonicalMeasureTokens(measureCode)
+  const measureTokens = canonicalMeasureTokens(fieldName)
   const candidates = reviewedMeasures
     .filter(entry => entry.unitCode !== 'publisher-unknown')
     .filter(entry => measureTokens.has('density') || !entry.unitCode.includes('-per-'))
     .map(entry => ({
       entry,
-      score: intersectionSize(measureTokens, canonicalMeasureTokens(entry.measureCode)),
+      score: intersectionSize(measureTokens, canonicalMeasureTokens(entry.fieldName)),
     }))
     .filter(candidate => candidate.score > 0)
   const bestScore = Math.max(...candidates.map(candidate => candidate.score), 0)
@@ -922,8 +1000,8 @@ export function suggestUnitCode(
 }
 
 export function suggestStatisticKind(input: {
-  localisations?: readonly CenstatdMeasureLocalisation[]
-  measureCode: string
+  localisations?: readonly CenstatdFieldLocalisation[]
+  fieldName: string
   unitCode: string | null
 }): Exclude<StatsStatisticKind, 'unreviewed'> {
   const english = input.localisations?.find(
@@ -933,7 +1011,7 @@ export function suggestStatisticKind(input: {
   const proposedKind = suggestStatisticKindFromText(proposedText)
   if (proposedKind) return proposedKind
 
-  const name = input.measureCode.toLocaleLowerCase('en')
+  const name = input.fieldName.toLocaleLowerCase('en')
   const unit = input.unitCode?.toLocaleLowerCase('en') ?? ''
   if (name.includes('percent') || name.includes('percentage') || unit === 'percent')
     return 'proportion'
@@ -952,19 +1030,21 @@ export function suggestStatisticKind(input: {
   return 'quantity'
 }
 
-export function suggestSeriesMeasureMetadata(input: {
-  decisions: readonly CenstatdMeasureCurationEntry[]
-  localisations: readonly CenstatdMeasureLocalisation[]
+export function suggestSeriesFieldMetadata(input: {
+  decisions: readonly CenstatdFieldCurationEntry[]
+  localisations: readonly CenstatdFieldLocalisation[]
 }): {
   aggregation: Exclude<StatsAggregation, 'unreviewed'> | null
-  denominatorMeasureCode: string | null
+  aggregationPercentile: number | null
+  denominatorFieldName: string | null
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'> | null
 } {
   const signature = measureSeriesSignature(input.localisations)
   if (!signature)
     return {
       aggregation: null,
-      denominatorMeasureCode: null,
+      aggregationPercentile: null,
+      denominatorFieldName: null,
       statisticKind: null,
     }
   const peers = input.decisions.filter(
@@ -972,14 +1052,17 @@ export function suggestSeriesMeasureMetadata(input: {
   )
   return {
     aggregation: uniqueSuggestion(peers.map(peer => peer.aggregation)),
-    denominatorMeasureCode: uniqueSuggestion(
-      peers.map(peer => peer.denominatorMeasureCode ?? null),
+    aggregationPercentile: uniqueSuggestion(
+      peers.map(peer => peer.aggregationPercentile ?? null),
+    ),
+    denominatorFieldName: uniqueSuggestion(
+      peers.map(peer => peer.denominatorFieldName ?? null),
     ),
     statisticKind: uniqueSuggestion(peers.map(peer => peer.statisticKind)),
   }
 }
 
-function measureSeriesSignature(localisations: readonly CenstatdMeasureLocalisation[]) {
+function measureSeriesSignature(localisations: readonly CenstatdFieldLocalisation[]) {
   const english = localisations.find(localisation => localisation.locale === 'en')
   if (!english) return null
   return english.description
@@ -1010,9 +1093,9 @@ function suggestStatisticKindFromText(
 }
 
 async function selectStatisticKind(input: {
-  localisations: readonly CenstatdMeasureLocalisation[]
-  measure: CenstatdMeasureForCuration
-  measureCode: string
+  localisations: readonly CenstatdFieldLocalisation[]
+  field: CenstatdFieldForCuration
+  fieldName: string
   suggestedStatisticKind: Exclude<StatsStatisticKind, 'unreviewed'> | null
   suggestedUnitCode: string | null
 }): Promise<Exclude<StatsStatisticKind, 'unreviewed'>> {
@@ -1021,8 +1104,8 @@ async function selectStatisticKind(input: {
       input.suggestedStatisticKind ??
       suggestStatisticKind({
         localisations: input.localisations,
-        measureCode: input.measureCode,
-        unitCode: input.suggestedUnitCode ?? input.measure.unitCode,
+        fieldName: input.fieldName,
+        unitCode: input.suggestedUnitCode ?? input.field.unitCode,
       }),
     message: 'Statistic kind',
     options: [
@@ -1055,7 +1138,7 @@ async function selectStatisticKind(input: {
       { hint: 'An indexed value relative to a base.', label: 'Index', value: 'index' },
     ],
   })
-  if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
+  if (isCancel(value)) throw new Error('C&SD field curation cancelled.')
   return value as Exclude<StatsStatisticKind, 'unreviewed'>
 }
 
@@ -1065,7 +1148,7 @@ async function selectStatisticKind(input: {
  * a quantity can be a total, mean, or median.
  */
 export function suggestAggregation(
-  localisations: readonly CenstatdMeasureLocalisation[],
+  localisations: readonly CenstatdFieldLocalisation[],
 ): Exclude<StatsAggregation, 'unreviewed'> | null {
   const english = localisations.find(localisation => localisation.locale === 'en')
   if (!english) return null
@@ -1074,6 +1157,7 @@ export function suggestAggregation(
   const aggregationTerms: ReadonlyArray<
     readonly [RegExp, Exclude<StatsAggregation, 'unreviewed'>]
   > = [
+    [/\b(?:first|lower|third|upper)\s+quartile\b/i, 'percentile'],
     [/\bmedian\b/i, 'median'],
     [/\b(?:mean|average)\b/i, 'mean'],
     [/\b(?:minimum|min)\b/i, 'minimum'],
@@ -1082,6 +1166,18 @@ export function suggestAggregation(
     [/\bpercentile\b/i, 'percentile'],
   ]
   return aggregationTerms.find(([term]) => term.test(text))?.[1] ?? null
+}
+
+export function suggestAggregationPercentile(
+  localisations: readonly CenstatdFieldLocalisation[],
+) {
+  const english = localisations.find(localisation => localisation.locale === 'en')
+  if (!english) return null
+  const text = `${english.name} ${english.description}`
+  if (/\bmedian\b/i.test(text)) return 50
+  if (/\b(?:first|lower)\s+quartile\b/i.test(text)) return 25
+  if (/\b(?:third|upper)\s+quartile\b/i.test(text)) return 75
+  return null
 }
 
 const selectableAggregations = [
@@ -1095,7 +1191,7 @@ const selectableAggregations = [
 ] as const satisfies readonly Exclude<StatsAggregation, 'unreviewed'>[]
 
 /**
- * Totals preserve additive count and quantity measures only. Summing a ratio,
+ * Totals preserve additive count and quantity fields only. Summing a ratio,
  * proportion, rate, density, or index does not retain that statistic kind.
  */
 export function validAggregationsForStatisticKind(
@@ -1142,27 +1238,50 @@ async function selectAggregation(input: {
     message: 'Aggregation',
     options: options.filter(option => validAggregations.includes(option.value)),
   })
-  if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
+  if (isCancel(value)) throw new Error('C&SD field curation cancelled.')
   return value as Exclude<StatsAggregation, 'unreviewed'>
 }
 
-async function optionalDenominatorMeasureCode(input: {
+async function selectAggregationPercentile(input: {
+  aggregation: Exclude<StatsAggregation, 'unreviewed'>
+  suggestedAggregationPercentile: number | null
+}): Promise<number | undefined> {
+  if (input.aggregation === 'median') return 50
+  if (input.aggregation !== 'percentile') return undefined
+  const value = await text({
+    initialValue: input.suggestedAggregationPercentile?.toString(),
+    message: 'Percentile rank (0–100)',
+  })
+  if (isCancel(value)) throw new Error('C&SD field curation cancelled.')
+  const percentileText = value.trim()
+  const percentile = Number(percentileText)
+  if (
+    !percentileText ||
+    !Number.isFinite(percentile) ||
+    percentile < 0 ||
+    percentile > 100
+  ) {
+    throw new Error('C&SD percentile rank must be a number from 0 to 100.')
+  }
+  return percentile
+}
+
+async function optionalDenominatorFieldName(input: {
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
-  suggestedDenominatorMeasureCode: string | null
+  suggestedDenominatorFieldName: string | null
 }) {
   if (!['proportion', 'ratio', 'rate', 'density'].includes(input.statisticKind))
     return undefined
   const value = await text({
-    initialValue: input.suggestedDenominatorMeasureCode ?? undefined,
-    message:
-      'Canonical denominator measure key (leave blank when the base is external)',
+    initialValue: input.suggestedDenominatorFieldName ?? undefined,
+    message: 'Canonical denominator field key (leave blank when the base is external)',
   })
-  if (isCancel(value)) throw new Error('C&SD measure curation cancelled.')
-  const denominatorMeasureCode = value.trim()
-  if (!denominatorMeasureCode) return undefined
-  if (!/^[a-z][A-Za-z0-9]*$/.test(denominatorMeasureCode))
-    throw new Error('C&SD denominator measure key must be lower camel case.')
-  return denominatorMeasureCode
+  if (isCancel(value)) throw new Error('C&SD field curation cancelled.')
+  const denominatorFieldName = value.trim()
+  if (!denominatorFieldName) return undefined
+  if (!/^[a-z][A-Za-z0-9]*$/.test(denominatorFieldName))
+    throw new Error('C&SD denominator field key must be lower camel case.')
+  return denominatorFieldName
 }
 
 export async function resolveChineseLocalisationProposals(input: {
@@ -1215,7 +1334,7 @@ function formatProposalLocalisation(
 
 function schemaCandidateLocalisation(
   candidate: Pick<CenstatdSchemaMeasureCandidate, 'localisations'> | undefined,
-  locale: CenstatdMeasureLocalisation['locale'],
+  locale: CenstatdFieldLocalisation['locale'],
 ) {
   return candidate?.localisations.find(localisation => localisation.locale === locale)
 }
@@ -1224,19 +1343,17 @@ function machineLocalisation(
   translated: ReadonlyMap<string, string>,
   englishName: string,
   englishDescription: string,
-  locale: CenstatdMeasureLocalisation['locale'],
-): CenstatdMeasureLocalisation {
+  locale: CenstatdFieldLocalisation['locale'],
+): CenstatdFieldLocalisation {
   const name = translated.get(englishName)
   const description = translated.get(englishDescription)
   if (!name || !description)
-    throw new Error(
-      `Azure Translator returned an incomplete ${locale} measure proposal.`,
-    )
+    throw new Error(`Azure Translator returned an incomplete ${locale} field proposal.`)
   return { description, isTranslationVerified: false, locale, name }
 }
 
 function isLocalisationVerified(
-  proposal: CenstatdMeasureLocalisation | null,
+  proposal: CenstatdFieldLocalisation | null,
   name: string,
   description: string,
 ) {
@@ -1255,7 +1372,7 @@ function intersectionSize(left: ReadonlySet<string>, right: ReadonlySet<string>)
   return [...left].filter(value => right.has(value)).length
 }
 
-async function requiredMeasureCode(message: string, initialValue: string) {
+async function requiredFieldName(message: string, initialValue: string) {
   for (;;) {
     const value = await requiredText(message, initialValue)
     if (/^[a-z][A-Za-z0-9]*$/.test(value)) return value
@@ -1272,6 +1389,6 @@ async function requiredText(message: string, initialValue?: string) {
     message,
     validate: value => ((value ?? '').trim() ? undefined : 'A value is required.'),
   })
-  if (isCancel(answer)) throw new Error('C&SD measure curation cancelled.')
+  if (isCancel(answer)) throw new Error('C&SD field curation cancelled.')
   return (answer ?? '').trim()
 }

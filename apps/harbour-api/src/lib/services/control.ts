@@ -5,6 +5,7 @@ import {
   getCurrentReleaseForDatasetId,
   listDraftReleaseSetPrimaryReleases,
   listDraftReleaseSets,
+  listSnapshotsForRelease,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
@@ -246,25 +247,17 @@ export async function handlePublishDataset(
   cleanupQueue?: HarbourJobQueue,
   options: {
     reconcileDraftReleaseSet?: boolean
-    releaseSet?: { code: string; id: string; status?: 'draft' | 'current' | 'archived' }
+    releaseSet?: {
+      code: string
+      cohortKey?: string | null
+      id: string
+      status?: 'draft' | 'current' | 'archived'
+    }
   } = {},
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
-    // Division Statistics currently have no API composition or snapshot. Their
-    // source and history shards are nevertheless a complete published release.
-    if (datasetType === 'divisionStatistic') {
-      await updateDatasetStatus(db, dataset.releaseId, 'published')
-      return {
-        datasetId: dataset.releaseCode,
-        releaseCode: dataset.releaseCode,
-        releaseId: dataset.releaseId,
-        phase: null,
-        status: 'published',
-      }
-    }
-
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
@@ -321,13 +314,15 @@ export async function handlePublishDataset(
           )
     const existingReleaseSet = isCenstatdGeographicGeometry
       ? null
-      : (options.releaseSet ??
-        (await resolveReleaseSetForRelease(
-          db,
-          dataset.releaseId,
-          datasetType,
-          domainCode,
-        )))
+      : datasetType === 'divisionStatistic'
+        ? (options.releaseSet ?? null)
+        : (options.releaseSet ??
+          (await resolveReleaseSetForRelease(
+            db,
+            dataset.releaseId,
+            datasetType,
+            domainCode,
+          )))
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
         ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
@@ -337,6 +332,19 @@ export async function handlePublishDataset(
             dataset.cohortKey,
           )
         : []
+    const snapshots = await waitForSnapshotsForRelease(
+      db,
+      dataset.releaseId,
+      datasetType,
+      datasetVariant,
+    )
+    const firstSnapshot = snapshots[0]
+    if (!firstSnapshot) {
+      throw new ControlRequestError(
+        `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
+      )
+    }
+
     const releaseSets = isCenstatdGeographicGeometry
       ? await (async () => {
           const releaseSets = []
@@ -354,26 +362,43 @@ export async function handlePublishDataset(
           }
           return releaseSets
         })()
-      : draftReleaseSets.length > 0
-        ? draftReleaseSets
-        : [
-            existingReleaseSet ??
-              (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
-                domainCode,
-              })),
-          ]
-    const snapshot = await waitForSnapshotForRelease(
-      db,
-      dataset.releaseId,
-      datasetType,
-      datasetVariant,
-    )
-
-    if (!snapshot) {
-      throw new ControlRequestError(
-        `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
-      )
-    }
+      : datasetType === 'divisionStatistic'
+        ? await (async () => {
+            if (options.releaseSet) return [options.releaseSet]
+            const sets = []
+            for (const snapshot of snapshots) {
+              sets.push(
+                await ensureDraftReleaseSetForRelease(
+                  db,
+                  datasetType,
+                  { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
+                  { domainCode },
+                ),
+              )
+            }
+            return sets
+          })()
+        : draftReleaseSets.length > 0
+          ? draftReleaseSets
+          : [
+              existingReleaseSet ??
+                (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
+                  domainCode,
+                })),
+            ]
+    const publicationTargets = releaseSets.map(releaseSet => {
+      if (datasetType !== 'divisionStatistic') {
+        return { releaseSet, snapshot: firstSnapshot }
+      }
+      const cohortKey = releaseSet.cohortKey ?? dataset.cohortKey
+      const snapshot = snapshots.find(candidate => candidate.cohortKey === cohortKey)
+      if (!snapshot) {
+        throw new ControlRequestError(
+          `Statistic snapshot not found for release-set cohort ${cohortKey}.`,
+        )
+      }
+      return { releaseSet, snapshot }
+    })
 
     const domainMembers = compositionMembers.filter(
       member => member.domainCode === domainCode,
@@ -388,14 +413,14 @@ export async function handlePublishDataset(
     const apiReleaseSetAnnouncements: NonNullable<
       ControlResult['apiReleaseSetAnnouncements']
     > = []
-    const newestReleaseSetIndex = releaseSets.length - 1
+    const newestReleaseSetIndex = publicationTargets.length - 1
     const publishedAtMs = Date.now()
     const publisherName = await resolvePublisherName(db, dataset.source)
-    for (const [index, releaseSet] of releaseSets.entries()) {
+    for (const [index, publicationTarget] of publicationTargets.entries()) {
+      const { releaseSet, snapshot } = publicationTarget
       const releaseSetWasDraft =
         !('status' in releaseSet) || releaseSet.status === 'draft'
-      const releaseSetCohortKey =
-        parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
+      const releaseSetCohortKey = releaseSet.cohortKey ?? dataset.cohortKey
       const previousReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
         db,
         datasetType,
@@ -447,7 +472,10 @@ export async function handlePublishDataset(
       )
       const isNewestReleaseSet = index === newestReleaseSetIndex
       const shouldPublishReleaseSet =
-        releaseSetIsComplete && (isCenstatdGeographicGeometry || isNewestReleaseSet)
+        releaseSetIsComplete &&
+        (isCenstatdGeographicGeometry ||
+          datasetType === 'divisionStatistic' ||
+          isNewestReleaseSet)
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
@@ -465,10 +493,8 @@ export async function handlePublishDataset(
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         type: datasetType,
-        // A first C&SD cohort makes its snapshot available to draft release
-        // sets, but cannot publish them until every required companion is
-        // present. Once complete, publish every affected cohort in
-        // chronological order; the newest one becomes current.
+        // Each statistic reference period is independently publishable. Other
+        // families may still wait for required companion snapshots.
         deferApiReleaseSet: !shouldPublishReleaseSet,
         publishApiCatalogRevision: shouldPublishReleaseSet,
         updateDatasetRelease: !options.reconcileDraftReleaseSet && isNewestReleaseSet,
@@ -538,7 +564,7 @@ export async function handlePublishDataset(
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
-      snapshotId: snapshot.id,
+      snapshotId: publicationTargets.at(-1)?.snapshot.id,
       status: 'current',
     }
   })
@@ -668,8 +694,9 @@ async function resolveSupportingSnapshotsForMember(
   cohortKey: string,
 ) {
   if (member.variant !== 'default') {
+    const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
     const source = member.variant.split(':')[0] ?? member.variant
-    const publisherCode = publisherCodeForSource(source)
+    const publisherCode = datasetCode ? undefined : publisherCodeForSource(source)
     const snapshots =
       await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
         db,
@@ -677,6 +704,7 @@ async function resolveSupportingSnapshotsForMember(
         regionCode,
         cohortKey,
         {
+          datasetCode,
           publisherCode,
           variant: member.variant,
         },
@@ -695,7 +723,7 @@ async function resolveSupportingSnapshotsForMember(
           member.resourceType,
           regionCode,
           cohortKey,
-          { publisherCode },
+          { datasetCode, publisherCode },
         )
       return nextSnapshot ? [nextSnapshot] : []
     }
@@ -710,14 +738,6 @@ async function resolveSupportingSnapshotsForMember(
     cohortKey,
   )
   return snapshot ? [snapshot] : []
-}
-
-function parseReleaseSetCohortKey(releaseSetCode?: string) {
-  return (
-    releaseSetCode?.match(
-      /^data-[a-z0-9]+-divisions-(.+?)(?:-r\d+)?(?:--[a-z0-9-]+)?$/i,
-    )?.[1] ?? null
-  )
 }
 
 export async function handleScheduleSnapshotCleanup(
@@ -913,19 +933,22 @@ function parseCompositionI18n(value: unknown) {
   }
 }
 
-async function waitForSnapshotForRelease(
+async function waitForSnapshotsForRelease(
   db: HarbourReadableDb,
   releaseId: string,
   datasetType: ResourceType,
   variant: string,
 ) {
   for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
-    const snapshot = await resolveSnapshotForRelease(db, releaseId, datasetType, {
-      variant,
-    })
+    const snapshots =
+      datasetType === 'divisionStatistic'
+        ? await listSnapshotsForRelease(db, releaseId, datasetType, { variant })
+        : await resolveSnapshotForRelease(db, releaseId, datasetType, {
+            variant,
+          }).then(snapshot => (snapshot ? [snapshot] : []))
 
-    if (snapshot) {
-      return snapshot
+    if (snapshots.length > 0) {
+      return snapshots
     }
 
     if (attempt < PUBLISH_SNAPSHOT_WAIT_LIMIT) {
@@ -933,7 +956,7 @@ async function waitForSnapshotForRelease(
     }
   }
 
-  return null
+  return []
 }
 
 function stringifyOptional(value?: Record<string, unknown>) {

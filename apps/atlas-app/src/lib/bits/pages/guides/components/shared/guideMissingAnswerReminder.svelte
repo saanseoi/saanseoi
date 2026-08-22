@@ -119,19 +119,19 @@ onMount(() => {
 {#if isVisible && missingQuestion}
   <aside
     bind:this={reminderElement}
-    class={`fixed left-1/2 z-60 flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 items-stretch border border-[#ef8b88]/80 bg-background/95 shadow-popover backdrop-blur-sm lg:left-[calc((100vw-12rem)/2)] ${reminderTop === undefined ? 'bottom-5' : ''}`}
+    class={`fixed left-1/2 z-60 flex w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 items-stretch border border-[#d73a3a] bg-[#fff4f2]/95 shadow-popover backdrop-blur-sm dark:border-[#ef8b88]/80 dark:bg-background/95 lg:left-[calc((100vw-12rem)/2)] ${reminderTop === undefined ? 'bottom-5' : ''}`}
     style:top={reminderTop === undefined ? undefined : `${reminderTop}px`}
     aria-live="polite"
     in:fade={{ duration: 160 }}
     out:fade={{ duration: 120 }}
   >
     <button
-      class="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#ef8b88]/10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#ef8b88]"
+      class="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#d73a3a]/10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#b42318] dark:hover:bg-[#ef8b88]/10 dark:focus-visible:outline-[#ef8b88]"
       type="button"
       onclick={scrollToMissingQuestion}
     >
       <span
-        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ef8b88]/15 text-[#ffb4b1]"
+        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#fbd0cc] text-[#b42318] dark:bg-[#ef8b88]/15 dark:text-[#ffb4b1]"
       >
         <Icon
           icon="material-symbols-light:arrow-upward-rounded"
@@ -141,7 +141,7 @@ onMount(() => {
       </span>
       <span class="min-w-0">
         <span
-          class="block font-body text-label-sm font-semibold tracking-[0.12em] text-[#ffb4b1] uppercase"
+          class="block font-body text-label-sm font-semibold tracking-[0.12em] text-[#b42318] uppercase dark:text-[#ffb4b1]"
           >{missingQuestion.reminderTitle ?? title}</span
         >
         <span
@@ -151,7 +151,7 @@ onMount(() => {
       </span>
     </button>
     <button
-      class="grid w-12 shrink-0 place-items-center border-l border-[#ef8b88]/35 text-foreground-alt transition-colors hover:bg-[#ef8b88]/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#ef8b88]"
+      class="grid w-12 shrink-0 place-items-center border-l border-[#d73a3a]/35 text-foreground-alt transition-colors hover:bg-[#d73a3a]/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#b42318] dark:border-[#ef8b88]/35 dark:hover:bg-[#ef8b88]/10 dark:focus-visible:outline-[#ef8b88]"
       type="button"
       onclick={dismiss}
     >

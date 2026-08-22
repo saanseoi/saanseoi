@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:ac15639822da9ab5398e1c7f900390e78503c59e9ff98922655eadb34a05e844",
+  "versionHash": "sha256:4d0039cbe700b672c66bceac8d7055509c43c0ff6f9fa57dff2823353569c5eb",
   "apiVersion": "api-addresses-v0.1",
-  "domainCode": "default",
+  "domainCode": "official",
   "schemaVersion": "sv-address-v1",
   "rulesetVersion": "rs-address-merge-v1",
   "lineageAnchors": [

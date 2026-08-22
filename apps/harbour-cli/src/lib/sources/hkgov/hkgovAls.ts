@@ -1753,7 +1753,7 @@ export function resolveDivisionSnapshotSource(
 type DivisionLookupRow = {
   snapshotId: string
   id: string
-  level: number
+  level: number | null
   locale: string
   name: string | null
   type: string

@@ -64,6 +64,51 @@ describe('buildStatisticSqlBatches', () => {
     ).toThrow('A statistic SQL statement exceeds the D1 limit')
   })
 
+  test('replays an oversized source geometry through bounded append statements', () => {
+    const sourceGeometry = { value: 'x'.repeat(100_000) }
+    const batches = buildStatisticSqlBatches({
+      releaseCode,
+      releaseId,
+      source: {
+        rows: [{ ...sourceRow('district-large'), sourceGeometry }],
+        table: 'hkgovCenstatdStatistics',
+      },
+    })
+    const [sourceSql] = batches.source
+    if (!sourceSql) throw new Error('Expected source replay SQL.')
+
+    const statements = sourceSql
+      .split(/(?<=;)\n/)
+      .map(statement => statement.trim())
+      .filter(Boolean)
+    expect(statements.length).toBeGreaterThan(2)
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const sqlite = new Database(':memory:')
+    sqlite.exec(`
+      CREATE TABLE hkgovCenstatdStatistics (
+        createdAt TEXT, datasetCode TEXT, featureId TEXT, isCurrent INTEGER,
+        layerName TEXT, rawProperties TEXT, referencePeriodCode TEXT,
+        referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
+        referencePeriodGranularity TEXT, referencePeriodStart TEXT,
+        releaseId TEXT, sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT,
+        updatedAt TEXT, validFromRelease TEXT, validToRelease TEXT, version INTEGER,
+        versionHash TEXT, PRIMARY KEY (sourceRecordId, versionHash)
+      );
+    `)
+    sqlite.exec(sourceSql)
+    sqlite.exec(sourceSql)
+    const stored = sqlite
+      .query(
+        'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ?',
+      )
+      .get('district-large') as { sourceGeometry: string }
+    expect(JSON.parse(stored.sourceGeometry)).toEqual(sourceGeometry)
+    sqlite.close()
+  })
+
   test('creates deterministic source/history upserts that restore a failed release safely', () => {
     const batches = buildStatisticSqlBatches({
       history: {

@@ -72,18 +72,6 @@ export async function cleanupCurrentSnapshots(
     }
   }
 
-  console.info(
-    JSON.stringify({
-      deletedSnapshots: snapshotIds.length,
-      jobType: message.jobType,
-      phase: 'cleanupCurrentSnapshots',
-      requestedAt: message.requestedAt,
-      resourceType: message.resourceType ?? null,
-      skippedSnapshots,
-      snapshotIds,
-    }),
-  )
-
   return {
     deletedSnapshots: snapshotIds.length,
     skippedSnapshots,

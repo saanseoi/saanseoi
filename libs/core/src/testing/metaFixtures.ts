@@ -982,7 +982,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-addresses-2026-06-17.0',
         'api-version-api-addresses-v0.1',
         'data-hk-addresses-2026-06-17.0',
-        'default',
+        'official',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -1019,7 +1019,7 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'default', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-official', 1, 'address', 'official', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'geographic', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
@@ -1036,8 +1036,8 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO apiCompositionMembers (
       apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
-      ('api-composition-addresses-v1', 'default', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
+      ('api-composition-addresses-v1', 'official', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'official', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
       ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),

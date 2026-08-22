@@ -1,29 +1,30 @@
 {
   "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
-  "measures": [
+  "fields": [
     {
       "aggregation": "total",
       "localisations": [
         {
           "locale": "en",
-          "name": "permanent living quarters",
+          "name": "Permanent living quarters",
           "description": "Number of permanent living quarters",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
           "name": "永久性居住屋宇單位數字",
           "description": "永久性居住屋宇單位數字",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
           "name": "永久性居住屋宇单位数字",
           "description": "永久性居住屋宇单位数字",
-          "isTranslationVerified": true
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "permanentLivingQuarters",
+      "fieldName": "permanentLivingQuarters",
+      "dimensions": {},
       "schemaSpecification": {
         "sha256": "1bc3759c4436f2467b7c2cafe30ce7d6ad49c6ce456f71fea9446a83a22363e8",
         "url": "https://static.csdi.gov.hk/csdi-webpage/view/common/b3f0372efef6e9b26d05f13d02d52fd631e1767f0d88f763b8bd86d500ed7bf4"
@@ -31,8 +32,9 @@
       "sourceNullOption": "Null",
       "sourceField": "LQ",
       "statisticKind": "count",
-      "unitCode": "publisher-unknown"
+      "unitCode": "living-quarter",
+      "measureCode": "permanentLivingQuarters"
     }
   ],
-  "schemaVersion": 6
+  "schemaVersion": 8
 }

@@ -1,0 +1,698 @@
+{
+  "domainCode": "hkgov-censtatd-hma",
+  "assignments": [
+    {
+      "divisionCode": "HMA001",
+      "canonicalId": "2d0feca9-d8ff-52ff-ac4f-9d48215604ec"
+    },
+    {
+      "divisionCode": "HMA002",
+      "canonicalId": "77388218-a9e4-530c-be55-beb0f60e86fe"
+    },
+    {
+      "divisionCode": "HMA003",
+      "canonicalId": "7191d99b-3500-5ca2-9cad-6e6ee5c6df9b"
+    },
+    {
+      "divisionCode": "HMA004",
+      "canonicalId": "ef1f7e3b-dad7-5dff-a3c2-00d73b09a0a4"
+    },
+    {
+      "divisionCode": "HMA005",
+      "canonicalId": "6cecb8e0-5367-5426-a42b-cffd4acee68b"
+    },
+    {
+      "divisionCode": "HMA006",
+      "canonicalId": "fa08aa71-9d38-516f-9016-517cdd251c2d"
+    },
+    {
+      "divisionCode": "HMA007",
+      "canonicalId": "1dd86478-bde3-5f3c-9f2f-f539f364cf88"
+    },
+    {
+      "divisionCode": "HMA008",
+      "canonicalId": "ae41fef0-0356-55b6-a8fc-f1af7d467868"
+    },
+    {
+      "divisionCode": "HMA009",
+      "canonicalId": "94469914-5276-5546-9fe4-ce873087e4df"
+    },
+    {
+      "divisionCode": "HMA010",
+      "canonicalId": "1a2e7593-72d1-5cec-a5dc-798b239d0ce7"
+    },
+    {
+      "divisionCode": "HMA011",
+      "canonicalId": "2192b4a8-8663-5135-bc5e-51a4e735065c"
+    },
+    {
+      "divisionCode": "HMA012",
+      "canonicalId": "2fb289b6-5193-5bd0-8c90-a0d599fe6f7a"
+    },
+    {
+      "divisionCode": "HMA013",
+      "canonicalId": "596c0ded-7b0f-5bf0-b3c3-aab00590a2bf"
+    },
+    {
+      "divisionCode": "HMA014",
+      "canonicalId": "ec051277-c456-5dff-a5b9-6c274c9f3794"
+    },
+    {
+      "divisionCode": "HMA015",
+      "canonicalId": "34d76e9d-a64a-5c71-a49b-0a6fa6467e51"
+    },
+    {
+      "divisionCode": "HMA016",
+      "canonicalId": "cc31ed26-7e3f-533b-825a-c85a46f8e396"
+    },
+    {
+      "divisionCode": "HMA017",
+      "canonicalId": "f3a1041f-dce5-54d1-bfbf-38a56061ccef"
+    },
+    {
+      "divisionCode": "HMA018",
+      "canonicalId": "562a8e52-cade-582f-899c-70997c472730"
+    },
+    {
+      "divisionCode": "HMA019",
+      "canonicalId": "1cd7936b-49c8-51f7-a779-0051e1c06462"
+    },
+    {
+      "divisionCode": "HMA020",
+      "canonicalId": "c6f9b1aa-1da4-573f-8175-1901dbbf5c85"
+    },
+    {
+      "divisionCode": "HMA021",
+      "canonicalId": "3892a9c5-3e61-534e-9108-ca19bc751c01"
+    },
+    {
+      "divisionCode": "HMA023",
+      "canonicalId": "df5a0b70-2c12-52a6-85eb-773bf6da4563"
+    },
+    {
+      "divisionCode": "HMA025",
+      "canonicalId": "c10ed490-5f5e-5fba-b06f-e9b2bc661c17"
+    },
+    {
+      "divisionCode": "HMA026",
+      "canonicalId": "4a57c652-3654-586d-a743-5f97623059e4"
+    },
+    {
+      "divisionCode": "HMA028",
+      "canonicalId": "87a9be54-d632-58e9-84c8-3f9832921357"
+    },
+    {
+      "divisionCode": "HMA029",
+      "canonicalId": "2684ebc5-d87a-5d04-94a0-9fb4145548f8"
+    },
+    {
+      "divisionCode": "HMA030",
+      "canonicalId": "5a7ab51e-4494-5251-8890-6890537a51e8"
+    },
+    {
+      "divisionCode": "HMA031",
+      "canonicalId": "78a3a8b6-dffb-5c65-afff-c1a63047cbb2"
+    },
+    {
+      "divisionCode": "HMA032",
+      "canonicalId": "357895ce-024e-5e86-8d00-fe51da49d3bc"
+    },
+    {
+      "divisionCode": "HMA033",
+      "canonicalId": "6d8de63d-039f-5ff9-b40b-be8a00af6d9d"
+    },
+    {
+      "divisionCode": "HMA034",
+      "canonicalId": "7d1d0b01-eb19-59bc-953e-4e547351e15b"
+    },
+    {
+      "divisionCode": "HMA035",
+      "canonicalId": "3b50f8c2-514d-5cbd-9f13-74abb46116a5"
+    },
+    {
+      "divisionCode": "HMA036",
+      "canonicalId": "9df0de95-ba40-5a4f-b91c-3c3943d7b408"
+    },
+    {
+      "divisionCode": "HMA037",
+      "canonicalId": "3b13abb5-b5b7-50b0-af5f-43f662c23796"
+    },
+    {
+      "divisionCode": "HMA038",
+      "canonicalId": "3f05dc86-a2c6-5493-b780-5fa7350fe788"
+    },
+    {
+      "divisionCode": "HMA039",
+      "canonicalId": "d676245b-676e-5a50-8a53-f6374c812240"
+    },
+    {
+      "divisionCode": "HMA040",
+      "canonicalId": "01aeaeeb-c974-53ee-b87f-d068771d1ebb"
+    },
+    {
+      "divisionCode": "HMA041",
+      "canonicalId": "aab5e9cb-4d4a-522a-a760-caac56f1559a"
+    },
+    {
+      "divisionCode": "HMA042",
+      "canonicalId": "e31de549-a074-588c-b2ba-53509da197e5"
+    },
+    {
+      "divisionCode": "HMA043",
+      "canonicalId": "6267a52b-1174-598d-b43b-3745c2f85733"
+    },
+    {
+      "divisionCode": "HMA045",
+      "canonicalId": "325552cc-5b40-5565-96e0-41da4b1a33c3"
+    },
+    {
+      "divisionCode": "HMA046",
+      "canonicalId": "7ec5270c-4fe3-5544-aaf8-c9cbea90c046"
+    },
+    {
+      "divisionCode": "HMA047",
+      "canonicalId": "5e58bda7-92d9-5624-b9db-2b498dee4047"
+    },
+    {
+      "divisionCode": "HMA048",
+      "canonicalId": "79b1c845-3383-5a6a-9779-814505c5290b"
+    },
+    {
+      "divisionCode": "HMA049",
+      "canonicalId": "7aa892db-5f45-5662-9414-bbd62e0b6976"
+    },
+    {
+      "divisionCode": "HMA050",
+      "canonicalId": "f33e09bb-a7ff-5244-8368-66b525bae695"
+    },
+    {
+      "divisionCode": "HMA051",
+      "canonicalId": "7506d78c-6440-5b7b-82ff-d149cd42633e"
+    },
+    {
+      "divisionCode": "HMA053",
+      "canonicalId": "70f9505f-7ddf-5ae8-bd78-06ce2eb0465a"
+    },
+    {
+      "divisionCode": "HMA054",
+      "canonicalId": "90ba5322-8f43-5685-9889-64368aa57e82"
+    },
+    {
+      "divisionCode": "HMA055",
+      "canonicalId": "00e93a2a-9058-5ac7-9e02-7862eb0e0b80"
+    },
+    {
+      "divisionCode": "HMA056",
+      "canonicalId": "16c7a10e-b88a-50c1-abd2-936652304e9c"
+    },
+    {
+      "divisionCode": "HMA057",
+      "canonicalId": "0302b3e2-1a49-59e4-90a3-fd9af10f9c7f"
+    },
+    {
+      "divisionCode": "HMA058",
+      "canonicalId": "2ce07fb9-c4a9-5f30-a43b-30634c2bedf3"
+    },
+    {
+      "divisionCode": "HMA059",
+      "canonicalId": "532cd552-8ef4-5dd2-a973-4d6838683996"
+    },
+    {
+      "divisionCode": "HMA060",
+      "canonicalId": "8f76e1a1-31cd-5ea2-a306-8c16227d16c3"
+    },
+    {
+      "divisionCode": "HMA061",
+      "canonicalId": "cae7eb86-a90c-5e25-8903-b625209e7d18"
+    },
+    {
+      "divisionCode": "HMA062",
+      "canonicalId": "20671e12-ccd1-5a58-8041-edb78596af95"
+    },
+    {
+      "divisionCode": "HMA063",
+      "canonicalId": "f7e8854c-d19a-5c94-a404-87e517a989db"
+    },
+    {
+      "divisionCode": "HMA064",
+      "canonicalId": "447600ea-8c3b-5e82-b9e5-54b26aefc918"
+    },
+    {
+      "divisionCode": "HMA065",
+      "canonicalId": "1c2535a5-9170-5b61-838f-8e9c58314e99"
+    },
+    {
+      "divisionCode": "HMA066",
+      "canonicalId": "2e47024d-b7f9-5563-b778-caceed69080a"
+    },
+    {
+      "divisionCode": "HMA067",
+      "canonicalId": "f32e7a6c-bac7-5900-8a12-42844f5d0907"
+    },
+    {
+      "divisionCode": "HMA068",
+      "canonicalId": "a45f60a6-27a2-53ed-ab99-77888d146119"
+    },
+    {
+      "divisionCode": "HMA070",
+      "canonicalId": "5f462996-84a5-5914-b96a-07676b795e1b"
+    },
+    {
+      "divisionCode": "HMA071",
+      "canonicalId": "92ca9dc6-83b6-50a2-80dc-2b26e4859011"
+    },
+    {
+      "divisionCode": "HMA073",
+      "canonicalId": "ab76a323-3542-52cf-9731-08f53bf3b623"
+    },
+    {
+      "divisionCode": "HMA074",
+      "canonicalId": "0836c29a-7dd7-5a87-8221-250f7d45389d"
+    },
+    {
+      "divisionCode": "HMA075",
+      "canonicalId": "8d3b4b9d-7593-5bd1-b0e7-ad85dfb1f731"
+    },
+    {
+      "divisionCode": "HMA077",
+      "canonicalId": "e971a4d2-8d0c-5d60-bc80-4780a36b09da"
+    },
+    {
+      "divisionCode": "HMA078",
+      "canonicalId": "90d45f77-7b60-589e-b893-363b2eb2e934"
+    },
+    {
+      "divisionCode": "HMA079",
+      "canonicalId": "9b1b67b9-4102-5bb6-b1b9-4621b1d4212c"
+    },
+    {
+      "divisionCode": "HMA080",
+      "canonicalId": "b716c7f3-d4ae-54b3-9ab3-eeec1007cfde"
+    },
+    {
+      "divisionCode": "HMA081",
+      "canonicalId": "6aadc4ec-88c5-5146-96fa-d69c161dfd4c"
+    },
+    {
+      "divisionCode": "HMA082",
+      "canonicalId": "89b0df65-2f9d-5464-93eb-2a0a72db768e"
+    },
+    {
+      "divisionCode": "HMA083",
+      "canonicalId": "9a195b34-d3d1-5de8-a277-b45af1778475"
+    },
+    {
+      "divisionCode": "HMA084",
+      "canonicalId": "c4167a8f-a4df-5941-9f97-e406e8448d22"
+    },
+    {
+      "divisionCode": "HMA085",
+      "canonicalId": "6c0b6a43-5f8c-559f-97a6-140df1aca87c"
+    },
+    {
+      "divisionCode": "HMA086",
+      "canonicalId": "55e06c2e-b2fe-557d-95f5-51e3416d6d83"
+    },
+    {
+      "divisionCode": "HMA087",
+      "canonicalId": "3865c642-370c-54a4-9920-eb7553d3c579"
+    },
+    {
+      "divisionCode": "HMA089",
+      "canonicalId": "d4ddebf2-28f8-5f77-a672-97b0378f56c5"
+    },
+    {
+      "divisionCode": "HMA090",
+      "canonicalId": "8b5e052c-1ae8-5aab-bef2-6fa7ff058867"
+    },
+    {
+      "divisionCode": "HMA091",
+      "canonicalId": "9c3945f6-adf1-55ac-8a0e-56182e92be40"
+    },
+    {
+      "divisionCode": "HMA092",
+      "canonicalId": "a3d07082-4432-571b-8915-7fabdcd30907"
+    },
+    {
+      "divisionCode": "HMA093",
+      "canonicalId": "3f68d359-0078-5eab-bd4f-a741e45d19b5"
+    },
+    {
+      "divisionCode": "HMA094",
+      "canonicalId": "71a9c2d7-4f44-5e99-8325-7e845157a566"
+    },
+    {
+      "divisionCode": "HMA095",
+      "canonicalId": "5d58f01e-8709-59fe-96be-c62c2de4ce95"
+    },
+    {
+      "divisionCode": "HMA098",
+      "canonicalId": "0be6f68d-421d-589f-93c8-567067686a1f"
+    },
+    {
+      "divisionCode": "HMA099",
+      "canonicalId": "27f81157-89fd-5bde-895a-3853f6b18714"
+    },
+    {
+      "divisionCode": "HMA100",
+      "canonicalId": "0fc41697-fa9c-502e-8100-2a2d0d38635a"
+    },
+    {
+      "divisionCode": "HMA101",
+      "canonicalId": "fdf7e469-7fec-543e-bfbb-bd5382eb205d"
+    },
+    {
+      "divisionCode": "HMA102",
+      "canonicalId": "d66e2126-95c8-55f7-ad35-7e2d2bff5a7a"
+    },
+    {
+      "divisionCode": "HMA103",
+      "canonicalId": "bfb8ac60-12f7-5ad3-9443-bcc77cbaf30f"
+    },
+    {
+      "divisionCode": "HMA104",
+      "canonicalId": "9d7bde87-cd9a-5343-b2da-ccebbdc1a3ad"
+    },
+    {
+      "divisionCode": "HMA105",
+      "canonicalId": "89de1e44-d65a-5de8-80db-7f26309d3056"
+    },
+    {
+      "divisionCode": "HMA106",
+      "canonicalId": "e20bf423-bca0-5ba4-b0a0-c39562346565"
+    },
+    {
+      "divisionCode": "HMA107",
+      "canonicalId": "c0d042db-a459-5770-bddd-5b3a9ac2c604"
+    },
+    {
+      "divisionCode": "HMA108",
+      "canonicalId": "1999859e-d64e-5ce4-b41c-c23e80a34d0b"
+    },
+    {
+      "divisionCode": "HMA109",
+      "canonicalId": "4eefc5ed-12d9-5caa-bd24-74f4dd220c30"
+    },
+    {
+      "divisionCode": "HMA110",
+      "canonicalId": "edf250df-d0ae-5039-ab0a-e3941a56bf2c"
+    },
+    {
+      "divisionCode": "HMA111",
+      "canonicalId": "83f7aa01-d82b-5db1-b592-ce668c670dfb"
+    },
+    {
+      "divisionCode": "HMA112",
+      "canonicalId": "3ef9c31f-d9a1-5605-86e0-8235a7b9be65"
+    },
+    {
+      "divisionCode": "HMA113",
+      "canonicalId": "cf333c25-2d0a-5094-a987-72c5648324d7"
+    },
+    {
+      "divisionCode": "HMA114",
+      "canonicalId": "e44a79ef-acb7-5534-aa20-5d16b7d97bfe"
+    },
+    {
+      "divisionCode": "HMA115",
+      "canonicalId": "a18ee51a-0845-5cce-a514-75ca494591e0"
+    },
+    {
+      "divisionCode": "HMA116",
+      "canonicalId": "7af1bf5a-c03b-5647-8d9d-42b7c6d5ac77"
+    },
+    {
+      "divisionCode": "HMA117",
+      "canonicalId": "e628bf24-69ab-574c-9983-060177123016"
+    },
+    {
+      "divisionCode": "HMA118",
+      "canonicalId": "69f3730d-5c89-5fcd-ad28-0026297bda91"
+    },
+    {
+      "divisionCode": "HMA119",
+      "canonicalId": "3344ec23-1160-5c1a-9421-9667d857ce87"
+    },
+    {
+      "divisionCode": "HMA120",
+      "canonicalId": "f9a60ba6-3ba6-58dd-b5cc-890faf8b2888"
+    },
+    {
+      "divisionCode": "HMA121",
+      "canonicalId": "4e90ad76-8deb-5e41-a959-e672ae58a9e8"
+    },
+    {
+      "divisionCode": "HMA122",
+      "canonicalId": "6f206cec-4584-5ce1-8b9d-2735e0d7b7f6"
+    },
+    {
+      "divisionCode": "HMA123",
+      "canonicalId": "e56ec039-b844-5397-807b-979bd46df1e9"
+    },
+    {
+      "divisionCode": "HMA125",
+      "canonicalId": "34aef164-4b2a-5711-9571-6d7385695aba"
+    },
+    {
+      "divisionCode": "HMA126",
+      "canonicalId": "648dfd2f-5f6b-5c74-a34e-3c2dc572ef27"
+    },
+    {
+      "divisionCode": "HMA127",
+      "canonicalId": "f6ea5a87-6acc-58ac-9946-8ec2af731735"
+    },
+    {
+      "divisionCode": "HMA128",
+      "canonicalId": "852dc49a-1df9-5d7a-9d72-7b47f138abba"
+    },
+    {
+      "divisionCode": "HMA130",
+      "canonicalId": "399ab419-200f-5834-82f6-c12c5790d01b"
+    },
+    {
+      "divisionCode": "HMA131",
+      "canonicalId": "e5021794-73f5-51e4-a2e5-4ed0e8144bcc"
+    },
+    {
+      "divisionCode": "HMA133",
+      "canonicalId": "bbba89f4-bb8d-5202-8dbe-5aee55d816ca"
+    },
+    {
+      "divisionCode": "HMA134",
+      "canonicalId": "fc39d877-a554-5ad7-9a57-3040f86b53ae"
+    },
+    {
+      "divisionCode": "HMA135",
+      "canonicalId": "077c79ca-cbf3-5150-a25c-fa31dc7149bb"
+    },
+    {
+      "divisionCode": "HMA136",
+      "canonicalId": "15b92912-1b41-54fc-8a77-72c2447ff066"
+    },
+    {
+      "divisionCode": "HMA137",
+      "canonicalId": "56e6711f-5841-56ec-af9b-7b15de5e6663"
+    },
+    {
+      "divisionCode": "HMA138",
+      "canonicalId": "ce9cfbfb-67c8-51a7-bd1d-29cd0ce07796"
+    },
+    {
+      "divisionCode": "HMA139",
+      "canonicalId": "969dae10-92ca-5af2-8698-116a2d8ece19"
+    },
+    {
+      "divisionCode": "HMA140",
+      "canonicalId": "602071d7-cbde-555e-96db-4bcf7c5d0b03"
+    },
+    {
+      "divisionCode": "HMA141",
+      "canonicalId": "e16a23bf-7c5c-5785-b289-be92887a71f7"
+    },
+    {
+      "divisionCode": "HMA143",
+      "canonicalId": "41bb9fb2-47f4-5890-8ed2-37a249f0d52c"
+    },
+    {
+      "divisionCode": "HMA144",
+      "canonicalId": "b362d914-1715-5baa-858b-78e4206b1312"
+    },
+    {
+      "divisionCode": "HMA147",
+      "canonicalId": "1d221d4d-6d1f-5f97-b585-b6b56ab5e953"
+    },
+    {
+      "divisionCode": "HMA148",
+      "canonicalId": "05f34e79-0689-580b-9846-6edb58c3cba2"
+    },
+    {
+      "divisionCode": "HMA149",
+      "canonicalId": "fbeb8a8a-a579-5a2f-a41f-bf56e73b7de0"
+    },
+    {
+      "divisionCode": "HMA150",
+      "canonicalId": "c2dcfbff-a964-58b0-8b8f-b5682844e121"
+    },
+    {
+      "divisionCode": "HMA151",
+      "canonicalId": "ceb1e8a8-a373-5da3-8421-d51122af2282"
+    },
+    {
+      "divisionCode": "HMA152",
+      "canonicalId": "985bb179-ab7a-5ced-b7be-0579e7f4c7fa"
+    },
+    {
+      "divisionCode": "HMA153",
+      "canonicalId": "2027f0ae-a525-5cc6-b134-1fa81708cc49"
+    },
+    {
+      "divisionCode": "HMA155",
+      "canonicalId": "fa5612e3-5357-5884-8a70-173ae3ae1c22"
+    },
+    {
+      "divisionCode": "HMA156",
+      "canonicalId": "b1f298e3-80a1-5378-8028-48e0675df0e9"
+    },
+    {
+      "divisionCode": "HMA157",
+      "canonicalId": "f4f98839-a372-5a1d-9042-ed37645effba"
+    },
+    {
+      "divisionCode": "HMA158",
+      "canonicalId": "ffc535c8-765e-5633-a1e5-bd25f629ca55"
+    },
+    {
+      "divisionCode": "HMA159",
+      "canonicalId": "4373a2ab-d8fb-50b6-8559-19cd545ffef4"
+    },
+    {
+      "divisionCode": "HMA160",
+      "canonicalId": "7d1fddac-b346-5c02-ba99-5f5d98b4b9f1"
+    },
+    {
+      "divisionCode": "HMA161",
+      "canonicalId": "9e6d8019-5463-5931-b990-89e664e1688d"
+    },
+    {
+      "divisionCode": "HMA162",
+      "canonicalId": "daca1b3b-c8b7-5f4a-bbd6-9b6f247b08cb"
+    },
+    {
+      "divisionCode": "HMA163",
+      "canonicalId": "c66f41de-cadc-5bdf-a6ca-171ba3cb05b7"
+    },
+    {
+      "divisionCode": "HMA164",
+      "canonicalId": "2011adb7-9876-5ef0-a332-fdd89d3ed813"
+    },
+    {
+      "divisionCode": "HMA165",
+      "canonicalId": "f43573ce-b363-5a0f-921e-8fc47ba7fcaf"
+    },
+    {
+      "divisionCode": "HMA166",
+      "canonicalId": "cef158c3-f881-5f44-8578-3f6140c7ddc0"
+    },
+    {
+      "divisionCode": "HMA168",
+      "canonicalId": "699d5593-55c4-5342-ada0-d25acccf035f"
+    },
+    {
+      "divisionCode": "HMA169",
+      "canonicalId": "a7a3c78b-0f8b-5bad-adc0-4715d7a5e2ed"
+    },
+    {
+      "divisionCode": "HMA170",
+      "canonicalId": "547d2bfd-26a0-55ac-b1d2-99a0b91996e8"
+    },
+    {
+      "divisionCode": "HMA171",
+      "canonicalId": "c4048c1a-1255-5308-a933-9c0136eb8b16"
+    },
+    {
+      "divisionCode": "HMA172",
+      "canonicalId": "4e0d18e8-c828-56b4-8b1a-3362fd5546e6"
+    },
+    {
+      "divisionCode": "HMA174",
+      "canonicalId": "7b48886f-7414-5486-861e-ef7e758ef71d"
+    },
+    {
+      "divisionCode": "HMA176",
+      "canonicalId": "0a111ddd-471c-51a7-a2bd-93b59fab754d"
+    },
+    {
+      "divisionCode": "HMA177",
+      "canonicalId": "2580a4bd-e6e0-5a27-a995-f47ac39a7559"
+    },
+    {
+      "divisionCode": "HMA178",
+      "canonicalId": "0e2a9049-8885-5b66-8034-e4fc3f9a1ce1"
+    },
+    {
+      "divisionCode": "HMA179",
+      "canonicalId": "d8bb8de7-74e5-52cf-881e-f65cc709fd49"
+    },
+    {
+      "divisionCode": "HMA180",
+      "canonicalId": "b98d2ffc-6a33-53a0-b3b9-0c84ba413f33"
+    },
+    {
+      "divisionCode": "HMA181",
+      "canonicalId": "d508980f-d095-510c-96f7-9a71f2eb0dff"
+    },
+    {
+      "divisionCode": "HMA182",
+      "canonicalId": "2fd96e2d-8fa9-55a9-9a34-77766d68c450"
+    },
+    {
+      "divisionCode": "HMA183",
+      "canonicalId": "aa4c1d8e-f4c5-5fbe-87f7-bd73be5a637d"
+    },
+    {
+      "divisionCode": "HMA184",
+      "canonicalId": "81787a75-7a6b-557c-a2ca-dc5f0a8732ea"
+    },
+    {
+      "divisionCode": "HMA185",
+      "canonicalId": "dcace38c-658a-57f4-be59-42bd74f28958"
+    },
+    {
+      "divisionCode": "HMA187",
+      "canonicalId": "9fce3859-3454-5822-8cd9-330621ac443c"
+    },
+    {
+      "divisionCode": "HMA188",
+      "canonicalId": "42b98014-dec8-5555-9695-70e092b76e5d"
+    },
+    {
+      "divisionCode": "HMA189",
+      "canonicalId": "4d094c32-3d2a-55fc-a6bf-954029c945c0"
+    },
+    {
+      "divisionCode": "HMA190",
+      "canonicalId": "dd0d1fa3-2070-54a5-bbe0-43fe08829439"
+    },
+    {
+      "divisionCode": "HMA191",
+      "canonicalId": "78a63628-c328-5886-b567-99d7953872f9"
+    },
+    {
+      "divisionCode": "HMA192",
+      "canonicalId": "f2d9f077-bf7e-5105-84d6-f836638ce608"
+    },
+    {
+      "divisionCode": "HMA193",
+      "canonicalId": "806d06ef-937e-5f69-82bd-439081968f44"
+    },
+    {
+      "divisionCode": "HMA195",
+      "canonicalId": "6982d338-bae0-5bf0-a2d7-950bbc42c3c1"
+    },
+    {
+      "divisionCode": "HMA200",
+      "canonicalId": "3c8d0c78-547e-52ea-a2cf-bc0df6566566"
+    }
+  ],
+  "versionHash": "sha256:1dff8e74a2d39dd4f5ac4d85dcc4622fc6b171a910c238538c18bfea91c45dff"
+}

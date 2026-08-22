@@ -16,6 +16,7 @@ type Props = {
   headings: MarkdownHeading[]
   labels: ReleaseNotesLabels
   transclusions: Record<string, ReleaseNotesTransclusion>
+  sourceTableColumns?: boolean
   activeHeadingId?: string | null
 }
 
@@ -24,6 +25,7 @@ let {
   headings,
   labels,
   transclusions,
+  sourceTableColumns = false,
   activeHeadingId = $bindable(null),
 }: Props = $props()
 
@@ -37,7 +39,11 @@ let outlineHeadings = $derived(
 )
 </script>
 
-<ReleaseNotesArticle bind:element={article} hasContent={Boolean(markdown)}>
+<ReleaseNotesArticle
+  bind:element={article}
+  hasContent={Boolean(markdown)}
+  {sourceTableColumns}
+>
   {#if markdown}
     <ReleaseNotesContent {markdown} {labels} {transclusions} />
   {:else}

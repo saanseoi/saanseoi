@@ -1,0 +1,76 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Land area",
+          "description": "Land area of the District Council district, in square kilometres.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "土地面積",
+          "description": "區議會分區的土地面積，單位為平方公里。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "土地面积",
+          "description": "区议会分区的土地面积，单位为平方公里。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "landArea"
+    },
+    {
+      "localisations": [
+        {
+          "locale": "en",
+          "name": "Population density",
+          "description": "Mid-year population density of the District Council district, in persons per square kilometre.",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hant",
+          "name": "人口密度",
+          "description": "區議會分區的年中人口密度，單位為每平方公里人數。",
+          "isTranslationVerified": false
+        },
+        {
+          "locale": "zh-Hans",
+          "name": "人口密度",
+          "description": "区议会分区的年中人口密度，单位为每平方公里人数。",
+          "isTranslationVerified": false
+        }
+      ],
+      "measureCode": "populationDensity"
+    },
+    {
+      "localisations": [
+        {
+          "description": "Number of persons.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Total population"
+        },
+        {
+          "description": "人口數目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "總人口"
+        },
+        {
+          "description": "人口数目。",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "总人口"
+        }
+      ],
+      "measureCode": "totalPopulation"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:2171584e2b91355a368e3ac2a641e5718d346848754cdda87269f649ebb3fdc3"
+}

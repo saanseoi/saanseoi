@@ -1,0 +1,5728 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "8173bacd-5ce4-4d60-a730-548475409130",
+  "prevIds": ["d26bd63a-4c69-4268-a6f2-6853410f6451"],
+  "ddl": [
+    {
+      "name": "overtureDivisionAreas",
+      "entityType": "tables"
+    },
+    {
+      "name": "overtureDivisionBoundaries",
+      "entityType": "tables"
+    },
+    {
+      "name": "overtureDivisions",
+      "entityType": "tables"
+    },
+    {
+      "name": "overturePlaces",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovAlsAddresses2d",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovLandsdPlaceNames",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovLandsdRoadCentrelines",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovLandsdStreetBaselineRecords",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovLandsdStreetNoticeApplications",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovLandsdStreetNotices",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovHydSensitiveStreets",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovHydStrategicStreets",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovHydStreetNamePlates",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovTdPedestrianStreets",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovHadDivisionAreas",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovCenstatdDivisionAreaDerivatives",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovCenstatdDivisionAreas",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovCenstatdStatistics",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovPlandNewTowns",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovPlandPlanningCells",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subtype",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "class",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isLand",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isTerritorial",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subtype",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "class",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isLand",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isTerritorial",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "names",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "admin_level",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subtype",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "class",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wikidata",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hierarchies",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cartography",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "names",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lng",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lat",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operatingStatus",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "basicCategory",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyPrimary",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyHierarchy",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyAlternates",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandWikidata",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNames",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "websites",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "socials",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "emails",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phones",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addresses",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "confidence",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "identifiers",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "easting",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "northing",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressEn",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressZhHant",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geoNameId",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeClass",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeType",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "district",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeNames",
+      "entityType": "columns",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "objectId",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetCode",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetType",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameEn",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameZhHant",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "deferToNotices",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameEn",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameZhHant",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCode",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "method",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "disposition",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameChangeScope",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "retainedDescriptions",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "gazetteDate",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "kind",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "noticeRef",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "effectiveDate",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "previousNoticeRefs",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawExtractedText",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parserDiagnostics",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCodes",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameEn",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameZhHant",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "descriptionEn",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "descriptionZhHant",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "evidenceAssets",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sectionBetween",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sectionBetween",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snpId",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "roadName",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "kind",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "objectId",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "startTime",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "endTime",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "descriptionEn",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "descriptionZhHant",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "descriptionZhHans",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "objectId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cdsiAdminAreaId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "areaType",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "areaId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "areaCode",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtEn",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtZhHant",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodStart",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEnd",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodGranularity",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEndYear",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "real",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "landAreaSqKm",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "midYearPopulation",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "midYearPopulationDensityPerSqKm",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "inputVersionHash",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "transform",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "derivation",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtClass",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtEn",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtZhHant",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "censusYear",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "layerName",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodStart",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEnd",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodGranularity",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEndYear",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "featureId",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "newTownId",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameEn",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameZhHant",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameZhHans",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "wasGeometryRepaired",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "repairedGeometry",
+      "entityType": "columns",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ppuCode",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "spuCode",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "tpuCode",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subunitCode",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "wasGeometryRepaired",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "repairedGeometry",
+      "entityType": "columns",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "overtureDivisionAreas_pk",
+      "entityType": "pks",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "overtureDivisionBoundaries_pk",
+      "entityType": "pks",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "overtureDivisions_pk",
+      "entityType": "pks",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "overturePlaces_pk",
+      "entityType": "pks",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovAlsAddresses2d_pk",
+      "entityType": "pks",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovLandsdPlaceNames_pk",
+      "entityType": "pks",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": ["sourceRecordId", "releaseId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovLandsdRoadCentrelines_pk",
+      "entityType": "pks",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovLandsdStreetBaselineRecords_pk",
+      "entityType": "pks",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovLandsdStreetNoticeApplications_pk",
+      "entityType": "pks",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovLandsdStreetNotices_pk",
+      "entityType": "pks",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovHydSensitiveStreets_pk",
+      "entityType": "pks",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovHydStrategicStreets_pk",
+      "entityType": "pks",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovHydStreetNamePlates_pk",
+      "entityType": "pks",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovTdPedestrianStreets_pk",
+      "entityType": "pks",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovHadDivisionAreas_pk",
+      "entityType": "pks",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_pk",
+      "entityType": "pks",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": ["sourceRecordId", "inputVersionHash", "transform", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovCenstatdDivisionAreaDerivatives_pk",
+      "entityType": "pks",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovCenstatdDivisionAreas_pk",
+      "entityType": "pks",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovCenstatdStatistics_pk",
+      "entityType": "pks",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovPlandNewTowns_pk",
+      "entityType": "pks",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "hkgovPlandPlanningCells_pk",
+      "entityType": "pks",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_releaseId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_release_validity_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "subtype",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_subtype_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "class",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionAreas_class_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_releaseId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_release_validity_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "subtype",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_subtype_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "class",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisionBoundaries_class_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "admin_level",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_adminLevel_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "subtype",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_subtype_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "class",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overtureDivisions_class_idx",
+      "entityType": "indexes",
+      "table": "overtureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_releaseId_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_release_validity_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "basicCategory",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_basicCategory_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "taxonomyPrimary",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "overturePlaces_taxonomyPrimary_idx",
+      "entityType": "indexes",
+      "table": "overturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses2d_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses2d_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses2d_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses2d_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "identifiers",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses2d_identifiers_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "geoNameId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_geoNameId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "placeClass",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_placeClass_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "district",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdPlaceNames_district_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdPlaceNames"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdRoadCentrelines_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdRoadCentrelines_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": [
+        {
+          "value": "objectId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdRoadCentrelines_objectId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetBaselineRecords_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetBaselineRecords_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetBaselineRecords_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetBaselineRecords_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "deferToNotices",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetBaselineRecords_deferToNotices_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNoticeApplications_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNoticeApplications_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNoticeApplications_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNoticeApplications_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNoticeApplications"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "gazetteDate",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_gazetteDate_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "kind",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_kind_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "noticeRef",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdStreetNotices_noticeRef_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydSensitiveStreets_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydSensitiveStreets_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydSensitiveStreets_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydSensitiveStreets_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetName",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydSensitiveStreets_streetName_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStrategicStreets_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStrategicStreets_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStrategicStreets_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStrategicStreets_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetName",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStrategicStreets_streetName_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "snpId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_snpId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "roadName",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHydStreetNamePlates_roadName_idx",
+      "entityType": "indexes",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "kind",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_kind_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "kind",
+          "isExpression": false
+        },
+        {
+          "value": "objectId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_kind_object_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "areaId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_areaId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "areaCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_areaCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "divisionId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovHadDivisionAreas_divisionId_idx",
+      "entityType": "indexes",
+      "table": "hkgovHadDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "districtCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_districtCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "referencePeriodEndYear",
+          "isExpression": false
+        },
+        {
+          "value": "referencePeriodCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_referencePeriod_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreaDerivatives_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreaDerivatives_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreaDerivatives_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreaDerivatives_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "inputVersionHash",
+          "isExpression": false
+        },
+        {
+          "value": "transform",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreaDerivatives_input_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "districtClass",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_districtClass_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "districtCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_districtCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "censusYear",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdDivisionAreas_censusYear_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdDivisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetCode",
+          "isExpression": false
+        },
+        {
+          "value": "layerName",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_dataset_layer_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "referencePeriodEndYear",
+          "isExpression": false
+        },
+        {
+          "value": "referencePeriodCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovCenstatdStatistics_referencePeriod_idx",
+      "entityType": "indexes",
+      "table": "hkgovCenstatdStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandNewTowns_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandNewTowns_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandNewTowns_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandNewTowns_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": [
+        {
+          "value": "newTownId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandNewTowns_newTownId_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandNewTowns"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "tpuCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_tpuCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "spuCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_spuCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    },
+    {
+      "columns": [
+        {
+          "value": "ppuCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovPlandPlanningCells_ppuCode_idx",
+      "entityType": "indexes",
+      "table": "hkgovPlandPlanningCells"
+    }
+  ],
+  "renames": []
+}

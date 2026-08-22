@@ -120,7 +120,7 @@ const RequestedLocalesQuerySchema = z
 const AddressSelectionQuerySchema = z.object({
   catalogRevision: z.string().min(1).optional(),
   cohort: z.string().min(1).optional(),
-  domain: z.literal('default').optional(),
+  domain: z.literal('official').optional(),
   effectiveAt: z.iso.datetime().optional(),
   knownAt: z.iso.datetime().optional(),
   releaseSet: z.string().min(1).optional(),

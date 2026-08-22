@@ -81,8 +81,8 @@ jobs:
 
       - name: 'RELEASE :: Create Release PR'
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          publish: bun run release
+          publish-script: bun run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

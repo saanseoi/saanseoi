@@ -135,10 +135,10 @@ export function buildJsonApiListDocument<
     jsonapi: {
       version: '1.1' as const,
     },
-    links,
+    meta: args.meta,
     data: args.data,
     ...(args.included && args.included.length > 0 ? { included: args.included } : {}),
-    meta: args.meta,
+    links,
   }
 }
 
@@ -157,15 +157,15 @@ export function buildJsonApiDetailDocument<
     jsonapi: {
       version: '1.1' as const,
     },
+    meta: args.meta,
+    data: args.data,
+    ...(args.included && args.included.length > 0 ? { included: args.included } : {}),
     links: {
       self: sanitiseResponseUrl(args.url).toString(),
       ...(args.permalink
         ? { permalink: sanitiseResponseUrl(args.permalink).toString() }
         : {}),
     },
-    data: args.data,
-    ...(args.included && args.included.length > 0 ? { included: args.included } : {}),
-    meta: args.meta,
   }
 }
 

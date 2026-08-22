@@ -78,6 +78,30 @@ const CASES: Array<{
   },
   {
     archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2023-Q4/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 126,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2024-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 144,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 162,
+    sourceVersion: '2021',
+  },
+  {
+    archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635932488538_10765/2026-Q2/source.zip',
     datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
     rowCount: 18,
@@ -140,11 +164,10 @@ describe('C&SD native statistics archives', () => {
       expect(rows).toHaveLength(entry.rowCount)
       expect(rows[0]).toMatchObject({
         dataset_code: entry.datasetCode,
-        reference_year:
-          entry.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-            ? '2016'
-            : entry.sourceVersion,
+        reference_period_code: expectedFirstReferencePeriod(
+          entry.datasetCode,
+          entry.sourceVersion,
+        ),
       })
       expect(JSON.parse(String(rows[0]?.sources))).toEqual([
         {
@@ -205,7 +228,14 @@ describe('C&SD native statistics archives', () => {
           metadata: await parquetMetadataAsync(divisionFile),
         })
         expect(divisions).toHaveLength(result.divisionCount)
-        expect(divisions[0]).toMatchObject({ source: 'hkgov-censtatd' })
+        expect(divisions[0]).toMatchObject({
+          canonical_type: 'housing-market-area',
+          class: 'housing-market-area',
+          source: 'hkgov-censtatd',
+          subtype: '',
+        })
+        expect(divisions[0]).toHaveProperty('parent_division_id', '')
+        expect(divisions[0]).not.toHaveProperty('canonical_level')
       }
     }
     for (const area of overtureHongKongAreas) {
@@ -218,6 +248,28 @@ describe('C&SD native statistics archives', () => {
     }
   })
 })
+
+function expectedFirstReferencePeriod(datasetCode: string, sourceVersion: string) {
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  ) {
+    return '2016'
+  }
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+  ) {
+    return '2023'
+  }
+  if (
+    datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  ) {
+    return '2023-Q3'
+  }
+  return sourceVersion
+}
 
 async function unpack(archive: string) {
   const dir = await mkdtemp(join(tmpdir(), 'hkgov-censtatd-statistics-test-'))

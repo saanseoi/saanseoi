@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
 
 export type PreparedHkgovCenstatdDistrictStatistic = {
   outputFile: string
@@ -29,10 +30,12 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
   const rows = features.map((feature, index) => {
     const properties = feature.properties
     const districtCode = integer(properties.DC, 'DC', index)
-    const referenceYear = text(properties.PERIOD, 'PERIOD', index)
-    if (referenceYear !== input.sourceVersion) {
+    const referencePeriod = parseStatisticsReferencePeriod(
+      text(properties.PERIOD, 'PERIOD', index),
+    )
+    if (referencePeriod.code !== input.sourceVersion) {
       throw new Error(
-        `C&SD Density row ${index + 1} has PERIOD=${referenceYear}; expected ${input.sourceVersion}.`,
+        `C&SD Density row ${index + 1} has PERIOD=${referencePeriod.code}; expected ${input.sourceVersion}.`,
       )
     }
     return {
@@ -50,7 +53,11 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       name_en: text(properties.DC_ENG, 'DC_ENG', index),
       name_zh_hant: text(properties.DC_CHI, 'DC_CHI', index),
       raw_properties: JSON.stringify(properties),
-      reference_year: referenceYear,
+      reference_period_code: referencePeriod.code,
+      reference_period_end: referencePeriod.end,
+      reference_period_end_year: referencePeriod.endYear,
+      reference_period_granularity: referencePeriod.granularity,
+      reference_period_start: referencePeriod.start,
       source_geometry: JSON.stringify(feature.sourceGeometry),
       sources: JSON.stringify([
         {
@@ -102,8 +109,24 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
             rows.map(row => row.raw_properties),
           ),
           stringColumn(
-            'reference_year',
-            rows.map(row => row.reference_year),
+            'reference_period_code',
+            rows.map(row => row.reference_period_code),
+          ),
+          nullableStringColumn(
+            'reference_period_start',
+            rows.map(row => row.reference_period_start),
+          ),
+          nullableStringColumn(
+            'reference_period_end',
+            rows.map(row => row.reference_period_end),
+          ),
+          stringColumn(
+            'reference_period_granularity',
+            rows.map(row => row.reference_period_granularity),
+          ),
+          stringColumn(
+            'reference_period_end_year',
+            rows.map(row => row.reference_period_end_year),
           ),
           stringColumn(
             'source_geometry',
@@ -164,6 +187,10 @@ function assertUniqueDistrictCodes(rows: Array<{ district_code: number }>) {
 
 function stringColumn(name: string, data: string[]) {
   return { data, name, nullable: false, type: 'STRING' as const }
+}
+
+function nullableStringColumn(name: string, data: Array<string | null>) {
+  return { data, name, nullable: true, type: 'STRING' as const }
 }
 
 function integerColumn(name: string, data: number[]) {

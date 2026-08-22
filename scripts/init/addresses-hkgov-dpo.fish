@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
-init_configure "saanseoi init:addresses:default" $argv
+init_configure "saanseoi init:addresses:official" $argv
 
 set -l continue_args
 if test "$saanseoi_init_continue" -eq 1

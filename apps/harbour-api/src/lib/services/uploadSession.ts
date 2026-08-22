@@ -7,6 +7,7 @@ import type { SchemaFingerprintResolver, UploadInspection } from '@repo/core'
 export type RegisterUploadRequest = {
   fileName: string
   force?: boolean
+  resumeStagedRelease?: boolean
   inspection: UploadInspection
   plan: {
     cohortKey?: string
@@ -26,7 +27,11 @@ export async function handleRegisterUploadRequest(
   request: RegisterUploadRequest,
 ) {
   const registered = await registerUpload(db, {
-    allowExistingDatasetStatuses: request.force ? ['staged', 'published'] : undefined,
+    allowExistingDatasetStatuses: request.force
+      ? ['staged', 'published']
+      : request.resumeStagedRelease
+        ? ['staged']
+        : undefined,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
     filePath: request.fileName,

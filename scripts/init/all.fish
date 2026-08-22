@@ -14,12 +14,12 @@ if test "$saanseoi_init_cache_artefacts" -eq 1
 end
 
 for command in \
-    init:divisions:overture \
+    init:divisions:geophraphic \
     init:divisions:hkgov-pland-pu \
     init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
-    init:addresses:default
+    init:addresses:official
     init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_args
 end

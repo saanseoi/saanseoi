@@ -322,13 +322,27 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
 
   if (action === 'curate_censtatd_measure_metadata') {
     const sourceField = asText(record?.sourceField) ?? '—'
-    const measureCode = asText(record?.measureCode) ?? '—'
+    const fieldName = asText(record?.fieldName) ?? '—'
+    const comparability = asRecord(record?.comparability)
+    const affectedReferencePeriods = Array.isArray(
+      comparability?.affectedReferencePeriods,
+    )
+      ? comparability.affectedReferencePeriods.filter(
+          (period): period is string => typeof period === 'string',
+        )
+      : []
+    const comparisonCaution =
+      comparability?.status === 'caution' &&
+      comparability.reason === 'economic-activity-status-classification-changed'
+        ? `Economic-activity-status classification changed; compare with ${affectedReferencePeriods.join(' and ')} with caution.`
+        : null
     const rawMetadata: ReadonlyArray<readonly [string, string | null]> = [
       ['Statistic kind', asText(record?.statisticKind)],
       ['Aggregation', asText(record?.aggregation)],
       ['Unit', asText(record?.unitCode)],
-      ['Denominator', asText(record?.denominatorMeasureCode)],
+      ['Denominator', asText(record?.denominatorFieldName)],
       ['Null option', asText(record?.sourceNullOption)],
+      ['Comparison caution', comparisonCaution],
     ]
     const metadata = rawMetadata.flatMap(([label, value]) =>
       value ? [{ label, value }] : [],
@@ -336,7 +350,7 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
     return {
       leftLabel: 'Publisher field',
       leftValue: sourceField,
-      rightItems: [{ label: 'Canonical measure', value: measureCode }, ...metadata],
+      rightItems: [{ label: 'Canonical field', value: fieldName }, ...metadata],
     }
   }
 

@@ -28,6 +28,7 @@ const STATIC_PATHS = [
   '/guides/create-a-map',
   '/guides/download-dataset',
   '/guides/use-the-api',
+  '/guides/api-keys',
   '/themes',
   '/manifesto',
   '/publishers',
