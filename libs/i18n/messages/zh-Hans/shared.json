@@ -474,6 +474,8 @@
   "publishers_cadence_quarterly": "每季",
   "publishers_cadence_yearly": "每年",
   "reference_documentation": "文档",
+  "reference_authentication": "身份验证",
+  "reference_request": "请求",
   "reference_api": "APIs",
   "reference_api_family": "API family",
   "reference_basemap": "底图",
