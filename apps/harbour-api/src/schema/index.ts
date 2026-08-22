@@ -232,6 +232,14 @@ export const RegisterUploadRequestSchema = z
         description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
+    resumeStagedRelease: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Allow retrying an already staged release without permitting a published release repair.',
+        examples: [true],
+      }),
     inspection: UploadInspectionSchema,
     plan: z.object({
       cohortKey: z.string().optional(),

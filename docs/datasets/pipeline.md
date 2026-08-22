@@ -90,8 +90,12 @@ include local-only preparation workflows.
 
 The Overture division initialiser includes its HAD and C&SD geometry dependencies,
 including both the `2016` and `2021` C&SD variants. Re-run an interrupted Overture or
-Planning Department backfill with `--continue`; it skips completed source releases.
-`saanseoi init [--continue]` runs all the focused initialisers in the same order.
+Planning Department backfill with `--continue`; it ignores release codes already marked
+`published` or `superseded`, then passes every other release to `upload --continue`.
+That retry accepts an existing staged release and ordinary failed-release retries, but
+never repairs a published release; unsupported states fail rather than being silently
+ignored. `saanseoi init [--continue]` runs all the focused initialisers in the same
+order.
 
 Initialisers defer `docs:publish --scope all` until all their uploads have succeeded.
 This avoids rescanning and publishing the same release documentation after every cohort

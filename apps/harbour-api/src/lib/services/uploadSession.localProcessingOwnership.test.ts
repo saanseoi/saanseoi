@@ -75,6 +75,21 @@ describe('local upload registration', () => {
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', true),
     ).resolves.toMatchObject({ status: 'staged' })
   })
+
+  test('allows --continue to retry a staged dataset but not a published one', async () => {
+    const db = initHarness('harbour-local-registration-continue.sqlite')
+    await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
+
+    await expect(
+      registerFixtureUpload(db, '2026-05-20.0', '2026-05', false, true),
+    ).resolves.toMatchObject({ status: 'staged' })
+
+    sqliteHandles.at(-1)?.exec("UPDATE releases SET status = 'published';")
+
+    await expect(
+      registerFixtureUpload(db, '2026-05-20.0', '2026-05', false, true),
+    ).rejects.toThrow('Dataset already exists with status published')
+  })
 })
 
 function registerFixtureUpload(
@@ -82,10 +97,12 @@ function registerFixtureUpload(
   sourceVersion: string,
   cohortKey: string,
   force = false,
+  resumeStagedRelease = false,
 ) {
   return handleRegisterUploadRequest(db, {
     fileName: 'hkgov-dpo-hk-address.parquet',
     force,
+    resumeStagedRelease,
     inspection: fixtureInspection,
     plan: {
       cohortKey,

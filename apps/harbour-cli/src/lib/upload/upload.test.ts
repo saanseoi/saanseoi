@@ -69,6 +69,36 @@ describe('upload helpers', () => {
     expect(result.rawObjectKey).toBe('hk/overture/2025-09-24.0/division.parquet')
   })
 
+  test('requests a staged-only remote retry without forcing a published repair', async () => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (_input, init) => {
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        force: false,
+        resumeStagedRelease: true,
+      })
+      return Response.json({
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: '960b3f6f-437f-49e3-bd72-44e87d1cd5b9',
+        rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+        releaseCode: 'dr-hk-overture-division-2025-09-24.0',
+        releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
+        rowCount: 1810,
+        source: 'overture',
+        sourceVersion: '2025-09-24.0',
+        status: 'staged',
+        type: 'division',
+      })
+    }) as typeof fetch
+
+    await dispatchUpload(
+      target,
+      { filePath: 'division.parquet' } as never,
+      previewResult(),
+      'schema-version-1',
+      { resumeStagedRelease: true },
+    )
+  })
+
   test('surfaces remote registration failures', async () => {
     process.env.HARBOUR_API_KEY = 'test-api-key'
     globalThis.fetch = (async () =>
