@@ -1019,16 +1019,8 @@ export async function renderMarkdownFixtureBody(
   }
 
   const markdown = fixture.body.replace(
-    /\{\{\s*([a-z][A-Za-z0-9_-]*)\s*\}\}/g,
-    (tag, key: string) => {
-      const value = frontmatter[key]
-
-      if (value === undefined) {
-        throw new Error(`Unknown markdown fixture frontmatter tag: ${tag}`)
-      }
-
-      return value
-    },
+    /\{\{\s*([a-z][A-Za-z0-9_-]*(?::[A-Za-z-]+)?)\s*\}\}/g,
+    (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
   )
 
   const renderedCenstatdTables = await renderCenstatdMeasureTables(
@@ -1036,6 +1028,45 @@ export async function renderMarkdownFixtureBody(
     frontmatter,
   )
   return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
+}
+
+function resolveMarkdownTemplateValue(
+  tag: string,
+  key: string,
+  frontmatter: Record<string, string>,
+) {
+  if (/^(apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(key)) {
+    return tag
+  }
+
+  if (key === 'apiVersionPath') {
+    const apiVersion = frontmatter.apiVersion
+    const path = apiVersion?.match(/^api-[a-z-]+-(v\d+(?:\.\d+)*)$/)?.[1]
+    if (path) return path
+    throw new Error(
+      `Cannot derive API version path from apiVersion: ${apiVersion ?? '-'}`,
+    )
+  }
+
+  const regionName = /^regionName:(en|zh-Hant|zh-Hans)$/.exec(key)
+  if (regionName) {
+    const names = {
+      hk: { en: 'Hong Kong', 'zh-Hant': '香港', 'zh-Hans': '香港' },
+      mo: { en: 'Macao', 'zh-Hant': '澳門', 'zh-Hans': '澳门' },
+    } as const
+    const value =
+      names[frontmatter.regionCode as keyof typeof names]?.[
+        regionName[1] as 'en' | 'zh-Hant' | 'zh-Hans'
+      ]
+    if (value) return value
+    throw new Error(`Cannot localise region code: ${frontmatter.regionCode ?? '-'}`)
+  }
+
+  const value = frontmatter[key]
+  if (value === undefined) {
+    throw new Error(`Unknown markdown fixture frontmatter tag: ${tag}`)
+  }
+  return value
 }
 
 /**

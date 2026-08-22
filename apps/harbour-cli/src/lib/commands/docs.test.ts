@@ -80,6 +80,15 @@ Publishes revision r{{ revision }}.
     expect(await renderMarkdownFixtureBody(fixture)).toBe('Publishes revision r0.\n')
   })
 
+  test('derives an API URL version and localised region name from frontmatter', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: '{{apiVersionPath}} {{regionName:en}} {{regionName:zh-Hant}}\n',
+      frontmatter: { apiVersion: 'api-divisions-v0.1', regionCode: 'hk' },
+    })
+
+    expect(rendered).toBe('v0.1 Hong Kong 香港\n')
+  })
+
   test('renders API release sources as role and resource-type tables', async () => {
     const rendered = await renderMarkdownFixtureBody(
       {
