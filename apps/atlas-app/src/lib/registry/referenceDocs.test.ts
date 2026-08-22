@@ -19,6 +19,10 @@ test('resolves map-guide glossary definitions and notes', () => {
   const vite = getMarkdownTransclusion('saanseoi:en:note/vite/v1')
   const render = getMarkdownTransclusion('saanseoi:en:definition/render/v1')
   const mapStyle = getMarkdownTransclusion('saanseoi:en:definition/map-style/v1')
+  const request = getMarkdownTransclusion('saanseoi:en:definition/request/v1')
+  const authentication = getMarkdownTransclusion(
+    'saanseoi:en:definition/authentication/v1',
+  )
 
   expect(api?.markdown).toContain('<i>software</i>')
   expect(basemap?.markdown).toContain('<i>bottom background layer</i>')
@@ -27,6 +31,8 @@ test('resolves map-guide glossary definitions and notes', () => {
   expect(vite?.type).toBe('note')
   expect(render?.markdown).toContain('turn geographic data')
   expect(mapStyle?.markdown).toContain('set of visual rules')
+  expect(request?.markdown).toContain('message sent to a server')
+  expect(authentication?.markdown).toContain('confirms <i>who</i>')
 })
 
 test('lists glossary definitions alphabetically without contextual notes', () => {
