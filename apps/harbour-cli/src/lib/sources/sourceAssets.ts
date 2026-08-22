@@ -80,6 +80,8 @@ export type SourceReleaseAssetInput = {
   datasetCode: string
   datasetId: string
   filePath: string
+  fileName?: string
+  mediaType?: string
   publisherCode: string
   releaseCode: string
   releaseId: string
@@ -246,9 +248,12 @@ export function buildSourceAssetObjectKey(sha256: string, fileName: string) {
 
 export function buildSourceReleaseAssetFileName(input: {
   datasetCode: string
+  fileName?: string
   sourceVersion: string
 }) {
-  return safeFileName(`${input.datasetCode}-${input.sourceVersion}.parquet`)
+  return input.fileName
+    ? safeFileName(input.fileName)
+    : safeFileName(`${input.datasetCode}-${input.sourceVersion}.parquet`)
 }
 
 export function buildSourceReleaseAssetObjectKey(input: {
@@ -291,6 +296,7 @@ export async function uploadSourceReleaseAsset(
   const bytes = await readFile(input.filePath)
   const contentHash = hash(bytes)
   const fileName = buildSourceReleaseAssetFileName(input)
+  const mediaType = input.mediaType ?? mediaTypeForSourceReleaseFile(fileName)
   const assetKey = buildSourceReleaseAssetObjectKey({
     datasetCode: input.datasetCode,
     fileName,
@@ -312,7 +318,7 @@ export async function uploadSourceReleaseAsset(
         schemaVersion: 1,
         artefact: {
           byteLength: bytes.byteLength,
-          mediaType: 'application/vnd.apache.parquet',
+          mediaType,
           objectKey: assetKey,
           role: 'sourceArchive',
           sha256: contentHash,
@@ -323,12 +329,31 @@ export async function uploadSourceReleaseAsset(
           sourceVersion: input.sourceVersion,
         },
       },
-      mediaType: 'application/vnd.apache.parquet',
+      mediaType,
       releaseId: input.releaseId,
       retrievedAt,
       role: 'sourceArchive',
     },
   })
+}
+
+function mediaTypeForSourceReleaseFile(fileName: string) {
+  const extension = fileName.toLowerCase().split('.').at(-1)
+  switch (extension) {
+    case 'csv':
+      return 'text/csv; charset=utf-8'
+    case 'geojson':
+    case 'json':
+      return 'application/geo+json'
+    case 'gml':
+      return 'application/gml+xml'
+    case 'parquet':
+      return 'application/vnd.apache.parquet'
+    case 'zip':
+      return 'application/zip'
+    default:
+      return 'application/octet-stream'
+  }
 }
 
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {

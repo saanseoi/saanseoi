@@ -117,6 +117,44 @@ test('retains an Overture release Parquet as a managed source asset', async () =
   }
 })
 
+test('retains a published source archive with its original filename and media type', async () => {
+  const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
+  const archivePath = join(outputDir, 'published-boundaries.zip')
+  await writeFile(archivePath, new Uint8Array([1, 2, 3]))
+  const uploads: ManagedSourceAssetUpload[] = []
+
+  try {
+    await uploadSourceReleaseAsset(
+      { environment: 'dev', remote: false },
+      {
+        datasetCode: 'ds-hk-example-division',
+        datasetId: 'dataset-id',
+        fileName: 'published-boundaries.zip',
+        filePath: archivePath,
+        publisherCode: 'example',
+        releaseCode: 'dr-hk-example-division-2026-08-22.0',
+        releaseId: 'release-id',
+        sourceVersion: '2026-08-22.0',
+      },
+      {
+        upload: async (_target, input) => {
+          uploads.push(input)
+          return { assetId: 'asset-id', url: 'https://example.test/asset-id' }
+        },
+      },
+    )
+
+    expect(uploads).toHaveLength(1)
+    expect(uploads[0]?.fileName).toBe('published-boundaries.zip')
+    expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
+    expect(uploads[0]?.metadata.manifest).toMatchObject({
+      artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
+    })
+  } finally {
+    await rm(outputDir, { force: true, recursive: true })
+  }
+})
+
 test('reuses an already registered local source asset without writing it again', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
   const bytes = new TextEncoder().encode('publisher evidence')
