@@ -2,6 +2,12 @@ import {
   ACCESS_ANALYTICS_ALL_TIME_PERIOD,
   type AccessAnalyticsScope,
 } from './accessAnalytics'
+import {
+  asRollupJobError,
+  RollupJobError,
+  runWithTransientAnalyticsRetry,
+  runWithTransientD1WriteRetry,
+} from './rollupRetry'
 
 const ANALYTICS_ENGINE_SQL_URL = (accountId: string) =>
   `https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`
@@ -48,17 +54,23 @@ export async function rollUpAccessAnalyticsDaily(
 ) {
   const rollupEnd = startOfDay(scheduledTime - ROLLUP_DELAY_MS)
   const rollupStart = rollupEnd - ROLLUP_DAYS * 24 * 60 * 60 * 1000
-  const rows = await queryAccessUsage(env, rollupStart, rollupEnd)
+  const rows = await runWithTransientAnalyticsRetry(() =>
+    queryAccessUsage(env, rollupStart, rollupEnd),
+  )
   const dailyMetrics = mergeDailyRows(rows)
   const days = daysInRange(rollupStart, rollupEnd)
 
-  await writeDailyRows(
-    env.DB_META,
-    days,
-    dailyMetrics,
-    new Date(scheduledTime).toISOString(),
+  await runWithTransientD1WriteRetry(() =>
+    writeDailyRows(
+      env.DB_META,
+      days,
+      dailyMetrics,
+      new Date(scheduledTime).toISOString(),
+    ),
   )
-  await rebuildAccessAnalyticsAllTimeCache(env.DB_META)
+  await runWithTransientD1WriteRetry(() =>
+    rebuildAccessAnalyticsAllTimeCache(env.DB_META),
+  )
 
   return { days: days.length, rows: dailyMetrics.size }
 }
@@ -75,31 +87,36 @@ async function queryAccessUsage(
 ): Promise<AccessDailyRow[]> {
   const dataset = env.PRODUCT_USAGE_DATASET
   if (!/^[A-Za-z0-9_-]+$/.test(dataset)) {
-    throw new Error('PRODUCT_USAGE_DATASET must be a valid Analytics Engine dataset')
+    throw new RollupJobError(
+      'analytics_engine_query',
+      'PRODUCT_USAGE_DATASET must be a valid Analytics Engine dataset',
+    )
   }
 
-  const response = await fetch(
-    ANALYTICS_ENGINE_SQL_URL(env.ANALYTICS_ENGINE_ACCOUNT_ID),
-    {
+  let response: Response
+  try {
+    response = await fetch(ANALYTICS_ENGINE_SQL_URL(env.ANALYTICS_ENGINE_ACCOUNT_ID), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.ANALYTICS_ENGINE_READ_TOKEN}`,
         'content-type': 'text/plain',
       },
       body: `SELECT
-        toStartOfDay(timestamp) AS day,
-        blob6 AS scope,
-        blob7 AS entityId,
-        blob11 AS metricKey,
-        SUM(_sample_interval * double2) AS metricValue
-      FROM ${quoteDataset(dataset)}
-      WHERE index1 = '${ACCESS_ANALYTICS_EVENT}'
-        AND timestamp >= '${timestamp(start)}'
-        AND timestamp < '${timestamp(end)}'
-      GROUP BY day, scope, entityId, metricKey
-      HAVING metricValue > 0`,
-    },
-  )
+          toStartOfDay(timestamp) AS day,
+          blob6 AS scope,
+          blob7 AS entityId,
+          blob11 AS metricKey,
+          SUM(_sample_interval * double2) AS metricValue
+        FROM ${quoteDataset(dataset)}
+        WHERE index1 = '${ACCESS_ANALYTICS_EVENT}'
+          AND timestamp >= '${timestamp(start)}'
+          AND timestamp < '${timestamp(end)}'
+        GROUP BY day, scope, entityId, metricKey
+        HAVING metricValue > 0`,
+    })
+  } catch (error) {
+    throw asRollupJobError('analytics_engine_query', error)
+  }
   const payload = (await response
     .json()
     .catch(() => null)) as AnalyticsEngineResponse | null
@@ -114,8 +131,10 @@ async function queryAccessUsage(
         typeof error.message === 'string' ? error.message : 'Unknown error',
       )
       .join('; ')
-    throw new Error(
+    throw new RollupJobError(
+      'analytics_engine_query',
       `Analytics Engine access query failed (${response.status}): ${message ?? 'Invalid response'}`,
+      response.status,
     )
   }
   return payload.data.flatMap(parseAccessDailyRow)

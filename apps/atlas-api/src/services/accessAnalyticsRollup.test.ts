@@ -81,7 +81,7 @@ function createAnalyticsD1(
 
 test('aggregates settled Analytics Engine hits into non-zero daily rows', async () => {
   const queries: string[] = []
-  globalThis.fetch = (async (_input, init) => {
+  globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
     queries.push(String(init?.body))
     return Response.json({
       success: true,
@@ -116,7 +116,7 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
         },
       ],
     })
-  }) as typeof fetch
+  }) as unknown as typeof fetch
 
   const { db, rows, close } = createAnalyticsD1()
   try {
@@ -174,6 +174,67 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
   }
 })
 
+test('does not retry Analytics Engine authentication failures', async () => {
+  let requests = 0
+  globalThis.fetch = (async () => {
+    requests += 1
+    return Response.json(
+      {
+        success: false,
+        errors: [{ message: 'Unauthorised' }],
+      },
+      { status: 401 },
+    )
+  }) as unknown as typeof fetch
+
+  const { db, close } = createAnalyticsD1()
+  try {
+    await expect(
+      rollUpAccessAnalyticsDaily(
+        {
+          ANALYTICS_ENGINE_ACCOUNT_ID: 'account-123',
+          ANALYTICS_ENGINE_READ_TOKEN: 'read-token',
+          DB_META: db,
+          PRODUCT_USAGE_DATASET: 'ss-product-usage-local',
+        },
+        Date.parse('2026-08-21T00:15:00Z'),
+      ),
+    ).rejects.toMatchObject({
+      phase: 'analytics_engine_query',
+      httpStatus: 401,
+    })
+    expect(requests).toBe(1)
+  } finally {
+    close()
+  }
+})
+
+test('labels Analytics Engine transport failures as query errors', async () => {
+  globalThis.fetch = (async () => {
+    throw new Error('Analytics Engine request failed')
+  }) as unknown as typeof fetch
+
+  const { db, close } = createAnalyticsD1()
+  try {
+    await expect(
+      rollUpAccessAnalyticsDaily(
+        {
+          ANALYTICS_ENGINE_ACCOUNT_ID: 'account-123',
+          ANALYTICS_ENGINE_READ_TOKEN: 'read-token',
+          DB_META: db,
+          PRODUCT_USAGE_DATASET: 'ss-product-usage-local',
+        },
+        Date.parse('2026-08-21T00:15:00Z'),
+      ),
+    ).rejects.toMatchObject({
+      phase: 'analytics_engine_query',
+      httpStatus: null,
+    })
+  } finally {
+    close()
+  }
+})
+
 test('keeps daily rows unchanged when a large atomic refresh fails', async () => {
   const { db, rows, close } = createAnalyticsD1({
     failOnRun: (query, values) =>
@@ -219,7 +280,10 @@ test('keeps daily rows unchanged when a large atomic refresh fails', async () =>
         },
         Date.parse('2026-08-21T00:15:00Z'),
       ),
-    ).rejects.toThrow('Injected batch failure')
+    ).rejects.toMatchObject({
+      phase: 'd1_write',
+      message: 'Injected batch failure',
+    })
 
     expect(
       rows<{ day: string; scope: string; entityId: string; metrics: string }>(

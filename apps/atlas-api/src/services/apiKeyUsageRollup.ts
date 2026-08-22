@@ -1,3 +1,10 @@
+import {
+  asRollupJobError,
+  RollupJobError,
+  runWithTransientAnalyticsRetry,
+  runWithTransientD1WriteRetry,
+} from './rollupRetry'
+
 const ANALYTICS_ENGINE_SQL_URL = (accountId: string) =>
   `https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`
 const ROLLUP_DELAY_MS = 2 * 60_000
@@ -37,13 +44,19 @@ export const rollUpApiKeyUsage = async (
   const rollupStart = rollupEnd - ROLLUP_OVERLAP_MS
   const datasets = parseDatasets(env.USAGE_ROLLUP_DATASETS)
   const rows = await Promise.all(
-    datasets.map(dataset => queryUsage(env, dataset, rollupStart, rollupEnd)),
+    datasets.map(dataset =>
+      runWithTransientAnalyticsRetry(() =>
+        queryUsage(env, dataset, rollupStart, rollupEnd),
+      ),
+    ),
   )
   const minuteUsage = mergeUsageRows(rows.flat())
   if (minuteUsage.size === 0) return { apiKeys: 0, minuteWindows: 0 }
 
-  await writeMinuteUsage(env.DB_META, minuteUsage)
-  await writeDerivedUsage(env.DB_META, minuteUsage.keys(), rollupEnd)
+  await runWithTransientD1WriteRetry(() => writeMinuteUsage(env.DB_META, minuteUsage))
+  await runWithTransientD1WriteRetry(() =>
+    writeDerivedUsage(env.DB_META, minuteUsage.keys(), rollupEnd),
+  )
   return {
     apiKeys: new Set([...minuteUsage.values()].map(row => row.apiKeyId)).size,
     minuteWindows: minuteUsage.size,
@@ -59,23 +72,25 @@ const queryUsage = async (
   start: number,
   end: number,
 ): Promise<AnalyticsUsageRow[]> => {
-  const response = await fetch(
-    ANALYTICS_ENGINE_SQL_URL(env.ANALYTICS_ENGINE_ACCOUNT_ID),
-    {
+  let response: Response
+  try {
+    response = await fetch(ANALYTICS_ENGINE_SQL_URL(env.ANALYTICS_ENGINE_ACCOUNT_ID), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.ANALYTICS_ENGINE_READ_TOKEN}`,
         'content-type': 'text/plain',
       },
       body: `SELECT
-      index1 AS apiKeyId,
-      toStartOfMinute(timestamp) AS windowStartedAt,
-      SUM(_sample_interval * double1) AS requestCount
-    FROM ${quoteDataset(dataset)}
-    WHERE timestamp >= '${timestamp(start)}' AND timestamp < '${timestamp(end)}'
-    GROUP BY index1, windowStartedAt`,
-    },
-  )
+        index1 AS apiKeyId,
+        toStartOfMinute(timestamp) AS windowStartedAt,
+        SUM(_sample_interval * double1) AS requestCount
+      FROM ${quoteDataset(dataset)}
+      WHERE timestamp >= '${timestamp(start)}' AND timestamp < '${timestamp(end)}'
+      GROUP BY index1, windowStartedAt`,
+    })
+  } catch (error) {
+    throw asRollupJobError('analytics_engine_query', error)
+  }
   const payload = (await response
     .json()
     .catch(() => null)) as AnalyticsEngineResponse | null
@@ -90,8 +105,10 @@ const queryUsage = async (
         typeof error.message === 'string' ? error.message : 'Unknown error',
       )
       .join('; ')
-    throw new Error(
+    throw new RollupJobError(
+      'analytics_engine_query',
       `Analytics Engine usage query failed for ${dataset} (${response.status}): ${message ?? 'Invalid response'}`,
+      response.status,
     )
   }
   return payload.data.flatMap(parseUsageRow)
@@ -208,7 +225,10 @@ const parseDatasets = (value: string) => {
     datasets.length === 0 ||
     datasets.some(dataset => !/^[A-Za-z0-9_-]+$/.test(dataset))
   ) {
-    throw new Error('USAGE_ROLLUP_DATASETS must list valid Analytics Engine datasets')
+    throw new RollupJobError(
+      'analytics_engine_query',
+      'USAGE_ROLLUP_DATASETS must list valid Analytics Engine datasets',
+    )
   }
   return datasets
 }
