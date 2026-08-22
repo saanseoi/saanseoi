@@ -33,6 +33,18 @@ describe('snapshot identifiers', () => {
     ).toBe('sl-ds-hk-hkgov-pland-division-pu-division-area')
   })
 
+  test('distinguishes geography from a shared division-statistic dataset', () => {
+    expect(
+      buildSnapshotLineageCode(
+        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        'division',
+        'hkgov-censtatd-hma',
+      ),
+    ).toBe(
+      'sl-ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-division',
+    )
+  })
+
   test('uses the source variant rather than a full dataset code in snapshot codes', () => {
     expect(buildSnapshotVersionCode('hk', 'division', '2006', 'hkgov-pland-pu')).toBe(
       'ss-hk-division-hkgov-pland-pu-2006',

@@ -216,15 +216,22 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
                 ? {}
                 : { canonical_level: geography.level }),
               canonical_type: geography.type,
+              // The shared division Parquet reader builds its hierarchy lookup
+              // before applying the C&SD-specific normaliser. Keep its required
+              // structural columns present, while canonical_type remains the
+              // authoritative C&SD classification.
+              class: 'housing-market-area',
               geometry: feature.geometry,
               id: divisionId,
               identifiers: {
                 hkgovCenstatd: { code: geography.code, geographyType: geography.type },
               },
               names,
+              parent_division_id: '',
               source: 'hkgov-censtatd',
               source_properties: sourceRow.properties,
               sources: provenance,
+              subtype: '',
               type: 'division',
             },
     }
