@@ -48,7 +48,7 @@ export type StatisticProfile = ApiProfileName
 export type StatisticListQuery = {
   catalogRevision?: string
   cohort?: string
-  domain?: 'default'
+  domain?: 'official'
   effectiveAt?: string
   knownAt?: string
   releaseSet?: string
@@ -139,7 +139,7 @@ type ActiveStatisticSnapshot = {
   apiCatalogRevision: string
   catalogPublishedAt: string
   cohortKey: string
-  domainCode: 'default'
+  domainCode: 'official'
   schemaVersion: string
   rulesetVersion: string
 }
@@ -216,7 +216,7 @@ type StatisticDocumentMeta = ApiVersionMetadata & {
   apiCatalogRevision: string
   catalogPublishedAt: string
   cohort: string
-  domain: 'default'
+  domain: 'official'
   profile: StatisticProfile
   locales: ApiDocumentLocales
   filters?: {
@@ -414,7 +414,7 @@ async function getActiveStatisticSnapshot(
         // Keep explicit publication selectors authoritative, but make the
         // required geography period useful without a redundant cohort param.
         cohortKey: selectors.cohort ?? selectors['filter[referencePeriod]'],
-        domainCode: 'default',
+        domainCode: 'official',
         effectiveAt: selectors.effectiveAt,
         knownAt: selectors.knownAt,
         regionCode: 'hk',
@@ -437,7 +437,7 @@ async function getActiveStatisticSnapshot(
     apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
     catalogPublishedAt: selection.releaseSet.catalogPublishedAt,
     cohortKey: selection.releaseSet.cohortKey,
-    domainCode: 'default',
+    domainCode: 'official',
     schemaVersion: selection.releaseSet.schemaVersion,
     rulesetVersion: selection.releaseSet.rulesetVersion,
   } satisfies ActiveStatisticSnapshot
@@ -627,7 +627,7 @@ function buildPermalink(args: {
   permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
   permalink.searchParams.set('releaseSet', args.activeSnapshot.apiReleaseSet)
   permalink.searchParams.set('cohort', args.activeSnapshot.cohortKey)
-  permalink.searchParams.set('domain', 'default')
+  permalink.searchParams.set('domain', 'official')
   permalink.searchParams.set('profile', args.routeState.profile)
   permalink.searchParams.set(
     'locales',
@@ -671,7 +671,7 @@ function documentMeta(
     apiCatalogRevision: activeSnapshot.apiCatalogRevision,
     catalogPublishedAt: activeSnapshot.catalogPublishedAt,
     cohort: activeSnapshot.cohortKey,
-    domain: 'default',
+    domain: 'official',
     profile: routeState.profile,
     locales: resolveApiMetaLocales(routeState.localeSelection),
   }

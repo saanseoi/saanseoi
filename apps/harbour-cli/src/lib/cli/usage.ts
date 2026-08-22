@@ -18,7 +18,7 @@ export function printUsage() {
   saanseoi tiles:retract --region gba|hk|mo --date YYYY-MM-DD [--dry-run]
   saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark|postcard|postcard-lit] [--dry-run]
   saanseoi schedule [--dry-run]
-  saanseoi init:addresses:default [--target local|preview|production] [--continue] [--cacheArtefacts]
+  saanseoi init:addresses:official [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--yes]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi release-sets:reconcile [--target local|preview|production] [--api-family FAMILY] [--region hk|mo]

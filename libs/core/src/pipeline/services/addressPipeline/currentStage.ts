@@ -88,7 +88,7 @@ export async function writeAddressCurrentChunkStage(
         anchorReleaseId: versionInsertContext.releaseId,
         lookupSnapshotId: divisionSnapshotId,
         selectedByRule:
-          'api-composition:addresses/default:address/default->division/overture',
+          'api-composition:addresses/official:address/default->division/overture',
         selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
         snapshotId: versionInsertContext.snapshotId,
       })

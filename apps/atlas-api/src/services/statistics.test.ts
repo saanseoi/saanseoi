@@ -57,7 +57,7 @@ function releaseSelection(type: string, domainCode = 'geographic') {
         apiCatalogRevision: 'catalog-hk-stats-v0.1-2026-08-20-r0',
         catalogPublishedAt: '2026-08-20T00:00:00.000Z',
         cohortKey: '2021',
-        domainCode: 'default',
+        domainCode: 'official',
         effectiveFrom: '2026-08-20T00:00:00.000Z',
         schemaVersion: 'sv-statistics-v1',
         rulesetVersion: 'rs-division-statistic-merge-v1',

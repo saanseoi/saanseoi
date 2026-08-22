@@ -19,7 +19,7 @@ for command in \
     init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
-    init:addresses:default
+    init:addresses:official
     init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_args
 end

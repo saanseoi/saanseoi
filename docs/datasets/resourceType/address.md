@@ -53,7 +53,7 @@ The registry declares the address endpoint aliases in
 - `GET /v0.1/addresses/{id}`
 
 The SaanSeoi API implements these aliases as JSON:API list and detail resources. The
-address composition uses the `default` domain, with an address snapshot as the primary
+address composition uses the `official` domain, with an address snapshot as the primary
 member and a cohort-compatible Overture division snapshot as a required supporting
 member. List requests support catalogue/cohort/release-set selection, profiles and
 locale projection, pagination, and country/area/district filters. Address relationships

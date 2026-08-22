@@ -665,6 +665,30 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
     })),
   )
 
+/**
+ * Canonical domain-code renames applied to published registry metadata.
+ *
+ * A domain identifies a lineage, so these are deliberately limited to cases
+ * where the previous code was only a label for the same official lineage.
+ */
+export const apiDomainCodeRenames = [
+  {
+    apiVersion: 'api-addresses-v0.1',
+    from: 'default',
+    to: 'official',
+  },
+  {
+    apiVersion: 'api-stats-v0.1',
+    from: 'default',
+    to: 'official',
+  },
+  {
+    apiVersion: 'api-streets-v0.1',
+    from: 'hkgov-landsd',
+    to: 'official',
+  },
+] as const
+
 export const initialApiEndpoints: InitialApiEndpointSeed[] =
   apiEndpointFixtures.flatMap(fixture =>
     fixture.endpoints.map(endpoint => ({
@@ -1083,6 +1107,38 @@ ON CONFLICT(code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  // Keep published release and catalogue metadata aligned when a composition
+  // renames an existing domain without changing its lineage.
+  for (const rename of apiDomainCodeRenames) {
+    const apiVersionId = `(SELECT id FROM apiVersions WHERE code = ${sqlString(rename.apiVersion)})`
+    statements.push(
+      `
+UPDATE apiReleaseSets
+SET domainCode = ${sqlString(rename.to)},
+    updatedAt = ${nowSql}
+WHERE apiVersionId = ${apiVersionId}
+  AND domainCode = ${sqlString(rename.from)};`.trim(),
+    )
+    statements.push(
+      `
+UPDATE apiCatalogRevisions
+SET defaultDomainCode = ${sqlString(rename.to)}
+WHERE apiVersionId = ${apiVersionId}
+  AND defaultDomainCode = ${sqlString(rename.from)};`.trim(),
+    )
+    statements.push(
+      `
+UPDATE apiCatalogRevisionReleaseSets
+SET domainCode = ${sqlString(rename.to)}
+WHERE domainCode = ${sqlString(rename.from)}
+  AND apiReleaseSetId IN (
+    SELECT id
+    FROM apiReleaseSets
+    WHERE apiVersionId = ${apiVersionId}
+  );`.trim(),
     )
   }
 

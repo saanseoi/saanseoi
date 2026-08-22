@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildMetaRegistrySyncStatements,
+  apiDomainCodeRenames,
   initialApiCompositions,
   initialApiCompositionMembers,
   initialApiEndpoints,
@@ -179,7 +180,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the default Stats domain', () => {
+  test('registers C&SD statistics under the official Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -220,7 +221,7 @@ describe('fixture version hashes', () => {
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'default' })
+    ).toMatchObject({ defaultDomainCode: 'official' })
     expect(
       initialApiCompositionMembers
         .filter(
@@ -297,11 +298,18 @@ describe('fixture version hashes', () => {
     ])
   })
 
-  test('reconciles composition members without rewriting historical domains', () => {
+  test('renames legacy official domain labels in published registry metadata', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
-    expect(statements).not.toContain('UPDATE apiCatalogRevisionReleaseSets')
-    expect(statements).not.toContain('UPDATE apiReleaseSets\nSET domainCode =')
+    expect(apiDomainCodeRenames).toEqual([
+      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'official' },
+      { apiVersion: 'api-stats-v0.1', from: 'default', to: 'official' },
+      { apiVersion: 'api-streets-v0.1', from: 'hkgov-landsd', to: 'official' },
+    ])
+    expect(statements).toContain(
+      'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
+    )
+    expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
   })
 
   test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
