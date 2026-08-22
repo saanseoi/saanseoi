@@ -12,7 +12,15 @@ type Props = {
 let { lang, text }: Props = $props()
 
 type UrlToken = {
-  kind: 'path' | 'version' | 'family' | 'separator' | 'parameter' | 'value'
+  kind:
+    | 'path'
+    | 'version'
+    | 'family'
+    | 'separator'
+    | 'parameter'
+    | 'parameterQualifier'
+    | 'bracket'
+    | 'value'
   value: string
 }
 
@@ -45,6 +53,19 @@ function tokeniseUrlLine(value: string): UrlToken[] {
   ]
 }
 
+function tokeniseParameter(value: string): UrlToken[] {
+  const match = /^(.*?)(\[)([^\]]+)(\])$/.exec(value)
+  if (!match) return [{ kind: 'parameter', value }]
+
+  const [, name = '', openingBracket = '', qualifier = '', closingBracket = ''] = match
+  return [
+    { kind: 'parameter', value: name },
+    { kind: 'bracket', value: openingBracket },
+    { kind: 'parameterQualifier', value: qualifier },
+    { kind: 'bracket', value: closingBracket },
+  ]
+}
+
 function tokeniseQuery(query: string): UrlToken[] {
   const tokens: UrlToken[] = []
   for (const [index, parameter] of query.split('&').entries()) {
@@ -52,11 +73,11 @@ function tokeniseQuery(query: string): UrlToken[] {
 
     const equalsIndex = parameter.indexOf('=')
     if (equalsIndex === -1) {
-      tokens.push({ kind: 'parameter', value: parameter })
+      tokens.push(...tokeniseParameter(parameter))
       continue
     }
 
-    tokens.push({ kind: 'parameter', value: parameter.slice(0, equalsIndex) })
+    tokens.push(...tokeniseParameter(parameter.slice(0, equalsIndex)))
     tokens.push({ kind: 'separator', value: '=' })
     tokens.push({ kind: 'value', value: parameter.slice(equalsIndex + 1) })
   }
@@ -143,9 +164,9 @@ async function copyUrl() {
             class:font-semibold={token.kind === 'parameter'}
             class:text-orange-200={token.kind === 'family'}
             class:text-secondary-fixed={token.kind === 'parameter'}
-            class:text-data-secondary={token.kind === 'value'}
+            class:text-data-secondary={token.kind === 'parameterQualifier' || token.kind === 'value'}
             class:px-1={token.kind === 'separator' && token.value !== '?'}
-            class:text-outline={token.kind === 'separator'}
+            class:text-outline={token.kind === 'bracket' || token.kind === 'separator'}
             >{token.value}</span
           >
         {/each}
