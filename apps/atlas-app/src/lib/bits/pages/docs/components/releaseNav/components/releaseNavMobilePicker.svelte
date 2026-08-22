@@ -66,6 +66,7 @@ function close() {
       ></button>
       <nav
         id="source-release-mobile-versions"
+        data-release-nav-version-list
         class="absolute inset-x-0 top-full z-40 grid max-h-[min(24rem,calc(100svh-8rem))] gap-2 overflow-y-auto rounded-b-lg border border-outline-variant/60 bg-surface-container-low p-3 shadow-popover dark:border-outline-variant"
         aria-label={m.source_versions_nav()}
       >
