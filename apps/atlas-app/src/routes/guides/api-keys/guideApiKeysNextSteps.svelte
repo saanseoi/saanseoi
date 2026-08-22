@@ -52,7 +52,7 @@ const nextSteps = [
         >
           <span
             aria-hidden="true"
-            class="absolute size-40 rotate-12 bg-secondary/15 transition-transform duration-300 group-hover:rotate-[24deg] group-hover:scale-125"
+            class="absolute size-40 rotate-12 bg-secondary/15 transition-transform duration-300 group-hover:rotate-24 group-hover:scale-125"
           ></span>
           <img
             alt=""

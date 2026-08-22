@@ -82,7 +82,7 @@ const handleSignOut = async () => {
         <div class="ml-auto flex shrink-0 items-center gap-4">
           {#if user}
             <Button
-              class="min-h-11 !px-0 text-body-md !font-medium text-nowrap"
+              class="min-h-11 px-0! text-body-md font-medium! text-nowrap"
               onclick={handleSignOut}
               size="compact"
               variant="text"

@@ -66,9 +66,7 @@ let latestVersion = $derived(
     {name}
   </h4>
   {#if description}
-    <p
-      class="relative z-2 mt-3 max-w-[15rem] font-body text-body-sm leading-6 opacity-78"
-    >
+    <p class="relative z-2 mt-3 max-w-60 font-body text-body-sm leading-6 opacity-78">
       {description}
     </p>
   {/if}

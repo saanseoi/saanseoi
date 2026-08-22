@@ -77,7 +77,7 @@ let contentColumnAnchor = $derived.by(() => {
               >{transclusion.version}</span
             >
             <Popover.Close
-              class="inline-flex size-[1.875rem] items-center justify-center rounded-full text-sky-700 transition hover:bg-sky-200 hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700 dark:text-sky-300 dark:hover:bg-sky-800 dark:hover:text-sky-100 dark:focus-visible:outline-sky-300"
+              class="inline-flex size-7.5 items-center justify-center rounded-full text-sky-700 transition hover:bg-sky-200 hover:text-sky-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700 dark:text-sky-300 dark:hover:bg-sky-800 dark:hover:text-sky-100 dark:focus-visible:outline-sky-300"
               aria-label={labels.closeTransclusion}
             >
               <Icon icon="ion:close-outline" class="size-4" aria-hidden="true" />
