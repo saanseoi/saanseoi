@@ -1,6 +1,7 @@
 export * as CreateAMap from './components/createAMap'
 export { default as GuideFoundations } from './components/guideFoundations.svelte'
 export { default as GuideChoiceGroup } from './components/shared/guideChoiceGroup.svelte'
+export { default as GuideColophon } from './components/shared/guideColophon.svelte'
 export { default as GuideCodeBlock } from './components/shared/guideCodeBlock.svelte'
 export { default as GuideCallout } from './components/shared/guideCallout.svelte'
 export { default as GuideMissingAnswerReminder } from './components/shared/guideMissingAnswerReminder.svelte'

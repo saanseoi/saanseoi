@@ -26,7 +26,7 @@ type Props = {
       }
   onchange?: (value: string) => void
   step?: string
-  tileLayout?: 'fixed' | 'flow'
+  tileLayout?: 'fixed' | 'flow' | 'six-across'
   value?: string
   variant?: 'compact' | 'illustrated' | 'tiles'
 }
@@ -428,7 +428,13 @@ onMount(() => {
   {:else}
     <div
       class={variant === 'tiles'
-          ? `mt-4 grid gap-3 ${tileLayout === 'flow' ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]' : 'max-w-lg grid-cols-3'}`
+          ? `mt-4 grid gap-3 ${
+              tileLayout === 'flow'
+                ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]'
+                : tileLayout === 'six-across'
+                  ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6'
+                  : 'max-w-lg grid-cols-3'
+            }`
           : 'mt-4 grid gap-3 sm:grid-cols-2'}
     >
       {#each choices as choice}
