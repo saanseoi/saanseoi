@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:89b1135669671610974669cc2b334240754723e8675a9ba31648c2cdf32b7bb6",
+  "versionHash": "sha256:5f6fad80810cbe2bae5bbfd80e807cf7af32d0ea99ecaadd757edb1d84c64d7f",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -7,22 +7,22 @@
   "status": "current",
   "domains": [
     {
-      "code": "default",
+      "code": "official",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "Default",
+          "name": "Official",
           "description": "Explore standardised addresses in Hong Kong, including their locations and the divisions that contain them."
         },
         {
           "locale": "zh-hant",
-          "name": "預設",
+          "name": "官方",
           "description": "探索香港的標準化地址，包括其位置及所屬分區。"
         },
         {
           "locale": "zh-hans",
-          "name": "默认",
+          "name": "官方",
           "description": "探索香港的标准化地址，包括其位置及所属分区。"
         }
       ],
