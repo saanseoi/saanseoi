@@ -30,10 +30,7 @@ let latestVersion = $derived(
 )
 </script>
 
-<article
-  class="group relative flex min-h-76 flex-col overflow-hidden rounded-[1.1rem] border-[0.35rem] border-[#fff9ed] p-5 text-(--family-ink) shadow-[0_0.35rem_1rem_rgb(0_0_0/0.1)] transition-shadow duration-250 hover:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] focus-within:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(150deg,color-mix(in_srgb,var(--family-accent)_34%,#fff9ed),color-mix(in_srgb,var(--family-secondary)_18%,#fff9ed))] before:content-[''] after:pointer-events-none after:absolute after:inset-2 after:z-1 after:rounded-[0.62rem] after:border after:border-(--family-accent)/32 after:content-['']"
-  style={`--family-accent: ${theme.colorway.primary}; --family-secondary: ${theme.colorway.secondary}; --family-ink: ${theme.colorway.ink};`}
->
+{#snippet cardContent()}
   <span
     class="domain-card-scene pointer-events-none absolute inset-0 z-1 overflow-hidden"
     aria-hidden="true"
@@ -79,12 +76,12 @@ let latestVersion = $derived(
   {#if !isComingSoon}
     <div class="relative z-2 mt-auto flex justify-end pt-6">
       {#if href}
-        <a
-          class="inline-flex items-center gap-1 font-body text-label-md font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--family-ink)"
-          {href}
-          >How to use
-          <Icon icon="proicons:arrow-right" class="size-4" /></a
+        <span
+          class="inline-flex items-center gap-1 font-body text-label-md font-semibold"
         >
+          How to use
+          <Icon icon="proicons:arrow-right" class="size-4" />
+        </span>
       {:else}
         <span class="font-body text-label-md font-semibold opacity-76">
           No published release notes yet.
@@ -92,7 +89,25 @@ let latestVersion = $derived(
       {/if}
     </div>
   {/if}
-</article>
+{/snippet}
+
+{#if href && !isComingSoon}
+  <a
+    class="group relative flex min-h-76 flex-col overflow-hidden rounded-[1.1rem] border-[0.35rem] border-[#fff9ed] p-5 text-(--family-ink) shadow-[0_0.35rem_1rem_rgb(0_0_0/0.1)] transition-shadow duration-250 hover:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--family-ink) focus-visible:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(150deg,color-mix(in_srgb,var(--family-accent)_34%,#fff9ed),color-mix(in_srgb,var(--family-secondary)_18%,#fff9ed))] before:content-[''] after:pointer-events-none after:absolute after:inset-2 after:z-1 after:rounded-[0.62rem] after:border after:border-(--family-accent)/32 after:content-['']"
+    {href}
+    aria-label={`How to use the ${name} ${familyType} API`}
+    style={`--family-accent: ${theme.colorway.primary}; --family-secondary: ${theme.colorway.secondary}; --family-ink: ${theme.colorway.ink};`}
+  >
+    {@render cardContent()}
+  </a>
+{:else}
+  <article
+    class="group relative flex min-h-76 flex-col overflow-hidden rounded-[1.1rem] border-[0.35rem] border-[#fff9ed] p-5 text-(--family-ink) shadow-[0_0.35rem_1rem_rgb(0_0_0/0.1)] transition-shadow duration-250 hover:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] focus-within:shadow-[0_0.55rem_1.3rem_rgb(0_0_0/0.14)] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(150deg,color-mix(in_srgb,var(--family-accent)_34%,#fff9ed),color-mix(in_srgb,var(--family-secondary)_18%,#fff9ed))] before:content-[''] after:pointer-events-none after:absolute after:inset-2 after:z-1 after:rounded-[0.62rem] after:border after:border-(--family-accent)/32 after:content-['']"
+    style={`--family-accent: ${theme.colorway.primary}; --family-secondary: ${theme.colorway.secondary}; --family-ink: ${theme.colorway.ink};`}
+  >
+    {@render cardContent()}
+  </article>
+{/if}
 
 <style>
 .domain-card-scene {
