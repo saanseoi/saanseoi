@@ -1625,5 +1625,21 @@
   "guide_handover_operating_system": "操作系统",
   "guide_handover_agent_tool": "代理人工智能工具",
   "guide_handover_vpn_access": "VPN接入",
-  "guide_handover_platform": "平台"
+  "guide_handover_platform": "平台",
+  "openapi_addresses_introduction": "地址是提供地址记录的 SaanSeoi API 产品。使用 Registry 探索可用的 API 系列、发布、字段、端点和来源元数据；使用此产品获取地址。地址的版本独立于其他 API 产品。",
+  "openapi_divisions_introduction": "Divisions 是提供行政及其他地理分区的 SaanSeoi API 产品。使用 Registry 探索可用的 API 系列、发布、字段、端点和来源元数据；使用此产品获取分区记录和几何数据。Divisions 的版本独立于其他 API 产品。",
+  "openapi_places_introduction": "Places 是提供地点记录和搜索的 SaanSeoi API 产品。使用 Registry 探索可用的 API 系列、发布、字段、端点和来源元数据；使用此产品获取地点。Places 的版本独立于其他 API 产品。",
+  "openapi_statistics_introduction": "Statistics 是提供已发布统计观测值及其地理背景的 SaanSeoi API 产品。使用 Registry 探索可用的 API 系列、发布、字段、端点和来源元数据；使用此产品获取统计数据。Statistics 的版本独立于其他 API 产品。",
+  "openapi_streets_introduction": "Streets 是提供香港街道记录及其版本历史的 SaanSeoi API 产品。使用 Registry 探索可用的 API 系列、发布、字段、端点和来源元数据；使用此产品获取街道。Streets 的版本独立于其他 API 产品。",
+  "openapi_registry_introduction": "Registry 是所有 SaanSeoi API 系列共享的目录。它让用户探索 API 系列及其发布、字段、端点和来源；对于来源，还可探索已导入的版本和发布者。找到所需内容后，使用 API 系列获取其记录。每个系列都有自己的发布节奏、版本历史和文档。",
+  "openapi_current_family_alias_description": "本文档说明当前系列的 `v0` 别名。需要固定契约的集成应使用明确版本。",
+  "openapi_pinned_contract_description": "本文档说明明确的 `v0.1` 契约。需要固定契约的集成应使用明确版本。",
+  "openapi_label_registry": "目录",
+  "openapi_label_addresses": "地址",
+  "openapi_label_divisions": "分区",
+  "openapi_label_places": "地点",
+  "openapi_label_statistics": "统计数据",
+  "openapi_label_streets": "街道",
+  "openapi_families_heading": "API 系列",
+  "openapi_version_heading": "API 版本"
 }
