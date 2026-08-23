@@ -1457,6 +1457,7 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/assets/{assetId}']).toBeDefined()
     expect(body.paths['/v0.1/styles/{style}/{version}']).toBeDefined()
     expect(body.paths['/v0.1/meta/health']).toBeDefined()
+    expect(body.paths['/v0.1/meta/d1-placement-probe']).toBeUndefined()
     expect(body.paths['/divisions/v0.1']).toBeUndefined()
     expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
       'hierarchy',
@@ -1510,8 +1511,12 @@ describe('atlas-api', () => {
       tags?: Array<{ name: string }>
       'x-tagGroups'?: Array<{ name: string; tags: string[] }>
       info: { description?: string }
+      components?: { schemas?: Record<string, unknown> }
     }
-    const addresses = (await addressesRes.json()) as { paths: Record<string, unknown> }
+    const addresses = (await addressesRes.json()) as {
+      paths: Record<string, unknown>
+      components?: { schemas?: Record<string, unknown> }
+    }
     const divisionsCurrent = (await divisionsCurrentRes.json()) as {
       paths: Record<string, unknown>
     }
@@ -1529,10 +1534,27 @@ describe('atlas-api', () => {
     expect(addresses.paths['/addresses/v0.1']).toBeDefined()
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
+    expect(addresses.components?.schemas).toHaveProperty('Address')
+    expect(addresses.components?.schemas).not.toHaveProperty('Division')
+    expect(divisions.components?.schemas).toHaveProperty('Division')
+    expect(divisions.components?.schemas).not.toHaveProperty('Address')
 
     expect(divisionsCurrentRes.status).toBe(200)
     expect(divisionsCurrent.paths['/divisions/v0']).toBeDefined()
     expect(divisionsCurrent.paths['/divisions/v0.1']).toBeUndefined()
+  })
+
+  test('OpenAPI documents use the requested documentation locale', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/openapi/registry/v0.1?locale=zh-Hant'),
+      env,
+    )
+    const body = (await res.json()) as { info: { description?: string } }
+
+    expect(res.status).toBe(200)
+    expect(body.info.description).toContain('共用的目錄')
+    expect(body.info.description).not.toContain('__saanseoi_openapi_i18n__')
   })
 
   test('major-version OpenAPI documents resolve to the current minor contract', async () => {

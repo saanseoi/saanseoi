@@ -1,8 +1,9 @@
 <script lang="ts">
+import { goto } from '$app/navigation'
 import { onMount } from 'svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
-import { m } from '#lib/bits/internal/i18n.js'
+import { getLocale, m } from '#lib/bits/internal/i18n.js'
 import {
   THEME_CHANGE_EVENT,
   resolveTheme,
@@ -13,12 +14,42 @@ import type { ApiReferenceConfigurationWithMultipleSources } from '@scalar/types
 import '@scalar/api-reference/style.css'
 
 const apiFamilies = [
-  { id: 'registry', label: 'Registry', versions: ['v0', 'v0.1'], visible: true },
-  { id: 'addresses', label: 'Addresses', versions: ['v0', 'v0.1'], visible: true },
-  { id: 'divisions', label: 'Divisions', versions: ['v0', 'v0.1'], visible: true },
-  { id: 'places', label: 'Places', versions: ['v0', 'v0.1'], visible: false },
-  { id: 'stats', label: 'Statistics', versions: ['v0', 'v0.1'], visible: true },
-  { id: 'streets', label: 'Streets', versions: ['v0', 'v0.1'], visible: false },
+  {
+    id: 'registry',
+    label: () => m.openapi_label_registry(),
+    versions: ['v0', 'v0.1'],
+    visible: true,
+  },
+  {
+    id: 'addresses',
+    label: () => m.openapi_label_addresses(),
+    versions: ['v0', 'v0.1'],
+    visible: true,
+  },
+  {
+    id: 'divisions',
+    label: () => m.openapi_label_divisions(),
+    versions: ['v0', 'v0.1'],
+    visible: true,
+  },
+  {
+    id: 'places',
+    label: () => m.openapi_label_places(),
+    versions: ['v0', 'v0.1'],
+    visible: false,
+  },
+  {
+    id: 'stats',
+    label: () => m.openapi_label_statistics(),
+    versions: ['v0', 'v0.1'],
+    visible: true,
+  },
+  {
+    id: 'streets',
+    label: () => m.openapi_label_streets(),
+    versions: ['v0', 'v0.1'],
+    visible: false,
+  },
 ] as const
 
 type ApiFamilyId = (typeof apiFamilies)[number]['id']
@@ -37,9 +68,9 @@ const openApiSources = (
   }
 
   return family.versions.map((version, index) => ({
-    title: `${family.label} ${version}`,
+    title: `${family.label()} ${version}`,
     slug: `${family.id}-${version}`,
-    url: `/openapi/${family.id}/${version}`,
+    url: `/openapi/${family.id}/${version}?locale=${getLocale()}`,
     default: index === family.versions.length - 1,
   }))
 }
@@ -72,7 +103,6 @@ const scalarConfig = (
   familyId: ApiFamilyId,
   onLoaded: () => void,
 ) => ({
-  defaultOpenFirstTag: true,
   darkMode: theme === 'dark',
   documentDownloadType: 'both' as const,
   expandAllModelSections: false,
@@ -117,25 +147,37 @@ const addSidebarLinks = (
 ) => {
   requestAnimationFrame(() => {
     const sidebarItems = mountElement.querySelector('.t-doc__sidebar .group\\/items')
+    const sidebar = sidebarItems?.parentElement
 
-    if (!sidebarItems || sidebarItems.querySelector('.scalar-api-families')) {
+    if (!sidebarItems || !sidebar || sidebar.querySelector('.scalar-api-families')) {
       return
     }
 
     const familySection = document.createElement('section')
     const familyHeading = document.createElement('h2')
+    const familyToggle = document.createElement('button')
+    const familyHeadingLabel = document.createElement('span')
+    const familyChevron = document.createElement('span')
     const familyList = document.createElement('ul')
     const versionHeading = document.createElement('h2')
-    const sidebar = sidebarItems.parentElement
     const versionSelector = sidebar?.querySelector('.document-selector')
     const searchActions = sidebarItems.previousElementSibling
 
     familySection.className = 'scalar-api-families'
     familyHeading.className = 'scalar-api-families__heading'
-    familyHeading.textContent = 'API Families'
+    familyToggle.className = 'scalar-api-families__toggle'
+    familyToggle.type = 'button'
+    familyToggle.setAttribute('aria-expanded', 'true')
+    familyToggle.setAttribute('aria-controls', 'scalar-api-families-list')
+    familyHeadingLabel.className = 'scalar-api-families__heading-label'
+    familyHeadingLabel.textContent = m.openapi_families_heading()
+    familyChevron.className = 'scalar-api-families__chevron'
+    familyChevron.textContent = '⌄'
     familyList.className = 'scalar-api-families__list'
+    familyList.id = 'scalar-api-families-list'
+    familyList.hidden = false
     versionHeading.className = 'scalar-api-version__heading'
-    versionHeading.textContent = 'API Version'
+    versionHeading.textContent = m.openapi_version_heading()
 
     for (const family of apiFamilies.filter(family => family.visible)) {
       const item = document.createElement('li')
@@ -144,19 +186,43 @@ const addSidebarLinks = (
 
       button.className = 'scalar-api-families__link'
       button.type = 'button'
-      button.textContent = family.label
+      button.textContent = family.label()
       button.setAttribute('aria-current', isActive ? 'page' : 'false')
       button.addEventListener('click', () => selectFamily(family.id))
       item.appendChild(button)
       familyList.appendChild(item)
     }
 
+    familyToggle.appendChild(familyHeadingLabel)
+    familyToggle.appendChild(familyChevron)
+    familyToggle.addEventListener('click', () => {
+      const expanded = familyToggle.getAttribute('aria-expanded') !== 'true'
+      familyToggle.setAttribute('aria-expanded', String(expanded))
+      familyList.hidden = !expanded
+    })
+    familyHeading.appendChild(familyToggle)
     familySection.appendChild(familyHeading)
     familySection.appendChild(familyList)
-    sidebar?.insertBefore(familySection, searchActions ?? sidebarItems)
-    sidebar?.insertBefore(versionHeading, searchActions ?? sidebarItems)
-    if (sidebar && versionSelector) {
+    sidebar.insertBefore(familySection, searchActions ?? sidebarItems)
+    if (versionSelector) {
+      versionSelector.classList.add('scalar-api-version')
+      versionSelector.insertBefore(versionHeading, versionSelector.firstChild)
       sidebar.insertBefore(versionSelector, searchActions ?? sidebarItems)
+    } else {
+      sidebar.insertBefore(versionHeading, searchActions ?? sidebarItems)
+    }
+
+    if (activeFamily !== 'registry') {
+      requestAnimationFrame(() => {
+        for (const tagLink of sidebarItems.querySelectorAll('a[href*="/tag/"]')) {
+          const tagItem = tagLink.closest('li')
+          const toggle = tagItem?.querySelector<HTMLButtonElement>(
+            'button[aria-expanded="false"]',
+          )
+
+          toggle?.click()
+        }
+      })
     }
 
     if (activeFamily !== 'registry') {
@@ -179,10 +245,93 @@ const addSidebarLinks = (
   })
 }
 
+const installVersionOptionLabelFix = () => {
+  const createCheckmark = () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+    svg.dataset.saanseoiVersionCheck = 'true'
+    svg.setAttribute('aria-hidden', 'true')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('height', '12')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('width', '12')
+    path.setAttribute('d', 'm19.75 7.018l-9.257 9.257a1 1 0 0 1-1.414 0L4.25 11.446')
+    path.setAttribute('stroke', 'currentColor')
+    path.setAttribute('stroke-linecap', 'round')
+    path.setAttribute('stroke-linejoin', 'round')
+    path.setAttribute('stroke-width', '1.5')
+    svg.appendChild(path)
+
+    return svg
+  }
+
+  const applyDimensions = () => {
+    for (const label of document.querySelectorAll<HTMLElement>(
+      '[role="listbox"] > [role="option"] > span.inline-block.min-w-0.flex-1.truncate, [role="listbox"] > [role="option"] > span[data-saanseoi-version-option-label]',
+    )) {
+      const option = label.parentElement
+      const listbox = option?.parentElement
+      const indicator = option?.firstElementChild
+
+      if (!option || !listbox || !(indicator instanceof HTMLElement)) {
+        continue
+      }
+
+      label.dataset.saanseoiVersionOptionLabel = 'true'
+      label.classList.remove('inline-block', 'truncate')
+      label.style.setProperty('display', 'block', 'important')
+      label.style.setProperty('flex', '1 1 auto', 'important')
+      label.style.setProperty('font-family', 'var(--font-mono)', 'important')
+      label.style.setProperty('font-size', '0.75rem', 'important')
+      label.style.setProperty('font-weight', '500', 'important')
+      label.style.setProperty('height', '1.25rem', 'important')
+      label.style.setProperty('letter-spacing', '0.04em', 'important')
+      label.style.setProperty('min-width', '8rem', 'important')
+      label.style.setProperty('text-transform', 'uppercase', 'important')
+      label.style.setProperty('width', 'auto', 'important')
+      listbox.dataset.saanseoiVersionListbox = 'true'
+      option.dataset.saanseoiVersionOption = 'true'
+      option.style.setProperty('font-family', 'var(--font-mono)', 'important')
+      option.style.setProperty('font-size', '0.75rem', 'important')
+      option.style.setProperty('letter-spacing', '0.04em', 'important')
+      option.style.setProperty('text-transform', 'uppercase', 'important')
+      indicator.style.setProperty('flex', '0 0 1rem', 'important')
+
+      if (option.getAttribute('aria-selected') === 'true') {
+        if (!indicator.querySelector('[data-saanseoi-version-check]')) {
+          indicator.replaceChildren(createCheckmark())
+        }
+        indicator.dataset.saanseoiVersionCheckmark = 'true'
+        indicator.className = 'flex size-4 shrink-0 items-center justify-center'
+        indicator.style.setProperty('color', 'var(--secondary)', 'important')
+      } else if (indicator.dataset.saanseoiVersionCheckmark === 'true') {
+        indicator.className =
+          'flex size-4 items-center justify-center p-0.75 text-transparent shadow-border rounded-full'
+        indicator.replaceChildren()
+        indicator.style.removeProperty('color')
+        delete indicator.dataset.saanseoiVersionCheckmark
+      }
+    }
+  }
+
+  const observer = new MutationObserver(applyDimensions)
+  observer.observe(document.body, {
+    attributeFilter: ['aria-selected'],
+    attributes: true,
+    childList: true,
+    subtree: true,
+  })
+  applyDimensions()
+
+  return () => observer.disconnect()
+}
+
 onMount(() => {
   let scalarReference: ReturnType<typeof createScalarApiReference> | null = null
   let createReference: typeof createScalarApiReference | null = null
   const selectedFamily = new URLSearchParams(window.location.search).get('family')
+  const removeVersionOptionLabelFix = installVersionOptionLabelFix()
   let activeFamily: ApiFamilyId = isApiFamilyId(selectedFamily)
     ? selectedFamily
     : defaultApiFamily
@@ -195,8 +344,10 @@ onMount(() => {
     activeFamily = family
     const url = new URL(window.location.href)
     url.searchParams.set('family', family)
-    window.history.replaceState({}, '', url)
-    mountScalar(resolveTheme())
+    url.hash = ''
+    void goto(`${url.pathname}${url.search}`, { replace: true, reset: false }).then(
+      () => mountScalar(resolveTheme()),
+    )
   }
 
   const mountScalar = (theme: ThemeMode) => {
@@ -231,6 +382,7 @@ onMount(() => {
   })
 
   return () => {
+    removeVersionOptionLabelFix()
     window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange)
     scalarReference?.destroy()
   }
@@ -266,8 +418,24 @@ onMount(() => {
 }
 
 :global(.atlas-api-reference .scalar-api-families__heading) {
-  margin: 0 0 0.25rem;
+  margin: 0;
+}
+
+:global(.atlas-api-reference .scalar-api-families__toggle) {
+  align-items: center;
+  background: transparent;
+  border: 0;
   color: var(--scalar-sidebar-color-1);
+  column-gap: 0.5rem;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+:global(.atlas-api-reference .scalar-api-families__heading-label) {
   font-family: var(--scalar-font);
   font-size: 0.75rem;
   font-weight: 600;
@@ -275,22 +443,77 @@ onMount(() => {
   text-transform: uppercase;
 }
 
+:global(.atlas-api-reference .scalar-api-families__chevron) {
+  font-size: 0.875rem;
+  line-height: 1;
+  transition: transform 150ms ease;
+}
+
+:global(
+  .atlas-api-reference
+    .scalar-api-families__toggle[aria-expanded="true"]
+    .scalar-api-families__chevron
+) {
+  transform: rotate(180deg);
+}
+
 :global(.atlas-api-reference .scalar-api-version__heading) {
   margin: 0;
-  padding: 0.75rem 0.75rem 0.25rem;
+  flex: none;
+  padding: 0;
   color: var(--scalar-sidebar-color-1);
   font-family: var(--scalar-font);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+:global(.atlas-api-reference .scalar-api-version) {
+  align-items: center;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.5rem;
+  margin-bottom: -1rem;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+:global(.atlas-api-reference .scalar-api-version .contents) {
+  align-self: stretch;
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+:global(.atlas-api-reference .scalar-api-version button[aria-haspopup="listbox"]) {
+  display: flex;
+  font-family: var(--font-mono);
+  justify-content: center;
+  line-height: 1.25rem;
+  min-height: 1.25rem;
+  min-width: 0;
+  position: relative;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+:global(.atlas-api-reference .scalar-api-version button[aria-haspopup="listbox"] svg) {
+  position: absolute;
+  right: 0;
+}
+
+:global(.atlas-api-reference .scalar-mcp-layer) {
+  display: none;
 }
 
 :global(.atlas-api-reference .scalar-api-families__list) {
   display: grid;
   gap: 0.125rem;
   list-style: none;
-  margin: 0;
+  margin: 0.5rem 0 0;
   padding: 0;
 }
 
@@ -303,7 +526,10 @@ onMount(() => {
   color: var(--scalar-sidebar-color-2);
   cursor: pointer;
   display: block;
-  font: inherit;
+  font-family: var(--scalar-font);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1rem;
   text-align: left;
 }
 
