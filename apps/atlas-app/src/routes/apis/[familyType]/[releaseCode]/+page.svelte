@@ -12,6 +12,7 @@ import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/inde
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import * as ReleaseSamples from '#lib/bits/pages/docs/components/releaseSamples/index.js'
+import * as ReleaseSchema from '#lib/bits/pages/docs/components/releaseSchema/index.js'
 import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
@@ -80,7 +81,7 @@ let release = $derived.by(() => {
 let seoTitle = $derived(
   `${release.apiFamily} API ${getReleaseVersionLabel(release.code, release.apiFamily)}`,
 )
-let seoDescription = $derived(`${m.api_release_notes()}: ${seoTitle}.`)
+let seoDescription = $derived(`Release: ${seoTitle}.`)
 
 let locale = $derived(getCurrentLocale())
 let currentDomainCode = $derived(release.domainCode ?? 'default')
@@ -109,7 +110,17 @@ let notesPresentation = $derived(
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
-type ApiReleaseTab = 'notes' | 'samples' | 'stats' | 'audit' | 'sources'
+let guide = $derived(selectReleaseNotesMarkdown(release.guide, locale))
+let guidePresentation = $derived(buildReleaseNotesPresentation(guide, locale))
+let guideHeadings = $derived(guidePresentation.headings)
+type ApiReleaseTab =
+  | 'release'
+  | 'guide'
+  | 'schema'
+  | 'samples'
+  | 'stats'
+  | 'audit'
+  | 'sources'
 type ApiReleaseUrl = {
   searchParams: {
     get(name: string): string | null
@@ -117,9 +128,17 @@ type ApiReleaseUrl = {
 }
 const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
   const tab = url.searchParams.get('tab') ?? ''
-  return ['notes', 'samples', 'stats', 'audit', 'sources'].includes(tab)
+  return [
+    'release',
+    'guide',
+    'schema',
+    'samples',
+    'stats',
+    'audit',
+    'sources',
+  ].includes(tab)
     ? (tab as ApiReleaseTab)
-    : 'notes'
+    : 'release'
 }
 let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
 let showAllRevisions = $state(false)
@@ -282,8 +301,8 @@ let allVersions = $derived(
     cohortKey: item.cohortKey,
     href: (() => {
       const searchParams = new URLSearchParams()
-      if (activeTab !== 'notes') searchParams.set('tab', activeTab)
-      if (activeTab === 'notes' && showNoteDiff && index < releases.length - 1)
+      if (activeTab !== 'release') searchParams.set('tab', activeTab)
+      if (activeTab === 'release' && showNoteDiff && index < releases.length - 1)
         searchParams.set('view', 'diff')
 
       const search = searchParams.toString()
@@ -340,7 +359,7 @@ function setActiveTab(tab: string) {
     entityId: tab,
   })
   const url = new URL(page.url.href)
-  if (tab === 'notes') url.searchParams.delete('tab')
+  if (tab === 'release') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
   url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
@@ -349,7 +368,9 @@ function setActiveTab(tab: string) {
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
-  { compactLabel: m.source_notes(), id: 'notes', label: m.source_notes() },
+  { id: 'release', label: 'Release' },
+  { id: 'guide', label: 'Guide' },
+  { id: 'schema', label: m.api_release_schema() },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
@@ -360,11 +381,11 @@ let tabs = $derived<ReleaseNavTab[]>([
 
 $effect(() => {
   const tab = getApiReleaseTabFromUrl(page.url)
-  activeTab = tabs.some(({ id }) => id === tab) ? tab : 'notes'
+  activeTab = tabs.some(({ id }) => id === tab) ? tab : 'release'
 })
 
 let actions = $derived<ReleaseNavAction[]>(
-  activeTab === 'notes' && versions[1]
+  activeTab === 'release' && versions[1]
     ? [
         {
           icon: 'proicons:diff',
@@ -440,16 +461,18 @@ let sourceOutline = $derived(
 )
 
 let tocHeadings = $derived(
-  activeTab === 'notes'
+  activeTab === 'release'
     ? noteHeadings
-    : activeTab === 'stats'
-      ? statsHeadings
-      : activeTab === 'audit'
-        ? auditHeadings
-        : [],
+    : activeTab === 'guide'
+      ? guideHeadings
+      : activeTab === 'stats'
+        ? statsHeadings
+        : activeTab === 'audit'
+          ? auditHeadings
+          : [],
 )
 let activeTocHeadingId = $derived(
-  activeTab === 'notes'
+  activeTab === 'release' || activeTab === 'guide'
     ? activeHeadingId
     : activeTab === 'stats'
       ? activeStatsHeadingId
@@ -468,12 +491,14 @@ let outline = $derived<ReleaseNavOutlineItem[]>(
 )
 let hasContent = $derived.by(() => {
   if (isContentLoading) return true
-  if (activeTab === 'notes') {
+  if (activeTab === 'release') {
     return showNoteDiff
       ? noteDiff.changes.length > 0
       : Boolean(notesPresentation.markdown.trim())
   }
+  if (activeTab === 'guide') return true
   if (activeTab === 'stats') return Boolean(release.stats?.length)
+  if (activeTab === 'schema') return true
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(release.processingActions?.length || release.bulkActions?.length)
@@ -516,7 +541,7 @@ $effect(() => {
     loading={isContentLoading}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
-    nestedContent={activeTab === 'notes' && !showNoteDiff}
+    nestedContent={activeTab === 'release' && !showNoteDiff}
     {outline}
     {actions}
     versionTitle={m.api_release_versions()}
@@ -545,7 +570,7 @@ $effect(() => {
         class="h-full min-h-0"
         transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
       >
-        {#if activeTab === 'notes'}
+        {#if activeTab === 'release'}
           <div class:contents={showNoteDiff} class="h-full min-h-0">
             {#if showNoteDiff && previousRelease}
               <ReleaseDiff.Root
@@ -568,6 +593,14 @@ $effect(() => {
               />
             {/if}
           </div>
+        {:else if activeTab === 'guide'}
+          <ReleaseNotes.Root
+            markdown={guidePresentation.markdown}
+            headings={guideHeadings}
+            labels={guidePresentation.labels}
+            transclusions={guidePresentation.transclusions}
+            bind:activeHeadingId
+          />
         {:else if activeTab === 'stats'}
           <ReleaseStats.Root
             stats={release.stats}
@@ -577,6 +610,8 @@ $effect(() => {
             bind:headings={statsHeadings}
             bind:activeHeadingId={activeStatsHeadingId}
           />
+        {:else if activeTab === 'schema'}
+          <ReleaseSchema.Root apiFamily={api.familyType} />
         {:else if activeTab === 'samples'}
           {#key `${release.apiVersion}:${release.code}`}
             <ReleaseSamples.Root

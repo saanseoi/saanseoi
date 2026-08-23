@@ -40,6 +40,7 @@ export type ApiRelease = {
   validTo?: string | null
   ingestedAt?: string | null
   notes?: string | null
+  guide?: string | null
   rowCounts?: Array<{
     kind?: string | null
     label?: string | null
