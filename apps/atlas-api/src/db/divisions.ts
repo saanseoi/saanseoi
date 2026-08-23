@@ -1,10 +1,12 @@
-import type { CurrentDatabase } from '@repo/db'
+import type { CurrentDatabase, HistoryDatabase } from '@repo/db'
 import { and, asc, eq, inArray, sql } from '@repo/db'
-import { currentSchema } from '@repo/db'
+import { currentSchema, historySchema } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
+const { divisions: historyDivisions, divisionsI18n: historyDivisionsI18n } =
+  historySchema
 const D1_MAX_BOUND_VARIABLES = 100
 
 function chunkD1Values(values: string[], reservedVariables: number) {
@@ -61,6 +63,14 @@ export type DivisionRecord = {
     updatedAt: string
   }
   i18n: Record<string, DivisionLocaleValue>
+}
+
+export type ReplayedDivisionVersion = {
+  recordType: string
+  recordId: string
+  locale: string
+  versionHash: string
+  shard: { bindingName: string; db: HistoryDatabase }
 }
 
 type DivisionLookup = {
@@ -274,6 +284,10 @@ function parseOptionalJsonString<T>(value: unknown): T | null | undefined {
     return null
   }
 
+  if (typeof value === 'object') {
+    return value as T
+  }
+
   if (typeof value !== 'string') {
     return undefined
   }
@@ -382,6 +396,159 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       ]),
     ),
   }
+}
+
+function isSelectedDivisionLocale(
+  localeSelection: DivisionLocaleSelection,
+  locale: string,
+) {
+  return (
+    localeSelection.mode !== 'none' &&
+    (localeSelection.mode === 'all' || localeSelection.locales.includes(locale))
+  )
+}
+
+/**
+ * Loads immutable division versions after the snapshot journal has resolved
+ * which shard owns each record. History shards contain deltas, so a snapshot
+ * cannot be read by its ID from one table alone.
+ */
+export async function listReplayedDivisionRecords(
+  versions: Iterable<ReplayedDivisionVersion>,
+  snapshotId: string,
+  localeSelection: DivisionLocaleSelection,
+) {
+  const divisionVersionsByShard = new Map<
+    string,
+    { db: HistoryDatabase; versions: ReplayedDivisionVersion[] }
+  >()
+  const i18nVersionsByShard = new Map<
+    string,
+    { db: HistoryDatabase; versions: ReplayedDivisionVersion[] }
+  >()
+
+  for (const version of versions) {
+    const target =
+      version.recordType === 'division'
+        ? divisionVersionsByShard
+        : version.recordType === 'divisionI18n' &&
+            isSelectedDivisionLocale(localeSelection, version.locale)
+          ? i18nVersionsByShard
+          : null
+    if (!target) continue
+    const existing = target.get(version.shard.bindingName)
+    if (existing) existing.versions.push(version)
+    else
+      target.set(version.shard.bindingName, {
+        db: version.shard.db,
+        versions: [version],
+      })
+  }
+
+  const rowsById = new Map<string, Omit<DivisionRow, 'snapshotId' | 'i18n'>>()
+  await Promise.all(
+    [...divisionVersionsByShard.values()].map(
+      async ({ db, versions: shardVersions }) => {
+        const expected = new Set(
+          shardVersions.map(
+            version => `${version.recordId}\u0000${version.versionHash}`,
+          ),
+        )
+        const rows = (
+          await Promise.all(
+            chunkD1Values(
+              shardVersions.map(version => version.versionHash),
+              0,
+            ).map(versionHashes =>
+              db
+                .select({
+                  id: historyDivisions.id,
+                  divisionCode: historyDivisions.divisionCode,
+                  level: historyDivisions.level,
+                  type: historyDivisions.type,
+                  geometry: historyDivisions.geometry,
+                  bbox: historyDivisions.bbox,
+                  sourceKeys: historyDivisions.sourceKeys,
+                  identifiers: historyDivisions.identifiers,
+                  wikidata: historyDivisions.wikidata,
+                  hierarchy: historyDivisions.hierarchy,
+                  cartography: historyDivisions.cartography,
+                  sources: historyDivisions.sources,
+                  createdAt: historyDivisions.createdAt,
+                  updatedAt: historyDivisions.updatedAt,
+                  versionHash: historyDivisions.versionHash,
+                })
+                .from(historyDivisions)
+                .where(inArray(historyDivisions.versionHash, versionHashes))
+                .all(),
+            ),
+          )
+        ).flat()
+        for (const row of rows) {
+          if (expected.has(`${row.id}\u0000${row.versionHash}`)) {
+            rowsById.set(row.id, row)
+          }
+        }
+      },
+    ),
+  )
+
+  const i18nByDivisionId = new Map<string, Record<string, unknown>>()
+  await Promise.all(
+    [...i18nVersionsByShard.values()].map(async ({ db, versions: shardVersions }) => {
+      const expected = new Set(
+        shardVersions.map(
+          version =>
+            `${version.recordId}\u0000${version.locale}\u0000${version.versionHash}`,
+        ),
+      )
+      const rows = (
+        await Promise.all(
+          chunkD1Values(
+            shardVersions.map(version => version.versionHash),
+            0,
+          ).map(versionHashes =>
+            db
+              .select({
+                divisionId: historyDivisionsI18n.divisionId,
+                locale: historyDivisionsI18n.locale,
+                name: historyDivisionsI18n.name,
+                nameVariant: historyDivisionsI18n.nameVariant,
+                nameAlts: historyDivisionsI18n.nameAlts,
+                nameRules: historyDivisionsI18n.nameRules,
+                versionHash: historyDivisionsI18n.versionHash,
+              })
+              .from(historyDivisionsI18n)
+              .where(inArray(historyDivisionsI18n.versionHash, versionHashes))
+              .all(),
+          ),
+        )
+      ).flat()
+      for (const row of rows) {
+        if (
+          !expected.has(`${row.divisionId}\u0000${row.locale}\u0000${row.versionHash}`)
+        ) {
+          continue
+        }
+        const values = i18nByDivisionId.get(row.divisionId) ?? {}
+        values[row.locale] = {
+          name: row.name,
+          nameVariant: row.nameVariant,
+          nameAlts: row.nameAlts,
+          nameRules: row.nameRules,
+        }
+        i18nByDivisionId.set(row.divisionId, values)
+      }
+    }),
+  )
+
+  return [...rowsById.values()].map(row =>
+    mapDivisionRow({
+      ...row,
+      snapshotId,
+      i18n: JSON.stringify(i18nByDivisionId.get(row.id) ?? {}),
+    }),
+  )
 }
 
 function buildDivisionConditions(

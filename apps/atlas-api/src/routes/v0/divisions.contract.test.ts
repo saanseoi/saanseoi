@@ -212,6 +212,42 @@ function seedMeta(sqlite: Database) {
     )
   }
 
+  const historyShards = [
+    ['data-shard-history-hk-before-preview', null, 'DB_HISTORY_HK_BEFORE'],
+    ['data-shard-history-hk-2025-preview', '2025', 'DB_HISTORY_HK_2025'],
+  ] as const
+  for (const [id, year, bindingName] of historyShards) {
+    run(
+      sqlite,
+      `INSERT INTO dataShards
+        (id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status, versionHash, createdAt, updatedAt)
+        VALUES (?, 'history', 'hk', ?, 'preview', ?, ?, ?, 'active', ?, ?, ?)`,
+      [
+        id,
+        year,
+        `fixture-${bindingName}`,
+        `fixture-${bindingName}`,
+        bindingName,
+        `hash-${bindingName}`,
+        CATALOG_PUBLISHED_AT,
+        CATALOG_PUBLISHED_AT,
+      ],
+    )
+  }
+  for (const release of releases) {
+    run(
+      sqlite,
+      `INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
+        VALUES (?, ?)`,
+      [
+        release.snapshot,
+        release.cohort.startsWith('2025')
+          ? 'data-shard-history-hk-2025-preview'
+          : 'data-shard-history-hk-before-preview',
+      ],
+    )
+  }
+
   for (const snapshot of geometrySnapshots) {
     run(
       sqlite,
@@ -495,20 +531,122 @@ function seedCurrent(sqlite: Database) {
   )
 }
 
+function seedHistory(sqlite: Database, snapshotIds: string[]) {
+  const timestamp = '2025-09-24T00:00:00.000Z'
+  for (const snapshotId of snapshotIds) {
+    for (const division of divisionRows) {
+      const versionHash = `${snapshotId}-${division.id}`
+      run(
+        sqlite,
+        `INSERT INTO divisions
+          (id, identifiers, level, type, geometry, bbox, sourceKeys, wikidata, hierarchy, cartography,
+           sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          division.id,
+          null,
+          division.level,
+          division.type,
+          json({ type: 'Point', coordinates: division.point }),
+          json([
+            division.point[0] - 0.01,
+            division.point[1] - 0.01,
+            division.point[0] + 0.01,
+            division.point[1] + 0.01,
+          ]),
+          json({
+            overture: {
+              subtype: division.type,
+              class: division.type,
+              version: 1,
+              hierarchies: division.hierarchy,
+            },
+          }),
+          null,
+          json(division.hierarchy),
+          json({ kind: 'label-center' }),
+          json({
+            overture: [
+              {
+                property: '/properties/id',
+                dataset: 'overture',
+                record_id: `ovt-${division.id}`,
+              },
+            ],
+          }),
+          versionHash,
+          'release-overture-2025',
+          snapshotId,
+          1,
+          timestamp,
+          timestamp,
+        ],
+      )
+      run(
+        sqlite,
+        `INSERT INTO snapshotVersionChanges
+          (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+          VALUES (?, 'division', ?, '', ?, 'upsert', 'release-overture-2025', ?, ?)`,
+        [snapshotId, division.id, versionHash, timestamp, timestamp],
+      )
+      for (const [locale, name] of Object.entries(division.names)) {
+        const i18nVersionHash = `${versionHash}-${locale}`
+        run(
+          sqlite,
+          `INSERT INTO divisionsI18n
+            (divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred,
+             versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            division.id,
+            locale,
+            name,
+            json([name]),
+            null,
+            null,
+            0,
+            i18nVersionHash,
+            'release-overture-2025',
+            snapshotId,
+            1,
+            timestamp,
+            timestamp,
+          ],
+        )
+        run(
+          sqlite,
+          `INSERT INTO snapshotVersionChanges
+            (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+            VALUES (?, 'divisionI18n', ?, ?, ?, 'upsert', 'release-overture-2025', ?, ?)`,
+          [snapshotId, division.id, locale, i18nVersionHash, timestamp, timestamp],
+        )
+      }
+    }
+  }
+}
+
 function createFixtureEnvironment() {
   const metaSqlite = initSqlite(['meta'])
   const currentSqlite = initSqlite(['current'])
+  const historyBeforeSqlite = initSqlite(['history'])
+  const history2025Sqlite = initSqlite(['history'])
+  const history2026Sqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
   seedCurrent(currentSqlite)
+  seedHistory(historyBeforeSqlite, [
+    'snapshot-pland-pu-2021',
+    'snapshot-pland-new-town-2021',
+  ])
+  seedHistory(history2025Sqlite, ['snapshot-overture-2025'])
 
   const metaDb = createMockD1(metaSqlite)
   const currentDb = createMockD1(currentSqlite)
   const env = {
     DB_META: metaDb,
     DB_CURRENT: currentDb,
-    DB_HISTORY_HK_BEFORE: currentDb,
-    DB_HISTORY_HK_2025: currentDb,
-    DB_HISTORY_HK_2026: currentDb,
+    DB_HISTORY_HK_BEFORE: createMockD1(historyBeforeSqlite),
+    DB_HISTORY_HK_2025: createMockD1(history2025Sqlite),
+    DB_HISTORY_HK_2026: createMockD1(history2026Sqlite),
     DB_SOURCE_HK_BEFORE: currentDb,
     DB_SOURCE_HK_2025: currentDb,
     DB_SOURCE_HK_2026: currentDb,
@@ -525,6 +663,9 @@ function createFixtureEnvironment() {
     close() {
       metaSqlite.close()
       currentSqlite.close()
+      historyBeforeSqlite.close()
+      history2025Sqlite.close()
+      history2026Sqlite.close()
     },
   }
 }
