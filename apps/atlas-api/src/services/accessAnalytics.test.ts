@@ -114,7 +114,7 @@ test('does not record failed download metrics', () => {
     eventType: 'download',
     httpStatus: 500,
     publisherCodes: ['hkgov'],
-    route: '/v0.1/assets/asset-1',
+    route: '/v0/assets/asset-1',
     sourceReleaseId: 'source-1',
     surface: 'source',
   })
@@ -193,7 +193,7 @@ test('does not emit failed or unconsumed downloads', () => {
     eventType: 'download' as const,
     httpStatus: 200,
     publisherCodes: ['hkgov'],
-    route: '/v0.1/assets/:id',
+    route: '/v0/assets/:id',
     datasetId: 'dataset-1',
     sourceReleaseId: 'source-1',
     surface: 'source' as const,

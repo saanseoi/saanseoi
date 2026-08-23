@@ -60,7 +60,7 @@ test('colours URL families on every line of a fenced URL block', async () => {
   await expect.element(screen.getByText('/addresses')).toHaveClass('text-orange-200')
   await expect
     .element(screen.getByText('hkgov-pland-new-town'))
-    .toHaveClass('text-blue-300')
+    .toHaveClass('text-data-secondary')
 })
 
 test('labels fenced API URL snippets as GET requests', async () => {

@@ -169,7 +169,7 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
           'Substack signup succeeded.',
           `Email: ${email}`,
           `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
-          `API: ${c.env.ATLAS_BASE_URL}/v0.1/meta/substack`,
+          `API: ${c.env.ATLAS_BASE_URL}/v0/meta/substack`,
           `Time: ${new Date().toISOString()}`,
         ].join('\n'),
       }).catch(notificationError => {
@@ -203,7 +203,7 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
             `Email: ${email}`,
             `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
             `Error: ${error.message}`,
-            `API: ${c.env.ATLAS_BASE_URL}/v0.1/meta/substack`,
+            `API: ${c.env.ATLAS_BASE_URL}/v0/meta/substack`,
             `Time: ${new Date().toISOString()}`,
           ].join('\n'),
         }).catch(notificationError => {
