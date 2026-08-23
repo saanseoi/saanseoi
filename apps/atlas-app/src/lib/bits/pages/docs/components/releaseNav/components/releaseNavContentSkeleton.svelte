@@ -14,9 +14,9 @@ type Props = {
 let { diff = false, linksVariant = 'releases', tab }: Props = $props()
 </script>
 
-{#if tab === 'notes' && diff}
+{#if tab === 'release' && diff}
   <ReleaseDiffSkeleton />
-{:else if tab === 'notes'}
+{:else if tab === 'release' || tab === 'guide'}
   <ReleaseNotesSkeleton />
 {:else if tab === 'stats'}
   <ReleaseStatsSkeleton />
