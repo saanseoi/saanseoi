@@ -46,12 +46,59 @@ const app = new OpenAPIHono<AppEnv>({
   defaultHook: defaultOpenAPIHook,
 })
 const openApiConfig = {
-  openapi: '3.1.0',
+  openapi: '3.1.0' as const,
   info: {
     title: 'Atlas API',
     version: '0',
   },
-} as const
+  tags: [
+    { name: 'Meta' },
+    { name: 'Registry Releases' },
+    { name: 'Registry APIs' },
+    { name: 'Registry API Fields' },
+    { name: 'Registry Endpoints' },
+    { name: 'Registry Sources' },
+    { name: 'Registry Source Versions' },
+    { name: 'Registry Source Publishers' },
+    { name: 'Divisions' },
+    { name: 'Addresses' },
+    { name: 'Places' },
+    { name: 'Streets' },
+    { name: 'Statistics' },
+    { name: 'Source assets' },
+    { name: 'Map styles' },
+  ],
+  'x-tagGroups': [
+    {
+      name: 'System',
+      tags: ['Meta'],
+    },
+    {
+      name: 'Registry',
+      tags: [
+        'Registry Releases',
+        'Registry APIs',
+        'Registry API Fields',
+        'Registry Endpoints',
+        'Registry Sources',
+        'Registry Source Versions',
+        'Registry Source Publishers',
+      ],
+    },
+    {
+      name: 'API Family',
+      tags: ['Divisions', 'Addresses', 'Places', 'Streets', 'Statistics'],
+    },
+    {
+      name: 'Assets',
+      tags: ['Source assets'],
+    },
+    {
+      name: 'Styles',
+      tags: ['Map styles'],
+    },
+  ],
+}
 
 app.use('*', poweredBy())
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
@@ -79,11 +126,13 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
     c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
-    c.set('historyDbs', [
-      createHistoryDb(c.env.DB_HISTORY_HK_BEFORE),
-      createHistoryDb(c.env.DB_HISTORY_HK_2025),
-      createHistoryDb(c.env.DB_HISTORY_HK_2026),
-    ])
+    const historyDbsByBinding = {
+      DB_HISTORY_HK_BEFORE: createHistoryDb(c.env.DB_HISTORY_HK_BEFORE),
+      DB_HISTORY_HK_2025: createHistoryDb(c.env.DB_HISTORY_HK_2025),
+      DB_HISTORY_HK_2026: createHistoryDb(c.env.DB_HISTORY_HK_2026),
+    }
+    c.set('historyDbs', Object.values(historyDbsByBinding))
+    c.set('historyDbsByBinding', historyDbsByBinding)
     await next()
   })
 }

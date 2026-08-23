@@ -1393,6 +1393,7 @@ describe('atlas-api', () => {
     const body = (await res.json()) as {
       paths: Record<string, Record<string, { operationId?: string }>>
       servers: Array<{ url: string }>
+      'x-tagGroups': Array<{ name: string; tags: string[] }>
       components?: {
         schemas?: Record<
           string,
@@ -1442,6 +1443,27 @@ describe('atlas-api', () => {
     expect(body.components?.schemas?.FeatureVersion?.maximum).toBe(2_147_483_647)
     expect(body.paths['/latest/divisions']).toBeUndefined()
     expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
+    expect(body['x-tagGroups']).toEqual([
+      { name: 'System', tags: ['Meta'] },
+      {
+        name: 'Registry',
+        tags: [
+          'Registry Releases',
+          'Registry APIs',
+          'Registry API Fields',
+          'Registry Endpoints',
+          'Registry Sources',
+          'Registry Source Versions',
+          'Registry Source Publishers',
+        ],
+      },
+      {
+        name: 'API Family',
+        tags: ['Divisions', 'Addresses', 'Places', 'Streets', 'Statistics'],
+      },
+      { name: 'Assets', tags: ['Source assets'] },
+      { name: 'Styles', tags: ['Map styles'] },
+    ])
   })
 
   test('GET /v0.1/divisions/sources requires one exact source release', async () => {
