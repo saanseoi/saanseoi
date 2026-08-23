@@ -138,6 +138,8 @@ protection of a neighbouring data route.
 The Divisions routes demonstrate the current pre-release pattern:
 
 ```text
+/v0              -> current latest shared-platform v0 minor
+/v0.1            -> explicit shared-platform version
 /divisions/v0    -> current latest Divisions v0 minor
 /divisions/v0.1  -> explicit Divisions product version
 ```

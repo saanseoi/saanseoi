@@ -13,12 +13,12 @@ import type { ApiReferenceConfigurationWithMultipleSources } from '@scalar/types
 import '@scalar/api-reference/style.css'
 
 const apiFamilies = [
-  { id: 'registry', label: 'Registry', versions: ['v0', 'v0.1'] },
-  { id: 'addresses', label: 'Addresses', versions: ['v0', 'v0.1'] },
-  { id: 'divisions', label: 'Divisions', versions: ['v0', 'v0.1'] },
-  { id: 'places', label: 'Places', versions: ['v0', 'v0.1'] },
-  { id: 'stats', label: 'Statistics', versions: ['v0', 'v0.1'] },
-  { id: 'streets', label: 'Streets', versions: ['v0', 'v0.1'] },
+  { id: 'registry', label: 'Registry', versions: ['v0', 'v0.1'], visible: true },
+  { id: 'addresses', label: 'Addresses', versions: ['v0', 'v0.1'], visible: true },
+  { id: 'divisions', label: 'Divisions', versions: ['v0', 'v0.1'], visible: true },
+  { id: 'places', label: 'Places', versions: ['v0', 'v0.1'], visible: false },
+  { id: 'stats', label: 'Statistics', versions: ['v0', 'v0.1'], visible: true },
+  { id: 'streets', label: 'Streets', versions: ['v0', 'v0.1'], visible: false },
 ] as const
 
 type ApiFamilyId = (typeof apiFamilies)[number]['id']
@@ -125,13 +125,19 @@ const addSidebarLinks = (
     const familySection = document.createElement('section')
     const familyHeading = document.createElement('h2')
     const familyList = document.createElement('ul')
+    const versionHeading = document.createElement('h2')
+    const sidebar = sidebarItems.parentElement
+    const versionSelector = sidebar?.querySelector('.document-selector')
+    const searchActions = sidebarItems.previousElementSibling
 
     familySection.className = 'scalar-api-families'
     familyHeading.className = 'scalar-api-families__heading'
     familyHeading.textContent = 'API Families'
     familyList.className = 'scalar-api-families__list'
+    versionHeading.className = 'scalar-api-version__heading'
+    versionHeading.textContent = 'API Version'
 
-    for (const family of apiFamilies) {
+    for (const family of apiFamilies.filter(family => family.visible)) {
       const item = document.createElement('li')
       const button = document.createElement('button')
       const isActive = family.id === activeFamily
@@ -147,11 +153,15 @@ const addSidebarLinks = (
 
     familySection.appendChild(familyHeading)
     familySection.appendChild(familyList)
-    const sidebar = sidebarItems.parentElement
-    sidebar?.insertBefore(
-      familySection,
-      sidebarItems.previousElementSibling ?? sidebarItems,
-    )
+    sidebar?.insertBefore(familySection, searchActions ?? sidebarItems)
+    sidebar?.insertBefore(versionHeading, searchActions ?? sidebarItems)
+    if (sidebar && versionSelector) {
+      sidebar.insertBefore(versionSelector, searchActions ?? sidebarItems)
+    }
+
+    if (activeFamily !== 'registry') {
+      return
+    }
 
     const item = document.createElement('li')
     const link = document.createElement('a')
@@ -257,6 +267,17 @@ onMount(() => {
 
 :global(.atlas-api-reference .scalar-api-families__heading) {
   margin: 0 0 0.25rem;
+  color: var(--scalar-sidebar-color-1);
+  font-family: var(--scalar-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:global(.atlas-api-reference .scalar-api-version__heading) {
+  margin: 0;
+  padding: 0.75rem 0.75rem 0.25rem;
   color: var(--scalar-sidebar-color-1);
   font-family: var(--scalar-font);
   font-size: 0.75rem;

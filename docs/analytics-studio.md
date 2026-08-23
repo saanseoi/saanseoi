@@ -68,7 +68,7 @@ origin so the API recognises it as a first-party request:
 ```sh
 curl --include \
   --header 'Origin: https://saanseoi.hk' \
-  'https://api.saanseoi.hk/divisions/v0.1?locale=en-HK&limit=1'
+  'https://api.saanseoi.hk/divisions/v0?locale=en-HK&limit=1'
 ```
 
 This can produce an `api.request` product event. It does not produce an `API_USAGE`
@@ -79,7 +79,7 @@ logs:
 ```sh
 curl --include \
   --header "X-API-Key: ${SAANSEOI_PUBLIC_API_KEY}" \
-  'https://api.saanseoi.hk/divisions/v0.1?locale=en-HK&limit=1'
+  'https://api.saanseoi.hk/divisions/v0?locale=en-HK&limit=1'
 ```
 
 ## Query the product-usage dataset

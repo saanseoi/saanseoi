@@ -705,7 +705,7 @@ describe('atlas-api', () => {
     ])
   })
 
-  test('GET /v0.1/styles streams public immutable style artefacts from R2', async () => {
+  test('GET /v0/styles streams public immutable style artefacts from R2', async () => {
     const reads: string[] = []
     const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createAuthenticatedEnv({
@@ -1508,6 +1508,7 @@ describe('atlas-api', () => {
     const divisions = (await divisionsRes.json()) as {
       paths: Record<string, unknown>
       tags?: Array<{ name: string }>
+      'x-tagGroups': Array<{ name: string; tags: string[] }>
       info: { description?: string }
     }
     const addresses = (await addressesRes.json()) as { paths: Record<string, unknown> }
@@ -1520,6 +1521,9 @@ describe('atlas-api', () => {
     expect(divisions.paths['/addresses/v0.1']).toBeUndefined()
     expect(divisions.paths['/v0/meta/health']).toBeUndefined()
     expect(divisions.tags?.map(tag => tag.name)).toEqual(['Divisions'])
+    expect(divisions['x-tagGroups']).toEqual([
+      { name: 'Divisions', tags: ['Divisions'] },
+    ])
     expect(divisions.info.description).toContain('versions independently')
     expect(divisions.info.description).toContain('Registry')
 
