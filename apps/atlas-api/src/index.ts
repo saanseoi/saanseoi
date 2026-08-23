@@ -8,6 +8,12 @@ import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
 import { isTransientD1ReadError } from './lib/d1'
+import {
+  localiseOpenApiDocument,
+  openApiText,
+  resolveOpenApiLocale,
+  type OpenApiLocale,
+} from './lib/openapi-i18n'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { resolvePublicKeyLease } from './lib/public-key-lease'
 import {
@@ -129,20 +135,14 @@ const apiProductTags: Record<ApiProduct, string> = {
 }
 
 const apiProductIntroductions: Record<ApiProduct, string> = {
-  addresses:
-    'Addresses is a SaanSeoi API product for address records. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve addresses. Addresses versions independently of every other API product.',
-  divisions:
-    'Divisions is a SaanSeoi API product for administrative and other geographic divisions. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve division records and geometries. Divisions versions independently of every other API product.',
-  places:
-    'Places is a SaanSeoi API product for place records and search. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve places. Places versions independently of every other API product.',
-  stats:
-    'Statistics is a SaanSeoi API product for published statistical observations and their geographic context. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve statistics. Statistics versions independently of every other API product.',
-  streets:
-    'Streets is a SaanSeoi API product for Hong Kong street records and their version history. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve streets. Streets versions independently of every other API product.',
+  addresses: openApiText('openapi_addresses_introduction'),
+  divisions: openApiText('openapi_divisions_introduction'),
+  places: openApiText('openapi_places_introduction'),
+  stats: openApiText('openapi_statistics_introduction'),
+  streets: openApiText('openapi_streets_introduction'),
 }
 
-const registryIntroduction =
-  'The Registry is the shared catalogue for SaanSeoi API products. It discovers API families, releases, fields, endpoints, sources, source versions, and publishers. Use a family product such as Addresses, Divisions, Places, Statistics, or Streets to retrieve its records. Each family has its own release cadence and version history; a family version does not describe the version of another product.'
+const registryIntroduction = openApiText('openapi_registry_introduction')
 
 function scalarSourcesForProduct(product: ApiProduct | 'registry') {
   if (product === 'registry') {
@@ -166,6 +166,7 @@ const apiRoutePaths = [
   '/v0.1/*',
   ...apiProducts.flatMap(product => [`/${product}/v0/*`, `/${product}/v0.1/*`]),
 ] as const
+const privateOpenApiPaths = new Set(['/v0.1/meta/d1-placement-probe'])
 
 function tagsForPathItem(pathItem: unknown) {
   if (pathItem === null || typeof pathItem !== 'object') {
@@ -186,6 +187,85 @@ function tagsForPathItem(pathItem: unknown) {
       (tag: unknown): tag is string => typeof tag === 'string',
     )
   })
+}
+
+const componentReferencePattern = /^#\/components\/([^/]+)\/([^/]+)$/
+
+function decodeJsonPointerSegment(segment: string) {
+  return segment.replaceAll('~1', '/').replaceAll('~0', '~')
+}
+
+function collectComponentReferences(
+  value: unknown,
+  references: Array<{ group: string; name: string }>,
+) {
+  if (value === null || typeof value !== 'object') {
+    return
+  }
+
+  if ('$ref' in value && typeof value.$ref === 'string') {
+    const match = componentReferencePattern.exec(value.$ref)
+    const group = match?.[1]
+    const name = match?.[2]
+    if (group && name) {
+      references.push({
+        group: decodeJsonPointerSegment(group),
+        name: decodeJsonPointerSegment(name),
+      })
+    }
+  }
+
+  for (const nestedValue of Object.values(value)) {
+    collectComponentReferences(nestedValue, references)
+  }
+}
+
+function retainReferencedComponents(
+  document: { components?: object },
+  rootValues: unknown[],
+) {
+  const components = document.components as Record<string, unknown> | undefined
+  if (!components) {
+    return
+  }
+
+  const references: Array<{ group: string; name: string }> = []
+  for (const value of rootValues) {
+    collectComponentReferences(value, references)
+  }
+
+  const retainedComponents = new Map<string, Set<string>>()
+  for (const reference of references) {
+    const componentGroup = components[reference.group]
+    if (!componentGroup || typeof componentGroup !== 'object') {
+      continue
+    }
+
+    const group = retainedComponents.get(reference.group) ?? new Set<string>()
+    if (group.has(reference.name)) {
+      continue
+    }
+    group.add(reference.name)
+    retainedComponents.set(reference.group, group)
+
+    collectComponentReferences(
+      (componentGroup as Record<string, unknown>)[reference.name],
+      references,
+    )
+  }
+
+  document.components = Object.fromEntries(
+    [...retainedComponents].flatMap(([groupName, componentNames]) => {
+      const componentGroup = components[groupName] as Record<string, unknown>
+      const retainedGroup = Object.fromEntries(
+        [...componentNames].flatMap(componentName => {
+          const component = componentGroup[componentName]
+          return component === undefined ? [] : [[componentName, component]]
+        }),
+      )
+      return Object.keys(retainedGroup).length > 0 ? [[groupName, retainedGroup]] : []
+    }),
+  )
 }
 
 export const sortOperations = (first: { path: string }, second: { path: string }) => {
@@ -533,6 +613,7 @@ function getOpenApiDocument(
   baseUrl: string,
   product: ApiProduct | 'registry' = 'registry',
   productVersion?: 'v0' | 'v0.1',
+  locale: OpenApiLocale = 'en',
 ) {
   const document = app.getOpenAPI31Document({
     ...openApiConfig,
@@ -548,6 +629,9 @@ function getOpenApiDocument(
 
   const retainedPaths = Object.entries(document.paths ?? {}).filter(
     ([path, pathItem]) => {
+      if (privateOpenApiPaths.has(path)) {
+        return false
+      }
       const pathTags = tagsForPathItem(pathItem)
       const isApiFamilyPath = pathTags.some(tag => apiFamilyTags.has(tag))
       const isFamilySourcePath =
@@ -576,6 +660,12 @@ function getOpenApiDocument(
       pathItem,
     ]),
   )
+  if (product !== 'registry') {
+    retainReferencedComponents(
+      document,
+      retainedPaths.map(([, pathItem]) => pathItem),
+    )
+  }
   document.info = {
     ...document.info,
     title:
@@ -585,7 +675,11 @@ function getOpenApiDocument(
     description:
       product === 'registry'
         ? registryIntroduction
-        : `${apiProductIntroductions[product]}\n\nThis document describes ${productVersion === 'v0' ? 'the `v0` current-family alias' : 'the explicit `v0.1` contract'}. Use an explicit version in integrations that need a pinned contract.`,
+        : `${apiProductIntroductions[product]}\n\n${openApiText(
+            productVersion === 'v0'
+              ? 'openapi_current_family_alias_description'
+              : 'openapi_pinned_contract_description',
+          )}`,
     version: productVersion?.replace(/^v/, '') ?? '0.1',
   }
   document.tags = document.tags?.filter(tag => visibleTags.has(tag.name))
@@ -611,19 +705,34 @@ function getOpenApiDocument(
     delete document['x-tagGroups']
   }
 
-  return document
+  return localiseOpenApiDocument(document, locale)
 }
 
-app.get('/openapi', c => c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL)))
+function openApiLocale(c: Context<AppEnv>) {
+  return resolveOpenApiLocale(c.req.query('locale'), c.req.header('accept-language'))
+}
+
+function openApiDocumentResponse(
+  c: Context<AppEnv>,
+  product: ApiProduct | 'registry' = 'registry',
+  version?: 'v0' | 'v0.1',
+) {
+  c.header('vary', 'accept-language')
+  return c.json(
+    getOpenApiDocument(c.env.ATLAS_BASE_URL, product, version, openApiLocale(c)),
+  )
+}
+
+app.get('/openapi', c => openApiDocumentResponse(c))
 for (const version of ['v0', 'v0.1'] as const) {
   app.get(`/openapi/registry/${version}`, c =>
-    c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL, 'registry', version)),
+    openApiDocumentResponse(c, 'registry', version),
   )
 }
 for (const product of apiProducts) {
   for (const version of ['v0', 'v0.1'] as const) {
     app.get(`/openapi/${product}/${version}`, c =>
-      c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL, product, version)),
+      openApiDocumentResponse(c, product, version),
     )
   }
 }
