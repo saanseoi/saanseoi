@@ -17,6 +17,7 @@ import {
   type RequestedDivisionVersion,
   type ResolvedDivisionApiVersion,
 } from '../../../handlers/divisions/v0'
+import { openApiText } from '../../../lib/openapi-i18n'
 import type { AppEnv } from '../../../types'
 import { sanitiseResponseUrl } from '../../../lib/api'
 
@@ -65,7 +66,7 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: DivisionsListResponseSchema,
           },
         },
-        description: 'List divisions.',
+        description: openApiText('openapi_divisions_list_response_description'),
       },
       503: {
         content: {
@@ -73,7 +74,7 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: DivisionSnapshotNotReadyErrorResponseSchema,
           },
         },
-        description: 'Division snapshot is not ready.',
+        description: openApiText('openapi_divisions_snapshot_not_ready_description'),
       },
       409: {
         content: {
@@ -81,7 +82,7 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: ErrorResponseSchema,
           },
         },
-        description: 'Requested geometry variant is unavailable.',
+        description: openApiText('openapi_divisions_geometry_unavailable_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -105,7 +106,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: DivisionDetailResponseSchema,
           },
         },
-        description: 'Get a division.',
+        description: openApiText('openapi_divisions_get_response_description'),
       },
       404: {
         content: {
@@ -113,7 +114,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: ErrorResponseSchema,
           },
         },
-        description: 'Division not found.',
+        description: openApiText('openapi_divisions_not_found_description'),
       },
       409: {
         content: {
@@ -121,7 +122,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: ErrorResponseSchema,
           },
         },
-        description: 'Requested geometry variant is unavailable.',
+        description: openApiText('openapi_divisions_geometry_unavailable_description'),
       },
       503: {
         content: {
@@ -129,7 +130,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
             schema: DivisionSnapshotNotReadyErrorResponseSchema,
           },
         },
-        description: 'Division snapshot is not ready.',
+        description: openApiText('openapi_divisions_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },

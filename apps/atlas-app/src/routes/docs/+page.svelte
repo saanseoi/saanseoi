@@ -3,12 +3,13 @@ import { goto } from '$app/navigation'
 import { onMount } from 'svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
-import { getLocale, m } from '#lib/bits/internal/i18n.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import {
   THEME_CHANGE_EVENT,
   resolveTheme,
   type ThemeMode,
 } from '#lib/bits/internal/theme.js'
+import { scalarLocalization } from '#lib/bits/pages/docs/scalarLocalization.js'
 import type { createApiReference as createScalarApiReference } from '@scalar/api-reference'
 import type { ApiReferenceConfigurationWithMultipleSources } from '@scalar/types/api-reference'
 import '@scalar/api-reference/style.css'
@@ -56,11 +57,20 @@ type ApiFamilyId = (typeof apiFamilies)[number]['id']
 
 const defaultApiFamily: ApiFamilyId = 'addresses'
 
+let documentationLocale = $derived(getCurrentLocale())
+let remountScalar = () => {}
+
+$effect(() => {
+  documentationLocale
+  remountScalar()
+})
+
 const isApiFamilyId = (value: string | null): value is ApiFamilyId =>
   apiFamilies.some(family => family.id === value)
 
 const openApiSources = (
   familyId: ApiFamilyId,
+  locale: string,
 ): ApiReferenceConfigurationWithMultipleSources['sources'] => {
   const family = apiFamilies.find(candidate => candidate.id === familyId)
   if (!family) {
@@ -69,8 +79,8 @@ const openApiSources = (
 
   return family.versions.map((version, index) => ({
     title: `${family.label()} ${version}`,
-    slug: `${family.id}-${version}`,
-    url: `/openapi/${family.id}/${version}?locale=${getLocale()}`,
+    slug: `${family.id}-${version}-${locale.toLowerCase()}`,
+    url: `/openapi/${family.id}/${version}?locale=${locale}`,
     default: index === family.versions.length - 1,
   }))
 }
@@ -101,6 +111,7 @@ const sortOperations = (first: { path: string }, second: { path: string }) => {
 const scalarConfig = (
   theme: ThemeMode,
   familyId: ApiFamilyId,
+  locale: string,
   onLoaded: () => void,
 ) => ({
   darkMode: theme === 'dark',
@@ -127,6 +138,7 @@ const scalarConfig = (
   operationTitleSource: 'summary' as const,
   orderRequiredPropertiesFirst: true,
   orderSchemaPropertiesBy: 'alpha' as const,
+  localization: scalarLocalization(locale),
   operationsSorter: sortOperations,
   persistAuth: false,
   showDeveloperTools: 'localhost' as const,
@@ -136,7 +148,7 @@ const scalarConfig = (
   telemetry: true,
   theme: 'default' as const,
   title: m.docs_title(),
-  sources: openApiSources(familyId),
+  sources: openApiSources(familyId, locale),
   withDefaultFonts: false,
 })
 
@@ -362,7 +374,7 @@ onMount(() => {
     }
 
     scalarReference = createReference('#atlas-api-reference', {
-      ...scalarConfig(theme, activeFamily, () =>
+      ...scalarConfig(theme, activeFamily, documentationLocale, () =>
         addSidebarLinks(mountElement, activeFamily, selectFamily),
       ),
     })
@@ -374,6 +386,8 @@ onMount(() => {
     mountScalar(theme)
   }
 
+  remountScalar = () => mountScalar(resolveTheme())
+
   window.addEventListener(THEME_CHANGE_EVENT, handleThemeChange)
 
   void import('@scalar/api-reference').then(({ createApiReference }) => {
@@ -382,6 +396,7 @@ onMount(() => {
   })
 
   return () => {
+    remountScalar = () => {}
     removeVersionOptionLabelFix()
     window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange)
     scalarReference?.destroy()
