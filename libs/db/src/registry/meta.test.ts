@@ -120,7 +120,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('loads both v0 and v0.1 aliases for seeded endpoint families', () => {
+  test('loads product-scoped endpoints for seeded API families', () => {
     const addressPaths = initialApiEndpoints
       .filter(endpoint => endpoint.apiVersion === 'api-addresses-v0.1')
       .map(endpoint => endpoint.path)
@@ -139,27 +139,27 @@ describe('fixture version hashes', () => {
       .sort()
 
     expect(addressPaths).toEqual([
-      '/v0.1/addresses',
-      '/v0.1/addresses/{id}',
-      '/v0/addresses',
-      '/v0/addresses/{id}',
+      '/addresses/v0',
+      '/addresses/v0.1',
+      '/addresses/v0.1/{id}',
+      '/addresses/v0/{id}',
     ])
     expect(divisionPaths).toEqual([
-      '/v0.1/divisions',
-      '/v0.1/divisions/{id}',
-      '/v0/divisions',
-      '/v0/divisions/{id}',
+      '/divisions/v0',
+      '/divisions/v0.1',
+      '/divisions/v0.1/{id}',
+      '/divisions/v0/{id}',
     ])
-    expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
+    expect(placePaths).toEqual(['/places/v0.1/{region}/{id}'])
     expect(statsPaths).toEqual([
-      '/v0.1/stats',
-      '/v0.1/stats/geographies',
-      '/v0.1/stats/series',
-      '/v0.1/stats/{id}',
-      '/v0/stats',
-      '/v0/stats/geographies',
-      '/v0/stats/series',
-      '/v0/stats/{id}',
+      '/stats/v0',
+      '/stats/v0.1',
+      '/stats/v0.1/geographies',
+      '/stats/v0.1/series',
+      '/stats/v0.1/{id}',
+      '/stats/v0/geographies',
+      '/stats/v0/series',
+      '/stats/v0/{id}',
     ])
   })
 

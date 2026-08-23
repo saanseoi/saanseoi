@@ -10,7 +10,7 @@ const StyleParamsSchema = z.object({
 
 const styleRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/styles/{style}/{version}',
+  path: '/v0.1/styles/{style}/{version}',
   operationId: 'downloadMapStyle',
   tags: ['Map styles'],
   request: { params: StyleParamsSchema },

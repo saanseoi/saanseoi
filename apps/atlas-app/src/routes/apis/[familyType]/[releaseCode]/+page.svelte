@@ -541,7 +541,7 @@ $effect(() => {
     loading={isContentLoading}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
-    nestedContent={activeTab === 'release' && !showNoteDiff}
+    nestedContent={(activeTab === 'release' && !showNoteDiff) || activeTab === 'guide'}
     {outline}
     {actions}
     versionTitle={m.api_release_versions()}

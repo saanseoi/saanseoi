@@ -82,7 +82,7 @@ by-source/hk/hkgov-csdi/{dataset-id}/{release-slot}/
 ```
 
 Each object is registered as a managed source asset. Atlas API publicly serves it at
-`/v0/assets/{asset-id}`. There is no public bucket listing or separate conversion
+`/v0.1/assets/{asset-id}`. There is no public bucket listing or separate conversion
 artefact.
 
 ## Release policy

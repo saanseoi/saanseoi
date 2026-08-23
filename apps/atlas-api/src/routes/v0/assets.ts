@@ -15,7 +15,7 @@ const AssetParamsSchema = z.object({ assetId: z.string().uuid() })
 
 const managedAssetRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/assets/{assetId}',
+  path: '/v0.1/assets/{assetId}',
   operationId: 'downloadManagedAsset',
   tags: ['Source assets'],
   request: { params: AssetParamsSchema },

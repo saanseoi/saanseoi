@@ -40,7 +40,7 @@ import {
 } from './divisions'
 import type { AppEnv } from '../types'
 
-export type RequestedStatisticVersion = 'v0' | 'v0.1'
+export type RequestedStatisticVersion = 'stats/v0' | 'stats/v0.1'
 export type RequestedStatisticApiVersion = '0.1'
 export type ResolvedStatisticApiVersion = 'api-stats-v0.1'
 export type StatisticProfile = ApiProfileName
@@ -386,7 +386,7 @@ function createStatisticResource(args: {
       },
     },
     links: {
-      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/stats/${args.record.id}`,
+      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/${args.record.id}`,
     },
   } satisfies StatisticResourcePayload
 }
@@ -532,7 +532,7 @@ async function loadIncludedResources(args: {
         ...records.map(record =>
           createIncludedDivisionResource({
             baseUrl: new URL(args.requestUrl).origin,
-            requestedVersionPath: args.routeState.requestedVersionPath,
+            requestedVersionPath: 'divisions/v0.1',
             profile: args.routeState.profile,
             localeSelection: args.routeState.localeSelection,
             record,
@@ -621,7 +621,10 @@ function buildPermalink(args: {
   url: URL
 }) {
   const permalink = new URL(args.url)
-  permalink.pathname = permalink.pathname.replace(/^\/v0(?:\.1)?\//, '/v0.1/')
+  permalink.pathname = permalink.pathname.replace(
+    /^\/stats\/v0(?:\.\d+)?/,
+    '/stats/v0.1',
+  )
   permalink.searchParams.delete('effectiveAt')
   permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
   permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)

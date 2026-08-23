@@ -311,8 +311,8 @@ describe('division services', () => {
       currentDb: {} as never,
       historyDbsByBinding,
       metaDb: {} as never,
-      requestUrl: 'http://localhost/v0/divisions?include=areas:hkgov-pland-new-town',
-      requestedVersionPath: 'v0',
+      requestUrl: 'http://localhost/divisions/v0.1?include=areas:hkgov-pland-new-town',
+      requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: { include: 'areas:hkgov-pland-new-town' },
@@ -338,8 +338,8 @@ describe('division services', () => {
         currentDb: {} as never,
         historyDbsByBinding,
         metaDb: {} as never,
-        requestUrl: `http://localhost/v0/divisions?profile=${profile}`,
-        requestedVersionPath: 'v0',
+        requestUrl: `http://localhost/divisions/v0.1?profile=${profile}`,
+        requestedVersionPath: 'divisions/v0.1',
         requestedApiVersion: '0.1',
         resolvedApiVersion: 'api-divisions-v0.1',
         query: {
@@ -357,7 +357,7 @@ describe('division services', () => {
       const permalinkValue = result.body.links.permalink
       if (!permalinkValue) throw new Error('Expected a fully qualified permalink.')
       const permalink = new URL(permalinkValue)
-      expect(permalink.pathname).toBe('/v0.1/divisions')
+      expect(permalink.pathname).toBe('/divisions/v0.1')
       expect(Object.fromEntries(permalink.searchParams)).toMatchObject({
         catalogRevision: activeSnapshot.apiCatalogRevision,
         cohort: activeSnapshot.cohortKey,
@@ -500,8 +500,8 @@ describe('division services', () => {
       currentDb: {} as never,
       historyDbsByBinding,
       metaDb: {} as never,
-      requestUrl: 'http://localhost/v0/divisions?domain=geographic',
-      requestedVersionPath: 'v0',
+      requestUrl: 'http://localhost/divisions/v0.1?domain=geographic',
+      requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: { domain: 'geographic' },
@@ -534,8 +534,8 @@ describe('division services', () => {
       historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/v0.1/divisions?include=hierarchy,areas:overture&filter[divisionType]=locality',
-      requestedVersionPath: 'v0.1',
+        'http://localhost/divisions/v0.1?include=hierarchy,areas:overture&filter[divisionType]=locality',
+      requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: {
@@ -572,8 +572,8 @@ describe('division services', () => {
       historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/v0.1/divisions/division-a-kung-ngam?include=hierarchy,areas:overture&profile=full',
-      requestedVersionPath: 'v0.1',
+        'http://localhost/divisions/v0.1/division-a-kung-ngam?include=hierarchy,areas:overture&profile=full',
+      requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       id: 'division-a-kung-ngam',

@@ -1,6 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import type { Context } from 'hono'
-import { listDatasets } from '@repo/core/db/metaRegistry'
 
 import {
   getNewsletterSubscription,
@@ -11,8 +10,6 @@ import {
 import { subscribeToSubstack } from '../../lib/substack'
 import { sendTelegramAdminMessage } from '../../lib/telegram'
 import {
-  DatasetsQuerySchema,
-  DatasetsResponseSchema,
   ErrorResponseSchema,
   HealthResponseSchema,
   SubstackSubscribeRequestSchema,
@@ -31,7 +28,7 @@ async function persistNewsletterState(operation: Promise<void>, errorPrefix: str
 
 const healthRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/meta/health',
+  path: '/v0.1/meta/health',
   tags: ['Meta'],
   responses: {
     200: {
@@ -45,29 +42,9 @@ const healthRouteConfig = createRoute({
   },
 })
 
-const datasetsRouteConfig = createRoute({
-  method: 'get',
-  path: '/v0/meta/datasets',
-  tags: ['Meta'],
-  request: {
-    query: DatasetsQuerySchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: DatasetsResponseSchema,
-        },
-      },
-      description: 'List datasets.',
-    },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
-
 const substackRouteConfig = createRoute({
   method: 'post',
-  path: '/v0/meta/substack',
+  path: '/v0.1/meta/substack',
   hide: true,
   tags: ['Meta'],
   request: {
@@ -123,34 +100,6 @@ export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>(
       {
         ok: ping?.ok === 1,
         datasetCount: Number(datasetCount?.count ?? 0),
-      },
-      200,
-    )
-  },
-})
-
-export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppEnv>({
-  route: datasetsRouteConfig,
-  handler: async c => {
-    const query = c.req.valid('query')
-    const rows = await listDatasets(c.var.metaDb, {
-      regionCode: query.regionCode,
-      cohortKey: query.cohortKey,
-      theme: query.theme as NonNullable<Parameters<typeof listDatasets>[1]>['theme'],
-      status:
-        query.activeOnly === 'true'
-          ? 'published'
-          : query.activeOnly === 'false'
-            ? undefined
-            : (query.status as NonNullable<
-                Parameters<typeof listDatasets>[1]
-              >['status']),
-      limit: query.limit,
-    })
-
-    return c.json(
-      {
-        datasets: rows,
       },
       200,
     )
@@ -220,7 +169,7 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
           'Substack signup succeeded.',
           `Email: ${email}`,
           `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
-          `API: ${c.env.ATLAS_BASE_URL}/v0/meta/substack`,
+          `API: ${c.env.ATLAS_BASE_URL}/v0.1/meta/substack`,
           `Time: ${new Date().toISOString()}`,
         ].join('\n'),
       }).catch(notificationError => {
@@ -254,7 +203,7 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
             `Email: ${email}`,
             `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
             `Error: ${error.message}`,
-            `API: ${c.env.ATLAS_BASE_URL}/v0/meta/substack`,
+            `API: ${c.env.ATLAS_BASE_URL}/v0.1/meta/substack`,
             `Time: ${new Date().toISOString()}`,
           ].join('\n'),
         }).catch(notificationError => {
@@ -315,4 +264,4 @@ async function digestRateLimitKey(value: string) {
   ).join('')
 }
 
-export const metaRoutes = [healthRoute, datasetsRoute, substackRoute] as const
+export const metaRoutes = [healthRoute, substackRoute] as const

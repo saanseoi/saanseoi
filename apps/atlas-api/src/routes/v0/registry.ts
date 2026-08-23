@@ -54,24 +54,24 @@ type RegistryResource = {
 
 const REGISTRY_RESOURCES = [
   {
-    publicName: 'releases',
-    tag: 'Registry Releases',
-    listOperationId: 'listRegistryReleases',
-    detailOperationId: 'getRegistryRelease',
-    list: listRegistryReleases,
-    detail: getRegistryRelease,
-  },
-  {
-    publicName: 'apis',
-    tag: 'Registry APIs',
+    publicName: 'families',
+    tag: 'API Families',
     listOperationId: 'listRegistryApis',
     detailOperationId: 'getRegistryApi',
     list: listRegistryApis,
     detail: getRegistryApi,
   },
   {
-    publicName: 'apiFields',
-    tag: 'Registry API Fields',
+    publicName: 'releases',
+    tag: 'API Releases',
+    listOperationId: 'listRegistryReleases',
+    detailOperationId: 'getRegistryRelease',
+    list: listRegistryReleases,
+    detail: getRegistryRelease,
+  },
+  {
+    publicName: 'fields',
+    tag: 'API Fields',
     listOperationId: 'listRegistryApiFields',
     detailOperationId: 'getRegistryApiField',
     list: listRegistryApiFields,
@@ -79,7 +79,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'endpoints',
-    tag: 'Registry Endpoints',
+    tag: 'API Endpoints',
     listOperationId: 'listRegistryEndpoints',
     detailOperationId: 'getRegistryEndpoint',
     list: listRegistryEndpoints,
@@ -87,7 +87,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sources',
-    tag: 'Registry Sources',
+    tag: 'Sources',
     listOperationId: 'listRegistrySources',
     detailOperationId: 'getRegistrySource',
     list: listRegistrySources,
@@ -95,7 +95,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourceVersions',
-    tag: 'Registry Source Versions',
+    tag: 'Source Versions',
     listOperationId: 'listRegistrySourceVersions',
     detailOperationId: 'getRegistrySourceVersion',
     list: listRegistrySourceVersions,
@@ -103,7 +103,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourcePublishers',
-    tag: 'Registry Source Publishers',
+    tag: 'Source Publishers',
     listOperationId: 'listRegistrySourcePublishers',
     detailOperationId: 'getRegistrySourcePublisher',
     list: listRegistrySourcePublishers,
@@ -114,7 +114,7 @@ const REGISTRY_RESOURCES = [
 function createRegistryListRoute(resource: RegistryResource) {
   return createRoute({
     method: 'get',
-    path: `/v0/api/${resource.publicName}`,
+    path: `/v0.1/api/${resource.publicName}`,
     operationId: resource.listOperationId,
     tags: [resource.tag],
     request: {
@@ -137,7 +137,7 @@ function createRegistryListRoute(resource: RegistryResource) {
 function createRegistryDetailRoute(resource: RegistryResource) {
   return createRoute({
     method: 'get',
-    path: `/v0/api/${resource.publicName}/{id}`,
+    path: `/v0.1/api/${resource.publicName}/{id}`,
     operationId: resource.detailOperationId,
     tags: [resource.tag],
     request: {

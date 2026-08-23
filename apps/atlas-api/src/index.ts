@@ -19,15 +19,18 @@ import {
 export { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
 import { metaRoutes } from './routes/v0/meta'
 import { probeRoutes } from './routes/v0/probe'
-import { divisionRoutes } from './routes/v0/divisions'
-import { addressRoutes } from './routes/v0/addresses'
-import { placeRoutes } from './routes/v0/places'
+import { divisionRoutes } from './routes/divisions/v0/divisions'
+import { addressRoutes } from './routes/addresses/v0/addresses'
+import { placeRoutes } from './routes/places/v0/places'
 import { registryRoutes } from './routes/v0/registry'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
-import { streetRoutes } from './routes/v0/streets'
-import { statisticRoutes } from './routes/v0/statistics'
-import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
+import { streetRoutes } from './routes/streets/v0/streets'
+import { statisticRoutes } from './routes/statistics/v0/statistics'
+import {
+  sourceRoutes,
+  streamSourceRecordsMiddleware,
+} from './routes/api-family/v0/sources'
 import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
 import {
   completeAccessAnalyticsDownload,
@@ -45,49 +48,46 @@ import type { AppBindings, AppEnv } from './types'
 const app = new OpenAPIHono<AppEnv>({
   defaultHook: defaultOpenAPIHook,
 })
+const majorAliasRequestPaths = new WeakMap<Request, string>()
 const openApiConfig = {
   openapi: '3.1.0' as const,
   info: {
-    title: 'Atlas API',
+    title: 'SaanSeoi API',
     version: '0',
   },
   tags: [
-    { name: 'Meta' },
-    { name: 'Registry Releases' },
-    { name: 'Registry APIs' },
-    { name: 'Registry API Fields' },
-    { name: 'Registry Endpoints' },
-    { name: 'Registry Sources' },
-    { name: 'Registry Source Versions' },
-    { name: 'Registry Source Publishers' },
-    { name: 'Divisions' },
+    { name: 'API Families' },
+    { name: 'API Releases' },
+    { name: 'API Fields' },
+    { name: 'API Endpoints' },
+    { name: 'Sources' },
+    { name: 'Source Versions' },
+    { name: 'Source Publishers' },
     { name: 'Addresses' },
+    { name: 'Divisions' },
     { name: 'Places' },
-    { name: 'Streets' },
     { name: 'Statistics' },
+    { name: 'Streets' },
     { name: 'Source assets' },
     { name: 'Map styles' },
+    { name: 'Meta' },
   ],
   'x-tagGroups': [
     {
-      name: 'System',
-      tags: ['Meta'],
-    },
-    {
       name: 'Registry',
       tags: [
-        'Registry Releases',
-        'Registry APIs',
-        'Registry API Fields',
-        'Registry Endpoints',
-        'Registry Sources',
-        'Registry Source Versions',
-        'Registry Source Publishers',
+        'API Families',
+        'API Releases',
+        'API Fields',
+        'API Endpoints',
+        'Sources',
+        'Source Versions',
+        'Source Publishers',
       ],
     },
     {
       name: 'API Family',
-      tags: ['Divisions', 'Addresses', 'Places', 'Streets', 'Statistics'],
+      tags: ['Addresses', 'Divisions', 'Places', 'Statistics', 'Streets'],
     },
     {
       name: 'Assets',
@@ -97,14 +97,120 @@ const openApiConfig = {
       name: 'Styles',
       tags: ['Map styles'],
     },
+    {
+      name: 'System',
+      tags: ['Meta'],
+    },
   ],
 }
 
+const apiFamilyTags = new Set(
+  openApiConfig['x-tagGroups'].find(group => group.name === 'API Family')?.tags,
+)
+
+const apiProducts = ['addresses', 'divisions', 'places', 'stats', 'streets'] as const
+type ApiProduct = (typeof apiProducts)[number]
+
+function isApiProduct(value: string | undefined): value is ApiProduct {
+  return apiProducts.some(product => product === value)
+}
+
+const apiProductTags: Record<ApiProduct, string> = {
+  addresses: 'Addresses',
+  divisions: 'Divisions',
+  places: 'Places',
+  stats: 'Statistics',
+  streets: 'Streets',
+}
+
+const apiProductIntroductions: Record<ApiProduct, string> = {
+  addresses:
+    'Addresses is a SaanSeoi API product for address records. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve addresses. Addresses versions independently of every other API product.',
+  divisions:
+    'Divisions is a SaanSeoi API product for administrative and other geographic divisions. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve division records and geometries. Divisions versions independently of every other API product.',
+  places:
+    'Places is a SaanSeoi API product for place records and search. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve places. Places versions independently of every other API product.',
+  stats:
+    'Statistics is a SaanSeoi API product for published statistical observations and their geographic context. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve statistics. Statistics versions independently of every other API product.',
+  streets:
+    'Streets is a SaanSeoi API product for Hong Kong street records and their version history. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve streets. Streets versions independently of every other API product.',
+}
+
+const registryIntroduction =
+  'The Registry is the shared catalogue for SaanSeoi API products. It discovers API families, releases, fields, endpoints, sources, source versions, and publishers. Use a family product such as Addresses, Divisions, Places, Statistics, or Streets to retrieve its records. Each family has its own release cadence and version history; a family version does not describe the version of another product.'
+
+function scalarSourcesForProduct(product: ApiProduct | 'registry') {
+  if (product === 'registry') {
+    return (['v0', 'v0.1'] as const).map((version, index) => ({
+      title: `Registry ${version}`,
+      slug: `registry-${version}`,
+      url: `/openapi/registry/${version}`,
+      default: index === 1,
+    }))
+  }
+
+  return (['v0', 'v0.1'] as const).map((version, index) => ({
+    title: `${apiProductTags[product]} ${version}`,
+    slug: `${product}-${version}`,
+    url: `/openapi/${product}/${version}`,
+    default: index === 1,
+  }))
+}
+
+const apiRoutePaths = [
+  '/v0.1/*',
+  ...apiProducts.flatMap(product => [`/${product}/v0/*`, `/${product}/v0.1/*`]),
+] as const
+
+function tagsForPathItem(pathItem: unknown) {
+  if (pathItem === null || typeof pathItem !== 'object') {
+    return []
+  }
+
+  return Object.values(pathItem).flatMap(operation => {
+    if (
+      operation === null ||
+      typeof operation !== 'object' ||
+      !('tags' in operation) ||
+      !Array.isArray(operation.tags)
+    ) {
+      return []
+    }
+
+    return operation.tags.filter(
+      (tag: unknown): tag is string => typeof tag === 'string',
+    )
+  })
+}
+
+export const sortOperations = (first: { path: string }, second: { path: string }) => {
+  const firstPathOrder = first.path.endsWith('/source-releases')
+    ? 3
+    : first.path.endsWith('/sources') && !first.path.includes('/api/')
+      ? 2
+      : /\/\{[^}]+\}$/.test(first.path)
+        ? 1
+        : 0
+  const secondPathOrder = second.path.endsWith('/source-releases')
+    ? 3
+    : second.path.endsWith('/sources') && !second.path.includes('/api/')
+      ? 2
+      : /\/\{[^}]+\}$/.test(second.path)
+        ? 1
+        : 0
+  const orderDifference = firstPathOrder - secondPathOrder
+  if (orderDifference !== 0) {
+    return orderDifference
+  }
+
+  return first.path.localeCompare(second.path)
+}
+
 app.use('*', poweredBy())
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(path, prettyJSON())
 }
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(
     path,
     cors({
@@ -115,14 +221,14 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   )
 }
 app.use(
-  '/v0/meta/substack',
+  '/v0.1/meta/substack',
   cors({
     origin: '*',
     allowMethods: ['POST', 'OPTIONS'],
     allowHeaders: ['Content-Type'],
   }),
 )
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
     c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
@@ -137,7 +243,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   })
 }
 
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     const startedAt = performance.now()
     let requestStatus = 500
@@ -148,7 +254,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       requestStatus = isTransientD1ReadError(error) ? 503 : 500
       throw error
     } finally {
-      const requestPath = c.req.path
+      const requestPath = majorAliasRequestPaths.get(c.req.raw) ?? c.req.path
       const status = requestStatus
       const outcome = productApiOutcome(status)
       const origin = c.req.header('origin')
@@ -179,7 +285,10 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
           httpStatus: status,
           durationMs: performance.now() - startedAt,
         })
-      } else if (requestPath === '/v0/meta/substack') {
+      } else if (
+        requestPath === '/v0/meta/substack' ||
+        requestPath === '/v0.1/meta/substack'
+      ) {
         writeProductUsage(c, {
           event: 'newsletter.subscription',
           surface: 'newsletter',
@@ -190,7 +299,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
         })
       } else if (
         isFirstPartyWebOrigin(origin) &&
-        !requestPath.startsWith('/v0/meta/health')
+        !/^\/v0(?:\.1)?\/meta\/health/.test(requestPath)
       ) {
         writeProductUsage(c, {
           event: 'api.request',
@@ -209,7 +318,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 // source release or API ReleaseSet. This middleware runs after the
 // key/rate-limit gate and the product-status middleware so an analytics
 // acknowledgement failure is visible as the final 503 response.
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     await next()
     const attribution = c.get('accessAttribution')
@@ -247,7 +356,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     return c.res
   })
 }
-for (const path of ['/v0/*', '/v0.1/*'] as const) {
+for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     if (
       isPublicMetadataPath(c.req.path) ||
@@ -317,14 +426,20 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   })
 }
 
-app.use('/v0.1/divisions/sources', streamSourceRecordsMiddleware)
+for (const family of ['addresses', 'divisions', 'stats'] as const) {
+  for (const version of ['v0', 'v0.1'] as const) {
+    app.use(`/${family}/${version}/sources`, (c, next) =>
+      streamSourceRecordsMiddleware(family, c, next),
+    )
+  }
+}
 
 function isPublicMetadataPath(path: string) {
   return (
-    path.startsWith('/v0/meta/') ||
-    path.startsWith('/v0/api/') ||
-    path.startsWith('/v0/assets/') ||
-    path.startsWith('/v0/styles/')
+    path.startsWith('/v0.1/meta/') ||
+    path.startsWith('/v0.1/api/') ||
+    path.startsWith('/v0.1/assets/') ||
+    path.startsWith('/v0.1/styles/')
   )
 }
 
@@ -409,31 +524,125 @@ app.openapiRoutes([
   ...statisticRoutes,
 ] as const)
 
-app.get('/openapi', c =>
-  c.json(
-    app.getOpenAPI31Document({
-      ...openApiConfig,
-      servers: [{ url: c.env.ATLAS_BASE_URL }],
-    }),
-  ),
-)
+function getOpenApiDocument(
+  baseUrl: string,
+  product: ApiProduct | 'registry' = 'registry',
+  productVersion?: 'v0' | 'v0.1',
+) {
+  const document = app.getOpenAPI31Document({
+    ...openApiConfig,
+    servers: [{ url: baseUrl }],
+  })
+  const productHasExplicitMajorAlias =
+    product !== 'registry' &&
+    Object.keys(document.paths ?? {}).some(
+      path => path === `/${product}/v0` || path.startsWith(`/${product}/v0/`),
+    )
+  const documentPathVersion =
+    productVersion === 'v0' && !productHasExplicitMajorAlias ? 'v0.1' : productVersion
+
+  const retainedPaths = Object.entries(document.paths ?? {}).filter(
+    ([path, pathItem]) => {
+      const pathTags = tagsForPathItem(pathItem)
+      const isApiFamilyPath = pathTags.some(tag => apiFamilyTags.has(tag))
+      return product === 'registry'
+        ? !isApiFamilyPath
+        : pathTags.includes(apiProductTags[product]) &&
+            (!productVersion ||
+              path === `/${product}/${documentPathVersion}` ||
+              path.startsWith(`/${product}/${documentPathVersion}/`))
+    },
+  )
+  const visibleTags = new Set(
+    retainedPaths.flatMap(([, pathItem]) => tagsForPathItem(pathItem)),
+  )
+
+  document.paths = Object.fromEntries(
+    retainedPaths.map(([path, pathItem]) => [
+      productVersion === 'v0'
+        ? product === 'registry'
+          ? path.replace(/^\/v0\.1(?=\/)/, '/v0')
+          : path.replace(new RegExp(`^/${product}/v0\\.1(?=/|$)`), `/${product}/v0`)
+        : path,
+      pathItem,
+    ]),
+  )
+  document.info = {
+    ...document.info,
+    title:
+      product === 'registry'
+        ? 'SaanSeoi API Registry'
+        : `SaanSeoi ${apiProductTags[product]} API`,
+    description:
+      product === 'registry'
+        ? registryIntroduction
+        : `${apiProductIntroductions[product]}\n\nThis document describes ${productVersion === 'v0' ? 'the `v0` current-family alias' : 'the explicit `v0.1` contract'}. Use an explicit version in integrations that need a pinned contract.`,
+    version: productVersion?.replace(/^v/, '') ?? '0.1',
+  }
+  document.tags = document.tags?.filter(tag => visibleTags.has(tag.name))
+  document['x-tagGroups'] = openApiConfig['x-tagGroups']
+    .map(group => ({
+      ...group,
+      tags: group.tags.filter(tag => visibleTags.has(tag)),
+    }))
+    .filter(group => group.tags.length > 0)
+
+  return document
+}
+
+app.get('/openapi', c => c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL)))
+for (const version of ['v0', 'v0.1'] as const) {
+  app.get(`/openapi/registry/${version}`, c =>
+    c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL, 'registry', version)),
+  )
+}
+for (const product of apiProducts) {
+  for (const version of ['v0', 'v0.1'] as const) {
+    app.get(`/openapi/${product}/${version}`, c =>
+      c.json(getOpenApiDocument(c.env.ATLAS_BASE_URL, product, version)),
+    )
+  }
+}
 app.get(
   '/docs',
-  Scalar({
-    url: '/openapi',
-    pageTitle: 'Atlas API Reference',
+  Scalar(c => {
+    const requestedFamily = c.req.query('family')
+    return {
+      pageTitle: 'SaanSeoi API Reference',
+      sources: scalarSourcesForProduct(
+        requestedFamily === 'registry'
+          ? 'registry'
+          : isApiProduct(requestedFamily)
+            ? requestedFamily
+            : 'addresses',
+      ),
+      operationsSorter: sortOperations,
+    }
   }),
 )
 
-const llmsMarkdown = createMarkdownFromOpenApi(
-  JSON.stringify(
-    app.getOpenAPI31Document(openApiConfig, {
-      unionPreferredType: 'oneOf',
-    }),
-  ),
-)
+function forwardMajorVersionAlias(c: Context<AppEnv>, majorPath: string) {
+  const targetUrl = new URL(c.req.url)
+  targetUrl.pathname = targetUrl.pathname.replace(majorPath, `${majorPath}.1`)
+  const request = new Request(targetUrl, c.req.raw)
+  majorAliasRequestPaths.set(request, c.req.path)
 
-app.get('/llms.txt', async c => c.text(await llmsMarkdown))
+  try {
+    return app.fetch(request, c.env, c.executionCtx)
+  } catch {
+    return app.fetch(request, c.env)
+  }
+}
+
+app.all('/v0/*', c => forwardMajorVersionAlias(c, '/v0'))
+app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
+app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
+
+app.get('/llms.txt', async c => {
+  const document = getOpenApiDocument(c.env.ATLAS_BASE_URL)
+  const markdown = createMarkdownFromOpenApi(JSON.stringify(document, undefined, 2))
+  return c.text(await markdown)
+})
 
 const worker = Object.assign(app, {
   async scheduled(

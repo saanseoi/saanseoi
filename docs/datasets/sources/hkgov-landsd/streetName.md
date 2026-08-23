@@ -174,7 +174,7 @@ events; the complete gazetted baseline is retained in the release payload, not w
 as changelog entries. Current snapshots contain active streets only. Historic deleted
 states and the replay projection remain in history, while every current street includes
 its own `attributes.changelog`; the full replay is available at
-`GET /v0/hk/streets/changelog`.
+`GET /streets/v0/hk/streets/changelog`.
 
 ## Names and districts
 

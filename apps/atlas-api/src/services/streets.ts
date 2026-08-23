@@ -395,16 +395,21 @@ function linksForStreet(
 
 function versionsUrl(requestUrl: string, id: string) {
   return new URL(
-    `/v0/hk/streets/${encodeURIComponent(id)}/versions`,
+    `${streetVersionPath(requestUrl)}/${encodeURIComponent(id)}/versions`,
     requestUrl,
   ).toString()
 }
 
 function versionUrl(requestUrl: string, id: string, version: number) {
   return new URL(
-    `/v0/hk/streets/${encodeURIComponent(id)}/versions/${version}`,
+    `${streetVersionPath(requestUrl)}/${encodeURIComponent(id)}/versions/${version}`,
     requestUrl,
   ).toString()
+}
+
+function streetVersionPath(requestUrl: string) {
+  const match = new URL(requestUrl).pathname.match(/^\/streets\/v0(?:\.1)?/)
+  return match?.[0] ?? '/streets/v0'
 }
 
 function publicAssetLinks(value: unknown): StreetAsset[] {

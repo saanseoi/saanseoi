@@ -1,25 +1,25 @@
 {
-  "versionHash": "sha256:edcf04991faa870a6b1ac64ea89cca4839760187311dea8bf58643810cfc4702",
+  "versionHash": "sha256:0db060fed52f2e67032ab058a089515845bf88b4a177624181671021938854b4",
   "apiVersion": "api-addresses-v0.1",
   "endpoints": [
     {
       "method": "GET",
-      "path": "/v0/addresses",
+      "path": "/addresses/v0",
       "operationId": "listAddressesV0"
     },
     {
       "method": "GET",
-      "path": "/v0.1/addresses",
-      "operationId": "listAddressesV01"
-    },
-    {
-      "method": "GET",
-      "path": "/v0/addresses/{id}",
+      "path": "/addresses/v0/{id}",
       "operationId": "getAddressByIdV0"
     },
     {
       "method": "GET",
-      "path": "/v0.1/addresses/{id}",
+      "path": "/addresses/v0.1",
+      "operationId": "listAddressesV01"
+    },
+    {
+      "method": "GET",
+      "path": "/addresses/v0.1/{id}",
       "operationId": "getAddressByIdV01"
     }
   ]

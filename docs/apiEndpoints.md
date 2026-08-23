@@ -4,7 +4,7 @@ SaanSeoi APIs use a small, explicit request path:
 
 ```text
 src/index.ts middleware and registration
-  -> src/routes/v0/<family>.ts transport handler
+  -> src/routes/<family>/v0/<family>.ts transport handler
   -> src/schema/<family>.ts validation and OpenAPI contract
   -> src/services/<family>.ts orchestration, when needed
   -> src/db/<family>.ts database access, when needed
@@ -36,7 +36,8 @@ not determined abuse.
 
 ### Route module
 
-`apps/atlas-api/src/routes/v0/<family>.ts` defines the HTTP boundary. It should contain:
+`apps/atlas-api/src/routes/<family>/v0/<family>.ts` defines the HTTP boundary. It should
+contain:
 
 - each `createRoute` OpenAPI declaration;
 - the corresponding `defineOpenAPIRoute` handler;
@@ -82,22 +83,22 @@ again here when callers other than the route may invoke the function.
 For a new endpoint, inspect every row in this table. “When needed” means the endpoint
 does not require a placeholder file.
 
-| File                                                | Required action                                                                                                                                                                   |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/atlas-api/src/schema/<family>.ts`             | Add request, response and error schemas.                                                                                                                                          |
-| `apps/atlas-api/src/schema/index.ts`                | Export the new schemas.                                                                                                                                                           |
-| `apps/atlas-api/src/routes/v0/<family>.ts`          | Define the OpenAPI route, handler and exported route tuple.                                                                                                                       |
-| `apps/atlas-api/src/index.ts`                       | Import and register the route tuple; explicitly classify authentication and public access.                                                                                        |
-| `apps/atlas-api/src/services/<family>.ts`           | Add orchestration only when the route is no longer simple.                                                                                                                        |
-| `apps/atlas-api/src/db/<family>.ts`                 | Add parameterised storage access only when needed.                                                                                                                                |
-| `apps/atlas-api/src/handlers/<family>/<version>.ts` | Add or preserve a version boundary when the family has versioned behaviour.                                                                                                       |
-| `apps/atlas-api/src/types.ts`                       | Add Hono context variables or Worker bindings used by application code.                                                                                                           |
-| `apps/atlas-api/wrangler.jsonc`                     | Configure every new Worker binding in local, preview and production environments.                                                                                                 |
-| `apps/atlas-api/worker-configuration.d.ts`          | Regenerate with `bun run --cwd apps/atlas-api cf-typegen`; do not hand-maintain it.                                                                                               |
-| `apps/atlas-api/src/**/*.test.ts`                   | Add schema, service, database and request tests in proportion to the logic.                                                                                                       |
-| `apps/atlas-api/src/routes/v0/*.contract.test.ts`   | Add or update executable request/response snapshots for important public contracts.                                                                                               |
-| `libs/client/src/generated/**`                      | Regenerate the public client when the OpenAPI contract changes and the client covers the endpoint.                                                                                |
-| User documentation                                  | Update any guide that teaches the changed route or contract. Places and map-contract changes require reviewing `/guides/create-a-map` and `docs/guides/create-a-map-coverage.md`. |
+| File                                                       | Required action                                                                                                                                                                   |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/atlas-api/src/schema/<family>.ts`                    | Add request, response and error schemas.                                                                                                                                          |
+| `apps/atlas-api/src/schema/index.ts`                       | Export the new schemas.                                                                                                                                                           |
+| `apps/atlas-api/src/routes/<family>/v0/<family>.ts`        | Define the OpenAPI route, handler and exported route tuple.                                                                                                                       |
+| `apps/atlas-api/src/index.ts`                              | Import and register the route tuple; explicitly classify authentication and public access.                                                                                        |
+| `apps/atlas-api/src/services/<family>.ts`                  | Add orchestration only when the route is no longer simple.                                                                                                                        |
+| `apps/atlas-api/src/db/<family>.ts`                        | Add parameterised storage access only when needed.                                                                                                                                |
+| `apps/atlas-api/src/handlers/<family>/<version>.ts`        | Add or preserve a version boundary when the family has versioned behaviour.                                                                                                       |
+| `apps/atlas-api/src/types.ts`                              | Add Hono context variables or Worker bindings used by application code.                                                                                                           |
+| `apps/atlas-api/wrangler.jsonc`                            | Configure every new Worker binding in local, preview and production environments.                                                                                                 |
+| `apps/atlas-api/worker-configuration.d.ts`                 | Regenerate with `bun run --cwd apps/atlas-api cf-typegen`; do not hand-maintain it.                                                                                               |
+| `apps/atlas-api/src/**/*.test.ts`                          | Add schema, service, database and request tests in proportion to the logic.                                                                                                       |
+| `apps/atlas-api/src/routes/<family>/v0/*.contract.test.ts` | Add or update executable request/response snapshots for important public contracts.                                                                                               |
+| `libs/client/src/generated/**`                             | Regenerate the public client when the OpenAPI contract changes and the client covers the endpoint.                                                                                |
+| User documentation                                         | Update any guide that teaches the changed route or contract. Places and map-contract changes require reviewing `/guides/create-a-map` and `docs/guides/create-a-map-coverage.md`. |
 
 The OpenAPI document is built from registered routes at runtime, so a schema or route
 that is not exported and registered is not part of the API.
@@ -137,13 +138,12 @@ protection of a neighbouring data route.
 The Divisions routes demonstrate the current pre-release pattern:
 
 ```text
-/v0/divisions     -> current pre-release minor
-/v0.1/divisions   -> explicit minor
+/divisions/v0    -> current latest Divisions v0 minor
+/divisions/v0.1  -> explicit Divisions product version
 ```
 
-A small route-variant table may generate identical route definitions for aliases. Keep
-operation IDs unique. Do not add compatibility shims for unreleased behaviour; update
-the current version unless a stable public contract needs a separate handler.
+Keep operation IDs unique. Do not add compatibility shims for unreleased behaviour; add
+a family-specific version only when its public contract diverges.
 
 Registration order matters. Middleware must run before the route it protects, and a
 special streaming middleware must run before the OpenAPI JSON handler for the same path.
@@ -183,8 +183,8 @@ apps/atlas-api/src/
   schema/widgets.ts          request and response schemas
   schema/index.ts            schema export
   db/widgets.ts              bounded parameterised query
-  routes/v0/widgets.ts       route config, handler, widgetsRoutes export
-  routes/v0/widgets.test.ts  request and error coverage
+  routes/widgets/v0/widgets.ts       route config, handler, widgetsRoutes export
+  routes/widgets/v0/widgets.test.ts  request and error coverage
   index.ts                   widgetsRoutes import and registration
 ```
 

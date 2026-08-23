@@ -124,7 +124,7 @@ export const themeIntegrations = [
 
 const geojsonAdapter = [
   'const document = await fetch(',
-  "  'https://api.saanseoi.hk/v0/divisions?profile=map&page[limit]=100',",
+  "  'https://api.saanseoi.hk/divisions/v0?profile=map&page[limit]=100',",
   `  { headers: { 'x-api-key': ${publicKey} } },`,
   ').then(r => r.json())',
   '',

@@ -188,8 +188,8 @@ confirmation; automation must opt in explicitly with `--yes`.
 
 ## API Metadata
 
-Fixture-backed endpoint metadata declares which public API aliases belong to a
+Fixture-backed endpoint metadata declares which public API endpoints belong to a
 resourceType. Those fixtures are synced by `libs/db/src/registry/meta.ts`.
 
-The resourceType-specific pages list the endpoint aliases and the routes that are
-currently implemented in Atlas.
+The resourceType-specific pages list the endpoints and the routes that are currently
+implemented in Atlas.

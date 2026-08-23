@@ -32,7 +32,7 @@ const D1PlacementProbeErrorSchema = z
 
 const d1PlacementProbeRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/meta/d1-placement-probe',
+  path: '/v0.1/meta/d1-placement-probe',
   operationId: 'd1PlacementProbe',
   tags: ['Meta'],
   request: {
