@@ -30,16 +30,30 @@ type UrlLine = {
 }
 
 function tokenisePath(value: string): UrlToken[] {
-  const match = /^(\/v[^/]+)(\/[^/?]+)?(.*)$/.exec(value)
-  if (!match) return [{ kind: 'path', value }]
+  const platformMatch = /^(\/v[^/]+)(\/[^/?]+)?(.*)$/.exec(value)
+  if (platformMatch) {
+    const [, version = '', family, rest = ''] = platformMatch
+    const tokens: UrlToken[] = [{ kind: 'version', value: version }]
 
-  const [, version = '', family, rest = ''] = match
-  const tokens: UrlToken[] = [{ kind: 'version', value: version }]
+    if (family) tokens.push({ kind: 'family', value: family })
+    if (rest) tokens.push({ kind: 'path', value: rest })
 
-  if (family) tokens.push({ kind: 'family', value: family })
-  if (rest) tokens.push({ kind: 'path', value: rest })
+    return tokens
+  }
 
-  return tokens
+  const familyMatch = /^(\/[^/?]+)(\/v[^/]+)(.*)$/.exec(value)
+  if (familyMatch) {
+    const [, family = '', version = '', rest = ''] = familyMatch
+    const tokens: UrlToken[] = [
+      { kind: 'family', value: family },
+      { kind: 'version', value: version },
+    ]
+
+    if (rest) tokens.push({ kind: 'path', value: rest })
+    return tokens
+  }
+
+  return [{ kind: 'path', value }]
 }
 
 function tokeniseUrlLine(value: string): UrlToken[] {
