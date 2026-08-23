@@ -152,6 +152,11 @@ jobs:
         working-directory: apps/harbour-api
         if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-api == 'true'
 
+      - name: 'PUBLISH :: API Release Documentation'
+        env:
+          HARBOUR_API_KEY: ${{ secrets.HARBOUR_API_KEY }}
+        run: ./bin/saanseoi docs:publish --target preview --scope apiReleaseSets
+
       - name: 'DEPLOY :: Harbour Workers'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -344,6 +349,11 @@ jobs:
         run: bun run deploy:production
         working-directory: apps/harbour-api
         if: github.event_name == 'workflow_dispatch' || steps.deployment-baseline.outputs.initial == 'true' || steps.changed-workers.outputs.harbour-api == 'true'
+
+      - name: 'PUBLISH :: API Release Documentation'
+        env:
+          HARBOUR_API_KEY: ${{ secrets.HARBOUR_API_KEY }}
+        run: ./bin/saanseoi docs:publish --target production --scope apiReleaseSets
 
       - name: 'DEPLOY :: Harbour Workers'
         env:
