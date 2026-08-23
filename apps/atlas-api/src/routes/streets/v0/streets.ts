@@ -9,19 +9,19 @@ import {
   StreetVersionParamsSchema,
   StreetVersionsResponseSchema,
   ValidationErrorOpenAPIResponse,
-} from '../../schema'
+} from '../../../schema'
 import {
   getHongKongStreetDetail,
   getHongKongStreetVersion,
   listHongKongStreetVersions,
   replayHongKongStreetChangelog,
-} from '../../services/streets'
-import type { AppEnv } from '../../types'
-import { sanitiseResponseUrl } from '../../lib/api'
+} from '../../../services/streets'
+import type { AppEnv } from '../../../types'
+import { sanitiseResponseUrl } from '../../../lib/api'
 
 const streetDetailRoute = createRoute({
   method: 'get',
-  path: '/v0/hk/streets/{id}',
+  path: '/streets/v0.1/{id}',
   operationId: 'getHongKongStreetByIdV0',
   tags: ['Streets'],
   request: { params: StreetDetailParamsSchema },
@@ -46,7 +46,7 @@ const streetDetailRoute = createRoute({
 
 const streetChangelogRoute = createRoute({
   method: 'get',
-  path: '/v0/hk/streets/changelog',
+  path: '/streets/v0.1/changelog',
   operationId: 'replayHongKongStreetChangelogV0',
   tags: ['Streets'],
   responses: {
@@ -65,7 +65,7 @@ const streetChangelogRoute = createRoute({
 
 const streetVersionsRoute = createRoute({
   method: 'get',
-  path: '/v0/hk/streets/{id}/versions',
+  path: '/streets/v0.1/{id}/versions',
   operationId: 'listHongKongStreetVersionsV0',
   tags: ['Streets'],
   request: { params: StreetDetailParamsSchema },
@@ -90,7 +90,7 @@ const streetVersionsRoute = createRoute({
 
 const streetVersionRoute = createRoute({
   method: 'get',
-  path: '/v0/hk/streets/{id}/versions/{version}',
+  path: '/streets/v0.1/{id}/versions/{version}',
   operationId: 'getHongKongStreetVersionV0',
   tags: ['Streets'],
   request: { params: StreetVersionParamsSchema },

@@ -24,7 +24,6 @@ Public routes are region-scoped:
 - `GET /v1/:region/places/changes`
 - `GET /v1/:region/places/as-of`
 - `GET /v1/meta/regions`
-- `GET /v1/meta/datasets`
 
 ## Profiles
 

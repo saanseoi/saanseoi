@@ -92,7 +92,7 @@ describe('address release samples', () => {
     ).toHaveLength(1)
     expect(supportsReleaseSamples('api-addresses-v0.1')).toBe(true)
     expect(supportsReleaseSamples('api-divisions-v0.1')).toBe(true)
-    expect(getSampleApiPath('api-divisions-v0.1')).toBe('/v0.1/divisions')
+    expect(getSampleApiPath('api-divisions-v0.1')).toBe('/divisions/v0')
     expect(getSampleApiPath('api-stats-v0.1')).toBeNull()
   })
 

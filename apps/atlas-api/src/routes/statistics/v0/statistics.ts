@@ -14,7 +14,7 @@ import {
   ValidationErrorOpenAPIResponse,
   StatisticsSeriesQuerySchema,
   StatisticsSeriesResponseSchema,
-} from '../../schema'
+} from '../../../schema'
 import {
   getStatisticDetail,
   getStatisticsGeographies,
@@ -23,29 +23,29 @@ import {
   type RequestedStatisticApiVersion,
   type RequestedStatisticVersion,
   type ResolvedStatisticApiVersion,
-} from '../../handlers/statistics/v0'
-import type { AppEnv } from '../../types'
+} from '../../../handlers/statistics/v0'
+import type { AppEnv } from '../../../types'
 
 const ROUTE_VARIANTS = [
   {
-    requestedVersionPath: 'v0' as const,
+    requestedVersionPath: 'stats/v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-stats-v0.1' as const,
-    listPath: '/v0/stats',
-    detailPath: '/v0/stats/{id}',
-    geographiesPath: '/v0/stats/geographies',
-    seriesPath: '/v0/stats/series',
+    listPath: '/stats/v0',
+    detailPath: '/stats/v0/{id}',
+    geographiesPath: '/stats/v0/geographies',
+    seriesPath: '/stats/v0/series',
     listOperationId: 'listDivisionStatisticsV0',
     detailOperationId: 'getDivisionStatisticByIdV0',
   },
   {
-    requestedVersionPath: 'v0.1' as const,
+    requestedVersionPath: 'stats/v0.1' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-stats-v0.1' as const,
-    listPath: '/v0.1/stats',
-    detailPath: '/v0.1/stats/{id}',
-    geographiesPath: '/v0.1/stats/geographies',
-    seriesPath: '/v0.1/stats/series',
+    listPath: '/stats/v0.1',
+    detailPath: '/stats/v0.1/{id}',
+    geographiesPath: '/stats/v0.1/geographies',
+    seriesPath: '/stats/v0.1/series',
     listOperationId: 'listDivisionStatisticsV01',
     detailOperationId: 'getDivisionStatisticByIdV01',
   },

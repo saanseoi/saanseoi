@@ -1,16 +1,11 @@
 {
-  "versionHash": "sha256:db241cfe97ec57aaf7d366b1647fa71cdfa6497b9db6b6006079bce589363d60",
+  "versionHash": "sha256:dc8319d2371808a1dba47d2bdc2de954a104a48c1148ea5286765fc0374e5bdc",
   "apiVersion": "api-places-v0.1",
   "endpoints": [
     {
       "method": "GET",
-      "path": "/v0/places",
-      "operationId": "listPlacesV0"
-    },
-    {
-      "method": "GET",
-      "path": "/v0.1/places",
-      "operationId": "listPlacesV01"
+      "path": "/places/v0.1/{region}/{id}",
+      "operationId": "getPlaceByIdV01"
     }
   ]
 }

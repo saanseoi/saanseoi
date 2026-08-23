@@ -126,7 +126,7 @@ let requestExamples = $derived<
     query: `const apiKey = '${exampleKey}'
 const baseUrl = '${atlasApiBaseUrl}'
 
-const url = new URL('/v0/divisions', baseUrl)
+const url = new URL('/divisions/v0', baseUrl)
 url.searchParams.set('profile', 'map')
 url.searchParams.set('page[limit]', '10')
 url.searchParams.set('access_token', apiKey)
@@ -138,7 +138,7 @@ console.log(JSON.stringify(divisions, null, 2))`,
     header: `const apiKey = '${exampleKey}'
 const baseUrl = '${atlasApiBaseUrl}'
 
-const url = new URL('/v0/divisions', baseUrl)
+const url = new URL('/divisions/v0', baseUrl)
 url.searchParams.set('profile', 'map')
 url.searchParams.set('page[limit]', '10')
 
@@ -155,7 +155,7 @@ console.log(JSON.stringify(divisions, null, 2))`,
 
 const apiKey = '${exampleKey}'
 const baseUrl = '${atlasApiBaseUrl}'
-const url = new URL('/v0/divisions', baseUrl)
+const url = new URL('/divisions/v0', baseUrl)
 
 const response = await axios.get(url.toString(), {
   params: {
@@ -171,7 +171,7 @@ console.log(JSON.stringify(divisions, null, 2))`,
 
 const apiKey = '${exampleKey}'
 const baseUrl = '${atlasApiBaseUrl}'
-const url = new URL('/v0/divisions', baseUrl)
+const url = new URL('/divisions/v0', baseUrl)
 
 const response = await axios.get(url.toString(), {
   params: { profile: 'map', 'page[limit]': 10 },
@@ -188,7 +188,7 @@ import requests
 
 api_key = '${exampleKey}'
 base_url = '${atlasApiBaseUrl}'
-url = f'{base_url}/v0/divisions'
+url = f'{base_url}/divisions/v0'
 
 params = {
     'profile': 'map',
@@ -204,7 +204,7 @@ import requests
 
 api_key = '${exampleKey}'
 base_url = '${atlasApiBaseUrl}'
-url = f'{base_url}/v0/divisions'
+url = f'{base_url}/divisions/v0'
 
 params = {'profile': 'map', 'page[limit]': 10}
 headers = {'x-api-key': api_key}
@@ -220,7 +220,7 @@ import httpx
 
 api_key = '${exampleKey}'
 base_url = '${atlasApiBaseUrl}'
-url = f'{base_url}/v0/divisions'
+url = f'{base_url}/divisions/v0'
 
 params = {
     'profile': 'map',
@@ -236,7 +236,7 @@ import httpx
 
 api_key = '${exampleKey}'
 base_url = '${atlasApiBaseUrl}'
-url = f'{base_url}/v0/divisions'
+url = f'{base_url}/divisions/v0'
 
 params = {'profile': 'map', 'page[limit]': 10}
 headers = {'x-api-key': api_key}
@@ -250,14 +250,14 @@ print(json.dumps(divisions, indent=2))`,
     query: `api_key='${exampleKey}'
 base_url='${atlasApiBaseUrl}'
 
-curl --get "$base_url/v0/divisions" \\
+curl --get "$base_url/divisions/v0" \\
   --data-urlencode 'profile=map' \\
   --data-urlencode 'page[limit]=10' \\
   --data-urlencode "access_token=$api_key"`,
     header: `api_key='${exampleKey}'
 base_url='${atlasApiBaseUrl}'
 
-curl --get "$base_url/v0/divisions" \\
+curl --get "$base_url/divisions/v0" \\
   --data-urlencode 'profile=map' \\
   --data-urlencode 'page[limit]=10' \\
   --header "x-api-key: $api_key"`,
@@ -273,7 +273,7 @@ $params = @{
 }
 $request = @{
   Method = 'Get'
-  Uri = "$baseUrl/v0/divisions"
+  Uri = "$baseUrl/divisions/v0"
   Body = $params
 }
 
@@ -285,7 +285,7 @@ $params = @{ profile = 'map'; 'page[limit]' = 10 }
 $headers = @{ 'x-api-key' = $apiKey }
 $request = @{
   Method = 'Get'
-  Uri = "$baseUrl/v0/divisions"
+  Uri = "$baseUrl/divisions/v0"
   Body = $params
   Headers = $headers
 }

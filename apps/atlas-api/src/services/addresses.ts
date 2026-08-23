@@ -33,7 +33,7 @@ import {
   resolveOptionalApiReleaseSetAccessAttribution,
 } from './accessAnalytics'
 
-export type RequestedAddressVersion = 'v0' | 'v0.1'
+export type RequestedAddressVersion = 'addresses/v0' | 'addresses/v0.1'
 export type RequestedAddressApiVersion = '0.1'
 export type ResolvedAddressApiVersion = 'api-addresses-v0.1'
 export type AddressProfile = ApiProfileName
@@ -137,7 +137,7 @@ async function loadIncludedAddressHierarchy(args: {
   return records.map(record =>
     createIncludedDivisionResource({
       baseUrl: args.baseUrl,
-      requestedVersionPath: args.routeState.requestedVersionPath,
+      requestedVersionPath: 'divisions/v0.1',
       profile: args.routeState.profile,
       localeSelection: args.routeState.localeSelection,
       record,
@@ -310,7 +310,7 @@ function createAddressResource(args: {
       },
     },
     links: {
-      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/addresses/${address.id}`,
+      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/${address.id}`,
     },
   }
 }
@@ -351,8 +351,8 @@ function buildAddressPermalink(args: {
 }) {
   const permalink = new URL(args.url)
   permalink.pathname = permalink.pathname.replace(
-    /^\/v0(?:\.1)?\//,
-    `/${args.routeState.resolvedApiVersion.replace(/^api-addresses-/, '')}/`,
+    /^\/addresses\/v0(?:\.\d+)?/,
+    `/addresses/${args.routeState.resolvedApiVersion.replace(/^api-addresses-/, '')}`,
   )
   permalink.searchParams.delete('effectiveAt')
   permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)

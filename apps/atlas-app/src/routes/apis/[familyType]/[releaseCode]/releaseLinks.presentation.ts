@@ -69,7 +69,7 @@ export function buildApiReleaseLinksPresentation(
         const directRequest =
           familyType === 'divisions'
             ? {
-                path: '/v0.1/divisions/sources',
+                path: '/divisions/v0/sources',
                 query: [
                   { key: 'sourceRelease', value: source.sourceReleaseCode },
                   { key: 'include', value: 'geometry' },

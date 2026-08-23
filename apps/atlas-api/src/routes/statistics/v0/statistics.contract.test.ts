@@ -2,11 +2,11 @@ import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
 
-import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
-import type { AppBindings } from '../../types'
-import app from '../../index'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import type { AppBindings } from '../../../types'
+import app from '../../../index'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
 const PUBLISHED_AT = '2026-08-20T00:00:00.000Z'
 const DATASET_CODE =
@@ -556,12 +556,12 @@ function fixtureEnv() {
 }
 
 describe('Statistics API responses through the Worker route', () => {
-  test('list, filters, profiles, detail, and version aliases', async () => {
+  test('list, filters, profiles, detail, and product version', async () => {
     const fixture = fixtureEnv()
     try {
       const list = await app.fetch(
         new Request(
-          'http://localhost/v0/stats?profile=full&filter[field]=totalPopulation&page[limit]=10',
+          'http://localhost/stats/v0.1?profile=full&filter[field]=totalPopulation&page[limit]=10',
         ),
         fixture.env,
       )
@@ -590,11 +590,11 @@ describe('Statistics API responses through the Worker route', () => {
         apiReleaseSet: 'data-hk-stats-2021',
         page: { limit: 10, offset: 0, total: 1 },
       })
-      expect(listBody.links.permalink).toContain('/v0.1/stats?')
+      expect(listBody.links.permalink).toContain('/stats/v0.1?')
 
       const crossPeriod = await app.fetch(
         new Request(
-          'http://localhost/v0.1/stats?cohort=2021&filter[referencePeriod]=2020',
+          'http://localhost/stats/v0.1?cohort=2021&filter[referencePeriod]=2020',
         ),
         fixture.env,
       )
@@ -603,7 +603,7 @@ describe('Statistics API responses through the Worker route', () => {
       expect(crossPeriodBody.data).toEqual([])
 
       const detail = await app.fetch(
-        new Request(`http://localhost/v0.1/stats/${STATISTIC_ID}`),
+        new Request(`http://localhost/stats/v0.1/${STATISTIC_ID}`),
         fixture.env,
       )
       expect(detail.status).toBe(200)
@@ -613,7 +613,7 @@ describe('Statistics API responses through the Worker route', () => {
 
       const fields = await app.fetch(
         new Request(
-          `http://localhost/v0.1/stats/${STATISTIC_ID}?include=fields&locales=en,zh-hant,zh-hans`,
+          `http://localhost/stats/v0.1/${STATISTIC_ID}?include=fields&locales=en,zh-hant,zh-hans`,
         ),
         fixture.env,
       )
@@ -644,7 +644,7 @@ describe('Statistics API responses through the Worker route', () => {
     const fixture = fixtureEnv()
     try {
       const response = await app.fetch(
-        new Request('http://localhost/v0.1/stats?include=geometry'),
+        new Request('http://localhost/stats/v0.1?include=geometry'),
         fixture.env,
       )
       expect(response.status).toBe(422)
@@ -658,7 +658,7 @@ describe('Statistics API responses through the Worker route', () => {
     try {
       const geographies = await app.fetch(
         new Request(
-          'http://localhost/v0.1/stats/geographies?filter[field]=totalPopulation&filter[referencePeriod]=2021',
+          'http://localhost/stats/v0.1/geographies?filter[field]=totalPopulation&filter[referencePeriod]=2021',
         ),
         fixture.env,
       )
@@ -677,7 +677,7 @@ describe('Statistics API responses through the Worker route', () => {
       })
 
       const series = await app.fetch(
-        new Request('http://localhost/v0.1/stats/series?filter[field]=totalPopulation'),
+        new Request('http://localhost/stats/v0.1/series?filter[field]=totalPopulation'),
         fixture.env,
       )
       expect(series.status).toBe(200)

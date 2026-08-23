@@ -9,33 +9,33 @@ import {
   DivisionSnapshotNotReadyErrorResponseSchema,
   ErrorResponseSchema,
   ValidationErrorOpenAPIResponse,
-} from '../../schema'
+} from '../../../schema'
 import {
   getDivisionDetail,
   listDivisions,
   type RequestedDivisionApiVersion,
   type RequestedDivisionVersion,
   type ResolvedDivisionApiVersion,
-} from '../../handlers/divisions/v0'
-import type { AppEnv } from '../../types'
-import { sanitiseResponseUrl } from '../../lib/api'
+} from '../../../handlers/divisions/v0'
+import type { AppEnv } from '../../../types'
+import { sanitiseResponseUrl } from '../../../lib/api'
 
 const ROUTE_VARIANTS = [
   {
-    requestedVersionPath: 'v0' as const,
+    requestedVersionPath: 'divisions/v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-divisions-v0.1' as const,
-    listPath: '/v0/divisions',
-    detailPath: '/v0/divisions/{id}',
+    listPath: '/divisions/v0',
+    detailPath: '/divisions/v0/{id}',
     listOperationId: 'listDivisionsV0',
     detailOperationId: 'getDivisionByIdV0',
   },
   {
-    requestedVersionPath: 'v0.1' as const,
+    requestedVersionPath: 'divisions/v0.1' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-divisions-v0.1' as const,
-    listPath: '/v0.1/divisions',
-    detailPath: '/v0.1/divisions/{id}',
+    listPath: '/divisions/v0.1',
+    detailPath: '/divisions/v0.1/{id}',
     listOperationId: 'listDivisionsV01',
     detailOperationId: 'getDivisionByIdV01',
   },

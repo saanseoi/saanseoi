@@ -44,13 +44,12 @@ revision of this period's release set; it does not alter this saved revision.
 ## Using the Statistics API
 
 The <black>v0.1</black> contract is experimental. Use either <black>GET
-/v0.1/stats</black> or <black>GET /v0.1/stats/{id}</black>; the <black>/v0</black>
-aliases resolve to the same contract today.
+/stats/v0</black> or <black>GET /stats/v0/{id}</black>
 
 Start with the official statistics collection:
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 ### Latest release and observation
@@ -70,7 +69,7 @@ no later observation.
 The official Statistics view is therefore:
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 It selects the latest native observation for each independent statistical series from
@@ -81,7 +80,7 @@ observations are older and are not returned by a latest selection.
 Use the exact reference-period filter when the requested scope needs to be explicit:
 
 ```url
-/v0.1/stats?filter[referencePeriod]=2016
+/stats/v0?filter[referencePeriod]=2016
 ```
 
 This selects records with the exact reference-period code within the resolved release
@@ -99,7 +98,7 @@ Without selectors, the endpoint resolves the latest effective release in the cur
 <black>cohort</black> and <black>domain</black>:
 
 ```url
-/v0.1/stats?domain={{ domainCode }}&cohort={{ cohortKey }}
+/stats/v0?domain={{ domainCode }}&cohort={{ cohortKey }}
 ```
 
 To reproduce a result after the catalogue changes, retain the successful response's
@@ -122,7 +121,7 @@ distinguishable inside the domain. Use <black>filter[dataset]</black>,
 <black>filter[measure]</black> to narrow a list:
 
 ```url
-/v0.1/stats?filter[division]=division-hk-18&filter[referencePeriod]=2016
+/stats/v0?filter[division]=division-hk-18&filter[referencePeriod]=2016
 ```
 
 Use <black>page[limit]</black> and <black>page[offset]</black> for pagination. The
@@ -138,10 +137,10 @@ whose geography has not been reviewed keep that relationship null.
 Related resources are opt-in and separately selectable:
 
 ```url
-/v0.1/stats?include=divisions
-/v0.1/stats?include=areas
-/v0.1/stats?include=divisions,areas
-/v0.1/stats?include=areas:hkgov-censtatd:2021
+/stats/v0?include=divisions
+/stats/v0?include=areas
+/stats/v0?include=divisions,areas
+/stats/v0?include=areas:hkgov-censtatd:2021
 ```
 
 <black>include=divisions</black> returns the canonical division resources in
@@ -220,13 +219,13 @@ set 的新不可變 revision，不會改變本 revision。
 
 ## 使用 Statistics API
 
-<black>v0.1</black> 合約仍屬實驗性質。請使用 <black>GET /v0.1/stats</black> 或
-<black>GET /v0.1/stats/{id}</black>；現時 <black>/v0</black> 別名解析至相同合約。
+<black>v0.1</black> 合約仍屬實驗性質。請使用 <black>GET /stats/v0</black> 或 <black>GET
+/stats/v0/{id}</black>
 
 先從官方統計 collection 開始：
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 ### 最新發布與觀測值
@@ -243,7 +242,7 @@ set。Statistics 則有多個獨立序列：人口指標可以是年度、季度
 Statistics 的官方檢視因此是：
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 它會從該觀測期 release
@@ -252,7 +251,7 @@ set 的最新 revision，為每個獨立統計序列選取最新的原生觀測�
 如需清楚表明所要求的確切參考期，請使用確切的 reference-period filter：
 
 ```url
-/v0.1/stats?filter[referencePeriod]=2016
+/stats/v0?filter[referencePeriod]=2016
 ```
 
 此選項會在已解析的 release
@@ -269,7 +268,7 @@ set 內，選取具有確切參考期代碼的記錄。API 目前不提供時間
 <black>domain</black>：
 
 ```url
-/v0.1/stats?domain={{ domainCode }}&cohort={{ cohortKey }}
+/stats/v0?domain={{ domainCode }}&cohort={{ cohortKey }}
 ```
 
 如要在 catalogue 改變後重現結果，請保留成功回應中完整的
@@ -289,7 +288,7 @@ set 內，選取具有確切參考期代碼的記錄。API 目前不提供時間
 <black>filter[referencePeriod]</black> 或 <black>filter[measure]</black> 縮小列表：
 
 ```url
-/v0.1/stats?filter[division]=division-hk-18&filter[referencePeriod]=2016
+/stats/v0?filter[division]=division-hk-18&filter[referencePeriod]=2016
 ```
 
 使用 <black>page[limit]</black> 和 <black>page[offset]</black> 分頁；每頁上限為 100。
@@ -303,10 +302,10 @@ set 內，選取具有確切參考期代碼的記錄。API 目前不提供時間
 相關資源須明確選取，並可分別請求：
 
 ```url
-/v0.1/stats?include=divisions
-/v0.1/stats?include=areas
-/v0.1/stats?include=divisions,areas
-/v0.1/stats?include=areas:hkgov-censtatd:2021
+/stats/v0?include=divisions
+/stats/v0?include=areas
+/stats/v0?include=divisions,areas
+/stats/v0?include=areas:hkgov-censtatd:2021
 ```
 
 <black>include=divisions</black> 在 <black>included</black> 回傳標準區劃資源。
@@ -376,13 +375,13 @@ set 的新不可变 revision，不会改变本 revision。
 
 ## 使用 Statistics API
 
-<black>v0.1</black> 合约仍属实验性质。请使用 <black>GET /v0.1/stats</black> 或
-<black>GET /v0.1/stats/{id}</black>；现时 <black>/v0</black> 别名解析至相同合约。
+<black>v0.1</black> 合约仍属实验性质。请使用 <black>GET /stats/v0</black> 或 <black>GET
+/stats/v0/{id}</black>
 
 先从官方统计 collection 开始：
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 ### 最新发布与观测值
@@ -399,7 +398,7 @@ set。Statistics 则有多个独立序列：人口指标可以是年度、季度
 Statistics 的官方视图因此是：
 
 ```url
-/v0.1/stats
+/stats/v0
 ```
 
 它会从该观测期 release
@@ -408,7 +407,7 @@ set 的最新 revision，为每个独立统计序列选取最新的原生观测�
 如需清楚表明所要求的确切参考期，请使用确切的 reference-period filter：
 
 ```url
-/v0.1/stats?filter[referencePeriod]=2016
+/stats/v0?filter[referencePeriod]=2016
 ```
 
 此选项会在已解析的 release
@@ -425,7 +424,7 @@ set 内，选取具有确切参考期代码的记录。API 目前不提供时间
 <black>domain</black>：
 
 ```url
-/v0.1/stats?domain={{ domainCode }}&cohort={{ cohortKey }}
+/stats/v0?domain={{ domainCode }}&cohort={{ cohortKey }}
 ```
 
 如要在 catalogue 改变后重现结果，请保留成功响应中完整的
@@ -445,7 +444,7 @@ set 内，选取具有确切参考期代码的记录。API 目前不提供时间
 <black>filter[referencePeriod]</black> 或 <black>filter[measure]</black> 缩小列表：
 
 ```url
-/v0.1/stats?filter[division]=division-hk-18&filter[referencePeriod]=2016
+/stats/v0?filter[division]=division-hk-18&filter[referencePeriod]=2016
 ```
 
 使用 <black>page[limit]</black> 和 <black>page[offset]</black> 分页；每页上限为 100。
@@ -459,10 +458,10 @@ set 内，选取具有确切参考期代码的记录。API 目前不提供时间
 相关资源须明确选取，并可分别请求：
 
 ```url
-/v0.1/stats?include=divisions
-/v0.1/stats?include=areas
-/v0.1/stats?include=divisions,areas
-/v0.1/stats?include=areas:hkgov-censtatd:2021
+/stats/v0?include=divisions
+/stats/v0?include=areas
+/stats/v0?include=divisions,areas
+/stats/v0?include=areas:hkgov-censtatd:2021
 ```
 
 <black>include=divisions</black> 在 <black>included</black> 返回标准区划资源。

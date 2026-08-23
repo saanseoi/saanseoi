@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import app from './index'
+import app, { sortOperations } from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
@@ -489,6 +489,35 @@ describe('atlas-api', () => {
     expect(res.headers.get('location')).toBe('/openapi')
   })
 
+  test('sorts API operations as lists, entities, sources, then source releases', () => {
+    const paths = [
+      '/divisions/v0.1/source-releases',
+      '/divisions/v0.1/{id}',
+      '/divisions/v0.1',
+      '/divisions/v0.1/{id}',
+      '/divisions/v0.1/sources',
+      '/divisions/v0.1',
+    ]
+
+    expect(
+      paths.toSorted((first, second) =>
+        sortOperations({ path: first }, { path: second }),
+      ),
+    ).toEqual([
+      '/divisions/v0.1',
+      '/divisions/v0.1',
+      '/divisions/v0.1/{id}',
+      '/divisions/v0.1/{id}',
+      '/divisions/v0.1/sources',
+      '/divisions/v0.1/source-releases',
+    ])
+    expect(
+      ['/v0.1/api/sources/{id}', '/v0.1/api/sources'].toSorted((first, second) =>
+        sortOperations({ path: first }, { path: second }),
+      ),
+    ).toEqual(['/v0.1/api/sources', '/v0.1/api/sources/{id}'])
+  })
+
   test('GET /v0/meta/health checks DB access', async () => {
     const { env } = createEnv()
     const res = await app.fetch(apiRequest('http://localhost/v0/meta/health'), env)
@@ -502,6 +531,13 @@ describe('atlas-api', () => {
       ok: true,
       datasetCount: 0,
     })
+  })
+
+  test('GET /v0.1/meta/datasets has been retired', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(new Request('http://localhost/v0.1/meta/datasets'), env)
+
+    expect(res.status).toBe(404)
   })
 
   test('GET /v0/assets is public but resolves only registered assets', async () => {
@@ -649,7 +685,7 @@ describe('atlas-api', () => {
       } as AnalyticsEngineDataset,
     })
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { origin: 'https://saanseoi.hk' },
       }),
       env,
@@ -660,7 +696,7 @@ describe('atlas-api', () => {
       'api.request',
       'atlas-api',
       'api',
-      '/v0/divisions',
+      '/divisions/v0.1',
       '',
       '',
       '',
@@ -669,7 +705,7 @@ describe('atlas-api', () => {
     ])
   })
 
-  test('GET /v0/styles streams public immutable style artefacts from R2', async () => {
+  test('GET /v0.1/styles streams public immutable style artefacts from R2', async () => {
     const reads: string[] = []
     const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createAuthenticatedEnv({
@@ -824,9 +860,9 @@ describe('atlas-api', () => {
     expect(res.status).toBe(400)
   })
 
-  test('GET /v0/divisions rejects an absent public API key', async () => {
+  test('GET /divisions/v0.1 rejects an absent public API key', async () => {
     const { env } = createAuthenticatedEnv()
-    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(new Request('http://localhost/divisions/v0.1'), env)
 
     expect(res.status).toBe(401)
     expect((await res.json()) as unknown).toEqual({
@@ -835,7 +871,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions returns 503 when public-key validation is unavailable', async () => {
+  test('GET /divisions/v0.1 returns 503 when public-key validation is unavailable', async () => {
     const { env } = createAuthenticatedEnv({
       PUBLIC_KEY_LEASES: {
         get: async () => {
@@ -843,7 +879,7 @@ describe('atlas-api', () => {
         },
       } as unknown as KVNamespace,
     })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(apiRequest('http://localhost/divisions/v0.1'), env)
 
     expect(res.status).toBe(503)
     expect((await res.json()) as unknown).toEqual({
@@ -852,7 +888,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions enforces public-key origin rules at the edge', async () => {
+  test('GET /divisions/v0.1 enforces public-key origin rules at the edge', async () => {
     const { env } = createAuthenticatedEnv({
       PUBLIC_KEY_LEASES: {
         get: async () => ({
@@ -867,7 +903,7 @@ describe('atlas-api', () => {
       } as unknown as KVNamespace,
     })
     const res = await app.fetch(
-      apiRequest('http://localhost/v0/divisions', {
+      apiRequest('http://localhost/divisions/v0.1', {
         headers: { origin: 'https://rogue.example.com' },
       }),
       env,
@@ -880,9 +916,9 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions permits an absent API key when the local bypass is enabled', async () => {
+  test('GET /divisions/v0.1 permits an absent API key when the local bypass is enabled', async () => {
     const { env } = createEnv({ AUTH_MODE: 'disabled' })
-    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(new Request('http://localhost/divisions/v0.1'), env)
     const body = (await res.json()) as {
       httpStatus: number
       error: string
@@ -897,10 +933,10 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0.1/divisions permits keyless requests from saanseoi.hk', async () => {
+  test('GET /divisions/v0.1 permits keyless requests from saanseoi.hk', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0.1/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { origin: 'https://saanseoi.hk' },
       }),
       env,
@@ -919,10 +955,10 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0.1/divisions keeps other origins behind public-key authentication', async () => {
+  test('GET /divisions/v0.1 keeps other origins behind public-key authentication', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0.1/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { origin: 'https://saanseoi.hk.example.com' },
       }),
       env,
@@ -935,10 +971,10 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0.1/divisions accepts preflight requests from saanseoi.hk', async () => {
+  test('GET /divisions/v0.1 accepts preflight requests from saanseoi.hk', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0.1/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         method: 'OPTIONS',
         headers: {
           origin: 'https://saanseoi.hk',
@@ -952,10 +988,10 @@ describe('atlas-api', () => {
     expect(res.headers.get('access-control-allow-origin')).toBe('*')
   })
 
-  test('GET /v0/hk/streets/:id requires a public API key', async () => {
+  test('GET /streets/v0/:id resolves to the latest minor and requires a public API key', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      new Request('http://localhost/streets/v0/landsd-street-notice-example'),
       env,
     )
 
@@ -969,18 +1005,18 @@ describe('atlas-api', () => {
   test('street history endpoints require a public API key', async () => {
     const { env } = createAuthenticatedEnv()
     for (const path of [
-      '/v0/hk/streets/landsd-street-notice-example/versions',
-      '/v0/hk/streets/landsd-street-notice-example/versions/1',
+      '/streets/v0.1/landsd-street-notice-example/versions',
+      '/streets/v0.1/landsd-street-notice-example/versions/1',
     ]) {
       const res = await app.fetch(new Request(`http://localhost${path}`), env)
       expect(res.status).toBe(401)
     }
   })
 
-  test('GET /v0/hk/streets/:id returns the latest PDF-evidenced materialised state', async () => {
+  test('GET /streets/v0.1/:id returns the latest PDF-evidenced materialised state', async () => {
     const { env } = createEnv({}, { streetDetail: true })
     const res = await app.fetch(
-      apiRequest('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      apiRequest('http://localhost/streets/v0.1/landsd-street-notice-example'),
       env,
     )
     const body = (await res.json()) as {
@@ -1054,8 +1090,8 @@ describe('atlas-api', () => {
       }),
     ])
     expect(body.data.links).toMatchObject({
-      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
-      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+      version: 'http://localhost/streets/v0.1/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/streets/v0.1/landsd-street-notice-example/versions',
     })
   })
 
@@ -1063,7 +1099,7 @@ describe('atlas-api', () => {
     const { env } = createAuthenticatedEnv({}, { streetDetail: true })
     const res = await app.fetch(
       new Request(
-        `http://localhost/v0/hk/streets/landsd-street-notice-example?access_token=${encodeURIComponent(testApiKey)}&view=full`,
+        `http://localhost/streets/v0.1/landsd-street-notice-example?access_token=${encodeURIComponent(testApiKey)}&view=full`,
       ),
       env,
     )
@@ -1078,8 +1114,8 @@ describe('atlas-api', () => {
   test('Places endpoints reject unbounded limits', async () => {
     const { env } = createEnv()
     for (const path of [
-      '/v0/hk/places/by-cell/9/89283470cdbffff?limit=101',
-      '/v0/hk/search?q=sushi&limit=101',
+      '/places/v0/hk/by-cell/9/89283470cdbffff?limit=101',
+      '/places/v0/hk/search?q=sushi&limit=101',
     ]) {
       const res = await app.fetch(apiRequest(`http://localhost${path}`), env)
       expect(res.status).toBe(422)
@@ -1087,10 +1123,10 @@ describe('atlas-api', () => {
     }
   })
 
-  test('GET /v0/hk/streets/changelog replays LandsD events', async () => {
+  test('GET /streets/v0.1/changelog replays LandsD events', async () => {
     const { env } = createEnv({}, { streetDetail: true })
     const res = await app.fetch(
-      apiRequest('http://localhost/v0/hk/streets/changelog'),
+      apiRequest('http://localhost/streets/v0.1/changelog'),
       env,
     )
     const body = (await res.json()) as {
@@ -1116,17 +1152,15 @@ describe('atlas-api', () => {
     ])
   })
 
-  test('GET /v0/hk/streets/:id/versions exposes crawlable previous and next links', async () => {
+  test('GET /streets/v0.1/:id/versions exposes crawlable previous and next links', async () => {
     const { env } = createEnv({}, { streetDetail: true })
     const list = await app.fetch(
-      apiRequest(
-        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
-      ),
+      apiRequest('http://localhost/streets/v0.1/landsd-street-notice-example/versions'),
       env,
     )
     const version = await app.fetch(
       apiRequest(
-        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+        'http://localhost/streets/v0.1/landsd-street-notice-example/versions/1',
       ),
       env,
     )
@@ -1149,17 +1183,17 @@ describe('atlas-api', () => {
       version: 1,
     })
     expect(versionBody.links).toMatchObject({
-      next: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/2',
-      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
-      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+      next: 'http://localhost/streets/v0.1/landsd-street-notice-example/versions/2',
+      version: 'http://localhost/streets/v0.1/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/streets/v0.1/landsd-street-notice-example/versions',
     })
     expect(versionBody.links).not.toHaveProperty('previous')
   })
 
-  test('GET /v0/divisions rejects a malformed public API key', async () => {
+  test('GET /divisions/v0.1 rejects a malformed public API key', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { 'x-api-key': 'not-an-api-key' },
       }),
       env,
@@ -1172,7 +1206,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions accepts a public key and tracks usage by origin', async () => {
+  test('GET /divisions/v0.1 accepts a public key and tracks usage by origin', async () => {
     const events: AnalyticsEngineDataPoint[] = []
     const { env, operations } = createAuthenticatedEnv({
       API_USAGE: {
@@ -1180,7 +1214,7 @@ describe('atlas-api', () => {
       } as AnalyticsEngineDataset,
     })
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: {
           'x-api-key': testApiKey,
           origin: 'https://example.com',
@@ -1194,16 +1228,16 @@ describe('atlas-api', () => {
     expect(events).toEqual([
       {
         indexes: ['api-key-1'],
-        blobs: ['/v0/divisions', 'example.com'],
+        blobs: ['/divisions/v0.1', 'example.com'],
         doubles: [1],
       },
     ])
   })
 
-  test('OPTIONS /v0/divisions allows public-key browser requests', async () => {
+  test('OPTIONS /divisions/v0.1 allows public-key browser requests', async () => {
     const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         method: 'OPTIONS',
         headers: {
           origin: 'https://example.com',
@@ -1221,12 +1255,12 @@ describe('atlas-api', () => {
     )
   })
 
-  test('GET /v0/divisions rate-limits a public key at the edge', async () => {
+  test('GET /divisions/v0.1 rate-limits a public key at the edge', async () => {
     const { env } = createAuthenticatedEnv({
       API_RATE_LIMIT: { limit: async () => ({ success: false }) } as RateLimit,
     })
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { 'x-api-key': testApiKey },
       }),
       env,
@@ -1239,12 +1273,13 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/api registry endpoints do not require an API key', async () => {
+  test('GET /v0/api API Endpoints resolve to the current minor without an API key', async () => {
     const { env } = createEnv()
 
     for (const path of [
       '/v0/api/releases',
-      '/v0/api/apis',
+      '/v0/api/families',
+      '/v0/api/fields',
       '/v0/api/sources',
       '/v0/api/sourcePublishers',
     ]) {
@@ -1253,6 +1288,18 @@ describe('atlas-api', () => {
       expect(res.status).toBe(200)
       expect((await res.json()) as unknown).toEqual({ data: [] })
     }
+
+    const legacyRes = await app.fetch(
+      new Request('http://localhost/v0.1/api/apis'),
+      env,
+    )
+    expect(legacyRes.status).toBe(404)
+
+    const legacyFieldsRes = await app.fetch(
+      new Request('http://localhost/v0.1/api/apiFields'),
+      env,
+    )
+    expect(legacyFieldsRes.status).toBe(404)
   })
 
   test('OPTIONS /v0/meta/substack allows cross-origin JSON subscriptions', async () => {
@@ -1275,9 +1322,9 @@ describe('atlas-api', () => {
     expect(res.headers.get('access-control-allow-headers')).toContain('Content-Type')
   })
 
-  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+  test('GET /divisions/v0.1 returns snapshot_not_ready when no division release set is published', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(apiRequest('http://localhost/divisions/v0.1'), env)
     const body = (await res.json()) as {
       httpStatus: number
       error: string
@@ -1292,9 +1339,9 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/addresses returns snapshot_not_ready when no address release set is published', async () => {
+  test('GET /addresses/v0.1 returns snapshot_not_ready when no address release set is published', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(apiRequest('http://localhost/v0/addresses'), env)
+    const res = await app.fetch(apiRequest('http://localhost/addresses/v0.1'), env)
     const body = (await res.json()) as {
       httpStatus: number
       error: string
@@ -1309,7 +1356,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
+  test('GET /divisions/v0.1 returns 503 when atlas hits a transient D1 read failure', async () => {
     const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createEnv(
       {
@@ -1324,7 +1371,7 @@ describe('atlas-api', () => {
       },
     )
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
+      new Request('http://localhost/divisions/v0.1', {
         headers: { origin: 'https://saanseoi.hk' },
       }),
       env,
@@ -1344,7 +1391,7 @@ describe('atlas-api', () => {
       'api.request',
       'atlas-api',
       'api',
-      '/v0/divisions',
+      '/divisions/v0.1',
       '',
       '',
       '',
@@ -1353,10 +1400,10 @@ describe('atlas-api', () => {
     ])
   })
 
-  test('GET /v0/divisions rejects invalid locale syntax', async () => {
+  test('GET /divisions/v0.1 rejects invalid locale syntax', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      apiRequest('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
+      apiRequest('http://localhost/divisions/v0.1?locales=en,zh-hk-extra-piece'),
       env,
     )
     const body = (await res.json()) as {
@@ -1372,13 +1419,13 @@ describe('atlas-api', () => {
     expect(body.details.some(detail => detail.path === 'locales')).toBe(true)
   })
 
-  test('GET /v0/divisions accepts arbitrary valid locale tags and wildcard controls', async () => {
+  test('GET /divisions/v0.1 accepts arbitrary valid locale tags and wildcard controls', async () => {
     const { env } = createEnv()
 
     for (const locales of ['fr-ca', 'EN,ZH_HANT', '*', 'null']) {
       const res = await app.fetch(
         apiRequest(
-          `http://localhost/v0/divisions?locales=${encodeURIComponent(locales)}`,
+          `http://localhost/divisions/v0.1?locales=${encodeURIComponent(locales)}`,
         ),
         env,
       )
@@ -1387,7 +1434,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('GET /openapi documents the versioned division, address, and street endpoints', async () => {
+  test('GET /openapi documents the stable registry routes', async () => {
     const { env } = createEnv()
     const res = await app.fetch(new Request('http://localhost/openapi'), env)
     const body = (await res.json()) as {
@@ -1403,32 +1450,14 @@ describe('atlas-api', () => {
     }
 
     expect(res.status).toBe(200)
-    expect(body.paths['/v0/divisions']?.get?.operationId).toBe('listDivisionsV0')
-    expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
-      'getDivisionByIdV01',
+    expect(body.paths['/v0.1/api/families']?.get?.operationId).toBe('listRegistryApis')
+    expect(body.paths['/v0.1/api/endpoints/{id}']?.get?.operationId).toBe(
+      'getRegistryEndpoint',
     )
-    expect(body.paths['/v0.1/divisions/source-releases']?.get?.operationId).toBe(
-      'listDivisionSourceReleasesV01',
-    )
-    expect(body.paths['/v0.1/divisions/sources']?.get?.operationId).toBe(
-      'listDivisionSourceRecordsV01',
-    )
-    expect(body.paths['/v0/addresses']?.get?.operationId).toBe('listAddressesV0')
-    expect(body.paths['/v0.1/addresses/{id}']?.get?.operationId).toBe(
-      'getAddressByIdV01',
-    )
-    expect(body.paths['/v0/hk/streets/{id}']?.get?.operationId).toBe(
-      'getHongKongStreetByIdV0',
-    )
-    expect(body.paths['/v0/hk/streets/changelog']?.get?.operationId).toBe(
-      'replayHongKongStreetChangelogV0',
-    )
-    expect(body.paths['/v0/hk/streets/{id}/versions']?.get?.operationId).toBe(
-      'listHongKongStreetVersionsV0',
-    )
-    expect(body.paths['/v0/hk/streets/{id}/versions/{version}']?.get?.operationId).toBe(
-      'getHongKongStreetVersionV0',
-    )
+    expect(body.paths['/v0.1/assets/{assetId}']).toBeDefined()
+    expect(body.paths['/v0.1/styles/{style}/{version}']).toBeDefined()
+    expect(body.paths['/v0.1/meta/health']).toBeDefined()
+    expect(body.paths['/divisions/v0.1']).toBeUndefined()
     expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
       'hierarchy',
     )
@@ -1444,32 +1473,108 @@ describe('atlas-api', () => {
     expect(body.paths['/latest/divisions']).toBeUndefined()
     expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
     expect(body['x-tagGroups']).toEqual([
-      { name: 'System', tags: ['Meta'] },
       {
         name: 'Registry',
         tags: [
-          'Registry Releases',
-          'Registry APIs',
-          'Registry API Fields',
-          'Registry Endpoints',
-          'Registry Sources',
-          'Registry Source Versions',
-          'Registry Source Publishers',
+          'API Families',
+          'API Releases',
+          'API Fields',
+          'API Endpoints',
+          'Sources',
+          'Source Versions',
+          'Source Publishers',
         ],
-      },
-      {
-        name: 'API Family',
-        tags: ['Divisions', 'Addresses', 'Places', 'Streets', 'Statistics'],
       },
       { name: 'Assets', tags: ['Source assets'] },
       { name: 'Styles', tags: ['Map styles'] },
+      { name: 'System', tags: ['Meta'] },
     ])
   })
 
-  test('GET /v0.1/divisions/sources requires one exact source release', async () => {
+  test('product OpenAPI documents expose one independently versioned API family', async () => {
+    const { env } = createEnv()
+    const divisionsRes = await app.fetch(
+      new Request('http://localhost/openapi/divisions/v0.1'),
+      env,
+    )
+    const addressesRes = await app.fetch(
+      new Request('http://localhost/openapi/addresses/v0.1'),
+      env,
+    )
+    const divisionsCurrentRes = await app.fetch(
+      new Request('http://localhost/openapi/divisions/v0'),
+      env,
+    )
+    const divisions = (await divisionsRes.json()) as {
+      paths: Record<string, unknown>
+      tags?: Array<{ name: string }>
+      info: { description?: string }
+    }
+    const addresses = (await addressesRes.json()) as { paths: Record<string, unknown> }
+    const divisionsCurrent = (await divisionsCurrentRes.json()) as {
+      paths: Record<string, unknown>
+    }
+
+    expect(divisionsRes.status).toBe(200)
+    expect(divisions.paths['/divisions/v0.1']).toBeDefined()
+    expect(divisions.paths['/addresses/v0.1']).toBeUndefined()
+    expect(divisions.paths['/v0/meta/health']).toBeUndefined()
+    expect(divisions.tags?.map(tag => tag.name)).toEqual(['Divisions'])
+    expect(divisions.info.description).toContain('versions independently')
+    expect(divisions.info.description).toContain('Registry')
+
+    expect(addressesRes.status).toBe(200)
+    expect(addresses.paths['/addresses/v0.1']).toBeDefined()
+    expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
+    expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
+
+    expect(divisionsCurrentRes.status).toBe(200)
+    expect(divisionsCurrent.paths['/divisions/v0']).toBeDefined()
+    expect(divisionsCurrent.paths['/divisions/v0.1']).toBeUndefined()
+  })
+
+  test('major-version OpenAPI documents resolve to the current minor contract', async () => {
+    const { env } = createEnv()
+    const [registryRes, placesRes, streetsRes] = await Promise.all([
+      app.fetch(new Request('http://localhost/openapi/registry/v0'), env),
+      app.fetch(new Request('http://localhost/openapi/places/v0'), env),
+      app.fetch(new Request('http://localhost/openapi/streets/v0'), env),
+    ])
+    const registry = (await registryRes.json()) as { paths: Record<string, unknown> }
+    const places = (await placesRes.json()) as { paths: Record<string, unknown> }
+    const streets = (await streetsRes.json()) as { paths: Record<string, unknown> }
+
+    expect(registryRes.status).toBe(200)
+    expect(registry.paths['/v0/api/families']).toBeDefined()
+    expect(registry.paths['/v0.1/api/families']).toBeUndefined()
+
+    expect(placesRes.status).toBe(200)
+    expect(places.paths['/places/v0/{region}/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1/{region}/{id}']).toBeUndefined()
+
+    expect(streetsRes.status).toBe(200)
+    expect(streets.paths['/streets/v0/{id}']).toBeDefined()
+    expect(streets.paths['/streets/v0.1/{id}']).toBeUndefined()
+  })
+
+  test('GET /docs scopes the version selector to the requested API family', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      apiRequest('http://localhost/v0.1/divisions/sources'),
+      new Request('http://localhost/docs?family=divisions'),
+      env,
+    )
+    const html = await res.text()
+
+    expect(res.status).toBe(200)
+    expect(html).toContain('/openapi/divisions/v0')
+    expect(html).toContain('/openapi/divisions/v0.1')
+    expect(html).not.toContain('/openapi/addresses/v0.1')
+  })
+
+  test('GET /divisions/v0.1/sources requires one exact source release', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/divisions/v0.1/sources'),
       env,
     )
 
@@ -1477,10 +1582,10 @@ describe('atlas-api', () => {
     expect(await res.json()).toMatchObject({ error: 'validation_error' })
   })
 
-  test('GET /v0.1/divisions/sources validates NDJSON requests before streaming', async () => {
+  test('GET /divisions/v0.1/sources validates NDJSON requests before streaming', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      apiRequest('http://localhost/v0.1/divisions/sources?format=ndjson'),
+      apiRequest('http://localhost/divisions/v0.1/sources?format=ndjson'),
       env,
     )
 
