@@ -85,10 +85,11 @@ const openApiConfig = {
         'Source Publishers',
       ],
     },
-    {
-      name: 'API Family',
-      tags: ['Addresses', 'Divisions', 'Places', 'Statistics', 'Streets'],
-    },
+    { name: 'Addresses', tags: ['Addresses'] },
+    { name: 'Divisions', tags: ['Divisions'] },
+    { name: 'Places', tags: ['Places'] },
+    { name: 'Statistics', tags: ['Statistics'] },
+    { name: 'Streets', tags: ['Streets'] },
     {
       name: 'Assets',
       tags: ['Source assets'],
@@ -104,9 +105,13 @@ const openApiConfig = {
   ],
 }
 
-const apiFamilyTags = new Set(
-  openApiConfig['x-tagGroups'].find(group => group.name === 'API Family')?.tags,
-)
+const apiFamilyTags = new Set([
+  'Addresses',
+  'Divisions',
+  'Places',
+  'Statistics',
+  'Streets',
+])
 
 const apiProducts = ['addresses', 'divisions', 'places', 'stats', 'streets'] as const
 type ApiProduct = (typeof apiProducts)[number]
