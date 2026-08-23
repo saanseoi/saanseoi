@@ -17,6 +17,7 @@ import {
   listRegistrySourceVersions,
 } from '@repo/core/db/metaRegistry'
 import { ErrorResponseSchema, ValidationErrorOpenAPIResponse } from '../../schema'
+import { openApiText } from '../../lib/openapi-i18n'
 import type { AppEnv } from '../../types'
 
 const RegistryListQuerySchema = z
@@ -45,6 +46,7 @@ const RegistryDetailResponseSchema = z
 
 type RegistryResource = {
   publicName: string
+  responseLabelKey: Parameters<typeof openApiText>[0]
   tag: string
   listOperationId: string
   detailOperationId: string
@@ -55,6 +57,7 @@ type RegistryResource = {
 const REGISTRY_RESOURCES = [
   {
     publicName: 'families',
+    responseLabelKey: 'openapi_registry_resource_families',
     tag: 'API Families',
     listOperationId: 'listRegistryApis',
     detailOperationId: 'getRegistryApi',
@@ -63,6 +66,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'releases',
+    responseLabelKey: 'openapi_registry_resource_releases',
     tag: 'API Releases',
     listOperationId: 'listRegistryReleases',
     detailOperationId: 'getRegistryRelease',
@@ -71,6 +75,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'fields',
+    responseLabelKey: 'openapi_registry_resource_fields',
     tag: 'API Fields',
     listOperationId: 'listRegistryApiFields',
     detailOperationId: 'getRegistryApiField',
@@ -79,6 +84,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'endpoints',
+    responseLabelKey: 'openapi_registry_resource_endpoints',
     tag: 'API Endpoints',
     listOperationId: 'listRegistryEndpoints',
     detailOperationId: 'getRegistryEndpoint',
@@ -87,6 +93,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sources',
+    responseLabelKey: 'openapi_registry_resource_sources',
     tag: 'Sources',
     listOperationId: 'listRegistrySources',
     detailOperationId: 'getRegistrySource',
@@ -95,6 +102,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourceVersions',
+    responseLabelKey: 'openapi_registry_resource_source_versions',
     tag: 'Source Versions',
     listOperationId: 'listRegistrySourceVersions',
     detailOperationId: 'getRegistrySourceVersion',
@@ -103,6 +111,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourcePublishers',
+    responseLabelKey: 'openapi_registry_resource_source_publishers',
     tag: 'Source Publishers',
     listOperationId: 'listRegistrySourcePublishers',
     detailOperationId: 'getRegistrySourcePublisher',
@@ -127,7 +136,9 @@ function createRegistryListRoute(resource: RegistryResource) {
             schema: RegistryListResponseSchema,
           },
         },
-        description: `List ${resource.publicName}.`,
+        description: openApiText('openapi_list_response_description', {
+          resource: openApiText(resource.responseLabelKey),
+        }),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -150,7 +161,9 @@ function createRegistryDetailRoute(resource: RegistryResource) {
             schema: RegistryDetailResponseSchema,
           },
         },
-        description: `Get one ${resource.publicName} record.`,
+        description: openApiText('openapi_get_response_description', {
+          resource: openApiText(resource.responseLabelKey),
+        }),
       },
       404: {
         content: {
@@ -158,7 +171,7 @@ function createRegistryDetailRoute(resource: RegistryResource) {
             schema: ErrorResponseSchema,
           },
         },
-        description: 'Registry record not found.',
+        description: openApiText('openapi_registry_record_not_found_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },

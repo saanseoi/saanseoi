@@ -10,7 +10,13 @@ const apiFamilies = new Set([
   'streets',
 ])
 
-export const GET: RequestHandler = async ({ fetch, params, platform, url }) => {
+export const GET: RequestHandler = async ({
+  fetch,
+  params,
+  platform,
+  request,
+  url,
+}) => {
   const family = params.family
   const version = params.version
   if (
@@ -21,11 +27,18 @@ export const GET: RequestHandler = async ({ fetch, params, platform, url }) => {
     error(404, 'OpenAPI document is unavailable.')
   }
 
-  const response = await fetch(
+  const openApiUrl = new URL(
     family === 'registry'
       ? `${atlasApiBaseUrl(url, platform)}/openapi/registry/${version}`
       : `${atlasApiBaseUrl(url, platform)}/openapi/${family}/${version}`,
   )
+  openApiUrl.search = url.search
+
+  const response = await fetch(openApiUrl, {
+    headers: {
+      'accept-language': request.headers.get('accept-language') ?? '',
+    },
+  })
 
   if (!response.ok) {
     error(response.status, 'OpenAPI document is unavailable.')
@@ -35,6 +48,7 @@ export const GET: RequestHandler = async ({ fetch, params, platform, url }) => {
     headers: {
       'cache-control': response.headers.get('cache-control') ?? 'public, max-age=300',
       'content-type': response.headers.get('content-type') ?? 'application/json',
+      vary: response.headers.get('vary') ?? 'accept-language',
     },
     status: 200,
   })

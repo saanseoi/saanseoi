@@ -1,0 +1,168 @@
+import type { ApiReferenceLocalization } from '@scalar/types/api-reference'
+
+const traditionalChineseTranslations = {
+  common: {
+    additionalProperties: '其他屬性',
+    const: '常數',
+    deprecated: '已棄用',
+    description: '描述',
+    discriminator: '判別式',
+    enum: '列舉',
+    format: '格式',
+    greaterThan: '大於',
+    httpMethod: 'HTTP 方法',
+    keys: '鍵',
+    lessThan: '小於',
+    max: '最大值',
+    maxLength: '最大長度',
+    min: '最小值',
+    minLength: '最小長度',
+    multipleOf: '倍數',
+    nullable: '可為空值',
+    path: '路徑',
+    pattern: '模式',
+    copyPattern: '複製模式',
+    propertyNames: '屬性名稱',
+    readOnly: '唯讀',
+    required: '必填',
+    hideValues: '隱藏值',
+    showAllValues: '顯示全部值',
+    type: '類型',
+    unique: '唯一',
+    values: '值',
+    writeOnly: '僅供寫入',
+  },
+  search: {
+    label: '搜尋',
+    inputLabel: '搜尋 API 文件',
+    open: '開啟搜尋',
+    placeholder: '搜尋端點、標籤和綱要',
+    clear: '清除搜尋',
+    keyboardShortcut: '鍵盤快速鍵：',
+    command: 'Command',
+    control: 'Control',
+    results: '搜尋結果',
+    navigate: '瀏覽',
+    select: '選取',
+    instructions: '輸入以搜尋，使用方向鍵瀏覽。',
+    entryHeading: '標題',
+    entryOperation: '操作',
+    entryTag: '標籤',
+    entryTagGroup: '標籤群組',
+    entryWebhook: 'Webhook',
+  },
+  navigation: {
+    collapsed: '（已收合）',
+    closeGroup: '收合群組',
+    closeMenu: '關閉選單',
+    endpoints: '端點',
+    introduction: '簡介',
+    openGroup: '展開群組',
+    openMenu: '開啟選單',
+    operations: '操作',
+    showAllEndpoints: '顯示全部 {name} 端點',
+    sidebarFor: '{name} 的側邊欄',
+    mainContent: '{name} 的 API 文件',
+    webhooks: 'Webhook',
+    channels: '頻道',
+  },
+  server: {
+    label: '伺服器',
+    select: '選擇伺服器',
+  },
+  clientLibraries: {
+    heading: '用戶端函式庫',
+    more: '從所有用戶端中選擇',
+    selectAll: '從所有用戶端中選擇',
+  },
+  operation: {
+    body: '主體',
+    cookies: 'Cookie',
+    headers: '標頭',
+    pathParameters: '路徑參數',
+    queryParameters: '查詢參數',
+    requestBody: '請求主體',
+    responses: '回應',
+    testRequest: '測試請求',
+    webhook: 'Webhook',
+    selectedContentType: '所選內容類型',
+    hideHeaders: '隱藏標頭',
+    showHeaders: '顯示標頭',
+    callbacks: '回呼',
+  },
+  response: {
+    exampleResponses: '回應範例',
+    noBody: '沒有回應主體',
+    showSchema: '顯示綱要',
+    status: '狀態',
+  },
+  schema: {
+    example: '範例',
+    examples: '範例',
+    default: '預設值',
+    schema: '綱要',
+    emptyObject: '{}',
+    showAdditionalProperties: '顯示其他屬性',
+    childAttributes: '子屬性',
+    hideChildAttributes: '隱藏 {name}',
+    showChildAttributes: '顯示 {name}',
+    forName: '適用於 {name}',
+    showSchemaDetails: '顯示綱要詳情',
+    oneOf: '其中之一',
+    anyOf: '任一',
+    allOf: '全部',
+    not: '非',
+    unknownType: '未知類型',
+  },
+  download: {
+    openapi: '下載 OpenAPI 文件',
+  },
+  models: {
+    label: '模型',
+  },
+  actions: {
+    copyLink: '複製連結',
+    copyLinkTo: '複製 {name} 的連結',
+    copyToClipboard: '複製到剪貼簿',
+    copyEndpointUrl: '複製端點網址',
+    showMore: '顯示更多',
+  },
+  agent: {
+    askAi: '詢問 AI',
+    askAiAgent: '詢問 AI 助理',
+    close: '關閉用戶端',
+  },
+  mcp: {
+    generate: '產生 MCP',
+    connect: '連線',
+  },
+  footer: {
+    poweredByScalar: '由 Scalar 提供技術支援',
+  },
+  authentication: {
+    title: '驗證',
+    accepts: '接受',
+    allOf: '全部',
+    authentication: '驗證',
+    optional: '選填',
+    oneOf: '其中之一',
+    required: '必填',
+    requires: '需要',
+    scopes: '範圍',
+  },
+} satisfies NonNullable<ApiReferenceLocalization['translations']>
+
+export function scalarLocalization(locale: string): ApiReferenceLocalization {
+  if (locale === 'zh-Hans') {
+    return { locale: 'zh-CN' }
+  }
+
+  if (locale === 'zh-Hant') {
+    return {
+      locale: 'zh-CN',
+      translations: traditionalChineseTranslations,
+    }
+  }
+
+  return { locale: 'en' }
+}

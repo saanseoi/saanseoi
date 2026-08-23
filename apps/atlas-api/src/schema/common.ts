@@ -1,5 +1,7 @@
 import { z } from '@hono/zod-openapi'
 
+import { openApiText } from '../lib/openapi-i18n'
+
 export const RegionCode = z.enum(['hk', 'mo'])
 export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
 export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
@@ -11,19 +13,26 @@ export const ApiFamilyName = z.enum([
   'stats',
 ])
 
-export const IdSchema = z.string().min(1).regex(/^\S+$/).openapi('Id', {
-  description: 'A unique identifier with no whitespace characters.',
-})
+export const IdSchema = z
+  .string()
+  .min(1)
+  .regex(/^\S+$/)
+  .openapi('Id', {
+    description: openApiText('openapi_unique_identifier_description'),
+  })
 
 export const BBoxSchema = z
   .tuple([z.number(), z.number(), z.number(), z.number()])
   .openapi('BBox', {
-    description: 'A four-coordinate bounding box: west, south, east, north.',
+    description: openApiText('openapi_bbox_description'),
   })
 
-export const GeometrySchema = z.object({}).loose().openapi('Geometry', {
-  description: 'A GeoJSON geometry value.',
-})
+export const GeometrySchema = z
+  .object({})
+  .loose()
+  .openapi('Geometry', {
+    description: openApiText('openapi_geometry_description'),
+  })
 
 export const CartographicHintsSchema = z
   .object({
@@ -33,22 +42,22 @@ export const CartographicHintsSchema = z
   })
   .loose()
   .openapi('CartographicHints', {
-    description: 'Cartographic hints for map display and feature prominence.',
+    description: openApiText('openapi_cartographic_hints_description'),
   })
 
 export const WikidataIdSchema = z
   .string()
   .regex(/^Q\d+$/)
   .openapi('WikidataId', {
-    description: 'A Wikidata identifier in Q-number form.',
+    description: openApiText('openapi_wikidata_identifier_description'),
   })
 
 export const OverturePlaceTypeSchema = z.string().openapi('OverturePlaceType', {
-  description: 'An Overture place-type compatibility value.',
+  description: openApiText('openapi_overture_place_type_description'),
 })
 
 export const OvertureDivisionClassSchema = z.string().openapi('OvertureDivisionClass', {
-  description: 'An Overture division-class compatibility value.',
+  description: openApiText('openapi_overture_division_class_description'),
 })
 
 export const FeatureVersionSchema = z
@@ -57,8 +66,7 @@ export const FeatureVersionSchema = z
   .min(0)
   .max(2_147_483_647)
   .openapi('FeatureVersion', {
-    description:
-      'The source feature version supplied by Overture. This is independent of Atlas canonical version hashes.',
+    description: openApiText('openapi_feature_version_description'),
   })
 
 export const OvertureSourceItemSchema = z
@@ -73,14 +81,14 @@ export const OvertureSourceItemSchema = z
   })
   .loose()
   .openapi('OvertureSourceItem', {
-    description: 'An Overture source attribution item for a feature property.',
+    description: openApiText('openapi_overture_source_item_description'),
   })
 
 export const OtherSourceTypeItemSchema = z
   .object({})
   .loose()
   .openapi('OtherSourceTypeItem', {
-    description: 'A provider-specific source attribution item.',
+    description: openApiText('openapi_other_source_item_description'),
   })
 
 const OvertureSourceItemsSchema = z
@@ -109,8 +117,7 @@ export const SourcesSchema = z
   })
   .catchall(OtherSourceTypeItemsSchema)
   .openapi('Sources', {
-    description:
-      'Source attribution grouped by provider. Each provider key maps to one or more source items.',
+    description: openApiText('openapi_sources_payload_description'),
   })
 
 export type SourcesPayload = z.infer<typeof SourcesSchema>
@@ -164,7 +171,7 @@ export const ValidationErrorOpenAPIResponse = {
       schema: ValidationErrorResponseSchema,
     },
   },
-  description: 'Request validation failed.',
+  description: openApiText('openapi_request_validation_failed_description'),
 } as const
 
 export const JsonApiVersionSchema = z
