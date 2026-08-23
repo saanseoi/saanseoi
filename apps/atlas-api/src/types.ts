@@ -32,6 +32,10 @@ export type AppEnv = {
   Variables: {
     currentDb: ReturnType<typeof createCurrentDb>
     historyDbs: ReturnType<typeof createHistoryDb>[]
+    historyDbsByBinding: Record<
+      'DB_HISTORY_HK_BEFORE' | 'DB_HISTORY_HK_2025' | 'DB_HISTORY_HK_2026',
+      ReturnType<typeof createHistoryDb>
+    >
     metaDb: ReturnType<typeof createMetaDb>
     accessAttribution?: AccessAttribution
   }

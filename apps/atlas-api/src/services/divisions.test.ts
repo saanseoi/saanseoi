@@ -255,25 +255,30 @@ const includedRecordsById: Record<string, DivisionRecord> = {
   },
 }
 
+const includedDivisionRecords = Object.values(includedRecordsById)
 let listRecords: DivisionRecord[] = [baseRecord]
-let detailRecord: DivisionRecord | null = baseRecord
 const resolveApiReleaseSetSnapshotsForRequestMock = mock(
   async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
-const listDivisionRecordsCurrentMock = mock(async () => listRecords)
+const divisionHistoryDb = {} as never
+const historyDbsByBinding = {
+  DB_HISTORY_HK_BEFORE: {} as never,
+  DB_HISTORY_HK_2025: divisionHistoryDb,
+  DB_HISTORY_HK_2026: divisionHistoryDb,
+}
+const resolveSnapshotReplayPlanMock = mock(async () => [])
+const resolveSnapshotVersionStateMock = mock(async () => new Map())
+const listReplayedDivisionRecordsMock = mock(async () => listRecords)
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
-  countDivisionsCurrent: mock(async () => listRecords.length),
-  getDivisionRecordCurrent: mock(async () => detailRecord),
-  listDivisionRecordsCurrent: listDivisionRecordsCurrentMock,
-  listDivisionRecordsCurrentByIds: mock(
-    async (_db: unknown, lookup: { divisionIds: string[] }) =>
-      lookup.divisionIds
-        .map(id => includedRecordsById[id])
-        .filter((record): record is DivisionRecord => Boolean(record)),
-  ),
+  resolveSnapshotReplayPlan:
+    resolveSnapshotReplayPlanMock as unknown as DivisionServiceDependencies['resolveSnapshotReplayPlan'],
+  resolveSnapshotVersionState:
+    resolveSnapshotVersionStateMock as unknown as DivisionServiceDependencies['resolveSnapshotVersionState'],
+  listReplayedDivisionRecords:
+    listReplayedDivisionRecordsMock as unknown as DivisionServiceDependencies['listReplayedDivisionRecords'],
   listDivisionAreasCurrentByDivisionIds: mock(async () => []),
   listDivisionBoundariesCurrentByDivisionIds: mock(async () => []),
 }
@@ -281,10 +286,10 @@ const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
 describe('division services', () => {
   beforeEach(() => {
     listRecords = [baseRecord]
-    detailRecord = baseRecord
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(
       async () => resolvedReleaseSet,
     )
+    listReplayedDivisionRecordsMock.mockImplementation(async () => listRecords)
   })
 
   test('accepts the configured domains and C&SD area alternatives', () => {
@@ -304,6 +309,7 @@ describe('division services', () => {
   test('rejects a registered but unavailable provider area variant', async () => {
     const result = await listDivisions({
       currentDb: {} as never,
+      historyDbsByBinding,
       metaDb: {} as never,
       requestUrl: 'http://localhost/v0/divisions?include=areas:hkgov-pland-new-town',
       requestedVersionPath: 'v0',
@@ -330,6 +336,7 @@ describe('division services', () => {
     for (const profile of profiles) {
       const result = await listDivisions({
         currentDb: {} as never,
+        historyDbsByBinding,
         metaDb: {} as never,
         requestUrl: `http://localhost/v0/divisions?profile=${profile}`,
         requestedVersionPath: 'v0',
@@ -491,6 +498,7 @@ describe('division services', () => {
 
     const result = await listDivisions({
       currentDb: {} as never,
+      historyDbsByBinding,
       metaDb: {} as never,
       requestUrl: 'http://localhost/v0/divisions?domain=geographic',
       requestedVersionPath: 'v0',
@@ -501,15 +509,14 @@ describe('division services', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(listDivisionRecordsCurrentMock).toHaveBeenLastCalledWith(
+    expect(resolveSnapshotReplayPlanMock).toHaveBeenLastCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        snapshotIds: [activeSnapshot.snapshotId, 'snapshot-censtatd-area'],
-      }),
+      activeSnapshot.snapshotId,
     )
   })
 
   test('combined list includes retain hierarchy resources', async () => {
+    listRecords = [baseRecord, ...includedDivisionRecords]
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
       ...resolvedReleaseSet,
       snapshots: [
@@ -524,12 +531,17 @@ describe('division services', () => {
     }))
     const result = await listDivisions({
       currentDb: {} as never,
+      historyDbsByBinding,
       metaDb: {} as never,
-      requestUrl: 'http://localhost/v0.1/divisions?include=hierarchy,areas:overture',
+      requestUrl:
+        'http://localhost/v0.1/divisions?include=hierarchy,areas:overture&filter[divisionType]=locality',
       requestedVersionPath: 'v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
-      query: { include: 'hierarchy,areas:overture' },
+      query: {
+        include: 'hierarchy,areas:overture',
+        'filter[divisionType]': 'locality',
+      },
       dependencies: divisionServiceDependencies,
     })
 
@@ -542,6 +554,7 @@ describe('division services', () => {
   })
 
   test('combined detail includes derive hierarchy from canonical hierarchy', async () => {
+    listRecords = [baseRecord, ...includedDivisionRecords]
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(async () => ({
       ...resolvedReleaseSet,
       snapshots: [
@@ -556,6 +569,7 @@ describe('division services', () => {
     }))
     const result = await getDivisionDetail({
       currentDb: {} as never,
+      historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
         'http://localhost/v0.1/divisions/division-a-kung-ngam?include=hierarchy,areas:overture&profile=full',

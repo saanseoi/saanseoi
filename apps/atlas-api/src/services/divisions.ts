@@ -4,13 +4,14 @@ import {
   type ApiProfileName,
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
-import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
+import {
+  resolveApiReleaseSetSnapshotsForRequest,
+  resolveSnapshotReplayPlan,
+} from '@repo/core/db/metaRegistry'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
 
 import {
-  countDivisionsCurrent,
-  getDivisionRecordCurrent,
-  listDivisionRecordsCurrent,
-  listDivisionRecordsCurrentByIds,
+  listReplayedDivisionRecords,
   listDivisionAreasCurrentByDivisionIds,
   listDivisionBoundariesCurrentByDivisionIds,
   type DivisionAreaRecord,
@@ -44,20 +45,18 @@ export type DivisionProfile = ApiProfileName
 
 export type DivisionServiceDependencies = {
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
-  countDivisionsCurrent: typeof countDivisionsCurrent
-  getDivisionRecordCurrent: typeof getDivisionRecordCurrent
-  listDivisionRecordsCurrent: typeof listDivisionRecordsCurrent
-  listDivisionRecordsCurrentByIds: typeof listDivisionRecordsCurrentByIds
+  resolveSnapshotReplayPlan: typeof resolveSnapshotReplayPlan
+  resolveSnapshotVersionState: typeof resolveSnapshotVersionState
+  listReplayedDivisionRecords: typeof listReplayedDivisionRecords
   listDivisionAreasCurrentByDivisionIds: typeof listDivisionAreasCurrentByDivisionIds
   listDivisionBoundariesCurrentByDivisionIds: typeof listDivisionBoundariesCurrentByDivisionIds
 }
 
 const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
   resolveApiReleaseSetSnapshotsForRequest,
-  countDivisionsCurrent,
-  getDivisionRecordCurrent,
-  listDivisionRecordsCurrent,
-  listDivisionRecordsCurrentByIds,
+  resolveSnapshotReplayPlan,
+  resolveSnapshotVersionState,
+  listReplayedDivisionRecords,
   listDivisionAreasCurrentByDivisionIds,
   listDivisionBoundariesCurrentByDivisionIds,
 }
@@ -475,6 +474,21 @@ function buildDivisionHierarchyRelationshipData(
     }))
 }
 
+function matchesDivisionFilters(record: DivisionRecord, filters: DivisionFilters) {
+  if (filters.level !== undefined && record.division.level !== filters.level)
+    return false
+  if (filters.divisionType && record.division.type !== filters.divisionType)
+    return false
+  if (!filters.parent) return true
+  const hierarchy = record.division.hierarchy
+  const parent = Array.isArray(hierarchy) ? hierarchy.at(-1) : null
+  return (
+    parent !== null &&
+    typeof parent === 'object' &&
+    (parent as Record<string, unknown>).division_id === filters.parent
+  )
+}
+
 function createDivisionResource(args: {
   baseUrl: string
   routeState: DivisionRouteState
@@ -835,6 +849,34 @@ async function getActiveDivisionSnapshot(
   }
 }
 
+async function replayDivisionSnapshot(args: {
+  snapshotId: string
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
+  metaDb: AppEnv['Variables']['metaDb']
+  localeSelection: DivisionLocaleSelection
+  resolveSnapshotReplayPlan: DivisionServiceDependencies['resolveSnapshotReplayPlan']
+  resolveSnapshotVersionState: DivisionServiceDependencies['resolveSnapshotVersionState']
+  listReplayedDivisionRecords: DivisionServiceDependencies['listReplayedDivisionRecords']
+}) {
+  const plan = await runWithD1ReadRetry(() =>
+    args.resolveSnapshotReplayPlan(args.metaDb as never, args.snapshotId),
+  )
+  const shards = new Map(
+    Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
+      bindingName,
+      { bindingName, db: db as never },
+    ]),
+  )
+  const versions = await runWithD1ReadRetry(() =>
+    args.resolveSnapshotVersionState(plan, shards, ['division', 'divisionI18n']),
+  )
+  return args.listReplayedDivisionRecords(
+    versions.values() as never,
+    args.snapshotId,
+    args.localeSelection,
+  )
+}
+
 function requestedIncludes(value: string | undefined) {
   return new Set(
     (value ?? '')
@@ -962,9 +1004,8 @@ async function loadIncludedHierarchyRecords(args: {
   snapshotId: string
   snapshotIds?: string[]
   records: DivisionRecord[]
-  db: AppEnv['Variables']['currentDb']
+  replayedRecordsById: ReadonlyMap<string, DivisionRecord>
   routeState: DivisionRouteState
-  listDivisionRecordsCurrentByIds: DivisionServiceDependencies['listDivisionRecordsCurrentByIds']
 }) {
   if (!args.includeHierarchy) {
     return []
@@ -982,16 +1023,15 @@ async function loadIncludedHierarchyRecords(args: {
     ),
   ].filter(id => !primaryIds.has(id))
 
-  return args.listDivisionRecordsCurrentByIds(args.db, {
-    snapshotId: args.snapshotId,
-    snapshotIds: args.snapshotIds,
-    divisionIds: hierarchyIds,
-    localeSelection: args.routeState.localeSelection,
+  return hierarchyIds.flatMap(id => {
+    const record = args.replayedRecordsById.get(id)
+    return record ? [record] : []
   })
 }
 
 export async function listDivisions(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedDivisionVersion
@@ -1035,6 +1075,15 @@ export async function listDivisions(args: {
       body: buildSnapshotNotReadyDivisionResponse(),
     }
   }
+  const replayedRecords = await replayDivisionSnapshot({
+    snapshotId: activeDivisionSnapshot.snapshotId,
+    historyDbsByBinding: args.historyDbsByBinding,
+    metaDb: args.metaDb,
+    localeSelection: routeState.localeSelection,
+    resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
+    resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
+    listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+  })
   if (args.onResolved) {
     const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
       resolveApiReleaseSetAccessAttribution(
@@ -1068,26 +1117,18 @@ export async function listDivisions(args: {
     divisionType: args.query['filter[divisionType]'],
     parent: args.query['filter[parent]'],
   } satisfies DivisionFilters
-  const [records, total] = await runWithD1ReadRetry(() =>
-    Promise.all([
-      dependencies.listDivisionRecordsCurrent(args.currentDb, {
-        snapshotId: activeDivisionSnapshot.snapshotId,
-        snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-        level: filters.level,
-        type: filters.divisionType,
-        parentId: filters.parent,
-        limit,
-        offset,
-        localeSelection: routeState.localeSelection,
-      }),
-      dependencies.countDivisionsCurrent(args.currentDb, {
-        snapshotId: activeDivisionSnapshot.snapshotId,
-        snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-        level: filters.level,
-        type: filters.divisionType,
-        parentId: filters.parent,
-      }),
-    ]),
+  const matchingRecords = replayedRecords
+    .filter(record => matchesDivisionFilters(record, filters))
+    .sort(
+      (left, right) =>
+        (left.division.level ?? -1) - (right.division.level ?? -1) ||
+        left.division.type.localeCompare(right.division.type) ||
+        left.division.id.localeCompare(right.division.id),
+    )
+  const total = matchingRecords.length
+  const records = matchingRecords.slice(offset, offset + limit)
+  const replayedRecordsById = new Map(
+    replayedRecords.map(record => [record.division.id, record]),
   )
 
   const includedRecords = await runWithD1ReadRetry(() =>
@@ -1096,9 +1137,8 @@ export async function listDivisions(args: {
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records,
-      db: args.currentDb,
+      replayedRecordsById,
       routeState,
-      listDivisionRecordsCurrentByIds: dependencies.listDivisionRecordsCurrentByIds,
     }),
   )
   const geometry = await runWithD1ReadRetry(() =>
@@ -1163,6 +1203,7 @@ export async function listDivisions(args: {
 
 export async function getDivisionDetail(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedDivisionVersion
@@ -1205,6 +1246,15 @@ export async function getDivisionDetail(args: {
       body: buildSnapshotNotReadyDivisionResponse(),
     }
   }
+  const replayedRecords = await replayDivisionSnapshot({
+    snapshotId: activeDivisionSnapshot.snapshotId,
+    historyDbsByBinding: args.historyDbsByBinding,
+    metaDb: args.metaDb,
+    localeSelection: routeState.localeSelection,
+    resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
+    resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
+    listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+  })
   if (args.onResolved) {
     const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
       resolveApiReleaseSetAccessAttribution(
@@ -1233,14 +1283,8 @@ export async function getDivisionDetail(args: {
     }
   }
 
-  const record = await runWithD1ReadRetry(() =>
-    dependencies.getDivisionRecordCurrent(args.currentDb, {
-      snapshotId: activeDivisionSnapshot.snapshotId,
-      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-      divisionId: args.id,
-      localeSelection: routeState.localeSelection,
-    }),
-  )
+  const record =
+    replayedRecords.find(candidate => candidate.division.id === args.id) ?? null
 
   if (!record) {
     return {
@@ -1259,9 +1303,10 @@ export async function getDivisionDetail(args: {
       snapshotId: activeDivisionSnapshot.snapshotId,
       snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
       records: [record],
-      db: args.currentDb,
+      replayedRecordsById: new Map(
+        replayedRecords.map(candidate => [candidate.division.id, candidate]),
+      ),
       routeState,
-      listDivisionRecordsCurrentByIds: dependencies.listDivisionRecordsCurrentByIds,
     }),
   )
   const geometry = await runWithD1ReadRetry(() =>
