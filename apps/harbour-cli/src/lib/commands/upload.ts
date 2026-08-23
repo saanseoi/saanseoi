@@ -57,7 +57,10 @@ import {
 import { checkOvertureUploadAssumptions } from '../upload/overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
-import { createApiReleaseSetRevisionDraft } from './docs.ts'
+import {
+  createApiReleaseSetInitialDraft,
+  createApiReleaseSetRevisionDraft,
+} from './docs.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import {
   assertRetainableSourceReleaseInput,
@@ -490,6 +493,7 @@ ${mutedBar}  `)
         await logApiReleaseSetPublication(
           processingResult.publishResult,
           revisionDraft(),
+          target,
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -545,6 +549,7 @@ ${mutedBar}  `)
         await logApiReleaseSetPublication(
           processingResult.publishResult,
           revisionDraft(),
+          target,
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -587,6 +592,7 @@ ${mutedBar}  `)
         await logApiReleaseSetPublication(
           processingResult.publishResult,
           revisionDraft(),
+          target,
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -633,6 +639,7 @@ ${mutedBar}  `)
         await logApiReleaseSetPublication(
           processingResult.publishResult ?? undefined,
           revisionDraft(),
+          target,
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -741,6 +748,7 @@ ${mutedBar}  `)
         await logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
           revisionDraft(),
+          target,
         )
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
@@ -781,7 +789,7 @@ ${mutedBar}  `)
             preparedUploadFile,
             { promptForCuration: !options.skipConfirm },
           )
-        await logApiReleaseSetPublication(processingResult, revisionDraft())
+        await logApiReleaseSetPublication(processingResult, revisionDraft(), target)
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -806,7 +814,7 @@ ${mutedBar}  `)
           preparedUploadFile,
           { promptForCuration: !options.skipConfirm },
         )
-        await logApiReleaseSetPublication(processingResult, revisionDraft())
+        await logApiReleaseSetPublication(processingResult, revisionDraft(), target)
         await discardSuccessfulReleaseArtefacts(
           cacheArtefacts,
           target,
@@ -1456,6 +1464,7 @@ async function logApiReleaseSetPublication(
     publisherCode: string
     sourceVersion: string
   },
+  target?: UploadTarget,
 ) {
   if (result?.apiReleaseSetPublications?.length) {
     for (const publication of result.apiReleaseSetPublications) {
@@ -1466,8 +1475,6 @@ async function logApiReleaseSetPublication(
         log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
       }
     }
-
-    if (result.apiReleaseSetStatus === 'current') return
   }
 
   const releaseSetCode = result?.apiReleaseSetCode
@@ -1481,7 +1488,7 @@ async function logApiReleaseSetPublication(
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
 
-  if (!revisionDraft) return
+  if (!revisionDraft || !target) return
 
   const releaseSetCodes = [
     ...(result?.apiReleaseSetPublications?.map(
@@ -1492,16 +1499,18 @@ async function logApiReleaseSetPublication(
 
   for (const apiReleaseSetCode of new Set(releaseSetCodes)) {
     try {
-      const draft = await createApiReleaseSetRevisionDraft(
-        { apiReleaseSetCode, ...revisionDraft },
-        { prompt: revisionDraft.prompt },
-      )
+      const draft =
+        (await createApiReleaseSetInitialDraft(apiReleaseSetCode, target)) ??
+        (await createApiReleaseSetRevisionDraft(
+          { apiReleaseSetCode, ...revisionDraft },
+          { prompt: revisionDraft.prompt },
+        ))
       if (draft?.status === 'created') {
-        log.info(`Drafted revision notes: ${draft.path}`)
+        log.info(`Drafted API release docs: ${draft.path}`)
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)
-      log.warn(`API revision notes were not drafted: ${reason}`)
+      log.warn(`API release docs were not drafted: ${reason}`)
     }
   }
 }

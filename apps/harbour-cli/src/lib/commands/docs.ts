@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 
 import { cancel, isCancel, note, outro, select, text } from '@clack/prompts'
 import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
@@ -21,6 +21,7 @@ type ApiReleaseSetDocsRow = {
   validFrom: string | null
   validTo: string | null
   notes: string | null
+  guide: string | null
   createdAt: string
   updatedAt: string
   sources?: ApiReleaseSetSourceDocsRow[]
@@ -44,7 +45,6 @@ type ReleaseDocsRow = {
   datasetCode: string
   regionCode: string
   theme: string
-  type: string
   source: string
   code: string
   sourceVersion: string
@@ -77,6 +77,8 @@ type PublishDocsScope = DocsScope | 'all'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const API_RELEASE_SET_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiReleaseSets')
+const API_RELEASE_SET_NOTES_DIRECTORY = 'notes'
+const API_RELEASE_SET_GUIDES_DIRECTORY = 'guides'
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
 const CURATION_ROOT = resolve(REPO_ROOT, 'fixtures/meta/curations')
 
@@ -103,9 +105,21 @@ export async function createApiReleaseSetRevisionDraft(
     parsedCode.apiFamily,
     input.apiReleaseSetCode,
   )
-  if (existsSync(targetPath)) return { path: targetPath, status: 'existing' as const }
+  const existingFixture = await readFixtureIfExists(
+    parsedCode.apiFamily,
+    input.apiReleaseSetCode,
+  )
+  const existingGuideFixture = await readGuideFixtureIfExists(
+    parsedCode.apiFamily,
+    input.apiReleaseSetCode,
+  )
+  const existingPath = existingFixture?.path ?? existingGuideFixture?.path
+  if (existingPath) return { path: existingPath, status: 'existing' as const }
 
-  const previousCode = input.apiReleaseSetCode.replace(/-r\d+(?=--|$)/, '')
+  const previousCode = input.apiReleaseSetCode.replace(
+    /-r\d+(?=--|$)/,
+    `-r${parsedCode.sequence - 1}`,
+  )
   const previousFixture = await readFixtureIfExists(parsedCode.apiFamily, previousCode)
   if (!previousFixture) {
     throw new Error(
@@ -128,20 +142,108 @@ export async function createApiReleaseSetRevisionDraft(
   }
 
   const now = new Date().toISOString()
-  const body = appendEnglishRevisionLog(previousFixture.body, message)
+  const body = appendEnglishRevisionLog(
+    previousFixture.body,
+    message,
+    parsedCode.sequence - 1,
+  )
   const frontmatter = {
     ...previousFixture.frontmatter,
     apiReleaseSet: input.apiReleaseSetCode,
-    revision: String(parsedCode.sequence),
+    apiReleaseSetRevision: String(parsedCode.sequence),
     createdAt: now,
     updatedAt: now,
   }
 
-  await mkdir(resolve(API_RELEASE_SET_DOCS_ROOT, parsedCode.apiFamily), {
-    recursive: true,
-  })
+  await mkdir(dirname(targetPath), { recursive: true })
   await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
-  return { path: targetPath, status: 'created' as const }
+
+  const guidePath = resolveGuideFixturePath(
+    parsedCode.apiFamily,
+    input.apiReleaseSetCode,
+  )
+  const previousGuideFixture = await readGuideFixtureIfExists(
+    parsedCode.apiFamily,
+    previousCode,
+  )
+  await mkdir(dirname(guidePath), { recursive: true })
+  await writeFile(
+    guidePath,
+    serialiseMarkdownFixture(frontmatter, previousGuideFixture?.body ?? ''),
+    'utf8',
+  )
+
+  return { path: targetPath, guidePath, status: 'created' as const }
+}
+
+/** Creates editable Notes and Guide drafts for a newly published r0 release. */
+export async function createApiReleaseSetInitialDraft(
+  apiReleaseSetCode: string,
+  target: UploadTarget,
+) {
+  const parsedCode = parseReleaseSetCode(apiReleaseSetCode)
+  if (parsedCode?.sequence !== 0) return null
+
+  const [existingNotes, existingGuide] = await Promise.all([
+    readFixtureIfExists(parsedCode.apiFamily, apiReleaseSetCode),
+    readGuideFixtureIfExists(parsedCode.apiFamily, apiReleaseSetCode),
+  ])
+  const existingPath = existingNotes?.path ?? existingGuide?.path
+  if (existingPath) {
+    return {
+      path: existingPath,
+      status: 'existing' as const,
+    }
+  }
+
+  const rows = (await fetchApiReleaseSetDocsRows(target))
+    .map(row => ({ ...row, parsedCode: parseReleaseSetCode(row.code) }))
+    .filter(isParsedReleaseSetRow)
+    .sort(compareReleaseSetRows)
+  const releaseSet = rows.find(row => row.code === apiReleaseSetCode)
+  if (!releaseSet) {
+    throw new Error(
+      `Cannot draft docs: API release set was not found: ${apiReleaseSetCode}.`,
+    )
+  }
+
+  const familyRows = rows.filter(
+    row =>
+      row.parsedCode.apiFamily === parsedCode.apiFamily &&
+      row.parsedCode.regionCode === parsedCode.regionCode,
+  )
+  const [previousNotes, previousGuide] = await Promise.all([
+    findEffectiveFixture(parsedCode.apiFamily, familyRows, apiReleaseSetCode),
+    findEffectiveGuideFixture(parsedCode.apiFamily, familyRows, apiReleaseSetCode),
+  ])
+  const now = new Date().toISOString()
+  const frontmatter = {
+    createdAt: now,
+    updatedAt: now,
+    apiFamily: parsedCode.apiFamily,
+    apiVersion: releaseSet.apiVersion,
+    apiReleaseSet: apiReleaseSetCode,
+    apiReleaseSetRevision: '0',
+    regionCode: parsedCode.regionCode,
+    cohortKey: parsedCode.cohortKey,
+  }
+  const notesPath = resolveDocsFixturePath(parsedCode.apiFamily, apiReleaseSetCode)
+  const guidePath = resolveGuideFixturePath(parsedCode.apiFamily, apiReleaseSetCode)
+
+  await mkdir(dirname(notesPath), { recursive: true })
+  await writeFile(
+    notesPath,
+    serialiseMarkdownFixture(frontmatter, previousNotes?.body ?? ''),
+    'utf8',
+  )
+  await mkdir(dirname(guidePath), { recursive: true })
+  await writeFile(
+    guidePath,
+    serialiseMarkdownFixture(frontmatter, previousGuide?.body ?? ''),
+    'utf8',
+  )
+
+  return { path: notesPath, guidePath, status: 'created' as const }
 }
 
 export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
@@ -197,11 +299,23 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
 
   const targetPath = resolveDocsFixturePath(selectedFamily, releaseSet.code)
 
-  if (existsSync(targetPath)) {
-    throw new Error(`Docs fixture already exists: ${targetPath}`)
+  const existingFixture = await readFixtureIfExists(selectedFamily, releaseSet.code)
+  const existingGuideFixture = await readGuideFixtureIfExists(
+    selectedFamily,
+    releaseSet.code,
+  )
+
+  const existingPath = existingFixture?.path ?? existingGuideFixture?.path
+  if (existingPath) {
+    throw new Error(`Docs fixture already exists: ${existingPath}`)
   }
 
   const previousFixture = await findEffectiveFixture(
+    selectedFamily,
+    familyRows,
+    releaseSet.code,
+  )
+  const previousGuideFixture = await findEffectiveGuideFixture(
     selectedFamily,
     familyRows,
     releaseSet.code,
@@ -213,14 +327,18 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     apiFamily: selectedFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: releaseSet.code,
-    revision: String(releaseSet.parsedCode.sequence),
+    apiReleaseSetRevision: String(releaseSet.parsedCode.sequence),
     regionCode: releaseSet.parsedCode.regionCode,
     cohortKey: releaseSet.parsedCode.cohortKey,
   }
   const body = previousFixture?.body ?? ''
+  const guideBody = previousGuideFixture?.body ?? ''
+  const guidePath = resolveGuideFixturePath(selectedFamily, releaseSet.code)
 
-  await mkdir(resolve(API_RELEASE_SET_DOCS_ROOT, selectedFamily), { recursive: true })
+  await mkdir(dirname(targetPath), { recursive: true })
   await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
+  await mkdir(dirname(guidePath), { recursive: true })
+  await writeFile(guidePath, serialiseMarkdownFixture(frontmatter, guideBody), 'utf8')
 
   note(
     [
@@ -230,6 +348,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
       formatField('apiReleaseSet', releaseSet.code),
       formatField('copiedFrom', previousFixture?.frontmatter.apiReleaseSet ?? '-'),
       formatField('path', targetPath),
+      formatField('guidePath', guidePath),
     ].join('\n'),
     'DOCS NEW',
   )
@@ -265,40 +384,47 @@ async function runApiReleaseSetDocsPublishCommand(
   const rowsByScope = groupRowsByDocsScope(rows)
   const updates: Array<{
     code: string
-    fixturePath: string
-    notes: string
-    previousNotes: string
+    guide: string | null
+    guidePath: string | null
+    notes: string | null
+    notesPath: string | null
   }> = []
 
   for (const familyRows of rowsByScope.values()) {
-    let effectiveFixture: DocsFixture | null = null
+    let effectiveNotesFixture: DocsFixture | null = null
+    let effectiveGuideFixture: DocsFixture | null = null
 
     for (const row of familyRows) {
       const apiFamily = row.parsedCode.apiFamily
-      const fixture = await readFixtureIfExists(apiFamily, row.code)
+      const notesFixture = await readFixtureIfExists(apiFamily, row.code)
+      const guideFixture = await readGuideFixtureIfExists(apiFamily, row.code)
 
-      if (fixture) {
-        effectiveFixture = fixture
-      }
+      if (notesFixture) effectiveNotesFixture = notesFixture
+      if (guideFixture) effectiveGuideFixture = guideFixture
 
-      if (!effectiveFixture) {
+      if (!effectiveNotesFixture && !effectiveGuideFixture) {
         continue
       }
 
-      const previousNotes = row.notes ?? ''
+      const frontmatter = frontmatterForApiReleaseSetRow(row)
+      const notes = effectiveNotesFixture
+        ? await renderMarkdownFixtureBody(
+            effectiveNotesFixture,
+            frontmatter,
+            row.sources ?? [],
+          )
+        : row.notes
+      const guide = effectiveGuideFixture
+        ? await renderMarkdownFixtureBody(effectiveGuideFixture, frontmatter)
+        : row.guide
 
-      const notes = await renderMarkdownFixtureBody(
-        effectiveFixture,
-        frontmatterForApiReleaseSetRow(row),
-        row.sources ?? [],
-      )
-
-      if (previousNotes !== notes) {
+      if (row.notes !== notes || row.guide !== guide) {
         updates.push({
           code: row.code,
-          fixturePath: effectiveFixture.path,
+          guide,
+          guidePath: effectiveGuideFixture?.path ?? null,
           notes,
-          previousNotes,
+          notesPath: effectiveNotesFixture?.path ?? null,
         })
       }
     }
@@ -306,7 +432,7 @@ async function runApiReleaseSetDocsPublishCommand(
 
   if (!dryRun) {
     for (const update of updates) {
-      await putApiReleaseSetNotes(target, update.code, update.notes)
+      await putApiReleaseSetDocumentation(target, update.code, update)
     }
   }
 
@@ -345,18 +471,12 @@ async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     values: uniqueSorted(regionRows.map(row => row.source)),
   })
   const sourceRows = regionRows.filter(row => row.source === selectedSource)
-  const selectedType = await resolveSelectedValue({
-    label: 'type',
-    optionValue: getStringOption(args, ['type']),
-    values: uniqueSorted(sourceRows.map(row => row.type)),
-  })
-  const typeRows = sourceRows.filter(row => row.type === selectedType)
   const selectedDataset = await resolveSelectedValue({
     label: 'dataset',
     optionValue: getStringOption(args, ['dataset', 'dataset-code']),
-    values: uniqueSorted(typeRows.map(row => row.datasetCode)),
+    values: uniqueSorted(sourceRows.map(row => row.datasetCode)),
   })
-  const datasetRows = typeRows
+  const datasetRows = sourceRows
     .filter(row => row.datasetCode === selectedDataset)
     .sort(compareReleaseRows)
   const releaseOption = getStringOption(args, ['release', 'release-code'])
@@ -400,7 +520,6 @@ async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     sourceVersion: selectedRelease.sourceVersion,
     releaseVersion: releaseVersionFromSourceVersion(selectedRelease.sourceVersion),
     sourceSchemaVersion: selectedRelease.sourceSchemaVersion ?? '',
-    type: selectedRelease.type,
     cohortKey: selectedRelease.cohortKey ?? '',
   }
   const body = previousFixture?.body ?? ''
@@ -532,16 +651,16 @@ async function fetchReleaseDocsRows(target: UploadTarget) {
   return payload?.rows ?? []
 }
 
-async function putApiReleaseSetNotes(
+async function putApiReleaseSetDocumentation(
   target: UploadTarget,
   code: string,
-  notes: string,
+  documentation: { guide: string | null; notes: string | null },
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(
     `${baseUrl}/api/v1/meta/docs/apiReleaseSets/${encodeURIComponent(code)}`,
     {
-      body: JSON.stringify({ notes }),
+      body: JSON.stringify(documentation),
       headers: {
         'content-type': 'application/json',
         ...getAuthHeaders(),
@@ -647,6 +766,24 @@ async function findEffectiveFixture(
   return effectiveFixture
 }
 
+async function findEffectiveGuideFixture(
+  apiFamily: string,
+  familyRows: ParsedApiReleaseSetDocsRow[],
+  targetCode: string,
+) {
+  let effectiveFixture: DocsFixture | null = null
+
+  for (const row of familyRows) {
+    if (row.code === targetCode) return effectiveFixture
+
+    const fixture = await readGuideFixtureIfExists(apiFamily, row.code)
+
+    if (fixture) effectiveFixture = fixture
+  }
+
+  return effectiveFixture
+}
+
 async function findEffectiveReleaseFixture(
   datasetRows: ReleaseDocsRow[],
   targetCode: string,
@@ -669,11 +806,27 @@ async function findEffectiveReleaseFixture(
 }
 
 async function readFixtureIfExists(apiFamily: string, code: string) {
-  const path = resolveDocsFixturePath(apiFamily, code)
+  const paths = [
+    resolveDocsFixturePath(apiFamily, code),
+    resolveLegacyDocsFixturePath(apiFamily, code),
+  ]
 
-  if (!existsSync(path)) {
-    return null
+  for (const path of paths) {
+    if (!existsSync(path)) continue
+
+    return {
+      ...parseMarkdownFixture(await readFile(path, 'utf8')),
+      path,
+    }
   }
+
+  return null
+}
+
+async function readGuideFixtureIfExists(apiFamily: string, code: string) {
+  const path = resolveGuideFixturePath(apiFamily, code)
+
+  if (!existsSync(path)) return null
 
   return {
     ...parseMarkdownFixture(await readFile(path, 'utf8')),
@@ -822,6 +975,24 @@ function resolveDocsFixturePath(apiFamily: string, code: string) {
   return resolve(
     API_RELEASE_SET_DOCS_ROOT,
     apiFamily,
+    API_RELEASE_SET_NOTES_DIRECTORY,
+    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+  )
+}
+
+function resolveGuideFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    API_RELEASE_SET_GUIDES_DIRECTORY,
+    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+  )
+}
+
+function resolveLegacyDocsFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
     `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
   )
 }
@@ -838,12 +1009,20 @@ async function resolvePublisherName(publisherCode: string) {
   return fixture.i18n?.find(entry => entry.locale === 'en')?.name ?? publisherCode
 }
 
-function appendEnglishRevisionLog(body: string, message: string) {
-  const englishEnd = body.indexOf('\n# ZH-HANT')
-  const english = englishEnd === -1 ? body : body.slice(0, englishEnd)
-  const remainder = englishEnd === -1 ? '' : body.slice(englishEnd)
+function appendEnglishRevisionLog(
+  body: string,
+  message: string,
+  previousRevision: number,
+) {
+  const frozenBody = body.replaceAll(
+    /\{\{\s*apiReleaseSetRevision\s*\}\}/g,
+    String(previousRevision),
+  )
+  const englishEnd = frozenBody.indexOf('\n# ZH-HANT')
+  const english = englishEnd === -1 ? frozenBody : frozenBody.slice(0, englishEnd)
+  const remainder = englishEnd === -1 ? '' : frozenBody.slice(englishEnd)
   const heading = '## Revision log'
-  const entry = `- ${message}`
+  const entry = `- \`r{{ apiReleaseSetRevision }}\` ${message}`
   const existingHeading = english.indexOf(heading)
 
   if (existingHeading !== -1) {
@@ -909,7 +1088,7 @@ async function resolveDocsPublishScope(args: ParsedArgs): Promise<PublishDocsSco
 
   return promptDocsScope({
     message: 'Publish docs for',
-    options: ['apiReleaseSets', 'releases', 'all'],
+    options: ['all', 'apiReleaseSets', 'releases'],
   })
 }
 
@@ -1383,6 +1562,7 @@ function frontmatterForApiReleaseSetRow(
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
+    apiReleaseSetRevision: String(row.parsedCode.sequence),
     revision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
@@ -1400,7 +1580,6 @@ function frontmatterForReleaseRow(row: ReleaseDocsRow): Record<string, string> {
     sourceSchemaVersion: row.sourceSchemaVersion ?? '',
     sourceVersion: row.sourceVersion,
     releaseVersion: releaseVersionFromSourceVersion(row.sourceVersion),
-    type: row.type,
   }
 }
 
