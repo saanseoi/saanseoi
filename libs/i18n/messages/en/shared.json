@@ -1624,5 +1624,21 @@
   "guide_handover_terminal_experience": "Terminal experience",
   "guide_handover_vpn_access": "VPN access",
   "guide_handover_agent_tool": "Agentic AI tool",
-  "guide_handover_platform": "Platform"
+  "guide_handover_platform": "Platform",
+  "openapi_addresses_introduction": "Addresses is a SaanSeoi API product for address records. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve addresses. Addresses versions independently of every other API product.",
+  "openapi_divisions_introduction": "Divisions is a SaanSeoi API product for administrative and other geographic divisions. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve division records and geometries. Divisions versions independently of every other API product.",
+  "openapi_places_introduction": "Places is a SaanSeoi API product for place records and search. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve places. Places versions independently of every other API product.",
+  "openapi_statistics_introduction": "Statistics is a SaanSeoi API product for published statistical observations and their geographic context. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve statistics. Statistics versions independently of every other API product.",
+  "openapi_streets_introduction": "Streets is a SaanSeoi API product for Hong Kong street records and their version history. Use the Registry to discover available API families, releases, fields, endpoints, and source metadata; use this product to retrieve streets. Streets versions independently of every other API product.",
+  "openapi_registry_introduction": "The Registry is the shared catalogue across all SaanSeoi API Families. It allows users to discover API families and their releases, fields, endpoints, and sources. For sources, it allows discovery of ingested versions and publishers. Once you've found what you're looking for in the Registry, use a API Family to retrieve its records. Each family has its own release cadence, version history and documentation.",
+  "openapi_current_family_alias_description": "This document describes the `v0` current-family alias. Use an explicit version in integrations that need a pinned contract.",
+  "openapi_pinned_contract_description": "This document describes the explicit `v0.1` contract. Use an explicit version in integrations that need a pinned contract.",
+  "openapi_label_registry": "Registry",
+  "openapi_label_addresses": "Addresses",
+  "openapi_label_divisions": "Divisions",
+  "openapi_label_places": "Places",
+  "openapi_label_statistics": "Statistics",
+  "openapi_label_streets": "Streets",
+  "openapi_families_heading": "API Families",
+  "openapi_version_heading": "API Version"
 }

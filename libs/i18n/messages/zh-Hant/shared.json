@@ -1625,5 +1625,21 @@
   "guide_terminal_intro_paste_windows": "在 Windows 終端機中，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或右鍵點選進行貼上。按 Enter 鍵之前檢查整個命令。",
   "guide_terminal_intro_learn_more": "命令列學得夠多就很危險",
   "guide_terminal_intro_learn_more_windows": "與 Microsoft 一起學習 PowerShell",
-  "guide_handover_agent_tool": "代理人工智慧工具"
+  "guide_handover_agent_tool": "代理人工智慧工具",
+  "openapi_addresses_introduction": "地址是提供地址記錄的 SaanSeoi API 產品。使用 Registry 探索可用的 API 家族、發布、欄位、端點及來源中繼資料；使用此產品取得地址。地址的版本獨立於其他 API 產品。",
+  "openapi_divisions_introduction": "Divisions 是提供行政及其他地理分區的 SaanSeoi API 產品。使用 Registry 探索可用的 API 家族、發布、欄位、端點及來源中繼資料；使用此產品取得分區記錄和幾何資料。Divisions 的版本獨立於其他 API 產品。",
+  "openapi_places_introduction": "Places 是提供地點記錄和搜尋的 SaanSeoi API 產品。使用 Registry 探索可用的 API 家族、發布、欄位、端點及來源中繼資料；使用此產品取得地點。Places 的版本獨立於其他 API 產品。",
+  "openapi_statistics_introduction": "Statistics 是提供已發布統計觀測值及其地理脈絡的 SaanSeoi API 產品。使用 Registry 探索可用的 API 家族、發布、欄位、端點及來源中繼資料；使用此產品取得統計資料。Statistics 的版本獨立於其他 API 產品。",
+  "openapi_streets_introduction": "Streets 是提供香港街道記錄及其版本歷史的 SaanSeoi API 產品。使用 Registry 探索可用的 API 家族、發布、欄位、端點及來源中繼資料；使用此產品取得街道。Streets 的版本獨立於其他 API 產品。",
+  "openapi_registry_introduction": "Registry 是所有 SaanSeoi API 家族共用的目錄。它讓使用者探索 API 家族及其發布、欄位、端點和來源；至於來源，還可探索已擷取的版本和發布者。找到所需內容後，使用 API 家族取得其記錄。每個家族都有自己的發布頻率、版本歷史和文件。",
+  "openapi_current_family_alias_description": "本文件說明目前家族的 `v0` 別名。需要固定契約的整合應使用明確版本。",
+  "openapi_pinned_contract_description": "本文件說明明確的 `v0.1` 契約。需要固定契約的整合應使用明確版本。",
+  "openapi_label_registry": "目錄",
+  "openapi_label_addresses": "地址",
+  "openapi_label_divisions": "分區",
+  "openapi_label_places": "地點",
+  "openapi_label_statistics": "統計資料",
+  "openapi_label_streets": "街道",
+  "openapi_families_heading": "API 家族",
+  "openapi_version_heading": "API 版本"
 }
