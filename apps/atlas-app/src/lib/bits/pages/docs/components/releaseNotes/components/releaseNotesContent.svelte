@@ -4,6 +4,7 @@ import SvelteMarkdown, {
   defaultRenderers,
   defaultSanitizeUrl,
 } from '@humanspeak/svelte-markdown'
+import type { MarkedExtension } from 'marked'
 
 import ApiUrlCodeBlock from '#lib/bits/components/api-url-code-block.svelte'
 import { getMarkdownHeadingId } from '#lib/registry/markdownHeading.js'
@@ -29,22 +30,44 @@ let { markdown, labels, transclusions, nested = false }: Props = $props()
 
 const releaseNotesRenderers = {
   ...defaultRenderers,
+  note: ReleaseNotesCallout,
   // Glossary and definition content uses a small amount of presentational HTML
   // (`<i>` and `<br>`). Render those elements rather than exposing their source
   // text, while keeping every other ordinary HTML element escaped.
   html: allowHtmlOnly(['br', 'i']),
 }
 
+const releaseNotesMarkdownExtensions: MarkedExtension[] = [
+  {
+    extensions: [
+      {
+        name: 'note',
+        level: 'block',
+        start(source) {
+          return source.match(/<note\b/i)?.index
+        },
+        tokenizer(source) {
+          const match =
+            /^<note(?:\s+title=(?:"([^"]*)"|'([^']*)'))?\s*>\s*\n?([\s\S]*?)<\/note>\s*/i.exec(
+              source,
+            )
+          if (!match) return
+
+          const [, doubleQuotedTitle, singleQuotedTitle, content] = match
+          return {
+            type: 'note',
+            raw: match[0],
+            title: doubleQuotedTitle ?? singleQuotedTitle,
+            tokens: this.lexer.blockTokens(content),
+          }
+        },
+      },
+    ],
+  },
+]
+
 function sanitiseUrl(url: string) {
   return transclusions[url] ? url : defaultSanitizeUrl(url, { type: 'link', tag: 'a' })
-}
-
-function stringAttribute(
-  attributes: Record<string, string | number | boolean | undefined> | undefined,
-  name: string,
-) {
-  const value = attributes?.[name]
-  return typeof value === 'string' ? value : undefined
 }
 </script>
 
@@ -53,6 +76,7 @@ function stringAttribute(
     source={markdown}
     renderers={releaseNotesRenderers}
     sanitizeUrl={sanitiseUrl}
+    extensions={releaseNotesMarkdownExtensions}
   >
     {#snippet heading({ depth, text, children, slug })}
       <ReleaseNotesHeading
@@ -105,12 +129,6 @@ function stringAttribute(
     {#snippet html_black({ children })}
       <ReleaseNotesBadge tone="black" {nested}
         >{@render children?.()}</ReleaseNotesBadge
-      >
-    {/snippet}
-
-    {#snippet html_note({ attributes, children })}
-      <ReleaseNotesCallout title={stringAttribute(attributes, 'title')}
-        >{@render children?.()}</ReleaseNotesCallout
       >
     {/snippet}
 

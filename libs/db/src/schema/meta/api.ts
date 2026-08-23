@@ -201,6 +201,7 @@ export const metaApiReleaseSets = sqliteTable(
     validFrom: isoTimestamp('validFrom'),
     validTo: isoTimestamp('validTo'),
     notes: text('notes'),
+    guide: text('guide'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },

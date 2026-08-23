@@ -304,6 +304,7 @@ export async function listRegistryReleases(
       validFrom: metaApiReleaseSets.validFrom,
       validTo: metaApiReleaseSets.validTo,
       notes: metaApiReleaseSets.notes,
+      guide: metaApiReleaseSets.guide,
       versionHash: metaApiReleaseSets.versionHash,
       createdAt: metaApiReleaseSets.createdAt,
       updatedAt: metaApiReleaseSets.updatedAt,
