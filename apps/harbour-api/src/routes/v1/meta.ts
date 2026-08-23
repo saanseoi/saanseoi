@@ -18,6 +18,7 @@ const ApiReleaseSetDocsRowSchema = z
     validFrom: z.string().nullable(),
     validTo: z.string().nullable(),
     notes: z.string().nullable(),
+    guide: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
     sources: z
@@ -47,6 +48,7 @@ const ApiReleaseSetDocsListResponseSchema = z
 const ApiReleaseSetDocsUpdateRequestSchema = z
   .object({
     notes: z.string().nullable(),
+    guide: z.string().nullable(),
   })
   .openapi('HarbourApiReleaseSetDocsUpdateRequest')
 
@@ -67,7 +69,6 @@ const ReleaseDocsRowSchema = z
     datasetCode: z.string(),
     regionCode: z.string(),
     theme: z.string(),
-    type: z.string(),
     source: z.string(),
     code: z.string(),
     sourceVersion: z.string(),
@@ -130,7 +131,7 @@ const apiReleaseSetDocsListRouteConfig = createRoute({
           schema: ApiReleaseSetDocsListResponseSchema,
         },
       },
-      description: 'API release sets with editable documentation notes.',
+      description: 'API release sets with editable release notes and guides.',
     },
   },
 })
@@ -157,7 +158,7 @@ const apiReleaseSetDocsUpdateRouteConfig = createRoute({
           schema: ApiReleaseSetDocsUpdateResponseSchema,
         },
       },
-      description: 'Updated API release set documentation notes.',
+      description: 'Updated API release-set documentation.',
     },
     404: {
       description: 'API release set not found.',
@@ -176,7 +177,7 @@ const releaseDocsListRouteConfig = createRoute({
           schema: ReleaseDocsListResponseSchema,
         },
       },
-      description: 'Dataset releases with editable compatibility and usage notes.',
+      description: 'Source releases with editable compatibility and usage notes.',
     },
   },
 })
@@ -260,7 +261,7 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
     c.header('cache-control', 'no-store')
 
     const { code } = c.req.valid('param')
-    const { notes } = c.req.valid('json')
+    const { guide, notes } = c.req.valid('json')
     const db = withPrimarySession(c.env.DB_META)
     const existing = await db
       .prepare(
@@ -277,6 +278,7 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
           ars.validFrom,
           ars.validTo,
           ars.notes,
+          ars.guide,
           ars.createdAt,
           ars.updatedAt
         FROM apiReleaseSets ars
@@ -311,6 +313,7 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
       publishedAt: existing.publishedAt,
       validFrom: existing.validFrom,
       validTo: existing.validTo,
+      guide,
       notes,
     })
 
@@ -318,17 +321,18 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
       .prepare(
         `
         UPDATE apiReleaseSets
-        SET notes = ?, versionHash = ?, updatedAt = ?
+        SET notes = ?, guide = ?, versionHash = ?, updatedAt = ?
         WHERE code = ?
         `,
       )
-      .bind(notes, versionHash, updatedAt, code)
+      .bind(notes, guide, versionHash, updatedAt, code)
       .run()
 
     return c.json(
       {
         row: {
           ...existing,
+          guide,
           notes,
           updatedAt,
         },
@@ -373,7 +377,7 @@ export const releaseDocsUpdateRoute = defineOpenAPIRoute<
         {
           httpStatus: 404,
           error: 'not_found',
-          message: `Release not found: ${code}`,
+          message: `Source release not found: ${code}`,
         },
         404,
       )
@@ -384,7 +388,7 @@ export const releaseDocsUpdateRoute = defineOpenAPIRoute<
     await db
       .prepare(
         `
-        UPDATE releases
+        UPDATE sourceReleases
         SET notes = ?, updatedAt = ?
         WHERE code = ?
         `,
@@ -422,6 +426,7 @@ async function listApiReleaseSetDocsRows(dbBinding: D1Database) {
         ars.validFrom,
         ars.validTo,
         ars.notes,
+        ars.guide,
         ars.createdAt,
         ars.updatedAt
       FROM apiReleaseSets ars
@@ -565,26 +570,25 @@ async function listReleaseDocsRows(dbBinding: D1Database) {
     .prepare(
       `
       SELECT
-        r.id,
+        sr.id,
         d.id AS datasetId,
         d.code AS datasetCode,
         d.regionCode,
         d.theme,
-        r.resourceType AS type,
         p.code AS source,
-        r.code,
-        r.sourceVersion,
-        r.sourceSchemaVersion,
-        r.cohortKey,
-        r.publicationDate,
-        r.status,
-        r.notes,
-        r.createdAt,
-        r.updatedAt
-      FROM releases r
-      INNER JOIN datasets d ON d.id = r.datasetId
+        sr.code,
+        sr.sourceVersion,
+        sr.sourceSchemaVersion,
+        sr.cohortKey,
+        sr.publicationDate,
+        sr.status,
+        sr.notes,
+        sr.createdAt,
+        sr.updatedAt
+      FROM sourceReleases sr
+      INNER JOIN datasets d ON d.id = sr.datasetId
       INNER JOIN publishers p ON p.id = d.publisherId
-      ORDER BY d.code, r.sourceVersion, r.cohortKey, r.createdAt, r.code
+      ORDER BY d.code, sr.sourceVersion, sr.cohortKey, sr.createdAt, sr.code
       `,
     )
     .all<ReleaseDocsRow>()
@@ -597,26 +601,25 @@ async function findReleaseDocsRow(db: D1Database, code: string) {
     .prepare(
       `
       SELECT
-        r.id,
+        sr.id,
         d.id AS datasetId,
         d.code AS datasetCode,
         d.regionCode,
         d.theme,
-        r.resourceType AS type,
         p.code AS source,
-        r.code,
-        r.sourceVersion,
-        r.sourceSchemaVersion,
-        r.cohortKey,
-        r.publicationDate,
-        r.status,
-        r.notes,
-        r.createdAt,
-        r.updatedAt
-      FROM releases r
-      INNER JOIN datasets d ON d.id = r.datasetId
+        sr.code,
+        sr.sourceVersion,
+        sr.sourceSchemaVersion,
+        sr.cohortKey,
+        sr.publicationDate,
+        sr.status,
+        sr.notes,
+        sr.createdAt,
+        sr.updatedAt
+      FROM sourceReleases sr
+      INNER JOIN datasets d ON d.id = sr.datasetId
       INNER JOIN publishers p ON p.id = d.publisherId
-      WHERE r.code = ?
+      WHERE sr.code = ?
       LIMIT 1
       `,
     )

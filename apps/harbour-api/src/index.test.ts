@@ -21,7 +21,7 @@ function createMockDb() {
           return null as T
         },
         async all<T>() {
-          if (query.includes('FROM releases r')) {
+          if (query.includes('FROM sourceReleases sr')) {
             if (query.includes('d.type')) {
               throw new Error('Dataset type is no longer stored on datasets.')
             }
@@ -34,7 +34,6 @@ function createMockDb() {
                   datasetCode: 'hk-streets',
                   regionCode: 'hk',
                   theme: 'transport',
-                  type: 'street',
                   source: 'hkgov-hyd',
                   code: 'rel-hk-streets-2026-07',
                   sourceVersion: '2026-07',
@@ -152,7 +151,7 @@ describe('harbour-api', () => {
     })
   })
 
-  test('GET /api/v1/meta/docs/releases reads the resource type from the release', async () => {
+  test('GET /api/v1/meta/docs/releases reads source releases', async () => {
     const res = await app.fetch(
       new Request('http://localhost/api/v1/meta/docs/releases', {
         headers: { 'x-api-key': 'test-api-key' },
@@ -166,10 +165,12 @@ describe('harbour-api', () => {
         R2_ASSETS: createMockBucket(),
       },
     )
-    const body = (await res.json()) as { rows: Array<{ type: string }> }
+    const body = (await res.json()) as { rows: Array<{ code: string }> }
 
     expect(res.status).toBe(200)
-    expect(body.rows).toEqual([expect.objectContaining({ type: 'street' })])
+    expect(body.rows).toEqual([
+      expect.objectContaining({ code: 'rel-hk-streets-2026-07' }),
+    ])
   })
 
   test('GET /api/v1/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
