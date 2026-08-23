@@ -1,6 +1,8 @@
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 
+import { openApiText } from '../lib/openapi-i18n'
+
 import {
   ApiVersionMetadataSchema,
   ApiLocale,
@@ -59,8 +61,7 @@ const DivisionHierarchyResourceIdentifierSchema =
 const DivisionHierarchyRelationshipSchema = z
   .object({
     data: z.array(DivisionHierarchyResourceIdentifierSchema).openapi({
-      description:
-        'Canonical ancestor divisions for this resource. The relationship is returned even when included resources are not requested.',
+      description: openApiText('openapi_divisions_hierarchy_description'),
     }),
   })
   .openapi('DivisionHierarchy')
@@ -185,12 +186,20 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
-    catalogRevision: z.string().min(1).optional().openapi({
-      description: 'Immutable family-and-region API catalogue checkpoint.',
-    }),
-    cohort: z.string().min(1).optional().openapi({
-      description: 'Exact effective cohort to select within the chosen catalogue.',
-    }),
+    catalogRevision: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_catalog_revision_description'),
+      }),
+    cohort: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_cohort_description'),
+      }),
     domain: z
       .enum([
         'geographic',
@@ -201,17 +210,27 @@ export const DivisionsListQuerySchema = z
       ])
       .optional()
       .openapi({
-        description: 'Division domain to query. Defaults to the Geographic domain.',
+        description: openApiText('openapi_divisions_domain_description'),
       }),
-    effectiveAt: z.iso.datetime().optional().openapi({
-      description: 'Select the domain release effective at this instant.',
-    }),
-    knownAt: z.iso.datetime().optional().openapi({
-      description: 'Resolve the newest catalogue checkpoint known at this instant.',
-    }),
-    releaseSet: z.string().min(1).optional().openapi({
-      description: 'Exact immutable domain release within the chosen catalogue.',
-    }),
+    effectiveAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_effective_at_description'),
+      }),
+    knownAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_known_at_description'),
+      }),
+    releaseSet: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_release_set_description'),
+      }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
@@ -221,16 +240,14 @@ export const DivisionsListQuerySchema = z
       )
       .optional()
       .openapi({
-        description:
-          'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+        description: openApiText('openapi_divisions_include_description'),
       }),
     transform: z
       .string()
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .optional()
       .openapi({
-        description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2016` and `areas:hkgov-censtatd:2021`, returning the corresponding land-clipped C&SD display geometry.',
+        description: openApiText('openapi_divisions_transform_description'),
       }),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
@@ -248,12 +265,20 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
-    catalogRevision: z.string().min(1).optional().openapi({
-      description: 'Immutable family-and-region API catalogue checkpoint.',
-    }),
-    cohort: z.string().min(1).optional().openapi({
-      description: 'Exact effective cohort to select within the chosen catalogue.',
-    }),
+    catalogRevision: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_catalog_revision_description'),
+      }),
+    cohort: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_cohort_description'),
+      }),
     domain: z
       .enum([
         'geographic',
@@ -264,17 +289,27 @@ export const DivisionDetailQuerySchema = z
       ])
       .optional()
       .openapi({
-        description: 'Division domain to query. Defaults to the Geographic domain.',
+        description: openApiText('openapi_divisions_domain_description'),
       }),
-    effectiveAt: z.iso.datetime().optional().openapi({
-      description: 'Select the domain release effective at this instant.',
-    }),
-    knownAt: z.iso.datetime().optional().openapi({
-      description: 'Resolve the newest catalogue checkpoint known at this instant.',
-    }),
-    releaseSet: z.string().min(1).optional().openapi({
-      description: 'Exact immutable domain release within the chosen catalogue.',
-    }),
+    effectiveAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_effective_at_description'),
+      }),
+    knownAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_known_at_description'),
+      }),
+    releaseSet: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_release_set_description'),
+      }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
@@ -284,16 +319,14 @@ export const DivisionDetailQuerySchema = z
       )
       .optional()
       .openapi({
-        description:
-          'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+        description: openApiText('openapi_divisions_include_description'),
       }),
     transform: z
       .string()
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .optional()
       .openapi({
-        description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2016` and `areas:hkgov-censtatd:2021`, returning the corresponding land-clipped C&SD display geometry.',
+        description: openApiText('openapi_divisions_transform_description'),
       }),
   })
   .openapi('DivisionDetailQuery')
@@ -307,8 +340,7 @@ export const DivisionsListResponseSchema = z
       .array(z.union([DivisionResourceSchema, DivisionGeometryResourceSchema]))
       .optional()
       .openapi({
-        description:
-          'Related division and geometry resources, returned when requested through include.',
+        description: openApiText('openapi_divisions_included_description'),
       }),
     meta: DivisionDocumentMetaSchema,
   })
@@ -323,8 +355,7 @@ export const DivisionDetailResponseSchema = z
       .array(z.union([DivisionResourceSchema, DivisionGeometryResourceSchema]))
       .optional()
       .openapi({
-        description:
-          'Related division and geometry resources, returned when requested through include.',
+        description: openApiText('openapi_divisions_included_description'),
       }),
     meta: DivisionDocumentMetaSchema,
   })

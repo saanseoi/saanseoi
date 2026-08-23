@@ -1546,15 +1546,77 @@ describe('atlas-api', () => {
 
   test('OpenAPI documents use the requested documentation locale', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(
-      new Request('http://localhost/openapi/registry/v0.1?locale=zh-Hant'),
-      env,
-    )
-    const body = (await res.json()) as { info: { description?: string } }
+    const [res, divisionsRes] = await Promise.all([
+      app.fetch(
+        new Request('http://localhost/openapi/registry/v0.1?locale=zh-Hant'),
+        env,
+      ),
+      app.fetch(
+        new Request('http://localhost/openapi/divisions/v0.1?locale=zh-Hant'),
+        env,
+      ),
+    ])
+    const body = (await res.json()) as {
+      info: { description?: string }
+      paths?: Record<
+        string,
+        {
+          get?: {
+            parameters?: Array<{ description?: string }>
+            responses?: Record<string, { description?: string }>
+          }
+        }
+      >
+      tags?: Array<{
+        description?: string
+        name: string
+        'x-displayName'?: string
+      }>
+      'x-tagGroups'?: Array<{ name: string }>
+    }
+    const divisions = (await divisionsRes.json()) as {
+      components?: { schemas?: Record<string, { description?: string }> }
+      paths?: Record<string, { get?: { parameters?: Array<{ description?: string }> } }>
+      tags?: Array<{ name: string; 'x-displayName'?: string }>
+    }
 
     expect(res.status).toBe(200)
-    expect(body.info.description).toContain('共用的目錄')
+    expect(body.info.description).toContain('SaanSeoi API 的目錄')
     expect(body.info.description).not.toContain('__saanseoi_openapi_i18n__')
+    expect(body.tags?.find(tag => tag.name === 'API Releases')?.description).toContain(
+      '歷史發布版本',
+    )
+    expect(body.tags?.find(tag => tag.name === 'Map styles')?.description).toContain(
+      'MapLibre 樣式規格',
+    )
+    expect(body.tags?.find(tag => tag.name === 'Sources')?.['x-displayName']).toBe(
+      '來源',
+    )
+    expect(
+      body.paths?.['/v0.1/api/families']?.get?.responses?.['200']?.description,
+    ).toBe('列出API 家族。')
+    expect(body.paths?.['/v0.1/api/families']?.get?.parameters?.[0]?.description).toBe(
+      '整數。',
+    )
+    expect(body['x-tagGroups']?.map(group => group.name)).toEqual([
+      '目錄',
+      '資產',
+      '樣式',
+      '系統',
+    ])
+    expect(divisionsRes.status).toBe(200)
+    expect(
+      divisions.paths?.['/divisions/v0.1']?.get?.parameters?.[0]?.description,
+    ).toBe('不可變的 API 家族及區域目錄檢查點。')
+    expect(
+      divisions.tags?.find(tag => tag.name === 'Divisions')?.['x-displayName'],
+    ).toBe('分區')
+    expect(divisions.tags?.find(tag => tag.name === 'Sources')?.['x-displayName']).toBe(
+      '來源',
+    )
+    expect(divisions.components?.schemas?.Geometry?.description).toBe(
+      'GeoJSON 幾何值。',
+    )
   })
 
   test('major-version OpenAPI documents resolve to the current minor contract', async () => {
