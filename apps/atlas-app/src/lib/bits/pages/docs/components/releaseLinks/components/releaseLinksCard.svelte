@@ -138,15 +138,13 @@ let contentId = $derived(id ? `${id}-content` : undefined)
       {href}
     >
       {#if detailLabel && detail}
-        <span class="font-body text-label-md text-foreground-alt">
+        <span class="min-w-0 flex-1 font-body text-label-md text-foreground-alt">
           <span
             class="block text-caption font-semibold uppercase tracking-[0.08em] text-foreground-alt/70"
           >
             {detailLabel}
           </span>
-          <span
-            class="mt-1 block font-semibold whitespace-nowrap text-primary"
-            title={detail}
+          <span class="mt-1 block truncate font-semibold text-primary" title={detail}
             >{detail}</span
           >
         </span>

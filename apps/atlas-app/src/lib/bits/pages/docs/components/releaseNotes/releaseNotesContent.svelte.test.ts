@@ -140,11 +140,14 @@ test('renders release-note callouts', async () => {
   const screen = await render(
     ReleaseNotesContent,
     getReleaseNotesPresentation(
-      '<note title="API key required">Use a key.</note>',
+      '<note title="API key required">Use [a key](/guides/api-keys).</note>',
       'en',
     ),
   )
 
   await expect.element(screen.getByText('API key required')).toBeVisible()
-  await expect.element(screen.getByText('Use a key.')).toBeVisible()
+  await expect.element(screen.getByText('Use')).toBeVisible()
+  await expect
+    .element(screen.getByRole('link', { name: 'a key' }))
+    .toHaveAttribute('href', '/guides/api-keys')
 })
