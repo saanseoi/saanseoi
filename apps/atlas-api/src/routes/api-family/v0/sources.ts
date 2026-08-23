@@ -25,25 +25,21 @@ const SOURCE_FAMILIES = [
     family: 'addresses',
     label: 'Address',
     sourceLabel: 'address',
-    tag: 'Addresses',
   },
   {
     family: 'divisions',
     label: 'Division',
     sourceLabel: 'division',
-    tag: 'Divisions',
   },
   {
     family: 'stats',
     label: 'Statistic',
     sourceLabel: 'statistics',
-    tag: 'Statistics',
   },
 ] as const satisfies ReadonlyArray<{
   family: SourceFamily
   label: string
   sourceLabel: string
-  tag: string
 }>
 
 const SOURCE_API_VERSIONS = ['v0', 'v0.1'] as const
@@ -51,14 +47,14 @@ const SOURCE_API_VERSIONS = ['v0', 'v0.1'] as const
 type SourceApiVersion = (typeof SOURCE_API_VERSIONS)[number]
 
 function sourceReleasesRouteConfig(
-  { family, label, sourceLabel, tag }: (typeof SOURCE_FAMILIES)[number],
+  { family, label, sourceLabel }: (typeof SOURCE_FAMILIES)[number],
   version: SourceApiVersion,
 ) {
   return createRoute({
     method: 'get',
     path: `/${family}/${version}/source-releases`,
     operationId: `list${label}SourceReleases${version === 'v0' ? 'V0' : 'V01'}`,
-    tags: [tag],
+    tags: ['Sources'],
     request: {
       query: SourceReleasesQuerySchema,
     },
@@ -77,14 +73,14 @@ function sourceReleasesRouteConfig(
 }
 
 function sourceRecordsRouteConfig(
-  { family, label, sourceLabel, tag }: (typeof SOURCE_FAMILIES)[number],
+  { family, label, sourceLabel }: (typeof SOURCE_FAMILIES)[number],
   version: SourceApiVersion,
 ) {
   return createRoute({
     method: 'get',
     path: `/${family}/${version}/sources`,
     operationId: `list${label}SourceRecords${version === 'v0' ? 'V0' : 'V01'}`,
-    tags: [tag],
+    tags: ['Sources'],
     request: {
       query: SourceRecordsQuerySchema,
     },

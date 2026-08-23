@@ -550,9 +550,13 @@ function getOpenApiDocument(
     ([path, pathItem]) => {
       const pathTags = tagsForPathItem(pathItem)
       const isApiFamilyPath = pathTags.some(tag => apiFamilyTags.has(tag))
+      const isFamilySourcePath =
+        pathTags.includes('Sources') &&
+        apiProducts.some(family => path.startsWith(`/${family}/`))
       return product === 'registry'
-        ? !isApiFamilyPath
-        : pathTags.includes(apiProductTags[product]) &&
+        ? !isApiFamilyPath && !isFamilySourcePath
+        : (pathTags.includes(apiProductTags[product]) ||
+            (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
             (!productVersion ||
               path === `/${product}/${documentPathVersion}` ||
               path.startsWith(`/${product}/${documentPathVersion}/`))
@@ -585,12 +589,27 @@ function getOpenApiDocument(
     version: productVersion?.replace(/^v/, '') ?? '0.1',
   }
   document.tags = document.tags?.filter(tag => visibleTags.has(tag.name))
-  document['x-tagGroups'] = openApiConfig['x-tagGroups']
-    .map(group => ({
-      ...group,
-      tags: group.tags.filter(tag => visibleTags.has(tag)),
-    }))
-    .filter(group => group.tags.length > 0)
+  if (product !== 'registry') {
+    document.tags?.sort((first, second) => {
+      if (first.name === apiProductTags[product]) {
+        return -1
+      }
+      if (second.name === apiProductTags[product]) {
+        return 1
+      }
+      return 0
+    })
+  }
+  if (product === 'registry') {
+    document['x-tagGroups'] = openApiConfig['x-tagGroups']
+      .map(group => ({
+        ...group,
+        tags: group.tags.filter(tag => visibleTags.has(tag)),
+      }))
+      .filter(group => group.tags.length > 0)
+  } else {
+    delete document['x-tagGroups']
+  }
 
   return document
 }
