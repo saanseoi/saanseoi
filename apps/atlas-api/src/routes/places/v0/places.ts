@@ -7,7 +7,7 @@ import {
   listPlaceI18n,
   listPlacesByH3Cell,
   searchPlacesFts,
-} from '../../db/places'
+} from '../../../db/places'
 import {
   ErrorResponseSchema,
   PlaceQuerySchema,
@@ -20,17 +20,17 @@ import {
   SearchQuerySchema,
   SearchResponseSchema,
   ValidationErrorOpenAPIResponse,
-} from '../../schema'
-import { runWithD1ReadRetry } from '../../lib/d1'
+} from '../../../schema'
+import { runWithD1ReadRetry } from '../../../lib/d1'
 import {
   resolveApiReleaseSetAccessAttributionForSnapshot,
   resolveOptionalApiReleaseSetAccessAttribution,
-} from '../../services/accessAnalytics'
-import type { AppEnv } from '../../types'
+} from '../../../services/accessAnalytics'
+import type { AppEnv } from '../../../types'
 
 const placeRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/{region}/places/{id}',
+  path: '/places/v0.1/{region}/{id}',
   tags: ['Places'],
   request: {
     params: RegionPlaceParamsSchema,
@@ -67,7 +67,7 @@ const placeRouteConfig = createRoute({
 
 const placesByCellRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/{region}/places/by-cell/{h3Level}/{h3Cell}',
+  path: '/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}',
   tags: ['Places'],
   request: {
     params: PlacesByCellParamsSchema,
@@ -104,7 +104,7 @@ const placesByCellRouteConfig = createRoute({
 
 const searchRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/{region}/search',
+  path: '/places/v0.1/{region}/search',
   tags: ['Places'],
   request: {
     params: SearchParamsSchema,
@@ -350,4 +350,4 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
   },
 })
 
-export const placeRoutes = [placeRoute, placesByCellRoute, searchRoute] as const
+export const placeRoutes = [placesByCellRoute, searchRoute, placeRoute] as const

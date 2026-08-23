@@ -44,23 +44,21 @@ the release are marked before final cleanup.
 
 ## API support
 
-The registry declares the address endpoint aliases in
+The registry declares the address endpoints in
 `fixtures/meta/apiEndpoints/api-addresses-v0.1.json`:
 
-- `GET /v0/addresses`
-- `GET /v0.1/addresses`
-- `GET /v0/addresses/{id}`
-- `GET /v0.1/addresses/{id}`
+- `GET /addresses/v0`
+- `GET /addresses/v0/{id}`
 
-The SaanSeoi API implements these aliases as JSON:API list and detail resources. The
-address composition uses the `official` domain, with an address snapshot as the primary
-member and a cohort-compatible Overture division snapshot as a required supporting
-member. List requests support catalogue/cohort/release-set selection, profiles and
-locale projection, pagination, and country/area/district filters. Address relationships
-identify all available canonical containment levels: `country`, `area`, `district`,
-`town`, `macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not
-join division data by default; `include=hierarchy` returns deduplicated Division
-resources in JSON:API `included` using bounded D1 batches.
+The SaanSeoi API implements these as JSON:API list and detail resources. The address
+composition uses the `official` domain, with an address snapshot as the primary member
+and a cohort-compatible Overture division snapshot as a required supporting member. List
+requests support catalogue/cohort/release-set selection, profiles and locale projection,
+pagination, and country/area/district filters. Address relationships identify all
+available canonical containment levels: `country`, `area`, `district`, `town`,
+`macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not join
+division data by default; `include=hierarchy` returns deduplicated Division resources in
+JSON:API `included` using bounded D1 batches.
 
 The `compact` and `default` profiles return localised formatted addresses, `map` adds
 point geometry and bounding boxes, and `full` adds identifiers, source attribution, and

@@ -69,8 +69,8 @@ export const sampleValueTones = [
 ] as const
 
 const sampleApiTargets = {
-  'api-addresses-v0.1': { path: '/v0.1/addresses' },
-  'api-divisions-v0.1': { path: '/v0.1/divisions' },
+  'api-addresses-v0.1': { path: '/addresses/v0' },
+  'api-divisions-v0.1': { path: '/divisions/v0' },
 } as const
 
 export function supportsReleaseSamples(apiVersion: string) {

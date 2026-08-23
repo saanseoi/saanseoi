@@ -9,33 +9,33 @@ import {
   AddressesListResponseSchema,
   ErrorResponseSchema,
   ValidationErrorOpenAPIResponse,
-} from '../../schema'
+} from '../../../schema'
 import {
   getAddressDetail,
   listAddresses,
   type RequestedAddressApiVersion,
   type RequestedAddressVersion,
   type ResolvedAddressApiVersion,
-} from '../../services/addresses'
-import type { AppEnv } from '../../types'
-import { sanitiseResponseUrl } from '../../lib/api'
+} from '../../../services/addresses'
+import type { AppEnv } from '../../../types'
+import { sanitiseResponseUrl } from '../../../lib/api'
 
 const ROUTE_VARIANTS = [
   {
-    requestedVersionPath: 'v0' as const,
+    requestedVersionPath: 'addresses/v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-addresses-v0.1' as const,
-    listPath: '/v0/addresses',
-    detailPath: '/v0/addresses/{id}',
+    listPath: '/addresses/v0',
+    detailPath: '/addresses/v0/{id}',
     listOperationId: 'listAddressesV0',
     detailOperationId: 'getAddressByIdV0',
   },
   {
-    requestedVersionPath: 'v0.1' as const,
+    requestedVersionPath: 'addresses/v0.1' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-addresses-v0.1' as const,
-    listPath: '/v0.1/addresses',
-    detailPath: '/v0.1/addresses/{id}',
+    listPath: '/addresses/v0.1',
+    detailPath: '/addresses/v0.1/{id}',
     listOperationId: 'listAddressesV01',
     detailOperationId: 'getAddressByIdV01',
   },

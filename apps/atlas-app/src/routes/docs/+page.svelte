@@ -9,11 +9,69 @@ import {
   type ThemeMode,
 } from '#lib/bits/internal/theme.js'
 import type { createApiReference as createScalarApiReference } from '@scalar/api-reference'
+import type { ApiReferenceConfigurationWithMultipleSources } from '@scalar/types/api-reference'
 import '@scalar/api-reference/style.css'
 
-const openApiUrl = '/openapi'
+const apiFamilies = [
+  { id: 'registry', label: 'Registry', versions: ['v0', 'v0.1'] },
+  { id: 'addresses', label: 'Addresses', versions: ['v0', 'v0.1'] },
+  { id: 'divisions', label: 'Divisions', versions: ['v0', 'v0.1'] },
+  { id: 'places', label: 'Places', versions: ['v0', 'v0.1'] },
+  { id: 'stats', label: 'Statistics', versions: ['v0', 'v0.1'] },
+  { id: 'streets', label: 'Streets', versions: ['v0', 'v0.1'] },
+] as const
 
-const scalarConfig = (theme: ThemeMode, onLoaded: () => void) => ({
+type ApiFamilyId = (typeof apiFamilies)[number]['id']
+
+const defaultApiFamily: ApiFamilyId = 'addresses'
+
+const isApiFamilyId = (value: string | null): value is ApiFamilyId =>
+  apiFamilies.some(family => family.id === value)
+
+const openApiSources = (
+  familyId: ApiFamilyId,
+): ApiReferenceConfigurationWithMultipleSources['sources'] => {
+  const family = apiFamilies.find(candidate => candidate.id === familyId)
+  if (!family) {
+    return []
+  }
+
+  return family.versions.map((version, index) => ({
+    title: `${family.label} ${version}`,
+    slug: `${family.id}-${version}`,
+    url: `/openapi/${family.id}/${version}`,
+    default: index === family.versions.length - 1,
+  }))
+}
+
+const sortOperations = (first: { path: string }, second: { path: string }) => {
+  const firstPathOrder = first.path.endsWith('/source-releases')
+    ? 3
+    : first.path.endsWith('/sources') && !first.path.includes('/api/')
+      ? 2
+      : /\/\{[^}]+\}$/.test(first.path)
+        ? 1
+        : 0
+  const secondPathOrder = second.path.endsWith('/source-releases')
+    ? 3
+    : second.path.endsWith('/sources') && !second.path.includes('/api/')
+      ? 2
+      : /\/\{[^}]+\}$/.test(second.path)
+        ? 1
+        : 0
+  const orderDifference = firstPathOrder - secondPathOrder
+  if (orderDifference !== 0) {
+    return orderDifference
+  }
+
+  return first.path.localeCompare(second.path)
+}
+
+const scalarConfig = (
+  theme: ThemeMode,
+  familyId: ApiFamilyId,
+  onLoaded: () => void,
+) => ({
   defaultOpenFirstTag: true,
   darkMode: theme === 'dark',
   documentDownloadType: 'both' as const,
@@ -39,6 +97,7 @@ const scalarConfig = (theme: ThemeMode, onLoaded: () => void) => ({
   operationTitleSource: 'summary' as const,
   orderRequiredPropertiesFirst: true,
   orderSchemaPropertiesBy: 'alpha' as const,
+  operationsSorter: sortOperations,
   persistAuth: false,
   showDeveloperTools: 'localhost' as const,
   showOperationId: true,
@@ -47,17 +106,52 @@ const scalarConfig = (theme: ThemeMode, onLoaded: () => void) => ({
   telemetry: true,
   theme: 'default' as const,
   title: m.docs_title(),
-  url: openApiUrl,
+  sources: openApiSources(familyId),
   withDefaultFonts: false,
 })
 
-const addGlossaryLink = (mountElement: Element) => {
+const addSidebarLinks = (
+  mountElement: Element,
+  activeFamily: ApiFamilyId,
+  selectFamily: (family: ApiFamilyId) => void,
+) => {
   requestAnimationFrame(() => {
     const sidebarItems = mountElement.querySelector('.t-doc__sidebar .group\\/items')
 
-    if (!sidebarItems || sidebarItems.querySelector('.scalar-glossary-link')) {
+    if (!sidebarItems || sidebarItems.querySelector('.scalar-api-families')) {
       return
     }
+
+    const familySection = document.createElement('section')
+    const familyHeading = document.createElement('h2')
+    const familyList = document.createElement('ul')
+
+    familySection.className = 'scalar-api-families'
+    familyHeading.className = 'scalar-api-families__heading'
+    familyHeading.textContent = 'API Families'
+    familyList.className = 'scalar-api-families__list'
+
+    for (const family of apiFamilies) {
+      const item = document.createElement('li')
+      const button = document.createElement('button')
+      const isActive = family.id === activeFamily
+
+      button.className = 'scalar-api-families__link'
+      button.type = 'button'
+      button.textContent = family.label
+      button.setAttribute('aria-current', isActive ? 'page' : 'false')
+      button.addEventListener('click', () => selectFamily(family.id))
+      item.appendChild(button)
+      familyList.appendChild(item)
+    }
+
+    familySection.appendChild(familyHeading)
+    familySection.appendChild(familyList)
+    const sidebar = sidebarItems.parentElement
+    sidebar?.insertBefore(
+      familySection,
+      sidebarItems.previousElementSibling ?? sidebarItems,
+    )
 
     const item = document.createElement('li')
     const link = document.createElement('a')
@@ -78,6 +172,22 @@ const addGlossaryLink = (mountElement: Element) => {
 onMount(() => {
   let scalarReference: ReturnType<typeof createScalarApiReference> | null = null
   let createReference: typeof createScalarApiReference | null = null
+  const selectedFamily = new URLSearchParams(window.location.search).get('family')
+  let activeFamily: ApiFamilyId = isApiFamilyId(selectedFamily)
+    ? selectedFamily
+    : defaultApiFamily
+
+  const selectFamily = (family: ApiFamilyId) => {
+    if (family === activeFamily) {
+      return
+    }
+
+    activeFamily = family
+    const url = new URL(window.location.href)
+    url.searchParams.set('family', family)
+    window.history.replaceState({}, '', url)
+    mountScalar(resolveTheme())
+  }
 
   const mountScalar = (theme: ThemeMode) => {
     const mountElement = document.querySelector('#atlas-api-reference')
@@ -90,10 +200,11 @@ onMount(() => {
       return
     }
 
-    scalarReference = createReference(
-      '#atlas-api-reference',
-      scalarConfig(theme, () => addGlossaryLink(mountElement)),
-    )
+    scalarReference = createReference('#atlas-api-reference', {
+      ...scalarConfig(theme, activeFamily, () =>
+        addSidebarLinks(mountElement, activeFamily, selectFamily),
+      ),
+    })
   }
 
   const handleThemeChange = (event: Event) => {
@@ -138,5 +249,53 @@ onMount(() => {
 :global(.atlas-api-reference .download),
 :global(.atlas-api-reference .references-classic-header) {
   display: none;
+}
+
+:global(.atlas-api-reference .scalar-api-families) {
+  padding: 0.75rem 0.75rem 0.5rem;
+}
+
+:global(.atlas-api-reference .scalar-api-families__heading) {
+  margin: 0 0 0.25rem;
+  color: var(--scalar-sidebar-color-1);
+  font-family: var(--scalar-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:global(.atlas-api-reference .scalar-api-families__list) {
+  display: grid;
+  gap: 0.125rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+:global(.atlas-api-reference .scalar-api-families__link) {
+  width: 100%;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--scalar-sidebar-color-2);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  text-align: left;
+}
+
+:global(.atlas-api-reference .scalar-api-families__link:hover),
+:global(.atlas-api-reference .scalar-api-families__link:focus-visible) {
+  background: var(--scalar-sidebar-background-2);
+  color: var(--scalar-sidebar-color-1);
+  outline: none;
+}
+
+:global(.atlas-api-reference .scalar-api-families__link[aria-current="page"]) {
+  background: var(--scalar-sidebar-background-2);
+  color: var(--scalar-sidebar-color-1);
+  font-weight: 600;
 }
 </style>

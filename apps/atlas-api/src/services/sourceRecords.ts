@@ -8,7 +8,7 @@ const DEFAULT_PAGE_LIMIT = 100
 const MAX_PAGE_LIMIT = 500
 const DOWNLOAD_PAGE_LIMIT = 500
 
-type SourceFamily = 'divisions'
+export type SourceFamily = 'addresses' | 'divisions' | 'stats'
 
 type SourceRecordCatalogueEntry = {
   geometryColumn?: 'sourceGeometry'
@@ -113,12 +113,21 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
 
+const EMPTY_SOURCE_RECORD_CATALOGUE = {} as const satisfies Record<
+  string,
+  SourceRecordCatalogueEntry
+>
+
 function sourceCatalogueFor(
   family: SourceFamily,
 ): Record<string, SourceRecordCatalogueEntry> {
   switch (family) {
+    case 'addresses':
+      return EMPTY_SOURCE_RECORD_CATALOGUE
     case 'divisions':
       return DIVISION_SOURCE_RECORD_CATALOGUE
+    case 'stats':
+      return EMPTY_SOURCE_RECORD_CATALOGUE
   }
 }
 
@@ -517,7 +526,7 @@ export async function listSourceReleases(args: {
       datasetCode: row.datasetCode,
       recordsAvailable,
       recordsHref: recordsAvailable
-        ? `/v0.1/divisions/sources?sourceRelease=${encodeURIComponent(row.sourceReleaseCode)}`
+        ? `/${args.family}/v0/sources?sourceRelease=${encodeURIComponent(row.sourceReleaseCode)}`
         : null,
       resourceType: row.resourceType,
       role: row.role,

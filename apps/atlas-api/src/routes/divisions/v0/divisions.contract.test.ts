@@ -2,11 +2,11 @@ import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
 
-import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
-import type { AppBindings } from '../../types'
-import app from '../../index'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import type { AppBindings } from '../../../types'
+import app from '../../../index'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
 const CATALOG_REVISION = 'catalog-hk-divisions-v0.1-2026-08-14-r0'
 const CATALOG_PUBLISHED_AT = '2026-08-14T00:00:00.000Z'
@@ -673,31 +673,31 @@ function createFixtureEnvironment() {
 const requestCases = [
   {
     name: 'default list through app.fetch',
-    path: `/v0.1/divisions?releaseSet=${OVERTURE_RELEASE_SET}`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}`,
   },
   {
-    name: 'v0 alias and map profile through app.fetch',
-    path: `/v0/divisions?releaseSet=${OVERTURE_RELEASE_SET}&profile=map`,
+    name: 'current alias and map profile through app.fetch',
+    path: `/divisions/v0?releaseSet=${OVERTURE_RELEASE_SET}&profile=map`,
   },
   {
     name: 'areas and boundaries through app.fetch',
-    path: `/v0.1/divisions?releaseSet=${OVERTURE_RELEASE_SET}&include=areas,boundaries`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&include=areas,boundaries`,
   },
   {
     name: 'detail and hierarchy through app.fetch',
-    path: `/v0.1/divisions/division-a-kung-ngam?releaseSet=${OVERTURE_RELEASE_SET}&profile=full&include=hierarchy`,
+    path: `/divisions/v0.1/division-a-kung-ngam?releaseSet=${OVERTURE_RELEASE_SET}&profile=full&include=hierarchy`,
   },
   {
     name: 'planning domain through app.fetch',
-    path: '/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021',
+    path: '/divisions/v0.1?domain=hkgov-pland-pu&cohort=2021',
   },
   {
     name: 'filters and pagination through app.fetch',
-    path: `/v0.1/divisions?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[divisionType]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[divisionType]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
   },
   {
     name: 'invalid request through app.fetch',
-    path: '/v0.1/divisions?include=areas:not-a-provider',
+    path: '/divisions/v0.1?include=areas:not-a-provider',
   },
 ] as const
 

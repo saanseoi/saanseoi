@@ -61,9 +61,9 @@ describe('product usage contract', () => {
   test('normalises route parameters and query strings', () => {
     expect(
       normaliseProductUsageRoute(
-        '/v0/assets/00000000-0000-4000-8000-000000000001?download=1',
+        '/v0.1/assets/00000000-0000-4000-8000-000000000001?download=1',
       ),
-    ).toBe('/v0/assets/:id')
+    ).toBe('/v0.1/assets/:id')
   })
 
   test('fails open when the Analytics Engine binding is missing or throws', () => {
@@ -72,7 +72,7 @@ describe('product usage contract', () => {
         event: 'api.request',
         producer: 'atlas-api',
         surface: 'api',
-        route: '/v0/places',
+        route: '/places/v0.1/hk/places',
         outcome: 'success',
       }),
     ).not.toThrow()
@@ -87,7 +87,7 @@ describe('product usage contract', () => {
           event: 'api.request',
           producer: 'atlas-api',
           surface: 'api',
-          route: '/v0/places',
+          route: '/places/v0.1/hk/places',
           outcome: 'success',
         },
       ),
@@ -152,7 +152,7 @@ describe('product usage contract', () => {
         event: 'api.access',
         producer: 'atlas-api',
         surface: 'access',
-        route: '/v0.1/divisions',
+        route: '/divisions/v0.1',
         entityType: 'publisher',
         entityId: 'hkgov',
         metricKey: 'apiRequests',
@@ -166,7 +166,7 @@ describe('product usage contract', () => {
         'api.access',
         'atlas-api',
         'access',
-        '/v0.1/divisions',
+        '/divisions/v0.1',
         'publisher',
         'hkgov',
         '',

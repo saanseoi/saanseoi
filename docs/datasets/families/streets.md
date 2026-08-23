@@ -49,15 +49,16 @@ A whole-street name change creates a new street identity and deletes the old ide
 partial name change creates a new identity for the renamed portion while retaining the
 old identity for the remaining portion; the curated decision records the two retained
 descriptions. Every street response embeds its LandsD changelog in
-`attributes.changelog`. `GET /v0/hk/streets/changelog` replays those source events
-across the history shards. Version changes are limited to changes in the materialised
-names, descriptions, district IDs, status, relevant evidence, or translation provenance.
+`attributes.changelog`. `GET /streets/v0/hk/streets/changelog` replays those source
+events across the history shards. Version changes are limited to changes in the
+materialised names, descriptions, district IDs, status, relevant evidence, or
+translation provenance.
 
-`GET /v0/hk/streets/{id}` returns the latest materialised state. Per-street history is
-available without introducing broad street search endpoints:
+`GET /streets/v0/hk/streets/{id}` returns the latest materialised state. Per-street
+history is available without introducing broad street search endpoints:
 
-- `GET /v0/hk/streets/{id}/versions`
-- `GET /v0/hk/streets/{id}/versions/{version}`
+- `GET /streets/v0/hk/streets/{id}/versions`
+- `GET /streets/v0/hk/streets/{id}/versions/{version}`
 
 Responses contain English, Traditional Chinese, and Simplified Chinese names and
 descriptions, lifecycle status, publication/effective provenance, and role-tagged

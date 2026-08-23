@@ -45,8 +45,8 @@ same series serve maps, comparisons and time series.
 The Division API may expose a bounded convenience relationship:
 
 ```text
-GET /v0/divisions/:id?include=stats
-GET /v0/divisions/:id?include=stats&stats[series]=censtatd.population-households&stats[period]=2025
+GET /divisions/v0.1/:id?include=stats
+GET /divisions/v0.1/:id?include=stats&stats[series]=censtatd.population-households&stats[period]=2025
 ```
 
 `include=stats` without filters must return only a documented compact default set (or

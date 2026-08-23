@@ -206,11 +206,10 @@ confirmation; automation must opt in explicitly with `--yes`.
 
 ### Registry endpoint metadata
 
-The fixture-backed registry declares two division endpoint aliases for
-`api-divisions-v0.1`:
+The fixture-backed registry declares the Divisions endpoints for `api-divisions-v0.1`:
 
-- `GET /v0/divisions`
-- `GET /v0.1/divisions`
+- `GET /divisions/v0`
+- `GET /divisions/v0/{id}`
 
 These are declared in `fixtures/meta/apiEndpoints/api-divisions-v0.1.json` and synced by
 `libs/db/src/registry/meta.ts`.
@@ -219,14 +218,12 @@ These are declared in `fixtures/meta/apiEndpoints/api-divisions-v0.1.json` and s
 
 Implemented Atlas routes now include:
 
-- `/v0/divisions`
-- `/v0/divisions/{id}`
-- `/v0.1/divisions`
-- `/v0.1/divisions/{id}`
+- `/divisions/v0`
+- `/divisions/v0/{id}`
 - `/v0/meta/...`
-- `/v0/{region}/places/{id}`
-- `/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
-- `/v0/{region}/search`
+- `/places/v0/{region}/places/{id}`
+- `/places/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
+- `/places/v0/{region}/search`
 
 ### Live runtime dependency on division data
 

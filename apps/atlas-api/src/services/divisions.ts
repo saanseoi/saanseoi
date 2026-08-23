@@ -38,7 +38,7 @@ import {
   type AccessAttribution,
 } from './accessAnalytics'
 
-export type RequestedDivisionVersion = 'v0' | 'v0.1'
+export type RequestedDivisionVersion = 'divisions/v0' | 'divisions/v0.1'
 export type RequestedDivisionApiVersion = '0.1'
 export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
 export type DivisionProfile = ApiProfileName
@@ -569,7 +569,7 @@ function createDivisionResource(args: {
         : {}),
     },
     links: {
-      self: `${baseUrl}/${routeState.requestedVersionPath}/divisions/${division.id}`,
+      self: `${baseUrl}/${routeState.requestedVersionPath}/${division.id}`,
     },
   }
 }
@@ -725,13 +725,13 @@ function buildDivisionPermalink(args: {
   url: URL
 }) {
   const permalink = new URL(args.url)
-  const exactVersionPath = args.routeState.resolvedApiVersion.replace(
+  const exactVersionPath = `divisions/${args.routeState.resolvedApiVersion.replace(
     /^api-divisions-/,
     '',
-  )
+  )}`
   permalink.pathname = permalink.pathname.replace(
-    /^\/v0(?:\.1)?\//,
-    `/${exactVersionPath}/`,
+    /^\/divisions\/v0(?:\.\d+)?/,
+    `/${exactVersionPath}`,
   )
   permalink.searchParams.delete('effectiveAt')
   permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)

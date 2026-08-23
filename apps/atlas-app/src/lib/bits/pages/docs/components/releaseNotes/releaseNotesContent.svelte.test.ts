@@ -49,8 +49,8 @@ test('colours URL families on every line of a fenced URL block', async () => {
     ReleaseNotesContent,
     getReleaseNotesPresentation(
       `\`\`\`url
-/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021
-/v0.2/addresses?domain=hkgov-pland-new-town&cohort=2021
+/divisions/v0?domain=hkgov-pland-pu&cohort=2021
+/addresses/v0.2?domain=hkgov-pland-new-town&cohort=2021
 \`\`\``,
       'en',
     ),
@@ -68,7 +68,7 @@ test('labels fenced API URL snippets as GET requests', async () => {
     ReleaseNotesContent,
     getReleaseNotesPresentation(
       `\`\`\`url
-/v0.1/divisions?domain=geographic&cohort=2025-09-24.0
+/divisions/v0?domain=geographic&cohort=2025-09-24.0
 \`\`\``,
       'en',
     ),

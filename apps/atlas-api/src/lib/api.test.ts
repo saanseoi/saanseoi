@@ -11,7 +11,7 @@ import {
 describe('api helpers', () => {
   test('buildJsonApiListDocument builds pagination links and included resources', () => {
     const document = buildJsonApiListDocument({
-      url: new URL('http://localhost/v0/divisions?page[limit]=10&page[offset]=10'),
+      url: new URL('http://localhost/divisions/v0.1?page[limit]=10&page[offset]=10'),
       data: [{ id: 'division-1' }],
       included: [{ id: 'division-parent' }],
       limit: 10,
@@ -32,10 +32,10 @@ describe('api helpers', () => {
       data: [{ id: 'division-1' }],
       included: [{ id: 'division-parent' }],
       links: {
-        self: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=10',
-        first: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
-        prev: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
-        next: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=20',
+        self: 'http://localhost/divisions/v0.1?page%5Blimit%5D=10&page%5Boffset%5D=10',
+        first: 'http://localhost/divisions/v0.1?page%5Blimit%5D=10&page%5Boffset%5D=0',
+        prev: 'http://localhost/divisions/v0.1?page%5Blimit%5D=10&page%5Boffset%5D=0',
+        next: 'http://localhost/divisions/v0.1?page%5Blimit%5D=10&page%5Boffset%5D=20',
       },
     })
     expect(Object.keys(document)).toEqual([
@@ -49,7 +49,7 @@ describe('api helpers', () => {
 
   test('buildJsonApiDetailDocument omits included when empty', () => {
     const document = buildJsonApiDetailDocument({
-      url: new URL('http://localhost/v0/divisions/hk'),
+      url: new URL('http://localhost/divisions/v0.1/hk'),
       data: { id: 'hk' },
       included: [],
       meta: {
@@ -66,7 +66,7 @@ describe('api helpers', () => {
       },
       data: { id: 'hk' },
       links: {
-        self: 'http://localhost/v0/divisions/hk',
+        self: 'http://localhost/divisions/v0.1/hk',
       },
     })
     expect(Object.keys(document)).toEqual(['jsonapi', 'meta', 'data', 'links'])
@@ -75,7 +75,7 @@ describe('api helpers', () => {
   test('response links omit query-string credentials and preserve other filters', () => {
     const document = buildJsonApiListDocument({
       url: new URL(
-        'http://localhost/v0/divisions?access_token=secret&domain=geographic',
+        'http://localhost/divisions/v0.1?access_token=secret&domain=geographic',
       ),
       data: [],
       limit: 10,
@@ -83,7 +83,7 @@ describe('api helpers', () => {
       total: 0,
       meta: {},
       permalink:
-        'http://localhost/v0.1/divisions?access_token=secret&releaseSet=release-1',
+        'http://localhost/divisions/v0.1?access_token=secret&releaseSet=release-1',
     })
 
     expect(JSON.stringify(document)).not.toContain('access_token')

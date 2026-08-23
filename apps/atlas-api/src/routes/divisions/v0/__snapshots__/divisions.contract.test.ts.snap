@@ -22,7 +22,7 @@ exports[`Divisions API responses through the Worker route default list through a
         },
         "id": "division-country-cn",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-country-cn",
+          "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
         "relationships": {
           "hierarchy": {
@@ -49,7 +49,7 @@ exports[`Divisions API responses through the Worker route default list through a
         },
         "id": "division-hk-sar",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+          "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
         "relationships": {
           "hierarchy": {
@@ -85,7 +85,7 @@ exports[`Divisions API responses through the Worker route default list through a
         },
         "id": "division-east",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-east",
+          "self": "http://localhost/divisions/v0.1/division-east",
         },
         "relationships": {
           "hierarchy": {
@@ -129,7 +129,7 @@ exports[`Divisions API responses through the Worker route default list through a
         },
         "id": "division-a-kung-ngam",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+          "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
         "relationships": {
           "hierarchy": {
@@ -168,9 +168,9 @@ exports[`Divisions API responses through the Worker route default list through a
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -198,7 +198,7 @@ exports[`Divisions API responses through the Worker route default list through a
 }
 `;
 
-exports[`Divisions API responses through the Worker route v0 alias and map profile through app.fetch: v0 alias and map profile through app.fetch 1`] = `
+exports[`Divisions API responses through the Worker route current alias and map profile through app.fetch: current alias and map profile through app.fetch 1`] = `
 {
   "response": {
     "data": [
@@ -236,7 +236,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
         },
         "id": "division-country-cn",
         "links": {
-          "self": "http://localhost/v0/divisions/division-country-cn",
+          "self": "http://localhost/divisions/v0/division-country-cn",
         },
         "relationships": {
           "hierarchy": {
@@ -279,7 +279,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
         },
         "id": "division-hk-sar",
         "links": {
-          "self": "http://localhost/v0/divisions/division-hk-sar",
+          "self": "http://localhost/divisions/v0/division-hk-sar",
         },
         "relationships": {
           "hierarchy": {
@@ -331,7 +331,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
         },
         "id": "division-east",
         "links": {
-          "self": "http://localhost/v0/divisions/division-east",
+          "self": "http://localhost/divisions/v0/division-east",
         },
         "relationships": {
           "hierarchy": {
@@ -391,7 +391,7 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
         },
         "id": "division-a-kung-ngam",
         "links": {
-          "self": "http://localhost/v0/divisions/division-a-kung-ngam",
+          "self": "http://localhost/divisions/v0/division-a-kung-ngam",
         },
         "relationships": {
           "hierarchy": {
@@ -430,9 +430,9 @@ exports[`Divisions API responses through the Worker route v0 alias and map profi
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=map&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/v0/divisions?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=map&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0?releaseSet=data-hk-divisions-2025-09-24.0&profile=map&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -482,7 +482,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         },
         "id": "division-country-cn",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-country-cn",
+          "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
         "relationships": {
           "hierarchy": {
@@ -509,7 +509,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         },
         "id": "division-hk-sar",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+          "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
         "relationships": {
           "boundaries": {
@@ -553,7 +553,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         },
         "id": "division-east",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-east",
+          "self": "http://localhost/divisions/v0.1/division-east",
         },
         "relationships": {
           "areas": {
@@ -613,7 +613,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         },
         "id": "division-a-kung-ngam",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+          "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
         "relationships": {
           "hierarchy": {
@@ -730,9 +730,9 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -840,7 +840,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       },
       "id": "division-a-kung-ngam",
       "links": {
-        "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+        "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
       },
       "relationships": {
         "hierarchy": {
@@ -936,7 +936,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "id": "division-country-cn",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-country-cn",
+          "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
         "relationships": {
           "hierarchy": {
@@ -1012,7 +1012,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "id": "division-hk-sar",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+          "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
         "relationships": {
           "hierarchy": {
@@ -1102,7 +1102,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "id": "division-east",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-east",
+          "self": "http://localhost/divisions/v0.1/division-east",
         },
         "relationships": {
           "hierarchy": {
@@ -1133,8 +1133,8 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       "version": "1.1",
     },
     "links": {
-      "permalink": "http://localhost/v0.1/divisions/division-a-kung-ngam?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=hierarchy&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=*&profile=full&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/v0.1/divisions/division-a-kung-ngam?releaseSet=data-hk-divisions-2025-09-24.0&profile=full&include=hierarchy",
+      "permalink": "http://localhost/divisions/v0.1/division-a-kung-ngam?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=hierarchy&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=*&profile=full&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0.1/division-a-kung-ngam?releaseSet=data-hk-divisions-2025-09-24.0&profile=full&include=hierarchy",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -1179,7 +1179,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
         },
         "id": "division-country-cn",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-country-cn",
+          "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
         "relationships": {
           "hierarchy": {
@@ -1206,7 +1206,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
         },
         "id": "division-hk-sar",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-hk-sar",
+          "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
         "relationships": {
           "hierarchy": {
@@ -1242,7 +1242,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
         },
         "id": "division-east",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-east",
+          "self": "http://localhost/divisions/v0.1/division-east",
         },
         "relationships": {
           "hierarchy": {
@@ -1286,7 +1286,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
         },
         "id": "division-a-kung-ngam",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+          "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
         "relationships": {
           "hierarchy": {
@@ -1325,9 +1325,9 @@ exports[`Divisions API responses through the Worker route planning domain throug
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2021&domain=hkgov-pland-pu&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2021--hkgov-pland-pu",
-      "self": "http://localhost/v0.1/divisions?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2021&domain=hkgov-pland-pu&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2021--hkgov-pland-pu",
+      "self": "http://localhost/divisions/v0.1?domain=hkgov-pland-pu&cohort=2021&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -1377,7 +1377,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
         },
         "id": "division-a-kung-ngam",
         "links": {
-          "self": "http://localhost/v0.1/divisions/division-a-kung-ngam",
+          "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
         "relationships": {
           "hierarchy": {
@@ -1416,9 +1416,9 @@ exports[`Divisions API responses through the Worker route filters and pagination
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
-      "permalink": "http://localhost/v0.1/divisions?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/v0.1/divisions?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",

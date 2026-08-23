@@ -1,25 +1,25 @@
 {
-  "versionHash": "sha256:490e77e3ab8125ef18df94e0c6b1d1173e431b054339a968af329144274c6b26",
+  "versionHash": "sha256:e7b6c6f56dd64c24c57ce1d440a6215d5919dbcb57163b27fca9ccc88be66ebf",
   "apiVersion": "api-divisions-v0.1",
   "endpoints": [
     {
       "method": "GET",
-      "path": "/v0/divisions",
+      "path": "/divisions/v0",
       "operationId": "listDivisionsV0"
     },
     {
       "method": "GET",
-      "path": "/v0/divisions/{id}",
+      "path": "/divisions/v0/{id}",
       "operationId": "getDivisionByIdV0"
     },
     {
       "method": "GET",
-      "path": "/v0.1/divisions",
+      "path": "/divisions/v0.1",
       "operationId": "listDivisionsV01"
     },
     {
       "method": "GET",
-      "path": "/v0.1/divisions/{id}",
+      "path": "/divisions/v0.1/{id}",
       "operationId": "getDivisionByIdV01"
     }
   ]
