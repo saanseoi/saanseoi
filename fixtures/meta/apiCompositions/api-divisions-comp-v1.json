@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:892b0c537679b1df116c8f29b89818325abac6c3fcd4c23d11dc22f79d30cbb1",
+  "versionHash": "sha256:591d22c81e58c53a310198908cb59e81ca8548ecc5ca77472cc4157f1df8cc8a",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -13,20 +13,20 @@
         {
           "locale": "en",
           "name": "Geographic",
-          "descriptionShort": "Hong Kong's geographical and administrative divisions.",
-          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+          "descriptionShort": "Overture-led geographical and administrative divisions.",
+          "description": "Overture geographical and administrative divisions, with separately selectable area companions from Overture, the Home Affairs Department and C&SD, plus Overture boundaries."
         },
         {
           "locale": "zh-hant",
           "name": "地理分區",
-          "descriptionShort": "香港的地理及行政分區。",
-          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+          "descriptionShort": "以 Overture 為主的地理及行政分區。",
+          "description": "以 Overture 的地理及行政分區為主，並可另行選取 Overture、民政事務總署及政府統計處的面積配套資源，以及 Overture 邊界。"
         },
         {
           "locale": "zh-hans",
           "name": "地理分区",
-          "descriptionShort": "香港的地理及行政分区。",
-          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+          "descriptionShort": "以 Overture 为主的地理及行政分区。",
+          "description": "以 Overture 的地理及行政分区为主，并可另行选取 Overture、民政事务总署及政府统计处的面积配套资源，以及 Overture 边界。"
         }
       ],
       "members": [
@@ -112,20 +112,20 @@
         {
           "locale": "en",
           "name": "HMA",
-          "descriptionShort": "Housing Market Areas.",
-          "description": "Housing Market Areas defined by the Census and Statistics Department."
+          "descriptionShort": "C&SD Housing Market Areas.",
+          "description": "Housing Market Areas and published area geometry from the Census and Statistics Department."
         },
         {
           "locale": "zh-hant",
           "name": "房屋市場區域（政府統計處）",
           "descriptionShort": "政府統計處房屋市場區域。",
-          "description": "由政府統計處界定的房屋市場區域。"
+          "description": "政府統計處的房屋市場區域及其發布的面積幾何。"
         },
         {
           "locale": "zh-hans",
           "name": "房屋市场区域（政府统计处）",
           "descriptionShort": "政府统计处房屋市场区域。",
-          "description": "由政府统计处界定的房屋市场区域。"
+          "description": "政府统计处的房屋市场区域及其发布的面积几何。"
         }
       ],
       "members": [
@@ -159,20 +159,20 @@
         {
           "locale": "en",
           "name": "Planning Unit",
-          "descriptionShort": "Planning units and subunits.",
-          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+          "descriptionShort": "Planning Department planning units and subunits.",
+          "description": "Tertiary Planning Units and subunits from the Planning Department, with their published area geometry."
         },
         {
           "locale": "zh-hant",
           "name": "規劃單元",
           "descriptionShort": "規劃署的規劃單元及小組。",
-          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+          "description": "規劃署的三級規劃單元及小組，以及其發布的面積幾何。"
         },
         {
           "locale": "zh-hans",
           "name": "规划单元",
           "descriptionShort": "规划署的规划单元及小组。",
-          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+          "description": "规划署的三级规划单元及小组，以及其发布的面积几何。"
         }
       ],
       "members": [
@@ -206,20 +206,20 @@
         {
           "locale": "en",
           "name": "New Town",
-          "descriptionShort": "New towns.",
-          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+          "descriptionShort": "Planning Department New Town divisions.",
+          "description": "New Town divisions from the Planning Department, with their published area geometry."
         },
         {
           "locale": "zh-hant",
           "name": "新市鎮",
-          "descriptionShort": "規劃署的新市鎮。",
-          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+          "descriptionShort": "規劃署的新市鎮分區。",
+          "description": "規劃署的新市鎮分區，以及其發布的面積幾何。"
         },
         {
           "locale": "zh-hans",
           "name": "新市镇",
-          "descriptionShort": "规划署的新市镇。",
-          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+          "descriptionShort": "规划署的新市镇分区。",
+          "description": "规划署的新市镇分区，以及其发布的面积几何。"
         }
       ],
       "members": [
@@ -253,20 +253,20 @@
         {
           "locale": "en",
           "name": "HKGOV",
-          "descriptionShort": "Official list of settlement place names.",
-          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+          "descriptionShort": "Lands Department settlement place names.",
+          "description": "Lands Department settlement place names published as point divisions, not an administrative hierarchy."
         },
         {
           "locale": "zh-hant",
           "name": "香港政府",
           "descriptionShort": "地政總署的聚落地名。",
-          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+          "description": "地政總署的聚落地名，作為點區劃發布，而非行政層級。"
         },
         {
           "locale": "zh-hans",
           "name": "香港政府",
           "descriptionShort": "地政总署的聚落地名。",
-          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+          "description": "地政总署的聚落地名，作为点区划发布，而非行政层级。"
         }
       ],
       "members": [

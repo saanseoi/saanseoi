@@ -12,20 +12,20 @@
         {
           "locale": "en",
           "name": "Official",
-          "descriptionShort": "Official street names and centre lines.",
-          "description": "Explore Hong Kong’s street network, including official street names, road centre lines, and related geography."
+          "descriptionShort": "Lands Department street names and centre lines.",
+          "description": "Lands Department street names and road centre lines for approximate location lookup and map labelling."
         },
         {
           "locale": "zh-hant",
           "name": "官方",
-          "descriptionShort": "官方街道名稱及道路中心線。",
-          "description": "探索香港的街道網絡，包括官方街道名稱、道路中心線及相關地理資料。"
+          "descriptionShort": "地政總署街道名稱及道路中心線。",
+          "description": "地政總署的街道名稱及道路中心線，用於大概位置查詢及地圖標註。"
         },
         {
           "locale": "zh-hans",
           "name": "官方",
-          "descriptionShort": "官方街道名称及道路中心线。",
-          "description": "探索香港的街道网络，包括官方街道名称、道路中心线及相关地理资料。"
+          "descriptionShort": "地政总署街道名称及道路中心线。",
+          "description": "地政总署的街道名称及道路中心线，用于大概位置查询及地图标注。"
         }
       ],
       "members": [
@@ -48,5 +48,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:6e1a69dac39da7da36c654a08bce6a0fee84d7fd20b6cc55d0aba0bd275d9e7d"
+  "versionHash": "sha256:75e19e6a69c42dd14c1acd26ed7b15b8918abfa8ddb1c62743faa5f2466f2e81"
 }
