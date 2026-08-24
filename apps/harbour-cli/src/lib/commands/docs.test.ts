@@ -180,8 +180,8 @@ Publishes revision r{{ revision }}.
     )
     expect(rendered).toContain('| 設定檔 | 適用情況 | 回應新增內容 |')
     expect(rendered).toContain('| 配置文件 | 适用情形 | 响应新增内容 |')
-    expect(rendered).toContain('| <black>compact</black> |')
-    expect(rendered).toContain('| <black>map</black> |')
+    expect(rendered).toContain('| `compact` |')
+    expect(rendered).toContain('| `map` |')
     expect(rendered).not.toContain('{{apiProfileTable:')
   })
 
@@ -195,12 +195,10 @@ Publishes revision r{{ revision }}.
     })
 
     expect(rendered).toContain(
-      '<black>geographic</black> <blue>DEFAULT</blue> <blue>THIS RELEASE</blue> — Overture-led geographical and administrative divisions.',
+      '`geographic` <blue>DEFAULT</blue> <blue>THIS RELEASE</blue> — Overture-led geographical and administrative divisions.',
     )
-    expect(rendered).toContain(
-      '<black>hkgov-pland-pu</black> — 規劃署的規劃單元及小組。',
-    )
-    expect(rendered).toContain('<black>hkgov-landsd</black> — 地政总署的聚落地名。')
+    expect(rendered).toContain('`hkgov-pland-pu` — 規劃署的規劃單元及小組。')
+    expect(rendered).toContain('`hkgov-landsd` — 地政总署的聚落地名。')
     expect(rendered).not.toContain('{{domains:')
   })
 
@@ -316,16 +314,16 @@ Publishes revision r{{ revision }}.
 
     expect(rendered).toContain('| Code | Type | Publisher | Description |')
     expect(rendered).toContain(
-      '| <black>areas:hkgov-censtatd:2016</black> | Area | [C&SD](/publishers/hkgov-censtatd "Census and Statistics Department") | 2016 census district areas. |',
+      '| `areas:hkgov-censtatd:2016` | Area | [C&SD](/publishers/hkgov-censtatd "Census and Statistics Department") | 2016 census district areas. |',
     )
     expect(rendered).toContain(
-      '| <black>areas:hkgov-had</black> | Area | [HAD](/publishers/hkgov-had "Home Affairs Department") | Official district areas. |',
+      '| `areas:hkgov-had` | Area | [HAD](/publishers/hkgov-had "Home Affairs Department") | Official district areas. |',
     )
     expect(rendered).toContain(
-      '| <black>areas:overture</black> | Area | [Overture](/publishers/overture "Overture Maps Foundation") | Division area polygons. |',
+      '| `areas:overture` | Area | [Overture](/publishers/overture "Overture Maps Foundation") | Division area polygons. |',
     )
     expect(rendered).toContain(
-      '| <black>boundaries:overture</black> | Boundary | [Overture](/publishers/overture "Overture Maps Foundation") | District boundaries. |',
+      '| `boundaries:overture` | Boundary | [Overture](/publishers/overture "Overture Maps Foundation") | District boundaries. |',
     )
     expect(rendered).not.toContain('{{apiReleaseSetCompanions:')
   })
