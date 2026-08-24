@@ -13,7 +13,10 @@ import type {
 } from '@repo/db'
 import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
 
-import type { CenstatdFieldMetadata } from './censtatdMeasureCuration.ts'
+import type {
+  CenstatdFieldMetadata,
+  CenstatdMeasureMetadata,
+} from './censtatdMeasureCuration.ts'
 
 type Row = Record<string, unknown>
 
@@ -51,10 +54,16 @@ type CanonicalField = CenstatdCanonicalField & {
   comparability: StatsFieldComparability | null
   datasetCode: string
   denominatorFieldName: string | null
+  measureCode: string
   sourceField: string
   sourceNullOption: string | null
   statisticKind: StatsStatisticKind
   valueKind: 'categorical' | 'numeric'
+}
+
+type CanonicalMeasure = {
+  datasetCode: string
+  measureCode: string
 }
 
 type CanonicalDimension = CenstatdCanonicalDimension & { datasetCode: string }
@@ -66,6 +75,8 @@ export type CanonicalStatsRows = {
   dimensions: CanonicalDimension[]
   fields: CanonicalField[]
   fieldsI18n: Row[]
+  measures: CanonicalMeasure[]
+  measuresI18n: Row[]
   observations: CanonicalObservation[]
   records: CanonicalRecord[]
   values: CanonicalDimensionValue[]
@@ -91,11 +102,16 @@ export type HkgovCenstatdStatisticSourceRow = {
  */
 export function normaliseHkgovCenstatdStatistics(
   input: HkgovCenstatdStatisticSourceRow[],
-  options: { fieldMetadata?: ReadonlyMap<string, CenstatdFieldMetadata> } = {},
+  options: {
+    fieldMetadata?: ReadonlyMap<string, CenstatdFieldMetadata>
+    measureMetadata?: ReadonlyMap<string, CenstatdMeasureMetadata>
+  } = {},
 ): CanonicalStatsRows {
   const observations: CanonicalObservation[] = []
   const fields = new Map<string, CanonicalField>()
   const fieldsI18n = new Map<string, Row>()
+  const measures = new Map<string, CanonicalMeasure>()
+  const measuresI18n = new Map<string, Row>()
   const series = new Map<string, CanonicalSeries>()
   const observationsBySeries = new Map<string, CanonicalObservation[]>()
 
@@ -130,6 +146,7 @@ export function normaliseHkgovCenstatdStatistics(
         `${row.datasetCode}\u0000${sourceField}`,
       )
       const fieldName = metadata?.fieldName ?? sourceField
+      const measureCode = metadata?.measureCode ?? fieldName
       const observationId = observationIdentifier({
         fieldName,
         seriesId,
@@ -160,20 +177,22 @@ export function normaliseHkgovCenstatdStatistics(
         dimensions: metadata?.dimensions ?? {},
         denominatorFieldName: metadata?.denominatorFieldName ?? null,
         fieldName,
+        measureCode,
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
         statisticKind: metadata?.statisticKind ?? 'unreviewed',
         valueKind: parsed.numericValue === null ? 'categorical' : 'numeric',
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
       })
-      for (const localisation of metadata?.localisations ?? [
+      const fieldLocalisations = metadata?.localisations ?? [
         {
           description: null,
           isTranslationVerified: true,
           locale: 'en' as const,
           name: sourceField,
         },
-      ]) {
+      ]
+      for (const localisation of fieldLocalisations) {
         fieldsI18n.set(`${fieldKey}\u0000${localisation.locale}`, {
           datasetCode: row.datasetCode,
           fieldName,
@@ -182,6 +201,33 @@ export function normaliseHkgovCenstatdStatistics(
           description: localisation.description,
           isTranslationVerified: localisation.isTranslationVerified,
         })
+      }
+      const measureKey = `${row.datasetCode}\u0000${measureCode}`
+      measures.set(measureKey, { datasetCode: row.datasetCode, measureCode })
+      const reviewedMeasure = options.measureMetadata?.get(measureKey)
+      if (metadata && options.measureMetadata && !reviewedMeasure) {
+        throw new Error(
+          `C&SD ${row.datasetCode} field ${fieldName} references unregistered measure ${measureCode}.`,
+        )
+      }
+      const measureLocalisations = reviewedMeasure?.localisations ?? fieldLocalisations
+      for (const localisation of measureLocalisations) {
+        const key = `${measureKey}\u0000${localisation.locale}`
+        const next = {
+          datasetCode: row.datasetCode,
+          measureCode,
+          locale: localisation.locale,
+          name: localisation.name,
+          description: localisation.description,
+          isTranslationVerified: localisation.isTranslationVerified,
+        }
+        const existing = measuresI18n.get(key)
+        if (existing && JSON.stringify(existing) !== JSON.stringify(next)) {
+          throw new Error(
+            `C&SD ${row.datasetCode} measure ${measureCode} has conflicting localisations.`,
+          )
+        }
+        measuresI18n.set(key, next)
       }
     }
   }
@@ -210,6 +256,8 @@ export function normaliseHkgovCenstatdStatistics(
     dimensions: [],
     fields: [...fields.values()],
     fieldsI18n: [...fieldsI18n.values()],
+    measures: [...measures.values()],
+    measuresI18n: [...measuresI18n.values()],
     observations,
     records: [...series.values()].flatMap(seriesRow => {
       const recordsByDimensions = new Map<string, CanonicalRecord>()

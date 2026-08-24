@@ -185,6 +185,7 @@ test('identifies C&SD field fields that require a reviewed decision', () => {
     ],
     aggregation: 'total',
     fieldName: 'totalPopulation',
+    measureCode: 'totalPopulation',
     dimensions: {},
     statisticKind: 'count',
     unitCode: 'person',

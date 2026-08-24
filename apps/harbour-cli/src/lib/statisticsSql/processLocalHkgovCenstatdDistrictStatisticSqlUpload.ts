@@ -40,7 +40,10 @@ import {
 } from './canonicalStatsSql.ts'
 import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
-import { resolveCenstatdFieldMetadata } from './censtatdMeasureCuration.ts'
+import {
+  loadCenstatdMeasureMetadata,
+  resolveCenstatdFieldMetadata,
+} from './censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
   replayReleaseProcessingActionsMetaToRemote,
@@ -215,10 +218,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           promptForCuration: options.promptForCuration,
         }),
     )
+    const measureMetadata = await loadCenstatdMeasureMetadata()
     canonical = await runStatisticProgressStep(
       progress,
       { action: 'Curate', count: canonical.fields.length, subject: 'fields' },
-      () => normaliseHkgovCenstatdStatistics(canonicalInput, { fieldMetadata }),
+      () =>
+        normaliseHkgovCenstatdStatistics(canonicalInput, {
+          fieldMetadata,
+          measureMetadata,
+        }),
     )
     const batches = await runStatisticProgressStep(
       progress,
@@ -632,6 +640,11 @@ function canonicalDictionaries(
   return [
     { rows: canonical.fields.map(version), table: 'statsFields' as const },
     { rows: canonical.fieldsI18n.map(version), table: 'statsFieldsI18n' as const },
+    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
+    {
+      rows: canonical.measuresI18n.map(version),
+      table: 'statsMeasuresI18n' as const,
+    },
     { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
   ]
 }

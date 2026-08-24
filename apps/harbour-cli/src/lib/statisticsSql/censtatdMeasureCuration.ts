@@ -66,10 +66,16 @@ export type CenstatdFieldMetadata = {
   denominatorFieldName?: string | null
   dimensions: Readonly<Record<string, string>>
   localisations: readonly CenstatdFieldLocalisation[]
+  measureCode: string
   statisticKind: Exclude<StatsStatisticKind, 'unreviewed'>
   fieldName: string
   sourceNullOption?: string | null
   unitCode: string
+}
+
+export type CenstatdMeasureMetadata = {
+  localisations: readonly CenstatdFieldLocalisation[]
+  measureCode: string
 }
 
 export type CenstatdFieldLocalisation = {
@@ -93,6 +99,10 @@ type CenstatdSchemaMeasureCandidate = {
 const DEFAULT_CURATION_DIRECTORY = resolve(
   import.meta.dir,
   '../../../../../fixtures/meta/curations/hkgov-censtatd-statistics',
+)
+const DEFAULT_MEASURE_CURATION_DIRECTORY = resolve(
+  import.meta.dir,
+  '../../../../../fixtures/meta/curations/hkgov-censtatd-statistics-measures',
 )
 const DEFAULT_UNITS_PATH = resolve(
   import.meta.dir,
@@ -168,6 +178,77 @@ export async function loadCenstatdFieldCuration(
       return emptyCenstatdFieldCuration()
     throw error
   }
+}
+
+/**
+ * Loads the reviewed, dimension-free measure vocabulary used by the public
+ * Statistics Registry. Measure records deliberately remain separate from
+ * field curation: one measure can describe many dimension-qualified fields.
+ */
+export async function loadCenstatdMeasureMetadata(
+  directory = DEFAULT_MEASURE_CURATION_DIRECTORY,
+) {
+  const entries = await readdir(directory, { withFileTypes: true })
+  const paths = entries
+    .filter(entry => entry.isFile() && entry.name.endsWith('.json'))
+    .map(entry => resolve(directory, entry.name))
+    .sort((left, right) => left.localeCompare(right))
+  const metadata = new Map<string, CenstatdMeasureMetadata>()
+  for (const path of paths) {
+    const value = JSON.parse(await readFile(path, 'utf8')) as {
+      datasetCode?: unknown
+      measures?: unknown
+      schemaVersion?: unknown
+    }
+    if (
+      value.schemaVersion !== 1 ||
+      typeof value.datasetCode !== 'string' ||
+      !value.datasetCode ||
+      !Array.isArray(value.measures)
+    ) {
+      throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
+    }
+    for (const measure of value.measures) {
+      if (!measure || typeof measure !== 'object' || Array.isArray(measure))
+        throw new Error(`Invalid C&SD measure curation entry: ${path}.`)
+      const entry = measure as Partial<CenstatdMeasureMetadata>
+      if (
+        typeof entry.measureCode !== 'string' ||
+        !/^[a-z][A-Za-z0-9]*$/.test(entry.measureCode) ||
+        !Array.isArray(entry.localisations) ||
+        entry.localisations.length === 0
+      ) {
+        throw new Error(`Invalid C&SD measure curation entry: ${path}.`)
+      }
+      const locales = new Set<string>()
+      for (const localisation of entry.localisations) {
+        if (
+          !localisation ||
+          typeof localisation !== 'object' ||
+          !['en', 'zh-Hant', 'zh-Hans'].includes(localisation.locale) ||
+          typeof localisation.name !== 'string' ||
+          !localisation.name.trim() ||
+          typeof localisation.description !== 'string' ||
+          !localisation.description.trim() ||
+          typeof localisation.isTranslationVerified !== 'boolean' ||
+          locales.has(localisation.locale)
+        ) {
+          throw new Error(`Invalid C&SD measure localisation: ${path}.`)
+        }
+        locales.add(localisation.locale)
+      }
+      if (!locales.has('en'))
+        throw new Error(`Missing English C&SD measure localisation: ${path}.`)
+      const key = `${value.datasetCode}\u0000${entry.measureCode}`
+      if (metadata.has(key))
+        throw new Error(`Duplicate C&SD measure curation entry: ${path}.`)
+      metadata.set(key, {
+        localisations: entry.localisations as CenstatdFieldLocalisation[],
+        measureCode: entry.measureCode,
+      })
+    }
+  }
+  return metadata
 }
 
 export async function saveCenstatdFieldCuration(
@@ -313,6 +394,7 @@ export function resolveCenstatdFieldCuration(input: {
                   dimensions: decision.dimensions,
                   localisations: decision.localisations,
                   fieldName: decision.fieldName,
+                  measureCode: decision.measureCode,
                   ...(decision.sourceNullOption === undefined
                     ? {}
                     : { sourceNullOption: decision.sourceNullOption }),
