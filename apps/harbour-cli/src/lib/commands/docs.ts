@@ -3,7 +3,12 @@ import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { cancel, isCancel, note, outro, select, text } from '@clack/prompts'
-import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
+import {
+  apiProfileDocumentationByFamily,
+  apiProfileNames,
+  compareReleaseVersions,
+  normaliseBaseUrl,
+} from '@repo/core'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
@@ -1217,8 +1222,12 @@ export async function renderMarkdownFixtureBody(
       renderedApiKeyNotes,
       frontmatter,
     )
-    const renderedCenstatdTables = await renderCenstatdMeasureTables(
+    const renderedApiProfileTables = renderApiProfileTables(
       renderedExperimentalApiWarnings,
+      frontmatter,
+    )
+    const renderedCenstatdTables = await renderCenstatdMeasureTables(
+      renderedApiProfileTables,
       frontmatter,
     )
     return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
@@ -1236,7 +1245,7 @@ function resolveMarkdownTemplateValue(
   frontmatter: Record<string, string>,
 ) {
   if (
-    /^(apiKeyNote|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
+    /^(apiKeyNote|apiProfileTable|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
       key,
     )
   ) {
@@ -1323,6 +1332,39 @@ change before the <black>v1</black> release, after which prior versions will be 
     directive,
     (_tag, locale: keyof typeof warnings) => warnings[locale],
   )
+}
+
+function renderApiProfileTables(markdown: string, frontmatter: Record<string, string>) {
+  const directive = /\{\{apiProfileTable:(en|zh-Hant|zh-Hans)\}\}/g
+  if (!markdown.includes('{{apiProfileTable:')) return markdown
+
+  const profiles =
+    apiProfileDocumentationByFamily[
+      frontmatter.apiFamily as keyof typeof apiProfileDocumentationByFamily
+    ]
+  if (!profiles) {
+    throw new Error(
+      `API profile-table directives are not configured for apiFamily: ${frontmatter.apiFamily ?? '-'}`,
+    )
+  }
+
+  const headings = {
+    en: ['Profile', 'Use it when you need', 'Adds to the response'],
+    'zh-Hant': ['設定檔', '適用情況', '回應新增內容'],
+    'zh-Hans': ['配置文件', '适用情形', '响应新增内容'],
+  } as const
+
+  return markdown.replace(directive, (_tag, locale: keyof typeof headings) => {
+    const [profile, useCase, coverage] = headings[locale]
+    const rows = apiProfileNames
+      .map(profileName => {
+        const documentation = profiles[profileName][locale]
+        return `| <black>${profileName}</black> | ${documentation.useCase} | ${documentation.coverage} |`
+      })
+      .join('\n')
+
+    return `| ${profile} | ${useCase} | ${coverage} |\n| --- | --- | --- |\n${rows}`
+  })
 }
 
 /**

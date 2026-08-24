@@ -11,7 +11,9 @@ export const jsonApiResourceTypes = [
   'api-release-set-snapshots',
 ] as const
 
-export const profileNames = ['compact', 'default', 'full', 'map'] as const
+import { apiProfileNames } from '@repo/core'
+
+export const profileNames = apiProfileNames
 
 export const resolverCodes = [
   'direct_copy',

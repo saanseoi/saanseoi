@@ -1,9 +1,10 @@
 import { z } from '@hono/zod-openapi'
+import { apiProfileNames } from '@repo/core'
 
 import { openApiText } from '../lib/openapi-i18n'
 
 export const RegionCode = z.enum(['hk', 'mo'])
-export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
+export const ProfileName = z.enum(apiProfileNames)
 export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
 export const ApiFamilyName = z.enum([
   'addresses',
