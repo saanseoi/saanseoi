@@ -57,7 +57,7 @@
       "dimensions": {},
       "sourceField": "MYPOPN_LAND",
       "unitCode": "person",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",

@@ -35,7 +35,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "count",
       "unitCode": "person",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "median",
@@ -72,7 +72,7 @@
       "statisticKind": "quantity",
       "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "medianAge"
+      "measureCode": "age"
     },
     {
       "aggregation": "median",
@@ -109,7 +109,7 @@
       "statisticKind": "quantity",
       "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "medianAge"
+      "measureCode": "age"
     },
     {
       "aggregation": "median",
@@ -146,7 +146,7 @@
       "statisticKind": "quantity",
       "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "medianAge"
+      "measureCode": "age"
     },
     {
       "aggregation": "none",
@@ -218,7 +218,7 @@
       "sourceField": "age_1",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -256,7 +256,7 @@
       "sourceField": "age_2",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -294,7 +294,7 @@
       "sourceField": "age_3",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -332,7 +332,7 @@
       "sourceField": "age_4",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -370,7 +370,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -408,7 +408,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -445,7 +445,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -482,7 +482,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -519,7 +519,7 @@
       "sourceNullOption": "Null",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -556,7 +556,7 @@
       "sourceField": "ul_can",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -593,7 +593,7 @@
       "sourceField": "ul_put_othchi",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -630,7 +630,7 @@
       "sourceField": "ul_eng_oth",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -667,7 +667,7 @@
       "sourceField": "edu_pri_prepri",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -704,7 +704,7 @@
       "sourceField": "edu_sec",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -741,7 +741,7 @@
       "sourceField": "edu_ter",
       "statisticKind": "proportion",
       "unitCode": "percent",
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     },
     {
       "aggregation": "none",
@@ -1472,7 +1472,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -1509,7 +1510,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -1546,7 +1548,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -1584,7 +1587,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -1622,7 +1626,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -1660,7 +1665,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileMonthlyEmploymentIncome"
+      "measureCode": "employmentIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -1695,7 +1701,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "median",
@@ -1730,7 +1737,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 50,
-      "measureCode": "medianWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "percentile",
@@ -1765,7 +1773,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "percentile",
@@ -1802,7 +1811,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "median",
@@ -1839,7 +1849,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 50,
-      "measureCode": "medianWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "percentile",
@@ -1876,7 +1887,8 @@
       "statisticKind": "quantity",
       "unitCode": "hour",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileWeeklyWorkingHours"
+      "measureCode": "workingHours",
+      "periodicity": "week"
     },
     {
       "aggregation": "none",
@@ -2342,7 +2354,7 @@
       "sourceField": "adhz",
       "statisticKind": "quantity",
       "unitCode": "person",
-      "measureCode": "averageDomesticHouseholdSize"
+      "measureCode": "domesticHouseholdSize"
     },
     {
       "aggregation": "none",
@@ -2485,7 +2497,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -2520,7 +2533,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -2555,7 +2569,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -2592,7 +2607,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -2629,7 +2645,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "percentile",
@@ -2666,7 +2683,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileMonthlyHouseholdIncome"
+      "measureCode": "householdIncome",
+      "periodicity": "month"
     },
     {
       "aggregation": "none",
@@ -2775,7 +2793,7 @@
       "statisticKind": "quantity",
       "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "medianAge"
+      "measureCode": "age"
     },
     {
       "aggregation": "none",
@@ -2989,7 +3007,7 @@
       "sourceField": "anr_h",
       "statisticKind": "quantity",
       "unitCode": "room",
-      "measureCode": "averageRoomsPerDomesticHousehold"
+      "measureCode": "roomsPerDomesticHousehold"
     },
     {
       "aggregation": "mean",
@@ -3023,7 +3041,7 @@
       "sourceField": "anr_p",
       "statisticKind": "quantity",
       "unitCode": "room",
-      "measureCode": "averageRoomsPerPerson"
+      "measureCode": "roomsPerPerson"
     },
     {
       "aggregation": "percentile",
@@ -3058,7 +3076,7 @@
       "statisticKind": "quantity",
       "unitCode": "square-metre",
       "aggregationPercentile": 25,
-      "measureCode": "firstQuartileHouseholdFloorArea"
+      "measureCode": "householdFloorArea"
     },
     {
       "aggregation": "median",
@@ -3093,7 +3111,7 @@
       "statisticKind": "quantity",
       "unitCode": "square-metre",
       "aggregationPercentile": 50,
-      "measureCode": "medianHouseholdFloorArea"
+      "measureCode": "householdFloorArea"
     },
     {
       "aggregation": "percentile",
@@ -3128,7 +3146,7 @@
       "statisticKind": "quantity",
       "unitCode": "square-metre",
       "aggregationPercentile": 75,
-      "measureCode": "thirdQuartileHouseholdFloorArea"
+      "measureCode": "householdFloorArea"
     },
     {
       "aggregation": "none",
@@ -3307,7 +3325,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyMortgageOrLoanRepayment"
+      "measureCode": "mortgageOrLoanRepayment",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -3342,7 +3361,8 @@
       "statisticKind": "proportion",
       "unitCode": "percent",
       "aggregationPercentile": 50,
-      "measureCode": "medianMortgageOrLoanRepaymentToIncomeRatio"
+      "measureCode": "mortgageOrLoanRepaymentToIncomeRatio",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -3377,7 +3397,7 @@
       "statisticKind": "quantity",
       "unitCode": "year",
       "aggregationPercentile": 50,
-      "measureCode": "medianOutstandingMortgageOrLoanPeriod"
+      "measureCode": "outstandingMortgageOrLoanPeriod"
     },
     {
       "aggregation": "median",
@@ -3412,7 +3432,8 @@
       "statisticKind": "quantity",
       "unitCode": "hong-kong-dollar",
       "aggregationPercentile": 50,
-      "measureCode": "medianMonthlyHouseholdRent"
+      "measureCode": "householdRent",
+      "periodicity": "month"
     },
     {
       "aggregation": "median",
@@ -3447,7 +3468,8 @@
       "statisticKind": "proportion",
       "unitCode": "percent",
       "aggregationPercentile": 50,
-      "measureCode": "medianHouseholdRentToIncomeRatio"
+      "measureCode": "householdRentToIncomeRatio",
+      "periodicity": "month"
     },
     {
       "aggregation": "none",
