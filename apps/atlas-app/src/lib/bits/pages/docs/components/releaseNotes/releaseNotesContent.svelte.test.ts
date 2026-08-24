@@ -106,6 +106,20 @@ test('opens external documentation safely in a new tab', async () => {
     .toHaveAttribute('rel', 'noopener noreferrer')
 })
 
+test('links a filter name to its API operation reference', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '[filter[level]](/docs#tag/divisions/GET/divisions/v0)',
+      'en',
+    ),
+  )
+
+  await expect
+    .element(screen.getByRole('link', { name: /filter\[level\]/ }))
+    .toHaveAttribute('href', '/docs#tag/divisions/GET/divisions/v0')
+})
+
 test('preserves a publisher link title as its full name', async () => {
   const screen = await render(
     ReleaseNotesContent,
