@@ -1368,7 +1368,7 @@ function renderApiProfileTables(markdown: string, frontmatter: Record<string, st
     const rows = apiProfileNames
       .map(profileName => {
         const documentation = profiles[profileName][locale]
-        return `| <black>${profileName}</black> | ${documentation.useCase} | ${documentation.coverage} |`
+        return `| \`${profileName}\` | ${documentation.useCase} | ${documentation.coverage} |`
       })
       .join('\n')
 
@@ -1457,7 +1457,7 @@ async function renderApiFamilyDomains(
         throw new Error(`Domain ${domain.code} is missing a summary.`)
       }
 
-      return `- <black>${domain.code}</black>${markers.length ? ` ${markers.join(' ')}` : ''} — ${summary}`
+      return `- \`${domain.code}\`${markers.length ? ` ${markers.join(' ')}` : ''} — ${summary}`
     })
 
     return rows.join('\n')
@@ -1520,7 +1520,7 @@ function renderApiReleaseSetCompanionTable(
         publisherName,
       )
       const datasetDescription = companionResourceShortDescription(source, locale)
-      return `| <black>${companionIncludeCode(source)}</black> | ${companionResourceTypeLabel(source.resourceType, locale)} | ${markdownLink(publisherNameShort, `/publishers/${source.publisherCode}`, publisherName)} | ${datasetDescription} |`
+      return `| \`${companionIncludeCode(source)}\` | ${companionResourceTypeLabel(source.resourceType, locale)} | ${markdownLink(publisherNameShort, `/publishers/${source.publisherCode}`, publisherName)} | ${datasetDescription} |`
     })
 
   return `| ${code} | ${type} | ${publisher} | ${description} |\n| --- | --- | --- | --- |\n${rows.join('\n')}`
