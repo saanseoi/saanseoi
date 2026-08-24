@@ -82,8 +82,23 @@ const DivisionHierarchyResourceIdentifierSchema =
   DivisionResourceIdentifierSchema.extend({
     meta: z
       .object({
-        name: z.string().optional(),
-        subType: z.string().optional(),
+        name: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText('openapi_divisions_hierarchy_name_description'),
+          }),
+        subType: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_divisions_hierarchy_sub_type_description',
+            ),
+          }),
+      })
+      .openapi({
+        description: openApiText('openapi_divisions_hierarchy_meta_description'),
       })
       .optional(),
   }).openapi('DivisionHierarchyIdentifier')

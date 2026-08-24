@@ -13,6 +13,7 @@ import {
   isSchemaNullable,
 } from '../releaseSchema.presentation'
 import type { OpenApiSchema } from '../releaseSchema.types'
+import ReleaseSchemaDataArrayEnvelope from './releaseSchemaDataArrayEnvelope.svelte'
 import InlineMarkdown from './releaseSchemaInlineMarkdown.svelte'
 import ReleaseSchemaNode from './releaseSchemaNode.svelte'
 
@@ -109,6 +110,7 @@ let hasChildren = $derived(
   !isCyclicReference &&
     Boolean(
       visibleProperties.length ||
+        dataArrayEnvelope ||
         additionalProperties ||
         composition.length ||
         (displaySchema.items && !scalarArrayChain && !dataArrayEnvelope),
@@ -176,16 +178,6 @@ function toggleExpanded() {
               class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
               >{typeLabel}</span
             >
-            <span class="font-mono text-caption text-foreground-alt">.data with</span>
-            <span
-              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
-              >array</span
-            >
-            <span class="font-body text-caption text-foreground-alt">of</span>
-            <span
-              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
-              >{dataArrayEnvelope.itemType}</span
-            >
           {:else}
             <span
               class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
@@ -239,78 +231,93 @@ function toggleExpanded() {
 
   {#if expanded && hasChildren}
     <div class="border-t border-outline-variant/55 bg-surface-container-low/60">
-      {#each visibleProperties as [propertyName, propertySchema] (propertyName)}
-        <div
-          animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
-          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-        >
-          <ReleaseSchemaNode
-            depth={depth + 1}
-            {expandAllToken}
-            {expandedNodeStates}
-            name={propertyName}
-            {onExpandedNodeStateChange}
-            referencePath={childReferencePath}
-            required={recordValueSchema?.required?.includes(propertyName) ?? childSchema.required?.includes(propertyName)}
-            schema={propertySchema}
-            {schemas}
-          />
-        </div>
-      {/each}
-      {#if additionalProperties}
-        <div
-          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-        >
-          <ReleaseSchemaNode
-            depth={depth + 1}
-            {expandAllToken}
-            {expandedNodeStates}
-            name={recordValueSchema
+      {#if dataArrayEnvelope}
+        <ReleaseSchemaDataArrayEnvelope
+          depth={depth + 1}
+          {expandAllToken}
+          {expandedNodeStates}
+          itemSchema={dataArrayEnvelope.itemSchema}
+          itemType={dataArrayEnvelope.itemType}
+          {onExpandedNodeStateChange}
+          referencePath={childReferencePath}
+          required={dataArrayEnvelope.required}
+          schema={dataArrayEnvelope.dataSchema}
+          {schemas}
+        />
+      {:else}
+        {#each visibleProperties as [propertyName, propertySchema] (propertyName)}
+          <div
+            animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
+            in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+            out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          >
+            <ReleaseSchemaNode
+              depth={depth + 1}
+              {expandAllToken}
+              {expandedNodeStates}
+              name={propertyName}
+              {onExpandedNodeStateChange}
+              referencePath={childReferencePath}
+              required={recordValueSchema?.required?.includes(propertyName) ?? childSchema.required?.includes(propertyName)}
+              schema={propertySchema}
+              {schemas}
+            />
+          </div>
+        {/each}
+        {#if additionalProperties}
+          <div
+            in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+            out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          >
+            <ReleaseSchemaNode
+              depth={depth + 1}
+              {expandAllToken}
+              {expandedNodeStates}
+              name={recordValueSchema
                 ? childSchema['x-recordKeyName'] ?? 'property key'
                 : childSchema['x-additionalPropertiesName'] ?? 'additional properties'}
-            {onExpandedNodeStateChange}
-            referencePath={childReferencePath}
-            schema={additionalProperties}
-            {schemas}
-          />
-        </div>
-      {/if}
-      {#each composition as member, index (`${name}-${index}`)}
-        <div
-          animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
-          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-        >
-          <ReleaseSchemaNode
-            depth={depth + 1}
-            {expandAllToken}
-            {expandedNodeStates}
-            name={getSchemaVariantName(member) ?? `option ${index + 1}`}
-            {onExpandedNodeStateChange}
-            referencePath={childReferencePath}
-            schema={member}
-            {schemas}
-          />
-        </div>
-      {/each}
-      {#if displaySchema.items && !scalarArrayChain && !dataArrayEnvelope}
-        <div
-          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-        >
-          <ReleaseSchemaNode
-            depth={depth + 1}
-            {expandAllToken}
-            {expandedNodeStates}
-            name="items"
-            {onExpandedNodeStateChange}
-            referencePath={childReferencePath}
-            schema={displaySchema.items}
-            {schemas}
-          />
-        </div>
+              {onExpandedNodeStateChange}
+              referencePath={childReferencePath}
+              schema={additionalProperties}
+              {schemas}
+            />
+          </div>
+        {/if}
+        {#each composition as member, index (`${name}-${index}`)}
+          <div
+            animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
+            in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+            out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          >
+            <ReleaseSchemaNode
+              depth={depth + 1}
+              {expandAllToken}
+              {expandedNodeStates}
+              name={getSchemaVariantName(member) ?? `option ${index + 1}`}
+              {onExpandedNodeStateChange}
+              referencePath={childReferencePath}
+              schema={member}
+              {schemas}
+            />
+          </div>
+        {/each}
+        {#if displaySchema.items && !scalarArrayChain && !dataArrayEnvelope}
+          <div
+            in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+            out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          >
+            <ReleaseSchemaNode
+              depth={depth + 1}
+              {expandAllToken}
+              {expandedNodeStates}
+              name="items"
+              {onExpandedNodeStateChange}
+              referencePath={childReferencePath}
+              schema={displaySchema.items}
+              {schemas}
+            />
+          </div>
+        {/if}
       {/if}
     </div>
   {/if}

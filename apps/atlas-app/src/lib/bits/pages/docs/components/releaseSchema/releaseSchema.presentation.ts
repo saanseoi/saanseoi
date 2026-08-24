@@ -170,7 +170,12 @@ export function getSchemaDataArrayEnvelope(
   const itemType = referenceName ?? getSchemaTypeName(itemSchema)
   if (!itemType) return null
 
-  return { itemSchema, itemType }
+  return {
+    dataSchema,
+    itemSchema,
+    itemType,
+    required: schema.required?.includes('data') ?? false,
+  }
 }
 
 const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
