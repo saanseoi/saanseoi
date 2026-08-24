@@ -185,6 +185,22 @@ Publishes revision r{{ revision }}.
     expect(rendered).not.toContain('{{apiProfileTable:')
   })
 
+  test('renders domains from the current API composition', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: '{{domains:en}}\n\n{{domains:zh-Hant}}\n\n{{domains:zh-Hans}}\n',
+      frontmatter: {
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: 'geographic',
+      },
+    })
+
+    expect(rendered).toContain('<black>geographic</black> — Geographic.')
+    expect(rendered).toContain('<blue>DEFAULT</blue> <blue>THIS RELEASE</blue>')
+    expect(rendered).toContain('<black>hkgov-pland-pu</black> — 規劃單元。')
+    expect(rendered).toContain('<black>hkgov-landsd</black> — 香港政府。')
+    expect(rendered).not.toContain('{{domains:')
+  })
+
   test('renders API release sources as role and resource-type tables', async () => {
     const rendered = await renderMarkdownFixtureBody(
       {
