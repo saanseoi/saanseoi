@@ -374,8 +374,8 @@ function setApiProfile(profile: string) {
   trackClientProductUsage({
     event: 'client.sample_control',
     surface: 'api_release',
-    entityType: 'profile',
-    entityId: nextProfile,
+    entityType: 'action',
+    entityId: `profile:${nextProfile}`,
   })
   const url = new URL(page.url.href)
   if (nextProfile === 'default') url.searchParams.delete('profile')
@@ -453,6 +453,7 @@ let actions = $derived<ReleaseNavAction[]>(
               })
             },
           },
+          profileAction,
           ...(sampleCount > 1
             ? [
                 {
@@ -471,25 +472,27 @@ let actions = $derived<ReleaseNavAction[]>(
               ]
             : []),
         ]
-      : activeTab === 'audit' && release.bulkActions?.length
-        ? [
-            {
-              icon: 'ion:layers-outline',
-              id: 'bulk',
-              label: m.source_bulk_actions(),
-              onSelect: () => {
-                showBulkActions = !showBulkActions
-                trackClientProductUsage({
-                  event: 'client.audit_control',
-                  surface: 'api_release',
-                  entityType: 'action',
-                  entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                })
+      : activeTab === 'schema'
+        ? [profileAction]
+        : activeTab === 'audit' && release.bulkActions?.length
+          ? [
+              {
+                icon: 'ion:layers-outline',
+                id: 'bulk',
+                label: m.source_bulk_actions(),
+                onSelect: () => {
+                  showBulkActions = !showBulkActions
+                  trackClientProductUsage({
+                    event: 'client.audit_control',
+                    surface: 'api_release',
+                    entityType: 'action',
+                    entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                  })
+                },
+                pressed: showBulkActions,
               },
-              pressed: showBulkActions,
-            },
-          ]
-        : [],
+            ]
+          : [],
 )
 
 let sourceReleaseLinksPresentation = $derived(
@@ -680,12 +683,17 @@ $effect(() => {
             bind:activeHeadingId={activeStatsHeadingId}
           />
         {:else if activeTab === 'schema'}
-          <ReleaseSchema.Root apiFamily={api.familyType} />
+          <ReleaseSchema.Root
+            apiFamily={api.familyType}
+            apiVersion={release.apiVersion}
+            profile={apiProfile}
+          />
         {:else if activeTab === 'samples'}
-          {#key `${release.apiVersion}:${release.code}`}
+          {#key `${release.apiVersion}:${release.code}:${apiProfile}`}
             <ReleaseSamples.Root
               apiVersion={release.apiVersion}
               apiFamily={release.apiFamily}
+              profile={apiProfile}
               releaseSet={release.code}
               request={sampleRequest}
               bind:sampleCount
