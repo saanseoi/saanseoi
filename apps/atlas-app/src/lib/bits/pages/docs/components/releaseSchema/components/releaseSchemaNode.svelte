@@ -5,6 +5,7 @@ import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import {
   getSchemaComposition,
+  getSchemaDataArrayEnvelope,
   getSchemaRecordValueSchema,
   getSchemaReferenceName,
   getScalarArrayChain,
@@ -44,14 +45,19 @@ let {
 let ownReferenceName = $derived(getSchemaReferenceName(schema.$ref))
 let directComposition = $derived(getSchemaComposition(schema))
 let compositionReferenceName = $derived(
-  directComposition.length === 1
-    ? getSchemaReferenceName(directComposition[0]?.$ref)
-    : null,
+  (() => {
+    const referenceNames = directComposition
+      .map(member => getSchemaReferenceName(member.$ref))
+      .filter((name): name is string => Boolean(name))
+    return referenceNames.length === 1 ? referenceNames[0] : null
+  })(),
 )
 let referenceName = $derived(ownReferenceName ?? compositionReferenceName)
 let resolvedSchema = $derived(referenceName ? schemas[referenceName] : undefined)
 let displaySchema = $derived(resolvedSchema ?? schema)
-let properties = $derived(Object.entries(displaySchema.properties ?? {}))
+let dataArrayEnvelope = $derived(getSchemaDataArrayEnvelope(displaySchema, schemas))
+let childSchema = $derived(dataArrayEnvelope?.itemSchema ?? displaySchema)
+let properties = $derived(Object.entries(childSchema.properties ?? {}))
 let isCyclicReference = $derived(
   Boolean(referenceName && referencePath.includes(referenceName)),
 )
@@ -59,18 +65,13 @@ let childReferencePath = $derived(
   referenceName ? [...referencePath, referenceName] : referencePath,
 )
 let additionalProperties = $derived(
-  typeof displaySchema.additionalProperties === 'object'
-    ? displaySchema.additionalProperties
+  typeof childSchema.additionalProperties === 'object'
+    ? childSchema.additionalProperties
     : undefined,
 )
-let recordValueSchema = $derived(getSchemaRecordValueSchema(displaySchema, schemas))
-let recordProperties = $derived(
-  recordValueSchema ? Object.entries(recordValueSchema.properties ?? {}) : [],
-)
-let visibleProperties = $derived(
-  recordProperties.length ? recordProperties : properties,
-)
-let composition = $derived(getSchemaComposition(displaySchema))
+let recordValueSchema = $derived(getSchemaRecordValueSchema(childSchema, schemas))
+let visibleProperties = $derived(properties)
+let composition = $derived(getSchemaComposition(childSchema))
 let nullable = $derived(isSchemaNullable(schema) || isSchemaNullable(displaySchema))
 let scalarArrayChain = $derived(getScalarArrayChain(displaySchema))
 let typeLabel = $derived.by(() => {
@@ -94,17 +95,23 @@ let detailLabels = $derived([
     : []),
 ])
 let description = $derived(
-  [...new Set([displaySchema.description, scalarArrayChain?.description])]
+  [
+    schema.description,
+    ...directComposition.map(member => member.description),
+    displaySchema.description,
+    scalarArrayChain?.description,
+  ]
     .filter((value): value is string => Boolean(value))
+    .filter((value, index, descriptions) => descriptions.indexOf(value) === index)
     .join(' '),
 )
 let hasChildren = $derived(
   !isCyclicReference &&
     Boolean(
       visibleProperties.length ||
-        (additionalProperties && !recordValueSchema) ||
+        additionalProperties ||
         composition.length ||
-        (displaySchema.items && !scalarArrayChain),
+        (displaySchema.items && !scalarArrayChain && !dataArrayEnvelope),
     ),
 )
 let nodePath = $derived([...referencePath, name].join('.'))
@@ -164,6 +171,21 @@ function toggleExpanded() {
                 >{type}</span
               >
             {/each}
+          {:else if dataArrayEnvelope}
+            <span
+              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
+              >{typeLabel}</span
+            >
+            <span class="font-mono text-caption text-foreground-alt">.data with</span>
+            <span
+              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
+              >array</span
+            >
+            <span class="font-body text-caption text-foreground-alt">of</span>
+            <span
+              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
+              >{dataArrayEnvelope.itemType}</span
+            >
           {:else}
             <span
               class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
@@ -230,13 +252,13 @@ function toggleExpanded() {
             name={propertyName}
             {onExpandedNodeStateChange}
             referencePath={childReferencePath}
-            required={recordValueSchema?.required?.includes(propertyName) ?? displaySchema.required?.includes(propertyName)}
+            required={recordValueSchema?.required?.includes(propertyName) ?? childSchema.required?.includes(propertyName)}
             schema={propertySchema}
             {schemas}
           />
         </div>
       {/each}
-      {#if additionalProperties && !recordValueSchema}
+      {#if additionalProperties}
         <div
           in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
           out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
@@ -245,7 +267,9 @@ function toggleExpanded() {
             depth={depth + 1}
             {expandAllToken}
             {expandedNodeStates}
-            name="additional properties"
+            name={recordValueSchema
+                ? childSchema['x-recordKeyName'] ?? 'property key'
+                : childSchema['x-additionalPropertiesName'] ?? 'additional properties'}
             {onExpandedNodeStateChange}
             referencePath={childReferencePath}
             schema={additionalProperties}
@@ -271,7 +295,7 @@ function toggleExpanded() {
           />
         </div>
       {/each}
-      {#if displaySchema.items && !scalarArrayChain}
+      {#if displaySchema.items && !scalarArrayChain && !dataArrayEnvelope}
         <div
           in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
           out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
