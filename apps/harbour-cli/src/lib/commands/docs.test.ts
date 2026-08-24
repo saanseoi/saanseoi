@@ -194,11 +194,140 @@ Publishes revision r{{ revision }}.
       },
     })
 
-    expect(rendered).toContain('<black>geographic</black> — Geographic.')
-    expect(rendered).toContain('<blue>DEFAULT</blue> <blue>THIS RELEASE</blue>')
-    expect(rendered).toContain('<black>hkgov-pland-pu</black> — 規劃單元。')
-    expect(rendered).toContain('<black>hkgov-landsd</black> — 香港政府。')
+    expect(rendered).toContain(
+      '<black>geographic</black> <blue>DEFAULT</blue> <blue>THIS RELEASE</blue> — Overture-led geographical and administrative divisions.',
+    )
+    expect(rendered).toContain(
+      '<black>hkgov-pland-pu</black> — 規劃署的規劃單元及小組。',
+    )
+    expect(rendered).toContain('<black>hkgov-landsd</black> — 地政总署的聚落地名。')
     expect(rendered).not.toContain('{{domains:')
+  })
+
+  test('renders release-set companion resources as a provider-specific table', async () => {
+    const rendered = await renderMarkdownFixtureBody(
+      {
+        body: `{{apiReleaseSetCompanions:en}}
+
+{{apiReleaseSetSources:en}}
+
+{{apiReleaseSetSources:zh-Hant}}
+
+{{apiReleaseSetSources:zh-Hans}}
+`,
+        frontmatter: {},
+      },
+      {},
+      [
+        {
+          datasetCode: 'ds-hk-hkgov-censtatd-division-area-2016',
+          datasetI18n: [
+            {
+              description: 'Census district area geometry.',
+              locale: 'en',
+              name: 'Census district areas',
+            },
+          ],
+          publisherCode: 'hkgov-censtatd',
+          publisherI18n: [
+            {
+              locale: 'en',
+              name: 'Census and Statistics Department',
+              nameShort: 'C&SD',
+            },
+          ],
+          releaseCode: 'dr-hk-hkgov-censtatd-division-area-2016',
+          resourceType: 'divisionArea',
+          role: 'supporting',
+          sourceVersion: '2016',
+          variant: 'hkgov-censtatd:2016',
+        },
+        {
+          datasetCode: 'ds-hk-hkgov-had-division-area',
+          datasetI18n: [
+            {
+              description: 'Official district-area geometry.',
+              locale: 'en',
+              name: 'District areas',
+            },
+          ],
+          publisherCode: 'hkgov-had',
+          publisherI18n: [
+            {
+              locale: 'en',
+              name: 'Home Affairs Department',
+              nameShort: 'HAD',
+            },
+          ],
+          releaseCode: 'dr-hk-hkgov-had-division-area-2025',
+          resourceType: 'divisionArea',
+          role: 'supporting',
+          sourceVersion: '2025',
+          variant: 'hkgov-had',
+        },
+        {
+          datasetCode: 'ds-hk-overture-division-area',
+          datasetI18n: [
+            {
+              description: 'Overture area geometry for divisions.',
+              locale: 'en',
+              name: 'Division areas',
+            },
+          ],
+          publisherCode: 'overture',
+          publisherI18n: [
+            {
+              locale: 'en',
+              name: 'Overture Maps Foundation',
+              nameShort: 'Overture',
+            },
+          ],
+          releaseCode: 'dr-hk-overture-division-area-2025-09-24.0',
+          resourceType: 'divisionArea',
+          role: 'supporting',
+          sourceVersion: '2025-09-24.0',
+          variant: 'overture',
+        },
+        {
+          datasetCode: 'ds-hk-overture-division-boundary',
+          datasetI18n: [
+            {
+              description: 'Overture boundary geometry for divisions.',
+              locale: 'en',
+              name: 'Division boundaries',
+            },
+          ],
+          publisherCode: 'overture',
+          publisherI18n: [
+            {
+              locale: 'en',
+              name: 'Overture Maps Foundation',
+              nameShort: 'Overture',
+            },
+          ],
+          releaseCode: 'dr-hk-overture-division-boundary-2025-09-24.0',
+          resourceType: 'divisionBoundary',
+          role: 'supporting',
+          sourceVersion: '2025-09-24.0',
+          variant: 'overture',
+        },
+      ],
+    )
+
+    expect(rendered).toContain('| Code | Type | Publisher | Description |')
+    expect(rendered).toContain(
+      '| <black>areas:hkgov-censtatd:2016</black> | Area | [C&SD](/publishers/hkgov-censtatd "Census and Statistics Department") | 2016 census district areas. |',
+    )
+    expect(rendered).toContain(
+      '| <black>areas:hkgov-had</black> | Area | [HAD](/publishers/hkgov-had "Home Affairs Department") | Official district areas. |',
+    )
+    expect(rendered).toContain(
+      '| <black>areas:overture</black> | Area | [Overture](/publishers/overture "Overture Maps Foundation") | Division area polygons. |',
+    )
+    expect(rendered).toContain(
+      '| <black>boundaries:overture</black> | Boundary | [Overture](/publishers/overture "Overture Maps Foundation") | District boundaries. |',
+    )
+    expect(rendered).not.toContain('{{apiReleaseSetCompanions:')
   })
 
   test('renders API release sources as role and resource-type tables', async () => {

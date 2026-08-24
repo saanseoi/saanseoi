@@ -60,7 +60,7 @@ test('colours URL families on every line of a fenced URL block', async () => {
   await expect.element(screen.getByText('/addresses')).toHaveClass('text-orange-200')
   await expect
     .element(screen.getByText('hkgov-pland-new-town'))
-    .toHaveClass('text-data-secondary')
+    .toHaveClass('text-data-warning')
 })
 
 test('labels fenced API URL snippets as GET requests', async () => {
@@ -78,6 +78,20 @@ test('labels fenced API URL snippets as GET requests', async () => {
   await expect.element(screen.getByRole('button', { name: 'Copy' })).toBeVisible()
 })
 
+test('keeps API versions visible on the URL block primary surface', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      `\`\`\`url
+/divisions/v0.1?domain=geographic&cohort=2025-09-24.0
+\`\`\``,
+      'en',
+    ),
+  )
+
+  await expect.element(screen.getByText('/v0.1')).toHaveClass('text-primary-fixed')
+})
+
 test('opens external documentation safely in a new tab', async () => {
   const screen = await render(
     ReleaseNotesContent,
@@ -90,6 +104,23 @@ test('opens external documentation safely in a new tab', async () => {
   await expect
     .element(screen.getByRole('link', { name: /SaanSeoi/ }))
     .toHaveAttribute('rel', 'noopener noreferrer')
+})
+
+test('preserves a publisher link title as its full name', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '[C&SD](/publishers/hkgov-censtatd "Census and Statistics Department")',
+      'en',
+    ),
+  )
+
+  await expect
+    .element(screen.getByRole('link', { name: 'C&SD' }))
+    .toHaveAttribute('href', '/publishers/hkgov-censtatd')
+  await expect
+    .element(screen.getByRole('link', { name: 'C&SD' }))
+    .toHaveAttribute('title', 'Census and Statistics Department')
 })
 
 test('centres generated source-table group headings', async () => {

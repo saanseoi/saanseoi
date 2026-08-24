@@ -31,9 +31,9 @@ type ApiReleaseSetDocsRow = {
 
 export type ApiReleaseSetSourceDocsRow = {
   datasetCode: string
-  datasetI18n: Array<{ locale: string; name: string }>
+  datasetI18n: Array<{ description?: string | null; locale: string; name: string }>
   publisherCode: string
-  publisherI18n: Array<{ locale: string; name: string }>
+  publisherI18n: Array<{ locale: string; name: string; nameShort?: string | null }>
   releaseCode: string
   resourceType: string
   role: 'primary' | 'supporting'
@@ -422,7 +422,7 @@ async function runApiReleaseSetDocsPublishCommand(
         ? await renderMarkdownFixtureBody(
             effectiveGuideFixture,
             frontmatter,
-            [],
+            row.sources ?? [],
             effectiveGuideFixture.path,
           )
         : row.guide
@@ -1231,7 +1231,15 @@ export async function renderMarkdownFixtureBody(
       renderedDomains,
       frontmatter,
     )
-    return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
+    const renderedCompanionResources = renderApiReleaseSetCompanionResources(
+      renderedCenstatdTables,
+      apiReleaseSources,
+    )
+    return renderApiReleaseSetSourcesTables(
+      renderedCompanionResources,
+      apiReleaseSources,
+      !fixturePath || fixturePath.includes(`/${API_RELEASE_SET_NOTES_DIRECTORY}/`),
+    )
   } catch (error) {
     if (!fixturePath) throw error
 
@@ -1246,7 +1254,7 @@ function resolveMarkdownTemplateValue(
   frontmatter: Record<string, string>,
 ) {
   if (
-    /^(apiKeyNote|apiProfileTable|domains|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
+    /^(apiKeyNote|apiProfileTable|domains|apiReleaseSetCompanions|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
       key,
     )
   ) {
@@ -1414,6 +1422,7 @@ async function renderApiFamilyDomains(
   if (!composition?.domains?.length) {
     throw new Error(`No current domain composition is configured for ${apiVersion}.`)
   }
+  const domains = composition.domains
 
   const labels = {
     en: { default: 'DEFAULT', release: 'THIS RELEASE' },
@@ -1427,7 +1436,7 @@ async function renderApiFamilyDomains(
   } as const
 
   return markdown.replace(directive, (_tag, locale: keyof typeof labels) => {
-    const rows = composition.domains.map(domain => {
+    const rows = domains.map(domain => {
       const translation = domain.i18n.find(
         value => value.locale === compositionLocale[locale],
       )
@@ -1448,12 +1457,135 @@ async function renderApiFamilyDomains(
         throw new Error(`Domain ${domain.code} is missing a summary.`)
       }
 
-      const separator = locale === 'en' ? '. ' : '。'
-      return `- <black>${domain.code}</black> — ${translation.name}${separator}${summary}${markers.length ? ` ${markers.join(' ')}` : ''}`
+      return `- <black>${domain.code}</black>${markers.length ? ` ${markers.join(' ')}` : ''} — ${summary}`
     })
 
     return rows.join('\n')
   })
+}
+
+function renderApiReleaseSetCompanionResources(
+  markdown: string,
+  sources: ApiReleaseSetSourceDocsRow[],
+) {
+  const directive = /\{\{apiReleaseSetCompanions:(en|zh-Hant|zh-Hans)\}\}/g
+  if (!markdown.includes('{{apiReleaseSetCompanions:')) return markdown
+
+  const companionSources = sources.filter(
+    source =>
+      source.resourceType === 'divisionArea' ||
+      source.resourceType === 'divisionBoundary',
+  )
+  if (companionSources.length === 0) {
+    throw new Error(
+      'API release-set companion directives require division-area or division-boundary sources.',
+    )
+  }
+
+  return markdown.replace(directive, (_tag, locale: ApiReleaseSetSourceDocsLocale) =>
+    renderApiReleaseSetCompanionTable(companionSources, locale),
+  )
+}
+
+function renderApiReleaseSetCompanionTable(
+  sources: ApiReleaseSetSourceDocsRow[],
+  locale: ApiReleaseSetSourceDocsLocale,
+) {
+  const headings = {
+    en: ['Code', 'Type', 'Publisher', 'Description'],
+    'zh-Hant': ['代碼', '類型', '發布者', '說明'],
+    'zh-Hans': ['代码', '类型', '发布者', '说明'],
+  } as const
+  const [code, type, publisher, description] = headings[locale]
+  const rows = [...sources]
+    .sort(
+      (left, right) =>
+        companionResourceOrder(left.resourceType) -
+          companionResourceOrder(right.resourceType) ||
+        left.publisherCode.localeCompare(right.publisherCode) ||
+        left.sourceVersion.localeCompare(right.sourceVersion, undefined, {
+          numeric: true,
+        }) ||
+        companionIncludeCode(left).localeCompare(companionIncludeCode(right)),
+    )
+    .map(source => {
+      const publisherName = selectDocsLocalisedName(
+        source.publisherI18n,
+        locale,
+        source.publisherCode,
+      )
+      const publisherNameShort = selectDocsLocalisedShortName(
+        source.publisherI18n,
+        locale,
+        publisherName,
+      )
+      const datasetDescription = companionResourceShortDescription(source, locale)
+      return `| <black>${companionIncludeCode(source)}</black> | ${companionResourceTypeLabel(source.resourceType, locale)} | ${markdownLink(publisherNameShort, `/publishers/${source.publisherCode}`, publisherName)} | ${datasetDescription} |`
+    })
+
+  return `| ${code} | ${type} | ${publisher} | ${description} |\n| --- | --- | --- | --- |\n${rows.join('\n')}`
+}
+
+function companionIncludeCode(source: ApiReleaseSetSourceDocsRow) {
+  const base = source.resourceType === 'divisionArea' ? 'areas' : 'boundaries'
+  return source.variant === 'default' ? base : `${base}:${source.variant}`
+}
+
+function companionResourceOrder(resourceType: string) {
+  return resourceType === 'divisionArea' ? 0 : 1
+}
+
+function companionResourceTypeLabel(
+  resourceType: string,
+  locale: ApiReleaseSetSourceDocsLocale,
+) {
+  if (locale === 'zh-Hant') return resourceType === 'divisionArea' ? '面' : '邊界'
+  if (locale === 'zh-Hans') return resourceType === 'divisionArea' ? '面' : '边界'
+  return resourceType === 'divisionArea' ? 'Area' : 'Boundary'
+}
+
+function companionResourceShortDescription(
+  source: ApiReleaseSetSourceDocsRow,
+  locale: ApiReleaseSetSourceDocsLocale,
+) {
+  const descriptions = {
+    'areas:hkgov-censtatd:2016': {
+      en: '2016 census district areas.',
+      'zh-Hant': '2016 年人口普查區議會分區範圍。',
+      'zh-Hans': '2016 年人口普查区议会分区范围。',
+    },
+    'areas:hkgov-censtatd:2021': {
+      en: '2021 census district areas.',
+      'zh-Hant': '2021 年人口普查區議會分區範圍。',
+      'zh-Hans': '2021 年人口普查区议会分区范围。',
+    },
+    'areas:hkgov-censtatd-area': {
+      en: 'Areas for permanent living quarters by area and type.',
+      'zh-Hant': '按地區及類別劃分的常住屋宇單位範圍。',
+      'zh-Hans': '按地区及类别划分的常住屋宇单位范围。',
+    },
+    'areas:hkgov-had': {
+      en: 'Official district areas.',
+      'zh-Hant': '官方地區範圍。',
+      'zh-Hans': '官方地区范围。',
+    },
+    'areas:overture': {
+      en: 'Division area polygons.',
+      'zh-Hant': '區劃範圍多邊形。',
+      'zh-Hans': '区划范围多边形。',
+    },
+    'boundaries:overture': {
+      en: 'District boundaries.',
+      'zh-Hant': '區級分區邊界。',
+      'zh-Hans': '区级分区边界。',
+    },
+  } as const
+  const code = companionIncludeCode(source)
+
+  return (
+    descriptions[code as keyof typeof descriptions]?.[locale] ??
+    selectDocsLocalisedDescription(source.datasetI18n, locale, source.datasetCode)
+  )
 }
 
 /**
@@ -1492,6 +1624,7 @@ async function renderCenstatdMeasureTables(
 function renderApiReleaseSetSourcesTables(
   markdown: string,
   sources: ApiReleaseSetSourceDocsRow[],
+  requireDirectives: boolean,
 ) {
   const directives = [
     { locale: 'en', label: 'English' },
@@ -1511,6 +1644,8 @@ function renderApiReleaseSetSourcesTables(
     }
     return markdown
   }
+
+  if (!requireDirectives) return markdown
 
   return directives.reduce((rendered, { locale, label }) => {
     const directive = `{{apiReleaseSetSources:${locale}}}`
@@ -1637,7 +1772,7 @@ function humaniseResourceType(value: string) {
 }
 
 function selectDocsLocalisedName(
-  rows: Array<{ locale: string; name: string }>,
+  rows: Array<{ locale: string; name: string; nameShort?: string | null }>,
   locale: ApiReleaseSetSourceDocsLocale,
   fallback: string,
 ) {
@@ -1655,8 +1790,50 @@ function selectDocsLocalisedName(
   )
 }
 
-function markdownLink(label: string, href: string) {
-  return escapeMarkdownTableCell(`[${label.replaceAll(']', '\\]')}](${href})`)
+function selectDocsLocalisedDescription(
+  rows: Array<{ description?: string | null; locale: string; name: string }>,
+  locale: ApiReleaseSetSourceDocsLocale,
+  fallback: string,
+) {
+  const normalisedLocale = locale.toLowerCase()
+  const relatedChineseLocale =
+    locale === 'zh-Hant' ? 'zh-hans' : locale === 'zh-Hans' ? 'zh-hant' : null
+  const localised =
+    rows.find(row => row.locale.toLowerCase() === normalisedLocale) ??
+    (relatedChineseLocale
+      ? rows.find(row => row.locale.toLowerCase() === relatedChineseLocale)
+      : undefined) ??
+    rows.find(row => row.locale.toLowerCase() === 'en') ??
+    rows[0]
+
+  return localised?.description ?? localised?.name ?? fallback
+}
+
+function selectDocsLocalisedShortName(
+  rows: Array<{ locale: string; name: string; nameShort?: string | null }>,
+  locale: ApiReleaseSetSourceDocsLocale,
+  fallback: string,
+) {
+  const normalisedLocale = locale.toLowerCase()
+  const relatedChineseLocale =
+    locale === 'zh-Hant' ? 'zh-hans' : locale === 'zh-Hans' ? 'zh-hant' : null
+  return (
+    rows.find(row => row.locale.toLowerCase() === normalisedLocale)?.nameShort ??
+    (relatedChineseLocale
+      ? rows.find(row => row.locale.toLowerCase() === relatedChineseLocale)?.nameShort
+      : undefined) ??
+    rows.find(row => row.locale.toLowerCase() === 'en')?.nameShort ??
+    rows[0]?.nameShort ??
+    fallback
+  )
+}
+
+function markdownLink(label: string, href: string, title?: string) {
+  const escapedLabel = label.replaceAll(']', '\\]')
+  const escapedTitle = title?.replaceAll('"', '\\"')
+  return escapeMarkdownTableCell(
+    `[${escapedLabel}](${href}${escapedTitle ? ` "${escapedTitle}"` : ''})`,
+  )
 }
 
 type CenstatdMeasureTableLocale = 'en' | 'zh-Hant' | 'zh-Hans'
