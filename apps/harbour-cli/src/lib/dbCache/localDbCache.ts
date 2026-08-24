@@ -2148,7 +2148,14 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'statistics') {
-      return ['statsRecords', 'statsFields', 'statsFieldsI18n', 'statsValuesI18n']
+      return [
+        'statsRecords',
+        'statsFields',
+        'statsFieldsI18n',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsValuesI18n',
+      ]
     }
 
     if (cacheTableProfile === 'street') {
@@ -2186,7 +2193,14 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'statistics') {
-      return ['statsRecords', 'statsFields', 'statsFieldsI18n', 'statsValuesI18n']
+      return [
+        'statsRecords',
+        'statsFields',
+        'statsFieldsI18n',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsValuesI18n',
+      ]
     }
 
     if (cacheTableProfile === 'street') {

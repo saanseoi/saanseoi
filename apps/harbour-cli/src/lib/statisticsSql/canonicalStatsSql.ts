@@ -23,6 +23,8 @@ const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 export type CanonicalStatsDictionaryTable =
   | 'statsFields'
   | 'statsFieldsI18n'
+  | 'statsMeasures'
+  | 'statsMeasuresI18n'
   | 'statsValuesI18n'
 export type CanonicalStatsRecordTable = 'statsRecords'
 type CanonicalStatsTable = CanonicalStatsRecordTable | CanonicalStatsDictionaryTable
@@ -319,6 +321,10 @@ function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
       return ['datasetCode', 'fieldName']
     case 'statsFieldsI18n':
       return ['datasetCode', 'fieldName', 'locale']
+    case 'statsMeasures':
+      return ['datasetCode', 'measureCode']
+    case 'statsMeasuresI18n':
+      return ['datasetCode', 'measureCode', 'locale']
     case 'statsValuesI18n':
       return ['datasetCode', 'dimensionCode', 'valueCode', 'locale']
   }
@@ -347,8 +353,10 @@ function buildReplaceCurrentDictionaryStatements(
     .join(' OR ')
   const tables: CanonicalStatsDictionaryTable[] = [
     'statsFieldsI18n',
+    'statsMeasuresI18n',
     'statsValuesI18n',
     'statsFields',
+    'statsMeasures',
   ]
   return tables.map(table => `DELETE FROM ${identifier(table)} WHERE ${condition};`)
 }
