@@ -131,6 +131,7 @@ function dependencies() {
       {
         datasetCode: statistic.datasetCode,
         fieldName: 'totalPopulation',
+        measureCode: 'totalPopulation',
         sourceField: 'T_POP',
         dimensions: { sex: 'all' },
         sourceNullOption: null,
@@ -275,6 +276,7 @@ describe('Statistics service', () => {
         attributes: {
           datasetCode: statistic.datasetCode,
           fieldName: 'totalPopulation',
+          measureCode: 'totalPopulation',
           sourceField: 'T_POP',
           dimensions: { sex: 'all' },
           sourceNullOption: null,

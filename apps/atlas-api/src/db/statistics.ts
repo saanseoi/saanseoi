@@ -9,7 +9,8 @@ import { and, asc, eq, inArray, sql } from '@repo/db'
 import { historySchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 
-const { statsRecords, statsFields, statsFieldsI18n } = historySchema
+const { statsRecords, statsFields, statsFieldsI18n, statsMeasures, statsMeasuresI18n } =
+  historySchema
 // Leave room for dataset, locale, and filter parameters below D1's 100-variable cap.
 const D1_QUERY_BATCH_SIZE = 80
 const D1_MULTI_ARRAY_BATCH_SIZE = 30
@@ -42,6 +43,7 @@ export type StatisticRecord = {
 export type StatisticFieldDefinition = {
   datasetCode: string
   fieldName: string
+  measureCode: string
   sourceField: string
   dimensions: Record<string, string>
   sourceNullOption: string | null
@@ -52,6 +54,19 @@ export type StatisticFieldDefinition = {
   denominatorFieldName: string | null
   valueKind: string
   unitCode: string
+  i18n: Record<
+    string,
+    {
+      name: string
+      description: string | null
+      isTranslationVerified: boolean
+    }
+  >
+}
+
+export type StatisticMeasureDefinition = {
+  datasetCode: string
+  measureCode: string
   i18n: Record<
     string,
     {
@@ -337,6 +352,7 @@ export async function listStatisticFieldDefinitions(
     definitions.set(key, {
       datasetCode: row.datasetCode,
       fieldName: row.fieldName,
+      measureCode: row.measureCode,
       sourceField: row.sourceField,
       dimensions: row.dimensions,
       sourceNullOption: row.sourceNullOption,
@@ -352,6 +368,104 @@ export async function listStatisticFieldDefinitions(
   }
   for (const row of i18nRows) {
     const definition = definitions.get(`${row.datasetCode}\u0000${row.fieldName}`)
+    if (!definition) continue
+    definition.i18n[row.locale.toLowerCase()] = {
+      name: row.name,
+      description: row.description,
+      isTranslationVerified: row.isTranslationVerified,
+    }
+  }
+  return [...definitions.values()]
+}
+
+export async function listStatisticMeasureDefinitions(
+  dbs: HistoryDatabase[],
+  lookup: {
+    datasetCodes: string[]
+    localeSelection: RequestedApiLocaleSelection
+    sourceReleaseIds: string[]
+  },
+): Promise<StatisticMeasureDefinition[]> {
+  if (lookup.sourceReleaseIds.length === 0 || lookup.datasetCodes.length === 0) {
+    return []
+  }
+  const selectedLocales =
+    lookup.localeSelection.mode === 'requested'
+      ? lookup.localeSelection.locales
+      : undefined
+  const sourceReleaseBatches = chunks(
+    [...new Set(lookup.sourceReleaseIds)],
+    D1_MULTI_ARRAY_BATCH_SIZE,
+  )
+  const datasetBatches = chunks(
+    [...new Set(lookup.datasetCodes)],
+    D1_MULTI_ARRAY_BATCH_SIZE,
+  )
+  const localeBatches = selectedLocales
+    ? chunks([...new Set(selectedLocales)], D1_MULTI_ARRAY_BATCH_SIZE)
+    : [undefined]
+  const [measureRows, i18nRows] = await Promise.all([
+    Promise.all(
+      dbs.flatMap(db =>
+        sourceReleaseBatches.flatMap(sourceReleaseIds =>
+          datasetBatches.map(datasetCodes =>
+            db
+              .select()
+              .from(statsMeasures)
+              .where(
+                and(
+                  inArray(statsMeasures.sourceReleaseId, sourceReleaseIds),
+                  inArray(statsMeasures.datasetCode, datasetCodes),
+                  eq(statsMeasures.isCurrent, true),
+                ),
+              )
+              .all(),
+          ),
+        ),
+      ),
+    ).then(rows => rows.flat()),
+    lookup.localeSelection.mode === 'none'
+      ? Promise.resolve([])
+      : Promise.all(
+          dbs.flatMap(db =>
+            sourceReleaseBatches.flatMap(sourceReleaseIds =>
+              datasetBatches.flatMap(datasetCodes =>
+                localeBatches.map(locales =>
+                  db
+                    .select()
+                    .from(statsMeasuresI18n)
+                    .where(
+                      and(
+                        inArray(statsMeasuresI18n.sourceReleaseId, sourceReleaseIds),
+                        inArray(statsMeasuresI18n.datasetCode, datasetCodes),
+                        eq(statsMeasuresI18n.isCurrent, true),
+                        locales
+                          ? inArray(
+                              sql`lower(${statsMeasuresI18n.locale})`,
+                              locales.map(locale => locale.toLowerCase()),
+                            )
+                          : undefined,
+                      ),
+                    )
+                    .all(),
+                ),
+              ),
+            ),
+          ),
+        ).then(rows => rows.flat()),
+  ])
+  const definitions = new Map<string, StatisticMeasureDefinition>()
+  for (const row of measureRows) {
+    const key = `${row.datasetCode}\u0000${row.measureCode}`
+    if (definitions.has(key)) continue
+    definitions.set(key, {
+      datasetCode: row.datasetCode,
+      measureCode: row.measureCode,
+      i18n: {},
+    })
+  }
+  for (const row of i18nRows) {
+    const definition = definitions.get(`${row.datasetCode}\u0000${row.measureCode}`)
     if (!definition) continue
     definition.i18n[row.locale.toLowerCase()] = {
       name: row.name,
