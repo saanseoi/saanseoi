@@ -3,6 +3,8 @@ import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 import {
   canonicalStatsField,
   canonicalStatsFieldI18n,
+  canonicalStatsMeasure,
+  canonicalStatsMeasureI18n,
   canonicalStatsRecord,
   canonicalStatsValueI18n,
 } from '../shared'
@@ -44,6 +46,42 @@ export const statsFields = sqliteTable(
       table.fieldName,
       table.isCurrent,
     ),
+  ],
+)
+
+export const statsMeasures = sqliteTable(
+  'statsMeasures',
+  { ...canonicalStatsMeasure, ...historyStatisticVersioning },
+  table => [
+    primaryKey({
+      columns: [
+        table.datasetCode,
+        table.measureCode,
+        table.sourceReleaseId,
+        table.versionHash,
+      ],
+    }),
+    index('statsMeasures_current_lookup_idx').on(
+      table.datasetCode,
+      table.measureCode,
+      table.isCurrent,
+    ),
+  ],
+)
+
+export const statsMeasuresI18n = sqliteTable(
+  'statsMeasuresI18n',
+  { ...canonicalStatsMeasureI18n, ...historyStatisticVersioning },
+  table => [
+    primaryKey({
+      columns: [
+        table.datasetCode,
+        table.measureCode,
+        table.locale,
+        table.sourceReleaseId,
+        table.versionHash,
+      ],
+    }),
   ],
 )
 
