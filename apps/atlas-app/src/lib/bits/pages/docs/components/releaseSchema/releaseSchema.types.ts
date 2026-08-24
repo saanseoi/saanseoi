@@ -20,6 +20,8 @@ export type OpenApiSchema = {
   properties?: Record<string, OpenApiSchema>
   required?: string[]
   type?: string | string[]
+  'x-additionalPropertiesName'?: string
+  'x-recordKeyName'?: string
 }
 
 export type OpenApiDocument = {

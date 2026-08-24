@@ -148,6 +148,31 @@ export function getScalarArrayChain(schema: OpenApiSchema) {
   }
 }
 
+/**
+ * JSON:API relationship linkage is conventionally an object containing only a
+ * `data` array. Present its useful shape inline, then expose the linkage item's
+ * fields directly, rather than spending two rows on `data` and `items`.
+ */
+export function getSchemaDataArrayEnvelope(
+  schema: OpenApiSchema,
+  schemas: Record<string, OpenApiSchema>,
+) {
+  const entries = Object.entries(schema.properties ?? {})
+  if (entries.length !== 1 || entries[0]?.[0] !== 'data') return null
+
+  const dataSchema = entries[0][1]
+  if (!isArraySchema(dataSchema) || !dataSchema.items) return null
+
+  const referenceName = getSchemaReferenceName(dataSchema.items.$ref)
+  const itemSchema = referenceName
+    ? (schemas[referenceName] ?? dataSchema.items)
+    : dataSchema.items
+  const itemType = referenceName ?? getSchemaTypeName(itemSchema)
+  if (!itemType) return null
+
+  return { itemSchema, itemType }
+}
+
 const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
   compact: ['level', 'type', 'divisionCode', 'i18n'],
   default: [
@@ -184,7 +209,7 @@ const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
     'updatedAt',
     'sources',
     'identifiers',
-    'overture',
+    'sourceKeys',
     'i18n',
   ],
 }
