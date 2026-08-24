@@ -152,7 +152,13 @@ export function getUniqueAddressSamples(
 }
 
 export function groupAddressSamples(samples: AddressSample[]) {
-  const fields: GroupedSampleField[] = []
+  const fields: GroupedSampleField[] = [
+    {
+      key: 'id',
+      values: samples.map(sample => ({ sampleIds: [sample.id], value: sample.id })),
+      children: [],
+    },
+  ]
 
   const merge = (
     source: ReleaseSampleField[],
