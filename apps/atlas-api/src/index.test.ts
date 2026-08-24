@@ -1547,6 +1547,16 @@ describe('atlas-api', () => {
       | undefined
     const divisionRelationships = divisions.components?.schemas
       ?.DivisionRelationships as { description?: string } | undefined
+    const divisionI18n = divisions.components?.schemas?.DivisionI18n as
+      | { description?: string; 'x-recordKeyName'?: string }
+      | undefined
+    const sources = divisions.components?.schemas?.Sources as
+      | {
+          'x-additionalPropertiesName'?: string
+          additionalProperties?: { description?: string }
+          properties?: Record<string, { description?: string }>
+        }
+      | undefined
     const jsonApiLinkMap = divisions.components?.schemas?.JsonApiLinkMap as
       | {
           additionalProperties?: { description?: string }
@@ -1567,6 +1577,17 @@ describe('atlas-api', () => {
     expect(divisionRelationships?.description).toBe(
       "Resource linkage to related SaanSeoi records. Use `include` to return those records in the document's `included` array.",
     )
+    expect(divisionI18n?.description).toBe(
+      'A map keyed by requested locale, for example `en` or `zh-Hant`.',
+    )
+    expect(divisionI18n?.['x-recordKeyName']).toBe('locale')
+    expect(sources?.properties?.overture?.description).toBe(
+      'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
+    )
+    expect(sources?.additionalProperties?.description).toBe(
+      "Attribution from another source provider. The property key is that provider's identifier, and each item follows that provider's source-item structure.",
+    )
+    expect(sources?.['x-additionalPropertiesName']).toBe('another source provider')
     expect(divisionResource?.properties?.links?.allOf?.[1]?.description).toBe(
       'Links for this division resource, including its canonical URL.',
     )
