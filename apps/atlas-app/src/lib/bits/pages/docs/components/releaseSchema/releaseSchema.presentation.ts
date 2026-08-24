@@ -46,6 +46,108 @@ export function getSchemaReferenceName(reference: string | undefined) {
   return reference?.startsWith(prefix) ? reference.slice(prefix.length) : null
 }
 
+/**
+ * A schema for a string-keyed map can describe its value with
+ * `additionalProperties`. When that value is an object, the presentation can show
+ * its fields directly below the map without exposing OpenAPI's implementation term.
+ */
+export function getSchemaRecordValueSchema(
+  schema: OpenApiSchema,
+  schemas: Record<string, OpenApiSchema>,
+) {
+  if (
+    Object.keys(schema.properties ?? {}).length ||
+    typeof schema.additionalProperties !== 'object'
+  ) {
+    return null
+  }
+
+  const referenceName = getSchemaReferenceName(schema.additionalProperties.$ref)
+  const valueSchema = referenceName
+    ? schemas[referenceName]
+    : schema.additionalProperties
+
+  return Object.keys(valueSchema?.properties ?? {}).length ? valueSchema : null
+}
+
+function isNullSchema(schema: OpenApiSchema) {
+  return (
+    schema.type === 'null' ||
+    (Array.isArray(schema.type) && schema.type.every(type => type === 'null'))
+  )
+}
+
+export function getSchemaComposition(schema: OpenApiSchema) {
+  return (schema.oneOf ?? schema.anyOf ?? schema.allOf ?? []).filter(
+    schema => !isNullSchema(schema),
+  )
+}
+
+export function isSchemaNullable(schema: OpenApiSchema) {
+  return (
+    schema.nullable === true ||
+    (Array.isArray(schema.type) && schema.type.includes('null')) ||
+    (schema.oneOf ?? schema.anyOf ?? schema.allOf ?? []).some(isNullSchema)
+  )
+}
+
+export function getSchemaVariantName(schema: OpenApiSchema) {
+  const type = schema.properties?.type
+  const value = type?.const ?? (type?.enum?.length === 1 ? type.enum[0] : undefined)
+  return typeof value === 'string' ? value : null
+}
+
+function isArraySchema(schema: OpenApiSchema) {
+  return (
+    schema.type === 'array' ||
+    (Array.isArray(schema.type) && schema.type.includes('array'))
+  )
+}
+
+function getSchemaTypeName(schema: OpenApiSchema) {
+  const referenceName = getSchemaReferenceName(schema.$ref)
+  if (referenceName) return referenceName
+
+  const type = Array.isArray(schema.type)
+    ? schema.type.filter(value => value !== 'null').join(' | ')
+    : schema.type
+  return type || null
+}
+
+/**
+ * Compact arrays of scalar values into one readable sequence, retaining the terminal
+ * item's description. Arrays of objects remain expandable so their fields are visible.
+ */
+export function getScalarArrayChain(schema: OpenApiSchema) {
+  if (!isArraySchema(schema) || !schema.items) return null
+
+  const types: string[] = []
+  let item = schema
+  let terminalDescription: string | undefined
+  while (isArraySchema(item) && item.items) {
+    types.push('array')
+    if (types.length > 1 && item.description) terminalDescription = item.description
+    item = item.items
+  }
+
+  if (
+    isArraySchema(item) ||
+    item.properties ||
+    typeof item.additionalProperties === 'object' ||
+    getSchemaComposition(item).length
+  ) {
+    return null
+  }
+
+  const itemType = getSchemaTypeName(item)
+  if (!itemType) return null
+
+  return {
+    description: item.description ?? terminalDescription,
+    types: [...types, itemType],
+  }
+}
+
 const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
   compact: ['level', 'type', 'divisionCode', 'i18n'],
   default: [

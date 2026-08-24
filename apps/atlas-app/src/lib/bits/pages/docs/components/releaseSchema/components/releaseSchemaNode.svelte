@@ -1,11 +1,27 @@
 <script lang="ts">
-import { getSchemaReferenceName } from '../releaseSchema.presentation'
+import { flip } from 'svelte/animate'
+import { untrack } from 'svelte'
+import { prefersReducedMotion } from 'svelte/motion'
+import { fade } from 'svelte/transition'
+import {
+  getSchemaComposition,
+  getSchemaRecordValueSchema,
+  getSchemaReferenceName,
+  getScalarArrayChain,
+  getSchemaVariantName,
+  isSchemaNullable,
+} from '../releaseSchema.presentation'
 import type { OpenApiSchema } from '../releaseSchema.types'
+import InlineMarkdown from './releaseSchemaInlineMarkdown.svelte'
 import ReleaseSchemaNode from './releaseSchemaNode.svelte'
 
 type Props = {
   depth?: number
+  expandAllToken?: number
+  expandedNodeStates?: Readonly<Record<string, boolean>>
   name: string
+  onExpandAll?: () => void
+  onExpandedNodeStateChange?: (path: string, expanded: boolean) => void
   referencePath?: string[]
   required?: boolean
   schema: OpenApiSchema
@@ -14,14 +30,25 @@ type Props = {
 
 let {
   depth = 0,
+  expandAllToken = 0,
+  expandedNodeStates = {},
   name,
+  onExpandAll,
+  onExpandedNodeStateChange,
   referencePath = [],
   required = false,
   schema,
   schemas,
 }: Props = $props()
 
-let referenceName = $derived(getSchemaReferenceName(schema.$ref))
+let ownReferenceName = $derived(getSchemaReferenceName(schema.$ref))
+let directComposition = $derived(getSchemaComposition(schema))
+let compositionReferenceName = $derived(
+  directComposition.length === 1
+    ? getSchemaReferenceName(directComposition[0]?.$ref)
+    : null,
+)
+let referenceName = $derived(ownReferenceName ?? compositionReferenceName)
 let resolvedSchema = $derived(referenceName ? schemas[referenceName] : undefined)
 let displaySchema = $derived(resolvedSchema ?? schema)
 let properties = $derived(Object.entries(displaySchema.properties ?? {}))
@@ -36,15 +63,25 @@ let additionalProperties = $derived(
     ? displaySchema.additionalProperties
     : undefined,
 )
-let composition = $derived(
-  displaySchema.oneOf ?? displaySchema.anyOf ?? displaySchema.allOf ?? [],
+let recordValueSchema = $derived(getSchemaRecordValueSchema(displaySchema, schemas))
+let recordProperties = $derived(
+  recordValueSchema ? Object.entries(recordValueSchema.properties ?? {}) : [],
 )
+let visibleProperties = $derived(
+  recordProperties.length ? recordProperties : properties,
+)
+let composition = $derived(getSchemaComposition(displaySchema))
+let nullable = $derived(isSchemaNullable(schema) || isSchemaNullable(displaySchema))
+let scalarArrayChain = $derived(getScalarArrayChain(displaySchema))
 let typeLabel = $derived.by(() => {
+  if (!ownReferenceName && referenceName) return referenceName
+
   const type = displaySchema.type
-  const base = Array.isArray(type) ? type.join(' | ') : type
-  const nullable = displaySchema.nullable && !Array.isArray(type)
-  const reference = referenceName ? ` · ${referenceName}` : ''
-  return `${base ?? (composition.length ? 'union' : 'object')}${reference}${nullable ? ' · nullable' : ''}`
+  const base = Array.isArray(type)
+    ? type.filter(value => value !== 'null').join(' | ')
+    : type
+  const reference = ownReferenceName ? ` · ${ownReferenceName}` : ''
+  return `${base || (composition.length ? 'union' : 'object')}${reference}`
 })
 let detailLabels = $derived([
   ...(displaySchema.format ? [displaySchema.format] : []),
@@ -56,17 +93,37 @@ let detailLabels = $derived([
     ? [`max length: ${displaySchema.maxLength}`]
     : []),
 ])
+let description = $derived(
+  [...new Set([displaySchema.description, scalarArrayChain?.description])]
+    .filter((value): value is string => Boolean(value))
+    .join(' '),
+)
 let hasChildren = $derived(
   !isCyclicReference &&
     Boolean(
-      properties.length ||
-        additionalProperties ||
+      visibleProperties.length ||
+        (additionalProperties && !recordValueSchema) ||
         composition.length ||
-        displaySchema.items,
+        (displaySchema.items && !scalarArrayChain),
     ),
 )
-let collapsed = $state(false)
-let expanded = $derived(depth === 0 ? !collapsed : collapsed)
+let nodePath = $derived([...referencePath, name].join('.'))
+let expanded = $state(untrack(() => expandedNodeStates[nodePath] ?? depth === 0))
+let appliedExpandAllToken = $state(0)
+
+$effect(() => {
+  if (expandAllToken <= appliedExpandAllToken) return
+  appliedExpandAllToken = expandAllToken
+  if (!hasChildren) return
+
+  expanded = true
+  onExpandedNodeStateChange?.(nodePath, true)
+})
+
+function toggleExpanded() {
+  expanded = !expanded
+  onExpandedNodeStateChange?.(nodePath, expanded)
+}
 </script>
 
 <div class:border-t={depth > 0} class="border-outline-variant/55">
@@ -81,7 +138,7 @@ let expanded = $derived(depth === 0 ? !collapsed : collapsed)
           type="button"
           aria-expanded={expanded}
           aria-label={`${expanded ? 'Collapse' : 'Expand'} ${name}`}
-          onclick={() => (collapsed = !collapsed)}
+          onclick={toggleExpanded}
         >
           {expanded ? '−' : '+'}
         </button>
@@ -95,26 +152,55 @@ let expanded = $derived(depth === 0 ? !collapsed : collapsed)
     </div>
 
     <div class="min-w-0 space-y-2">
-      <div class="flex flex-wrap items-center gap-2">
-        <span
-          class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
-          >{typeLabel}</span
-        >
-        {#if required}
-          <span
-            class="rounded-full bg-secondary-container px-2.5 py-1 font-body text-caption font-semibold text-on-secondary-container"
-            >Required</span
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          {#if scalarArrayChain}
+            {#each scalarArrayChain.types as type, index (`${type}-${index}`)}
+              {#if index}
+                <span class="font-body text-caption text-foreground-alt">of</span>
+              {/if}
+              <span
+                class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
+                >{type}</span
+              >
+            {/each}
+          {:else}
+            <span
+              class="rounded-full border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption text-foreground-alt"
+              >{typeLabel}</span
+            >
+          {/if}
+          {#if required}
+            <span
+              class="rounded-full bg-secondary-container px-2.5 py-1 font-body text-caption font-semibold text-on-secondary-container"
+              >Required</span
+            >
+          {/if}
+          {#if nullable}
+            <span
+              class="rounded-full bg-orange-400 px-2.5 py-1 font-body text-caption font-semibold text-black"
+              >Nullable</span
+            >
+          {/if}
+          {#if detailLabels.length}
+            <span class="font-body text-caption text-foreground-alt"
+              >{detailLabels.join(' · ')}</span
+            >
+          {/if}
+        </div>
+        {#if onExpandAll}
+          <button
+            class="shrink-0 rounded-sm border border-outline-variant/70 bg-surface-container-lowest px-2.5 py-1 font-mono text-caption font-semibold text-secondary transition hover:border-secondary focus-visible:outline-2 focus-visible:outline-secondary"
+            type="button"
+            onclick={onExpandAll}
           >
-        {/if}
-        {#if detailLabels.length}
-          <span class="font-body text-caption text-foreground-alt"
-            >{detailLabels.join(' · ')}</span
-          >
+            Expand all
+          </button>
         {/if}
       </div>
-      {#if displaySchema.description}
+      {#if description}
         <p class="max-w-3xl font-body text-body-sm leading-relaxed text-foreground-alt">
-          {displaySchema.description}
+          <InlineMarkdown value={description} />
         </p>
       {/if}
       {#if displaySchema.enum?.length}
@@ -131,42 +217,76 @@ let expanded = $derived(depth === 0 ? !collapsed : collapsed)
 
   {#if expanded && hasChildren}
     <div class="border-t border-outline-variant/55 bg-surface-container-low/60">
-      {#each properties as [propertyName, propertySchema] (propertyName)}
-        <ReleaseSchemaNode
-          depth={depth + 1}
-          name={propertyName}
-          referencePath={childReferencePath}
-          required={displaySchema.required?.includes(propertyName)}
-          schema={propertySchema}
-          {schemas}
-        />
+      {#each visibleProperties as [propertyName, propertySchema] (propertyName)}
+        <div
+          animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
+          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+        >
+          <ReleaseSchemaNode
+            depth={depth + 1}
+            {expandAllToken}
+            {expandedNodeStates}
+            name={propertyName}
+            {onExpandedNodeStateChange}
+            referencePath={childReferencePath}
+            required={recordValueSchema?.required?.includes(propertyName) ?? displaySchema.required?.includes(propertyName)}
+            schema={propertySchema}
+            {schemas}
+          />
+        </div>
       {/each}
-      {#if additionalProperties}
-        <ReleaseSchemaNode
-          depth={depth + 1}
-          name="additional properties"
-          referencePath={childReferencePath}
-          schema={additionalProperties}
-          {schemas}
-        />
+      {#if additionalProperties && !recordValueSchema}
+        <div
+          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+        >
+          <ReleaseSchemaNode
+            depth={depth + 1}
+            {expandAllToken}
+            {expandedNodeStates}
+            name="additional properties"
+            {onExpandedNodeStateChange}
+            referencePath={childReferencePath}
+            schema={additionalProperties}
+            {schemas}
+          />
+        </div>
       {/if}
       {#each composition as member, index (`${name}-${index}`)}
-        <ReleaseSchemaNode
-          depth={depth + 1}
-          name={`option ${index + 1}`}
-          referencePath={childReferencePath}
-          schema={member}
-          {schemas}
-        />
+        <div
+          animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
+          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+        >
+          <ReleaseSchemaNode
+            depth={depth + 1}
+            {expandAllToken}
+            {expandedNodeStates}
+            name={getSchemaVariantName(member) ?? `option ${index + 1}`}
+            {onExpandedNodeStateChange}
+            referencePath={childReferencePath}
+            schema={member}
+            {schemas}
+          />
+        </div>
       {/each}
-      {#if displaySchema.items}
-        <ReleaseSchemaNode
-          depth={depth + 1}
-          name="items"
-          referencePath={childReferencePath}
-          schema={displaySchema.items}
-          {schemas}
-        />
+      {#if displaySchema.items && !scalarArrayChain}
+        <div
+          in:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+          out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
+        >
+          <ReleaseSchemaNode
+            depth={depth + 1}
+            {expandAllToken}
+            {expandedNodeStates}
+            name="items"
+            {onExpandedNodeStateChange}
+            referencePath={childReferencePath}
+            schema={displaySchema.items}
+            {schemas}
+          />
+        </div>
       {/if}
     </div>
   {/if}
