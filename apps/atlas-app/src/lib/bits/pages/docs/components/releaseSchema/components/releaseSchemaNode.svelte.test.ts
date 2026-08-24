@@ -102,7 +102,7 @@ test('keeps the key layer of a string-keyed map explicit', async () => {
     schema: {
       additionalProperties: { $ref: '#/components/schemas/DivisionI18nAttributes' },
       type: 'object',
-      'x-recordKeyName': 'locale',
+      'x-recordKeyName': 'en, zh-hant, …',
     },
     schemas: {
       DivisionI18nAttributes: {
@@ -112,8 +112,10 @@ test('keeps the key layer of a string-keyed map explicit', async () => {
     },
   })
 
-  await expect.element(screen.getByText('locale', { exact: true })).toBeVisible()
-  await screen.getByRole('button', { name: 'Expand locale' }).click()
+  await expect
+    .element(screen.getByText('en, zh-hant, …', { exact: true }))
+    .toBeVisible()
+  await screen.getByRole('button', { name: 'Expand en, zh-hant, …' }).click()
   await expect.element(screen.getByText('name', { exact: true })).toBeVisible()
 })
 
@@ -145,8 +147,13 @@ test('shows the variants of a nullable referenced union', async () => {
     schemas: {
       DivisionGeometry: {
         anyOf: [
-          { properties: { type: { const: 'Point', type: 'string' } }, type: 'object' },
           {
+            description: 'A single position.',
+            properties: { type: { const: 'Point', type: 'string' } },
+            type: 'object',
+          },
+          {
+            description: 'One enclosed area.',
             properties: { type: { const: 'Polygon', type: 'string' } },
             type: 'object',
           },
@@ -157,4 +164,6 @@ test('shows the variants of a nullable referenced union', async () => {
 
   await expect.element(screen.getByText('Point', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('Polygon', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('A single position.')).toBeVisible()
+  await expect.element(screen.getByText('One enclosed area.')).toBeVisible()
 })
