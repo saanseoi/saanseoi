@@ -18,6 +18,7 @@ import {
   type DivisionBoundaryRecord,
   type DivisionLocaleSelection,
   type DivisionRecord,
+  type DivisionSourceKeys,
 } from '../db/divisions'
 import {
   buildApiVersionMetadata,
@@ -63,6 +64,57 @@ const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
 
 type JsonObject = Record<string, unknown>
 
+type DivisionPosition =
+  | [longitude: number, latitude: number]
+  | [longitude: number, latitude: number, elevation: number]
+
+type DivisionGeometry =
+  | { type: 'Point'; coordinates: DivisionPosition }
+  | { type: 'Polygon'; coordinates: DivisionPosition[][] }
+  | { type: 'MultiPolygon'; coordinates: DivisionPosition[][][] }
+
+function isDivisionPosition(value: unknown): value is DivisionPosition {
+  return (
+    Array.isArray(value) &&
+    (value.length === 2 || value.length === 3) &&
+    value.every(
+      coordinate => typeof coordinate === 'number' && Number.isFinite(coordinate),
+    )
+  )
+}
+
+function isDivisionPolygon(value: unknown): value is DivisionPosition[][] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(
+      ring => Array.isArray(ring) && ring.length >= 4 && ring.every(isDivisionPosition),
+    )
+  )
+}
+
+function asDivisionGeometry(value: unknown): DivisionGeometry | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+
+  const { coordinates, type } = value as Record<string, unknown>
+  if (type === 'Point' && isDivisionPosition(coordinates)) {
+    return { type, coordinates }
+  }
+  if (type === 'Polygon' && isDivisionPolygon(coordinates)) {
+    return { type, coordinates }
+  }
+  if (
+    type === 'MultiPolygon' &&
+    Array.isArray(coordinates) &&
+    coordinates.length > 0 &&
+    coordinates.every(isDivisionPolygon)
+  ) {
+    return { type, coordinates }
+  }
+
+  return null
+}
+
 type DivisionHierarchyResourceIdentifier = {
   type: 'divisions'
   id: string
@@ -80,7 +132,7 @@ type DivisionResourcePayload = {
     type: string
     divisionCode?: string
     snapshotId?: string
-    geometry?: JsonObject | null
+    geometry?: DivisionGeometry | null
     bbox?: [number, number, number, number] | null
     cartography?: JsonObject | null
     wikidata?: string | null
@@ -88,14 +140,8 @@ type DivisionResourcePayload = {
     updatedAt?: string
     sources?: SourcesPayload | null
     identifiers?: unknown
+    sourceKeys?: DivisionSourceKeys | null
     variant?: string
-    overture?: {
-      subtype?: string | null
-      class?: string | null
-      version?: number | null
-      hierarchies?: unknown
-      admin_level?: number | null
-    }
     i18n?: DivisionRecord['i18n']
   }
   relationships: {
@@ -511,7 +557,7 @@ function createDivisionResource(args: {
   }
 
   if (isMapDivisionProfile(routeState.profile)) {
-    attributes.geometry = (division.geometry as JsonObject | null) ?? null
+    attributes.geometry = asDivisionGeometry(division.geometry)
     attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
     attributes.cartography = (division.cartography as JsonObject | null) ?? null
   }
@@ -520,17 +566,7 @@ function createDivisionResource(args: {
     attributes.snapshotId = division.snapshotId
     attributes.sources = (division.sources as SourcesPayload | null) ?? null
     attributes.identifiers = division.identifiers
-    attributes.overture = {
-      subtype: division.subtype,
-      class: division.class,
-      hierarchies: division.overtureHierarchies ?? null,
-      ...(division.overtureFeatureVersion !== null
-        ? { version: division.overtureFeatureVersion }
-        : {}),
-      ...(division.overtureAdminLevel !== null
-        ? { admin_level: division.overtureAdminLevel }
-        : {}),
-    }
+    attributes.sourceKeys = division.sourceKeys
   }
 
   const projectedI18n = projectDivisionI18n(i18n, routeState.profile)
