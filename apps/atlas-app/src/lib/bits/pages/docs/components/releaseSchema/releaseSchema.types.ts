@@ -1,3 +1,7 @@
+import type { ApiProfileName as CoreApiProfileName } from '@repo/core'
+
+export type ApiProfileName = CoreApiProfileName
+
 export type OpenApiSchema = {
   $ref?: string
   additionalProperties?: boolean | OpenApiSchema

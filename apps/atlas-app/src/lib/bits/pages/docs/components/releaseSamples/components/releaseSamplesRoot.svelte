@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import type { ApiProfileName } from '@repo/core'
 import {
   getSampleApiPath,
   groupAddressSamples,
@@ -15,6 +16,7 @@ import GroupedField from './releaseSamplesGroupedField.svelte'
 type Props = {
   apiVersion: string
   apiFamily: string
+  profile: ApiProfileName
   releaseSet: string
   request: number
   sampleCount?: number
@@ -37,6 +39,7 @@ const candidatesPerRequest = 10
 let {
   apiVersion,
   apiFamily,
+  profile,
   releaseSet,
   request,
   sampleCount = $bindable(0),
@@ -59,8 +62,8 @@ function requestUrl(offset: number, limit: number) {
   if (!apiPath) throw new Error('Samples are not available for this API version.')
   const url = new URL(`${apiBaseUrl}${apiPath}`)
   url.searchParams.set('releaseSet', releaseSet)
-  url.searchParams.set('profile', 'full')
-  url.searchParams.set('locales', '*')
+  url.searchParams.set('profile', profile)
+  url.searchParams.set('locales', profile === 'full' ? '*' : 'en,zh-hant')
   url.searchParams.set('page[limit]', String(limit))
   url.searchParams.set('page[offset]', String(offset))
   return url
@@ -83,7 +86,7 @@ async function loadMore(count: number) {
       sampleCount = 0
       view = 'distinct'
       total = null
-      loadedReleaseSet = releaseSet
+      loadedReleaseSet = `${releaseSet}:${profile}`
     }
 
     if (total === null) {
@@ -205,7 +208,7 @@ $effect(() => {
       </div>
     {:else if !loading && !errorMessage}
       <p class="font-body text-body-md text-foreground-alt">
-        No complete {apiFamily} samples are available for this release set.
+        No complete {apiFamily} samples are available for this release set and profile.
       </p>
     {/if}
 

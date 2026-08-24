@@ -120,14 +120,33 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
   /\/+$/,
   '',
 )
-const copyPath = $derived(
-  text
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .join(''),
+function getCopyPaths(value: string) {
+  const paths: string[] = []
+  let pathParts: string[] = []
+
+  for (const line of value.split(/\r?\n/)) {
+    const part = line.trim()
+    if (!part) continue
+
+    if (part.startsWith('/')) {
+      if (pathParts.length > 0) paths.push(pathParts.join(''))
+      pathParts = [part]
+      continue
+    }
+
+    pathParts.push(part)
+  }
+
+  if (pathParts.length > 0) paths.push(pathParts.join(''))
+  return paths
+}
+
+const copyPaths = $derived(getCopyPaths(text))
+const copyText = $derived(
+  copyPaths
+    .map(path => `${apiBaseUrl}${path.replaceAll('[', '%5B').replaceAll(']', '%5D')}`)
+    .join('\n'),
 )
-const copyText = $derived(`${apiBaseUrl}${copyPath}`)
 
 async function copyUrl() {
   if (!navigator.clipboard) return

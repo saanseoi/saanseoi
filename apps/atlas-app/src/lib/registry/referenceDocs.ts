@@ -1,6 +1,8 @@
 import overtureLocalisation from '../../../../../docs/datasets/sources/overture/localisation.md?raw'
 import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/overture/divisionHierarchy.md?raw'
+import overtureDivisionHierarchyLevels from '../../../../../docs/datasets/sources/overture/divisionHierarchyLevels.md?raw'
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
+import overtureDivisionTypes from '../../../../../docs/datasets/sources/overture/divisionTypes.md?raw'
 import censtatdTerms from '../../../../../docs/datasets/sources/hkgov-censtatd/terms.md?raw'
 import censtatdMeasureNaming from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureNaming.md?raw'
 import censtatdMeasureOfferings from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureOfferings.md?raw'
@@ -118,6 +120,16 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     title: 'division hierarchy normalisation',
     displayTitleKey: 'reference_division_hierarchy_normalisation',
     source: overtureDivisionHierarchy,
+  },
+  'division-hierarchy-levels': {
+    title: 'division hierarchy levels',
+    displayTitleKey: 'reference_division_hierarchy_levels',
+    source: overtureDivisionHierarchyLevels,
+  },
+  'canonical-division-types': {
+    title: 'canonical division types',
+    displayTitleKey: 'reference_canonical_division_types',
+    source: overtureDivisionTypes,
   },
   'hkgov-censtatd': {
     title: 'C&SD',

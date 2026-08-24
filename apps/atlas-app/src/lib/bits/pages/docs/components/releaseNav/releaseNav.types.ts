@@ -37,6 +37,12 @@ export type ReleaseNavAction = {
   id: string
   label: string
   onSelect?: () => void
+  onValueChange?: (value: string) => void
+  options?: Array<{
+    label: string
+    value: string
+  }>
   pressed?: boolean
+  value?: string
   analyticsSurface?: ReleaseAnalyticsSurface
 }
