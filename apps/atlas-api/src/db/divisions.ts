@@ -50,11 +50,6 @@ export type DivisionRecord = {
     bbox: typeof divisions.$inferSelect.bbox
     sourceKeys: DivisionSourceKeys | null
     identifiers?: typeof divisions.$inferSelect.identifiers
-    subtype: string | null
-    class: string | null
-    overtureFeatureVersion: number | null
-    overtureAdminLevel: number | null
-    overtureHierarchies: unknown
     wikidata: string | null
     hierarchy: typeof divisions.$inferSelect.hierarchy
     cartography: typeof divisions.$inferSelect.cartography
@@ -324,32 +319,6 @@ function mapDivisionSourceKeys(value: unknown): DivisionSourceKeys | null {
   return value as DivisionSourceKeys
 }
 
-function getDivisionSourceKey(
-  sourceKeys: DivisionSourceKeys | null,
-  source: string,
-  key: string,
-) {
-  const value = sourceKeys?.[source]?.[key]
-  return typeof value === 'string' ? value : null
-}
-
-function getDivisionSourceNumber(
-  sourceKeys: DivisionSourceKeys | null,
-  source: string,
-  key: string,
-) {
-  const value = sourceKeys?.[source]?.[key]
-  return typeof value === 'number' ? value : null
-}
-
-function getDivisionSourceValue(
-  sourceKeys: DivisionSourceKeys | null,
-  source: string,
-  key: string,
-) {
-  return sourceKeys?.[source]?.[key]
-}
-
 function mapDivisionRow(row: DivisionRow): DivisionRecord {
   const rawI18n = JSON.parse(row.i18n) as Record<string, unknown>
   const sourceKeys = mapDivisionSourceKeys(row.sourceKeys)
@@ -365,23 +334,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       bbox: row.bbox,
       sourceKeys,
       identifiers: row.identifiers,
-      subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
-      class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
-      overtureFeatureVersion: getDivisionSourceNumber(
-        sourceKeys,
-        'overture',
-        'version',
-      ),
-      overtureAdminLevel: getDivisionSourceNumber(
-        sourceKeys,
-        'overture',
-        'admin_level',
-      ),
-      overtureHierarchies: getDivisionSourceValue(
-        sourceKeys,
-        'overture',
-        'hierarchies',
-      ),
       wikidata: row.wikidata,
       hierarchy: row.hierarchy,
       cartography: row.cartography,

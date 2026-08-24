@@ -28,18 +28,114 @@ export const BBoxSchema = z
     description: openApiText('openapi_bbox_description'),
   })
 
-export const GeometrySchema = z
-  .object({})
-  .loose()
-  .openapi('Geometry', {
-    description: openApiText('openapi_geometry_description'),
+const GeoJsonPositionSchema = z
+  .array(z.number())
+  .min(2)
+  .max(3)
+  .openapi({
+    description: openApiText('openapi_geojson_position_description'),
   })
+
+const GeoJsonGeometrySchema: z.ZodType = z.lazy(() =>
+  z.union([
+    z.object({
+      type: z.literal('Point').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: GeoJsonPositionSchema.openapi({
+        description: openApiText('openapi_geojson_coordinates_description'),
+      }),
+    }),
+    z.object({
+      type: z.literal('MultiPoint').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: z
+        .array(GeoJsonPositionSchema)
+        .min(1)
+        .openapi({
+          description: openApiText('openapi_geojson_coordinates_description'),
+        }),
+    }),
+    z.object({
+      type: z.literal('LineString').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: z
+        .array(GeoJsonPositionSchema)
+        .min(2)
+        .openapi({
+          description: openApiText('openapi_geojson_coordinates_description'),
+        }),
+    }),
+    z.object({
+      type: z.literal('MultiLineString').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: z
+        .array(z.array(GeoJsonPositionSchema).min(2))
+        .min(1)
+        .openapi({
+          description: openApiText('openapi_geojson_coordinates_description'),
+        }),
+    }),
+    z.object({
+      type: z.literal('Polygon').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: z
+        .array(z.array(GeoJsonPositionSchema).min(4))
+        .min(1)
+        .openapi({
+          description: openApiText('openapi_geojson_coordinates_description'),
+        }),
+    }),
+    z.object({
+      type: z.literal('MultiPolygon').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      coordinates: z
+        .array(z.array(z.array(GeoJsonPositionSchema).min(4)).min(1))
+        .min(1)
+        .openapi({
+          description: openApiText('openapi_geojson_coordinates_description'),
+        }),
+    }),
+    z.object({
+      type: z.literal('GeometryCollection').openapi({
+        description: openApiText('openapi_geojson_geometry_type_description'),
+      }),
+      geometries: z.array(GeoJsonGeometrySchema).openapi({
+        description: openApiText('openapi_geojson_geometries_description'),
+      }),
+    }),
+  ]),
+)
+
+export const GeometrySchema = GeoJsonGeometrySchema.openapi('Geometry', {
+  description: openApiText('openapi_geometry_description'),
+})
 
 export const CartographicHintsSchema = z
   .object({
-    prominence: z.number().optional(),
-    min_zoom: z.number().optional(),
-    max_zoom: z.number().optional(),
+    prominence: z
+      .number()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_cartographic_prominence_description'),
+      }),
+    min_zoom: z
+      .number()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_cartographic_min_zoom_description'),
+      }),
+    max_zoom: z
+      .number()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_cartographic_max_zoom_description'),
+      }),
   })
   .loose()
   .openapi('CartographicHints', {
@@ -51,23 +147,6 @@ export const WikidataIdSchema = z
   .regex(/^Q\d+$/)
   .openapi('WikidataId', {
     description: openApiText('openapi_wikidata_identifier_description'),
-  })
-
-export const OverturePlaceTypeSchema = z.string().openapi('OverturePlaceType', {
-  description: openApiText('openapi_overture_place_type_description'),
-})
-
-export const OvertureDivisionClassSchema = z.string().openapi('OvertureDivisionClass', {
-  description: openApiText('openapi_overture_division_class_description'),
-})
-
-export const FeatureVersionSchema = z
-  .number()
-  .int()
-  .min(0)
-  .max(2_147_483_647)
-  .openapi('FeatureVersion', {
-    description: openApiText('openapi_feature_version_description'),
   })
 
 export const OvertureSourceItemSchema = z
@@ -183,12 +262,36 @@ export const JsonApiVersionSchema = z
 
 export const JsonApiLinkMapSchema = z
   .object({
-    self: z.string().optional(),
-    first: z.string().optional(),
-    prev: z.string().optional(),
-    next: z.string().optional(),
+    self: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_jsonapi_link_self_description'),
+      }),
+    first: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_jsonapi_link_first_description'),
+      }),
+    prev: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_jsonapi_link_prev_description'),
+      }),
+    next: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_jsonapi_link_next_description'),
+      }),
   })
-  .loose()
+  .catchall(
+    z.unknown().openapi({
+      description: openApiText('openapi_jsonapi_link_additional_description'),
+    }),
+  )
   .openapi('JsonApiLinkMap')
 
 export const RequestedLocaleCodeSchema = z.string().openapi({
