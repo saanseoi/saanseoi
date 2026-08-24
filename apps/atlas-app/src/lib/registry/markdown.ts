@@ -106,6 +106,36 @@ function buildChangedMarkdown(operations: MarkdownDiffOperation[]) {
   return lines.join('\n').trim()
 }
 
+function normaliseCohortReference(line: string) {
+  return line.replace(/\bcohort=[^&\s]+/g, 'cohort={cohort}')
+}
+
+function isCohortOnlyChange(left: string, right: string) {
+  return (
+    left !== right && normaliseCohortReference(left) === normaliseCohortReference(right)
+  )
+}
+
+function filterCohortOnlyOperations(operations: MarkdownDiffOperation[]) {
+  const suppressed = new Set<MarkdownDiffOperation>()
+  const removed = operations.filter(operation => operation.kind === 'removed')
+  const added = operations.filter(operation => operation.kind === 'added')
+
+  for (const removedOperation of removed) {
+    const addedOperation = added.find(
+      operation =>
+        !suppressed.has(operation) &&
+        isCohortOnlyChange(removedOperation.line, operation.line),
+    )
+    if (!addedOperation) continue
+
+    suppressed.add(removedOperation)
+    suppressed.add(addedOperation)
+  }
+
+  return operations.filter(operation => !suppressed.has(operation))
+}
+
 /**
  * Returns only changed Markdown lines, carrying the active heading path into
  * every hunk so an isolated edit still has enough context to be understood.
@@ -121,13 +151,16 @@ export function diffMarkdown(previous: string, current: string): MarkdownDiff {
   const flushOperations = () => {
     if (operations.length === 0) return
 
-    const added = operations.filter(operation => operation.kind === 'added')
-    const removed = operations.filter(operation => operation.kind === 'removed')
+    const visibleOperations = filterCohortOnlyOperations(operations)
+    const added = visibleOperations.filter(operation => operation.kind === 'added')
+    const removed = visibleOperations.filter(operation => operation.kind === 'removed')
     if (added.length || removed.length) {
       changes.push({
         addedMarkdown: buildChangedMarkdown(added),
         removedMarkdown: buildChangedMarkdown(removed),
       })
+      addedLines += added.length
+      removedLines += removed.length
     }
     operations = []
   }
@@ -147,10 +180,8 @@ export function diffMarkdown(previous: string, current: string): MarkdownDiff {
       const headingPath = kind === 'removed' ? previousHeadings : currentHeadings
       operations.push({ kind, line, headingPath })
       if (kind === 'added') {
-        addedLines += 1
         currentHeadings = updateHeadingPath(currentHeadings, line)
       } else {
-        removedLines += 1
         previousHeadings = updateHeadingPath(previousHeadings, line)
       }
     }

@@ -78,6 +78,53 @@ test('labels fenced API URL snippets as GET requests', async () => {
   await expect.element(screen.getByRole('button', { name: 'Copy' })).toBeVisible()
 })
 
+test('percent-encodes bracketed query parameter names when copying an API URL', async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText },
+  })
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      `\`\`\`url
+/divisions/v0?filter[level]=3&page[offset]=25
+\`\`\``,
+      'en',
+    ),
+  )
+
+  await screen.getByRole('button', { name: 'Copy' }).click()
+
+  expect(writeText).toHaveBeenCalledWith(
+    'http://localhost:8787/divisions/v0?filter%5Blevel%5D=3&page%5Boffset%5D=25',
+  )
+})
+
+test('copies each URL from a multi-URL block on its own line', async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText },
+  })
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      `\`\`\`url
+/divisions/v0?cohort=2025-09-24.0
+/divisions/v0?cohort=2025-10-22.0
+\`\`\``,
+      'en',
+    ),
+  )
+
+  await screen.getByRole('button', { name: 'Copy' }).click()
+
+  expect(writeText).toHaveBeenCalledWith(
+    'http://localhost:8787/divisions/v0?cohort=2025-09-24.0\nhttp://localhost:8787/divisions/v0?cohort=2025-10-22.0',
+  )
+})
+
 test('keeps API versions visible on the URL block primary surface', async () => {
   const screen = await render(
     ReleaseNotesContent,

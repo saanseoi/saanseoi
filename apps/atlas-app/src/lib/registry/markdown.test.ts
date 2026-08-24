@@ -45,6 +45,35 @@ describe('selectMarkdownSection', () => {
     })
   })
 
+  test('excludes cohort-only changes from a guide diff', () => {
+    expect(
+      diffMarkdown(
+        '## Using the Divisions API\n\n```url\n/divisions/v0?cohort=2025-09-24.0&\n```',
+        '## Using the Divisions API\n\n```url\n/divisions/v0?cohort=2025-10-22.0&\n```',
+      ),
+    ).toEqual({ addedLines: 0, changes: [], removedLines: 0 })
+  })
+
+  test('retains a change that includes more than the cohort reference', () => {
+    expect(
+      diffMarkdown(
+        '## Using the Divisions API\n\n/divisions/v0?cohort=2025-09-24.0&profile=default',
+        '## Using the Divisions API\n\n/divisions/v0?cohort=2025-10-22.0&profile=full',
+      ),
+    ).toEqual({
+      addedLines: 1,
+      changes: [
+        {
+          addedMarkdown:
+            '## Using the Divisions API\n/divisions/v0?cohort=2025-10-22.0&profile=full',
+          removedMarkdown:
+            '## Using the Divisions API\n/divisions/v0?cohort=2025-09-24.0&profile=default',
+        },
+      ],
+      removedLines: 1,
+    })
+  })
+
   test('returns stable, unique IDs for Markdown headings', () => {
     expect(getMarkdownHeadings('## Overview\n\n### Detail\n\n## Overview')).toEqual([
       { id: 'source-heading-overview', level: 2, text: 'Overview' },
