@@ -50,27 +50,27 @@
     {
       "localisations": [
         {
-          "description": "Number of persons.",
-          "isTranslationVerified": false,
           "locale": "en",
-          "name": "Total population"
+          "name": "Population",
+          "description": "Number of persons.",
+          "isTranslationVerified": false
         },
         {
-          "description": "人口數目。",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "總人口"
+          "name": "人口",
+          "description": "人口數目。",
+          "isTranslationVerified": false
         },
         {
-          "description": "人口数目。",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "总人口"
+          "name": "人口",
+          "description": "人口数目。",
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:2171584e2b91355a368e3ac2a641e5718d346848754cdda87269f649ebb3fdc3"
+  "versionHash": "sha256:544688180732f579f345fe1a78001a5671e9b59894c47d9b82d2774606eb290f"
 }

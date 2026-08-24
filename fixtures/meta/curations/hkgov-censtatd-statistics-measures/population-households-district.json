@@ -5,24 +5,24 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Average household size",
-          "description": "Average number of people in a domestic household.",
+          "name": "Domestic household size",
+          "description": "Number of people in a domestic household.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "平均住戶人數",
-          "description": "家庭住戶平均人數",
+          "name": "家庭住戶人數",
+          "description": "家庭住戶的人數。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "平均住户人数",
-          "description": "家庭住户平均人数",
+          "name": "家庭住户人数",
+          "description": "家庭住户的人数。",
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "averageDomesticHouseholdSize"
+      "measureCode": "domesticHouseholdSize"
     },
     {
       "localisations": [
@@ -51,24 +51,24 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "First quartile of monthly household income",
-          "description": "First quartile of monthly domestic household income, in Hong Kong dollars.",
+          "name": "Household income",
+          "description": "Domestic household income, in Hong Kong dollars.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "每月住戶收入第一四分位數",
-          "description": "家庭住戶每月收入：下四分位數",
+          "name": "住戶收入",
+          "description": "家庭住戶收入，單位為港元。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "每月住户收入第一四分位数",
-          "description": "家庭住户每月收入：下四分位数",
+          "name": "住户收入",
+          "description": "家庭住户收入，单位为港元。",
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "firstQuartileMonthlyHouseholdIncome"
+      "measureCode": "householdIncome"
     },
     {
       "localisations": [
@@ -143,70 +143,47 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Median age",
-          "description": "Median age of the population, in years.",
+          "name": "Age",
+          "description": "Age, in years.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "年齡中位數",
-          "description": "人口的年齡中位數，單位為歲。",
+          "name": "年齡",
+          "description": "年齡，單位為歲。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "年龄中位数",
-          "description": "人口的年龄中位数，单位为岁。",
+          "name": "年龄",
+          "description": "年龄，单位为岁。",
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianAge"
+      "measureCode": "age"
     },
     {
       "localisations": [
         {
           "locale": "en",
-          "name": "Median monthly domestic household income",
-          "description": "Median monthly domestic household income, in Hong Kong dollars.",
+          "name": "Domestic household income",
+          "description": "Domestic household income, in Hong Kong dollars.",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hant",
-          "name": "家庭住戶每月收入中位數",
-          "description": "家庭住戶每月收入中位數，單位為港元。",
+          "name": "家庭住戶收入",
+          "description": "家庭住戶收入，單位為港元。",
           "isTranslationVerified": false
         },
         {
           "locale": "zh-Hans",
-          "name": "家庭住户每月收入中位数",
-          "description": "家庭住户每月收入中位数，单位为港元。",
+          "name": "家庭住户收入",
+          "description": "家庭住户收入，单位为港元。",
           "isTranslationVerified": false
         }
       ],
-      "measureCode": "medianMonthlyDomesticHouseholdIncome"
-    },
-    {
-      "localisations": [
-        {
-          "locale": "en",
-          "name": "Median monthly household income",
-          "description": "Median monthly domestic household income, in Hong Kong dollars.",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hant",
-          "name": "每月住戶收入中位數",
-          "description": "家庭住戶每月收入：中位數",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hans",
-          "name": "每月住户收入中位数",
-          "description": "家庭住户每月收入：中位数",
-          "isTranslationVerified": false
-        }
-      ],
-      "measureCode": "medianMonthlyHouseholdIncome"
+      "measureCode": "domesticHouseholdIncome"
     },
     {
       "localisations": [
@@ -258,49 +235,26 @@
       "localisations": [
         {
           "locale": "en",
-          "name": "Third quartile of monthly household income",
-          "description": "Third quartile of monthly domestic household income, in Hong Kong dollars.",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hant",
-          "name": "每月住戶收入第三四分位數",
-          "description": "家庭住戶每月收入：上四分位數",
-          "isTranslationVerified": false
-        },
-        {
-          "locale": "zh-Hans",
-          "name": "每月住户收入第三四分位数",
-          "description": "家庭住户每月收入：上四分位数",
-          "isTranslationVerified": false
-        }
-      ],
-      "measureCode": "thirdQuartileMonthlyHouseholdIncome"
-    },
-    {
-      "localisations": [
-        {
+          "name": "Population",
           "description": "Number of persons.",
-          "isTranslationVerified": false,
-          "locale": "en",
-          "name": "Total population"
+          "isTranslationVerified": false
         },
         {
-          "description": "人口數目。",
-          "isTranslationVerified": false,
           "locale": "zh-Hant",
-          "name": "總人口"
+          "name": "人口",
+          "description": "人口數目。",
+          "isTranslationVerified": false
         },
         {
-          "description": "人口数目。",
-          "isTranslationVerified": false,
           "locale": "zh-Hans",
-          "name": "总人口"
+          "name": "人口",
+          "description": "人口数目。",
+          "isTranslationVerified": false
         }
       ],
-      "measureCode": "totalPopulation"
+      "measureCode": "population"
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:137ad7b89be157ceb97cfcb91eb74e0429e1faf2730a08ef28e697a4331ce8c7"
+  "versionHash": "sha256:3c67363bf2142b74f7631bbe193514815db0926a8ef0ec9fef0c9f8c8bfc1acb"
 }
