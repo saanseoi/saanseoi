@@ -44,6 +44,7 @@ let {
 
 <aside class="h-full">
   <div class="flex h-full min-h-0 flex-col">
+    {@render domainList()}
     <ReleaseNavVersionList
       {canExpand}
       {currentVersionCode}
@@ -60,6 +61,5 @@ let {
         />
       {/if}
     </ReleaseNavVersionList>
-    {@render domainList()}
   </div>
 </aside>

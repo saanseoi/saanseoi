@@ -83,8 +83,6 @@ const persistence = createReleaseNavigationPersistence({
 })
 let visibleVersionCode = $derived(optimisticVersionCode ?? currentVersionCode)
 const nestedScroll = createNestedContentScroll({
-  getContentTarget: () => getReleaseNavContentTarget(contentPanel),
-  isEnabled: () => nestedContent,
   onNavigate: persistence.captureNavigation,
 })
 
