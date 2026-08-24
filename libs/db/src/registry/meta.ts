@@ -77,6 +77,7 @@ type PublisherFixture = {
   i18n: Array<{
     locale: Locale
     name: string
+    nameShort?: string
     description?: string
   }>
 }
@@ -259,6 +260,7 @@ type InitialPublisherI18nSeed = {
   publisherCode: string
   locale: Locale
   name: string
+  nameShort?: string
   description?: string
 }
 
@@ -517,6 +519,7 @@ export const initialPublisherI18n: InitialPublisherI18nSeed[] =
       publisherCode: fixture.code,
       locale: translation.locale,
       name: translation.name,
+      nameShort: translation.nameShort,
       description: translation.description,
     })),
   )
@@ -789,17 +792,19 @@ WHERE
     statements.push(
       `
 INSERT INTO publisherI18n (
-  publisherId, locale, name, description, createdAt, updatedAt
+  publisherId, locale, name, nameShort, description, createdAt, updatedAt
 ) VALUES (
   (SELECT id FROM publishers WHERE code = ${sqlString(translation.publisherCode)}),
   ${sqlString(translation.locale)},
   ${sqlString(translation.name)},
+  ${sqlNullable(translation.nameShort)},
   ${sqlNullable(translation.description)},
   ${nowSql},
   ${nowSql}
 )
 ON CONFLICT(publisherId, locale) DO UPDATE SET
   name = excluded.name,
+  nameShort = excluded.nameShort,
   description = excluded.description,
   updatedAt = excluded.updatedAt;`.trim(),
     )
