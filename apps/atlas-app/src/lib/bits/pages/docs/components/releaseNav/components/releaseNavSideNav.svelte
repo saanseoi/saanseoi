@@ -43,21 +43,23 @@ let {
 {/snippet}
 
 <aside class="h-full">
-  <ReleaseNavVersionList
-    {canExpand}
-    {currentVersionCode}
-    {loading}
-    {onVersionPreload}
-    footer={domainList}
-    {versions}
-  >
-    {#if outline.length}
-      <ReleaseNavOutline
-        activeId={activeOutlineId}
-        ariaLabel={m.source_release_sections()}
-        items={outline}
-        {panel}
-      />
-    {/if}
-  </ReleaseNavVersionList>
+  <div class="flex h-full min-h-0 flex-col">
+    <ReleaseNavVersionList
+      {canExpand}
+      {currentVersionCode}
+      {loading}
+      {onVersionPreload}
+      {versions}
+    >
+      {#if outline.length}
+        <ReleaseNavOutline
+          activeId={activeOutlineId}
+          ariaLabel={m.source_release_sections()}
+          items={outline}
+          {panel}
+        />
+      {/if}
+    </ReleaseNavVersionList>
+    {@render domainList()}
+  </div>
 </aside>
