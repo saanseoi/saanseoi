@@ -109,8 +109,8 @@ async function queryAccessUsage(
           SUM(_sample_interval * double2) AS metricValue
         FROM ${quoteDataset(dataset)}
         WHERE index1 = '${ACCESS_ANALYTICS_EVENT}'
-          AND timestamp >= '${timestamp(start)}'
-          AND timestamp < '${timestamp(end)}'
+          AND timestamp >= ${dateTime(start)}
+          AND timestamp < ${dateTime(end)}
         GROUP BY day, scope, entityId, metricKey
         HAVING metricValue > 0`,
     })
@@ -293,8 +293,8 @@ function numberValue(value: unknown) {
   return Number.isFinite(number) ? number : null
 }
 
-const timestamp = (value: number) =>
-  new Date(value).toISOString().replace('T', ' ').replace('.000Z', '')
+const dateTime = (value: number) =>
+  `toDateTime('${new Date(value).toISOString().replace('T', ' ').replace('.000Z', '')}')`
 
 const startOfDay = (value: number) => {
   const date = new Date(value)
