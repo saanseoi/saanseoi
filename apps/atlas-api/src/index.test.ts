@@ -1578,7 +1578,7 @@ describe('atlas-api', () => {
       "Resource linkage to related SaanSeoi records. Use `include` to return those records in the document's `included` array.",
     )
     expect(divisionI18n?.description).toBe(
-      'A map keyed by requested locale, for example `en` or `zh-Hant`.',
+      'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
     )
     expect(divisionI18n?.['x-recordKeyName']).toBe('locale')
     expect(sources?.properties?.overture?.description).toBe(
