@@ -47,17 +47,24 @@ const releaseNotesMarkdownExtensions: MarkedExtension[] = [
           return source.match(/<note\b/i)?.index
         },
         tokenizer(source) {
-          const match =
-            /^<note(?:\s+title=(?:"([^"]*)"|'([^']*)'))?\s*>\s*\n?([\s\S]*?)<\/note>\s*/i.exec(
-              source,
-            )
+          const match = /^<note\b([^>]*)>\s*\n?([\s\S]*?)<\/note>\s*/i.exec(source)
           if (!match) return
 
-          const [, doubleQuotedTitle, singleQuotedTitle, content] = match
+          const [, attributes, content] = match
+          const getAttribute = (name: string) => {
+            const attribute = new RegExp(
+              `\\s${name}=(?:"([^"]*)"|'([^']*)')`,
+              'i',
+            ).exec(attributes)
+            return attribute?.[1] ?? attribute?.[2]
+          }
+
           return {
             type: 'note',
             raw: match[0],
-            title: doubleQuotedTitle ?? singleQuotedTitle,
+            title: getAttribute('title'),
+            actionHref: getAttribute('action-href'),
+            actionLabel: getAttribute('action-label'),
             tokens: this.lexer.blockTokens(content),
           }
         },

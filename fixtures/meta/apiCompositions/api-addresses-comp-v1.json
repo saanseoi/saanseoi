@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5f6fad80810cbe2bae5bbfd80e807cf7af32d0ea99ecaadd757edb1d84c64d7f",
+  "versionHash": "sha256:adc705181e35468f6b412768da23d9ac6119ff03c7007910382b0c46f1b5b144",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -13,16 +13,19 @@
         {
           "locale": "en",
           "name": "Official",
+          "descriptionShort": "Official Hong Kong addresses.",
           "description": "Explore standardised addresses in Hong Kong, including their locations and the divisions that contain them."
         },
         {
           "locale": "zh-hant",
           "name": "官方",
+          "descriptionShort": "香港官方地址。",
           "description": "探索香港的標準化地址，包括其位置及所屬分區。"
         },
         {
           "locale": "zh-hans",
           "name": "官方",
+          "descriptionShort": "香港官方地址。",
           "description": "探索香港的标准化地址，包括其位置及所属分区。"
         }
       ],

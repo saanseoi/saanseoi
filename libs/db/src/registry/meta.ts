@@ -190,6 +190,7 @@ type ApiCompositionFixture = {
     i18n: Array<{
       locale: Locale
       name: string
+      descriptionShort?: string
       description?: string
     }>
     members: ApiCompositionMemberFixture[]
@@ -333,6 +334,7 @@ type InitialApiCompositionSeed = VersionedFixture<{
     Array<{
       locale: Locale
       name: string
+      descriptionShort?: string
       description?: string
     }>
   >

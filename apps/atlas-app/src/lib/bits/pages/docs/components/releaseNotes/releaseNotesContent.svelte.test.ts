@@ -151,3 +151,20 @@ test('renders release-note callouts', async () => {
     .element(screen.getByRole('link', { name: 'a key' }))
     .toHaveAttribute('href', '/guides/api-keys')
 })
+
+test('renders an optional note action', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '<note title="API key required" action-href="/guides/api-keys" action-label="Get API key">Provide your key.</note>',
+      'en',
+    ),
+  )
+
+  await expect
+    .element(screen.getByRole('link', { name: 'Get API key' }))
+    .toHaveAttribute('href', '/guides/api-keys')
+  await expect
+    .element(screen.getByRole('link', { name: 'Get API key' }))
+    .toHaveClass('no-underline')
+})

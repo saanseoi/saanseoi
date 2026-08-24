@@ -49,7 +49,7 @@ describe('docs markdown fixtures', () => {
         '- `r{{ apiReleaseSetRevision }}` Corrected the source metadata.',
       )
       expect(fixture.indexOf('`r{{ apiReleaseSetRevision }}` Corrected')).toBeLessThan(
-        fixture.indexOf('`r0` consists of 7 required composition members'),
+        fixture.indexOf('`r0` consists of 7 composition members'),
       )
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
@@ -132,6 +132,41 @@ Publishes revision r{{ revision }}.
     })
 
     expect(rendered).toBe('v0.1 Hong Kong 香港\n')
+  })
+
+  test('renders transcluded API-key notes in every supported locale', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{apiKeyNote:en}}
+
+{{apiKeyNote:zh-Hant}}
+
+{{apiKeyNote:zh-Hans}}
+`,
+      frontmatter: {},
+    })
+
+    expect(rendered).toContain('action-label="Get API key"')
+    expect(rendered).toContain('action-label="取得 API 金鑰"')
+    expect(rendered).toContain('action-label="获取 API 密钥"')
+    expect(rendered).toContain('<black>access_token=</black>')
+    expect(rendered).not.toContain('{{apiKeyNote:')
+  })
+
+  test('renders experimental API warnings in every supported locale', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+      frontmatter: { apiVersion: 'api-divisions-v0.1' },
+    })
+
+    expect(rendered).toContain('<black>v0.1</black> contract is experimental')
+    expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
+    expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+    expect(rendered).not.toContain('{{experimentalApiWarning:')
   })
 
   test('renders API release sources as role and resource-type tables', async () => {
