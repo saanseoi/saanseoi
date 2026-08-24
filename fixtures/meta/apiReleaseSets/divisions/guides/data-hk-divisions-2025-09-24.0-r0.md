@@ -24,7 +24,7 @@ to the one you need.
 
 {{apiKeyNote:en}}
 
-### Requesting Data
+## Requesting Data
 
 {{experimentalApiWarning:en}}
 
@@ -62,7 +62,7 @@ To request records from this specific release, include both selectors:
 The examples below include the cohort and domain for consistency, even where they do not
 affect the feature being explained.
 
-### Shaping the Response
+## Shaping the Response
 
 Profiles control how much information each response contains. You can try the different
 profiles in the [Samples tab](?tab=samples). Set one with <black>profile=</black>; if
@@ -79,7 +79,7 @@ For a map-ready response, set <black>profile=map</black>:
                  profile=map
 ```
 
-### Adding Geometry
+## Adding Geometry
 
 Each division has point geometry (i.e. latitude, longitude coordinates) for positioning
 a map label. It is included when using <black>profile=map</black> and
@@ -134,7 +134,7 @@ only for the 2016 and 2021 C&SD area companions, as the originals are highly det
 
 Do not use this transform when your analysis depends on the original detailed boundary.
 
-### Adding Hierarchies
+## Adding Hierarchies
 
 Every primary division resource always contains a <black>relationships.hierarchy</black>
 relationship, whatever <black>include</black> you select. Its <black>data</black> lists
@@ -163,7 +163,7 @@ Use <black>include=none</black> when you do not need any related resources in
 <black>included</black>. It leaves <black>relationships.hierarchy</black> unchanged;
 only the expansion of its identifiers into resources is omitted.
 
-### Adding Languages (`I18n`)
+## Adding Languages (`I18n`)
 
 Unless you select <black>profile=full</black>, names are returned in English and
 Traditional Chinese by default: <black>locales=en,zh-hant</black>. With
@@ -181,7 +181,7 @@ Use <black>locales=*</black> for every available locale, or provide another supp
 comma-separated list. Use <black>locales=null</black> to leave <black>i18n</black> out
 of the response.
 
-### Filters & Pagination
+## Filters & Pagination
 
 Filters narrow the list before it is split into pages. Use `filter[level]` for a
 [hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[divisionType]`
@@ -214,7 +214,7 @@ Follow the response's <black>links.next</black>, <black>links.prev</black>, and
 <black>links.first</black> instead of calculating the next offset yourself. Use
 <black>meta.page.total</black> to show or plan for the complete filtered result.
 
-### Time travel
+## Time travel
 
 Time travel lets you reproduce an earlier analysis, explain a past response, or separate
 a later backfill from what the catalogue knew when a decision was made.
@@ -255,7 +255,7 @@ to the resources you loaded. It contains the resolved
 [catalogue revision](saanseoi:en:definition/catalogue-revision/v1) selectors, so save it
 to replay that exact result later.
 
-### Switching Domains
+## Switching Domains
 
 A [domain](saanseoi:en:definition/domain/v1) is a separate collection within an API
 family. Records from different domains cannot sensibly be combined. In the {{apiFamily}}
@@ -263,7 +263,7 @@ API, the following domains are available:
 
 {{domains:en}}
 
-### Recover from Failure
+## Recover from Failure
 
 The API returns a number of error codes. Here is how to recover from each one:
 
@@ -291,7 +291,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 {{apiKeyNote:zh-Hant}}
 
-### 要求資料
+## 要求資料
 
 {{experimentalApiWarning:zh-Hant}}
 
@@ -327,7 +327,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 下列範例一律包含 cohort 及 domain，以保持一致，即使它們不影響正在說明的功能。
 
-### 設定回應形狀
+## 設定回應形狀
 
 profile 控制每個回應所含資料的多寡。可在[範例分頁](?tab=samples)試用各個 profile。以
 <black>profile=</black> 設定；省略時，API 使用 <black>default</black>。
@@ -343,7 +343,7 @@ profile 控制每個回應所含資料的多寡。可在[範例分頁](?tab=samp
                  profile=map
 ```
 
-### 加入幾何資料
+## 加入幾何資料
 
 每個區劃均有點幾何資料（即緯度、經度座標），供放置地圖標籤之用。使用
 <black>profile=map</black> 或 <black>profile=full</black> 時會包含此資料。
@@ -393,7 +393,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 
 如分析依賴原有的詳細邊界，請勿使用此轉換。
 
-### 加入層級關係
+## 加入層級關係
 
 每個主要區劃資源一律包含 <black>relationships.hierarchy</black> 關係，不受
 <black>include</black> 選擇影響。其 <black>data</black>
@@ -421,7 +421,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 <black>include=none</black>。它不會改變
 <black>relationships.hierarchy</black>；只會略過將其識別碼展開為資源。
 
-### 加入語言（`I18n`）
+## 加入語言（`I18n`）
 
 除非選取
 <black>profile=full</black>，否則名稱預設以英文及繁體中文傳回：<black>locales=en,zh-hant</black>。使用
@@ -439,7 +439,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 取得所有可用 locale，或提供另一個受支援的逗號分隔清單。使用 <black>locales=null</black>
 可使回應不包含 <black>i18n</black>。
 
-### 篩選及分頁
+## 篩選及分頁
 
 篩選會先縮小清單，再分頁。使用 `filter[level]`
 篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用
@@ -472,7 +472,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 <black>links.first</black>，而非自行計算下一個 offset。使用
 <black>meta.page.total</black> 顯示或規劃完整的篩選結果。
 
-### 時間旅行
+## 時間旅行
 
 時間旅行可讓你重現較早的分析、解釋過往回應，或區分稍後的回填資料與作出決定時目錄已知的內容。
 
@@ -511,7 +511,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 [catalogue revision](saanseoi:zh-hant:definition/catalogue-revision/v1)
 selector；請保存它，以便日後重播完全相同的結果。
 
-### 切換 domain
+## 切換 domain
 
 [domain](saanseoi:zh-hant:definition/domain/v1) 是 API
 family 內獨立的集合。不同 domain 的記錄無法合理地合併。在 {{apiFamily}}
@@ -519,7 +519,7 @@ API 中，可使用以下 domain：
 
 {{domains:zh-Hant}}
 
-### 從失敗中復原
+## 從失敗中復原
 
 API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
@@ -544,7 +544,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 {{apiKeyNote:zh-Hans}}
 
-### 请求数据
+## 请求数据
 
 {{experimentalApiWarning:zh-Hans}}
 
@@ -580,7 +580,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 下列示例一律包含 cohort 及 domain，以保持一致，即使它们不影响正在说明的功能。
 
-### 设置响应形状
+## 设置响应形状
 
 profile 控制每个响应所含数据的多少。可在[示例分页](?tab=samples)试用各个 profile。以
 <black>profile=</black> 设置；省略时，API 使用 <black>default</black>。
@@ -596,7 +596,7 @@ profile 控制每个响应所含数据的多少。可在[示例分页](?tab=samp
                  profile=map
 ```
 
-### 添加几何数据
+## 添加几何数据
 
 每个区划均有点几何数据（即纬度、经度坐标），供放置地图标签之用。使用
 <black>profile=map</black> 或 <black>profile=full</black> 时会包含此数据。
@@ -646,7 +646,7 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 
 如分析依赖原有的详细边界，请勿使用此转换。
 
-### 添加层级关系
+## 添加层级关系
 
 每个主要区划资源一律包含 <black>relationships.hierarchy</black> 关系，不受
 <black>include</black> 选择影响。其 <black>data</black>
@@ -674,7 +674,7 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 <black>include=none</black>。它不会改变
 <black>relationships.hierarchy</black>；只会略过将其标识符展开为资源。
 
-### 添加语言（`I18n`）
+## 添加语言（`I18n`）
 
 除非选择
 <black>profile=full</black>，否则名称默认以英文及繁体中文返回：<black>locales=en,zh-hant</black>。使用
@@ -692,7 +692,7 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 获取所有可用 locale，或提供另一个受支持的逗号分隔列表。使用 <black>locales=null</black>
 可使响应不包含 <black>i18n</black>。
 
-### 筛选及分页
+## 筛选及分页
 
 筛选会先缩小列表，再分页。使用 `filter[level]`
 筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用
@@ -725,7 +725,7 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 <black>links.first</black>，而非自行计算下一个 offset。使用
 <black>meta.page.total</black> 显示或规划完整的筛选结果。
 
-### 时间旅行
+## 时间旅行
 
 时间旅行可让你重现较早的分析、解释过往响应，或区分稍后的回填数据与作出决定时目录已知的内容。
 
@@ -764,7 +764,7 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 [catalogue revision](saanseoi:zh-hans:definition/catalogue-revision/v1)
 selector；请保存它，以便日后重放完全相同的结果。
 
-### 切换 domain
+## 切换 domain
 
 [domain](saanseoi:zh-hans:definition/domain/v1) 是 API
 family 内独立的集合。不同 domain 的记录无法合理地合并。在 {{apiFamily}}
@@ -772,7 +772,7 @@ API 中，可使用以下 domain：
 
 {{domains:zh-Hans}}
 
-### 从失败中恢复
+## 从失败中恢复
 
 API 会返回多种错误码。以下说明各种情况的恢复方法：
 
