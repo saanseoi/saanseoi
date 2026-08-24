@@ -19,27 +19,44 @@ import {
 } from '../../../services/sourceRecords'
 import type { AppEnv } from '../../../types'
 import type { AccessAttribution } from '../../../services/accessAnalytics'
+import { openApiText } from '../../../lib/openapi-i18n'
 
 const SOURCE_FAMILIES = [
   {
     family: 'addresses',
     label: 'Address',
-    sourceLabel: 'address',
+    sourceReleasesDescription: openApiText(
+      'openapi_address_source_releases_list_description',
+    ),
+    sourceReleaseUnavailableDescription: openApiText(
+      'openapi_address_source_release_unavailable_description',
+    ),
   },
   {
     family: 'divisions',
     label: 'Division',
-    sourceLabel: 'division',
+    sourceReleasesDescription: openApiText(
+      'openapi_division_source_releases_list_description',
+    ),
+    sourceReleaseUnavailableDescription: openApiText(
+      'openapi_division_source_release_unavailable_description',
+    ),
   },
   {
     family: 'stats',
     label: 'Statistic',
-    sourceLabel: 'statistics',
+    sourceReleasesDescription: openApiText(
+      'openapi_statistics_source_releases_list_description',
+    ),
+    sourceReleaseUnavailableDescription: openApiText(
+      'openapi_statistics_source_release_unavailable_description',
+    ),
   },
 ] as const satisfies ReadonlyArray<{
   family: SourceFamily
   label: string
-  sourceLabel: string
+  sourceReleaseUnavailableDescription: string
+  sourceReleasesDescription: string
 }>
 
 const SOURCE_API_VERSIONS = ['v0', 'v0.1'] as const
@@ -47,7 +64,7 @@ const SOURCE_API_VERSIONS = ['v0', 'v0.1'] as const
 type SourceApiVersion = (typeof SOURCE_API_VERSIONS)[number]
 
 function sourceReleasesRouteConfig(
-  { family, label, sourceLabel }: (typeof SOURCE_FAMILIES)[number],
+  { family, label, sourceReleasesDescription }: (typeof SOURCE_FAMILIES)[number],
   version: SourceApiVersion,
 ) {
   return createRoute({
@@ -65,7 +82,7 @@ function sourceReleasesRouteConfig(
             schema: SourceReleasesResponseSchema,
           },
         },
-        description: `List source releases contributing to a ${sourceLabel} API release.`,
+        description: sourceReleasesDescription,
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -73,7 +90,11 @@ function sourceReleasesRouteConfig(
 }
 
 function sourceRecordsRouteConfig(
-  { family, label, sourceLabel }: (typeof SOURCE_FAMILIES)[number],
+  {
+    family,
+    label,
+    sourceReleaseUnavailableDescription,
+  }: (typeof SOURCE_FAMILIES)[number],
   version: SourceApiVersion,
 ) {
   return createRoute({
@@ -92,12 +113,11 @@ function sourceRecordsRouteConfig(
           },
           'application/x-ndjson': {
             schema: z.string().openapi({
-              description: 'A newline-delimited stream of source records.',
+              description: openApiText('openapi_source_records_ndjson_description'),
             }),
           },
         },
-        description:
-          'List source records for one exact source release, or stream them as NDJSON.',
+        description: openApiText('openapi_source_records_list_description'),
       },
       404: {
         content: {
@@ -105,7 +125,7 @@ function sourceRecordsRouteConfig(
             schema: ErrorResponseSchema,
           },
         },
-        description: `Source release is unavailable for ${sourceLabel} source-record access.`,
+        description: sourceReleaseUnavailableDescription,
       },
       422: {
         content: {
@@ -113,7 +133,9 @@ function sourceRecordsRouteConfig(
             schema: z.union([ErrorResponseSchema, ValidationErrorResponseSchema]),
           },
         },
-        description: 'Request validation failed, including an invalid source cursor.',
+        description: openApiText(
+          'openapi_source_records_validation_failed_description',
+        ),
       },
     },
   })

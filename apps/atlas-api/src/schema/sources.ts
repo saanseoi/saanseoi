@@ -1,17 +1,23 @@
 import { z } from '@hono/zod-openapi'
 
+import { openApiText } from '../lib/openapi-i18n'
+
 const SourceReleaseCodeSchema = z
   .string()
   .min(1)
   .max(200)
   .openapi({
-    description: 'Globally unique source release code.',
+    description: openApiText('openapi_source_release_code_description'),
     examples: ['dr-hk-overture-division-2026-07-22.0'],
   })
 
-const SourceRecordCursorSchema = z.string().min(1).max(2048).openapi({
-  description: 'Opaque cursor returned by a prior source-record response.',
-})
+const SourceRecordCursorSchema = z
+  .string()
+  .min(1)
+  .max(2048)
+  .openapi({
+    description: openApiText('openapi_source_record_cursor_description'),
+  })
 
 const SourceRecordSchema = z
   .object({
@@ -25,15 +31,21 @@ const SourceRecordSchema = z
 
 const SourceRecordPinSchema = z
   .object({
-    apiReleaseSetCode: z.string().nullable().openapi({
-      description:
-        'Null for a canonical sourceRelease pin, which is intentionally independent of an API release set.',
-    }),
+    apiReleaseSetCode: z
+      .string()
+      .nullable()
+      .openapi({
+        description: openApiText(
+          'openapi_source_record_api_release_set_pin_description',
+        ),
+      }),
     datasetCode: z.string(),
-    snapshotCode: z.string().nullable().openapi({
-      description:
-        'Null for a canonical sourceRelease pin, which is intentionally independent of a snapshot.',
-    }),
+    snapshotCode: z
+      .string()
+      .nullable()
+      .openapi({
+        description: openApiText('openapi_source_record_snapshot_pin_description'),
+      }),
     sourceReleaseCode: SourceReleaseCodeSchema,
   })
   .openapi('SourceRecordPin')
