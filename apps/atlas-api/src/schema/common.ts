@@ -179,7 +179,10 @@ const OvertureSourceItemsSchema = z
       new Set(items.map(item => JSON.stringify(item))).size === items.length,
     { message: 'Source items must be unique.' },
   )
-  .openapi({ uniqueItems: true })
+  .openapi({
+    description: openApiText('openapi_sources_overture_description'),
+    uniqueItems: true,
+  })
 
 const OtherSourceTypeItemsSchema = z
   .array(OtherSourceTypeItemSchema)
@@ -189,7 +192,10 @@ const OtherSourceTypeItemsSchema = z
       new Set(items.map(item => JSON.stringify(item))).size === items.length,
     { message: 'Source items must be unique.' },
   )
-  .openapi({ uniqueItems: true })
+  .openapi({
+    description: openApiText('openapi_sources_other_provider_description'),
+    uniqueItems: true,
+  })
 
 export const SourcesSchema = z
   .object({
@@ -198,6 +204,7 @@ export const SourcesSchema = z
   .catchall(OtherSourceTypeItemsSchema)
   .openapi('Sources', {
     description: openApiText('openapi_sources_payload_description'),
+    'x-additionalPropertiesName': openApiText('openapi_sources_other_provider_label'),
   })
 
 export type SourcesPayload = z.infer<typeof SourcesSchema>
