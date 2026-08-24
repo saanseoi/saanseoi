@@ -147,10 +147,10 @@ async function copyUrl() {
 
 {#if lang === 'url'}
   <div
-    class="relative m-0 overflow-x-auto border border-data-outline-variant/60 bg-data-surface-container-lowest py-2 pl-6 font-mono text-sm leading-6"
+    class="relative m-0 overflow-x-auto border border-data-outline-variant/60 bg-primary py-2 pl-6 font-mono text-sm leading-6 text-on-primary dark:bg-data-surface-container-lowest dark:text-data-on-surface"
   >
     <button
-      class="absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"
+      class="absolute top-2 right-2 inline-flex size-7 items-center justify-center rounded-full text-on-primary/70 transition hover:bg-primary-container hover:text-on-primary dark:text-data-on-surface-variant dark:hover:bg-data-surface-container-high dark:hover:text-data-primary"
       type="button"
       aria-label={copied ? m.common_copied() : m.common_copy()}
       title={copied ? m.common_copied() : m.common_copy()}
@@ -166,7 +166,7 @@ async function copyUrl() {
       {#each tokens as line, lineIndex}
         {#if lineIndex === 0}
           <span
-            class="mr-3 inline-block w-[4ch] font-body text-xs leading-none font-black! uppercase tracking-[0.12em] text-foreground"
+            class="mr-3 inline-block w-[4ch] font-body text-xs leading-none font-black! uppercase tracking-[0.12em] text-on-primary dark:text-data-on-surface"
             >GET</span
           >
         {:else}
@@ -177,11 +177,12 @@ async function copyUrl() {
           <span
             class:font-semibold={token.kind === 'parameter'}
             class:text-orange-200={token.kind === 'family'}
+            class:text-primary-fixed={token.kind === 'version'}
             class:text-secondary-fixed={token.kind === 'parameter'}
             class:text-blue-300={token.kind === 'parameterQualifier'}
-            class:text-data-secondary={token.kind === 'value'}
+            class:text-data-warning={token.kind === 'value'}
             class:px-1={token.kind === 'separator' && token.value !== '?'}
-            class:text-outline={token.kind === 'bracket' || token.kind === 'separator'}
+            class:text-primary-fixed-dim={token.kind === 'bracket' || token.kind === 'separator'}
             >{token.value}</span
           >
         {/each}
