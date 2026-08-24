@@ -1550,6 +1550,8 @@ describe('atlas-api', () => {
     const divisionI18n = divisions.components?.schemas?.DivisionI18n as
       | { description?: string; 'x-recordKeyName'?: string }
       | undefined
+    const divisionHierarchyIdentifier =
+      divisions.components?.schemas?.DivisionHierarchyIdentifier
     const sources = divisions.components?.schemas?.Sources as
       | {
           'x-additionalPropertiesName'?: string
@@ -1581,6 +1583,15 @@ describe('atlas-api', () => {
       'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
     )
     expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
+    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
+      'Summary details for the ancestor division, provided with the resource linkage.',
+    )
+    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
+      "The ancestor division's available display name.",
+    )
+    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
+      "The ancestor division's source classification, such as `country`, `dependency` or `region`.",
+    )
     expect(sources?.properties?.overture?.description).toBe(
       'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
     )
@@ -1670,6 +1681,7 @@ describe('atlas-api', () => {
               }
             >
             anyOf?: Array<{
+              description?: string
               properties?: Record<
                 string,
                 {
