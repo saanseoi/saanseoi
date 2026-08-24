@@ -10,6 +10,7 @@ import {
 
 import { ErrorResponseSchema } from '../../schema'
 import type { AppEnv } from '../../types'
+import { openApiText } from '../../lib/openapi-i18n'
 
 const AssetParamsSchema = z.object({ assetId: z.string().uuid() })
 
@@ -24,15 +25,15 @@ const managedAssetRouteConfig = createRoute({
       content: {
         'application/octet-stream': {
           schema: z.string().openapi({
-            description: 'An immutable public-source artefact held in private R2.',
+            description: openApiText('openapi_source_asset_schema_description'),
           }),
         },
       },
-      description: 'Stream a registered immutable source asset.',
+      description: openApiText('openapi_source_asset_response_description'),
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Managed asset not found.',
+      description: openApiText('openapi_source_asset_not_found_description'),
     },
   },
 })

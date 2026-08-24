@@ -18,6 +18,7 @@ import {
 } from '../../../services/streets'
 import type { AppEnv } from '../../../types'
 import { sanitiseResponseUrl } from '../../../lib/api'
+import { openApiText } from '../../../lib/openapi-i18n'
 
 const streetDetailRoute = createRoute({
   method: 'get',
@@ -28,17 +29,17 @@ const streetDetailRoute = createRoute({
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },
-      description: 'Get the latest materialised version of a Hong Kong street.',
+      description: openApiText('openapi_streets_get_latest_response_description'),
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Street not found.',
+      description: openApiText('openapi_streets_not_found_description'),
     },
     503: {
       content: {
         'application/json': { schema: StreetSnapshotNotReadyErrorResponseSchema },
       },
-      description: 'Street snapshot is not ready.',
+      description: openApiText('openapi_streets_snapshot_not_ready_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -52,13 +53,13 @@ const streetChangelogRoute = createRoute({
   responses: {
     200: {
       content: { 'application/json': { schema: StreetChangelogReplayResponseSchema } },
-      description: 'Replay LandsD street source events in publisher order.',
+      description: openApiText('openapi_streets_changelog_response_description'),
     },
     503: {
       content: {
         'application/json': { schema: StreetSnapshotNotReadyErrorResponseSchema },
       },
-      description: 'Street snapshot is not ready.',
+      description: openApiText('openapi_streets_snapshot_not_ready_description'),
     },
   },
 })
@@ -72,17 +73,17 @@ const streetVersionsRoute = createRoute({
   responses: {
     200: {
       content: { 'application/json': { schema: StreetVersionsResponseSchema } },
-      description: 'List the materialised version history for one Hong Kong street.',
+      description: openApiText('openapi_streets_versions_list_response_description'),
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Street not found.',
+      description: openApiText('openapi_streets_not_found_description'),
     },
     503: {
       content: {
         'application/json': { schema: StreetSnapshotNotReadyErrorResponseSchema },
       },
-      description: 'Street snapshot is not ready.',
+      description: openApiText('openapi_streets_snapshot_not_ready_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -97,17 +98,17 @@ const streetVersionRoute = createRoute({
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },
-      description: 'Get one materialised version of a Hong Kong street.',
+      description: openApiText('openapi_streets_version_get_response_description'),
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Street not found.',
+      description: openApiText('openapi_streets_not_found_description'),
     },
     503: {
       content: {
         'application/json': { schema: StreetSnapshotNotReadyErrorResponseSchema },
       },
-      description: 'Street snapshot is not ready.',
+      description: openApiText('openapi_streets_snapshot_not_ready_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },

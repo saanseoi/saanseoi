@@ -17,6 +17,7 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
+import { openApiText } from '../../lib/openapi-i18n'
 
 async function persistNewsletterState(operation: Promise<void>, errorPrefix: string) {
   try {
@@ -37,7 +38,7 @@ const healthRouteConfig = createRoute({
           schema: HealthResponseSchema,
         },
       },
-      description: 'Health check status.',
+      description: openApiText('openapi_health_response_description'),
     },
   },
 })
@@ -64,7 +65,7 @@ const substackRouteConfig = createRoute({
           schema: SubstackSubscribeResponseSchema,
         },
       },
-      description: 'Subscribe an email address to the configured Substack publication.',
+      description: openApiText('openapi_substack_subscribe_response_description'),
     },
     422: ValidationErrorOpenAPIResponse,
     429: {
@@ -73,7 +74,7 @@ const substackRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Newsletter signup rate limit exceeded.',
+      description: openApiText('openapi_substack_rate_limit_description'),
     },
     500: {
       content: {
@@ -81,7 +82,7 @@ const substackRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Substack integration is misconfigured.',
+      description: openApiText('openapi_substack_misconfigured_description'),
     },
   },
 })

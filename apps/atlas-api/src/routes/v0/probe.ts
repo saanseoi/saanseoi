@@ -11,6 +11,7 @@ import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 
 import { D1PlacementProbeResponseSchema } from '../../schema'
 import type { AppEnv } from '../../types'
+import { openApiText } from '../../lib/openapi-i18n'
 
 const CONFIGURED_PLACEMENT_REGION = 'azure:eastasia'
 const API_KEY_HEADER = 'x-api-key'
@@ -20,7 +21,10 @@ const D1PlacementProbeQuerySchema = z
     iterations: z.string().optional(),
   })
   .openapi('D1PlacementProbeQuery', {
-    description: `Optional number of samples per D1 binding. Defaults to ${DEFAULT_D1_PLACEMENT_PROBE_ITERATIONS} and must be between 1 and ${MAX_D1_PLACEMENT_PROBE_ITERATIONS}.`,
+    description: openApiText('openapi_d1_probe_iterations_description', {
+      default: DEFAULT_D1_PLACEMENT_PROBE_ITERATIONS,
+      maximum: MAX_D1_PLACEMENT_PROBE_ITERATIONS,
+    }),
   })
 
 const D1PlacementProbeErrorSchema = z
@@ -45,7 +49,7 @@ const d1PlacementProbeRouteConfig = createRoute({
           schema: D1PlacementProbeResponseSchema,
         },
       },
-      description: 'Per-binding D1 round-trip timings for the Atlas API worker.',
+      description: openApiText('openapi_d1_probe_response_description'),
     },
     400: {
       content: {
@@ -53,7 +57,7 @@ const d1PlacementProbeRouteConfig = createRoute({
           schema: D1PlacementProbeErrorSchema,
         },
       },
-      description: 'The requested iteration count is invalid.',
+      description: openApiText('openapi_d1_probe_invalid_iterations_description'),
     },
     401: {
       content: {
@@ -61,7 +65,7 @@ const d1PlacementProbeRouteConfig = createRoute({
           schema: D1PlacementProbeErrorSchema,
         },
       },
-      description: 'The probe API key is missing or invalid.',
+      description: openApiText('openapi_d1_probe_unauthorised_description'),
     },
     500: {
       content: {
@@ -69,7 +73,7 @@ const d1PlacementProbeRouteConfig = createRoute({
           schema: D1PlacementProbeErrorSchema,
         },
       },
-      description: 'The probe API key is not configured.',
+      description: openApiText('openapi_d1_probe_misconfigured_description'),
     },
   },
 })

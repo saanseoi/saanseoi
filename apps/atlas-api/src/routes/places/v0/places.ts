@@ -27,6 +27,7 @@ import {
   resolveOptionalApiReleaseSetAccessAttribution,
 } from '../../../services/accessAnalytics'
 import type { AppEnv } from '../../../types'
+import { openApiText } from '../../../lib/openapi-i18n'
 
 const placeRouteConfig = createRoute({
   method: 'get',
@@ -43,7 +44,7 @@ const placeRouteConfig = createRoute({
           schema: PlaceResponseSchema,
         },
       },
-      description: 'Get a place.',
+      description: openApiText('openapi_places_get_response_description'),
     },
     404: {
       content: {
@@ -51,7 +52,7 @@ const placeRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Place not found.',
+      description: openApiText('openapi_places_not_found_description'),
     },
     503: {
       content: {
@@ -59,7 +60,7 @@ const placeRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Place snapshot is not ready.',
+      description: openApiText('openapi_places_snapshot_not_ready_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -80,7 +81,7 @@ const placesByCellRouteConfig = createRoute({
           schema: PlacesByCellResponseSchema,
         },
       },
-      description: 'List places by H3 cell.',
+      description: openApiText('openapi_places_list_by_h3_response_description'),
     },
     400: {
       content: {
@@ -88,7 +89,7 @@ const placesByCellRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Invalid H3 level.',
+      description: openApiText('openapi_places_invalid_h3_level_description'),
     },
     503: {
       content: {
@@ -96,7 +97,7 @@ const placesByCellRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Place snapshot is not ready.',
+      description: openApiText('openapi_places_snapshot_not_ready_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -117,7 +118,7 @@ const searchRouteConfig = createRoute({
           schema: SearchResponseSchema,
         },
       },
-      description: 'Search places.',
+      description: openApiText('openapi_places_search_response_description'),
     },
     503: {
       content: {
@@ -142,7 +143,7 @@ const searchRouteConfig = createRoute({
           },
         },
       },
-      description: 'Place snapshot or FTS index is not ready.',
+      description: openApiText('openapi_places_search_unavailable_description'),
     },
     422: ValidationErrorOpenAPIResponse,
   },
