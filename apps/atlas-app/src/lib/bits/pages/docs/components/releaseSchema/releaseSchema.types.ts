@@ -1,4 +1,4 @@
-import type { ApiProfileName as CoreApiProfileName } from '@repo/core'
+import type { ApiProfileName as CoreApiProfileName } from '@repo/core/apiLocales'
 
 export type ApiProfileName = CoreApiProfileName
 

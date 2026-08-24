@@ -126,7 +126,10 @@ export function getProfileSchema(
   apiFamily: string,
   profile: ApiProfileName,
 ): ReleaseSchemaModel {
-  const schemas = structuredClone(model.schemas)
+  const schemas = JSON.parse(JSON.stringify(model.schemas)) as Record<
+    string,
+    OpenApiSchema
+  >
 
   if (apiFamily === 'divisions') {
     const attributes = schemas.DivisionAttributes

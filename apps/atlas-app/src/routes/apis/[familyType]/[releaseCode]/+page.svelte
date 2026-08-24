@@ -2,7 +2,7 @@
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
-import { apiProfileNames, type ApiProfileName } from '@repo/core'
+import { apiProfileNames, type ApiProfileName } from '@repo/core/apiLocales'
 import { source_geometry_district_fallback } from '@repo/i18n/messages'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
@@ -315,6 +315,7 @@ let allVersions = $derived(
     href: (() => {
       const searchParams = new URLSearchParams()
       if (activeTab !== 'release') searchParams.set('tab', activeTab)
+      if (apiProfile !== 'default') searchParams.set('profile', apiProfile)
       if (
         (activeTab === 'release' || activeTab === 'guide') &&
         showNoteDiff &&
@@ -404,6 +405,8 @@ function setActiveTab(tab: string) {
   const url = new URL(page.url.href)
   if (tab === 'release') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
+  if (apiProfile === 'default') url.searchParams.delete('profile')
+  else url.searchParams.set('profile', apiProfile)
   url.hash = ''
   void goto(`${url.pathname}${url.search}${url.hash}`, {
     shallow: true,
