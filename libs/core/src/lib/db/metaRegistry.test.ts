@@ -87,6 +87,7 @@ function createRegistryReleasesDb() {
       validFrom TEXT,
       validTo TEXT,
       notes TEXT,
+      guide TEXT,
       versionHash TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
@@ -533,6 +534,7 @@ function createDraftReleaseSetDb() {
       validFrom TEXT,
       validTo TEXT,
       notes TEXT,
+      guide TEXT,
       versionHash TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL

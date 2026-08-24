@@ -49,7 +49,7 @@ describe('docs markdown fixtures', () => {
         '- `r{{ apiReleaseSetRevision }}` Corrected the source metadata.',
       )
       expect(fixture.indexOf('`r{{ apiReleaseSetRevision }}` Corrected')).toBeLessThan(
-        fixture.indexOf('`r0` consists of 7 composition members'),
+        fixture.indexOf('`r0` contains 7 source snapshots'),
       )
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
