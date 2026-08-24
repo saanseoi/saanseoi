@@ -61,20 +61,23 @@ forms). Median and percentile aggregations also record `aggregationPercentile` (
 median; otherwise the named rank from 0 to 100), and the dictionary supplies the
 English, Traditional Chinese, and Simplified Chinese measure dictionary. A proportion,
 ratio, rate, or density can also name its canonical `denominatorFieldName`. These
-semantics are independent of `valueKind` (numeric or categorical) and `unitCode`. Units
-are registered metadata in `fixtures/meta/units`; an unrecognised unit prompts for its
-dimension, symbol, English name, and definition before it is persisted and synchronised.
-Azure Translator fills Traditional and Simplified Chinese unit names and definitions
-from those English prompt values. The registered CSDI Simplified Data Specification is a
-review candidate retained as provenance. The CLI first displays compact metadata with
-the stable source-release portal URL, then a proposal of `sourceField -> fieldName`, its
-reviewed-unit suggestion, and the English/Traditional Chinese/Simplified Chinese name
-and description together. The unit suggestion is drawn only from compatible, previously
-reviewed canonical measure names; it is never admitted without review. On rejection,
-CSDI's English name and description become the editable defaults. If either changes,
-Azure Translator supplies new Chinese defaults; accepting those machine values unchanged
-records `isTranslationVerified=false`. Official CSDI locale rows remain verified.
-`--yes` refuses every uncurated field.
+semantics are independent of `valueKind` (numeric or categorical) and `unitCode`.
+`measureCode` identifies the underlying dimension-free concept, while `fieldName`
+retains any aggregation qualifier needed to distinguish published values; the structured
+aggregation metadata remains authoritative. Units are registered metadata in
+`fixtures/meta/units`; an unrecognised unit prompts for its dimension, symbol, English
+name, and definition before it is persisted and synchronised. Azure Translator fills
+Traditional and Simplified Chinese unit names and definitions from those English prompt
+values. The registered CSDI Simplified Data Specification is a review candidate retained
+as provenance. The CLI first displays compact metadata with the stable source-release
+portal URL, then a proposal of `sourceField -> fieldName`, its reviewed-unit suggestion,
+and the English/Traditional Chinese/Simplified Chinese name and description together.
+The unit suggestion is drawn only from compatible, previously reviewed canonical measure
+names; it is never admitted without review. On rejection, CSDI's English name and
+description become the editable defaults. If either changes, Azure Translator supplies
+new Chinese defaults; accepting those machine values unchanged records
+`isTranslationVerified=false`. Official CSDI locale rows remain verified. `--yes`
+refuses every uncurated field.
 
 When a publisher explicitly says that a classification changed between reference
 periods, the field dictionary records a structured `comparability` caution with the
