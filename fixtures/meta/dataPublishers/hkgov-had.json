@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0448fa3ef0d0539e2fefbd5b4f27979f85b877538d70a3b96270752e0d11d150",
+  "versionHash": "sha256:b267d4b41072b3116df3611f80c5a14c4eabbe54606fbdda69227bc1245807fc",
   "code": "hkgov-had",
   "parentCode": "hkgov",
   "url": "https://www.had.gov.hk/en/index.htm",
@@ -8,6 +8,7 @@
     {
       "locale": "en",
       "name": "Home Affairs Department",
+      "nameShort": "HAD",
       "description": "Promotes district governance and connects the Government with Hong Kong communities."
     },
     {

@@ -26,9 +26,21 @@ const ApiReleaseSetDocsRowSchema = z
       .array(
         z.object({
           datasetCode: z.string(),
-          datasetI18n: z.array(z.object({ locale: z.string(), name: z.string() })),
+          datasetI18n: z.array(
+            z.object({
+              description: z.string().nullable().optional(),
+              locale: z.string(),
+              name: z.string(),
+            }),
+          ),
           publisherCode: z.string(),
-          publisherI18n: z.array(z.object({ locale: z.string(), name: z.string() })),
+          publisherI18n: z.array(
+            z.object({
+              locale: z.string(),
+              name: z.string(),
+              nameShort: z.string().nullable().optional(),
+            }),
+          ),
           releaseCode: z.string(),
           resourceType: z.string(),
           role: z.enum(['primary', 'supporting']),
@@ -468,9 +480,11 @@ type ApiReleaseSetSourceQueryRow = {
 }
 
 type LocalisedDocsNameRow = {
+  description?: string | null
   id: string
   locale: string
   name: string
+  nameShort?: string | null
 }
 
 async function listApiReleaseSetSources(dbBinding: D1Database) {
@@ -508,10 +522,12 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
       )
       .all<ApiReleaseSetSourceQueryRow>(),
     db
-      .prepare('SELECT datasetId AS id, locale, name FROM datasetI18n')
+      .prepare('SELECT datasetId AS id, locale, name, description FROM datasetI18n')
       .all<LocalisedDocsNameRow>(),
     db
-      .prepare('SELECT publisherId AS id, locale, name FROM publisherI18n')
+      .prepare(
+        'SELECT publisherId AS id, locale, name, nameShort, description FROM publisherI18n',
+      )
       .all<LocalisedDocsNameRow>(),
   ])
 
@@ -555,12 +571,25 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
 }
 
 function groupLocalisedDocsNames(rows: LocalisedDocsNameRow[]) {
-  const grouped = new Map<string, Array<{ locale: string; name: string }>>()
+  const grouped = new Map<
+    string,
+    Array<{
+      description?: string | null
+      locale: string
+      name: string
+      nameShort?: string | null
+    }>
+  >()
 
   for (const row of rows) {
     grouped.set(row.id, [
       ...(grouped.get(row.id) ?? []),
-      { locale: row.locale, name: row.name },
+      {
+        description: row.description,
+        locale: row.locale,
+        name: row.name,
+        nameShort: row.nameShort,
+      },
     ])
   }
 

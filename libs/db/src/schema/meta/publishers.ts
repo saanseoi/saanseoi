@@ -39,6 +39,7 @@ export const metaPublisherI18n = sqliteTable(
       .references(() => metaPublishers.id, { onDelete: 'cascade' }),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
+    nameShort: text('nameShort'),
     description: text('description'),
     ...timestamps,
   },

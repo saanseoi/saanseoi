@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:06a9d7cd3a71cd8b90b67b858c618857b90000dfaf83ae7f8ef083b4dd6c11c1",
+  "versionHash": "sha256:dbf8d7ceed391eb116b78738c8b00dc63fb8d20b05909358eec282816258c290",
   "code": "hkgov-censtatd",
   "parentCode": "hkgov",
   "url": "https://www.censtatd.gov.hk/",
@@ -8,6 +8,7 @@
     {
       "locale": "en",
       "name": "Census and Statistics Department",
+      "nameShort": "C&SD",
       "description": "Provides official statistics and census data for Hong Kong."
     },
     {
