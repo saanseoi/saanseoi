@@ -80,98 +80,15 @@ export function createReleaseNavigationPersistence({
 }
 
 export function createNestedContentScroll({
-  getContentTarget,
-  isEnabled,
   onNavigate,
 }: {
-  getContentTarget: ContentTarget
-  isEnabled: () => boolean
   onNavigate: (event: MouseEvent) => void
 }) {
   return (node: HTMLElement) => {
-    const wheelPixels = (event: WheelEvent) =>
-      event.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? event.deltaY * 16
-        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-          ? event.deltaY * window.innerHeight
-          : event.deltaY
-    const scrollPage = (delta: number) => {
-      const start = window.scrollY
-      window.scrollBy({ top: delta, behavior: 'auto' })
-      return delta - (window.scrollY - start)
-    }
-    const scrollContent = (content: HTMLElement, delta: number) => {
-      const start = content.scrollTop
-      const maximum = Math.max(0, content.scrollHeight - content.clientHeight)
-      content.scrollTop = Math.min(maximum, Math.max(0, start + delta))
-      return delta - (content.scrollTop - start)
-    }
-    const handleWheel = (event: WheelEvent) => {
-      if (event.deltaY === 0 || event.ctrlKey || !event.cancelable || !isEnabled())
-        return
-
-      const controls = node.querySelector<HTMLElement>('[data-release-nav-controls]')
-      const content = getContentTarget()
-
-      if (!controls || !content || getComputedStyle(content).overflowY === 'visible')
-        return
-
-      const delta = wheelPixels(event)
-      const versionList = node.querySelector<HTMLElement>(
-        '[data-release-nav-version-list]',
-      )
-
-      if (event.target instanceof Node && versionList?.contains(event.target)) {
-        const maximum = Math.max(0, versionList.scrollHeight - versionList.clientHeight)
-        const available =
-          delta < 0 ? -versionList.scrollTop : maximum - versionList.scrollTop
-        if (available !== 0) {
-          event.preventDefault()
-          versionList.scrollTop = Math.min(
-            maximum,
-            Math.max(0, versionList.scrollTop + delta),
-          )
-          return
-        }
-      }
-
-      event.preventDefault()
-      let remaining = delta
-      const stickyTop = Number.parseFloat(getComputedStyle(controls).top) || 0
-      let controlsTop = controls.getBoundingClientRect().top
-      let distanceUntilPinned = Math.max(0, controlsTop - stickyTop)
-      if (remaining > 0 && distanceUntilPinned > 1) {
-        const pageDelta = Math.min(remaining, distanceUntilPinned)
-        remaining -= pageDelta - scrollPage(pageDelta)
-        controlsTop = controls.getBoundingClientRect().top
-        distanceUntilPinned = Math.max(0, controlsTop - stickyTop)
-        if (distanceUntilPinned > 1 || remaining <= 0) return
-      }
-      if (remaining < 0 && distanceUntilPinned > 1) {
-        scrollPage(remaining)
-        return
-      }
-      const panelTop =
-        content.getBoundingClientRect().top ??
-        controls.getBoundingClientRect().bottom + 8
-      if (remaining < 0 && panelTop < controls.getBoundingClientRect().bottom + 7) {
-        const pageDelta = -Math.min(
-          -remaining,
-          controls.getBoundingClientRect().bottom + 8 - panelTop,
-        )
-        remaining -= pageDelta - scrollPage(pageDelta)
-      }
-
-      if (remaining !== 0) remaining = scrollContent(content, remaining)
-      if (remaining !== 0) scrollPage(remaining)
-    }
-
-    window.addEventListener('wheel', handleWheel, { capture: true, passive: false })
     node.addEventListener('click', onNavigate, { capture: true })
 
     return {
       destroy: () => {
-        window.removeEventListener('wheel', handleWheel, { capture: true })
         node.removeEventListener('click', onNavigate, { capture: true })
       },
     }
