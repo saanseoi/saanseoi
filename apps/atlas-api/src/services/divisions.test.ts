@@ -115,11 +115,6 @@ const baseRecord: DivisionRecord = {
         hierarchies: hierarchyWithNames,
       },
     },
-    subtype: 'locality',
-    class: 'locality',
-    overtureFeatureVersion: 7,
-    overtureAdminLevel: null,
-    overtureHierarchies: hierarchyWithNames,
     wikidata: 'Q123456',
     hierarchy: normalisedHierarchy,
     cartography: {
@@ -169,11 +164,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
           admin_level: 1,
         },
       },
-      subtype: 'country',
-      class: 'country',
-      overtureFeatureVersion: null,
-      overtureAdminLevel: 1,
-      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn'] }],
       cartography: null,
@@ -202,11 +192,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
           admin_level: 1,
         },
       },
-      subtype: 'dependency',
-      class: 'dependency',
-      overtureFeatureVersion: null,
-      overtureAdminLevel: 1,
-      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar'] }],
       cartography: null,
@@ -235,11 +220,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
           admin_level: 2,
         },
       },
-      subtype: 'region',
-      class: 'region',
-      overtureFeatureVersion: null,
-      overtureAdminLevel: 2,
-      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar', 'division-east'] }],
       cartography: null,
@@ -429,7 +409,7 @@ describe('division services', () => {
           },
         })
         expect(resource.attributes.snapshotId).toBeUndefined()
-        expect(resource.attributes.overture).toBeUndefined()
+        expect(resource.attributes.sourceKeys).toBeUndefined()
       }
 
       if (profile === 'full') {
@@ -457,11 +437,13 @@ describe('division services', () => {
               },
             ],
           },
-          overture: {
-            subtype: 'locality',
-            class: 'locality',
-            version: 7,
-            hierarchies: hierarchyWithNames,
+          sourceKeys: {
+            overture: {
+              subtype: 'locality',
+              class: 'locality',
+              version: 7,
+              hierarchies: hierarchyWithNames,
+            },
           },
           i18n: {
             en: {
@@ -480,6 +462,41 @@ describe('division services', () => {
         })
       }
     }
+  })
+
+  test('returns unavailable geometry when a division record is not a supported shape', async () => {
+    listRecords = [
+      {
+        ...baseRecord,
+        division: {
+          ...baseRecord.division,
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [114.2, 22.2],
+              [114.3, 22.3],
+            ],
+          },
+        },
+      },
+    ]
+
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0.1?profile=map',
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { profile: 'map' },
+      dependencies: divisionServiceDependencies,
+    })
+
+    expect(result).toMatchObject({
+      status: 200,
+      body: { data: [{ attributes: { geometry: null } }] },
+    })
   })
 
   test('includes composition enrichment division snapshots in the Geographic lookup', async () => {
@@ -615,18 +632,22 @@ describe('division services', () => {
     const hongKongSar = result.body.included?.find(
       resource => resource.type === 'divisions' && resource.id === 'division-hk-sar',
     ) as typeof result.body.data | undefined
-    expect(hongKongSar?.attributes.overture).toMatchObject({
-      subtype: 'dependency',
-      class: 'dependency',
-      admin_level: 1,
+    expect(hongKongSar?.attributes.sourceKeys).toMatchObject({
+      overture: {
+        subtype: 'dependency',
+        class: 'dependency',
+        admin_level: 1,
+      },
     })
     const easternDistrict = result.body.included?.find(
       resource => resource.type === 'divisions' && resource.id === 'division-east',
     ) as typeof result.body.data | undefined
-    expect(easternDistrict?.attributes.overture).toMatchObject({
-      subtype: 'region',
-      class: 'region',
-      admin_level: 2,
+    expect(easternDistrict?.attributes.sourceKeys).toMatchObject({
+      overture: {
+        subtype: 'region',
+        class: 'region',
+        admin_level: 2,
+      },
     })
   })
 })

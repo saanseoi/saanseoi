@@ -1463,14 +1463,9 @@ describe('atlas-api', () => {
       'hierarchy',
     )
     expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
-    expect(body.components?.schemas).toHaveProperty('OverturePlaceType')
-    expect(body.components?.schemas).toHaveProperty('OvertureDivisionClass')
-    expect(body.components?.schemas).toHaveProperty('FeatureVersion')
     expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
     expect(body.components?.schemas).toHaveProperty('OtherSourceTypeItem')
     expect(body.components?.schemas).toHaveProperty('Sources')
-    expect(body.components?.schemas?.FeatureVersion?.minimum).toBe(0)
-    expect(body.components?.schemas?.FeatureVersion?.maximum).toBe(2_147_483_647)
     expect(body.paths['/latest/divisions']).toBeUndefined()
     expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
     expect(body['x-tagGroups']).toEqual([
@@ -1547,6 +1542,49 @@ describe('atlas-api', () => {
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
     expect(divisions.components?.schemas).toHaveProperty('Division')
     expect(divisions.components?.schemas).not.toHaveProperty('Address')
+    const divisionAttributes = divisions.components?.schemas?.DivisionAttributes as
+      | { description?: string; properties?: Record<string, unknown> }
+      | undefined
+    const divisionRelationships = divisions.components?.schemas
+      ?.DivisionRelationships as { description?: string } | undefined
+    const jsonApiLinkMap = divisions.components?.schemas?.JsonApiLinkMap as
+      | {
+          additionalProperties?: { description?: string }
+          properties?: Record<string, { description?: string }>
+        }
+      | undefined
+    const divisionResource = divisions.components?.schemas?.Division as
+      | {
+          properties?: Record<string, { allOf?: Array<{ description?: string }> }>
+        }
+      | undefined
+    expect(divisionAttributes?.properties).toHaveProperty('sourceKeys')
+    expect(divisionAttributes?.properties).not.toHaveProperty('overture')
+    expect(divisionResource?.properties).not.toHaveProperty('meta')
+    expect(divisionAttributes?.description).toBe(
+      'Canonical data for this resource, excluding its relationships.',
+    )
+    expect(divisionRelationships?.description).toBe(
+      "Resource linkage to related SaanSeoi records. Use `include` to return those records in the document's `included` array.",
+    )
+    expect(divisionResource?.properties?.links?.allOf?.[1]?.description).toBe(
+      'Links for this division resource, including its canonical URL.',
+    )
+    expect(jsonApiLinkMap?.properties?.self?.description).toBe(
+      'The URL of this resource or response.',
+    )
+    expect(jsonApiLinkMap?.properties?.first?.description).toBe(
+      'The first page of a paginated collection, when available.',
+    )
+    expect(jsonApiLinkMap?.properties?.prev?.description).toBe(
+      'The preceding page of a paginated collection, when one exists.',
+    )
+    expect(jsonApiLinkMap?.properties?.next?.description).toBe(
+      'The following page of a paginated collection, when one exists.',
+    )
+    expect(jsonApiLinkMap?.additionalProperties?.description).toBe(
+      'An additional named link supplied by SaanSeoi. Its value depends on the link name.',
+    )
 
     expect(statisticsRes.status).toBe(200)
     expect(statistics.paths['/stats/v0.1/registry']).toBeDefined()
@@ -1601,7 +1639,26 @@ describe('atlas-api', () => {
           string,
           {
             description?: string
-            properties?: Record<string, { description?: string }>
+            properties?: Record<
+              string,
+              {
+                description?: string
+                enum?: Array<string | number | boolean | null>
+                maxItems?: number
+                minItems?: number
+              }
+            >
+            anyOf?: Array<{
+              properties?: Record<
+                string,
+                {
+                  description?: string
+                  enum?: Array<string | number | boolean | null>
+                  maxItems?: number
+                  minItems?: number
+                }
+              >
+            }>
           }
         >
       }
@@ -1651,9 +1708,31 @@ describe('atlas-api', () => {
     expect(divisions.tags?.find(tag => tag.name === 'Sources')?.['x-displayName']).toBe(
       '來源',
     )
-    expect(divisions.components?.schemas?.Geometry?.description).toBe(
-      'GeoJSON 幾何值。',
+    expect(divisions.components?.schemas?.DivisionGeometry?.description).toBe(
+      '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
     )
+    const pointGeometry = divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(
+      schema => schema.properties?.type?.enum?.includes('Point'),
+    )
+    expect(pointGeometry?.properties?.coordinates?.description).toBe(
+      'WGS 84 座標。其巢狀層級由幾何類型決定。',
+    )
+    expect(pointGeometry?.properties?.coordinates?.minItems).toBe(2)
+    expect(pointGeometry?.properties?.coordinates?.maxItems).toBe(3)
+    expect(
+      divisions.components?.schemas?.DivisionAttributes?.properties?.level?.description,
+    ).toBe('此分區在標準層級中的位置。較低的層級代表較廣闊的區域。')
+    expect(
+      divisions.components?.schemas?.DivisionAttributes?.properties?.geometry
+        ?.description,
+    ).toBe(
+      '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
+    )
+    expect(
+      divisions.components?.schemas?.DivisionGeometry?.anyOf
+        ?.map(schema => schema.properties?.type?.enum?.[0])
+        .sort(),
+    ).toEqual(['MultiPolygon', 'Point', 'Polygon'])
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.[0]?.description,
     ).toBe('全域唯一的來源發布版本代碼。')

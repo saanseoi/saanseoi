@@ -802,29 +802,31 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "identifiers": null,
         "level": 3,
-        "overture": {
-          "class": "locality",
-          "hierarchies": [
-            {
-              "division_id": "division-country-cn",
-              "name": "中国",
-              "subtype": "country",
-            },
-            {
-              "division_id": "division-hk-sar",
-              "name": "Hong Kong SAR",
-              "subtype": "dependency",
-            },
-            {
-              "division_id": "division-east",
-              "name": "Eastern District",
-              "subtype": "region",
-            },
-          ],
-          "subtype": "locality",
-          "version": 1,
-        },
         "snapshotId": "snapshot-overture-2025",
+        "sourceKeys": {
+          "overture": {
+            "class": "locality",
+            "hierarchies": [
+              {
+                "division_id": "division-country-cn",
+                "name": "中国",
+                "subtype": "country",
+              },
+              {
+                "division_id": "division-hk-sar",
+                "name": "Hong Kong SAR",
+                "subtype": "dependency",
+              },
+              {
+                "division_id": "division-east",
+                "name": "Eastern District",
+                "subtype": "region",
+              },
+            ],
+            "subtype": "locality",
+            "version": 1,
+          },
+        },
         "sources": {
           "overture": [
             {
@@ -914,13 +916,15 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "identifiers": null,
           "level": 0,
-          "overture": {
-            "class": "country",
-            "hierarchies": [],
-            "subtype": "country",
-            "version": 1,
-          },
           "snapshotId": "snapshot-overture-2025",
+          "sourceKeys": {
+            "overture": {
+              "class": "country",
+              "hierarchies": [],
+              "subtype": "country",
+              "version": 1,
+            },
+          },
           "sources": {
             "overture": [
               {
@@ -984,19 +988,21 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "identifiers": null,
           "level": 0,
-          "overture": {
-            "class": "sar",
-            "hierarchies": [
-              {
-                "division_id": "division-country-cn",
-                "name": "中国",
-                "subtype": "country",
-              },
-            ],
-            "subtype": "sar",
-            "version": 1,
-          },
           "snapshotId": "snapshot-overture-2025",
+          "sourceKeys": {
+            "overture": {
+              "class": "sar",
+              "hierarchies": [
+                {
+                  "division_id": "division-country-cn",
+                  "name": "中国",
+                  "subtype": "country",
+                },
+              ],
+              "subtype": "sar",
+              "version": 1,
+            },
+          },
           "sources": {
             "overture": [
               {
@@ -1069,24 +1075,26 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "identifiers": null,
           "level": 2,
-          "overture": {
-            "class": "district",
-            "hierarchies": [
-              {
-                "division_id": "division-country-cn",
-                "name": "中国",
-                "subtype": "country",
-              },
-              {
-                "division_id": "division-hk-sar",
-                "name": "Hong Kong SAR",
-                "subtype": "dependency",
-              },
-            ],
-            "subtype": "district",
-            "version": 1,
-          },
           "snapshotId": "snapshot-overture-2025",
+          "sourceKeys": {
+            "overture": {
+              "class": "district",
+              "hierarchies": [
+                {
+                  "division_id": "division-country-cn",
+                  "name": "中国",
+                  "subtype": "country",
+                },
+                {
+                  "division_id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                  "subtype": "dependency",
+                },
+              ],
+              "subtype": "district",
+              "version": 1,
+            },
+          },
           "sources": {
             "overture": [
               {
