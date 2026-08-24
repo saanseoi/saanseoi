@@ -30,11 +30,11 @@ let { actions = [], analyticsSurface }: Props = $props()
             <option value={option.value}>{option.label}</option>
           {/each}
         </select>
-        <span
-          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-label-sm"
+        <Icon
+          icon="ion:chevron-down-outline"
+          class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2"
           aria-hidden="true"
-          >⌄</span
-        >
+        />
       </label>
     {:else if action.href && !action.disabled}
       <a
