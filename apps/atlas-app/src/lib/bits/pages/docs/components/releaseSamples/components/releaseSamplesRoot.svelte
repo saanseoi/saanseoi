@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
-import type { ApiProfileName } from '@repo/core'
+import type { ApiProfileName } from '@repo/core/apiLocales'
 import {
   getSampleApiPath,
   groupAddressSamples,
@@ -152,8 +152,8 @@ $effect(() => {
 {:else}
   <section class="space-y-4" aria-label="Random API samples">
     <p class="font-body text-body-md text-foreground-alt">
-      A random full record from this release set. Null fields are omitted and subsequent
-      examples are deduplicated.
+      A random {profile} record from this release set. Null fields are omitted and
+      subsequent examples are deduplicated.
     </p>
 
     {#if samples.length && view === 'grouped'}
