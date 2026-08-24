@@ -156,8 +156,6 @@ $effect(() => {
 })
 let showBulkActions = $state(false)
 let sampleRequest = $state(0)
-let sampleCount = $state(0)
-let sampleView = $state<'distinct' | 'grouped'>('distinct')
 let sampleTarget = $state<string | null>(null)
 const getApiProfileFromUrl = (url: ApiReleaseUrl): ApiProfileName => {
   const profile = url.searchParams.get('profile')
@@ -174,8 +172,6 @@ $effect(() => {
   if (sampleTarget === nextTarget) return
   sampleTarget = nextTarget
   sampleRequest = 0
-  sampleCount = 0
-  sampleView = 'distinct'
 })
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
@@ -414,13 +410,13 @@ function setActiveTab(tab: string) {
   })
 }
 let tabs = $derived<ReleaseNavTab[]>([
-  { id: 'release', label: 'Release' },
-  { id: 'guide', label: 'Guide' },
+  { id: 'release', label: m.api_release_release() },
+  { id: 'guide', label: m.api_release_guide() },
   { id: 'schema', label: m.api_release_schema() },
-  { id: 'samples', label: 'Samples' },
+  { id: 'samples', label: m.api_release_samples() },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
-    ? [{ id: 'audit', label: 'Audit' }]
+    ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
@@ -444,6 +440,7 @@ let actions = $derived<ReleaseNavAction[]>(
     : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
       ? [
           {
+            icon: 'ion:reload-outline',
             id: 'more-samples',
             label: 'Show more',
             onSelect: () => {
@@ -457,23 +454,6 @@ let actions = $derived<ReleaseNavAction[]>(
             },
           },
           profileAction,
-          ...(sampleCount > 1
-            ? [
-                {
-                  id: 'sample-view',
-                  label: sampleView === 'grouped' ? 'Distinct' : 'Group by key',
-                  onSelect: () => {
-                    sampleView = sampleView === 'grouped' ? 'distinct' : 'grouped'
-                    trackClientProductUsage({
-                      event: 'client.sample_control',
-                      surface: 'api_release',
-                      entityType: 'sample',
-                      entityId: sampleView,
-                    })
-                  },
-                },
-              ]
-            : []),
         ]
       : activeTab === 'schema'
         ? [profileAction]
@@ -699,8 +679,6 @@ $effect(() => {
               profile={apiProfile}
               releaseSet={release.code}
               request={sampleRequest}
-              bind:sampleCount
-              bind:view={sampleView}
             />
           {/key}
         {:else if activeTab === 'audit'}
