@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  getProfileSchema,
   getOpenApiSchemaForFamily,
   getSchemaReferenceName,
 } from './releaseSchema.presentation'
@@ -28,4 +29,40 @@ test('getSchemaReferenceName returns component schema names only', () => {
     'DivisionAttributes',
   )
   expect(getSchemaReferenceName('#/components/parameters/pageLimit')).toBeNull()
+})
+
+test('narrows division attributes to the selected response profile', () => {
+  const model = getOpenApiSchemaForFamily(
+    {
+      components: {
+        schemas: {
+          Division: { type: 'object' },
+          DivisionAttributes: {
+            properties: {
+              geometry: { type: 'object' },
+              level: { type: 'number' },
+              sources: { type: 'object' },
+              type: { type: 'string' },
+            },
+            type: 'object',
+          },
+        },
+      },
+    },
+    'divisions',
+  )
+
+  if (!model) throw new Error('Expected a division schema.')
+  expect(
+    Object.keys(
+      getProfileSchema(model, 'divisions', 'compact').schemas.DivisionAttributes
+        ?.properties ?? {},
+    ),
+  ).toEqual(['level', 'type'])
+  expect(
+    Object.keys(
+      getProfileSchema(model, 'divisions', 'full').schemas.DivisionAttributes
+        ?.properties ?? {},
+    ).sort(),
+  ).toEqual(['geometry', 'level', 'sources', 'type'])
 })
