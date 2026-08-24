@@ -26,6 +26,7 @@ describe('buildCenstatdReleaseStats', () => {
           {
             aggregation: 'total',
             aggregationPercentile: null,
+            periodicity: null,
             dimensions: {},
             fieldName: 't_pop',
             statisticKind: 'count',
@@ -34,6 +35,7 @@ describe('buildCenstatdReleaseStats', () => {
           {
             aggregation: 'none',
             aggregationPercentile: null,
+            periodicity: null,
             dimensions: {},
             fieldName: 'status',
             statisticKind: 'quantity',
@@ -104,6 +106,7 @@ describe('buildCenstatdReleaseStats', () => {
           {
             aggregation: 'total',
             aggregationPercentile: null,
+            periodicity: null,
             dimensions: {},
             fieldName: 'MYPOPN_LAND',
             statisticKind: 'count',
@@ -179,6 +182,7 @@ describe('buildCenstatdReleaseStats', () => {
           {
             aggregation: 'total',
             aggregationPercentile: null,
+            periodicity: null,
             dimensions: {},
             fieldName: 'population',
             statisticKind: 'count',
@@ -187,6 +191,7 @@ describe('buildCenstatdReleaseStats', () => {
           {
             aggregation: 'total',
             aggregationPercentile: null,
+            periodicity: null,
             dimensions: {},
             fieldName: 'households',
             statisticKind: 'count',
