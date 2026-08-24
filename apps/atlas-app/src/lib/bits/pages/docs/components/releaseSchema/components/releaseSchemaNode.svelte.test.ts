@@ -65,12 +65,13 @@ test('keeps descriptions beside an allOf schema reference', async () => {
   await expect.element(screen.getByText('An additional named link.')).toBeVisible()
 })
 
-test('flattens a JSON:API data array into its relationship linkage', async () => {
+test('wraps a JSON:API data array as explicit relationship linkage', async () => {
   const screen = await render(ReleaseSchemaNode, {
     name: 'boundaries',
     schema: {
       properties: {
         data: {
+          description: 'The related resources.',
           items: {
             properties: {
               id: { type: 'string' },
@@ -88,8 +89,9 @@ test('flattens a JSON:API data array into its relationship linkage', async () =>
     schemas: {},
   })
 
-  await expect.element(screen.getByText('.data with')).toBeVisible()
+  await expect.element(screen.getByText('data', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('array', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('The related resources.')).toBeVisible()
   await expect.element(screen.getByText('id', { exact: true })).toBeVisible()
   await expect
     .element(screen.getByText('items', { exact: true }))
