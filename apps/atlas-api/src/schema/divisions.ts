@@ -75,7 +75,6 @@ const DivisionI18nAttributesSchema = z
 const DivisionI18nSchema = z
   .record(z.string(), DivisionI18nAttributesSchema)
   .openapi('DivisionI18n', {
-    description: openApiText('openapi_divisions_i18n_payload_description'),
     'x-recordKeyName': openApiText('openapi_divisions_i18n_locale_label'),
   })
 
