@@ -1580,7 +1580,7 @@ describe('atlas-api', () => {
     expect(divisionI18n?.description).toBe(
       'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
     )
-    expect(divisionI18n?.['x-recordKeyName']).toBe('locale')
+    expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
     expect(sources?.properties?.overture?.description).toBe(
       'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
     )
@@ -1754,6 +1754,11 @@ describe('atlas-api', () => {
         ?.map(schema => schema.properties?.type?.enum?.[0])
         .sort(),
     ).toEqual(['MultiPolygon', 'Point', 'Polygon'])
+    expect(
+      divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(schema =>
+        schema.properties?.type?.enum?.includes('Point'),
+      )?.description,
+    ).toBe('單一座標位置；用於以一個位置而非區域表示的分區。')
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.[0]?.description,
     ).toBe('全域唯一的來源發布版本代碼。')
