@@ -14,6 +14,7 @@ type ApiReleaseSetDocsRow = {
   apiFamily: string
   apiVersion: string
   code: string
+  domainCode: string
   status: string
   schemaVersion: string
   rulesetVersion: string
@@ -1026,8 +1027,7 @@ function appendEnglishRevisionLog(
   const existingHeading = english.indexOf(heading)
 
   if (existingHeading !== -1) {
-    const nextHeading = english.indexOf('\n## ', existingHeading + heading.length)
-    const insertionPoint = nextHeading === -1 ? english.length : nextHeading
+    const insertionPoint = existingHeading + heading.length
     return `${english.slice(0, insertionPoint).trimEnd()}\n${entry}\n${english.slice(insertionPoint)}${remainder}`
   }
 
@@ -1559,6 +1559,8 @@ function escapeMarkdownTableCell(value: string) {
 function frontmatterForApiReleaseSetRow(
   row: ParsedApiReleaseSetDocsRow,
 ): Record<string, string> {
+  const primarySource = row.sources?.find(source => source.role === 'primary')
+
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
@@ -1566,7 +1568,14 @@ function frontmatterForApiReleaseSetRow(
     revision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
+    domainCode: row.domainCode,
     regionCode: row.parsedCode.regionCode,
+    ...(primarySource
+      ? {
+          primarySourceRelease: primarySource.releaseCode,
+          primarySourceReleaseUrl: `/sources/${primarySource.datasetCode}/${primarySource.releaseCode}`,
+        }
+      : {}),
   }
 }
 
