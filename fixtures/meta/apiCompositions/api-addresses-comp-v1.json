@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:adc705181e35468f6b412768da23d9ac6119ff03c7007910382b0c46f1b5b144",
+  "versionHash": "sha256:296ce607433bd0f0ab642057b4320ab9739e4d1fdcd643f75394b3a79476994d",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -13,20 +13,20 @@
         {
           "locale": "en",
           "name": "Official",
-          "descriptionShort": "Official Hong Kong addresses.",
-          "description": "Explore standardised addresses in Hong Kong, including their locations and the divisions that contain them."
+          "descriptionShort": "Hong Kong Government Address Lookup Service addresses.",
+          "description": "Official addresses from Hong Kong's Government Address Lookup Service, with locations and Overture division context."
         },
         {
           "locale": "zh-hant",
           "name": "官方",
-          "descriptionShort": "香港官方地址。",
-          "description": "探索香港的標準化地址，包括其位置及所屬分區。"
+          "descriptionShort": "香港政府地址查詢服務的地址。",
+          "description": "香港政府地址查詢服務提供的官方地址，附有位置及 Overture 分區資訊。"
         },
         {
           "locale": "zh-hans",
           "name": "官方",
-          "descriptionShort": "香港官方地址。",
-          "description": "探索香港的标准化地址，包括其位置及所属分区。"
+          "descriptionShort": "香港政府地址查询服务的地址。",
+          "description": "香港政府地址查询服务提供的官方地址，附有位置及 Overture 分区信息。"
         }
       ],
       "members": [
