@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
+import { profileNames } from '../constants/schema'
 import type {
   ApiFamilyType,
   ApiEndpointMethod,
@@ -48,7 +49,7 @@ export const metaRegistryRequiredTables = [
   'identifierBridges',
 ] as const
 
-export const initialProfiles: ProfileName[] = ['compact', 'default', 'full', 'map']
+export const initialProfiles: ProfileName[] = [...profileNames]
 
 export const initialResolverCodes: ResolverCode[] = [
   'direct_copy',

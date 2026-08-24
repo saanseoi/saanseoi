@@ -169,6 +169,22 @@ Publishes revision r{{ revision }}.
     expect(rendered).not.toContain('{{experimentalApiWarning:')
   })
 
+  test('renders API profile tables from the shared profile definitions', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: '{{apiProfileTable:en}}\n\n{{apiProfileTable:zh-Hant}}\n\n{{apiProfileTable:zh-Hans}}\n',
+      frontmatter: { apiFamily: 'divisions' },
+    })
+
+    expect(rendered).toContain(
+      '| Profile | Use it when you need | Adds to the response |',
+    )
+    expect(rendered).toContain('| 設定檔 | 適用情況 | 回應新增內容 |')
+    expect(rendered).toContain('| 配置文件 | 适用情形 | 响应新增内容 |')
+    expect(rendered).toContain('| <black>compact</black> |')
+    expect(rendered).toContain('| <black>map</black> |')
+    expect(rendered).not.toContain('{{apiProfileTable:')
+  })
+
   test('renders API release sources as role and resource-type tables', async () => {
     const rendered = await renderMarkdownFixtureBody(
       {

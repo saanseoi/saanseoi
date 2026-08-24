@@ -1,5 +1,5 @@
 export const apiLocales = ['en', 'zh-hant', 'zh-hans'] as const
-export const apiProfileNames = ['compact', 'default', 'full', 'map'] as const
+export const apiProfileNames = ['compact', 'default', 'map', 'full'] as const
 
 export type ApiLocale = (typeof apiLocales)[number]
 export type ApiProfileName = (typeof apiProfileNames)[number]
