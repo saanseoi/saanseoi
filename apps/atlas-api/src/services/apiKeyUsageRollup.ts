@@ -85,7 +85,7 @@ const queryUsage = async (
         toStartOfMinute(timestamp) AS windowStartedAt,
         SUM(_sample_interval * double1) AS requestCount
       FROM ${quoteDataset(dataset)}
-      WHERE timestamp >= '${timestamp(start)}' AND timestamp < '${timestamp(end)}'
+        WHERE timestamp >= ${dateTime(start)} AND timestamp < ${dateTime(end)}
       GROUP BY index1, windowStartedAt`,
     })
   } catch (error) {
@@ -247,8 +247,8 @@ const timestampValue = (value: unknown) => {
   return Number.isFinite(parsed) ? startOfMinute(parsed) : null
 }
 
-const timestamp = (value: number) =>
-  new Date(value).toISOString().replace('T', ' ').replace('.000Z', '')
+const dateTime = (value: number) =>
+  `toDateTime('${new Date(value).toISOString().replace('T', ' ').replace('.000Z', '')}')`
 
 const startOfMinute = (value: number) => Math.floor(value / 60_000) * 60_000
 

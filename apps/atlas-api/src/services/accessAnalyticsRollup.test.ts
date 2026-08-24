@@ -134,6 +134,8 @@ test('aggregates settled Analytics Engine hits into non-zero daily rows', async 
 
     expect(queries[0]).toContain('FROM "ss-product-usage-local"')
     expect(queries[0]).toContain("index1 = 'api.access'")
+    expect(queries[0]).toContain("timestamp >= toDateTime('2026-08-19 00:00:00')")
+    expect(queries[0]).toContain("timestamp < toDateTime('2026-08-21 00:00:00')")
     expect(queries[0]).toContain('HAVING metricValue > 0')
     expect(
       rows<{ day: string; scope: string; entityId: string; metrics: string }>(
