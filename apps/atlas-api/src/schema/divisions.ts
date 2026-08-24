@@ -107,36 +107,50 @@ const DivisionPositionSchema = z
 const DivisionGeometrySchema = z
   .lazy(() =>
     z.union([
-      z.object({
-        type: z.literal('Point').openapi({
-          description: openApiText('openapi_geojson_geometry_type_description'),
-        }),
-        coordinates: DivisionPositionSchema.openapi({
-          description: openApiText('openapi_geojson_coordinates_description'),
-        }),
-      }),
-      z.object({
-        type: z.literal('Polygon').openapi({
-          description: openApiText('openapi_geojson_geometry_type_description'),
-        }),
-        coordinates: z
-          .array(z.array(DivisionPositionSchema).min(4))
-          .min(1)
-          .openapi({
+      z
+        .object({
+          type: z.literal('Point').openapi({
+            description: openApiText('openapi_geojson_geometry_type_description'),
+          }),
+          coordinates: DivisionPositionSchema.openapi({
             description: openApiText('openapi_geojson_coordinates_description'),
           }),
-      }),
-      z.object({
-        type: z.literal('MultiPolygon').openapi({
-          description: openApiText('openapi_geojson_geometry_type_description'),
+        })
+        .openapi({
+          description: openApiText('openapi_divisions_geometry_point_description'),
         }),
-        coordinates: z
-          .array(z.array(z.array(DivisionPositionSchema).min(4)).min(1))
-          .min(1)
-          .openapi({
-            description: openApiText('openapi_geojson_coordinates_description'),
+      z
+        .object({
+          type: z.literal('Polygon').openapi({
+            description: openApiText('openapi_geojson_geometry_type_description'),
           }),
-      }),
+          coordinates: z
+            .array(z.array(DivisionPositionSchema).min(4))
+            .min(1)
+            .openapi({
+              description: openApiText('openapi_geojson_coordinates_description'),
+            }),
+        })
+        .openapi({
+          description: openApiText('openapi_divisions_geometry_polygon_description'),
+        }),
+      z
+        .object({
+          type: z.literal('MultiPolygon').openapi({
+            description: openApiText('openapi_geojson_geometry_type_description'),
+          }),
+          coordinates: z
+            .array(z.array(z.array(DivisionPositionSchema).min(4)).min(1))
+            .min(1)
+            .openapi({
+              description: openApiText('openapi_geojson_coordinates_description'),
+            }),
+        })
+        .openapi({
+          description: openApiText(
+            'openapi_divisions_geometry_multi_polygon_description',
+          ),
+        }),
     ]),
   )
   .openapi('DivisionGeometry', {
