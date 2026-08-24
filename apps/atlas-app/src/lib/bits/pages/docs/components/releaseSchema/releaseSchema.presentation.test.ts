@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
-  getProfileSchema,
+  getSchemaDataArrayEnvelope,
   getOpenApiSchemaForFamily,
-  getSchemaRecordValueSchema,
+  getProfileSchema,
   getScalarArrayChain,
   getSchemaComposition,
+  getSchemaRecordValueSchema,
   getSchemaReferenceName,
   getSchemaVariantName,
   isSchemaNullable,
@@ -86,6 +87,23 @@ test('keeps arrays of objects expandable', () => {
   ).toBeNull()
 })
 
+test('recognises a JSON:API data-array envelope', () => {
+  expect(
+    getSchemaDataArrayEnvelope(
+      {
+        properties: {
+          data: {
+            items: { properties: { id: { type: 'string' } }, type: 'object' },
+            type: 'array',
+          },
+        },
+        type: 'object',
+      },
+      {},
+    ),
+  ).toMatchObject({ itemType: 'object' })
+})
+
 test('unwraps the object value of a string-keyed map for presentation', () => {
   const valueSchema = { properties: { name: { type: 'string' } }, type: 'object' }
   const schemas = { DivisionI18nAttributes: valueSchema }
@@ -112,6 +130,7 @@ test('narrows division attributes to the selected response profile', () => {
               geometry: { type: 'object' },
               level: { type: 'number' },
               sources: { type: 'object' },
+              sourceKeys: { type: 'object' },
               type: { type: 'string' },
             },
             type: 'object',
@@ -134,5 +153,5 @@ test('narrows division attributes to the selected response profile', () => {
       getProfileSchema(model, 'divisions', 'full').schemas.DivisionAttributes
         ?.properties ?? {},
     ).sort(),
-  ).toEqual(['geometry', 'level', 'sources', 'type'])
+  ).toEqual(['geometry', 'level', 'sourceKeys', 'sources', 'type'])
 })
