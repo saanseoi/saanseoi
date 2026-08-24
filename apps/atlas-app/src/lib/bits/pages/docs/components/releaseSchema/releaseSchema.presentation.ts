@@ -150,8 +150,8 @@ export function getScalarArrayChain(schema: OpenApiSchema) {
 
 /**
  * JSON:API relationship linkage is conventionally an object containing only a
- * `data` array. Present its useful shape inline, then expose the linkage item's
- * fields directly, rather than spending two rows on `data` and `items`.
+ * `data` array. Keep that field visible as a compact linkage container, then expose
+ * the linkage item's fields directly rather than spending another row on `items`.
  */
 export function getSchemaDataArrayEnvelope(
   schema: OpenApiSchema,
