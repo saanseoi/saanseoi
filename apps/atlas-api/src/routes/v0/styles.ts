@@ -2,6 +2,7 @@ import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 
 import { ErrorResponseSchema } from '../../schema'
 import type { AppEnv } from '../../types'
+import { openApiText } from '../../lib/openapi-i18n'
 
 const StyleParamsSchema = z.object({
   style: z.string().regex(/^[a-z0-9-]+$/),
@@ -19,18 +20,17 @@ const styleRouteConfig = createRoute({
       content: {
         'application/json': {
           schema: z.record(z.string(), z.unknown()).openapi({
-            description:
-              'An immutable source-neutral MapLibre style fragment. Add a vector source named basemap before use.',
+            description: openApiText('openapi_map_style_schema_description'),
           }),
         },
       },
-      description: 'Stream an immutable public map style from R2.',
+      description: openApiText('openapi_map_style_response_description'),
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Map style not found.',
+      description: openApiText('openapi_map_style_not_found_description'),
     },
-    304: { description: 'Map style unchanged.' },
+    304: { description: openApiText('openapi_map_style_not_modified_description') },
   },
 })
 

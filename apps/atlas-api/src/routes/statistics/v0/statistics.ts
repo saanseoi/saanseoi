@@ -25,6 +25,7 @@ import {
   type ResolvedStatisticApiVersion,
 } from '../../../handlers/statistics/v0'
 import type { AppEnv } from '../../../types'
+import { openApiText } from '../../../lib/openapi-i18n'
 
 const ROUTE_VARIANTS = [
   {
@@ -71,11 +72,11 @@ const listRoutes = ROUTE_VARIANTS.map(variant =>
     responses: {
       200: {
         content: { 'application/json': { schema: StatisticsListResponseSchema } },
-        description: 'List statistics.',
+        description: openApiText('openapi_statistics_list_response_description'),
       },
       409: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'Requested related geometry variant is unavailable.',
+        description: openApiText('openapi_statistics_geometry_unavailable_description'),
       },
       503: {
         content: {
@@ -83,7 +84,7 @@ const listRoutes = ROUTE_VARIANTS.map(variant =>
             schema: StatisticSnapshotNotReadyErrorResponseSchema,
           },
         },
-        description: 'Statistic snapshot is not ready.',
+        description: openApiText('openapi_statistics_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -103,15 +104,15 @@ const detailRoutes = ROUTE_VARIANTS.map(variant =>
     responses: {
       200: {
         content: { 'application/json': { schema: StatisticDetailResponseSchema } },
-        description: 'Get a statistic.',
+        description: openApiText('openapi_statistics_get_response_description'),
       },
       404: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'Statistic not found.',
+        description: openApiText('openapi_statistics_not_found_description'),
       },
       409: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'Requested related geometry variant is unavailable.',
+        description: openApiText('openapi_statistics_geometry_unavailable_description'),
       },
       503: {
         content: {
@@ -119,7 +120,7 @@ const detailRoutes = ROUTE_VARIANTS.map(variant =>
             schema: StatisticSnapshotNotReadyErrorResponseSchema,
           },
         },
-        description: 'Statistic snapshot is not ready.',
+        description: openApiText('openapi_statistics_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -138,24 +139,25 @@ const geographyRoutes = ROUTE_VARIANTS.map(variant =>
         content: {
           'application/json': { schema: StatisticsGeographiesResponseSchema },
         },
-        description: 'Get one selected reference-period geography map.',
+        description: openApiText('openapi_statistics_geographies_response_description'),
       },
       404: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'No matching statistic.',
+        description: openApiText('openapi_statistics_no_match_description'),
       },
       409: {
         content: {
           'application/json': { schema: StatisticAggregateConflictErrorResponseSchema },
         },
-        description:
-          'The field remains ambiguous after the supplied filters, or does not form one complete geography dimension.',
+        description: openApiText(
+          'openapi_statistics_geographies_ambiguous_description',
+        ),
       },
       503: {
         content: {
           'application/json': { schema: StatisticSnapshotNotReadyErrorResponseSchema },
         },
-        description: 'Statistic snapshot is not ready.',
+        description: openApiText('openapi_statistics_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -172,24 +174,23 @@ const seriesRoutes = ROUTE_VARIANTS.map(variant =>
     responses: {
       200: {
         content: { 'application/json': { schema: StatisticsSeriesResponseSchema } },
-        description: 'Get a multi-period geography series.',
+        description: openApiText('openapi_statistics_series_response_description'),
       },
       404: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'No matching statistic.',
+        description: openApiText('openapi_statistics_no_match_description'),
       },
       409: {
         content: {
           'application/json': { schema: StatisticAggregateConflictErrorResponseSchema },
         },
-        description:
-          'The field remains ambiguous after the supplied filters, or the selected series mixes geography or analytical dimensions.',
+        description: openApiText('openapi_statistics_series_ambiguous_description'),
       },
       503: {
         content: {
           'application/json': { schema: StatisticSnapshotNotReadyErrorResponseSchema },
         },
-        description: 'Statistic snapshot is not ready.',
+        description: openApiText('openapi_statistics_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },

@@ -5,6 +5,8 @@ import {
   statsFieldComparabilityStatuses,
 } from '@repo/db'
 
+import { openApiText } from '../lib/openapi-i18n'
+
 import {
   ApiVersionMetadataSchema,
   ErrorResponseSchema,
@@ -74,8 +76,7 @@ const IncludeSchema = z
   )
   .optional()
   .openapi({
-    description:
-      'Include field definitions, related divisions and/or division-area geometry. Field definitions include the requested locale labels. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.',
+    description: openApiText('openapi_statistics_include_description'),
   })
 
 const CommonQueryShape = {
@@ -146,6 +147,7 @@ const IncludedStatisticResourceSchema = z.union([
     attributes: z.object({
       datasetCode: z.string(),
       fieldName: z.string(),
+      measureCode: z.string(),
       sourceField: z.string(),
       dimensions: z.record(z.string(), z.string()),
       sourceNullOption: z.string().nullable(),
@@ -204,10 +206,13 @@ export const StatisticSnapshotNotReadyErrorResponseSchema = z
 
 const GeographyAggregateQueryShape = {
   ...CommonQueryShape,
-  'filter[dataset]': z.string().min(1).optional().openapi({
-    description:
-      'Optional dataset override. Omit it to resolve one dataset from the field and geography filters.',
-  }),
+  'filter[dataset]': z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_dataset_filter_description'),
+    }),
   'filter[field]': z.string().min(1),
   'filter[geographyKind]': z
     .enum(['division', 'buildingGroup', 'majorHousingEstate'])

@@ -19,6 +19,7 @@ import {
 } from '../../../services/addresses'
 import type { AppEnv } from '../../../types'
 import { sanitiseResponseUrl } from '../../../lib/api'
+import { openApiText } from '../../../lib/openapi-i18n'
 
 const ROUTE_VARIANTS = [
   {
@@ -59,13 +60,13 @@ const listRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     responses: {
       200: {
         content: { 'application/json': { schema: AddressesListResponseSchema } },
-        description: 'List addresses.',
+        description: openApiText('openapi_addresses_list_response_description'),
       },
       503: {
         content: {
           'application/json': { schema: AddressSnapshotNotReadyErrorResponseSchema },
         },
-        description: 'Address snapshot is not ready.',
+        description: openApiText('openapi_addresses_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -85,17 +86,17 @@ const detailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     responses: {
       200: {
         content: { 'application/json': { schema: AddressDetailResponseSchema } },
-        description: 'Get an address.',
+        description: openApiText('openapi_addresses_get_response_description'),
       },
       404: {
         content: { 'application/json': { schema: ErrorResponseSchema } },
-        description: 'Address not found.',
+        description: openApiText('openapi_addresses_not_found_description'),
       },
       503: {
         content: {
           'application/json': { schema: AddressSnapshotNotReadyErrorResponseSchema },
         },
-        description: 'Address snapshot is not ready.',
+        description: openApiText('openapi_addresses_snapshot_not_ready_description'),
       },
       422: ValidationErrorOpenAPIResponse,
     },
