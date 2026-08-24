@@ -221,6 +221,34 @@ Publishes revision r{{ revision }}.
     )
   })
 
+  test('identifies the fixture that failed release-set source validation', async () => {
+    await expect(
+      renderMarkdownFixtureBody(
+        {
+          body: '{{apiReleaseSetSources:en}}\n',
+          frontmatter: {},
+        },
+        {},
+        [
+          {
+            datasetCode: 'ds-hk-overture-division',
+            datasetI18n: [],
+            publisherCode: 'overture',
+            publisherI18n: [],
+            releaseCode: 'dr-hk-overture-division-2025-09-24.0',
+            resourceType: 'division',
+            role: 'primary',
+            sourceVersion: '2025-09-24.0',
+            variant: 'default',
+          },
+        ],
+        'fixtures/meta/apiReleaseSets/divisions/notes/example.md',
+      ),
+    ).rejects.toThrow(
+      'API release-set notes must contain exactly one Traditional Chinese constituent-source directive: {{apiReleaseSetSources:zh-Hant}}\nFixture: fixtures/meta/apiReleaseSets/divisions/notes/example.md',
+    )
+  })
+
   test('does not publish constituent-source directives without source rows', async () => {
     await expect(
       renderMarkdownFixtureBody({
