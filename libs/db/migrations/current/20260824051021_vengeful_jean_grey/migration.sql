@@ -1,0 +1,1 @@
+ALTER TABLE `statsFields` ADD `periodicity` text;

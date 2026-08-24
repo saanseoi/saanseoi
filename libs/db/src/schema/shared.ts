@@ -264,6 +264,14 @@ export const statsAggregations = [
 
 export type StatsAggregation = (typeof statsAggregations)[number]
 
+/**
+ * The named interval over which a statistical quantity is expressed. This is
+ * distinct from both its reference period and its statistical aggregation.
+ */
+export const statsPeriodicities = ['day', 'week', 'month', 'quarter', 'year'] as const
+
+export type StatsPeriodicity = (typeof statsPeriodicities)[number]
+
 export const statsFieldComparabilityReasons = [
   'economic-activity-status-classification-changed',
 ] as const
@@ -311,6 +319,8 @@ export const canonicalStatsField = {
     .default('unreviewed'),
   /** Percentile rank (0-100) for percentile and median aggregations. */
   aggregationPercentile: real('aggregationPercentile'),
+  /** Named interval over which the reported quantity is expressed, when applicable. */
+  periodicity: text('periodicity', { enum: statsPeriodicities }),
   /** Canonical field used as the denominator, when the statistic has one. */
   denominatorFieldName: text('denominatorFieldName'),
   valueKind: text('valueKind').notNull(),

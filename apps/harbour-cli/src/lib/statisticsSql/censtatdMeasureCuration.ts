@@ -4,12 +4,14 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import {
   statsAggregations,
+  statsPeriodicities,
   statsFieldComparabilityReasons,
   statsFieldComparabilityStatuses,
   statsStatisticKinds,
   computeVersionHash,
   type StatsAggregation,
   type StatsFieldComparability,
+  type StatsPeriodicity,
   type StatsStatisticKind,
 } from '@repo/db'
 
@@ -26,6 +28,7 @@ import {
 export type CenstatdFieldCurationEntry = {
   aggregation: Exclude<StatsAggregation, 'unreviewed'>
   aggregationPercentile?: number
+  periodicity?: StatsPeriodicity
   comparability?: StatsFieldComparability
   denominatorFieldName?: string | null
   dimensions: Readonly<Record<string, string>>
@@ -62,6 +65,7 @@ export type CenstatdFieldForCuration = {
 export type CenstatdFieldMetadata = {
   aggregation: Exclude<StatsAggregation, 'unreviewed'>
   aggregationPercentile?: number
+  periodicity?: StatsPeriodicity
   comparability?: StatsFieldComparability
   denominatorFieldName?: string | null
   dimensions: Readonly<Record<string, string>>
@@ -385,6 +389,9 @@ export function resolveCenstatdFieldCuration(input: {
                   ...(decision.aggregationPercentile === undefined
                     ? {}
                     : { aggregationPercentile: decision.aggregationPercentile }),
+                  ...(decision.periodicity === undefined
+                    ? {}
+                    : { periodicity: decision.periodicity }),
                   ...(decision.comparability === undefined
                     ? {}
                     : { comparability: decision.comparability }),
@@ -538,6 +545,9 @@ export async function promptForCenstatdFieldCuration(input: {
         seriesMetadata.aggregationPercentile ??
         suggestAggregationPercentile(localisations),
     })
+    const periodicity = await selectPeriodicity({
+      suggestedPeriodicity: suggestPeriodicity(localisations),
+    })
     const denominatorFieldName = await optionalDenominatorFieldName({
       statisticKind,
       suggestedDenominatorFieldName: seriesMetadata.denominatorFieldName,
@@ -549,6 +559,7 @@ export async function promptForCenstatdFieldCuration(input: {
     decisions.push({
       aggregation,
       ...(aggregationPercentile === undefined ? {} : { aggregationPercentile }),
+      ...(periodicity === undefined ? {} : { periodicity }),
       datasetCode: field.datasetCode,
       ...(denominatorFieldName ? { denominatorFieldName } : {}),
       dimensions: {},
@@ -686,6 +697,12 @@ export function parseCenstatdFieldCuration(value: unknown, path: string) {
       }
     } else if (entry.aggregationPercentile !== undefined) {
       throw new Error(`Unexpected C&SD aggregation percentile: ${path}.`)
+    }
+    if (
+      entry.periodicity !== undefined &&
+      !statsPeriodicities.includes(entry.periodicity as StatsPeriodicity)
+    ) {
+      throw new Error(`Invalid C&SD periodicity: ${path}.`)
     }
     if (!Array.isArray(entry.localisations) || entry.localisations.length === 0)
       throw new Error(`Missing C&SD field localisations: ${path}.`)
@@ -1346,6 +1363,40 @@ async function selectAggregationPercentile(input: {
     throw new Error('C&SD percentile rank must be a number from 0 to 100.')
   }
   return percentile
+}
+
+function suggestPeriodicity(localisations: readonly CenstatdFieldLocalisation[]) {
+  const english = localisations.find(localisation => localisation.locale === 'en')
+  const text = `${english?.name ?? ''} ${english?.description ?? ''}`
+  if (/\bweekly\b/i.test(text)) return 'week' as const
+  if (/\bmonthly\b/i.test(text)) return 'month' as const
+  if (/\bquarterly\b/i.test(text)) return 'quarter' as const
+  if (/\byearly|annual\b/i.test(text)) return 'year' as const
+  if (/\bdaily\b/i.test(text)) return 'day' as const
+  return null
+}
+
+async function selectPeriodicity(input: {
+  suggestedPeriodicity: StatsPeriodicity | null
+}): Promise<StatsPeriodicity | undefined> {
+  const value = await select({
+    initialValue: input.suggestedPeriodicity ?? 'none',
+    message: 'Periodicity',
+    options: [
+      {
+        hint: 'The value is not expressed over a named interval.',
+        label: 'None',
+        value: 'none',
+      },
+      { hint: 'Per day.', label: 'Day', value: 'day' },
+      { hint: 'Per week.', label: 'Week', value: 'week' },
+      { hint: 'Per month.', label: 'Month', value: 'month' },
+      { hint: 'Per quarter.', label: 'Quarter', value: 'quarter' },
+      { hint: 'Per year.', label: 'Year', value: 'year' },
+    ],
+  })
+  if (isCancel(value)) throw new Error('C&SD field curation cancelled.')
+  return value === 'none' ? undefined : (value as StatsPeriodicity)
 }
 
 async function optionalDenominatorFieldName(input: {

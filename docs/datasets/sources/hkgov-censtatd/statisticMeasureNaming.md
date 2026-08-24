@@ -37,7 +37,7 @@ Derive the metadata from the value described, not from the nouns surrounding it:
 - _Median age of the labour force_ is a `quantity`, aggregated as `median`, measured in
   `year`, and mapped to `age`.
 - _Median monthly employment income_ is a `quantity`, aggregated as `median`, measured
-  in `hong-kong-dollar`, and mapped to `monthlyEmploymentIncome`.
+  in `hong-kong-dollar`, has periodicity `month`, and maps to `employmentIncome`.
 - _Number of occupied quarters with subdivided units_ counts `occupiedQuarters` in
   `living-quarter`; _number of occupied subdivided units_ counts `subdividedUnits` in
   `subdivided-unit`. Similar wording does not make the units interchangeable.
@@ -110,7 +110,7 @@ camel case、盡量採用單數概念，並以簡潔而通用的限定詞表示�
 
 - 「勞動人口年齡中位數」是以 `year` 為單位、`median` 匯總的 `quantity`，並對應 `age`。
 - 「每月主要職業收入中位數」是以 `hong-kong-dollar` 為單位、`median` 匯總的
-  `quantity`，並對應 `monthlyEmploymentIncome`。
+  `quantity`，週期為 `month`，並對應 `employmentIncome`。
 - 「有分間樓宇單位且有人居住的屋宇單位數目」以 `living-quarter` 計算
   `occupiedQuarters`；「有人居住的分間樓宇單位數目」則以 `subdivided-unit` 計算
   `subdividedUnits`。字眼相似不代表單位可以互換。
@@ -174,7 +174,7 @@ camel case、尽量采用单数概念，并以简洁而通用的限定词表示�
 
 - “劳动人口年龄中位数”是以 `year` 为单位、`median` 汇总的 `quantity`，并对应 `age`。
 - “每月主要职业收入中位数”是以 `hong-kong-dollar` 为单位、`median` 汇总的
-  `quantity`，并对应 `monthlyEmploymentIncome`。
+  `quantity`，周期为 `month`，并对应 `employmentIncome`。
 - “有分间楼宇单位且有人居住的屋宇单位数目”以 `living-quarter` 计算
   `occupiedQuarters`；“有人居住的分间楼宇单位数目”则以 `subdivided-unit` 计算
   `subdividedUnits`。字眼相似不代表单位可以互换。

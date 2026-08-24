@@ -188,6 +188,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
               fieldName: 'landArea',
               measureCode: 'landArea',
               dimensions: {},
+              periodicity: 'month',
               sourceNullOption: 'Null',
               unitCode: 'square-kilometre',
             },
@@ -202,6 +203,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
         dimensions: {},
         aggregation: 'median',
         aggregationPercentile: 50,
+        periodicity: 'month',
         comparability: {
           affectedReferencePeriods: ['2011', '2016'],
           reason: 'economic-activity-status-classification-changed',
