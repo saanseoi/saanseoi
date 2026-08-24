@@ -413,10 +413,16 @@ async function runApiReleaseSetDocsPublishCommand(
             effectiveNotesFixture,
             frontmatter,
             row.sources ?? [],
+            effectiveNotesFixture.path,
           )
         : row.notes
       const guide = effectiveGuideFixture
-        ? await renderMarkdownFixtureBody(effectiveGuideFixture, frontmatter)
+        ? await renderMarkdownFixtureBody(
+            effectiveGuideFixture,
+            frontmatter,
+            [],
+            effectiveGuideFixture.path,
+          )
         : row.guide
 
       if (row.notes !== notes || row.guide !== guide) {
@@ -574,6 +580,8 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
       const notes = await renderMarkdownFixtureBody(
         effectiveFixture,
         frontmatterForReleaseRow(row),
+        [],
+        effectiveFixture.path,
       )
 
       if (previousNotes !== notes) {
@@ -1191,22 +1199,30 @@ export async function renderMarkdownFixtureBody(
   },
   frontmatterOverride: Record<string, string> = {},
   apiReleaseSources: ApiReleaseSetSourceDocsRow[] = [],
+  fixturePath?: string,
 ) {
-  const frontmatter = {
-    ...fixture.frontmatter,
-    ...frontmatterOverride,
+  try {
+    const frontmatter = {
+      ...fixture.frontmatter,
+      ...frontmatterOverride,
+    }
+
+    const markdown = fixture.body.replace(
+      /\{\{\s*([a-z][A-Za-z0-9_-]*(?::[A-Za-z-]+)?)\s*\}\}/g,
+      (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
+    )
+
+    const renderedCenstatdTables = await renderCenstatdMeasureTables(
+      markdown,
+      frontmatter,
+    )
+    return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
+  } catch (error) {
+    if (!fixturePath) throw error
+
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`${message}\nFixture: ${fixturePath}`, { cause: error })
   }
-
-  const markdown = fixture.body.replace(
-    /\{\{\s*([a-z][A-Za-z0-9_-]*(?::[A-Za-z-]+)?)\s*\}\}/g,
-    (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
-  )
-
-  const renderedCenstatdTables = await renderCenstatdMeasureTables(
-    markdown,
-    frontmatter,
-  )
-  return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
 }
 
 function resolveMarkdownTemplateValue(
