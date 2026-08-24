@@ -148,17 +148,19 @@ time.
 
 ### EN
 
-A catalogue revision is one immutable published checkpoint of an API catalogue. It
-records what the catalogue knew when it was published, including later corrections and
-backfills.
+A catalogue revision is a saved record of which data releases the API knew about at a
+particular time. Use it with a release set when you need to repeat a request exactly as
+it would have worked then.
 
 ### ZH-HANT
 
-目錄修訂是 API 目錄的一個不可變發布檢查點，記錄發布當刻目錄已知的內容，包括其後加入的更正及回填。
+目錄修訂是紀錄 API 在某個時間點知道哪些資料發布的已保存記錄。當你需要按照當時的結果再次發出完全相同的請求時，可與 release
+set 一起使用。
 
 ### ZH-HANS
 
-目录修订是 API 目录的一个不可变发布检查点，记录发布当刻目录已知的内容，包括其后加入的更正及回填。
+目录修订是记录 API 在某个时间点知道哪些数据发布的已保存记录。当你需要按照当时的结果再次发出完全相同的请求时，可与 release
+set 一起使用。
 
 # Cohort
 
@@ -166,16 +168,16 @@ backfills.
 
 ### EN
 
-A cohort is the effective date or period that a snapshot describes. It is about the
+A cohort is the effective date or period that a release describes. It is about the
 data's real-world timing, not when SaanSeoi learned about or published it.
 
 ### ZH-HANT
 
-cohort 是快照所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
+cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
 
 ### ZH-HANS
 
-cohort 是快照所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
+cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
 
 # Collection
 
@@ -243,23 +245,26 @@ set 的发布与变体的已发布规则。它使必要输入、时间规则及�
 
 ### EN
 
-When data sources aren't strictly compatible (for example, different perspectives on a
-'division'), sources are made available as a <i>domain</i> within the family.<br><br>For
-example, the <i>Planning Unit</i> dataset in the Divisions API uses different boundaries
-than the <i>Census</i> datasets do, so they are treated as distinct domains. Records
-from different domains are never silently combined.
+A domain is a grouping within an API family where the records cannot logically be
+combined. For example, it isn't sensible to mix "housing market areas' and 'geographic
+divisions' in the Divisions API Family as there's no way to logically compose them -
+i.e. they aren't spatially distinct, and they don't share any ancestors.
+
+They are simply incompatible perspectives on how Hong Kong can be split into divisions.
+That is why we create independent release sets <i>per domain</i>, and why you need to
+specify domains explicitly if you want anything other than the default.
 
 ### ZH-HANT
 
-當來源資料並不完全相容（例如對「區劃」有不同的界定方式），它們會作為同一 API
-family 內的 domain 提供。例如，Divisions
-API 的規劃單元 domain 使用的邊界與人口普查不同，因此會在同一 family 中作為不同 domain 提供。不同 domain 的記錄絕不會被靜默合併。
+當來源資料並不完全相容（例如對「區劃」有不同的界定方式）時，它們會作為同一 API
+family 內的 domain 提供。Divisions
+API 的規劃單元 domain 使用的邊界與人口普查不同，因此各自是不同的 domain。不同 domain 的記錄絕不會被靜默合併。
 
 ### ZH-HANS
 
 当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API
-family 内的 domain 提供。例如，Divisions
-API 的规划单元 domain 使用的边界与人口普查不同，因此会在同一 family 中作为不同 domain 提供。不同 domain 的记录绝不会被静默合并。
+family 内的 domain 提供。Divisions
+API 的规划单元 domain 使用的边界与人口普查不同，因此各自是不同的 domain。不同 domain 的记录绝不会被静默合并。
 
 # Hong Kong extract
 
@@ -356,19 +361,25 @@ release 是数据及其 metadata 的不可变已发布版本。更正会作为�
 
 ### EN
 
-A release set is the exact immutable group of domain resources selected for one API
-publication. Use its identifier when a request must resolve to that publication rather
-than the latest eligible release.
+<i>Release sets</i> are created by combining <i>specific versions</i> of source datasets
+into a single <i>snapshot</i> view for public consumption through our APIs.
+
+Most of the time, you'll only be interested in the latest data and you won't need to
+choose one: the API automatically uses the newest available data. However, you may
+choose a specific release set if you need historic data or to ensure that you'll get the
+same data again later, rather than newer data.
 
 ### ZH-HANT
 
 release
-set 是為一次 API 發布而選取的確切、不可變 domain 資源組。當請求必須解析至該次發布而非最新合資格 release 時，請使用其識別碼。
+set 是已保存的一組資料。大多時候，你不需要選擇它：API 會自動使用可用的最新資料。只有在日後需要再次取得相同資料、而非較新資料時，才選擇特定的 release
+set。
 
 ### ZH-HANS
 
 release
-set 是为一次 API 发布而选取的确切、不可变 domain 资源组。当请求必须解析至该次发布而非最新合资格 release 时，请使用其标识符。
+set 是已保存的一组数据。大多数时候，你不需要选择它：API 会自动使用可用的最新数据。只有在日后需要再次取得相同数据、而非较新数据时，才选择特定的 release
+set。
 
 # Revision
 
@@ -376,19 +387,19 @@ set 是为一次 API 发布而选取的确切、不可变 domain 资源组。当
 
 ### EN
 
-A revision is the numbered correction or replacement of a release, snapshot, or
-catalogue publication with the same scope. It creates a new immutable version; it does
-not overwrite the earlier one.
+A <i>version</i> describes data from a different point in time, such as a later month. A
+<i>revision</i> is a correction or improvement to an existing release for the <i>same
+point in time</i>. It gets a new revision number while the earlier release remains
+available. Revisions have a <black>-r{n}</black> suffix, e.g. <black>
+2026-07-22.0-r2</black>
 
 ### ZH-HANT
 
-revision 是同一範圍的 release、snapshot 或 catalogue
-publication 之編號更正或替代版本。它會建立新的不可變版本，而不會覆寫較早的版本。
+version 描述不同時間點的資料，例如較後的一個月份。revision 則是修正或改善同一時間點的既有 release。它會取得新的 revision 編號，而較早的 release 仍然可用。
 
 ### ZH-HANS
 
-revision 是同一范围的 release、snapshot 或 catalogue
-publication 之编号更正或替代版本。它会建立新的不可变版本，而不会覆盖较早的版本。
+version 描述不同时间点的数据，例如较后的一个月份。revision 则是修正或改善同一时间点的既有 release。它会取得新的 revision 编号，而较早的 release 仍然可用。
 
 # Snapshot
 

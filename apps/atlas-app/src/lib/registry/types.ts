@@ -1,6 +1,7 @@
 export type LocalisedRow = {
   locale: string
   name: string
+  descriptionShort?: string | null
   description?: string | null
 }
 

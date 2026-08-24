@@ -23,6 +23,7 @@ type ApiFamily = {
 }
 
 type DomainI18n = {
+  descriptionShort?: string | null
   description?: string | null
   locale: string
   name: string
