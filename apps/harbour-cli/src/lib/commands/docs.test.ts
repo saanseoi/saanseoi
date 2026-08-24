@@ -186,7 +186,7 @@ Publishes revision r{{ revision }}.
 
     expect(rendered).toContain('### Primary · Division')
     expect(rendered).toContain(
-      '| [Overture](/publishers/overture) | [Divisions](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) | [2025-09-24.0](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) |',
+      '| [Overture](/publishers/overture) | [Divisions](/sources/ds-hk-overture-division) | [2025-09-24.0](/sources/ds-hk-overture-division/dr-hk-overture-division-2025-09-24.0) |',
     )
     expect(rendered).toContain('### Supporting · Division Area')
     expect(rendered).toContain('### 主要 · 區劃')

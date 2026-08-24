@@ -1370,7 +1370,8 @@ function renderApiReleaseSetSourcesTable(
     )
 
     for (const source of group) {
-      const sourceHref = `/sources/${source.datasetCode}/${source.releaseCode}`
+      const datasetHref = `/sources/${source.datasetCode}`
+      const releaseHref = `${datasetHref}/${source.releaseCode}`
       const publisherName = selectDocsLocalisedName(
         source.publisherI18n,
         locale,
@@ -1382,7 +1383,7 @@ function renderApiReleaseSetSourcesTable(
         source.datasetCode,
       )
       lines.push(
-        `| ${markdownLink(publisherName, `/publishers/${source.publisherCode}`)} | ${markdownLink(datasetName, sourceHref)} | ${markdownLink(source.sourceVersion, sourceHref)} |`,
+        `| ${markdownLink(publisherName, `/publishers/${source.publisherCode}`)} | ${markdownLink(datasetName, datasetHref)} | ${markdownLink(source.sourceVersion, releaseHref)} |`,
       )
     }
 
