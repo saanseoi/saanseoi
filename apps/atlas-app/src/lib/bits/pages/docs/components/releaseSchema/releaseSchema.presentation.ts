@@ -1,4 +1,5 @@
 import type {
+  ApiProfileName,
   OpenApiDocument,
   OpenApiSchema,
   ReleaseSchemaModel,
@@ -43,4 +44,113 @@ export function getOpenApiSchemaForFamily(
 export function getSchemaReferenceName(reference: string | undefined) {
   const prefix = '#/components/schemas/'
   return reference?.startsWith(prefix) ? reference.slice(prefix.length) : null
+}
+
+const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
+  compact: ['level', 'type', 'divisionCode', 'i18n'],
+  default: [
+    'level',
+    'type',
+    'divisionCode',
+    'wikidata',
+    'createdAt',
+    'updatedAt',
+    'i18n',
+  ],
+  map: [
+    'level',
+    'type',
+    'divisionCode',
+    'wikidata',
+    'createdAt',
+    'updatedAt',
+    'geometry',
+    'bbox',
+    'cartography',
+    'i18n',
+  ],
+  full: [
+    'level',
+    'type',
+    'divisionCode',
+    'snapshotId',
+    'geometry',
+    'bbox',
+    'cartography',
+    'wikidata',
+    'createdAt',
+    'updatedAt',
+    'sources',
+    'identifiers',
+    'overture',
+    'i18n',
+  ],
+}
+
+const addressAttributesByProfile: Record<ApiProfileName, string[]> = {
+  compact: ['i18n'],
+  default: ['createdAt', 'updatedAt', 'i18n'],
+  map: ['createdAt', 'updatedAt', 'geometry', 'bbox', 'i18n'],
+  full: [
+    'snapshotId',
+    'geometry',
+    'bbox',
+    'createdAt',
+    'updatedAt',
+    'identifiers',
+    'sources',
+    'i18n',
+  ],
+}
+
+function retainProperties(schema: OpenApiSchema, names: string[]) {
+  const allowed = new Set(names)
+  const properties = Object.fromEntries(
+    Object.entries(schema.properties ?? {}).filter(([name]) => allowed.has(name)),
+  )
+  const required = schema.required?.filter(name => allowed.has(name))
+
+  return {
+    ...schema,
+    properties,
+    ...(required?.length ? { required } : { required: undefined }),
+  }
+}
+
+/**
+ * OpenAPI documents describe every supported field. Profiles project the same resource
+ * at runtime, so the release page narrows the displayed model to that projection.
+ */
+export function getProfileSchema(
+  model: ReleaseSchemaModel,
+  apiFamily: string,
+  profile: ApiProfileName,
+): ReleaseSchemaModel {
+  const schemas = structuredClone(model.schemas)
+
+  if (apiFamily === 'divisions') {
+    const attributes = schemas.DivisionAttributes
+    const i18n = schemas.DivisionI18nAttributes
+    if (attributes)
+      schemas.DivisionAttributes = retainProperties(
+        attributes,
+        divisionAttributesByProfile[profile],
+      )
+    if (i18n && profile !== 'full')
+      schemas.DivisionI18nAttributes = retainProperties(i18n, ['name'])
+  }
+
+  if (apiFamily === 'addresses') {
+    const attributes = schemas.AddressAttributes
+    const i18n = schemas.AddressI18nAttributes
+    if (attributes)
+      schemas.AddressAttributes = retainProperties(
+        attributes,
+        addressAttributesByProfile[profile],
+      )
+    if (i18n && profile !== 'full')
+      schemas.AddressI18nAttributes = retainProperties(i18n, ['formattedAddress'])
+  }
+
+  return { ...model, schemas }
 }

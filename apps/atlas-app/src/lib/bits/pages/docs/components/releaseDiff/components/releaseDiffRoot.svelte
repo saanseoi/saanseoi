@@ -5,16 +5,17 @@ import ReleaseDiffChangeList from './releaseDiffChangeList.svelte'
 import ReleaseDiffEmptyState from './releaseDiffEmptyState.svelte'
 
 type Props = {
+  centerEmptyState?: boolean
   changes: ReleaseDiffChange[]
   labels: ReleaseDiffLabels
   markdown: ReleaseNotesPresentation
 }
 
-let { changes, labels, markdown }: Props = $props()
+let { centerEmptyState = false, changes, labels, markdown }: Props = $props()
 </script>
 
 {#if changes.length === 0}
-  <ReleaseDiffEmptyState label={labels.empty} />
+  <ReleaseDiffEmptyState centered={centerEmptyState} label={labels.empty} />
 {:else}
   <ReleaseDiffChangeList {changes} {labels} {markdown} />
 {/if}
