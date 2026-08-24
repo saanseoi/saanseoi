@@ -48,7 +48,9 @@ describe('docs markdown fixtures', () => {
       expect(fixture).toContain(
         '- `r{{ apiReleaseSetRevision }}` Corrected the source metadata.',
       )
-      expect(fixture).toContain('`r0` consists of 7 required composition members')
+      expect(fixture.indexOf('`r{{ apiReleaseSetRevision }}` Corrected')).toBeLessThan(
+        fixture.indexOf('`r0` consists of 7 required composition members'),
+      )
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
       )
@@ -91,6 +93,36 @@ Publishes revision r{{ revision }}.
 `)
 
     expect(await renderMarkdownFixtureBody(fixture)).toBe('Publishes revision r0.\n')
+  })
+
+  test('renders the release-set domain supplied by the documentation row', async () => {
+    expect(
+      await renderMarkdownFixtureBody(
+        {
+          body: 'Publishes the {{ domainCode }} domain.\n',
+          frontmatter: {},
+        },
+        { domainCode: 'official' },
+      ),
+    ).toBe('Publishes the official domain.\n')
+  })
+
+  test('renders primary-source template values from the release-set manifest', async () => {
+    expect(
+      await renderMarkdownFixtureBody(
+        {
+          body: '[{{ primarySourceRelease }}]({{ primarySourceReleaseUrl }})\n',
+          frontmatter: {},
+        },
+        {
+          primarySourceRelease: 'dr-hk-overture-division-2026-08-19.0',
+          primarySourceReleaseUrl:
+            '/sources/ds-hk-overture-division/dr-hk-overture-division-2026-08-19.0',
+        },
+      ),
+    ).toBe(
+      '[dr-hk-overture-division-2026-08-19.0](/sources/ds-hk-overture-division/dr-hk-overture-division-2026-08-19.0)\n',
+    )
   })
 
   test('derives an API URL version and localised region name from frontmatter', async () => {

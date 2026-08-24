@@ -5,6 +5,7 @@ import {
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
 import {
+  listApiReleaseSetSnapshotsForRegistryRequest,
   listSnapshotSourceReleases,
   resolveApiReleaseSetSnapshotsForRequest,
 } from '@repo/core/db/metaRegistry'
@@ -103,6 +104,7 @@ export type StatisticSeriesQuery = Omit<
 >
 
 type StatisticServiceDependencies = {
+  listApiReleaseSetSnapshotsForRegistryRequest: typeof listApiReleaseSetSnapshotsForRegistryRequest
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
   listSnapshotSourceReleases: typeof listSnapshotSourceReleases
   listStatisticRecords: typeof listStatisticRecords
@@ -116,6 +118,7 @@ type StatisticServiceDependencies = {
 }
 
 const defaultDependencies: StatisticServiceDependencies = {
+  listApiReleaseSetSnapshotsForRegistryRequest,
   resolveApiReleaseSetSnapshotsForRequest,
   listSnapshotSourceReleases,
   listStatisticRecords,
@@ -147,6 +150,19 @@ type ActiveStatisticSnapshot = {
   domainCode: 'official'
   schemaVersion: string
   rulesetVersion: string
+}
+
+type StatisticRegistrySnapshot = {
+  datasetCodes: string[]
+  snapshotIds: string[]
+  sourceReleaseIds: string[]
+  apiCatalogRevision: string
+  catalogPublishedAt: string
+  apiReleaseSets: string[]
+  cohorts: string[]
+  domainCode: 'official'
+  rulesetVersions: string[]
+  schemaVersions: string[]
 }
 
 type RelatedDivisionSelection = {
@@ -1605,26 +1621,49 @@ function registryRouteState(locales?: string) {
 }
 
 function registryMeta(
-  activeSnapshot: ActiveStatisticSnapshot,
+  activeSnapshot: StatisticRegistrySnapshot,
   routeState: StatisticRouteState,
 ) {
   return {
-    ...documentMeta(activeSnapshot, routeState),
+    requestedApiVersion: routeState.requestedApiVersion,
+    requestedApiFamily: 'stats' as const,
+    resolvedApiVersion: routeState.resolvedApiVersion,
+    apiCatalogRevision: activeSnapshot.apiCatalogRevision,
+    catalogPublishedAt: activeSnapshot.catalogPublishedAt,
+    apiReleaseSets: activeSnapshot.apiReleaseSets,
+    cohorts: activeSnapshot.cohorts,
+    domain: 'official' as const,
+    profile: routeState.profile,
+    locales: resolveApiMetaLocales(routeState.localeSelection),
+    schemaVersions: activeSnapshot.schemaVersions,
+    rulesetVersions: activeSnapshot.rulesetVersions,
     registry: true,
   }
 }
 
 function registryPermalink(args: {
-  activeSnapshot: ActiveStatisticSnapshot
+  activeSnapshot: StatisticRegistrySnapshot
   routeState: StatisticRouteState
   url: URL
 }) {
-  return buildPermalink({
-    activeSnapshot: args.activeSnapshot,
-    areaVariants: [],
-    routeState: args.routeState,
-    url: args.url,
-  })
+  const permalink = new URL(args.url)
+  permalink.pathname = permalink.pathname.replace(
+    /^\/stats\/v0(?:\.\d+)?/,
+    '/stats/v0.1',
+  )
+  permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
+  permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
+  permalink.searchParams.set('domain', 'official')
+  permalink.searchParams.set('profile', args.routeState.profile)
+  permalink.searchParams.set(
+    'locales',
+    args.routeState.localeSelection.mode === 'all'
+      ? '*'
+      : args.routeState.localeSelection.locales.join(','),
+  )
+  permalink.searchParams.set('include', 'none')
+  permalink.searchParams.sort()
+  return permalink.toString()
 }
 
 function fieldRegistryResource(definition: StatisticFieldDefinition) {
@@ -1709,12 +1748,49 @@ async function loadStatisticsRegistry(args: {
   dependencies: StatisticServiceDependencies
 }) {
   const routeState = registryRouteState(args.query.locales)
-  const activeSnapshot = await getActiveStatisticSnapshot(
-    args.metaDb,
-    args.query,
-    args.dependencies,
+  const selection = await runWithD1ReadRetry(() =>
+    args.dependencies.listApiReleaseSetSnapshotsForRegistryRequest(
+      args.metaDb as never,
+      'divisionStatistic',
+      {
+        catalogRevision: args.query.catalogRevision,
+        cohortKey: args.query.cohort,
+        domainCode: 'official',
+        effectiveAt: args.query.effectiveAt,
+        knownAt: args.query.knownAt,
+        regionCode: 'hk',
+        releaseSet: args.query.releaseSet,
+      },
+    ),
   )
-  if (!activeSnapshot) return null
+  if (!selection) return null
+  const snapshotIds = selection.releaseSets.flatMap(releaseSet =>
+    releaseSet.snapshots
+      .filter(snapshot => snapshot.snapshotResourceType === 'divisionStatistic')
+      .map(snapshot => snapshot.snapshotId),
+  )
+  if (snapshotIds.length === 0) return null
+  const sources = await runWithD1ReadRetry(() =>
+    args.dependencies.listSnapshotSourceReleases(args.metaDb as never, snapshotIds),
+  )
+  const activeSnapshot = {
+    datasetCodes: [...new Set(sources.map(source => source.datasetCode))],
+    snapshotIds: [...new Set(snapshotIds)],
+    sourceReleaseIds: [...new Set(sources.map(source => source.sourceReleaseId))],
+    apiCatalogRevision: selection.apiCatalogRevision,
+    catalogPublishedAt: selection.catalogPublishedAt,
+    apiReleaseSets: selection.releaseSets.map(releaseSet => releaseSet.code),
+    cohorts: [
+      ...new Set(selection.releaseSets.map(releaseSet => releaseSet.cohortKey)),
+    ],
+    domainCode: 'official',
+    rulesetVersions: [
+      ...new Set(selection.releaseSets.map(releaseSet => releaseSet.rulesetVersion)),
+    ],
+    schemaVersions: [
+      ...new Set(selection.releaseSets.map(releaseSet => releaseSet.schemaVersion)),
+    ],
+  } satisfies StatisticRegistrySnapshot
   const [fields, measures] = await runWithD1ReadRetry(() =>
     Promise.all([
       args.dependencies.listStatisticFieldDefinitions(args.historyDbs, {
@@ -1761,7 +1837,7 @@ export async function getStatisticsRegistryManifest(args: {
       url,
       data: {
         type: 'statistic-registry',
-        id: registry.activeSnapshot.apiReleaseSet,
+        id: registry.activeSnapshot.apiCatalogRevision,
         attributes: {
           datasets: [...new Set(registry.fields.map(field => field.datasetCode))]
             .length,

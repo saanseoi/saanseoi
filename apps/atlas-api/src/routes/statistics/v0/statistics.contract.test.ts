@@ -13,6 +13,9 @@ const DATASET_CODE =
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
 const RELEASE_ID = 'release-statistics-population-households-2021'
 const STATISTIC_ID = 'statistic-population-households-2021-district-1'
+const HISTORICAL_DATASET_CODE =
+  'ds-hk-hkgov-censtatd-division-statistic-households-district'
+const HISTORICAL_RELEASE_ID = 'release-statistics-households-2020'
 
 type MockStatement = {
   bind: (...values: SQLQueryBindings[]) => MockStatement
@@ -248,9 +251,219 @@ function seedMeta(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
+  run(
+    sqlite,
+    `INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'dataset-statistics-historical',
+      'publisher-censtatd',
+      HISTORICAL_DATASET_CODE,
+      'hk',
+      'static',
+      'yearly',
+      'stats',
+      'official-statistics',
+      'dataset-historical-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_RELEASE_ID,
+      'dataset-statistics-historical',
+      'divisionStatistic',
+      'dr-hk-hkgov-censtatd-division-statistic-households-district-2020',
+      '2020',
+      '2020',
+      'published',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO snapshots (
+      id, resourceType, code, cohortKey, revision, status,
+      publishedAt, validFrom, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'snapshot-statistics-historical',
+      'divisionStatistic',
+      'ss-hk-division-statistic-households-2020',
+      '2020',
+      0,
+      'published',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO snapshotSources (
+      snapshotId, datasetId, sourceReleaseId, role, createdAt
+    ) VALUES (?, ?, ?, ?, ?)`,
+    [
+      'snapshot-statistics-historical',
+      'dataset-statistics-historical',
+      HISTORICAL_RELEASE_ID,
+      'primary',
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiReleaseSets (
+      id, apiVersionId, code, regionCode, domainCode, cohortKey, revision,
+      effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt,
+      versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'release-set-statistics-historical',
+      'api-version-stats',
+      'data-hk-stats-2020',
+      'hk',
+      'official',
+      '2020',
+      0,
+      '2020-01-01T00:00:00.000Z',
+      'sv-statistics-v1',
+      'rs-division-statistic-merge-v1',
+      'current',
+      PUBLISHED_AT,
+      'release-set-historical-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiReleaseSetSnapshots (
+      apiReleaseSetId, snapshotId, variant, role, isRequired,
+      cohortMatchingMode, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'release-set-statistics-historical',
+      'snapshot-statistics-historical',
+      HISTORICAL_DATASET_CODE,
+      'primary',
+      1,
+      'exact_ref',
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiCatalogRevisionReleaseSets (
+      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
+      isDefault, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      'catalog-statistics',
+      'release-set-statistics-historical',
+      'official',
+      '2020',
+      0,
+      PUBLISHED_AT,
+    ],
+  )
 }
 
 function seedHistory(sqlite: Database) {
+  run(
+    sqlite,
+    `INSERT INTO statsFields (
+      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
+      aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
+      sourceReleaseId, isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_DATASET_CODE,
+      'households',
+      'households',
+      'HOUSEHOLDS',
+      JSON.stringify({ sex: 'all' }),
+      null,
+      'count',
+      'total',
+      null,
+      'numeric',
+      'household',
+      'historical-field-version-hash',
+      HISTORICAL_RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsMeasures (
+      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_DATASET_CODE,
+      'households',
+      'historical-measure-version-hash',
+      HISTORICAL_RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsMeasuresI18n (
+      datasetCode, measureCode, locale, name, description,
+      isTranslationVerified, versionHash, sourceReleaseId,
+      isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_DATASET_CODE,
+      'households',
+      'en',
+      'Households',
+      'Number of households.',
+      1,
+      'historical-measure-i18n-version-hash',
+      HISTORICAL_RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsFieldsI18n (
+      datasetCode, fieldName, locale, name, description,
+      isTranslationVerified, versionHash, sourceReleaseId,
+      isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_DATASET_CODE,
+      'households',
+      'en',
+      'Households',
+      'Number of households.',
+      1,
+      'historical-field-i18n-version-hash',
+      HISTORICAL_RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
   run(
     sqlite,
     `INSERT INTO statsRecords (
@@ -678,12 +891,50 @@ describe('Statistics API responses through the Worker route', () => {
         fixture.env,
       )
       expect(registry.status).toBe(200)
-      expect(await registry.json()).toMatchObject({
+      const registryBody = (await registry.json()) as {
+        data: { id: string; type: string; attributes: Record<string, unknown> }
+        meta: Record<string, unknown>
+      }
+      expect(registryBody).toMatchObject({
         data: {
           type: 'statistic-registry',
-          attributes: { datasets: 1, fields: 1, measures: 1 },
+          id: 'catalog-hk-stats-v0.1-2026-08-20-r0',
+          attributes: { datasets: 2, fields: 2, measures: 2 },
+        },
+        meta: {
+          apiReleaseSets: ['data-hk-stats-2021', 'data-hk-stats-2020'],
+          cohorts: ['2021', '2020'],
         },
       })
+      expect(registryBody.meta.apiReleaseSet).toBeUndefined()
+
+      const historicalRegistryFields = await app.fetch(
+        new Request(
+          `http://localhost/stats/v0.1/registry/fields?filter[dataset]=${HISTORICAL_DATASET_CODE}`,
+        ),
+        fixture.env,
+      )
+      expect(historicalRegistryFields.status).toBe(200)
+      expect(await historicalRegistryFields.json()).toMatchObject({
+        data: [
+          {
+            type: 'statistic-fields',
+            attributes: {
+              datasetCode: HISTORICAL_DATASET_CODE,
+              fieldName: 'households',
+            },
+          },
+        ],
+      })
+
+      const cohortRegistryFields = await app.fetch(
+        new Request(
+          `http://localhost/stats/v0.1/registry/fields?cohort=2021&filter[dataset]=${HISTORICAL_DATASET_CODE}`,
+        ),
+        fixture.env,
+      )
+      expect(cohortRegistryFields.status).toBe(200)
+      expect(await cohortRegistryFields.json()).toMatchObject({ data: [] })
 
       const registryFields = await app.fetch(
         new Request(
@@ -753,7 +1004,7 @@ describe('Statistics API responses through the Worker route', () => {
         data: [
           {
             type: 'statistic-dimensions',
-            attributes: { code: 'sex', fieldCount: 1, value: 'all' },
+            attributes: { code: 'sex', fieldCount: 2, value: 'all' },
           },
         ],
       })
@@ -765,6 +1016,11 @@ describe('Statistics API responses through the Worker route', () => {
       expect(registryDatasets.status).toBe(200)
       expect(await registryDatasets.json()).toMatchObject({
         data: [
+          {
+            type: 'statistic-datasets',
+            id: HISTORICAL_DATASET_CODE,
+            attributes: { fieldCount: 1, measureCount: 1 },
+          },
           {
             type: 'statistic-datasets',
             id: DATASET_CODE,
