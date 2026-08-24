@@ -11,22 +11,23 @@ definition. It describes the subject and its meaningful qualifiers, rather than 
 the source-field abbreviation or the way the value is represented.
 
 Use established statistical terms where they are the measure's public identity, such as
-`populationDensity`, `sexRatio`, `medianAge`, or `labourForceParticipationRate`. Spell
-out abbreviations unless the abbreviation is independently clear and conventional, e.g.
+`populationDensity`, `sexRatio`, `age`, or `labourForceParticipationRate`. Spell out
+abbreviations unless the abbreviation is independently clear and conventional, e.g.
 `exclFDH` for _excluding foreign domestic helpers_. Use lower camel case, singular
 concepts where possible, and concise conventional qualifiers for ranges: `aged15To39`,
 `aged65AndOver`, rather than opaque source-field suffixes.
 
-The code does not include the unit, aggregation, reference period, percentage/proportion
-representation, or a publisher-specific table heading unless that detail distinguishes
-the statistical concept. Those details belong to the reviewed measure metadata and its
-localised description. Reviewed historical codes remain stable identifiers; this
+`measureCode` never includes the unit, aggregation, reference period,
+percentage/proportion representation, or a publisher-specific table heading. Those
+details belong to reviewed measure metadata and its localised description. A qualifier
+needed to distinguish publisher values belongs in `fieldName`; aggregation is recorded
+in its dedicated metadata. Reviewed historical codes remain stable identifiers; this
 convention guides new curation and does not silently rename a published measure.
 
 `measureCode` identifies the dimension-free statistical concept. `fieldName` identifies
 one publisher field and may include the smallest qualifier needed to distinguish it;
 `dimensions` encode reusable analytical qualifiers. For example, a male labour-force
-median age uses `measureCode: medianAge`, `fieldName: medianAgeOfMaleLabourForce`, unit
+median age uses `measureCode: age`, `fieldName: medianAgeOfMaleLabourForce`, unit
 `year`, and dimensions for `population-group: labour-force` and `sex: male`. It is not a
 `labourForce` measure in `person` merely because the measured population is the labour
 force.
@@ -34,9 +35,9 @@ force.
 Derive the metadata from the value described, not from the nouns surrounding it:
 
 - _Median age of the labour force_ is a `quantity`, aggregated as `median`, measured in
-  `year`, and mapped to `medianAge`.
+  `year`, and mapped to `age`.
 - _Median monthly employment income_ is a `quantity`, aggregated as `median`, measured
-  in `hong-kong-dollar`, and mapped to `medianMonthlyEmploymentIncome`.
+  in `hong-kong-dollar`, and mapped to `monthlyEmploymentIncome`.
 - _Number of occupied quarters with subdivided units_ counts `occupiedQuarters` in
   `living-quarter`; _number of occupied subdivided units_ counts `subdividedUnits` in
   `subdivided-unit`. Similar wording does not make the units interchangeable.
@@ -89,26 +90,27 @@ before replacing the hash; do not update the hash alone.
 `sourceField`
 擴展為無須查閱發布者資料定義也能理解的最精簡描述。它描述統計對象及有意義的限定，而不是複製來源欄位縮寫或數值的呈現方式。
 
-沿用具既定公共含義的統計術語，例如 `populationDensity`、`sexRatio`、`medianAge` 和
+沿用具既定公共含義的統計術語，例如 `populationDensity`、`sexRatio`、`age` 和
 `labourForceParticipationRate`。除非縮寫本身清晰且屬慣例，否則應完整拼寫。使用 lower
 camel case、盡量採用單數概念，並以簡潔而通用的限定詞表示範圍和排除條件，例如
 `aged15To39`、 `aged65AndOver` 及 `exclFDH`，而非使用不透明的來源欄位後綴。
 
-代碼不包含單位、匯總方式、參考時段、百分比／比例的呈現方式，或非用不可的發布者表格標題。這些細節屬於經審核的指標中繼資料及其在地化描述。已審核的歷史代碼仍為穩定識別碼；本慣例用於新的整理，不會悄然重新命名已發布的指標。
+`measureCode`
+不包含單位、匯總方式、參考時段、百分比／比例的呈現方式或發布者表格標題。這些細節屬於經審核的指標中繼資料及其在地化描述。區分發布者數值所需的限定詞屬於
+`fieldName`；匯總方式則記錄在專用中繼資料中。已審核的歷史代碼仍為穩定識別碼；本慣例用於新的整理，不會悄然重新命名已發布的指標。
 
 `measureCode` 表示不含維度的統計概念；`fieldName`
 表示一個發布者欄位，並只加入區分該欄位所需的最少限定；`dimensions`
-則記錄可重用的分析限定。例如，男性勞動人口的年齡中位數使用 `measureCode: medianAge`、
+則記錄可重用的分析限定。例如，男性勞動人口的年齡中位數使用 `measureCode: age`、
 `fieldName: medianAgeOfMaleLabourForce`、單位 `year`，以及
 `population-group: labour-force` 和 `sex: male`
 維度。不能因統計對象是勞動人口，便把它記成以 `person` 為單位的 `labourForce` 指標。
 
 中繼資料應按數值所描述的內容推導，而非按描述附近的名詞推導：
 
-- 「勞動人口年齡中位數」是以 `year` 為單位、`median` 匯總的 `quantity`，並對應
-  `medianAge`。
+- 「勞動人口年齡中位數」是以 `year` 為單位、`median` 匯總的 `quantity`，並對應 `age`。
 - 「每月主要職業收入中位數」是以 `hong-kong-dollar` 為單位、`median` 匯總的
-  `quantity`，並對應 `medianMonthlyEmploymentIncome`。
+  `quantity`，並對應 `monthlyEmploymentIncome`。
 - 「有分間樓宇單位且有人居住的屋宇單位數目」以 `living-quarter` 計算
   `occupiedQuarters`；「有人居住的分間樓宇單位數目」則以 `subdivided-unit` 計算
   `subdividedUnits`。字眼相似不代表單位可以互換。
@@ -152,26 +154,27 @@ _HK$10,000: 29,999_。
 `sourceField`
 扩展为无需查阅发布者数据定义也能理解的最精简描述。它描述统计对象及有意义的限定，而不是复制来源字段缩写或数值的呈现方式。
 
-沿用具有既定公共含义的统计术语，例如 `populationDensity`、`sexRatio`、`medianAge` 和
+沿用具有既定公共含义的统计术语，例如 `populationDensity`、`sexRatio`、`age` 和
 `labourForceParticipationRate`。除非缩写本身清晰且属惯例，否则应完整拼写。使用 lower
 camel case、尽量采用单数概念，并以简洁而通用的限定词表示范围和排除条件，例如
 `aged15To39`、 `aged65AndOver` 及 `exclFDH`，而非使用不透明的来源字段后缀。
 
-代码不包含单位、汇总方式、参考时段、百分比／比例的呈现方式，或非用不可的发布者表格标题。这些细节属于经审核的指标元数据及其本地化描述。已审核的历史代码仍为稳定标识符；本惯例用于新的整理，不会悄然重命名已发布的指标。
+`measureCode`
+不包含单位、汇总方式、参考时段、百分比／比例的呈现方式或发布者表格标题。这些细节属于经审核的指标元数据及其本地化描述。区分发布者数值所需的限定词属于
+`fieldName`；汇总方式则记录在专用元数据中。已审核的历史代码仍为稳定标识符；本惯例用于新的整理，不会悄然重命名已发布的指标。
 
 `measureCode` 表示不含维度的统计概念；`fieldName`
 表示一个发布者字段，并只加入区分该字段所需的最少限定；`dimensions`
-则记录可重用的分析限定。例如，男性劳动人口的年龄中位数使用 `measureCode: medianAge`、
+则记录可重用的分析限定。例如，男性劳动人口的年龄中位数使用 `measureCode: age`、
 `fieldName: medianAgeOfMaleLabourForce`、单位 `year`，以及
 `population-group: labour-force` 和 `sex: male`
 维度。不能因统计对象是劳动人口，便把它记成以 `person` 为单位的 `labourForce` 指标。
 
 元数据应按数值所描述的内容推导，而非按描述附近的名词推导：
 
-- “劳动人口年龄中位数”是以 `year` 为单位、`median` 汇总的 `quantity`，并对应
-  `medianAge`。
+- “劳动人口年龄中位数”是以 `year` 为单位、`median` 汇总的 `quantity`，并对应 `age`。
 - “每月主要职业收入中位数”是以 `hong-kong-dollar` 为单位、`median` 汇总的
-  `quantity`，并对应 `medianMonthlyEmploymentIncome`。
+  `quantity`，并对应 `monthlyEmploymentIncome`。
 - “有分间楼宇单位且有人居住的屋宇单位数目”以 `living-quarter` 计算
   `occupiedQuarters`；“有人居住的分间楼宇单位数目”则以 `subdivided-unit` 计算
   `subdividedUnits`。字眼相似不代表单位可以互换。

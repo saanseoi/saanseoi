@@ -163,7 +163,7 @@ test('uses reviewed registered units for C&SD statistic values', async () => {
   ).toBe(true)
 
   const expectedUnits = [
-    ['totalPopulation', 'count', 'person'],
+    ['population', 'count', 'person'],
     ['labourForce', 'quantity', 'person'],
     ['labourForceParticipationRate', 'rate', 'percent'],
     ['domesticHouseholds', 'count', 'household'],
@@ -224,7 +224,7 @@ test('keeps derived median values on their canonical measures and units', async 
       .filter(field => medianAgeSourceFields.has(field.sourceField))
       .every(
         field =>
-          field.measureCode === 'medianAge' &&
+          field.measureCode === 'age' &&
           field.statisticKind === 'quantity' &&
           field.aggregation === 'median' &&
           field.unitCode === 'year',
@@ -235,7 +235,7 @@ test('keeps derived median values on their canonical measures and units', async 
       .filter(field => medianEmploymentIncomeSourceFields.has(field.sourceField))
       .every(
         field =>
-          field.measureCode === 'medianMonthlyEmploymentIncome' &&
+          field.measureCode === 'monthlyEmploymentIncome' &&
           field.statisticKind === 'quantity' &&
           field.aggregation === 'median' &&
           field.unitCode === 'hong-kong-dollar',
@@ -427,8 +427,7 @@ test('keeps C&SD field names and dimensions canonical', async () => {
     fields
       .filter(
         field =>
-          field.measureCode === 'totalPopulation' &&
-          field.statisticKind === 'proportion',
+          field.measureCode === 'population' && field.statisticKind === 'proportion',
       )
       .every(field => field.unitCode === 'percent'),
   ).toBe(true)
@@ -507,7 +506,7 @@ test('maps C&SD study-location fields to one full-time-students measure', async 
   }
 })
 
-test('maps sex-qualified median-age fields to the shared median-age measure', async () => {
+test('maps sex-qualified median-age fields to the shared age measure', async () => {
   const fixtures = await readFieldManifests()
 
   for (const fixture of fixtures) {
@@ -518,24 +517,24 @@ test('maps sex-qualified median-age fields to the shared median-age measure', as
     expect(medianAgeFields).toEqual([
       expect.objectContaining({
         fieldName: 'medianAge',
-        measureCode: 'medianAge',
+        measureCode: 'age',
         sourceField: 't_ma',
       }),
       expect.objectContaining({
         fieldName: 'medianAgeMale',
-        measureCode: 'medianAge',
+        measureCode: 'age',
         sourceField: 'ma_m',
       }),
       expect.objectContaining({
         fieldName: 'medianAgeFemale',
-        measureCode: 'medianAge',
+        measureCode: 'age',
         sourceField: 'ma_f',
       }),
     ])
   }
 })
 
-test('keeps age groups on fields and maps them to total population', async () => {
+test('keeps age groups on fields and maps them to population', async () => {
   const [fixtures, fieldManifests] = await Promise.all([
     readMeasureFixtures(),
     readFieldManifests(),
@@ -550,7 +549,7 @@ test('keeps age groups on fields and maps them to total population', async () =>
     expect.objectContaining({
       dimensions: { 'age-group': '15-to-39', sex: 'all' },
       fieldName: 'aged15To39',
-      measureCode: 'totalPopulation',
+      measureCode: 'population',
       sourceField: 'age_2',
     }),
   )
@@ -559,4 +558,26 @@ test('keeps age groups on fields and maps them to total population', async () =>
       .find(candidate => candidate.datasetCode === datasetCode)
       ?.measures.some(measure => measure.measureCode === 'aged15To39'),
   ).toBe(false)
+})
+
+test('keeps aggregation qualifiers out of measure codes', async () => {
+  const [fixtures, fieldManifests] = await Promise.all([
+    readMeasureFixtures(),
+    readFieldManifests(),
+  ])
+  const measureCodes = [
+    ...fixtures.flatMap(fixture =>
+      fixture.measures.map(measure => measure.measureCode),
+    ),
+    ...fieldManifests.flatMap(manifest =>
+      manifest.fields.map(field => field.measureCode),
+    ),
+  ]
+
+  expect(
+    measureCodes.every(
+      measureCode =>
+        !/(?:average|mean|median|quartile|percentile|total)/i.test(measureCode),
+    ),
+  ).toBe(true)
 })
