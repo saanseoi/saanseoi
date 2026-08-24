@@ -163,13 +163,15 @@ describe('fixture version hashes', () => {
     ])
   })
 
-  test('provides localised explanatory text for every API family', () => {
+  test('provides localised long and short descriptions for every API family', () => {
     const describedFamilies = new Set(
       initialApiCompositions
         .filter(composition => composition.status === 'current')
         .filter(composition =>
           Object.values(composition.i18n).every(translations =>
-            translations.every(translation => translation.description),
+            translations.every(
+              translation => translation.description && translation.descriptionShort,
+            ),
           ),
         )
         .map(composition => composition.apiVersion),

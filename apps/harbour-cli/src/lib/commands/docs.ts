@@ -1212,8 +1212,13 @@ export async function renderMarkdownFixtureBody(
       (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
     )
 
+    const renderedApiKeyNotes = renderApiKeyNotes(markdown)
+    const renderedExperimentalApiWarnings = renderExperimentalApiWarnings(
+      renderedApiKeyNotes,
+      frontmatter,
+    )
     const renderedCenstatdTables = await renderCenstatdMeasureTables(
-      markdown,
+      renderedExperimentalApiWarnings,
       frontmatter,
     )
     return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
@@ -1230,7 +1235,11 @@ function resolveMarkdownTemplateValue(
   key: string,
   frontmatter: Record<string, string>,
 ) {
-  if (/^(apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(key)) {
+  if (
+    /^(apiKeyNote|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
+      key,
+    )
+  ) {
     return tag
   }
 
@@ -1262,6 +1271,58 @@ function resolveMarkdownTemplateValue(
     throw new Error(`Unknown markdown fixture frontmatter tag: ${tag}`)
   }
   return value
+}
+
+function renderApiKeyNotes(markdown: string) {
+  const directive = /\{\{apiKeyNote:(en|zh-Hant|zh-Hans)\}\}/g
+  const notes = {
+    en: `<note title="API key required" action-href="/guides/api-keys" action-label="Get API key">
+    All example URLs below require authentication by sending an API key with the request. Provide it as an <black>x-api-key</black> header or as an
+<black>access_token=</black> URL parameter.
+</note>`,
+    'zh-Hant': `<note title="需要 API 金鑰" action-href="/guides/api-keys" action-label="取得 API 金鑰">
+所有範例均假定你透過
+<black>x-api-key</black> 標頭提供金鑰，或以 <black>access_token=</black> URL
+參數提供。
+</note>`,
+    'zh-Hans': `<note title="需要 API 密钥" action-href="/guides/api-keys" action-label="获取 API 密钥">
+所有示例均假定你通过
+<black>x-api-key</black> 请求标头提供密钥，或以 <black>access_token=</black> URL
+参数提供。
+</note>`,
+  } as const
+
+  return markdown.replace(
+    directive,
+    (_tag, locale: keyof typeof notes) => notes[locale],
+  )
+}
+
+function renderExperimentalApiWarnings(
+  markdown: string,
+  frontmatter: Record<string, string>,
+) {
+  const directive = /\{\{experimentalApiWarning:(en|zh-Hant|zh-Hans)\}\}/g
+  if (!markdown.includes('{{experimentalApiWarning:')) return markdown
+
+  const apiVersionPath = resolveMarkdownTemplateValue(
+    '{{apiVersionPath}}',
+    'apiVersionPath',
+    frontmatter,
+  )
+  const warnings = {
+    en: `The <black>${apiVersionPath}</black> contract is experimental. The API contract might
+change before the <black>v1</black> release, after which prior versions will be retired.`,
+    'zh-Hant': `<black>${apiVersionPath}</black> 合約仍屬實驗性質。API 合約可能在 v1
+發布前變更；屆時將淘汰舊版本。`,
+    'zh-Hans': `<black>${apiVersionPath}</black> 合约仍处于实验阶段。API 合约可能在 v1
+发布前变更；届时将淘汰旧版本。`,
+  } as const
+
+  return markdown.replace(
+    directive,
+    (_tag, locale: keyof typeof warnings) => warnings[locale],
+  )
 }
 
 /**
