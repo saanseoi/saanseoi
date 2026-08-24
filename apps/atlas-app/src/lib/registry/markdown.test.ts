@@ -54,6 +54,15 @@ describe('selectMarkdownSection', () => {
     ).toEqual({ addedLines: 0, changes: [], removedLines: 0 })
   })
 
+  test('excludes release-set-only changes from a guide diff', () => {
+    expect(
+      diffMarkdown(
+        '## Using the Divisions API\n\n```url\n/divisions/v0?releaseSet=data-hk-divisions-2026-06-17.0\n```',
+        '## Using the Divisions API\n\n```url\n/divisions/v0?releaseSet=data-hk-divisions-2026-07-22.0\n```',
+      ),
+    ).toEqual({ addedLines: 0, changes: [], removedLines: 0 })
+  })
+
   test('retains a change that includes more than the cohort reference', () => {
     expect(
       diffMarkdown(

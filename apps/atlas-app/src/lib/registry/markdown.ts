@@ -106,17 +106,20 @@ function buildChangedMarkdown(operations: MarkdownDiffOperation[]) {
   return lines.join('\n').trim()
 }
 
-function normaliseCohortReference(line: string) {
-  return line.replace(/\bcohort=[^&\s]+/g, 'cohort={cohort}')
+function normaliseReleaseReference(line: string) {
+  return line
+    .replace(/\bcohort=[^&\s]+/g, 'cohort={cohort}')
+    .replace(/\breleaseSet=[^&\s]+/g, 'releaseSet={releaseSet}')
 }
 
-function isCohortOnlyChange(left: string, right: string) {
+function isReleaseReferenceOnlyChange(left: string, right: string) {
   return (
-    left !== right && normaliseCohortReference(left) === normaliseCohortReference(right)
+    left !== right &&
+    normaliseReleaseReference(left) === normaliseReleaseReference(right)
   )
 }
 
-function filterCohortOnlyOperations(operations: MarkdownDiffOperation[]) {
+function filterReleaseReferenceOnlyOperations(operations: MarkdownDiffOperation[]) {
   const suppressed = new Set<MarkdownDiffOperation>()
   const removed = operations.filter(operation => operation.kind === 'removed')
   const added = operations.filter(operation => operation.kind === 'added')
@@ -125,7 +128,7 @@ function filterCohortOnlyOperations(operations: MarkdownDiffOperation[]) {
     const addedOperation = added.find(
       operation =>
         !suppressed.has(operation) &&
-        isCohortOnlyChange(removedOperation.line, operation.line),
+        isReleaseReferenceOnlyChange(removedOperation.line, operation.line),
     )
     if (!addedOperation) continue
 
@@ -151,7 +154,7 @@ export function diffMarkdown(previous: string, current: string): MarkdownDiff {
   const flushOperations = () => {
     if (operations.length === 0) return
 
-    const visibleOperations = filterCohortOnlyOperations(operations)
+    const visibleOperations = filterReleaseReferenceOnlyOperations(operations)
     const added = visibleOperations.filter(operation => operation.kind === 'added')
     const removed = visibleOperations.filter(operation => operation.kind === 'removed')
     if (added.length || removed.length) {
