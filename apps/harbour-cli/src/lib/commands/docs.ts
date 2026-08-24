@@ -3,12 +3,8 @@ import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { cancel, isCancel, note, outro, select, text } from '@clack/prompts'
-import {
-  apiProfileDocumentationByFamily,
-  apiProfileNames,
-  compareReleaseVersions,
-  normaliseBaseUrl,
-} from '@repo/core'
+import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
+import { apiProfileDocumentationByFamily, apiProfileNames } from '@repo/core/apiLocales'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
