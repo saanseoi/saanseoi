@@ -96,10 +96,20 @@ describe('address release samples', () => {
     expect(getSampleApiPath('api-stats-v0.1')).toBeNull()
   })
 
-  test('collapses matching values while retaining every contributing sample id', () => {
+  test('puts compactable sample ids first and collapses matching values', () => {
     const first = completeAddressSample('address-1')
     const second = completeAddressSample('address-2')
-    expect(groupAddressSamples([first, second])[0]).toEqual({
+    const grouped = groupAddressSamples([first, second])
+
+    expect(grouped[0]).toEqual({
+      key: 'id',
+      values: [
+        { value: 'address-1', sampleIds: ['address-1'] },
+        { value: 'address-2', sampleIds: ['address-2'] },
+      ],
+      children: [],
+    })
+    expect(grouped[1]).toEqual({
       key: 'type',
       values: [{ value: 'addresses', sampleIds: ['address-1', 'address-2'] }],
       children: [],

@@ -12,6 +12,7 @@ import {
 } from '../releaseSamplesPresentation'
 import NestedField from './releaseSamplesNestedField.svelte'
 import GroupedField from './releaseSamplesGroupedField.svelte'
+import ReleaseSamplesIdentifier from './releaseSamplesIdentifier.svelte'
 
 type Props = {
   apiVersion: string
@@ -158,18 +159,8 @@ $effect(() => {
 
     {#if samples.length && view === 'grouped'}
       <div class="space-y-3">
-        <fieldset class="flex flex-wrap gap-2">
-          <legend class="sr-only">Sample value legend</legend>
-          {#each samples as sample, index (sample.id)}
-            <span
-              class={`border-l-[0.375rem] px-2 py-1 font-mono text-label-sm text-foreground ${sampleValueTones[index % sampleValueTones.length].border} ${sampleValueTones[index % sampleValueTones.length].surface}`}
-            >
-              {sample.id}
-            </span>
-          {/each}
-        </fieldset>
         <dl
-          class="overflow-hidden border border-data-outline-variant/60 bg-data-surface-container-lowest"
+          class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
         >
           {#each groupedFields as field (field.key)}
             <GroupedField {field} sampleIds={samples.map(sample => sample.id)} />
@@ -180,22 +171,23 @@ $effect(() => {
       <div class="grid gap-3">
         {#each samples as sample (sample.id)}
           <dl
-            class="overflow-hidden border border-data-outline-variant/60 bg-data-surface-container-lowest"
+            class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
           >
             <dt>
               <button
-                class="grid w-full min-w-0 grid-cols-[minmax(0,0.42fr)_minmax(0,1fr)] gap-4 bg-data-surface-container-low px-4 py-3 text-left"
+                class="grid w-full min-w-0 grid-cols-[minmax(9rem,0.32fr)_minmax(0,1fr)] gap-5 bg-surface-container-low px-4 py-4 text-left transition hover:bg-surface-container"
                 type="button"
                 aria-expanded={!collapsedSamples.has(sample.id)}
                 onclick={() => toggleSample(sample.id)}
               >
-                <span class="font-mono text-label-sm font-semibold text-foreground-alt"
+                <span class="font-mono text-label-md font-semibold text-primary"
                   >id</span
                 >
-                <span
-                  class="min-w-0 font-mono text-body-sm leading-6 text-primary wrap-break-word"
-                >
-                  {sample.id}
+                <span class="min-w-0">
+                  <ReleaseSamplesIdentifier
+                    id={sample.id}
+                    marker={sampleValueTones[0].marker}
+                  />
                 </span>
               </button>
             </dt>
