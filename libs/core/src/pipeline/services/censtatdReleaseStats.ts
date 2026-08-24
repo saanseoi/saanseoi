@@ -28,6 +28,7 @@ export type CenstatdCanonicalObservation = {
 export type CenstatdCanonicalField = {
   aggregation: string
   aggregationPercentile: number | null
+  periodicity: string | null
   denominatorFieldName?: string | null
   dimensions: Record<string, string>
   fieldName: string
@@ -283,17 +284,20 @@ export function buildCenstatdFieldCurationAuditActions(
     )
   }
   return canonical.fields
-    .filter(field => field.sourceField)
-    .sort((left, right) => left.sourceField!.localeCompare(right.sourceField!))
-    .map(field => ({
+    .flatMap(field =>
+      field.sourceField ? [{ field, sourceField: field.sourceField }] : [],
+    )
+    .sort((left, right) => left.sourceField.localeCompare(right.sourceField))
+    .map(({ field, sourceField }) => ({
       action: 'curate_censtatd_measure_metadata',
-      affectedRecordCount: observationCounts.get(field.sourceField!) ?? 0,
+      affectedRecordCount: observationCounts.get(sourceField) ?? 0,
       evidence: {
         aggregation: field.aggregation,
         aggregationPercentile: field.aggregationPercentile,
         denominatorFieldName: field.denominatorFieldName ?? null,
         fieldName: field.fieldName,
-        sourceField: field.sourceField,
+        periodicity: field.periodicity,
+        sourceField,
         sourceNullOption: field.sourceNullOption ?? null,
         statisticKind: field.statisticKind,
         unitCode: field.unitCode,

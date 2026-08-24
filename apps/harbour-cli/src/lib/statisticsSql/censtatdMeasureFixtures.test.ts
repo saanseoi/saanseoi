@@ -21,6 +21,7 @@ type Field = {
   fieldName: string
   localisations: Localisation[]
   measureCode: string
+  periodicity?: string
   statisticKind: string
   sourceField: string
   unitCode: string
@@ -235,9 +236,10 @@ test('keeps derived median values on their canonical measures and units', async 
       .filter(field => medianEmploymentIncomeSourceFields.has(field.sourceField))
       .every(
         field =>
-          field.measureCode === 'monthlyEmploymentIncome' &&
+          field.measureCode === 'employmentIncome' &&
           field.statisticKind === 'quantity' &&
           field.aggregation === 'median' &&
+          field.periodicity === 'month' &&
           field.unitCode === 'hong-kong-dollar',
       ),
   ).toBe(true)
@@ -560,7 +562,7 @@ test('keeps age groups on fields and maps them to population', async () => {
   ).toBe(false)
 })
 
-test('keeps aggregation qualifiers out of measure codes', async () => {
+test('keeps aggregation and periodicity qualifiers out of measures', async () => {
   const [fixtures, fieldManifests] = await Promise.all([
     readMeasureFixtures(),
     readFieldManifests(),
@@ -577,7 +579,35 @@ test('keeps aggregation qualifiers out of measure codes', async () => {
   expect(
     measureCodes.every(
       measureCode =>
-        !/(?:average|mean|median|quartile|percentile|total)/i.test(measureCode),
+        !/(?:average|mean|median|quartile|percentile|total|monthly|weekly)/i.test(
+          measureCode,
+        ),
     ),
   ).toBe(true)
+  expect(
+    fixtures.every(fixture =>
+      fixture.measures.every(measure =>
+        measure.localisations.every(
+          localisation =>
+            !/(?:average|mean|median|quartile|percentile|total|monthly|weekly)/i.test(
+              `${localisation.name} ${localisation.description}`,
+            ),
+        ),
+      ),
+    ),
+  ).toBe(true)
+})
+
+test('records periodicity for every curated weekly or monthly field', async () => {
+  const fields = (await readFieldManifests()).flatMap(manifest => manifest.fields)
+
+  for (const field of fields) {
+    const semanticText = JSON.stringify({ ...field, periodicity: undefined })
+    const expectedPeriodicity = /weekly/i.test(semanticText)
+      ? 'week'
+      : /monthly/i.test(semanticText)
+        ? 'month'
+        : undefined
+    expect(field.periodicity).toBe(expectedPeriodicity)
+  }
 })

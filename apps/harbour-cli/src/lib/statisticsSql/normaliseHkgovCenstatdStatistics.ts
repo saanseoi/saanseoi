@@ -9,6 +9,7 @@ import type {
   CanonicalStatsGeography,
   StatsAggregation,
   StatsFieldComparability,
+  StatsPeriodicity,
   StatsStatisticKind,
 } from '@repo/db'
 import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
@@ -54,6 +55,7 @@ type CanonicalField = CenstatdCanonicalField & {
   comparability: StatsFieldComparability | null
   datasetCode: string
   denominatorFieldName: string | null
+  periodicity: StatsPeriodicity | null
   measureCode: string
   sourceField: string
   sourceNullOption: string | null
@@ -178,6 +180,7 @@ export function normaliseHkgovCenstatdStatistics(
         denominatorFieldName: metadata?.denominatorFieldName ?? null,
         fieldName,
         measureCode,
+        periodicity: metadata?.periodicity ?? null,
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
         statisticKind: metadata?.statisticKind ?? 'unreviewed',

@@ -3,6 +3,7 @@ import { getRequestedApiLocalesValidationError } from '@repo/core'
 import {
   statsFieldComparabilityReasons,
   statsFieldComparabilityStatuses,
+  statsPeriodicities,
 } from '@repo/db'
 
 import { openApiText } from '../lib/openapi-i18n'
@@ -154,6 +155,7 @@ const IncludedStatisticResourceSchema = z.union([
       statisticKind: z.string(),
       aggregation: z.string(),
       aggregationPercentile: z.number().nullable(),
+      periodicity: z.enum(statsPeriodicities).nullable(),
       comparability: z
         .object({
           affectedReferencePeriods: z.array(z.string()),

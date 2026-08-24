@@ -225,6 +225,7 @@ function createIncludedStatisticFieldResource(args: {
       statisticKind: definition.statisticKind,
       aggregation: definition.aggregation,
       aggregationPercentile: definition.aggregationPercentile,
+      periodicity: definition.periodicity,
       comparability: definition.comparability,
       denominatorFieldName: definition.denominatorFieldName,
       valueKind: definition.valueKind,

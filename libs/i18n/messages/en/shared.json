@@ -1766,7 +1766,7 @@
   "openapi_d1_probe_unauthorised_description": "The probe API key is missing or invalid.",
   "openapi_d1_probe_misconfigured_description": "The probe API key is not configured.",
   "openapi_d1_probe_iterations_description": "Optional number of samples per D1 binding. Defaults to {default} and must be between 1 and {maximum}.",
-  "openapi_statistics_registry_description": "Discover the published statistical fields and measures available in the selected registry.",
+  "openapi_statistics_registry_description": "Discover the published statistical fields and measures.",
   "openapi_label_statistics_registry": "Statistics Registry",
   "openapi_statistics_registry_response_description": "Discover the selected published Statistics registry.",
   "openapi_statistics_registry_search_description": "Fuzzy-find published statistic measures and fields.",

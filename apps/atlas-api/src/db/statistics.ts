@@ -3,6 +3,7 @@ import type {
   HistoryDatabase,
   StatsAggregation,
   StatsFieldComparability,
+  StatsPeriodicity,
   StatsStatisticKind,
 } from '@repo/db'
 import { and, asc, eq, inArray, sql } from '@repo/db'
@@ -50,6 +51,7 @@ export type StatisticFieldDefinition = {
   statisticKind: StatsStatisticKind
   aggregation: StatsAggregation
   aggregationPercentile: number | null
+  periodicity: StatsPeriodicity | null
   comparability: StatsFieldComparability | null
   denominatorFieldName: string | null
   valueKind: string
@@ -359,6 +361,7 @@ export async function listStatisticFieldDefinitions(
       statisticKind: row.statisticKind,
       aggregation: row.aggregation,
       aggregationPercentile: row.aggregationPercentile,
+      periodicity: row.periodicity,
       comparability: row.comparability,
       denominatorFieldName: row.denominatorFieldName,
       valueKind: row.valueKind,

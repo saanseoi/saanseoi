@@ -138,6 +138,7 @@ function dependencies() {
         statisticKind: 'count' as const,
         aggregation: 'total' as const,
         aggregationPercentile: null,
+        periodicity: null,
         comparability: {
           affectedReferencePeriods: ['2011', '2016'],
           reason: 'economic-activity-status-classification-changed' as const,
@@ -283,6 +284,7 @@ describe('Statistics service', () => {
           statisticKind: 'count',
           aggregation: 'total',
           aggregationPercentile: null,
+          periodicity: null,
           comparability: {
             affectedReferencePeriods: ['2011', '2016'],
             reason: 'economic-activity-status-classification-changed',
