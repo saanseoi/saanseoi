@@ -282,7 +282,7 @@ test('retries a transient local metadata lock', async () => {
         }) as typeof withLocalMetaDb,
       }),
     ).resolves.toMatchObject({
-      url: expect.stringMatching(/^http:\/\/localhost:8787\/v0\.1\/assets\//),
+      url: expect.stringMatching(/^http:\/\/localhost:8787\/v0\/assets\//),
     })
     expect(attempts).toBe(2)
   } finally {
