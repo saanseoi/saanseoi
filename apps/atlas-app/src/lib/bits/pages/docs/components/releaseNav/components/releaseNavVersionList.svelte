@@ -8,7 +8,6 @@ type Props = {
   canExpand?: boolean
   children?: Snippet
   currentVersionCode: string
-  footer?: Snippet
   loading?: boolean
   open?: boolean
   onVersionPreload?: ReleaseNavVersionPreload
@@ -18,7 +17,6 @@ let {
   canExpand = true,
   children,
   currentVersionCode,
-  footer,
   loading = false,
   open = $bindable(true),
   onVersionPreload,
@@ -61,7 +59,7 @@ $effect(() => {
 <nav
   bind:this={versionListElement}
   data-release-nav-version-list
-  class="flex h-full min-h-0 flex-col gap-2 overflow-y-auto overscroll-auto pt-2"
+  class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-auto pt-2"
   aria-label="Release versions"
   onwheel={() => (versionScrollOverride = true)}
   ontouchstart={() => (versionScrollOverride = true)}
@@ -116,5 +114,4 @@ $effect(() => {
       >
     {/if}
   {/each}
-  {@render footer?.()}
 </nav>
