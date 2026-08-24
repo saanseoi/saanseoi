@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
@@ -83,6 +83,7 @@ const API_RELEASE_SET_NOTES_DIRECTORY = 'notes'
 const API_RELEASE_SET_GUIDES_DIRECTORY = 'guides'
 const RELEASE_DOCS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/releases')
 const CURATION_ROOT = resolve(REPO_ROOT, 'fixtures/meta/curations')
+const API_COMPOSITIONS_ROOT = resolve(REPO_ROOT, 'fixtures/meta/apiCompositions')
 
 type ApiReleaseSetRevisionDraft = {
   apiReleaseSetCode: string
@@ -1222,8 +1223,12 @@ export async function renderMarkdownFixtureBody(
       renderedExperimentalApiWarnings,
       frontmatter,
     )
-    const renderedCenstatdTables = await renderCenstatdMeasureTables(
+    const renderedDomains = await renderApiFamilyDomains(
       renderedApiProfileTables,
+      frontmatter,
+    )
+    const renderedCenstatdTables = await renderCenstatdMeasureTables(
+      renderedDomains,
       frontmatter,
     )
     return renderApiReleaseSetSourcesTables(renderedCenstatdTables, apiReleaseSources)
@@ -1241,7 +1246,7 @@ function resolveMarkdownTemplateValue(
   frontmatter: Record<string, string>,
 ) {
   if (
-    /^(apiKeyNote|apiProfileTable|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
+    /^(apiKeyNote|apiProfileTable|domains|experimentalApiWarning|apiReleaseSetSources|hkgovCenstatdMeasureTable):/.test(
       key,
     )
   ) {
@@ -1360,6 +1365,94 @@ function renderApiProfileTables(markdown: string, frontmatter: Record<string, st
       .join('\n')
 
     return `| ${profile} | ${useCase} | ${coverage} |\n| --- | --- | --- |\n${rows}`
+  })
+}
+
+type ApiCompositionDomainFixture = {
+  code: string
+  isDefault?: boolean
+  i18n: Array<{
+    description?: string
+    descriptionShort?: string
+    locale: string
+    name: string
+  }>
+}
+
+type ApiCompositionDocumentationFixture = {
+  apiVersion: string
+  domains?: ApiCompositionDomainFixture[]
+  status: string
+}
+
+async function renderApiFamilyDomains(
+  markdown: string,
+  frontmatter: Record<string, string>,
+) {
+  const directive = /\{\{domains:(en|zh-Hant|zh-Hans)\}\}/g
+  if (!markdown.includes('{{domains:')) return markdown
+
+  const apiVersion = frontmatter.apiVersion
+  if (!apiVersion) {
+    throw new Error('Domain directives require apiVersion in fixture frontmatter.')
+  }
+
+  const fixtures = await Promise.all(
+    (await readdir(API_COMPOSITIONS_ROOT))
+      .filter(fileName => fileName.endsWith('.json'))
+      .map(
+        async fileName =>
+          JSON.parse(
+            await readFile(resolve(API_COMPOSITIONS_ROOT, fileName), 'utf8'),
+          ) as ApiCompositionDocumentationFixture,
+      ),
+  )
+  const composition = fixtures.find(
+    fixture => fixture.apiVersion === apiVersion && fixture.status === 'current',
+  )
+
+  if (!composition?.domains?.length) {
+    throw new Error(`No current domain composition is configured for ${apiVersion}.`)
+  }
+
+  const labels = {
+    en: { default: 'DEFAULT', release: 'THIS RELEASE' },
+    'zh-Hant': { default: '預設', release: '本發布' },
+    'zh-Hans': { default: '默认', release: '本发布' },
+  } as const
+  const compositionLocale = {
+    en: 'en',
+    'zh-Hant': 'zh-hant',
+    'zh-Hans': 'zh-hans',
+  } as const
+
+  return markdown.replace(directive, (_tag, locale: keyof typeof labels) => {
+    const rows = composition.domains.map(domain => {
+      const translation = domain.i18n.find(
+        value => value.locale === compositionLocale[locale],
+      )
+      if (!translation) {
+        throw new Error(
+          `Domain ${domain.code} is missing ${compositionLocale[locale]} localisation.`,
+        )
+      }
+
+      const markers = [
+        domain.isDefault ? `<blue>${labels[locale].default}</blue>` : null,
+        domain.code === frontmatter.domainCode
+          ? `<blue>${labels[locale].release}</blue>`
+          : null,
+      ].filter((marker): marker is string => marker !== null)
+      const summary = translation.descriptionShort ?? translation.description
+      if (!summary) {
+        throw new Error(`Domain ${domain.code} is missing a summary.`)
+      }
+
+      const separator = locale === 'en' ? '. ' : '。'
+      return `- <black>${domain.code}</black> — ${translation.name}${separator}${summary}${markers.length ? ` ${markers.join(' ')}` : ''}`
+    })
+
+    return rows.join('\n')
   })
 }
 
