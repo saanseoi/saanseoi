@@ -283,8 +283,14 @@ export type StatsFieldComparability = {
   status: StatsFieldComparabilityStatus
 }
 
-export const canonicalStatsField = {
+/** A reusable, dimension-free statistical concept within one dataset. */
+export const canonicalStatsMeasure = {
   datasetCode: text('datasetCode').notNull(),
+  measureCode: text('measureCode').notNull(),
+}
+
+export const canonicalStatsField = {
+  ...canonicalStatsMeasure,
   fieldName: text('fieldName').notNull(),
   sourceField: text('sourceField').notNull(),
   /** Curated analytical dimensions associated with this source field. */
@@ -309,6 +315,17 @@ export const canonicalStatsField = {
   denominatorFieldName: text('denominatorFieldName'),
   valueKind: text('valueKind').notNull(),
   unitCode: text('unitCode').notNull(),
+}
+
+export const canonicalStatsMeasureI18n = {
+  ...canonicalStatsMeasure,
+  locale: text('locale').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  /** False only when a machine translation filled a missing publisher locale. */
+  isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
+    .notNull()
+    .default(true),
 }
 
 export const canonicalStatsFieldI18n = {
