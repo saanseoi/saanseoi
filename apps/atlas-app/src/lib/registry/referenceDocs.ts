@@ -217,6 +217,12 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     glossary: true,
     source: glossary,
   },
+  schema: {
+    title: 'Schema',
+    displayTitleKey: 'reference_schema',
+    glossary: true,
+    source: glossary,
+  },
   release: {
     title: 'Release',
     displayTitleKey: 'reference_release',

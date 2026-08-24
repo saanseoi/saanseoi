@@ -338,6 +338,23 @@ profile 是具名稱的 API 回應形狀。就區劃而言，`compact` 最精簡
 profile 是具名称的 API 响应形状。就区划而言，`compact` 最精简，`default`
 加入常用描述字段，`map` 加入主要区划几何，而 `full` 同时加入几何及包含来源的字段。
 
+# Schema
+
+## v1
+
+### EN
+
+A schema describes the fields, value types and relationships an API response can
+contain. It gives people and software a stable contract for reading a resource.
+
+### ZH-HANT
+
+schema 描述 API 回應可包含的欄位、值類型及關係。它為人和軟件讀取資源提供穩定的契約。
+
+### ZH-HANS
+
+schema 描述 API 响应可包含的字段、值类型及关系。它为人和软件读取资源提供稳定的契约。
+
 # Release
 
 ## v1

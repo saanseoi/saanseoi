@@ -51,6 +51,7 @@ test('lists glossary definitions alphabetically without contextual notes', () =>
   const entries = getMarkdownGlossaryEntries('en')
 
   expect(entries.map(entry => entry.id)).toContain('release')
+  expect(entries.map(entry => entry.id)).toContain('schema')
   expect(entries.map(entry => entry.id)).toContain('hkgov-censtatd')
   expect(entries.map(entry => entry.id)).not.toContain('hong-kong-extract')
   expect(entries.map(entry => entry.id)).toEqual(

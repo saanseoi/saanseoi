@@ -81,12 +81,13 @@ async function loadMore(count: number) {
   loading = true
   errorMessage = null
   try {
-    if (loadedReleaseSet !== releaseSet) {
+    const target = `${releaseSet}:${profile}`
+    if (loadedReleaseSet !== target) {
       samples = []
       sampleCount = 0
       view = 'distinct'
       total = null
-      loadedReleaseSet = `${releaseSet}:${profile}`
+      loadedReleaseSet = target
     }
 
     if (total === null) {
