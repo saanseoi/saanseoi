@@ -1502,6 +1502,10 @@ describe('atlas-api', () => {
       new Request('http://localhost/openapi/addresses/v0.1'),
       env,
     )
+    const statisticsRes = await app.fetch(
+      new Request('http://localhost/openapi/stats/v0.1'),
+      env,
+    )
     const divisionsCurrentRes = await app.fetch(
       new Request('http://localhost/openapi/divisions/v0'),
       env,
@@ -1516,6 +1520,11 @@ describe('atlas-api', () => {
     const addresses = (await addressesRes.json()) as {
       paths: Record<string, unknown>
       components?: { schemas?: Record<string, unknown> }
+    }
+    const statistics = (await statisticsRes.json()) as {
+      paths: Record<string, unknown>
+      tags?: Array<{ name: string }>
+      'x-tagGroups'?: Array<{ name: string; tags: string[] }>
     }
     const divisionsCurrent = (await divisionsCurrentRes.json()) as {
       paths: Record<string, unknown>
@@ -1538,6 +1547,18 @@ describe('atlas-api', () => {
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
     expect(divisions.components?.schemas).toHaveProperty('Division')
     expect(divisions.components?.schemas).not.toHaveProperty('Address')
+
+    expect(statisticsRes.status).toBe(200)
+    expect(statistics.paths['/stats/v0.1/registry']).toBeDefined()
+    expect(statistics.paths['/stats/v0.1/registry/fields']).toBeDefined()
+    expect(statistics.paths['/stats/v0.1/registry/search']).toBeDefined()
+    expect(statistics.paths['/divisions/v0.1']).toBeUndefined()
+    expect(statistics.tags?.map(tag => tag.name)).toEqual([
+      'Registry',
+      'Statistics',
+      'Sources',
+    ])
+    expect(statistics['x-tagGroups']).toBeUndefined()
 
     expect(divisionsCurrentRes.status).toBe(200)
     expect(divisionsCurrent.paths['/divisions/v0']).toBeDefined()
@@ -1575,8 +1596,24 @@ describe('atlas-api', () => {
       'x-tagGroups'?: Array<{ name: string }>
     }
     const divisions = (await divisionsRes.json()) as {
-      components?: { schemas?: Record<string, { description?: string }> }
-      paths?: Record<string, { get?: { parameters?: Array<{ description?: string }> } }>
+      components?: {
+        schemas?: Record<
+          string,
+          {
+            description?: string
+            properties?: Record<string, { description?: string }>
+          }
+        >
+      }
+      paths?: Record<
+        string,
+        {
+          get?: {
+            parameters?: Array<{ description?: string }>
+            responses?: Record<string, { description?: string }>
+          }
+        }
+      >
       tags?: Array<{ name: string; 'x-displayName'?: string }>
     }
 
@@ -1616,6 +1653,19 @@ describe('atlas-api', () => {
     )
     expect(divisions.components?.schemas?.Geometry?.description).toBe(
       'GeoJSON 幾何值。',
+    )
+    expect(
+      divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.[0]?.description,
+    ).toBe('全域唯一的來源發布版本代碼。')
+    expect(
+      divisions.paths?.['/divisions/v0.1/sources']?.get?.responses?.['200']
+        ?.description,
+    ).toBe('列出一個確切來源發布版本的來源記錄，或以 NDJSON 串流傳回。')
+    expect(
+      divisions.components?.schemas?.SourceRecordPin?.properties?.apiReleaseSetCode
+        ?.description,
+    ).toBe(
+      '若為標準 sourceRelease 固定版本則為 null；該固定版本刻意獨立於 API 發布集合。',
     )
   })
 

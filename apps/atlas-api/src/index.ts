@@ -33,6 +33,7 @@ import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/streets/v0/streets'
 import { statisticRoutes } from './routes/statistics/v0/statistics'
+import { statisticRegistryRoutes } from './routes/statistics/v0/registry'
 import {
   sourceRoutes,
   streamSourceRecordsMiddleware,
@@ -116,6 +117,11 @@ const openApiConfig = {
       name: 'Statistics',
       description: openApiText('openapi_statistics_description'),
       'x-displayName': openApiText('openapi_label_statistics'),
+    },
+    {
+      name: 'Registry',
+      description: openApiText('openapi_statistics_registry_description'),
+      'x-displayName': openApiText('openapi_label_registry'),
     },
     {
       name: 'Streets',
@@ -666,6 +672,7 @@ app.openapiRoutes([
   ...managedAssetRoutes,
   ...styleRoutes,
   ...streetRoutes,
+  ...statisticRegistryRoutes,
   ...statisticRoutes,
 ] as const)
 
@@ -693,13 +700,17 @@ function getOpenApiDocument(
         return false
       }
       const pathTags = tagsForPathItem(pathItem)
-      const isApiFamilyPath = pathTags.some(tag => apiFamilyTags.has(tag))
+      const isStatisticsRegistryPath =
+        path.startsWith('/stats/') && pathTags.includes('Registry')
+      const isApiFamilyPath =
+        pathTags.some(tag => apiFamilyTags.has(tag)) || isStatisticsRegistryPath
       const isFamilySourcePath =
         pathTags.includes('Sources') &&
         apiProducts.some(family => path.startsWith(`/${family}/`))
       return product === 'registry'
         ? !isApiFamilyPath && !isFamilySourcePath
         : (pathTags.includes(apiProductTags[product]) ||
+            (product === 'stats' && isStatisticsRegistryPath) ||
             (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
             (!productVersion ||
               path === `/${product}/${documentPathVersion}` ||
@@ -745,6 +756,17 @@ function getOpenApiDocument(
   document.tags = document.tags?.filter(tag => visibleTags.has(tag.name))
   if (product !== 'registry') {
     document.tags?.sort((first, second) => {
+      if (product === 'stats') {
+        const statisticsTagOrder = ['Registry', 'Statistics']
+        const firstIndex = statisticsTagOrder.indexOf(first.name)
+        const secondIndex = statisticsTagOrder.indexOf(second.name)
+        if (firstIndex !== secondIndex) {
+          return (
+            (firstIndex === -1 ? Infinity : firstIndex) -
+            (secondIndex === -1 ? Infinity : secondIndex)
+          )
+        }
+      }
       if (first.name === apiProductTags[product]) {
         return -1
       }
