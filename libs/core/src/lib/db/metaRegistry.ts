@@ -5312,6 +5312,131 @@ export async function resolveApiReleaseSetSnapshotsForRequest(
   return { releaseSet, snapshots }
 }
 
+/**
+ * Resolves every release set in a published catalogue scope for discovery.
+ *
+ * Data requests deliberately resolve one default release set so that every
+ * record in their response is coherent. Registry discovery is different:
+ * Statistics sources publish independently, so omitting an explicit release
+ * selector must retain every release set represented by the catalogue.
+ */
+export async function listApiReleaseSetSnapshotsForRegistryRequest(
+  db: HarbourReadableDb,
+  type: ResourceType,
+  args: Parameters<typeof resolveApiReleaseSetForRequest>[2],
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersion = await db
+    .select({ id: metaApiVersions.id })
+    .from(metaApiVersions)
+    .where(eq(metaApiVersions.code, apiVersionCode))
+    .limit(1)
+    .get()
+  if (!apiVersion) return null
+
+  const knownAt = args.knownAt ? toIsoTimestamp(args.knownAt) : null
+  const catalogRevision = await db
+    .select({
+      id: metaApiCatalogRevisions.id,
+      code: metaApiCatalogRevisions.code,
+      publishedAt: metaApiCatalogRevisions.publishedAt,
+    })
+    .from(metaApiCatalogRevisions)
+    .where(
+      and(
+        eq(metaApiCatalogRevisions.apiVersionId, apiVersion.id),
+        eq(metaApiCatalogRevisions.regionCode, args.regionCode),
+        eq(metaApiCatalogRevisions.status, 'current'),
+        args.catalogRevision
+          ? eq(metaApiCatalogRevisions.code, args.catalogRevision)
+          : undefined,
+        !args.catalogRevision && knownAt
+          ? sql`${metaApiCatalogRevisions.publishedAt} <= ${knownAt}`
+          : undefined,
+      ),
+    )
+    .orderBy(
+      desc(metaApiCatalogRevisions.publishedAt),
+      desc(metaApiCatalogRevisions.revision),
+    )
+    .limit(1)
+    .get()
+  if (!catalogRevision) return null
+
+  const effectiveAt = args.effectiveAt ? toIsoTimestamp(args.effectiveAt) : null
+  const releaseSets = await db
+    .select({
+      id: metaApiReleaseSets.id,
+      code: metaApiReleaseSets.code,
+      cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
+      domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
+      effectiveFrom: metaApiReleaseSets.effectiveFrom,
+      effectiveTo: metaApiReleaseSets.effectiveTo,
+      revision: metaApiReleaseSets.revision,
+      schemaVersion: metaApiReleaseSets.schemaVersion,
+      rulesetVersion: metaApiReleaseSets.rulesetVersion,
+    })
+    .from(metaApiCatalogRevisionReleaseSets)
+    .innerJoin(
+      metaApiReleaseSets,
+      eq(metaApiCatalogRevisionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .where(
+      and(
+        eq(metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId, catalogRevision.id),
+        eq(metaApiCatalogRevisionReleaseSets.domainCode, args.domainCode),
+        args.releaseSet ? eq(metaApiReleaseSets.code, args.releaseSet) : undefined,
+        !args.releaseSet && args.cohortKey
+          ? eq(metaApiCatalogRevisionReleaseSets.cohortKey, args.cohortKey)
+          : undefined,
+        !args.releaseSet && !args.cohortKey && effectiveAt
+          ? and(
+              sql`${metaApiReleaseSets.effectiveFrom} <= ${effectiveAt}`,
+              sql`(${metaApiReleaseSets.effectiveTo} IS NULL OR ${metaApiReleaseSets.effectiveTo} > ${effectiveAt})`,
+            )
+          : undefined,
+      ),
+    )
+    .orderBy(desc(metaApiReleaseSets.effectiveFrom), desc(metaApiReleaseSets.revision))
+    .all()
+  if (releaseSets.length === 0) return null
+
+  const snapshots = await queryInBatches(
+    releaseSets.map(releaseSet => releaseSet.id),
+    async ids =>
+      await db
+        .select({
+          apiReleaseSetId: metaApiReleaseSetSnapshots.apiReleaseSetId,
+          snapshotResourceType: metaSnapshots.resourceType,
+          snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+          role: metaApiReleaseSetSnapshots.role,
+          variant: metaApiReleaseSetSnapshots.variant,
+        })
+        .from(metaApiReleaseSetSnapshots)
+        .innerJoin(
+          metaSnapshots,
+          eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+        )
+        .where(inArray(metaApiReleaseSetSnapshots.apiReleaseSetId, ids))
+        .all(),
+  )
+  const snapshotsByReleaseSet = new Map<string, typeof snapshots>()
+  for (const snapshot of snapshots) {
+    const selected = snapshotsByReleaseSet.get(snapshot.apiReleaseSetId) ?? []
+    selected.push(snapshot)
+    snapshotsByReleaseSet.set(snapshot.apiReleaseSetId, selected)
+  }
+
+  return {
+    apiCatalogRevision: catalogRevision.code,
+    catalogPublishedAt: catalogRevision.publishedAt,
+    releaseSets: releaseSets.map(releaseSet => ({
+      ...releaseSet,
+      snapshots: snapshotsByReleaseSet.get(releaseSet.id) ?? [],
+    })),
+  }
+}
+
 export async function upsertReleaseShardAssignment(
   db: HarbourWritableDb,
   releaseId: string,
