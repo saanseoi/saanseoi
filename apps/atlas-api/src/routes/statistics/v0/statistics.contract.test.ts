@@ -283,12 +283,13 @@ function seedHistory(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO statsFields (
-      datasetCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
+      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
       aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
       sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       DATASET_CODE,
+      'totalPopulation',
       'totalPopulation',
       'T_POP',
       JSON.stringify({ sex: 'all' }),
@@ -299,6 +300,21 @@ function seedHistory(sqlite: Database) {
       'numeric',
       'person',
       'field-version-hash',
+      RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsMeasures (
+      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      DATASET_CODE,
+      'totalPopulation',
+      'measure-version-hash',
       RELEASE_ID,
       1,
       PUBLISHED_AT,
@@ -322,6 +338,27 @@ function seedHistory(sqlite: Database) {
     FROM statsRecords
     WHERE id = ? AND isCurrent = 1`,
     [STATISTIC_ID],
+  )
+  run(
+    sqlite,
+    `INSERT INTO statsMeasuresI18n (
+      datasetCode, measureCode, locale, name, description,
+      isTranslationVerified, versionHash, sourceReleaseId,
+      isCurrent, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      DATASET_CODE,
+      'totalPopulation',
+      'en',
+      'Population',
+      'Number of people.',
+      1,
+      'measure-i18n-version-hash',
+      RELEASE_ID,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
   )
   run(
     sqlite,
@@ -634,6 +671,118 @@ describe('Statistics API responses through the Worker route', () => {
             },
           },
         ],
+      })
+
+      const registry = await app.fetch(
+        new Request('http://localhost/stats/v0.1/registry'),
+        fixture.env,
+      )
+      expect(registry.status).toBe(200)
+      expect(await registry.json()).toMatchObject({
+        data: {
+          type: 'statistic-registry',
+          attributes: { datasets: 1, fields: 1, measures: 1 },
+        },
+      })
+
+      const registryFields = await app.fetch(
+        new Request(
+          'http://localhost/stats/v0.1/registry/fields?filter[measure]=totalPopulation&filter[dimension]=sex:all',
+        ),
+        fixture.env,
+      )
+      expect(registryFields.status).toBe(200)
+      expect(await registryFields.json()).toMatchObject({
+        data: [
+          {
+            type: 'statistic-fields',
+            attributes: {
+              datasetCode: DATASET_CODE,
+              fieldName: 'totalPopulation',
+              measureCode: 'totalPopulation',
+            },
+          },
+        ],
+      })
+
+      const registryField = await app.fetch(
+        new Request(
+          `http://localhost/stats/v0.1/registry/fields/${DATASET_CODE}/totalPopulation`,
+        ),
+        fixture.env,
+      )
+      expect(registryField.status).toBe(200)
+      expect(await registryField.json()).toMatchObject({
+        data: {
+          type: 'statistic-fields',
+          attributes: { measureCode: 'totalPopulation' },
+          links: { availability: expect.stringContaining('/availability') },
+        },
+      })
+
+      const availability = await app.fetch(
+        new Request(
+          `http://localhost/stats/v0.1/registry/fields/${DATASET_CODE}/totalPopulation/availability`,
+        ),
+        fixture.env,
+      )
+      expect(availability.status).toBe(200)
+      expect(await availability.json()).toMatchObject({
+        data: {
+          type: 'statistic-field-availability',
+          attributes: {
+            referencePeriods: expect.arrayContaining([
+              expect.objectContaining({
+                code: '2021',
+                geographies: [
+                  expect.objectContaining({ kind: 'district', recordCount: 1 }),
+                ],
+                map: expect.stringContaining('/stats/v0.1/geographies?filter%5B'),
+              }),
+            ]),
+          },
+        },
+      })
+
+      const registryDimensions = await app.fetch(
+        new Request('http://localhost/stats/v0.1/registry/dimensions'),
+        fixture.env,
+      )
+      expect(registryDimensions.status).toBe(200)
+      expect(await registryDimensions.json()).toMatchObject({
+        data: [
+          {
+            type: 'statistic-dimensions',
+            attributes: { code: 'sex', fieldCount: 1, value: 'all' },
+          },
+        ],
+      })
+
+      const registryDatasets = await app.fetch(
+        new Request('http://localhost/stats/v0.1/registry/datasets'),
+        fixture.env,
+      )
+      expect(registryDatasets.status).toBe(200)
+      expect(await registryDatasets.json()).toMatchObject({
+        data: [
+          {
+            type: 'statistic-datasets',
+            id: DATASET_CODE,
+            attributes: { fieldCount: 1, measureCount: 1 },
+          },
+        ],
+      })
+
+      const registrySearch = await app.fetch(
+        new Request('http://localhost/stats/v0.1/registry/search?q=population'),
+        fixture.env,
+      )
+      expect(registrySearch.status).toBe(200)
+      expect(await registrySearch.json()).toMatchObject({
+        data: expect.arrayContaining([
+          expect.objectContaining({ type: 'statistic-measures' }),
+          expect.objectContaining({ type: 'statistic-fields' }),
+        ]),
       })
     } finally {
       fixture.close()
