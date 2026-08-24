@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import { apiProfileNames } from '@repo/core'
+import { apiProfileNames } from '@repo/core/apiLocales'
 
 import { openApiText } from '../lib/openapi-i18n'
 

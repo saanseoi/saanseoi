@@ -1,3 +1,5 @@
+import { apiProfileNames } from '@repo/core/apiLocales'
+
 export const jsonApiResourceTypes = [
   'addresses',
   'divisions',
@@ -10,8 +12,6 @@ export const jsonApiResourceTypes = [
   'api-release-set-sources',
   'api-release-set-snapshots',
 ] as const
-
-import { apiProfileNames } from '@repo/core'
 
 export const profileNames = apiProfileNames
 
