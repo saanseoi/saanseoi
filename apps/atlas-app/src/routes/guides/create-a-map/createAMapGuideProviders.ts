@@ -216,23 +216,6 @@ export function getChatPricing({
   }
 }
 
-export function getAgentProjectCommand(
-  agentTool: CreateAMapSelectionQuery['agentTool'],
-) {
-  const commands = {
-    'codex-cli': 'codex',
-    'claude-code': 'claude',
-    'kimi-code': 'kimi',
-    'qwen-code': 'qwen',
-    opencode: 'opencode',
-    pi: 'pi',
-  } as const
-  const command = agentTool && commands[agentTool as keyof typeof commands]
-  return command
-    ? `mkdir saanseoi-project && cd saanseoi-project && ${command}`
-    : undefined
-}
-
 export function getSelectedLlmChatUrl(llm: CreateAMapSelectionQuery['llm']) {
   const urls: Record<string, string> = {
     chatgpt: 'https://chatgpt.com/',
