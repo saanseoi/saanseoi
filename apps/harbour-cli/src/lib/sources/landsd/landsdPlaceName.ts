@@ -212,6 +212,14 @@ export async function prepareLandsdPlaceNameDivisionUpload(
         rows.map(row => row.placeType),
         false,
       ),
+      // Every division projection is read through the common hierarchy
+      // preflight, which selects this field even when a source has no parent
+      // hierarchy. LandsD settlements are top-level localities.
+      stringColumn(
+        'parent_division_id',
+        rows.map(() => ''),
+        false,
+      ),
       stringColumn(
         'geo_name_id',
         rows.map(row => row.geoNameId),
