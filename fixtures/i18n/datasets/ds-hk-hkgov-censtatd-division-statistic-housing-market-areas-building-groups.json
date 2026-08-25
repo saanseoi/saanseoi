@@ -1,0 +1,3120 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+  "entries": [
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7506d78c-6440-5b7b-82ff-d149cd42633e"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "安達臣",
+      "sourceTextHash": "0040b7d4152ded996e8eb32ede0ac4016172a004f9252bf59106ef2b59c4598a",
+      "targetLocale": "zh-hans",
+      "text": "安徒生"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f32e7a6c-bac7-5900-8a12-42844f5d0907"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "坪洲及喜靈洲",
+      "sourceTextHash": "00ca6850b6e936e66eb14f51008eadd0d99161457aa807eed465b0d008be6c0e",
+      "targetLocale": "zh-hans",
+      "text": "彭洲与黑玲洲"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["00e93a2a-9058-5ac7-9e02-7862eb0e0b80"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "西貢市中心",
+      "sourceTextHash": "01f906f5fbb64a7a84e2aa862274d43eb8ee6f35064dd18bf99870092f74d832",
+      "targetLocale": "zh-hans",
+      "text": "西贡市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["8f76e1a1-31cd-5ea2-a306-8c16227d16c3"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "坑口",
+      "sourceTextHash": "0379aeb41732ece06826f4838ed5f693919ba0e8c5907b52d4b81c6e03a86b9b",
+      "targetLocale": "zh-hans",
+      "text": "坑洞"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["fc39d877-a554-5ad7-9a57-3040f86b53ae"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "奧運站",
+      "sourceTextHash": "038010e0cb48634defd39e2c556428028e5f82883dc406e8c2dfbae6ae40e7c8",
+      "targetLocale": "zh-hans",
+      "text": "奥林匹克车站"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["fa08aa71-9d38-516f-9016-517cdd251c2d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "八鄉北",
+      "sourceTextHash": "03ddb2e30f3785391c668db2812fe2fe69b050c3c220fec90d683f0d4928fd33",
+      "targetLocale": "zh-hans",
+      "text": "八乡以北"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["56e6711f-5841-56ec-af9b-7b15de5e6663"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "新蒲崗",
+      "sourceTextHash": "0501fb93335f00dd2d4373ab3388efac0c6574dbc04aca5aee444c6c839f51c1",
+      "targetLocale": "zh-hans",
+      "text": "三宝港"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["5d58f01e-8709-59fe-96be-c62c2de4ce95"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "海逸",
+      "sourceTextHash": "061407c6cdbef45d203dec2505be31ee4aa0159afc0b1914a501dd5974b3135a",
+      "targetLocale": "zh-hans",
+      "text": "海依"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e31de549-a074-588c-b2ba-53509da197e5"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "北角半山",
+      "sourceTextHash": "0b613acfa1671c4ac119a7cf78342609f144be23765cbea2dc205de14d5904e1",
+      "targetLocale": "zh-hans",
+      "text": "中层北角"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["bbba89f4-bb8d-5202-8dbe-5aee55d816ca"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "黃埔",
+      "sourceTextHash": "0ba22e85f57cdc0a675acb24c66628acb318c586891d068a89c79d01cb5c453b",
+      "targetLocale": "zh-hans",
+      "text": "黄埔"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c66f41de-cadc-5bdf-a6ca-171ba3cb05b7"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "筲箕灣",
+      "sourceTextHash": "0c0bc5d7e976387389fe09f097003f938e9ac7eb2145028d5e316195c4b82eef",
+      "targetLocale": "zh-hans",
+      "text": "筲箕湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6982d338-bae0-5bf0-a2d7-950bbc42c3c1"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "耀東",
+      "sourceTextHash": "0c64f9cb295c1b427837a0095fdd0460af8cff65d16b8e18fa4fffbf1e36946e",
+      "targetLocale": "zh-hans",
+      "text": "耀东"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["357895ce-024e-5e86-8d00-fe51da49d3bc"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "天后",
+      "sourceTextHash": "0d384772c3fb106fe5b21de64aef9d2e78ef3cb459a5f3f525060965fe18c774",
+      "targetLocale": "zh-hans",
+      "text": "女王"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1d221d4d-6d1f-5f97-b585-b6b56ab5e953"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "樂富",
+      "sourceTextHash": "11295a38eaee6663515f2f036a6afd8858c83f730eae0b05e7a74e4672e7cc6f",
+      "targetLocale": "zh-hans",
+      "text": "列夫"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7ec5270c-4fe3-5544-aaf8-c9cbea90c046"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "白沙灣",
+      "sourceTextHash": "117bc85ecde5549248667dae5b5918d2d76472744d579b81995e583a7037cc15",
+      "targetLocale": "zh-hans",
+      "text": "白沙湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4d094c32-3d2a-55fc-a6bf-954029c945c0"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "沙頭角",
+      "sourceTextHash": "123a25a924e923a3f5e1e2643ff7d5eaf810e23e615e95321ea9bb4022b2e1e8",
+      "targetLocale": "zh-hans",
+      "text": "沙田角"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["077c79ca-cbf3-5150-a25c-fa31dc7149bb"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "慈雲山",
+      "sourceTextHash": "1683db8622b9c0acab62e3a5657c751575d370385ae56f531b0296de927a727a",
+      "targetLocale": "zh-hans",
+      "text": "慈云山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9fce3859-3454-5822-8cd9-330621ac443c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "火炭",
+      "sourceTextHash": "174456990eaca21791ec2ce16e5e96490518fef4246c833e4bd8750a95a84b90",
+      "targetLocale": "zh-hans",
+      "text": "木炭"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["34d76e9d-a64a-5c71-a49b-0a6fa6467e51"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大角咀",
+      "sourceTextHash": "179804665a7e85d9bad902207c0d210ec2ab16f95d5af27b3ec043118b97516b",
+      "targetLocale": "zh-hans",
+      "text": "大角咀"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["5a7ab51e-4494-5251-8890-6890537a51e8"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "元朗站",
+      "sourceTextHash": "17d9b567fb5e02f99845afa10b6a534b0c59492adcdbbd2b5cc791a4bbaf6ede",
+      "targetLocale": "zh-hans",
+      "text": "元朗站"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["78a3a8b6-dffb-5c65-afff-c1a63047cbb2"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "天水圍",
+      "sourceTextHash": "1bf1bc47f913ec02e4263b0681c429870cad785bad1c8d470f87886ef7d85fc4",
+      "targetLocale": "zh-hans",
+      "text": "天水围"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f2d9f077-bf7e-5105-84d6-f836638ce608"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "下葵涌",
+      "sourceTextHash": "1c05eabf98fba7483b6cb6ff336b94db58bc48ac7097a5322ef19c5d5fce4b36",
+      "targetLocale": "zh-hans",
+      "text": "下坡至桂涌"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2e47024d-b7f9-5563-b778-caceed69080a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "坪石",
+      "sourceTextHash": "1c361860015ece868a5955a5c1b988bf76c208214fa8586513a406bceb77aa94",
+      "targetLocale": "zh-hans",
+      "text": "平市"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c6f9b1aa-1da4-573f-8175-1901dbbf5c85"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "小西灣",
+      "sourceTextHash": "1cb52d68ca87ffc6fb4c39de4ddea2cd4e4ca92c0a68527cf643cf2f26900496",
+      "targetLocale": "zh-hans",
+      "text": "小西湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0fc41697-fa9c-502e-8100-2a2d0d38635a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荃景圍",
+      "sourceTextHash": "251f45b9b270a864b50273073f1ab47a3a886530b74c6847a5f3d7f30b7ff7f0",
+      "targetLocale": "zh-hans",
+      "text": "荃景卫"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["fa5612e3-5357-5884-8a70-173ae3ae1c22"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "薄扶林",
+      "sourceTextHash": "253e78e63c76edc4b1927b0c14783730d70cb74c1f148e86ff3887b6047def02",
+      "targetLocale": "zh-hans",
+      "text": "接近富林"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["d676245b-676e-5a50-8a53-f6374c812240"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "牛池灣",
+      "sourceTextHash": "25950f0339b58c7ff956a1bba633edcbaa38eb9c875b805d4650036270c0873f",
+      "targetLocale": "zh-hans",
+      "text": "吴志湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["532cd552-8ef4-5dd2-a973-4d6838683996"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "佐敦",
+      "sourceTextHash": "25c9dcecefe625b35b96bead64f59a0a86d301e07ebbe2084a9ab17b817b4b2c",
+      "targetLocale": "zh-hans",
+      "text": "巨人"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["aa4c1d8e-f4c5-5fbe-87f7-bd73be5a637d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "東涌北",
+      "sourceTextHash": "2a692380a840bcdd1154b6755a7872e293b6c221359b1df5e7112da4cb6e7fe4",
+      "targetLocale": "zh-hans",
+      "text": "东涌北"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["5f462996-84a5-5914-b96a-07676b795e1b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "東半山",
+      "sourceTextHash": "2e5808ab06daeb069ea5c360822033a87fb26a1a4f436f98044924568a0b23be",
+      "targetLocale": "zh-hans",
+      "text": "东半山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["df5a0b70-2c12-52a6-85eb-773bf6da4563"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "小欖",
+      "sourceTextHash": "2fb13767143408631dcea634084c837736a5f805e4c79fcae9be3ba6dd037873",
+      "targetLocale": "zh-hans",
+      "text": "小兰"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["daca1b3b-c8b7-5f4a-bbd6-9b6f247b08cb"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "鑽石山",
+      "sourceTextHash": "2fc4bbe5de72a781a48f690a6cea7bb3326c9c807b2c3e8127bb30d336aa4b42",
+      "targetLocale": "zh-hans",
+      "text": "钻石山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["69f3730d-5c89-5fcd-ad28-0026297bda91"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "淺水灣",
+      "sourceTextHash": "30910620d6ce39289210322ea06789d94b74a5d79489675fdde46e3114ac2554",
+      "targetLocale": "zh-hans",
+      "text": "雷普尔斯湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7d1d0b01-eb19-59bc-953e-4e547351e15b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "太古城",
+      "sourceTextHash": "313d5d2f8433cebb718d91e924ffe1ff3a522eb41a1040a8386f28c015ec872d",
+      "targetLocale": "zh-hans",
+      "text": "太谷市"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6d8de63d-039f-5ff9-b40b-be8a00af6d9d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "太子",
+      "sourceTextHash": "3181febfb01e795beb1945e5d171602db5f87518ff9f746d25a14407c3f4c6e2",
+      "targetLocale": "zh-hans",
+      "text": "太子"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0836c29a-7dd7-5a87-8221-250f7d45389d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "油麻地",
+      "sourceTextHash": "33178abd790b106c16fc77cdecf9e259b8248e8c33d1dd4d943a2e579c137fb3",
+      "targetLocale": "zh-hans",
+      "text": "油马地"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9c3945f6-adf1-55ac-8a0e-56182e92be40"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "紅磡站",
+      "sourceTextHash": "332327e4d01d50a45f712a1b743a1be469c9f1dc9a57ceda941466c1984c6794",
+      "targetLocale": "zh-hans",
+      "text": "洪磡站"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c0d042db-a459-5770-bddd-5b3a9ac2c604"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "馬鞍山",
+      "sourceTextHash": "362ca31fe3896bba1997e2f30fa61ace4f894543eeb2b6cf0540f9e9a6595c10",
+      "targetLocale": "zh-hans",
+      "text": "马安山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["969dae10-92ca-5af2-8698-116a2d8ece19"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "置樂",
+      "sourceTextHash": "36eb3c2dac8c254d6e1d2c9c624450e1f9c50a21a768038d3b484f57f4830943",
+      "targetLocale": "zh-hans",
+      "text": "并设置音乐"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["34aef164-4b2a-5711-9571-6d7385695aba"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "愉景灣",
+      "sourceTextHash": "37f5a209cef64a29fb0721dedff3186a9cd1dad18c657b64071de24071cff466",
+      "targetLocale": "zh-hans",
+      "text": "探索湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["55e06c2e-b2fe-557d-95f5-51e3416d6d83"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "洪水橋南新發展",
+      "sourceTextHash": "382fb3dcf91db75abc5501b5911d97ef909e88c9931a2d251a13fde999c2b37f",
+      "targetLocale": "zh-hans",
+      "text": "洪水桥南新发展"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["d4ddebf2-28f8-5f77-a672-97b0378f56c5"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "盈暉",
+      "sourceTextHash": "3bcfa8cdfa5cae7fc15d8e520f379c6b4c4663a0f652d9fc4ce68a16487630ab",
+      "targetLocale": "zh-hans",
+      "text": "光辉耀眼"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["87a9be54-d632-58e9-84c8-3f9832921357"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "中環",
+      "sourceTextHash": "4014fe3205624d4218b8156ae3f24411f46c34fcfe4b235b98fbd5637819fdeb",
+      "targetLocale": "zh-hans",
+      "text": "中央"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f4f98839-a372-5a1d-9042-ed37645effba"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "藍地",
+      "sourceTextHash": "407098a5ac57919cb9adc0cf45a2cd3e5d5707e9533f3cefe9d8439014d2aadc",
+      "targetLocale": "zh-hans",
+      "text": "蓝色背景"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7191d99b-3500-5ca2-9cad-6e6ee5c6df9b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "九龍站",
+      "sourceTextHash": "453dd5a289144f6b1cb4af18d80b87e7f8097197ae589e257154f08a892baef1",
+      "targetLocale": "zh-hans",
+      "text": "九龙站"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["77388218-a9e4-530c-be55-beb0f60e86fe"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "九龍城",
+      "sourceTextHash": "46633feaf45d61ecf80fbcb865d711387651cc31e626c7bdfde113315727f1cc",
+      "targetLocale": "zh-hans",
+      "text": "九龙城"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["41bb9fb2-47f4-5890-8ed2-37a249f0d52c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "綠楊",
+      "sourceTextHash": "48ebb12c723e41f51f052c19034e78770c91ac3a3084edba80193fe3ac221c8e",
+      "targetLocale": "zh-hans",
+      "text": "绿柳"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6f206cec-4584-5ce1-8b9d-2735e0d7b7f6"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "深灣",
+      "sourceTextHash": "494637020bccf990a440d4d458fe9bbe32ebfa5c2a680a2f868826b714ab1c80",
+      "targetLocale": "zh-hans",
+      "text": "深湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["985bb179-ab7a-5ced-b7be-0579e7f4c7fa"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "龍坪",
+      "sourceTextHash": "497b6864b27da923e824a8c07341f81edac67dfcdf0b855466677154ab109eec",
+      "targetLocale": "zh-hans",
+      "text": "龙平"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["cf333c25-2d0a-5094-a987-72c5648324d7"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "康怡",
+      "sourceTextHash": "4a3089d4ed2f5388005af28380da6f35850854963da2e952772226ff2d2c2709",
+      "targetLocale": "zh-hans",
+      "text": "康吉"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9d7bde87-cd9a-5343-b2da-ccebbdc1a3ad"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荃灣市中心",
+      "sourceTextHash": "4a91b0b38d924dc317e6170f9534236dbe94604083e6342cdaeb5b0df4c8c97f",
+      "targetLocale": "zh-hans",
+      "text": "荃湾市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["d8bb8de7-74e5-52cf-881e-f65cc709fd49"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "粉嶺",
+      "sourceTextHash": "4b05f7624ea3c81b0d89a5890d66e8fe07eef9d1ce6fa939386f468e6c8c2a71",
+      "targetLocale": "zh-hans",
+      "text": "粉岭"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f6ea5a87-6acc-58ac-9946-8ec2af731735"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "華富",
+      "sourceTextHash": "4b878d427deccc0c919b3d98781429fdde154cc91a6a16a68aee75be30e1d738",
+      "targetLocale": "zh-hans",
+      "text": "哇福"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4e90ad76-8deb-5e41-a959-e672ae58a9e8"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "深水灣",
+      "sourceTextHash": "4cc5ef3f5c4c134575f6dc9ddea229c460ec8f4ad618956998a05a568cba994a",
+      "targetLocale": "zh-hans",
+      "text": "深水湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["70f9505f-7ddf-5ae8-bd78-06ce2eb0465a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "西半山",
+      "sourceTextHash": "4fedddda548e80477a29407e75f6eaf0a71faa5f7d04595f02576903e8b5f370",
+      "targetLocale": "zh-hans",
+      "text": "西半山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c2dcfbff-a964-58b0-8b8f-b5682844e121"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "加州 / 錦繡",
+      "sourceTextHash": "51269895bb574257e6dc06a4c12b5e7871dab7f4f1f0d74c2a4892c8d2562d05",
+      "targetLocale": "zh-hans",
+      "text": "加利福尼亚 / 金秀"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["cae7eb86-a90c-5e25-8903-b625209e7d18"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "杏花邨",
+      "sourceTextHash": "53d1c3fdd336b0ed69ebb5f2e409a93163f6eb4e56883204d76f8584757dc598",
+      "targetLocale": "zh-hans",
+      "text": "韩发村"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6c0b6a43-5f8c-559f-97a6-140df1aca87c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "洪水橋北新發展",
+      "sourceTextHash": "53f1edeffb3481fa29140f71a4f203ec09938a9055ffb041f65175694ce285ad",
+      "targetLocale": "zh-hans",
+      "text": "洪水桥北新发展"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e56ec039-b844-5397-807b-979bd46df1e9"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "舂磡角",
+      "sourceTextHash": "566717caa4e0a6f457fa0780718658d38b14b0a0cfa8457f1def900c9e3eb45e",
+      "targetLocale": "zh-hans",
+      "text": "中浩国"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["90d45f77-7b60-589e-b893-363b2eb2e934"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "長洲",
+      "sourceTextHash": "587262553269a089f715fbb146db0ce33595c876bf066ff6b34e0098d8b4c5bb",
+      "targetLocale": "zh-hans",
+      "text": "长洲"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c10ed490-5f5e-5fba-b06f-e9b2bc661c17"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "山頂",
+      "sourceTextHash": "58cc3d267306bce6540f5a5eb9599bf8e176fd4591dd309df530432b42e6367d",
+      "targetLocale": "zh-hans",
+      "text": "山顶"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["89de1e44-d65a-5de8-80db-7f26309d3056"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "馬坑",
+      "sourceTextHash": "59642e1c5c5e4fcb458782d8e7577e736a4c853a43153f1b5c4a91c431dd68d2",
+      "targetLocale": "zh-hans",
+      "text": "马肯"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["90ba5322-8f43-5685-9889-64368aa57e82"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "西沙",
+      "sourceTextHash": "59cc13d464f9aa3127bf35006fb296a2f6886040cf8ede1193df0ee172c3a008",
+      "targetLocale": "zh-hans",
+      "text": "西沙"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9b1b67b9-4102-5bb6-b1b9-4621b1d4212c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "青衣",
+      "sourceTextHash": "5d22590688ceb0b15392b3340c8b228d15671012500482b40525a38ca242f839",
+      "targetLocale": "zh-hans",
+      "text": "清衣"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6aadc4ec-88c5-5146-96fa-d69c161dfd4c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "南昌站",
+      "sourceTextHash": "5d2ed202e845e11adea21b40c4f4c295f04afb2e479e7cf393f6f5e0a69f9331",
+      "targetLocale": "zh-hans",
+      "text": "南昌站"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3b50f8c2-514d-5cbd-9f13-74abb46116a5"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屯門北",
+      "sourceTextHash": "5dc8e906b7a0bfc10b5e0131f72d616115e9d92950e7870a12f5b064f2f49316",
+      "targetLocale": "zh-hans",
+      "text": "屯门北"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["05f34e79-0689-580b-9846-6edb58c3cba2"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "調景嶺",
+      "sourceTextHash": "5ec5c7db80cf1b609712a37e3939c94584ce67e1029e7f7ef8a76836ef16f945",
+      "targetLocale": "zh-hans",
+      "text": "条晶玲"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["a18ee51a-0845-5cce-a514-75ca494591e0"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "彩虹",
+      "sourceTextHash": "5f916af93041cdca9d1345d70e1023dd3ba40fc5fd84b5541d2652590556a585",
+      "targetLocale": "zh-hans",
+      "text": "彩虹"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["42b98014-dec8-5555-9695-70e092b76e5d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大圍",
+      "sourceTextHash": "608666154f0265eba1c70717949e07ebead06fefec23c71387f46c9f0f25f418",
+      "targetLocale": "zh-hans",
+      "text": "大威"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["447600ea-8c3b-5e82-b9e5-54b26aefc918"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "赤柱",
+      "sourceTextHash": "617d55edb4f0f95a170963e026e3f134000f752c58cf989ba2993491c8792d32",
+      "targetLocale": "zh-hans",
+      "text": "斯坦利"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4e0d18e8-c828-56b4-8b1a-3362fd5546e6"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "尖沙咀",
+      "sourceTextHash": "6248b5d1b7a0041cab6156111618e32eeaa0a25b4abb3dea49b4c4cadd8ec521",
+      "targetLocale": "zh-hans",
+      "text": "尖沙咀"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3b13abb5-b5b7-50b0-af5f-43f662c23796"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屯門市中心",
+      "sourceTextHash": "644a15d03c89242613d0def05fd4283a1a80984909fa525ceeb6a72eaeb9c7f6",
+      "targetLocale": "zh-hans",
+      "text": "屯门市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["71a9c2d7-4f44-5e99-8325-7e845157a566"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "柴灣",
+      "sourceTextHash": "6482f073b3d4d73ca09d4b1a5814617306f604d0cb10eb3b68319cd31ae22ea7",
+      "targetLocale": "zh-hans",
+      "text": "柴湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3ef9c31f-d9a1-5605-86e0-8235a7b9be65"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "將軍澳",
+      "sourceTextHash": "64a5ceeb1e7994effaa8f913f680ba728e42b1726d7c3419fcfa8c98a75d3ff8",
+      "targetLocale": "zh-hans",
+      "text": "宗官五"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0e2a9049-8885-5b66-8034-e4fc3f9a1ce1"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "南丫及蒲台",
+      "sourceTextHash": "66dce451cca9f8019ba1511af5b75a0a25223956bd13a4a78803bccd75639fd4",
+      "targetLocale": "zh-hans",
+      "text": "拉玛与保泰"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["fbeb8a8a-a579-5a2f-a41f-bf56e73b7de0"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "錦田",
+      "sourceTextHash": "6cb61c7c6c710b9b5ee40da566c6136e40255d32f23413e7911550447d351a7c",
+      "targetLocale": "zh-hans",
+      "text": "金天"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["a7a3c78b-0f8b-5bad-adc0-4715d7a5e2ed"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大埔海濱",
+      "sourceTextHash": "6e8084b170876420e872ebff2b073def4020758992d2170ca6496b89743a697e",
+      "targetLocale": "zh-hans",
+      "text": "大埔滨水区"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["5e58bda7-92d9-5624-b9db-2b498dee4047"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "石塘咀",
+      "sourceTextHash": "6f970610e028a43069978aa5601421c07238ce9cd1d5334ba9c7e307a6e3bc73",
+      "targetLocale": "zh-hans",
+      "text": "石塘角"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1999859e-d64e-5ce4-b41c-c23e80a34d0b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "馬頭圍",
+      "sourceTextHash": "703082d0e5b7d17a38e22bdfea2be34f85547e65d9da7810a0a650811e9486e8",
+      "targetLocale": "zh-hans",
+      "text": "马头卫"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["79b1c845-3383-5a6a-9779-814505c5290b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "石澳",
+      "sourceTextHash": "738b6a4da5ddb77d946d01ed0f6af0be5f2caf1584c0caf24051e99a3ab5d168",
+      "targetLocale": "zh-hans",
+      "text": "石欧"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["20671e12-ccd1-5a58-8041-edb78596af95"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "沙田第一城",
+      "sourceTextHash": "7507336f3a89b2df4d893a929f51f3cfa23404ff542df52bffba7244abd91d56",
+      "targetLocale": "zh-hans",
+      "text": "沙田一市"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6267a52b-1174-598d-b43b-3745c2f85733"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "四小龍",
+      "sourceTextHash": "79757daac96812ab8c8a82e4a68c5ebebc3a37a932dd4c6cd79ef95bc118b160",
+      "targetLocale": "zh-hans",
+      "text": "四小龙"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2d0feca9-d8ff-52ff-ac4f-9d48215604ec"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "九肚山",
+      "sourceTextHash": "7c76ceba5a6e2097686d2a30ca1358690af8d67a5f0cdee7898f04f951900386",
+      "targetLocale": "zh-hans",
+      "text": "九都山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["d508980f-d095-510c-96f7-9a71f2eb0dff"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "林村",
+      "sourceTextHash": "7f81d082fa65f5642a415dd6643db0b8ef4ce18c1fc11ed23bc3c228c7f47800",
+      "targetLocale": "zh-hans",
+      "text": "林村"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["325552cc-5b40-5565-96e0-41da4b1a33c3"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "田灣",
+      "sourceTextHash": "8043489120ab88d6050f997d36f577e3fbd2ce75aa9d83a8c2a34e7be58242c2",
+      "targetLocale": "zh-hans",
+      "text": "天环"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3344ec23-1160-5c1a-9421-9667d857ce87"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "清水灣",
+      "sourceTextHash": "832255d0cfbf49c60a26130cf2fe85932af72c63884dfc45373ec16951375a40",
+      "targetLocale": "zh-hans",
+      "text": "清水湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4373a2ab-d8fb-50b6-8559-19cd545ffef4"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "寶琳",
+      "sourceTextHash": "833f5a70a0407d0d79e60c284315c09423685e0332c5f4b02d765992f23c166b",
+      "targetLocale": "zh-hans",
+      "text": "宝琳"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["78a63628-c328-5886-b567-99d7953872f9"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "元朗南新發展",
+      "sourceTextHash": "86f102467e817021749f26fefc0e71a3bc941fe3740ab7574f824ce49b99b2e5",
+      "targetLocale": "zh-hans",
+      "text": "元朗南新开发"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["b716c7f3-d4ae-54b3-9ab3-eeec1007cfde"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "青龍頭",
+      "sourceTextHash": "8c42d0ee596814f144eff74fb4b48b3c3d42eabfdaafdba20b5e8929e1df01ec",
+      "targetLocale": "zh-hans",
+      "text": "青龙首"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["16c7a10e-b88a-50c1-abd2-936652304e9c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "西營盤",
+      "sourceTextHash": "8cfb7f268f834e22cf6fc8ed018e7b338dd0f4e8c5b84db568a3573f2b0abef0",
+      "targetLocale": "zh-hans",
+      "text": "西应盘"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["a45f60a6-27a2-53ed-ab99-77888d146119"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "旺角",
+      "sourceTextHash": "8cfef7634c264ce2edf7563f2ecc45a5c9012c6f29e842441bb53ec5a977e838",
+      "targetLocale": "zh-hans",
+      "text": "旺角"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["8b5e052c-1ae8-5aab-bef2-6fa7ff058867"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "紅磡",
+      "sourceTextHash": "8e6617017aece095cab1fe1292e771d15bb8ebf7e03e29415d17bbfdf32d06bf",
+      "targetLocale": "zh-hans",
+      "text": "洪磡"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2684ebc5-d87a-5d04-94a0-9fb4145548f8"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "元朗市中心",
+      "sourceTextHash": "91b439f63a5cc27a9baac95c9b430c5a706d2bfb6454c2994610655f9f96cedd",
+      "targetLocale": "zh-hans",
+      "text": "元朗市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["596c0ded-7b0f-5bf0-b3c3-aab00590a2bf"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "土瓜灣",
+      "sourceTextHash": "93d02f296352065862adcd444b5db021161b3778f1637cd2d2d526b932e04527",
+      "targetLocale": "zh-hans",
+      "text": "前往瓜湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["d66e2126-95c8-55f7-ad35-7e2d2bff5a7a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荃灣西",
+      "sourceTextHash": "94920ce787dbf7a0270bcceee343285c8c7dd2ddc3486bf899c9373a6dae20a7",
+      "targetLocale": "zh-hans",
+      "text": "荃湾西"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["806d06ef-937e-5f69-82bd-439081968f44"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "愉景新城",
+      "sourceTextHash": "9492a9d61d4ed3b6fa9303ff72abf737de6e43acf84dd242a8282ebbbae366c1",
+      "targetLocale": "zh-hans",
+      "text": "玉京新城"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["dcace38c-658a-57f4-be59-42bd74f28958"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大埔市中心",
+      "sourceTextHash": "9721fe1f615b6ec391338b0bd693ff4384465a7c6aa4337c47f3ef5929d05a34",
+      "targetLocale": "zh-hans",
+      "text": "大埔市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["a3d07082-4432-571b-8915-7fabdcd30907"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "美孚",
+      "sourceTextHash": "98e851aa0e905cd79529b136e4c2d06feac2dbecbf5a8722b6216ab350032a5c",
+      "targetLocale": "zh-hans",
+      "text": "美比尔"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1cd7936b-49c8-51f7-a779-0051e1c06462"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大嶼山",
+      "sourceTextHash": "99af934068c69474c7e487741eb46beff9a4c2c51879660b69d2e77d017e9da9",
+      "targetLocale": "zh-hans",
+      "text": "大屿山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3892a9c5-3e61-534e-9108-ca19bc751c01"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "小瀝源",
+      "sourceTextHash": "9ba66f1d07e07a8ac20897c62f21e9401e1e3e7bba4704eef3b351635ff5e712",
+      "targetLocale": "zh-hans",
+      "text": "小乐源"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["399ab419-200f-5834-82f6-c12c5790d01b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "跑馬地",
+      "sourceTextHash": "9de82534ab370a02845330fd240ccbd95dba7652e3126bb3d9ca07beb7d53ba5",
+      "targetLocale": "zh-hans",
+      "text": "快乐谷"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f9a60ba6-3ba6-58dd-b5cc-890faf8b2888"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "深井",
+      "sourceTextHash": "9e7fa1527df3ef2c2df499f3389f26673d23b4c24f91dab3704ad0d03f08c7fb",
+      "targetLocale": "zh-hans",
+      "text": "深井"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7b48886f-7414-5486-861e-ef7e758ef71d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "東涌市中心",
+      "sourceTextHash": "9ff591efd27ef8e565dd92e8ed1cba39c7dc4d65c236ca242331c80bd6f141d8",
+      "targetLocale": "zh-hans",
+      "text": "东涌市中心"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9df0de95-ba40-5a4f-b91c-3c3943d7b408"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屯門南",
+      "sourceTextHash": "a0635597a86984c136a54440b7d04c1c0c0e78513fd958c82658b0914641bb6e",
+      "targetLocale": "zh-hans",
+      "text": "屯门南"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2ce07fb9-c4a9-5f30-a43b-30634c2bedf3"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "何文田",
+      "sourceTextHash": "a606f6a00a129eb12c1a91baf196b4c55d44bc5598fe36d57570ed5bfd1f8bc6",
+      "targetLocale": "zh-hans",
+      "text": "何闻天"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["6cecb8e0-5367-5426-a42b-cffd4acee68b"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "九龍灣",
+      "sourceTextHash": "a6b60a1efedc697464c12b7fb8a6322678ca74ac13939c5ddfe4518e23202ec7",
+      "targetLocale": "zh-hans",
+      "text": "九龙湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4a57c652-3654-586d-a743-5f97623059e4"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "中半山",
+      "sourceTextHash": "a9371916cffe4e8ceedb17d8c527192d954b2003e2207e29d70a8167eb694f94",
+      "targetLocale": "zh-hans",
+      "text": "半山腰"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3f05dc86-a2c6-5493-b780-5fa7350fe788"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屯門碼頭",
+      "sourceTextHash": "a9d12b053685ebef46ece6ffb84a7f667c55253bca563408ed1d7fbe3b95066a",
+      "targetLocale": "zh-hans",
+      "text": "屯门码头"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["4eefc5ed-12d9-5caa-bd24-74f4dd220c30"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "馬灣",
+      "sourceTextHash": "abcadff23c9aaa9edfd8108857b5245ffcbc95a3fb760a4e94d3dfaab684891f",
+      "targetLocale": "zh-hans",
+      "text": "马婉"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["15b92912-1b41-54fc-8a77-72c2447ff066"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "牛潭尾",
+      "sourceTextHash": "adfbd7b2019dae72fa3c32ddd35ff5ab3ed4cb58515cbf9da53d21d7fe6e835d",
+      "targetLocale": "zh-hans",
+      "text": "牛滩尾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e44a79ef-acb7-5534-aa20-5d16b7d97bfe"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "康城",
+      "sourceTextHash": "b2abb7ec65f5ec4a14fdadeb72187ea640f18f1b3a81ac2a7d3ff314e22ce1d6",
+      "targetLocale": "zh-hans",
+      "text": "康城"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2580a4bd-e6e0-5a27-a995-f47ac39a7559"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大埔半山",
+      "sourceTextHash": "b3ccb27fbee0e8699262cf1e2ba7180ec1c415d0929ef84a0679e682a646984a",
+      "targetLocale": "zh-hans",
+      "text": "中高地大埔"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["602071d7-cbde-555e-96db-4bcf7c5d0b03"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "上葵涌",
+      "sourceTextHash": "b3e40f2e8a396e147ae88c0c591d3d440740edbec232014a65057fc1ba472b2c",
+      "targetLocale": "zh-hans",
+      "text": "晋升至桂涌"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0be6f68d-421d-589f-93c8-567067686a1f"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荔景",
+      "sourceTextHash": "b486413c6d7c4d2eb2e38e5603c1eafb3d185533fd582a648b83484ff63cdb5c",
+      "targetLocale": "zh-hans",
+      "text": "丽京"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2011adb7-9876-5ef0-a332-fdd89d3ed813"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "打鼓嶺",
+      "sourceTextHash": "b7b5e6498bc13757d2ef8001467764e0fe1cc1c773a7e54901d0fb2144c61cf0",
+      "targetLocale": "zh-hans",
+      "text": "大桂龄"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ce9cfbfb-67c8-51a7-bd1d-29cd0ce07796"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屯門新墟",
+      "sourceTextHash": "bb02fc7d7b1f4b594cbab1380d86daf3eb197828850785281f36922018bfdb5c",
+      "targetLocale": "zh-hans",
+      "text": "屯门三黑"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3865c642-370c-54a4-9920-eb7553d3c579"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "流浮山",
+      "sourceTextHash": "bbb86f2bfaee77e0189fead4a9d09eb461345a86165101af2e2a5ffc09a8f8f0",
+      "targetLocale": "zh-hans",
+      "text": "并流向浮山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e16a23bf-7c5c-5785-b289-be92887a71f7"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "壽臣山",
+      "sourceTextHash": "bc0d62153d8834bf77c6ace6a283563084c84914427d1ad973594dbbd7cf26e7",
+      "targetLocale": "zh-hans",
+      "text": "寿神山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["852dc49a-1df9-5d7a-9d72-7b47f138abba"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "華景",
+      "sourceTextHash": "bc728eef9431424df4e338fc0ecb8ca10180c3f73c452e473f6283a07b64f911",
+      "targetLocale": "zh-hans",
+      "text": "华京"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["27f81157-89fd-5bde-895a-3853f6b18714"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荔灣",
+      "sourceTextHash": "bc98eef18aaee3c61666426ac958894f63eb3a97df98bae773784bc461b67d6d",
+      "targetLocale": "zh-hans",
+      "text": "丽湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2fd96e2d-8fa9-55a9-9a34-77766d68c450"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "太和",
+      "sourceTextHash": "bd75e4d1f44f7ac68aefa4ddd6ae23f8a37c1af4a66cabe754ef941e23d9d216",
+      "targetLocale": "zh-hans",
+      "text": "太和"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2192b4a8-8663-5135-bc5e-51a4e735065c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "三聖",
+      "sourceTextHash": "be6747bf5d237ffbd82fe6f4f021e72728a78c35b46be46978cad48547d14c46",
+      "targetLocale": "zh-hans",
+      "text": "三贤"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ab76a323-3542-52cf-9731-08f53bf3b623"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "油柑頭",
+      "sourceTextHash": "c011285f2194f64c59f7c97c8f0fd0aefafaad48b24f76df1a1a8cb0ad787cd8",
+      "targetLocale": "zh-hans",
+      "text": "橙色头部"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["94469914-5276-5546-9fe4-ce873087e4df"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "十八鄉",
+      "sourceTextHash": "c2d284284da96c6eca93abfe8ef54ee6e7df0f4295ee2834f0ba4a6eafc2d365",
+      "targetLocale": "zh-hans",
+      "text": "十八个村庄"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["dd0d1fa3-2070-54a5-bbe0-43fe08829439"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "朗屏",
+      "sourceTextHash": "c33808ec0a616515385664fe9dedead1f389c690ed90fb00894503ad9370f6e1",
+      "targetLocale": "zh-hans",
+      "text": "朗坪"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7af1bf5a-c03b-5647-8d9d-42b7c6d5ac77"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "掃管笏",
+      "sourceTextHash": "c3fa54318ae0adc6dc2156dfad3a0fb201c529f75c7da8e63e249cc7cde194e5",
+      "targetLocale": "zh-hans",
+      "text": "扫走他的官方平板"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7aa892db-5f45-5662-9414-bbd62e0b6976"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "石硤尾",
+      "sourceTextHash": "c4643701fc2a416c3ce2f2228f603f0d6342eaf24fe8dec8a5f19d239f7f866b",
+      "targetLocale": "zh-hans",
+      "text": "石基美"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0a111ddd-471c-51a7-a2bd-93b59fab754d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "石門",
+      "sourceTextHash": "c53a07827d52c6e6f206aec159ee029e43d74a9b5029d7a6b5fca2bc04eea390",
+      "targetLocale": "zh-hans",
+      "text": "石门"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1a2e7593-72d1-5cec-a5dc-798b239d0ce7"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "又一村",
+      "sourceTextHash": "c6fb6553dd0f4f032402b73828deceb55caaa16a8075a4b384b56f150f5109f5",
+      "targetLocale": "zh-hans",
+      "text": "另一个村庄"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3c8d0c78-547e-52ea-a2cf-bc0df6566566"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "海怡",
+      "sourceTextHash": "c7f1aae13b31a282393c77c396c3c2d31787996256a7eb1c75c94366783dd7ca",
+      "targetLocale": "zh-hans",
+      "text": "海依"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9a195b34-d3d1-5de8-a277-b45af1778475"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "橫洲",
+      "sourceTextHash": "c83a8b640027414b1c646580f3471098051ce28f1a28818da72d544bd69b3b34",
+      "targetLocale": "zh-hans",
+      "text": "恒州"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e971a4d2-8d0c-5d60-bc80-4780a36b09da"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "長沙灣",
+      "sourceTextHash": "c9307478250b6a1cfc91fcf1c943b57efc9da3e7f8ca249301f94297f8c66ce0",
+      "targetLocale": "zh-hans",
+      "text": "长沙湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["7d1fddac-b346-5c02-ba99-5f5d98b4b9f1"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "灣仔",
+      "sourceTextHash": "c9a76b4be9528abcaba71dc7d7ec3cc011b6337d464efbf096e27afc1da384c8",
+      "targetLocale": "zh-hans",
+      "text": "湾仔"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["547d2bfd-26a0-55ac-b1d2-99a0b91996e8"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "沙田",
+      "sourceTextHash": "cbce75285d99caead589eba8fb629925bda04188479858784690337917204c62",
+      "targetLocale": "zh-hans",
+      "text": "沙田"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["9e6d8019-5463-5931-b990-89e664e1688d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "觀塘",
+      "sourceTextHash": "cd14095ce58e57f9cbd25d92064eb7a3f05fdadab16889c719b30a8685c54489",
+      "targetLocale": "zh-hans",
+      "text": "观塘"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f7e8854c-d19a-5c94-a404-87e517a989db"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "貝沙灣",
+      "sourceTextHash": "ce97efc9b048ee1b28be8fe2b9b9778e1fc5a637aeb876ea70ebb3e1172c0986",
+      "targetLocale": "zh-hans",
+      "text": "贝尔-银湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2027f0ae-a525-5cc6-b134-1fa81708cc49"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "龍鼓灘",
+      "sourceTextHash": "ceb6559440898f2c80c928edfa136f4e6edefa55abe6fc400d6a375df6fdd20d",
+      "targetLocale": "zh-hans",
+      "text": "龙谷海滩"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["3f68d359-0078-5eab-bd4f-a741e45d19b5"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "香港仔",
+      "sourceTextHash": "d003573b34f1996554c5c95af977f2fc20bfc2292b62aba4e1d1446fa96bf82f",
+      "targetLocale": "zh-hans",
+      "text": "阿伯丁"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e628bf24-69ab-574c-9983-060177123016"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "啟德新區",
+      "sourceTextHash": "d18b65549534dbd9bff7f2fb1b4832b23f230bf9b695ea58178a99581005eed8",
+      "targetLocale": "zh-hans",
+      "text": "启德新区"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["fdf7e469-7fec-543e-bfbb-bd5382eb205d"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荃灣半山",
+      "sourceTextHash": "d2dedde5226c622560a845773a9b7ae5f45ce7c127f5ac67819c85597c1f9e75",
+      "targetLocale": "zh-hans",
+      "text": "荃灣中層"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ffc535c8-765e-5633-a1e5-bd25f629ca55"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "麗城",
+      "sourceTextHash": "d3f880c77df86f6312ded0d11cf1f1bf8979d2726530165ae92b884439a8f951",
+      "targetLocale": "zh-hans",
+      "text": "立成"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1c2535a5-9170-5b61-838f-8e9c58314e99"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "京士柏",
+      "sourceTextHash": "d4ccaa0ae5345bcb4300fb08d41aa9ca8689cc2cd8203d89373329b83aeac9f0",
+      "targetLocale": "zh-hans",
+      "text": "景室柏树"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["81787a75-7a6b-557c-a2ca-dc5f0a8732ea"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大埔墟",
+      "sourceTextHash": "d6f9cadf2937b2845c46b1f1df53194030a54546578894008ea0cf993ca09b9a",
+      "targetLocale": "zh-hans",
+      "text": "大埔市"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["8d3b4b9d-7593-5bd1-b0e7-ad85dfb1f731"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "油塘",
+      "sourceTextHash": "d9773090e33902add8f658c1a4b626fdcfa16c9440edb3934b73842ec50709f4",
+      "targetLocale": "zh-hans",
+      "text": "游塘"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["699d5593-55c4-5342-ada0-d25acccf035f"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "上水",
+      "sourceTextHash": "d9cce2409f46c8c196a4d7a0313e20f6a7aae384e4baea2cfb339fe5e032c66e",
+      "targetLocale": "zh-hans",
+      "text": "上游水域"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["0302b3e2-1a49-59e4-90a3-fd9af10f9c7f"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "西灣河",
+      "sourceTextHash": "da66e27921ee7c8b6a235c2ce906bf75be0920cd6d189f8a653170cef6a51e13",
+      "targetLocale": "zh-hans",
+      "text": "西完浩"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["562a8e52-cade-582f-899c-70997c472730"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大潭",
+      "sourceTextHash": "dd894c117d07fa417030bd1fd1f5ba8bb43a9299556f29720be73aef55aafb0a",
+      "targetLocale": "zh-hans",
+      "text": "达坦"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["b362d914-1715-5baa-858b-78e4206b1312"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "銅鑼灣",
+      "sourceTextHash": "e11e897aaa157e09b83013f8783f08424fb94753361f18997a8e5326e64dc580",
+      "targetLocale": "zh-hans",
+      "text": "铜锣湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["cc31ed26-7e3f-533b-825a-c85a46f8e396"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大窩口",
+      "sourceTextHash": "e185ccd9e2d9f11ae5bd4ba342373888eca291b57f408fa473643c4a0f4ce9d6",
+      "targetLocale": "zh-hans",
+      "text": "太和豪"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["648dfd2f-5f6b-5c74-a34e-3c2dc572ef27"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "渣甸山",
+      "sourceTextHash": "e1f2dc96d4242df41a3d04630145a46c8188f7e0ca2f4671c68ec1a144f091a6",
+      "targetLocale": "zh-hans",
+      "text": "怡和鸭瞭望台"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e20bf423-bca0-5ba4-b0a0-c39562346565"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "馬料水",
+      "sourceTextHash": "e3456041f7c06a91eabdd5a2bc14b0a78cbb2b41e23abf3b1e9ac6128f05912d",
+      "targetLocale": "zh-hans",
+      "text": "马柳水"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["89b0df65-2f9d-5464-93eb-2a0a72db768e"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "玉桂山灣畔",
+      "sourceTextHash": "e3a5e87060bdd1eb9497d758b75f3e9235148220c8510bc08c71a125ddd188b6",
+      "targetLocale": "zh-hans",
+      "text": "在玉鬼山湾岸边"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["bfb8ac60-12f7-5ad3-9443-bcc77cbaf30f"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "荃灣海濱",
+      "sourceTextHash": "e3fa6e2b0fdcb48782b5998f0e3686c6e1284aa6330634621ef9d68c251e55b2",
+      "targetLocale": "zh-hans",
+      "text": "荃灣海濱"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["1dd86478-bde3-5f3c-9f2f-f539f364cf88"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "八鄉南",
+      "sourceTextHash": "e4b407fdc6f8f9fcd4ea3e233ccdad5229013e61b9e4ee3c4411f23ee80859a6",
+      "targetLocale": "zh-hans",
+      "text": "八乡以南"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f33e09bb-a7ff-5244-8368-66b525bae695"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "兆康",
+      "sourceTextHash": "e4e6ff03c12be878e975c0d05628dab0d3b057ccf4e430657716c4f40269075e",
+      "targetLocale": "zh-hans",
+      "text": "赵康"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["edf250df-d0ae-5039-ab0a-e3941a56bf2c"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "鰂魚涌",
+      "sourceTextHash": "e65f408dd1041c11d05bbc48c7503981c45a5c98410c0d8d5277f977370f98d8",
+      "targetLocale": "zh-hans",
+      "text": "采石场湾"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["cef158c3-f881-5f44-8578-3f6140c7ddc0"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "古洞",
+      "sourceTextHash": "e8ae22566c791233b12d0fe23eb234f6e52cb733a6bbf0ebe8dd1c9adb5a94e9",
+      "targetLocale": "zh-hans",
+      "text": "古洞穴"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f3a1041f-dce5-54d1-bfbf-38a56061ccef"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大網仔",
+      "sourceTextHash": "e9067756a042469265d83fa4c42ac801ef9be3d6adb9aa1d53f906292ff70abf",
+      "targetLocale": "zh-hans",
+      "text": "大网男"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ec051277-c456-5dff-a5b9-6c274c9f3794"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大坑",
+      "sourceTextHash": "e9e7ac5677b3f6e515b5565e4e557d01714d6d4a251537f19dc0c9f28a8d538e",
+      "targetLocale": "zh-hans",
+      "text": "太庆"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["2fb289b6-5193-5bd0-8c90-a0d599fe6f7a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "上環",
+      "sourceTextHash": "ec7e2d7e1661e09f81d143ea6ebadfd47d7829be34a3342e251f4d3568172f79",
+      "targetLocale": "zh-hans",
+      "text": "上环"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c4048c1a-1255-5308-a933-9c0136eb8b16"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "深水埗",
+      "sourceTextHash": "ee8ba85d2679251a04c172c5c9b4654d265c82d59f0ac8e6b8993cf8dbd546ce",
+      "targetLocale": "zh-hans",
+      "text": "深水埗"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["b1f298e3-80a1-5378-8028-48e0675df0e9"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "藍田",
+      "sourceTextHash": "ef518b751669ca3a276c92d5bf1497311793fadf980d0c8e7e80f5db991a5871",
+      "targetLocale": "zh-hans",
+      "text": "林田"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["e5021794-73f5-51e4-a2e5-4ed0e8144bcc"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "黃大仙",
+      "sourceTextHash": "ef9334be601b27f5d3c6514af714813e95bf50bbf617089ad8b32bab61d348aa",
+      "targetLocale": "zh-hans",
+      "text": "黄大仙"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["01aeaeeb-c974-53ee-b87f-d068771d1ebb"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "牛頭角",
+      "sourceTextHash": "f0b5ca6f4faade74707f946a4f8bea3df8fcd8205a94e313838c43294adcd28b",
+      "targetLocale": "zh-hans",
+      "text": "牛頭角"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ae41fef0-0356-55b6-a8fc-f1af7d467868"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "凹頭",
+      "sourceTextHash": "f1e591e4f79ff62a01bd8735673e978511f1f8518e1cc84dac8fa51bcb02fc61",
+      "targetLocale": "zh-hans",
+      "text": "首领"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["aab5e9cb-4d4a-522a-a760-caac56f1559a"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "北角",
+      "sourceTextHash": "f5d33abe187049efa37aec8dd09fbaa8614f3b1b6c3435f66de7dfaeb1a90eb9",
+      "targetLocale": "zh-hans",
+      "text": "北点"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["c4167a8f-a4df-5941-9f97-e406e8448d22"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "屏山",
+      "sourceTextHash": "f6f3bf8a1763c0108a923ef146b6c1660bc5ff2b7aa9acf527fb6b6f8210e0d2",
+      "targetLocale": "zh-hans",
+      "text": "平山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ceb1e8a8-a373-5da3-8421-d51122af2282"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "鴨脷洲",
+      "sourceTextHash": "fbc6b7e09874dddaf9ff70ca4ae147f275edd9856090eb23e2c6de19af31bdc9",
+      "targetLocale": "zh-hans",
+      "text": "阿丽洲"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["ef1f7e3b-dad7-5dff-a3c2-00d73b09a0a4"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "九龍塘",
+      "sourceTextHash": "fc170c09c9e5a595028ec64801a026e9f65059f1dd0eee926143f48a1ab33eed",
+      "targetLocale": "zh-hans",
+      "text": "九龙塘"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["f43573ce-b363-5a0f-921e-8fc47ba7fcaf"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "皇后山",
+      "sourceTextHash": "fd0b83d782941ebe94dcd9747ed3b5039afc72a2208e8d0f1ddfcbd04944beb9",
+      "targetLocale": "zh-hans",
+      "text": "皇后山"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["92ca9dc6-83b6-50a2-80dc-2b26e4859011"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "大坑半山",
+      "sourceTextHash": "fd0d81be6ef2e86fd0fdf26a41d57ea1b1d391f06d01775f56689976737e73e3",
+      "targetLocale": "zh-hans",
+      "text": "大更在半山腰"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["83f7aa01-d82b-5db1-b592-ce668c670dfb"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "堅尼地城",
+      "sourceTextHash": "fde1b5d33c00eccb171171965f5779310d2f5b8bb975a04b0d58f80456a78025",
+      "targetLocale": "zh-hans",
+      "text": "肯尼迪镇"
+    },
+    {
+      "context": {
+        "parentDivisionId": null,
+        "parentName": null
+      },
+      "contextHash": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "field": "name",
+      "firstSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "lastSeenRelease": "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+      "machine": "azure-translator-v3",
+      "provenance": "ai-translated",
+      "recordIds": ["b98d2ffc-6a33-53a0-b3b9-0c84ba413f33"],
+      "sourceLocale": "zh-hant",
+      "sourceText": "康樂園",
+      "sourceTextHash": "ffb92d8ea6dde0352fd4f22b24567a7d5a7b03cd79c1dc7d304ed09e8fd5a3fe",
+      "targetLocale": "zh-hans",
+      "text": "康乐元"
+    }
+  ],
+  "version": 1
+}
