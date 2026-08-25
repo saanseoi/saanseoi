@@ -1764,6 +1764,7 @@
   "openapi_version_heading": "API 版本",
   "openapi_source_release_code_description": "全域唯一的來源發布版本代碼。",
   "openapi_source_record_cursor_description": "上一個來源記錄回應傳回的不透明游標。",
+  "openapi_source_record_sample_description": "從選取的來源版本傳回獨立的隨機樣本。隨機樣本不可與游標或 NDJSON 串流同時使用。",
   "openapi_source_record_api_release_set_pin_description": "若為標準 sourceRelease 固定版本則為 null；該固定版本刻意獨立於 API 發布集合。",
   "openapi_source_record_snapshot_pin_description": "若為標準 sourceRelease 固定版本則為 null；該固定版本刻意獨立於快照。",
   "openapi_statistics_include_description": "納入欄位定義、相關分區及／或分區範圍幾何資料。欄位定義包含所要求地區設定的標籤。未限定的 areas 會依統計資料地理範圍解析；限定的 areas 會要求一個確切的提供者變體。",

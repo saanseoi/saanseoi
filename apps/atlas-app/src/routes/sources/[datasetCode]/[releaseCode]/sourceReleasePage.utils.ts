@@ -4,15 +4,45 @@ import type {
   ReleaseStatsDistrictArea,
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 
-export type SourceReleaseTab = 'notes' | 'releases' | 'assembly' | 'stats' | 'audit'
+export type SourceRecordFamily = 'divisions'
+
+export type SourceReleaseTab =
+  | 'notes'
+  | 'schema'
+  | 'samples'
+  | 'releases'
+  | 'assembly'
+  | 'stats'
+  | 'audit'
 
 const sourceReleaseTabs: readonly SourceReleaseTab[] = [
   'notes',
+  'schema',
+  'samples',
   'releases',
   'assembly',
   'stats',
   'audit',
 ]
+
+const sourceRecordResourceTypes = new Set([
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+])
+
+/**
+ * Public raw-record storage is currently available for Division-family sources.
+ * Keep this explicit so a source page never suggests records for a family whose
+ * endpoint has no source-record catalogue.
+ */
+export function getSourceRecordFamily(
+  resourceTypes: readonly string[],
+): SourceRecordFamily | null {
+  return resourceTypes.some(type => sourceRecordResourceTypes.has(type))
+    ? 'divisions'
+    : null
+}
 
 type SourceReleaseUrl = {
   searchParams: {
