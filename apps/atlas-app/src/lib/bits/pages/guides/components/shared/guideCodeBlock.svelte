@@ -10,6 +10,7 @@ type Props = {
   actions?: Snippet
   code: string
   copyCode?: string
+  displayCode?: string
   comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
   commentsVisible?: boolean
   copyable?: boolean
@@ -157,6 +158,7 @@ let {
   actions,
   code,
   copyCode,
+  displayCode,
   comments = [],
   commentsVisible = $bindable(true),
   copyable = true,
@@ -176,12 +178,18 @@ let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
 const highlightedCode = $derived(
   language === 'bash'
-    ? highlightBash(code)
+    ? highlightBash(displayCode ?? code)
     : language === 'powershell'
-      ? highlightBash(code, 'PS>')
+      ? highlightBash(displayCode ?? code, 'PS>')
       : language === 'typescript' || language === 'css'
-        ? highlightSource(code, language, dimmedLines, comments, commentsVisible)
-        : escapeHtml(code),
+        ? highlightSource(
+            displayCode ?? code,
+            language,
+            dimmedLines,
+            comments,
+            commentsVisible,
+          )
+        : escapeHtml(displayCode ?? code),
 )
 
 const copyWithFallback = (text: string) => {

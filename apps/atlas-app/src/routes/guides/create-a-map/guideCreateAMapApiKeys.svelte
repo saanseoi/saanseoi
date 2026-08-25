@@ -4,11 +4,16 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
+import GuideCodeBlock from '#lib/bits/pages/guides/components/shared/guideCodeBlock.svelte'
 
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
 type Props = {
   apiKeyReady?: boolean
+  editorIcon?: string
+  editorLabel?: string
+  newFileShortcut?: string
+  operatingSystem?: string
   onApiKeyCreated?: (key: string) => void
   onApiKeyReadyChange?: (ready: boolean) => void
   showHeading?: boolean
@@ -16,6 +21,10 @@ type Props = {
 
 let {
   apiKeyReady = false,
+  editorIcon,
+  editorLabel,
+  newFileShortcut,
+  operatingSystem,
   onApiKeyCreated,
   onApiKeyReadyChange,
   showHeading = true,
@@ -29,6 +38,38 @@ let newKey = $state<string>()
 let newKeyName = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
+const environmentSetupVisible = $derived(isApiKeyReady || Boolean(newKey))
+const environmentFileCode = $derived(
+  `VITE_SAANSEOI_API_KEY=${newKey ?? 'REPLACE_ME_WITH_YOUR_API_KEY'}`,
+)
+const environmentFileStructureCode = $derived(
+  operatingSystem === 'windows'
+    ? [
+        'PS> Get-ChildItem -Force',
+        '',
+        'Mode  LastWriteTime  Length  Name',
+        'd----                 node_modules',
+        'd----                 src',
+        '-a---                .env',
+        '-a---                index.html',
+        '-a---                package.json',
+        '-a---                tsconfig.json',
+        '-a---                vite.config.ts',
+      ].join('\n')
+    : [
+        '$ ls -la',
+        'total 212',
+        'drwxr-xr-x  4 you you  4096 .',
+        'drwxr-xr-x  1 you you  4096 ..',
+        '-rw-r--r--  1 you you    48 .env',
+        '-rw-r--r--  1 you you   324 index.html',
+        'drwxr-xr-x 68 you you  4096 node_modules',
+        '-rw-r--r--  1 you you   581 package.json',
+        'drwxr-xr-x  2 you you  4096 src',
+        '-rw-r--r--  1 you you   614 tsconfig.json',
+        '-rw-r--r--  1 you you   302 vite.config.ts',
+      ].join('\n'),
+)
 
 const createKey = async () => {
   error = undefined
@@ -241,21 +282,79 @@ $effect(() => {
             </Button>
           </div>
         </div>
-        <div class="mt-6 flex justify-end">
-          <Button
-            class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-            onclick={completeApiKeyConfirmation}
-            size="compact"
-          >
-            <Icon
-              aria-hidden="true"
-              class="size-5"
-              icon="material-symbols-light:check-rounded"
-            />
-            {m.guide_basemap_api_key_confirm()}
-          </Button>
-        </div>
       </div>
     {/if}
+  {/if}
+
+  {#if environmentSetupVisible}
+    <div class="mt-8 border-t border-border-card pt-8">
+      <h4 class="font-display text-headline-sm font-bold text-primary">
+        {m.guide_basemap_env_file_title()}
+      </h4>
+      <p
+        class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_kbd]:rounded-sm [&_kbd]:border [&_kbd]:border-border-card [&_kbd]:bg-surface-container-low [&_kbd]:px-1 [&_kbd]:font-mono [&_kbd]:text-[0.85em]"
+      >
+        {@html editorLabel && newFileShortcut
+          ? m.guide_basemap_env_file_editor_instruction({
+              editor: editorLabel,
+              shortcut: newFileShortcut,
+            })
+          : m.guide_basemap_env_file_other_instruction()}
+      </p>
+      <p
+        class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      >
+        {@html m.guide_basemap_env_file_description()}
+      </p>
+      <div class="mt-5">
+        <GuideCodeBlock
+          label=".env"
+          code={environmentFileCode}
+          {editorIcon}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+          language="text"
+          variant="editor"
+        />
+      </div>
+      <div class="mt-8">
+        <h5 class="font-body text-body-md font-semibold text-foreground">
+          {m.guide_basemap_env_file_structure_title()}
+        </h5>
+        <p
+          class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+        >
+          {@html operatingSystem === 'windows'
+            ? m.guide_basemap_env_file_structure_description_windows()
+            : m.guide_basemap_env_file_structure_description()}
+        </p>
+        <div class="mt-5">
+          <GuideCodeBlock
+            label={m.guide_basemap_env_file_structure_label()}
+            code={environmentFileStructureCode}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+            language="text"
+          />
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if newKey && !isApiKeyReady}
+    <div class="mt-6 flex max-w-3xl justify-end">
+      <Button
+        class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+        onclick={completeApiKeyConfirmation}
+        size="compact"
+      >
+        <Icon
+          aria-hidden="true"
+          class="size-5"
+          icon="material-symbols-light:check-rounded"
+        />
+        {m.guide_basemap_api_key_confirm()}
+      </Button>
+    </div>
   {/if}
 </section>
