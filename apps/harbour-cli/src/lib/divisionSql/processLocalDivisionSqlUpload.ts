@@ -1247,14 +1247,16 @@ async function buildDivisionSqlState(
       const canonicalI18n = buildCanonicalDivisionApiI18n(
         mergeDivisionI18nTranslations(normalised.i18n, resolvedI18n.localisations),
       )
-      processingActions.push(
-        ...buildOvertureDivisionLocaleProcessingActions({
-          canonicalI18n,
-          division: normalised.base,
-          rawNames: raw.names,
-          sourceI18n: normalised.i18n,
-        }),
-      )
+      if (message.source === 'overture') {
+        processingActions.push(
+          ...buildOvertureDivisionLocaleProcessingActions({
+            canonicalI18n,
+            division: normalised.base,
+            rawNames: raw.names,
+            sourceI18n: normalised.i18n,
+          }),
+        )
+      }
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalised.base),
