@@ -1,5 +1,7 @@
 import type { ResourceType } from './types'
 
+export type { ResourceType } from './types'
+
 export type SourceRecordSchemaField = {
   name: string
   nullable: boolean

@@ -22,7 +22,7 @@ export async function runWithD1ReadRetry<T>(
 
 function isTransientD1ReadError(error: unknown) {
   return collectErrorMessages(error).some(message =>
-    /sqlite_busy|database is locked|failed to parse body as json, got: error: internal error|d1_error: .*internal error/i.test(
+    /sqlite_busy|database is locked|failed to parse body as json, got: error: internal error|d1_error: .*internal error|fetch failed|other side closed/i.test(
       message,
     ),
   )

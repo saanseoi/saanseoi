@@ -20,6 +20,7 @@
     "./apiLocales": "./src/lib/apiLocales.ts",
     "./publicApiKey": "./src/publicApiKey.ts",
     "./productUsage": "./src/productUsage.ts",
+    "./sourceRecordSchemas": "./src/sourceRecordSchemas.ts",
     "./pipeline/*": "./src/pipeline/*",
     "./testing/localDb": "./src/testing/localDb.ts",
     "./parquetInspector": "./src/lib/parquetInspector.ts",
