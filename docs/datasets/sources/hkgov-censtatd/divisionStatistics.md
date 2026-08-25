@@ -178,6 +178,11 @@ HMA is its domain's primary canonical division input, paired with the required n
 Division level, so the generated Division record has no `level` value and an empty
 hierarchy.
 
+The Statistics launch-bootstrap mode (`update --defer-stats-release-set`) publishes only
+the Statistics source assertions and snapshots. It deliberately leaves this optional
+Divisions-family geometry fan-out to the Divisions workflow, whose district geometry
+prerequisites are separate from Statistics cohort assembly.
+
 ## Source-release statistics and geography audit
 
 Every C&SD statistics source release stores only structural release facts: validated

@@ -90,6 +90,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         // release. Reprocess it locally to materialise the history observation.
         allowHistoricalCohort: true,
         allowReprocessPublished: true,
+        deferStatsReleaseSet: args.options['defer-stats-release-set'] === true,
         forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
