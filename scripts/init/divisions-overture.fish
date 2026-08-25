@@ -81,18 +81,27 @@ end
 # The Area/type C&SD source derives the required hkgov-censtatd-area geometry
 # after the Overture canonical divisions are available. It must precede draft
 # release-set reconciliation so the first initialisation run can publish them.
-init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-    --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
-    --download --yes
-# The updater skips an unchanged Area/type statistics release. Its Geographic
-# `divisionArea` companion is still required to complete every Overture cohort,
-# so replay it explicitly from the retained, already-mirrored CSDI archive.
 set -l censtatd_area_archive \
     "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/source.zip"
-if not test -f "$censtatd_area_archive"
+set -l censtatd_area_manifest "$censtatd_area_archive.manifest.json"
+if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
+    # A cache miss is recoverable: force the CSDI archive updater to retrieve
+    # and prepare the publisher ZIP, but defer ingestion until the normal
+    # update pass below. The dataops replay mirrors the prepared archive to the
+    # selected target before attempting to link its derived source releases.
+    init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --download --force-download --no-upload --yes
+end
+if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
     echo "C&SD Area/type input file not found: $censtatd_area_archive" >&2
     exit 1
 end
+# A normal update maintains the source-statistics release. Its Geographic
+# `divisionArea` companion is replayed below from the prepared archive.
+init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+    --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+    --download --yes
 init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
     "$censtatd_area_archive" --target $saanseoi_init_target \
     --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
