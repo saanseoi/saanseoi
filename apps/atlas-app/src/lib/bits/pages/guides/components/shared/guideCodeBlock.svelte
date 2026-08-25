@@ -1,10 +1,13 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
+
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
 import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = {
+  actions?: Snippet
   code: string
   copyable?: boolean
   copiedLabel: string
@@ -128,6 +131,7 @@ const highlightSource = (source: string, language: 'css' | 'typescript') =>
     .join('')
 
 let {
+  actions,
   code,
   copyable = true,
   copiedLabel,
@@ -244,19 +248,24 @@ const selectManualCopyText = () => {
         >{@html label}</span
       >
     </div>
-    {#if copyable}
-      <button
-        class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-        type="button"
-        onclick={copy}
-      >
-        <Icon
-          icon={copied ? 'ion:checkmark' : 'ion:copy-outline'}
-          class="size-4"
-          aria-hidden="true"
-        />
-        {copied ? copiedLabel : copyLabel}
-      </button>
+    {#if copyable || actions}
+      <div class="flex shrink-0 items-center gap-4">
+        {#if copyable}
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={copy}
+          >
+            <Icon
+              icon={copied ? 'ion:checkmark' : 'ion:copy-outline'}
+              class="size-4"
+              aria-hidden="true"
+            />
+            {copied ? copiedLabel : copyLabel}
+          </button>
+        {/if}
+        {@render actions?.()}
+      </div>
     {/if}
   </div>
   <pre

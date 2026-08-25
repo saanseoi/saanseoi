@@ -527,16 +527,16 @@ const dataChoices = $derived.by(() => {
   locale
   return [
     {
-      value: 'existing',
-      icon: 'proicons:database',
-      label: m.guide_data_existing(),
-      description: m.guide_data_existing_description(),
-    },
-    {
       value: 'api',
       icon: 'proicons:api',
       label: m.guide_data_api(),
       description: m.guide_data_api_description(),
+    },
+    {
+      value: 'existing',
+      icon: 'proicons:database',
+      label: m.guide_data_existing(),
+      description: m.guide_data_existing_description(),
     },
   ]
 })
@@ -1517,7 +1517,7 @@ const rendererReference = $derived(
 const rendererInstallCode = $derived(rendererReference.installCommand)
 const rendererVersionDependency = $derived(
   renderer === 'maplibre'
-    ? { name: 'maplibre-gl', pinnedVersion: '6.3.0' }
+    ? { name: 'maplibre-gl', pinnedVersion: '6.6.0' }
     : renderer === 'mapbox'
       ? { name: 'mapbox-gl', pinnedVersion: '3.28.1' }
       : { name: 'leaflet', pinnedVersion: '1.9.4' },
@@ -2002,7 +2002,7 @@ const styleChoices = $derived.by(() =>
                     variant="tiles"
                   />
                   {#if terminalExperience === 'none'}
-                    <div id="terminal-introduction" class="mt-6 scroll-mt-28">
+                    <div id="terminal-introduction" class="mt-6 scroll-mt-28 lg:-mr-56">
                       <GuideTerminalIntroduction {operatingSystem} />
                     </div>
                   {/if}

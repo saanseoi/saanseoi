@@ -69,7 +69,7 @@ $effect(() => {
 
 {#if currentVersion && hasMinorOrMajorUpdate}
   <aside
-    class="flex max-w-3xl items-start gap-3 border-l-2 border-[#f2c26d] bg-surface-container-low px-4 py-3"
+    class="-mt-4 flex max-w-3xl items-start gap-3 border-l-2 border-[#f2c26d] bg-surface-container-low px-4 py-3"
   >
     <Icon
       icon="material-symbols-light:warning-rounded"
