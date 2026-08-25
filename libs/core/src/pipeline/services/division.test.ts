@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildCanonicalDivisionApiI18n,
+  buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
   collectOvertureHongKongDivisionSourceAssumptionViolations,
   type DivisionHierarchyLookup,
@@ -10,6 +11,7 @@ import {
 import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
 import {
   missingOvertureHongKongAreaRows,
+  overtureHongKongAreaForDistrictName,
   overtureHongKongAreas,
   overtureHongKongAreaDivisionId,
 } from './overtureHongKongAreas'
@@ -303,6 +305,14 @@ describe('missingOvertureHongKongAreaRows', () => {
   })
 })
 
+describe('overtureHongKongAreaForDistrictName', () => {
+  test('assigns Overture’s extra Lok Ma Chau Loop level-2 division to the New Territories', () => {
+    expect(overtureHongKongAreaForDistrictName('Lok Ma Chau Loop')).toMatchObject({
+      code: 'new-territories',
+    })
+  })
+})
+
 describe('normaliseDivisionRow i18n', () => {
   test('keeps C&SD Housing Market Areas outside the Division hierarchy', () => {
     const normalised = normaliseDivisionRow({
@@ -524,6 +534,19 @@ describe('normaliseDivisionRow hierarchy', () => {
         type: 'sar',
       },
       {
+        division_id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+        i18n: {
+          en: {
+            name: 'Hong Kong Island',
+          },
+          'zh-hant': {
+            name: '香港島',
+          },
+        },
+        level: 1,
+        type: 'area',
+      },
+      {
         division_id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
         i18n: {
           en: {
@@ -622,6 +645,44 @@ describe('normaliseDivisionRow hierarchy', () => {
         type: 'town',
       },
     ])
+  })
+
+  test('inserts an area after Hong Kong SAR for a district', () => {
+    const normalised = normaliseDivisionRow(
+      {
+        id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
+        subtype: 'region',
+        names: {
+          common: {
+            en: 'Central and Western District',
+            'zh-hant': '中西區',
+          },
+        },
+        hierarchies: [
+          [
+            {
+              division_id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
+              subtype: 'dependency',
+              name: 'Hong Kong SAR',
+            },
+            {
+              division_id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
+              subtype: 'region',
+              name: 'Central and Western District',
+            },
+          ],
+        ],
+      },
+      { hierarchyLookup },
+    )
+
+    expect(normalised.base.hierarchy).toMatchObject([
+      { type: 'sar' },
+      { level: 1, type: 'area', division_id: '25cec859-44f3-5e1d-a72b-952f804e56ab' },
+    ])
+    expect(normalised.overtureHongKongAreaHierarchyAssignment).toMatchObject({
+      code: 'hong-kong-island',
+    })
   })
 
   test('rejects locality hierarchy entries missing from lookup', () => {
@@ -754,5 +815,33 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
         sourceI18n,
       }),
     ).toEqual([])
+  })
+})
+
+describe('buildOvertureHongKongAreaHierarchyProcessingActions', () => {
+  test('reports only each area count, not individual division assignments', () => {
+    expect(
+      buildOvertureHongKongAreaHierarchyProcessingActions(
+        new Map([
+          ['hong-kong-island', 37],
+          ['new-territories', 82],
+        ]),
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        action: 'overture_division_hong_kong_area_hierarchy_assigned',
+        affectedRecordCount: 37,
+        evidence: {
+          area: expect.objectContaining({ code: 'hong-kong-island' }),
+        },
+      }),
+      expect.objectContaining({
+        action: 'overture_division_hong_kong_area_hierarchy_assigned',
+        affectedRecordCount: 82,
+        evidence: {
+          area: expect.objectContaining({ code: 'new-territories' }),
+        },
+      }),
+    ])
   })
 })

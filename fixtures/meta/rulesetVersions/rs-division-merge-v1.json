@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dc319bae669392049865d3eee37ae9718d1678415e835f45c16b60abee31feb9",
+  "versionHash": "sha256:d9b9c2c153230e174e3689fcccc1dfcf6e853472b6c8675ca0b0ca866183de23",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -163,6 +163,27 @@
         {
           "locale": "zh-hans",
           "description": "将 Overture 层级项目规范化为标准区划历史数据，并排除不会发布的外层参照项目。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_hong_kong_area_hierarchy_assigned",
+      "type": "bulk",
+      "sourceFieldPath": "hierarchies, subtype, names",
+      "targetFieldPath": "hierarchy",
+      "condition": "A Hong Kong district, or a division with a Hong Kong district ancestor, is assigned to Hong Kong Island, Kowloon, or the New Territories.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Inserts the canonical Hong Kong area after Hong Kong SAR in the hierarchy, with one audit count for each assigned area."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "在層級中香港特別行政區之後加入標準香港地區，並按每個指派地區記錄一項審計計數。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "在层级中香港特别行政区之后加入标准香港地区，并按每个指派地区记录一项审计计数。"
         }
       ]
     },
