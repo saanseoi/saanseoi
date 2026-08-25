@@ -14,10 +14,12 @@ import {
   recordPublishedSourceRelease,
   requirePublishedTargetVersion,
   resolveApiFamilySelection,
+  selectUpdateDatasets,
   shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
   shouldDownloadUpdate,
   targetVersionsFromReport,
+  updateSelectionLabel,
   validateUpdateArguments,
   wrapUpdateMessage,
 } from './update.ts'
@@ -175,6 +177,7 @@ test('uses explicit update flags instead of ambiguous --force', () => {
           'check-now': true,
           'defer-stats-release-set': true,
           'force-upload': true,
+          'with-dependencies': true,
         },
       },
       printUsage,
@@ -200,6 +203,23 @@ test('uses explicit update flags instead of ambiguous --force', () => {
   ).toThrow('does not support --force')
 })
 
+test('labels an explicit dataset selection without implying every dataset', () => {
+  expect(
+    updateSelectionLabel({
+      requested: new Set([
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      ]),
+      selectedFamily: 'all',
+    }),
+  ).toBe('SELECTED DATASET')
+  expect(
+    updateSelectionLabel({
+      requested: new Set(['dataset-a', 'dataset-b']),
+      selectedFamily: 'all',
+    }),
+  ).toBe('SELECTED DATASETS')
+})
+
 test('adds a composition lookup provider before an address update', async () => {
   const datasets = await loadDatasetFixtures()
   const address = datasets.find(dataset => dataset.code === 'ds-hk-hkgov-dpo-address')
@@ -215,6 +235,22 @@ test('adds a composition lookup provider before an address update', async () => 
     'ds-hk-overture-division',
     'ds-hk-hkgov-dpo-address',
   ])
+})
+
+test('keeps an explicit C&SD dataset selection exact unless dependencies are requested', async () => {
+  const datasets = await loadDatasetFixtures()
+  const area = datasets.find(
+    dataset =>
+      dataset.code ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+  )
+  if (!area) throw new Error('C&SD Area/type dataset fixture is missing.')
+
+  const dependencies = await loadCurrentCompositionIngestDependencies()
+  const exact = selectUpdateDatasets(datasets, [area], dependencies, false)
+  expect(exact.map(dataset => dataset.code)).toEqual([area.code])
+  const expanded = selectUpdateDatasets(datasets, [area], dependencies, true)
+  expect(expanded.map(dataset => dataset.code)).toContain('ds-hk-overture-division')
 })
 
 test('does not record a declined new upload as the source baseline', () => {

@@ -13,6 +13,7 @@ import {
 import {
   type DatasetFixture,
   type DatasetIngestProgress,
+  type CompositionIngestDependency,
   type UpdateStateEntry,
   getDueUpdatePhases,
   loadCurrentCompositionIngestDependencies,
@@ -103,6 +104,7 @@ export async function runUpdateCommand(
   if (requestedDatasets.length === 0) throw new Error('No matching datasets found.')
 
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
+  const includeDependencies = args.options['with-dependencies'] === true
   const deferStatsReleaseSet = args.options['defer-stats-release-set'] === true
   const selectedFamilyDatasets =
     selectedFamily === 'all'
@@ -114,16 +116,17 @@ export async function runUpdateCommand(
   ) {
     throw new Error('--defer-stats-release-set requires a Stats-only selection.')
   }
-  const selectedDatasets = orderDatasetsByCompositionDependencies(
+  const selectedDatasets = selectUpdateDatasets(
     datasets,
     selectedFamilyDatasets,
-    await loadCurrentCompositionIngestDependencies(),
+    includeDependencies ? await loadCurrentCompositionIngestDependencies() : [],
+    includeDependencies,
   )
 
   log.message('', { spacing: 0 })
   log.message(
     `${colorize('DATASET UPDATES', 34)} ${dim('·')} ${colorize(
-      selectedFamily === 'all' ? 'ALL' : familyLabel(selectedFamily),
+      updateSelectionLabel({ requested, selectedFamily }),
       33,
     )} ${dim('·')} ${colorize(describeTarget(target).label, 34)}`,
     { spacing: 0 },
@@ -326,6 +329,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'release-notes-url',
     'scope',
     'target',
+    'with-dependencies',
     'yes',
   ])
   const invalidOptions = Object.keys(args.options).filter(
@@ -338,6 +342,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'force-download',
     'force-upload',
     'no-upload',
+    'with-dependencies',
     'yes',
   ]
   const invalidBooleanOptions = booleanOptions.filter(
@@ -653,6 +658,32 @@ export async function resolveApiFamilySelection(
   }
 
   return selected
+}
+
+export function updateSelectionLabel(input: {
+  requested?: ReadonlySet<string>
+  selectedFamily: string
+}) {
+  if (input.requested) {
+    return input.requested.size === 1 ? 'SELECTED DATASET' : 'SELECTED DATASETS'
+  }
+  return input.selectedFamily === 'all' ? 'ALL' : familyLabel(input.selectedFamily)
+}
+
+/** A requested scope is exact unless the operator explicitly asks for providers. */
+export function selectUpdateDatasets(
+  allDatasets: readonly DatasetFixture[],
+  selectedDatasets: readonly DatasetFixture[],
+  dependencies: readonly CompositionIngestDependency[],
+  includeDependencies: boolean,
+) {
+  return includeDependencies
+    ? orderDatasetsByCompositionDependencies(
+        allDatasets,
+        selectedDatasets,
+        dependencies,
+      )
+    : [...selectedDatasets]
 }
 
 function updateStatusLabel(update: DatasetUpdate, targetVersion?: string | null) {
