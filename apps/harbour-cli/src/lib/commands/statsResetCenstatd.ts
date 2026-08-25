@@ -145,6 +145,14 @@ async function describeResetPlan(
       sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
     [
+      'statsMeasures',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsMeasuresI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
       'statsValuesI18n',
       sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
@@ -164,6 +172,8 @@ async function describeResetPlan(
       ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsFields', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsFieldsI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsMeasures', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsMeasuresI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsValuesI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsObservations', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsSeriesDimensions', sql`"sourceReleaseId" IN (${releaseIds})`],
@@ -226,6 +236,14 @@ async function clearStatisticRows(
       sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
     [
+      'statsMeasuresI18n',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
+      'statsMeasures',
+      sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
+    ],
+    [
       'statsValuesI18n',
       sql`"datasetCode" IN (SELECT DISTINCT "datasetCode" FROM "statsRecords" WHERE "sourceReleaseId" IN (${releaseIds}))`,
     ],
@@ -241,6 +259,8 @@ async function clearStatisticRows(
       ['statsRecords', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsFields', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsFieldsI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsMeasuresI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
+      ['statsMeasures', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['statsValuesI18n', sql`"sourceReleaseId" IN (${releaseIds})`],
       ['divisionStatistics', sql`"sourceReleaseId" IN (${releaseIds})`],
     ])
