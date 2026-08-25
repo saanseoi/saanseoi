@@ -8,12 +8,9 @@ import censtatdMeasureNaming from '../../../../../docs/datasets/sources/hkgov-ce
 import censtatdMeasureOfferings from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureOfferings.md?raw'
 import censtatdMeasureCurationManifest from '../../../../../docs/datasets/sources/hkgov-censtatd/statisticMeasureCurationManifest.md?raw'
 import glossary from '../../../../../docs/glossary.md?raw'
+import { m } from '@repo/i18n/messages'
 
-import {
-  getLocalisedMessage,
-  type AppLocale,
-  type MessageKey,
-} from '../bits/internal/localisedMessages'
+import type { AppLocale, MessageKey } from '../bits/internal/localisedMessages'
 import { selectMarkdownHeadingPath } from './markdown'
 
 export const markdownReferenceScheme = 'saanseoi:'
@@ -38,6 +35,65 @@ export type MarkdownGlossaryEntry = MarkdownTransclusion & {
 }
 
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
+
+const fallbackReferenceDisplayTitle = (locale: AppLocale) =>
+  m.reference_documentation({}, { locale })
+
+const referenceDisplayTitles: Partial<
+  Record<ReferenceMessageKey, (locale: AppLocale) => string>
+> = {
+  reference_authentication: (locale: AppLocale) =>
+    m.reference_authentication({}, { locale }),
+  reference_api: (locale: AppLocale) => m.reference_api({}, { locale }),
+  reference_api_family: (locale: AppLocale) => m.reference_api_family({}, { locale }),
+  reference_basemap: (locale: AppLocale) => m.reference_basemap({}, { locale }),
+  reference_bun: (locale: AppLocale) => m.reference_bun({}, { locale }),
+  reference_catalogue: (locale: AppLocale) => m.reference_catalogue({}, { locale }),
+  reference_catalogue_revision: (locale: AppLocale) =>
+    m.reference_catalogue_revision({}, { locale }),
+  reference_censtatd: (locale: AppLocale) => m.reference_censtatd({}, { locale }),
+  reference_censtatd_measure_curation_manifest: (locale: AppLocale) =>
+    m.reference_censtatd_measure_curation_manifest({}, { locale }),
+  reference_censtatd_measure_naming: (locale: AppLocale) =>
+    m.reference_censtatd_measure_naming({}, { locale }),
+  reference_censtatd_measure_offerings: (locale: AppLocale) =>
+    m.reference_censtatd_measure_offerings({}, { locale }),
+  reference_cohort: (locale: AppLocale) => m.reference_cohort({}, { locale }),
+  reference_collection: (locale: AppLocale) => m.reference_collection({}, { locale }),
+  reference_companion_resource: (locale: AppLocale) =>
+    m.reference_companion_resource({}, { locale }),
+  reference_composition_policy: (locale: AppLocale) =>
+    m.reference_composition_policy({}, { locale }),
+  reference_csdi: (locale: AppLocale) => m.reference_csdi({}, { locale }),
+  reference_documentation: fallbackReferenceDisplayTitle,
+  reference_domain: (locale: AppLocale) => m.reference_domain({}, { locale }),
+  reference_division_hierarchy_levels: (locale: AppLocale) =>
+    m.reference_division_hierarchy_levels({}, { locale }),
+  reference_division_hierarchy_normalisation: (locale: AppLocale) =>
+    m.reference_division_hierarchy_normalisation({}, { locale }),
+  reference_division_type_level: (locale: AppLocale) =>
+    m.reference_division_type_level({}, { locale }),
+  reference_hong_kong_extract: (locale: AppLocale) =>
+    m.reference_hong_kong_extract({}, { locale }),
+  reference_lineage: (locale: AppLocale) => m.reference_lineage({}, { locale }),
+  reference_locale_normalisation: (locale: AppLocale) =>
+    m.reference_locale_normalisation({}, { locale }),
+  reference_map_style: (locale: AppLocale) => m.reference_map_style({}, { locale }),
+  reference_packages: (locale: AppLocale) => m.reference_packages({}, { locale }),
+  reference_profile: (locale: AppLocale) => m.reference_profile({}, { locale }),
+  reference_render: (locale: AppLocale) => m.reference_render({}, { locale }),
+  reference_request: (locale: AppLocale) => m.reference_request({}, { locale }),
+  reference_release: (locale: AppLocale) => m.reference_release({}, { locale }),
+  reference_release_set: (locale: AppLocale) => m.reference_release_set({}, { locale }),
+  reference_revision: (locale: AppLocale) => m.reference_revision({}, { locale }),
+  reference_schema: (locale: AppLocale) => m.reference_schema({}, { locale }),
+  reference_snapshot: (locale: AppLocale) => m.reference_snapshot({}, { locale }),
+  reference_source_release: (locale: AppLocale) =>
+    m.reference_source_release({}, { locale }),
+  reference_typescript: (locale: AppLocale) => m.reference_typescript({}, { locale }),
+  reference_variant: (locale: AppLocale) => m.reference_variant({}, { locale }),
+  reference_vite: (locale: AppLocale) => m.reference_vite({}, { locale }),
+}
 
 const markdownReferences: Record<string, MarkdownReferenceSource> = {
   authentication: {
@@ -302,8 +358,8 @@ export function getMarkdownGlossaryEntries(locale: AppLocale): MarkdownGlossaryE
     .filter((entry): entry is MarkdownGlossaryEntry => entry !== null)
     .sort((left, right) =>
       collator.compare(
-        getLocalisedMessage(left.displayTitleKey, locale),
-        getLocalisedMessage(right.displayTitleKey, locale),
+        getReferenceDisplayTitle(left.displayTitleKey, locale),
+        getReferenceDisplayTitle(right.displayTitleKey, locale),
       ),
     )
 }
@@ -340,8 +396,12 @@ export function getMarkdownTransclusionDisplayTitle(
   transclusion: MarkdownTransclusion | null,
   locale: AppLocale,
 ) {
-  return getLocalisedMessage(
+  return getReferenceDisplayTitle(
     transclusion?.displayTitleKey ?? 'reference_documentation',
     locale,
   )
+}
+
+function getReferenceDisplayTitle(key: ReferenceMessageKey, locale: AppLocale) {
+  return (referenceDisplayTitles[key] ?? fallbackReferenceDisplayTitle)(locale)
 }

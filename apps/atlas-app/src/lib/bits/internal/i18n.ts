@@ -1,15 +1,11 @@
 import { getLocale, locales, setLocale } from '@repo/i18n/runtime'
+import { m as generatedM } from '@repo/i18n/messages'
 
 import { getCurrentLocale, updateLocale } from './localeState.svelte'
-import {
-  getLocalisedMessage,
-  type AppLocale,
-  type MessageKey,
-} from './localisedMessages'
+import type { AppLocale, MessageKey } from './localisedMessages'
 
 export { getLocale, locales, setLocale }
 export { getCurrentLocale, updateLocale }
-export { getLocalisedMessage }
 export type { AppLocale, MessageKey }
 
 export function selectLocalisedRow<T extends { locale: string }>(
@@ -24,16 +20,11 @@ export function selectLocalisedRow<T extends { locale: string }>(
   )
 }
 
-function resolveMessage(key: MessageKey) {
-  return getLocalisedMessage(key, getCurrentLocale())
-}
+type AppMessages = { [K in MessageKey]: () => string }
 
-export const m = new Proxy({} as { [K in MessageKey]: () => string }, {
-  get: (_, property) => {
-    const key = property as MessageKey
-    return () => resolveMessage(key)
-  },
-})
+// Keep established call sites that interpolate placeholders after lookup while
+// sourcing every message directly from Paraglide's generated ESM modules.
+export const m = generatedM as unknown as AppMessages
 
 export const localeOptions = [
   { value: 'en', label: () => m.language_option_en() },
