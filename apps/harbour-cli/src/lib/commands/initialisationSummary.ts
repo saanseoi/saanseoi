@@ -14,8 +14,8 @@ export type InitialisationSummaryEvent =
 
 export async function recordInitialisationSummaryEvent(
   event: InitialisationSummaryEvent,
+  path = process.env.SAANSEOI_INIT_SUMMARY_PATH,
 ) {
-  const path = process.env.SAANSEOI_INIT_SUMMARY_PATH
   if (!path) return
 
   await appendFile(path, `${JSON.stringify(event)}\n`, 'utf8')

@@ -1245,6 +1245,13 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
       optional: false,
       resourceType: 'divisionArea',
     },
+    {
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      domainCode: 'hkgov-censtatd-area',
+      optional: false,
+      resourceType: 'divisionArea',
+    },
   ]
 
 const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
