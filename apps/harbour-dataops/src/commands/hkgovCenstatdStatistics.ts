@@ -14,8 +14,28 @@ import {
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
 import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import {
+  fetchReleaseReport,
+  type ReleaseReportRow,
+} from '../../../harbour-cli/src/lib/api/reporting.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { unzipSelected } from '../lib/zip.ts'
+
+type StatisticResourceType = 'division' | 'divisionArea' | 'divisionStatistic'
+
+export function pendingCenstatdStatisticResourceTypes(
+  rows: readonly Pick<ReleaseReportRow, 'sourceVersion' | 'status' | 'type'>[],
+  sourceVersion: string,
+  expectedTypes: readonly StatisticResourceType[],
+) {
+  const publishedTypes = new Set(
+    rows
+      .filter(row => row.sourceVersion === sourceVersion && row.status === 'published')
+      .map(row => row.type),
+  )
+
+  return expectedTypes.filter(type => !publishedTypes.has(type))
+}
 
 export async function runHkgovCenstatdStatisticsIngestCommand(
   args: ParsedArgs,
@@ -29,6 +49,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     key = args.options['source-archive-key'],
     sha = args.options['source-archive-sha256']
   const geographyOnly = args.options['geography-only'] === true
+  const forceUpload = args.options['force-upload'] === true
   if (
     !input ||
     args.positionals.length !== 1 ||
@@ -70,7 +91,59 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         await Bun.write(join(workDir, name), content)
       }),
     )
-    if (!geographyOnly) {
+    const geographyDivisionPath = join(
+      workDir,
+      'hkgov-censtatd-geography-division.parquet',
+    )
+    const geographyAreaPath = join(
+      workDir,
+      'hkgov-censtatd-geography-division-area.parquet',
+    )
+    const geography = await prepareHkgovCenstatdStatisticGeographyUploads({
+      areaOutputFile: geographyAreaPath,
+      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+      divisionOutputFile: geographyDivisionPath,
+      inputGml,
+      sourceArchiveKey: key,
+      sourceArchiveSha256: sha,
+      sourceVersion,
+    })
+    const requestedTypes: StatisticResourceType[] = [
+      ...(!geographyOnly ? (['divisionStatistic'] as const) : []),
+      ...(!geographyOnly && args.options['defer-stats-release-set'] === true
+        ? []
+        : geography.divisionCount > 0
+          ? (['division'] as const)
+          : []),
+      ...(!geographyOnly && args.options['defer-stats-release-set'] === true
+        ? []
+        : geography.areaCount > 0
+          ? (['divisionArea'] as const)
+          : []),
+    ]
+    const releaseReport = forceUpload
+      ? null
+      : await fetchReleaseReport(target, { datasetCode, limit: 100 })
+    const pendingTypes = forceUpload
+      ? requestedTypes
+      : pendingCenstatdStatisticResourceTypes(
+          releaseReport?.rows ?? [],
+          sourceVersion,
+          requestedTypes,
+        )
+
+    if (pendingTypes.length === 0) {
+      console.log(
+        `Skipping ${datasetCode} ${sourceVersion}: every requested resource is already published. Use --force-upload for a deliberate reprocess.`,
+      )
+      return
+    }
+
+    if (!geographyOnly && !pendingTypes.includes('divisionStatistic')) {
+      console.log(
+        `Skipping published Statistics resource for ${datasetCode} ${sourceVersion}.`,
+      )
+    } else if (!geographyOnly) {
       const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
       await prepareHkgovCenstatdStatisticUpload({
         datasetCode: datasetCode as CenstatdStatisticDatasetCode,
@@ -115,29 +188,14 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         },
       )
     }
+
     // Launch bootstrap prepares all Statistics snapshots before publishing a
     // cohort-complete r0. HMA/area companion geometry belongs to the Divisions
     // family and may depend on Division inputs that are deliberately outside
     // that Stats-only batch. Do not let that optional fan-out invalidate the
     // successfully published Statistics source release.
     if (!geographyOnly && args.options['defer-stats-release-set'] === true) return
-    const geographyDivisionPath = join(
-      workDir,
-      'hkgov-censtatd-geography-division.parquet',
-    )
-    const geographyAreaPath = join(
-      workDir,
-      'hkgov-censtatd-geography-division-area.parquet',
-    )
-    const geography = await prepareHkgovCenstatdStatisticGeographyUploads({
-      areaOutputFile: geographyAreaPath,
-      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
-      divisionOutputFile: geographyDivisionPath,
-      inputGml,
-      sourceArchiveKey: key,
-      sourceArchiveSha256: sha,
-      sourceVersion,
-    })
+
     for (const [filePath, type] of [
       ...(geography.divisionCount > 0
         ? ([[geographyDivisionPath, 'division']] as const)
@@ -146,6 +204,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         ? ([[geographyAreaPath, 'divisionArea']] as const)
         : []),
     ] as const) {
+      if (!pendingTypes.includes(type)) {
+        console.log(
+          `Skipping published ${type} resource for ${datasetCode} ${sourceVersion}.`,
+        )
+        continue
+      }
       await runUploadCommand(
         {
           command: 'upload',
