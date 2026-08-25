@@ -203,12 +203,38 @@ Publishes revision r{{ revision }}.
 
 {{experimentalApiWarning:zh-Hans}}
 `,
-      frontmatter: { apiVersion: 'api-divisions-v0.1' },
+      frontmatter: {
+        apiFamily: 'divisions',
+        apiVersion: 'api-divisions-v0.1',
+      },
     })
 
     expect(rendered).toContain('<black>v0.1</black> contract is experimental')
     expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
     expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+    expect(rendered).not.toContain('{{experimentalApiWarning:')
+  })
+
+  test('renders the Statistics experimental warning with its entry-point routes', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+      frontmatter: {
+        apiFamily: 'stats',
+        apiVersion: 'api-stats-v0.1',
+      },
+    })
+
+    expect(rendered).toContain(
+      'The <black>v0.1</black> API is experimental. Use <black>GET /stats/v0</black> to list',
+    )
+    expect(rendered).toContain('<black>GET /stats/v0/{id}</black>')
+    expect(rendered).toContain('<black>v0.1</black> API 仍屬實驗性質')
+    expect(rendered).toContain('<black>v0.1</black> API 仍处于实验阶段')
     expect(rendered).not.toContain('{{experimentalApiWarning:')
   })
 
