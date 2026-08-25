@@ -40,7 +40,8 @@ Each source release materialises one dataset snapshot per distinct exact referen
 period. Statistics release sets use that period code as their cohort and composition
 members match it with `exact_ref`. Dataset-code members are optional because not every
 dataset publishes every period; a later dataset or corrected compilation creates a new
-immutable revision only for the affected period.
+immutable revision only for the affected period. The first compilation is always an
+explicit `-r0` release set; later source contributions use `-r1`, `-r2`, and so on.
 
 Each packed measure value stores exact decimal text (not floats), its original source
 literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
