@@ -1,6 +1,7 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
+  handleBootstrapStatsReleaseSets,
   ControlRequestError,
   handlePublishDataset,
   handleReconcileDraftReleaseSets,
@@ -12,6 +13,8 @@ import {
 } from '../../lib/services/control'
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
+  BootstrapStatsReleaseSetsRequestSchema,
+  BootstrapStatsReleaseSetsResponseSchema,
   ControlResponseSchema,
   CleanupSnapshotsRequestSchema,
   CleanupSnapshotsResponseSchema,
@@ -213,6 +216,36 @@ const reconcileDraftReleaseSetsRouteConfig = createRoute({
   },
 })
 
+const bootstrapStatsReleaseSetsRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/control/bootstrapStatsReleaseSets',
+  tags: ['Control'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: BootstrapStatsReleaseSetsRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: BootstrapStatsReleaseSetsResponseSchema,
+        },
+      },
+      description: 'Initial Statistics cohort release sets assembled.',
+    },
+    400: baseResponses[400],
+    503: baseResponses[503],
+    500: baseResponses[500],
+    422: ValidationErrorOpenAPIResponse,
+  },
+})
+
 function createControlError(error: unknown) {
   const httpStatus = isTransientControlError(error)
     ? 503
@@ -341,6 +374,22 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
   },
 })
 
+export const bootstrapStatsReleaseSetsRoute = defineOpenAPIRoute<
+  typeof bootstrapStatsReleaseSetsRouteConfig,
+  AppEnv
+>({
+  route: bootstrapStatsReleaseSetsRouteConfig,
+  handler: async c => {
+    try {
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      return c.json(await handleBootstrapStatsReleaseSets(db, c.req.valid('json')), 200)
+    } catch (error) {
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
+    }
+  },
+})
+
 export const controlRoutes = [
   stageRunningRoute,
   stageCompletedRoute,
@@ -348,6 +397,7 @@ export const controlRoutes = [
   publishDatasetRoute,
   cleanupSnapshotsRoute,
   reconcileDraftReleaseSetsRoute,
+  bootstrapStatsReleaseSetsRoute,
 ] as const
 
 async function announcePublishedReleaseSets(

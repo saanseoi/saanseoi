@@ -54,7 +54,11 @@ type FixtureEntry = {
   lastSeenRelease: string
   machine?: typeof AZURE_TRANSLATION_MACHINE
   provenance: TranslationProvenance
+  /** Canonical division IDs which have used this reusable translation entry. */
+  recordIds?: string[]
   sourceLocale: I18nLocale
+  /** Literal source text retained for fixture review and web-based editing. */
+  sourceText?: string
   sourceTextHash: string
   targetLocale: I18nLocale
   text: string
@@ -158,7 +162,9 @@ export async function resolveDatasetNameTranslationsBatch(input: {
               lastSeenRelease: input.sourceRelease,
               machine: AZURE_TRANSLATION_MACHINE,
               provenance: 'ai-translated' as const,
+              recordIds: [record.recordId],
               sourceLocale: source.locale,
+              sourceText: source.name,
               sourceTextHash,
               targetLocale,
               text: legacy.text,
@@ -179,6 +185,28 @@ export async function resolveDatasetNameTranslationsBatch(input: {
           ) {
             cached.firstSeenRelease = firstSeenRelease ?? cached.firstSeenRelease
             cached.lastSeenRelease = lastSeenRelease ?? cached.lastSeenRelease
+            fixtureChanged = true
+          }
+          if (
+            cached.sourceText &&
+            hashText(cached.sourceText) !== cached.sourceTextHash
+          ) {
+            throw new Error(
+              `Invalid source text hash in dataset i18n fixture: ${input.datasetCode}.`,
+            )
+          }
+          if (!cached.sourceText) {
+            cached.sourceText = source.name
+            fixtureChanged = true
+          }
+          const recordIds = [
+            ...new Set([...(cached.recordIds ?? []), record.recordId]),
+          ].sort()
+          if (
+            cached.recordIds?.length !== recordIds.length ||
+            cached.recordIds?.some((recordId, index) => recordId !== recordIds[index])
+          ) {
+            cached.recordIds = recordIds
             fixtureChanged = true
           }
         } else {
@@ -235,7 +263,9 @@ export async function resolveDatasetNameTranslationsBatch(input: {
         lastSeenRelease: input.sourceRelease,
         machine: AZURE_TRANSLATION_MACHINE,
         provenance: 'ai-translated',
+        recordIds: [value.recordId],
         sourceLocale: value.source.locale,
+        sourceText: value.source.name,
         sourceTextHash: value.sourceTextHash,
         targetLocale: value.targetLocale,
         text,
