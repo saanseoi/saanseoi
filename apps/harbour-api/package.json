@@ -13,6 +13,7 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "test": "bun test",
+    "test:ci": "bun test --max-concurrency=1",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
