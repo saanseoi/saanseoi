@@ -343,13 +343,13 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
       leftLabel: `${m.source_audit_translation_source()} (${sourceLocale})`,
       leftValue: sourceText,
       rightItems: [
+        ...(parentName
+          ? [{ label: m.source_audit_translation_parent_division(), value: parentName }]
+          : []),
         {
           label: `${m.source_audit_translation_result()} (${targetLocale})`,
           value: translatedText,
         },
-        ...(parentName
-          ? [{ label: m.source_audit_translation_parent_division(), value: parentName }]
-          : []),
       ],
     }
   }

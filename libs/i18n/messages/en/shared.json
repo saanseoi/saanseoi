@@ -379,6 +379,8 @@
   "source_audit_search_placeholder": "Fuzzy find an address, ID, source file, or decision",
   "source_audit_clear_search": "Clear audit search",
   "source_audit_record_action": "Record action",
+  "source_audit_expand_records": "Show records",
+  "source_audit_collapse_records": "Collapse records",
   "source_audit_mode_automatic": "automatic",
   "source_audit_mode_manual": "manual",
   "source_audit_decision": "Decision",
