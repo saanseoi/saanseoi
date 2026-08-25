@@ -64,9 +64,10 @@ affect the feature being explained.
 
 ## Shaping the Response
 
-Profiles control how much information each response contains. You can try the different
-profiles in the [Samples tab](?tab=samples). Set one with <black>profile=</black>; if
-you omit it, the API uses <black>default</black>.
+A <black>profile</black> controls how much information each response contains. If you do
+not choose one, the API uses <black>default</black>. <black>compact</black> is useful
+for a short list, <black>map</black> adds map coordinates, and <black>full</black> adds
+geometry and detailed provenance.
 
 {{apiProfileTable:en}}
 
