@@ -131,12 +131,14 @@ let bulkActions = $derived(
     .filter(rule => rule.type === 'bulk') ?? [],
 )
 let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
+let sourceRecordsAvailable = $state<boolean | null>(null)
 let sourceSampleRequest = $state(0)
 let sourceSampleTarget = $state<string | null>(null)
 $effect(() => {
   const target = sourceRecordFamily ? `${sourceRecordFamily}:${version?.code}` : null
   if (sourceSampleTarget === target) return
   sourceSampleTarget = target
+  sourceRecordsAvailable = null
   sourceSampleRequest = 0
 })
 let districtMapData = $derived(
@@ -311,7 +313,7 @@ let actions = $derived<ReleaseNavAction[]>(
           pressed: showNoteDiff,
         },
       ]
-    : activeTab === 'samples' && sourceRecordFamily
+    : activeTab === 'samples' && sourceRecordFamily && sourceRecordsAvailable !== false
       ? [
           {
             icon: 'ion:reload-outline',
@@ -483,6 +485,7 @@ $effect(() => {
             {#key `${sourceRecordFamily}:${version.code}`}
               <SourceRecordSamples
                 family={sourceRecordFamily}
+                onAvailabilityChange={available => (sourceRecordsAvailable = available)}
                 request={sourceSampleRequest}
                 sourceReleaseCode={version.code}
               />
