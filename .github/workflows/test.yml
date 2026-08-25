@@ -84,8 +84,8 @@ jobs:
         run: bun run test
         working-directory: ${{ matrix.app.path }}
 
-      # These tests each initialise a SQLite fixture database. Running Bun's
-      # default 20 test workers exhausts the hosted runner's disk resources.
+      # These two files each initialise SQLite fixture databases. Keep only
+      # them serial while the other Harbour API test files run normally.
       - name: 'TEST :: Run Harbour API tests serially'
         if: matrix.app.path == 'apps/harbour-api'
         run: bun run test:ci
