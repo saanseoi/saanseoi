@@ -1,6 +1,0 @@
-export { default as CodeBlock } from './basemapCodeBlock.svelte'
-export { default as Credentials } from './basemapCredentials.svelte'
-export { default as Hero } from './basemapHero.svelte'
-export { default as Integrations } from './basemapIntegrations.svelte'
-export { default as Prerequisites } from './basemapPrerequisites.svelte'
-export { default as TokenExchange } from './basemapTokenExchange.svelte'
