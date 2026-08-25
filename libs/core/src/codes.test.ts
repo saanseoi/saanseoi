@@ -4,6 +4,7 @@ import {
   buildDatasetCode,
   buildDatasetReleaseCode,
   datasetVariantForSource,
+  isDatasetReleaseCode,
   publisherCodeForSource,
   resourceTypeCodeSlug,
 } from './codes'
@@ -40,6 +41,15 @@ describe('registry code construction', () => {
     expect(buildDatasetReleaseCode('hk', 'hkgov-pland-pu', '2006', 'division')).toBe(
       'dr-hk-hkgov-pland-division-pu-2006',
     )
+  })
+
+  test('recognises canonical release codes with dotted source versions', () => {
+    expect(isDatasetReleaseCode('dr-hk-overture-division-2025-09-24.0')).toBeTrue()
+    expect(
+      isDatasetReleaseCode('dr-hk-hkgov-censtatd-division-area-district-2021'),
+    ).toBeTrue()
+    expect(isDatasetReleaseCode('dr-hk-overture-division-2025-09-24.')).toBeFalse()
+    expect(isDatasetReleaseCode('dr-hk-overture-division-2025/09/24.0')).toBeFalse()
   })
 
   test('maps both Planning Department variants to their publisher code', () => {

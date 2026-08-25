@@ -134,6 +134,17 @@ export function buildDatasetReleaseCode(
     .join('-')
 }
 
+/**
+ * Checks the portable release-code form produced by `buildDatasetReleaseCode`.
+ * Source-version segments may use dots, underscores, or hyphens between their
+ * alphanumeric components.
+ */
+export function isDatasetReleaseCode(value: string) {
+  return /^dr-[a-z0-9]+(?:-[a-z0-9]+)*(?:-[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*)$/.test(
+    value,
+  )
+}
+
 export function datasetVariantForSource(
   resourceType: ResourceType,
   source?: string,
