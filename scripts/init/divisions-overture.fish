@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
-init_configure "saanseoi init:divisions:geophraphic" $argv
+init_configure "saanseoi init:divisions:geographic" $argv
 
 set -l root "$saanseoi_init_repo/data/overture"
 set -l releases \

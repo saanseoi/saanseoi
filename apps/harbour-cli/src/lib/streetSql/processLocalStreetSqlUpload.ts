@@ -749,7 +749,7 @@ async function loadCanonicalDistricts(
     throw new Error(
       [
         'A published canonical Overture division snapshot is required to normalize LandsD street districts.',
-        'Run ./bin/saanseoi init:divisions:geophraphic --target local, then retry the update.',
+        'Run ./bin/saanseoi init:divisions:geographic --target local, then retry the update.',
       ].join(' '),
     )
   }
