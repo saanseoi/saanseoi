@@ -13,6 +13,7 @@ export default defineConfig({
       project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
       outdir: resolve(import.meta.dirname, '../../libs/i18n/src/paraglide'),
       emitTsDeclarations: true,
+      outputStructure: 'locale-modules',
     }),
     sveltekit({
       compilerOptions: {
