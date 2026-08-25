@@ -22,6 +22,7 @@ type InterruptInput = {
       key: { ctrl?: boolean; name?: string; sequence?: string },
     ) => void,
   ): unknown
+  pause?(): unknown
 }
 
 /**
@@ -66,5 +67,9 @@ export function installInterruptHandler(
     processRef.off('SIGINT', interrupt)
     processRef.off('SIGTERM', interrupt)
     inputRef.off('keypress', interruptOnKeypress)
+    // emitKeypressEvents resumes the real terminal stream. Removing its
+    // listener alone leaves Bun's event loop alive after a non-interactive
+    // command (for example, a nested initialiser reconciliation) has finished.
+    if (inputRef === process.stdin) inputRef.pause?.()
   }
 }
