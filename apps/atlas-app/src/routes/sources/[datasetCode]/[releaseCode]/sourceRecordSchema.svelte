@@ -3,39 +3,24 @@ import {
   resolveSourceRecordSchema,
   type ResourceType,
 } from '@repo/core/sourceRecordSchemas'
-import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import { page } from '$app/state'
 
+import { m } from '#lib/bits/internal/i18n.js'
 import Node from '#lib/bits/pages/docs/components/releaseSchema/components/releaseSchemaNode.svelte'
 import type { OpenApiSchema } from '#lib/bits/pages/docs/components/releaseSchema/releaseSchema.types.js'
 
 type Props = {
-  family: string
   resourceType: string
   source: string
-  sourceReleaseCode: string
-  sourceSchemaUrl?: string | null
   sourceSchemaVersion?: string | null
   sourceVersion: string
 }
 
-let {
-  family,
-  resourceType,
-  source,
-  sourceReleaseCode,
-  sourceSchemaUrl,
-  sourceSchemaVersion,
-  sourceVersion,
-}: Props = $props()
+let { resourceType, source, sourceSchemaVersion, sourceVersion }: Props = $props()
 let expandedNodeStates = $state<Record<string, boolean>>({})
 let expandAllToken = $state(0)
 
-let apiBaseUrl = $derived(
-  (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, ''),
-)
-let requestUrl = $derived(
-  `${apiBaseUrl}/${family}/v0.1/sources?sourceRelease=${encodeURIComponent(sourceReleaseCode)}&include=geometry`,
-)
+let samplesUrl = $derived(`${page.url.pathname}?tab=samples`)
 let sourceSchema = $derived(
   resolveSourceRecordSchema({
     resourceType: resourceType as ResourceType,
@@ -67,14 +52,15 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
   if (!sourceSchema) return null
 
   const rawProperties: OpenApiSchema = {
-    description:
-      'The unmodified source payload for this record, validated against the release-specific source schema.',
+    description: m.source_record_schema_raw_properties_description(),
     properties: Object.fromEntries(
       sourceSchema.fields.map(field => [
         field.name,
         {
           ...sourceFieldSchema(field.type),
-          description: `Overture source type: \`${field.type}\`.`,
+          description: m
+            .source_record_schema_field_type()
+            .replace('{type}', field.type),
           nullable: field.nullable,
         },
       ]),
@@ -83,25 +69,23 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
   }
 
   return {
-    description:
-      'A raw record from this published source release. `rawProperties` is typed to the exact upstream schema selected at ingestion.',
+    description: m.source_record_schema_record_description(),
     properties: {
       sourceRecordId: {
-        description: 'Source-specific record identifier.',
+        description: m.source_record_schema_source_record_id_description(),
         type: 'string',
       },
       resourceType: {
-        description: 'SaanSeoi resource type represented by the source record.',
+        description: m.source_record_schema_resource_type_description(),
         type: 'string',
       },
       variant: {
-        description: 'Source variant retained with the record.',
+        description: m.source_record_schema_variant_description(),
         type: 'string',
       },
       rawProperties: { ...rawProperties, nullable: true },
       geometry: {
-        description:
-          'GeoJSON geometry, returned only when `include=geometry` is requested.',
+        description: m.source_record_schema_geometry_description(),
         type: 'object',
       },
     },
@@ -115,11 +99,20 @@ function setExpandedNodeState(path: string, expanded: boolean) {
 }
 </script>
 
-<section class="space-y-4" aria-label="Source record schema">
+<section class="space-y-4" aria-label={m.source_record_schema_aria_label()}>
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    This schema describes the raw source records returned for this exact release. The
-    typed <code>rawProperties</code> object is the payload stored from Overture, before
-    SaanSeoi's canonical transformation.
+    {m.source_record_schema_intro_before()} <code>rawProperties</code>
+    {m.source_record_schema_intro_after()}
+    {m.source_record_schema_upstream_specification()}
+    {#if sourceSchemaVersion}
+      <code>({sourceSchemaVersion})</code>
+    {/if}
+    {m.source_record_schema_available_in()}
+    <a
+      class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+      href={samplesUrl}
+      >{m.source_record_schema_samples_tab()}</a
+    >.
   </p>
 
   {#if recordSchema}
@@ -139,28 +132,7 @@ function setExpandedNodeState(path: string, expanded: boolean) {
     </div>
   {:else}
     <p class="font-body text-body-md text-foreground-alt">
-      The typed source schema is not available for this release yet.
+      {m.source_record_schema_unavailable()}
     </p>
   {/if}
-
-  <p class="font-body text-body-md text-foreground-alt">
-    <a
-      class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-      href={requestUrl}
-      target="_blank"
-      rel="noreferrer"
-      >Open the typed source-record response</a
-    >.
-    {#if sourceSchemaUrl}
-      The upstream schema{sourceSchemaVersion ? ` (${sourceSchemaVersion})` : ''}
-      is
-      <a
-        class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-        href={sourceSchemaUrl}
-        target="_blank"
-        rel="noreferrer"
-        >also available</a
-      >.
-    {/if}
-  </p>
 </section>

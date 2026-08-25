@@ -3,22 +3,21 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { apiProfileNames, type ApiProfileName } from '@repo/core/apiLocales'
-import { source_geometry_district_fallback } from '@repo/i18n/messages'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
-import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
-import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
-import * as ReleaseSamples from '#lib/bits/pages/docs/components/releaseSamples/index.js'
-import * as ReleaseSchema from '#lib/bits/pages/docs/components/releaseSchema/index.js'
-import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 
-import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
+import {
+  getCurrentLocale,
+  getLocalisedMessage,
+  m,
+  selectLocalisedRow,
+} from '#lib/bits/internal/i18n.js'
 import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
 import {
   getApiReleasePageData,
@@ -37,6 +36,7 @@ import {
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
 import { supportsReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
+import { getReleaseLinksOutline } from '#lib/bits/pages/docs/components/releaseLinks/releaseLinksOutline.js'
 import type {
   ReleaseNavAction,
   ReleaseNavOutlineItem,
@@ -144,6 +144,90 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
     : 'release'
 }
 let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
+let hasPreloadedSkeletons = $state(false)
+let statsRoot = $derived(
+  activeTab === 'stats'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsRoot.svelte'
+      )
+    : undefined,
+)
+let schemaRoot = $derived(
+  activeTab === 'schema'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseSchema/components/releaseSchemaRoot.svelte'
+      )
+    : undefined,
+)
+let samplesRoot = $derived(
+  activeTab === 'samples'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesRoot.svelte'
+      )
+    : undefined,
+)
+let auditRoot = $derived(
+  activeTab === 'audit'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditRoot.svelte'
+      )
+    : undefined,
+)
+let linksComponents = $derived(
+  activeTab === 'sources'
+    ? Promise.all([
+        import(
+          '#lib/bits/pages/docs/components/releaseLinks/components/releaseLinksRoot.svelte'
+        ),
+        import(
+          '#lib/bits/pages/docs/components/releaseLinks/components/releaseLinksProvenance.svelte'
+        ),
+      ])
+    : undefined,
+)
+
+$effect(() => {
+  if (!contentResource.ready || hasPreloadedSkeletons) return
+
+  let cancelled = false
+  const preload = () => {
+    if (cancelled) return
+    hasPreloadedSkeletons = true
+    void Promise.all([
+      import(
+        '#lib/bits/pages/docs/components/releaseDiff/components/releaseDiffSkeleton.svelte'
+      ),
+      import(
+        '#lib/bits/pages/docs/components/releaseNotes/components/releaseNotesSkeleton.svelte'
+      ),
+      import(
+        '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSkeleton.svelte'
+      ),
+      import(
+        '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditSkeleton.svelte'
+      ),
+      import(
+        '#lib/bits/pages/docs/components/releaseLinks/components/releaseLinksSkeleton.svelte'
+      ),
+    ]).catch(() => {})
+  }
+
+  const requestIdleCallback = (window as Partial<Window>).requestIdleCallback
+  const cancelIdleCallback = (window as Partial<Window>).cancelIdleCallback
+  if (requestIdleCallback) {
+    const idleCallback = requestIdleCallback(preload, { timeout: 1_200 })
+    return () => {
+      cancelled = true
+      cancelIdleCallback?.(idleCallback)
+    }
+  }
+
+  const timeout = window.setTimeout(preload, 250)
+  return () => {
+    cancelled = true
+    window.clearTimeout(timeout)
+  }
+})
 let showAllRevisions = $state(false)
 let activeHeadingId = $state<string | null>(null)
 let statsHeadings = $state<ReleaseContentHeading[]>([])
@@ -290,9 +374,14 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       'zh-hans': m.source_locale_zh_hans(),
     })[code] ?? code,
   statLabel: value =>
-    value === 'missing_street_count' ? 'Missing street linkage' : humaniseStat(value),
+    value === 'missing_street_count'
+      ? m.source_missing_street_linkage()
+      : humaniseStat(value),
   districtFallback: districtId =>
-    source_geometry_district_fallback({ district: districtId }),
+    getLocalisedMessage('source_geometry_district_fallback', locale).replace(
+      '{district}',
+      districtId,
+    ),
   processingAction: code => {
     const [mode, ...action] = code.split(':')
     return {
@@ -488,7 +577,7 @@ let sourceReleaseLinksPresentation = $derived(
   ),
 )
 let sourceOutline = $derived(
-  ReleaseLinks.getReleaseLinksOutline(sourceReleaseLinksPresentation, 'groups'),
+  getReleaseLinksOutline(sourceReleaseLinksPresentation, 'groups'),
 )
 
 let tocHeadings = $derived(
@@ -659,48 +748,74 @@ $effect(() => {
             {/if}
           </div>
         {:else if activeTab === 'stats'}
-          <ReleaseStats.Root
-            stats={release.stats}
-            {districtAreas}
-            {locale}
-            presentation={statsPresentation}
-            bind:headings={statsHeadings}
-            bind:activeHeadingId={activeStatsHeadingId}
-          />
+          {#if statsRoot}
+            {#await statsRoot then module}
+              {@const ReleaseStatsRoot = module.default}
+              <ReleaseStatsRoot
+                stats={release.stats}
+                {districtAreas}
+                {locale}
+                presentation={statsPresentation}
+                bind:headings={statsHeadings}
+                bind:activeHeadingId={activeStatsHeadingId}
+              />
+            {/await}
+          {/if}
         {:else if activeTab === 'schema'}
-          <ReleaseSchema.Root
-            apiFamily={api.familyType}
-            apiVersion={release.apiVersion}
-            profile={apiProfile}
-          />
+          {#if schemaRoot}
+            {#await schemaRoot then module}
+              {@const ReleaseSchemaRoot = module.default}
+              <ReleaseSchemaRoot
+                apiFamily={api.familyType}
+                apiVersion={release.apiVersion}
+                profile={apiProfile}
+              />
+            {/await}
+          {/if}
         {:else if activeTab === 'samples'}
-          {#key `${release.apiVersion}:${release.code}:${apiProfile}`}
-            <ReleaseSamples.Root
-              apiVersion={release.apiVersion}
-              apiFamily={release.apiFamily}
-              profile={apiProfile}
-              releaseSet={release.code}
-              request={sampleRequest}
-            />
-          {/key}
+          {#if samplesRoot}
+            {#await samplesRoot then module}
+              {@const ReleaseSamplesRoot = module.default}
+              {#key `${release.apiVersion}:${release.code}:${apiProfile}`}
+                <ReleaseSamplesRoot
+                  apiVersion={release.apiVersion}
+                  apiFamily={release.apiFamily}
+                  profile={apiProfile}
+                  releaseSet={release.code}
+                  request={sampleRequest}
+                />
+              {/key}
+            {/await}
+          {/if}
         {:else if activeTab === 'audit'}
-          <ReleaseAudit.Root
-            analyticsSurface="api_release"
-            actions={release.processingActions}
-            bulkActions={release.bulkActions}
-            {locale}
-            {showBulkActions}
-            bind:headings={auditHeadings}
-            bind:activeHeadingId={activeAuditHeadingId}
-          />
+          {#if auditRoot}
+            {#await auditRoot then module}
+              {@const ReleaseAuditRoot = module.default}
+              <ReleaseAuditRoot
+                analyticsSurface="api_release"
+                actions={release.processingActions}
+                bulkActions={release.bulkActions}
+                {locale}
+                {showBulkActions}
+                bind:headings={auditHeadings}
+                bind:activeHeadingId={activeAuditHeadingId}
+              />
+            {/await}
+          {/if}
         {:else}
-          <ReleaseLinks.Root>
-            <ReleaseLinks.Provenance
-              analyticsSurface="api_release"
-              presentation={sourceReleaseLinksPresentation}
-              emptyLabel={m.api_release_unavailable()}
-            />
-          </ReleaseLinks.Root>
+          {#if linksComponents}
+            {#await linksComponents then modules}
+              {@const ReleaseLinksRoot = modules[0].default}
+              {@const ReleaseLinksProvenance = modules[1].default}
+              <ReleaseLinksRoot>
+                <ReleaseLinksProvenance
+                  analyticsSurface="api_release"
+                  presentation={sourceReleaseLinksPresentation}
+                  emptyLabel={m.api_release_unavailable()}
+                />
+              </ReleaseLinksRoot>
+            {/await}
+          {/if}
         {/if}
       </div>
     {/if}
