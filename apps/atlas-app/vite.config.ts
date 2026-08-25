@@ -3,11 +3,16 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import tailwindcss from '@tailwindcss/vite'
+import { paraglideVitePlugin } from '@inlang/paraglide-js'
 import { sveltekit } from '@sveltejs/kit/vite'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
+    paraglideVitePlugin({
+      project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
+      outdir: resolve(import.meta.dirname, '../../libs/i18n/src/paraglide'),
+    }),
     sveltekit({
       compilerOptions: {
         experimental: { async: true },

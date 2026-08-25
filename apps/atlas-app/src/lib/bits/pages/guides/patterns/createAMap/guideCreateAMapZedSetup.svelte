@@ -406,7 +406,7 @@ const agentWorkflowScreenshots = $derived([
                 copiedLabel={m.common_copied()}
               />
               <p class="font-body text-body-md leading-7 text-foreground-alt">
-                {@html m.guide_zed_setup_save().replace('{shortcut}', saveShortcut)}
+                {@html m.guide_zed_setup_save({ shortcut: saveShortcut })}
               </p>
               <GuideScreenshot
                 src={settingsFileAfterImage}

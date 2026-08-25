@@ -46,7 +46,7 @@ let initials = $derived(
           id="guide-basemap-account-complete-title"
           class="mt-1 truncate font-body text-body-lg font-semibold text-primary"
         >
-          {m.guide_basemap_account_complete_title().replace('{name}', user.name)}
+          {m.guide_basemap_account_complete_title({ name: user.name })}
         </h3>
       </div>
     </div>

@@ -58,9 +58,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
         field.name,
         {
           ...sourceFieldSchema(field.type),
-          description: m
-            .source_record_schema_field_type()
-            .replace('{type}', field.type),
+          description: m.source_record_schema_field_type({ type: field.type }),
           nullable: field.nullable,
         },
       ]),
