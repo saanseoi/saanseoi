@@ -477,9 +477,12 @@ $effect(() => {
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
               family={sourceRecordFamily}
+              resourceType={source.resourceTypes[0] ?? ''}
+              source={source.publisherCode}
               sourceReleaseCode={version.code}
               sourceSchemaUrl={source.schemaURL}
               sourceSchemaVersion={version.sourceSchemaVersion}
+              sourceVersion={version.sourceVersion}
             />
           {:else if activeTab === 'samples' && sourceRecordFamily}
             {#key `${sourceRecordFamily}:${version.code}`}
