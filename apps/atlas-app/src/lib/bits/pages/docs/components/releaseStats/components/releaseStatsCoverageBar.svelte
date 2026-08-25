@@ -1,12 +1,15 @@
 <script lang="ts">
 let {
   coverage,
-  providedCoverage = coverage,
+  segments,
   label,
   ariaLabel,
 }: {
   coverage: number
-  providedCoverage?: number
+  segments: Array<{
+    tone: 'provided' | 'inferred' | 'ai-translated' | 'human-translated'
+    value: number
+  }>
   label: string
   ariaLabel: string
 } = $props()
@@ -31,16 +34,20 @@ function measure(node: HTMLElement) {
   role="img"
   aria-label={ariaLabel}
 >
-  <span
-    class="absolute inset-y-0 left-0 bg-data-success"
-    style={`width: ${providedCoverage}%`}
-  ></span>
-  {#if coverage > providedCoverage}
+  {#each segments as segment, index}
     <span
-      class="absolute inset-y-0 bg-data-alert"
-      style={`left: ${providedCoverage}%; width: ${coverage - providedCoverage}%`}
+      class={`absolute inset-y-0 ${
+        segment.tone === 'provided'
+          ? 'bg-data-success'
+          : segment.tone === 'inferred'
+            ? 'bg-data-inferred'
+            : segment.tone === 'ai-translated'
+              ? 'bg-data-ai-translated'
+              : 'bg-data-human-translated'
+      }`}
+      style={`left: ${segments.slice(0, index).reduce((total, item) => total + item.value, 0)}%; width: ${segment.value}%`}
     ></span>
-  {/if}
+  {/each}
   <span
     class={`absolute inset-y-0 flex font-mono text-caption font-normal tabular-nums ${labelFits === undefined ? 'invisible' : ''} ${labelFits ? 'left-0 items-center justify-end pr-2 text-data-on-primary' : 'items-center text-data-primary'}`}
     style={labelFits ? `width: ${coverage}%` : `left: ${coverage}%; transform: translateX(0.5rem)`}

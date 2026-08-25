@@ -38,6 +38,8 @@ const presentation: ReleaseStatsCopy = {
     namesByLocale: 'Names by locale',
     provided: 'Provided',
     inferred: 'Inferred',
+    aiTranslated: 'AI translated',
+    humanTranslated: 'Human translated',
     localeLegend: 'Locale legend',
     completenessInfo: 'Completeness info',
     completenessInfoDescription: 'Coverage details',

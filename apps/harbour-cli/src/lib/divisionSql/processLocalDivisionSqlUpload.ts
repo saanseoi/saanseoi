@@ -119,7 +119,10 @@ import {
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../dbCache/localDbCache.ts'
-import { resolveSourceReleaseNameTranslationsBatch } from '../i18n/sourceReleaseTranslations.ts'
+import {
+  resolveDatasetNameTranslationsBatch,
+  type DatasetTranslationApplication,
+} from '../i18n/datasetNameTranslations.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -1245,7 +1248,11 @@ async function buildDivisionSqlState(
         )
       }
       const canonicalI18n = buildCanonicalDivisionApiI18n(
-        mergeDivisionI18nTranslations(normalised.i18n, resolvedI18n.localisations),
+        mergeDivisionI18nTranslations(
+          normalised.i18n,
+          resolvedI18n.localisations,
+          resolvedI18n.applications,
+        ),
       )
       if (message.source === 'overture') {
         processingActions.push(
@@ -1254,6 +1261,11 @@ async function buildDivisionSqlState(
             division: normalised.base,
             rawNames: raw.names,
             sourceI18n: normalised.i18n,
+          }),
+          ...buildOvertureDivisionTranslationProcessingActions({
+            division: normalised.base,
+            rawNames: raw.names,
+            translations: resolvedI18n.applications,
           }),
         )
       }
@@ -1272,6 +1284,7 @@ async function buildDivisionSqlState(
               baseVersionHash: versionHash,
               i18n: canonicalI18n.map(localised => ({
                 isLocaleInferred: localised.isLocaleInferred,
+                nameProvenance: localised.nameProvenance,
                 locale: localised.locale,
                 name: localised.name ?? null,
                 nameAlts: localised.nameAlts ?? null,
@@ -1293,6 +1306,7 @@ async function buildDivisionSqlState(
           hasAltName: Boolean(localised.nameAlts),
           hasName: Boolean(localised.name),
           isLocaleInferred: localised.isLocaleInferred,
+          nameProvenance: localised.nameProvenance,
           locale: localised.locale,
         })),
       )
@@ -1413,6 +1427,7 @@ async function resolveDivisionNameTranslations(
   const recordsById = new Map<
     string,
     {
+      context: Record<string, string | null>
       localisations: Array<{ locale: string; name: string }>
       recordId: string
     }
@@ -1425,7 +1440,16 @@ async function resolveDivisionNameTranslations(
   )) {
     for (const row of rows) {
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      const parentDivisionId = resolveParentDivisionIdFromHierarchy(
+        normalised.base.hierarchy,
+      )
       recordsById.set(normalised.base.id, {
+        context: {
+          parentDivisionId,
+          parentName: parentDivisionId
+            ? (hierarchyLookup.get(parentDivisionId)?.i18n.en?.name ?? null)
+            : null,
+        },
         localisations: normalised.i18n.flatMap(localised =>
           localised.name ? [{ locale: localised.locale, name: localised.name }] : [],
         ),
@@ -1434,8 +1458,14 @@ async function resolveDivisionNameTranslations(
     }
   }
 
-  return resolveSourceReleaseNameTranslationsBatch({
+  const datasetCode = message.datasetCode
+  if (!datasetCode) {
+    throw new Error('Division i18n fixtures require a dataset code.')
+  }
+
+  return resolveDatasetNameTranslationsBatch({
     allowGeneration,
+    datasetCode,
     records: [...recordsById.values()],
     sourceRelease,
   })
@@ -1444,6 +1474,7 @@ async function resolveDivisionNameTranslations(
 function mergeDivisionI18nTranslations(
   source: DivisionI18nPayload[],
   localisations: Array<{ locale: string; name: string }>,
+  applications: DatasetTranslationApplication[],
 ) {
   const existing = new Set(source.map(localised => localised.locale))
   const divisionId = source[0]?.divisionId
@@ -1461,12 +1492,44 @@ function mergeDivisionI18nTranslations(
               locale: localised.locale,
               name: localised.name,
               nameAlts: null,
+              nameProvenance:
+                applications.find(
+                  application => application.locale === localised.locale,
+                )?.provenance ?? 'ai-translated',
               nameRules: null,
               nameVariant: [localised.name],
             } satisfies DivisionI18nPayload,
           ],
     ),
   ]
+}
+
+function buildOvertureDivisionTranslationProcessingActions(input: {
+  division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
+  rawNames: unknown
+  translations: DatasetTranslationApplication[]
+}): ReleaseProcessingAction[] {
+  return input.translations.map(translation => ({
+    action:
+      translation.provenance === 'human-translated'
+        ? 'overture_division_name_human_translated'
+        : 'overture_division_name_ai_translated',
+    affectedRecordCount: 1,
+    evidence: {
+      canonicalDivision: {
+        id: input.division.id,
+        level: input.division.level,
+        type: input.division.type,
+      },
+      sourceNames: input.rawNames ?? null,
+      translation,
+    },
+    mode: translation.provenance === 'human-translated' ? 'manual' : 'automatic',
+    summary:
+      translation.provenance === 'human-translated'
+        ? 'Added a human-translated division name locale.'
+        : 'Added an AI-translated division name locale.',
+  }))
 }
 
 async function buildDivisionSourceSqlFile(
@@ -1653,6 +1716,7 @@ async function buildDivisionHistorySqlFile(
           nameVariant: jsonText(localised.nameVariant),
           nameAlts: localised.nameAlts ?? null,
           nameRules: jsonText(localised.nameRules),
+          nameProvenance: localised.nameProvenance,
           isLocaleInferred: localised.isLocaleInferred,
           createdAt: record.base.updatedAt,
           updatedAt: record.base.updatedAt,
@@ -1720,6 +1784,7 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
         'nameVariant',
         'nameAlts',
         'nameRules',
+        'nameProvenance',
         'isLocaleInferred',
         'createdAt',
         'updatedAt',
@@ -1735,6 +1800,7 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
   nameRules = excluded.nameRules,
+  nameProvenance = excluded.nameProvenance,
   isLocaleInferred = excluded.isLocaleInferred,
   updatedAt = excluded.updatedAt`.trim(),
       },
@@ -1830,11 +1896,11 @@ ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
       `
 INSERT INTO divisionsI18n (
   snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules,
-  isLocaleInferred, createdAt, updatedAt
+  nameProvenance, isLocaleInferred, createdAt, updatedAt
 )
 SELECT
   ${sqlLiteral(snapshotId)}, divisionId, locale, name, nameVariant, nameAlts, nameRules,
-  isLocaleInferred, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
+  nameProvenance, isLocaleInferred, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisionsI18n
 WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
 ON CONFLICT(snapshotId, divisionId, locale) DO NOTHING;`.trim(),
@@ -1892,6 +1958,7 @@ async function buildDivisionCurrentSqlFile(
           nameVariant: jsonText(localised.nameVariant),
           nameAlts: localised.nameAlts ?? null,
           nameRules: jsonText(localised.nameRules),
+          nameProvenance: localised.nameProvenance,
           isLocaleInferred: localised.isLocaleInferred,
           createdAt: record.base.updatedAt,
           updatedAt: record.base.updatedAt,
@@ -1947,6 +2014,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
         'nameVariant',
         'nameAlts',
         'nameRules',
+        'nameProvenance',
         'isLocaleInferred',
         'createdAt',
         'updatedAt',
@@ -1959,6 +2027,7 @@ ON CONFLICT(snapshotId, divisionId, locale) DO UPDATE SET
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
   nameRules = excluded.nameRules,
+  nameProvenance = excluded.nameProvenance,
   isLocaleInferred = excluded.isLocaleInferred,
   updatedAt = excluded.updatedAt`.trim(),
       },

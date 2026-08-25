@@ -179,6 +179,7 @@ export async function getCurrentDivisionVersionMap(
       .select({
         divisionId: historySchema.divisionsI18n.divisionId,
         isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
+        nameProvenance: historySchema.divisionsI18n.nameProvenance,
         locale: historySchema.divisionsI18n.locale,
         name: historySchema.divisionsI18n.name,
         nameAlts: historySchema.divisionsI18n.nameAlts,
@@ -265,6 +266,7 @@ export async function getDivisionVersionMapForSnapshot(
     .select({
       divisionId: currentSchema.divisionsI18n.divisionId,
       isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
+      nameProvenance: currentSchema.divisionsI18n.nameProvenance,
       locale: currentSchema.divisionsI18n.locale,
       name: currentSchema.divisionsI18n.name,
       nameAlts: currentSchema.divisionsI18n.nameAlts,
@@ -874,6 +876,7 @@ export async function insertDivisionVersionRows(
     {
       divisionId: string
       isLocaleInferred: boolean
+      nameProvenance?: DivisionI18nPayload['nameProvenance']
       locale: string
       name: string | null
       nameAlts: string | null
@@ -955,6 +958,7 @@ export async function insertDivisionVersionRows(
       i18nRows.map(row => ({
         divisionId: row.divisionId,
         isLocaleInferred: row.isLocaleInferred,
+        nameProvenance: row.nameProvenance ?? null,
         locale: row.locale,
         name: row.name,
         nameAlts: row.nameAlts,
@@ -1014,6 +1018,12 @@ async function insertDivisionVersionsI18nInChunks(
   rows: Array<{
     divisionId: string
     isLocaleInferred: boolean
+    nameProvenance:
+      | 'provided'
+      | 'inferred'
+      | 'ai-translated'
+      | 'human-translated'
+      | null
     locale: string
     name: string | null
     nameAlts: string | null
@@ -1052,6 +1062,7 @@ async function insertDivisionVersionsI18nInChunks(
               name: excluded('name'),
               nameAlts: excluded('nameAlts'),
               nameRules: excluded('nameRules'),
+              nameProvenance: excluded('nameProvenance'),
               nameVariant: excluded('nameVariant'),
               isLocaleInferred: excluded('isLocaleInferred'),
               updatedAt: excluded('updatedAt'),

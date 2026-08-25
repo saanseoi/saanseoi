@@ -38,9 +38,26 @@ Each affected division is retained in `releaseProcessingActions` for investigati
   the inferred locales when unlabeled text requires script-based inference.
 - `overture_division_api_locale_fallback_added` records the same source and normalised
   evidence when an API-facing `zh-hant` or `zh-hans` fallback row is added.
+- `overture_division_name_ai_translated` and `overture_division_name_human_translated`
+  record every generated name locale applied to the release, including source text,
+  target text, locale, and parent-division context.
 
 No locale audit row is written when a division already has the required canonical locale
 without inference or fallback.
+
+#### Dataset translation memory
+
+Overture uses `fixtures/i18n/datasets/ds-hk-overture-division.json`, rather than one
+translation file per source release. The identity key is
+`(field, contextHash, sourceLocale, sourceTextHash, targetLocale)`. Division context
+contains the parent division ID and English parent name, so equal source text is reused
+only when it has the same parent context.
+
+Each entry retains AI or human provenance plus `firstSeenRelease` and `lastSeenRelease`.
+Translations have no validity-time dimension: fixture edits affect later imports only.
+The release audit action remains the immutable evidence of what was applied at the time.
+Locale coverage statistics categorise each name exclusively as provided, inferred,
+AI-translated, or human-translated.
 
 ### ZH-HANT
 

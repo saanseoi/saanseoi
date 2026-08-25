@@ -54,6 +54,8 @@ export type ReleaseStatsLabels = {
   namesByLocale: string
   provided: string
   inferred: string
+  aiTranslated: string
+  humanTranslated: string
   localeLegend: string
   completenessInfo: string
   completenessInfoDescription: string
@@ -107,7 +109,11 @@ export type LocaleCoveragePresentation = {
   count: string
   coverage: number
   coverageLabel: string
-  providedCoverage: number
+  segments: Array<{
+    label: string
+    tone: 'provided' | 'inferred' | 'ai-translated' | 'human-translated'
+    value: number
+  }>
 }[]
 export type ComponentCoveragePresentation = {
   label: string
