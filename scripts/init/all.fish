@@ -16,7 +16,7 @@ end
 set -l failed 0
 
 for command in \
-    init:divisions:geophraphic \
+    init:divisions:geographic \
     init:divisions:hkgov-pland-pu \
     init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd \
