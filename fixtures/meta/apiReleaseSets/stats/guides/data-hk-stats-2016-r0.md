@@ -79,7 +79,25 @@ endpoint. It returns one geography-value map per reference period in
 from making the request ambiguous. The geography filters select one compatible geography
 dimension when the field is available for more than one kind or level of geography. The
 endpoint returns an ambiguity error instead of combining incompatible geography or
-analytical dimensions. For comparison:
+analytical dimensions.
+
+To retrieve a geography-value map for one exact reference period, use the geography
+endpoint. It returns the selected period's values keyed by the geography code in
+<black>values</black>:
+
+```url
+/stats/v0/geographies?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016&
+          filter[geographyKind]=division&
+          filter[geographyLevel]=2
+```
+
+Unlike <black>/series</black>, <black>/geographies</black> requires
+<black>filter[referencePeriod]</black> because it returns one map. Its dataset and
+geography filters have the same disambiguation role, and its
+<black>meta.geography</black> describes the codes used as keys. For comparison:
 
 | Family                                 | What a request returns by default               |
 | -------------------------------------- | ----------------------------------------------- |
