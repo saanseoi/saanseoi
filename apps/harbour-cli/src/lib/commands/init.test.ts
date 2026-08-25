@@ -80,4 +80,29 @@ describe('initialisation commands', () => {
       ].join('\n'),
     )
   })
+
+  test('deduplicates release sets published during upload and reconciliation', () => {
+    const events = parseInitialisationSummaryEvents(
+      [
+        JSON.stringify({
+          apiReleaseSetCode: 'data-hk-divisions-2026-08-19.0',
+          type: 'published-api-release-set',
+        }),
+        JSON.stringify({
+          apiReleaseSetCode: 'data-hk-divisions-2026-08-19.0',
+          type: 'published-api-release-set',
+        }),
+      ].join('\n'),
+    )
+
+    expect(formatInitialisationSummary(undefined, undefined, events)).toBe(
+      [
+        'Published API release sets',
+        '  data-hk-divisions-2026-08-19.0',
+        '',
+        'Initialisation errors',
+        '  -',
+      ].join('\n'),
+    )
+  })
 })

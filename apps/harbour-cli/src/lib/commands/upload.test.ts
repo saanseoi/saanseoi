@@ -114,6 +114,15 @@ describe('division API release set readiness display', () => {
               releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
               resourceType: 'divisionArea',
             },
+            {
+              cohortKey: null,
+              datasetCode:
+                'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+              domainCode: 'hkgov-censtatd-area',
+              optional: false,
+              releaseCode: null,
+              resourceType: 'divisionArea',
+            },
           ],
           divisionAvailable: true,
           ready: false,
@@ -134,6 +143,8 @@ describe('division API release set readiness display', () => {
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
         'HK / hkgov-censtatd / 2021',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
+        'HK / hkgov-censtatd-area',
+        '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[31munavailable\u001B[39m',
       ].join('\n'),
     )
   })
