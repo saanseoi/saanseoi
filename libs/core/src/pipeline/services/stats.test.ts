@@ -75,8 +75,11 @@ describe('stats rows', () => {
   test('release locale stats use release scope', () => {
     const rows = buildLocaleStatsRows({
       altCoverage: new Map([['en', 1]]),
+      aiTranslatedCoverage: new Map(),
       count: new Map([['en', 2]]),
-      nonInferredCoverage: new Map([['en', 1]]),
+      humanTranslatedCoverage: new Map(),
+      inferredCoverage: new Map(),
+      providedCoverage: new Map([['en', 1]]),
       total: 4,
     })
 

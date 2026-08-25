@@ -182,6 +182,9 @@ export const canonicalDivisionI18n = {
   nameVariant: jsonText('nameVariant'),
   nameAlts: text('nameAlts'),
   nameRules: jsonText('nameRules'),
+  nameProvenance: text('nameProvenance', {
+    enum: ['provided', 'inferred', 'ai-translated', 'human-translated'],
+  }),
   isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
 }
 

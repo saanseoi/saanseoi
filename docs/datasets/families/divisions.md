@@ -152,12 +152,16 @@ declared parent; an initial C&SD cohort therefore reports all 18 district areas 
 additions and never as removals from another cohort.
 
 For Overture, release audit entries record investigable source-policy exceptions:
-division locale inference or API-locale fallback rows, and `CN-GD` spillover geometry
-excluded from area or boundary releases. The dataset fixture selects the deterministic
-bulk operations that apply to every matching row from a versioned merge ruleset, such as
-taxonomy-derived division type/level and hierarchy normalisation. The Sources Audit tab
-keeps those bulk rules hidden until requested, so they remain discoverable without
-obscuring record-level decisions.
+division locale inference or API-locale fallback rows, every AI or human name
+translation applied to that release, and `CN-GD` spillover geometry excluded from area
+or boundary releases. Translation evidence retains the source text, resulting text,
+target locale, and parent-division context. It is written into the immutable release
+action, so an updated translation fixture never changes the historical audit of an
+earlier release. The dataset fixture selects the deterministic bulk operations that
+apply to every matching row from a versioned merge ruleset, such as taxonomy-derived
+division type/level and hierarchy normalisation. The Sources Audit tab keeps those bulk
+rules hidden until requested, so they remain discoverable without obscuring record-level
+decisions.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
@@ -171,14 +175,27 @@ translated from Traditional Chinese where available, and vice versa. When no Chi
 name is available, English supplies a missing Chinese value. If both Chinese values are
 present but English is absent, Simplified Chinese supplies the English translation.
 
-Generated values are kept in a version-controlled fixture at
-`fixtures/i18n/source-releases/<sourceRelease>.json`. The globally unique source-release
-code is the fixture key; each entry also records the canonical record ID, source locale,
-source-text hash, target locale, translation machine, and `isTranslationVerified=false`.
-A later local import reads that fixture rather than calling the translation service
-again. It may add missing entries in locale-pair batches, which keeps the generated
-changes reviewable before release SQL is used in production.
+Overture geographic divisions use one version-controlled translation memory per dataset:
+`fixtures/i18n/datasets/<datasetCode>.json`. An entry is identified by its field,
+context hash, source locale, source-text hash, and target locale. For divisions, the
+context is the parent division ID and English parent name. This avoids re-translating
+the same name every month without incorrectly sharing a name whose meaning changes under
+a different parent.
+
+Each entry records its context, provenance (`ai-translated` or `human-translated`), and
+the first and last source releases that used it. Fixture review may replace an AI result
+with a human translation while retaining the same identity key. Translations are
+timeless values: a fixture entry has no validity interval. Releases instead preserve the
+exact application that was made in their immutable audit actions.
+
+The older source-release fixture format remains available for Planning Department
+division datasets. During the Overture transition, a matching legacy entry seeds the
+dataset fixture without calling the translation service again. A later local import
+reads the dataset fixture rather than calling the translation service; it may add
+missing entries in locale-pair batches, which keeps the generated changes reviewable
+before release SQL is used in production.
 
 Only a local import may create a missing fixture entry. A non-local import can use an
 existing fixture but fails clearly when an entry is absent. A source that provides codes
-without a name is not translated.
+without a name is not translated. Locale statistics distinguish publisher-provided,
+inferred, AI-translated, and human-translated names as four exclusive categories.

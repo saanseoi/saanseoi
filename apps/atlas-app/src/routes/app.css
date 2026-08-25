@@ -85,6 +85,9 @@ html input[class]:focus-visible {
 
   /* Digital Commons data extension */
   --data-success: #4bdcac;
+  --data-inferred: #83e9c5;
+  --data-ai-translated: #d97706;
+  --data-human-translated: #f59e0b;
   --data-warning: #ffde8a;
   --data-error: #eb7c7c;
   --data-alert: #f87171;
@@ -206,6 +209,9 @@ html input[class]:focus-visible {
 
   /* Digital Commons data extension */
   --data-success: #34d399;
+  --data-inferred: #6ee7b7;
+  --data-ai-translated: #b45309;
+  --data-human-translated: #f59e0b;
   --data-warning: #ffde8a;
   --data-error: #f87171;
   --data-alert: #f87171;
@@ -322,6 +328,9 @@ html input[class]:focus-visible {
   --color-on-background: var(--on-background);
   --color-surface-variant: var(--surface-variant);
   --color-data-success: var(--data-success);
+  --color-data-inferred: var(--data-inferred);
+  --color-data-ai-translated: var(--data-ai-translated);
+  --color-data-human-translated: var(--data-human-translated);
   --color-data-warning: var(--data-warning);
   --color-data-error: var(--data-error);
   --color-data-alert: var(--data-alert);

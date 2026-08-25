@@ -7,5 +7,7 @@ export type DivisionI18nRow = typeof divisionsI18n.$inferSelect
 export type NewDivisionI18nRow = typeof divisionsI18n.$inferInsert
 export type DivisionI18nPayload = Omit<
   DivisionI18nRow,
-  'snapshotId' | 'createdAt' | 'updatedAt'
->
+  'snapshotId' | 'createdAt' | 'updatedAt' | 'nameProvenance'
+> & {
+  nameProvenance?: DivisionI18nRow['nameProvenance']
+}

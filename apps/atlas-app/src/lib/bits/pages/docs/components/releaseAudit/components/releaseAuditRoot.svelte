@@ -105,6 +105,14 @@ const formatProcessingAction = (action: string) =>
       issue: m.source_audit_issue_division_api_locale(),
       outcome: m.source_audit_outcome_fallback_added(),
     },
+    overture_division_name_ai_translated: {
+      issue: m.source_audit_issue_division_name_ai_translated(),
+      outcome: m.source_audit_outcome_translated(),
+    },
+    overture_division_name_human_translated: {
+      issue: m.source_audit_issue_division_name_human_translated(),
+      outcome: m.source_audit_outcome_translated(),
+    },
     overture_division_geometry_cn_gd_excluded: {
       issue: m.source_audit_issue_guangdong_spillover_geometry(),
       outcome: m.source_audit_outcome_excluded(),
@@ -319,6 +327,32 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
   const canonical = canonicalRecord(evidence)
   const identity = asRecord(canonical?.identity)
   const normalisedAction = normaliseActionName(action)
+
+  if (
+    action === 'overture_division_name_ai_translated' ||
+    action === 'overture_division_name_human_translated'
+  ) {
+    const translation = asRecord(record?.translation)
+    const sourceLocale = asText(translation?.sourceLocale) ?? '—'
+    const sourceText = asText(translation?.sourceText) ?? '—'
+    const targetLocale = asText(translation?.locale) ?? '—'
+    const translatedText = asText(translation?.name) ?? '—'
+    const context = asRecord(translation?.context)
+    const parentName = asText(context?.parentName)
+    return {
+      leftLabel: `${m.source_audit_translation_source()} (${sourceLocale})`,
+      leftValue: sourceText,
+      rightItems: [
+        {
+          label: `${m.source_audit_translation_result()} (${targetLocale})`,
+          value: translatedText,
+        },
+        ...(parentName
+          ? [{ label: m.source_audit_translation_parent_division(), value: parentName }]
+          : []),
+      ],
+    }
+  }
 
   if (action === 'curate_censtatd_measure_metadata') {
     const sourceField = asText(record?.sourceField) ?? '—'
