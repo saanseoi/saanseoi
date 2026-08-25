@@ -76,6 +76,7 @@ import {
   resolveShardBindingName,
   type LocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
+import { resolveSourceReleaseNameTranslationsBatch } from '../i18n/sourceReleaseTranslations.ts'
 import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
 
@@ -306,6 +307,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         readPreparedDivisions(
           bucket,
           rawObjectKey,
+          releaseCode,
+          !target.remote,
           previewPlan.source === 'hkgov-pland-new-town'
             ? await loadPlandNewTownDivisionCodes(metaDb)
             : new Map(),
@@ -694,6 +697,8 @@ async function loadPlandNewTownDivisionCodes(metaDb: HarbourReadableDb) {
 async function readPreparedDivisions(
   bucket: LocalPipelineBucket,
   key: string,
+  sourceRelease: string,
+  allowTranslationGeneration: boolean,
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
 ) {
   const file = await createAsyncBufferFromR2(bucket, key)
@@ -703,7 +708,23 @@ async function readPreparedDivisions(
       records.push(await normalisePreparedDivision(raw, divisionCodesByCanonicalId))
     }
   }
-  return records
+  const translationsByDivisionId = await resolveSourceReleaseNameTranslationsBatch({
+    allowGeneration: allowTranslationGeneration,
+    records: records.map(record => ({
+      localisations: record.i18n,
+      recordId: record.base.id,
+    })),
+    sourceRelease,
+  })
+  return records.map(record => {
+    const resolved = translationsByDivisionId.get(record.base.id)
+    if (!resolved) {
+      throw new Error(
+        `Missing source-release i18n result for ${sourceRelease}/${record.base.id}.`,
+      )
+    }
+    return { ...record, i18n: resolved.localisations }
+  })
 }
 
 async function normalisePreparedDivision(
