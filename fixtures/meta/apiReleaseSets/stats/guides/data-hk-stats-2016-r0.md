@@ -8,38 +8,36 @@ revision: "0"
 regionCode: "hk"
 cohortKey: "2016"
 domainCode: "official"
-primarySourceRelease: "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
 ---
 
 # EN
 
 ## Using the Statistics API
 
+For the full reference, see the
+[Statistics API docs](/docs#tag/Statistics/operation/listDivisionStatisticsV01).
+
+This guide explains how to make requests to the Statistics API. For the shape and
+contents of API <i>responses</i>, see the [response schema](?tab=schema) and
+[sample responses](?tab=samples). Each section stands on its own, so you can go straight
+to the one you need.
+
 {{apiKeyNote:en}}
 
-The <black>v0.1</black> contract is experimental. Use either <black>GET
-/stats/v0</black> or <black>GET /stats/v0/{id}</black>
-
-Start with the official statistics collection:
-
-```url
-/stats/v0
-```
+{{experimentalApiWarning:en}}
 
 ### Latest release and observation
 
-There are two independent meanings of “latest”:
+In Statistics, “latest” can mean two different things:
 
-1. **Latest release revision** selects the newest revision of a release set, unless a
-   permalink or catalogue revision pins an older revision.
-2. **Latest statistical observation** selects the newest reference period for one
-   statistical series.
+1. **Latest release revision** is the newest published edition of a release set. A
+   permalink or catalogue revision can instead select an earlier edition.
+2. **Latest statistical observation** is the most recent reference period available for
+   one statistical series. A reference period is the time that a figure describes.
 
-Divisions has effectively one temporal series in each domain, so its default selects one
-latest cohort or release set. Statistics has many independent series: a population
-measure may be annual, another quarterly, another monthly, and a census measure may have
-no later observation.
+Unlike Divisions, Statistics contains many series that are updated on different
+schedules. A population measure might be annual, another measure quarterly, and another
+monthly. A census measure may not have a newer observation at all.
 
 The official Statistics view is therefore:
 
@@ -47,108 +45,243 @@ The official Statistics view is therefore:
 /stats/v0
 ```
 
-It selects the latest native observation for each independent statistical series from
-the newest revision of that observation’s period release set. It is not a complete
-history: when a monthly series has a 2026-08 observation, its 2026-01 through 2026-07
-observations are older and are not returned by a latest selection.
+It returns the latest available observation for each separate series, using the newest
+revision of the release set for that observation’s period. It is not a complete history.
+For example, if a monthly series has an observation for 2026-08, a latest request does
+not also return its observations for 2026-01 through 2026-07.
 
-Use the exact reference-period filter when the requested scope needs to be explicit:
-
-```url
-/stats/v0?filter[referencePeriod]=2016
-```
-
-This selects records with the exact reference-period code within the resolved release
-set. The API does not currently provide range, all-period, or latest-per-series temporal
-selection modes.
-
-| Family                                 | Default temporal selection                           |
-| -------------------------------------- | ---------------------------------------------------- |
-| Divisions                              | Latest cohort for the selected domain                |
-| Statistics                             | Latest observation of each independent native series |
-| Statistics with `referencePeriod=2016` | Exact reference-period records                       |
-
-Without selectors, the endpoint resolves the latest effective release in the current
-[catalogue](saanseoi:en:definition/catalogue/v1). To select this exact release, set
-<black>cohort</black> and <black>domain</black>:
+Use an exact reference-period filter when you need a particular period:
 
 ```url
-/stats/v0?domain={{ domainCode }}&cohort={{ cohortKey }}
+/stats/v0?
+          filter[referencePeriod]=2016
 ```
 
-To reproduce a result after the catalogue changes, retain the successful response's
-fully qualified <black>links.permalink</black>. It records the resolved
+This returns records with the exact reference-period code in the selected release set.
+The list endpoint accepts an exact period only; it does not accept date ranges. For
+example, <black>2026</black> and <black>2026-Q1</black> are separate codes: requesting
+<black>2026</black> does not also return the first quarter of 2026.
+
+To retrieve the complete available history for one field, use the multi-period series
+endpoint. It returns one geography-value map per reference period in
+<black>valuesByReferencePeriod</black>:
+
+```url
+/stats/v0/series?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[geographyKind]=division&
+          filter[geographyLevel]=2
+```
+
+<black>filter[field]</black> identifies the series to return.
+<black>filter[dataset]</black> prevents a field with the same name in another dataset
+from making the request ambiguous. The geography filters select one compatible geography
+dimension when the field is available for more than one kind or level of geography. The
+endpoint returns an ambiguity error instead of combining incompatible geography or
+analytical dimensions. For comparison:
+
+| Family                                 | What a request returns by default               |
+| -------------------------------------- | ----------------------------------------------- |
+| Divisions                              | The latest cohort in the selected domain        |
+| Statistics                             | The latest observation for each separate series |
+| Statistics with `referencePeriod=2016` | Records for exactly that reference period       |
+
+Without selectors, the endpoint uses the latest effective release in the current
+[catalogue](saanseoi:en:definition/catalogue/v1). To request this exact release, specify
+both <black>cohort</black> and <black>domain</black>:
+
+```url
+/stats/v0?
+          domain={{ domainCode }}&
+          cohort={{ cohortKey }}
+```
+
+To reproduce a result after the catalogue changes, save the fully qualified
+<black>links.permalink</black> from a successful response. It records the selected
 <black>releaseSet</black> and
-[catalogue revision](saanseoi:en:definition/catalogue-revision/v1). You can also select
-this release set explicitly with <black>releaseSet={{ apiReleaseSet }}</black>.
+[catalogue revision](saanseoi:en:definition/catalogue-revision/v1). You can also request
+this release set directly with <black>releaseSet={{ apiReleaseSet }}</black>.
 
-### Domains
+## Shaping the Response
 
-A [domain](saanseoi:en:definition/domain/v1) is one independently versioned lineage, not
-a filter over unrelated releases.
+A [profile](saanseoi:en:definition/profile/v1) controls how much detail the API returns.
+Use <black>default</black> for the core record: its reference period, geography,
+breakdowns, values, and any comparability note. Use <black>full</black> when you also
+need source-release identity, the publisher's feature reference, and timestamps.
 
-- <black>{{ domainCode }}</black> is the only Statistics domain in v0.1. It contains the
-  C&SD dataset snapshots published for this exact reference period and revision.
-
-Every primary resource identifies its <black>datasetCode</black>, so datasets remain
-distinguishable inside the domain. Use <black>filter[dataset]</black>,
-<black>filter[division]</black>, <black>filter[referencePeriod]</black>, or
-<black>filter[measure]</black> to narrow a list:
+Use the [response schema](?tab=schema) for the complete field list, or the
+[sample responses](?tab=samples) to select a profile and compare the response. For
+example, request the full provenance view with:
 
 ```url
-/stats/v0?filter[division]=division-hk-18&filter[referencePeriod]=2016
+/stats/v0?
+          domain={{ domainCode }}&
+          cohort={{ cohortKey }}&
+          profile=full
 ```
-
-Use <black>page[limit]</black> and <black>page[offset]</black> for pagination. The
-maximum page size is 100.
 
 ### Statistics and related geography
 
-Each statistic retains its exact publisher reference period, dimensions, values,
-precision, observation status, and reviewed measure semantics. A reviewed
-<black>divisionId</black> is exposed as <black>relationships.division</black>; records
-whose geography has not been reviewed keep that relationship null.
+Each statistic keeps its publisher’s reference period, breakdowns, value, precision,
+observation status, and reviewed measure meaning. When its geography has been reviewed,
+the statistic has a <black>divisionId</black> and a link at
+<black>relationships.division</black>. An unreviewed geography has a null relationship;
+this means that no division link is available, not that the value is zero.
 
-Related resources are opt-in and separately selectable:
+To add the canonical division resource for each linked statistic:
 
 ```url
-/stats/v0?include=divisions
-/stats/v0?include=areas
-/stats/v0?include=divisions,areas
-/stats/v0?include=areas:hkgov-censtatd:2021
+/stats/v0?
+          include=divisions
 ```
 
-<black>include=divisions</black> returns the canonical division resources in
-<black>included</black>. <black>include=areas</black> has explicit default handling:
-each linked observation resolves the reviewed area variant for its own geography cohort,
-such as <black>hkgov-censtatd:2016</black>, <black>hkgov-censtatd:2021</black>,
-<black>hkgov-censtatd-area</black>, or <black>hkgov-censtatd-hma</black>. A qualified
-area include requests that exact provider [variant](saanseoi:en:definition/variant/v1);
-an unavailable variant returns an error rather than silently substituting other
-geometry.
+To add the reviewed area variant for each observation’s own geography cohort:
 
-### Languages (`I18n`)
+```url
+/stats/v0?
+          include=areas
+```
 
-By default, reviewed measure names and descriptions are provided in English and
-Traditional Chinese. This is equivalent to <black>locales=en,zh-hant</black>. Set
-<black>locales=*</black> to request every available locale, or pass another supported
-comma-separated list.
+To request both the division and its area:
 
-### Response Shape
+```url
+/stats/v0?
+          include=divisions,areas
+```
 
-A [profile](saanseoi:en:definition/profile/v1) is a named response shape. The default
-profile returns reference periods, dimensions, values, units, statistic kinds,
-aggregations, and localised measure definitions. <black>compact</black> is smaller,
-while <black>full</black> adds publisher field names, source literals, source-release
-identity, and timestamps. See the
-[Statistics endpoint documentation](/docs#tag/Statistics/operation/listDivisionStatisticsV01)
-for the current parameter and field contract.
+To request one exact provider area [variant](saanseoi:en:definition/variant/v1):
 
-### Time Travel
+```url
+/stats/v0?
+          include=areas:hkgov-censtatd:2021
+```
 
-Use <black>effectiveAt</black> to select the release effective at a time. Use
-<black>knownAt</black> to select what the API
-[catalogue](saanseoi:en:definition/catalogue/v1) knew at a time, and
-<black>catalogRevision</black> for one exact published checkpoint. Records are read from
-the source releases selected by that immutable release set, so a later source
-compilation does not alter a saved permalink.
+<black>include=divisions</black> adds canonical division resources to
+<black>included</black>. <black>include=areas</black> adds the reviewed area variant for
+the statistic's geography cohort, such as <black>hkgov-censtatd:2016</black>,
+<black>hkgov-censtatd:2021</black>, <black>hkgov-censtatd-area</black>, or
+<black>hkgov-censtatd-hma</black>.
+
+If a qualified area variant is unavailable, the API returns an error instead of silently
+returning different geometry.
+
+## Discovering Statistics
+
+Use the Statistics Registry to find the datasets and exact field names that the records
+endpoint accepts. It searches the available catalogue scope, rather than only the one
+release resolved for a normal statistics request. Start by searching a word in a measure
+or field name or description:
+
+```url
+/stats/v0/registry/search?
+          q=subdivided
+```
+
+A **measure** is the broad concept, such as households in subdivided units. A **field**
+is the exact value you can request; it may carry a particular aggregation, unit, or
+breakdown. To browse the measures in this release's dataset:
+
+```url
+/stats/v0/registry/measures?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+```
+
+Then browse its fields, or narrow them to one measure:
+
+```url
+/stats/v0/registry/fields?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[measure]=householdsInSubdividedUnits
+```
+
+After choosing a field, inspect where it is available. This shows its reference periods
+and geography coverage, and provides a ready-made geography request for each period:
+
+```url
+/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/householdsInSubdividedUnits/availability
+```
+
+Use the returned <black>datasetCode</black> and <black>fieldName</black> to request
+statistics. For example:
+
+```url
+/stats/v0?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016
+```
+
+Use <black>cohort</black>, <black>releaseSet</black>, or another catalogue selector on a
+registry request when you need discovery limited to a particular published view.
+
+## Adding Languages (`I18n`)
+
+The <black>values</black> object uses canonical field names and exact publisher values;
+its numbers and codes are not translated. Request <black>include=fields</black> to add
+the matching field definitions in <black>included</black>. They contain the localised
+field names and descriptions, alongside units, aggregation, and dimensions.
+
+By default, those definitions are returned in English and Traditional Chinese. This is
+the same as requesting <black>locales=en,zh-hant</black>. Use <black>locales=*</black>
+for every available language, or provide a supported comma-separated list of languages:
+
+```url
+/stats/v0?
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016&
+          include=fields&
+          locales=en,zh-hant
+```
+
+## Filters & Pagination
+
+Filters narrow a statistics list before it is split into pages. Use
+<black>filter[dataset]</black> for one source dataset, <black>filter[field]</black> for
+one exact field, <black>filter[division]</black> for one canonical division ID, and
+<black>filter[referencePeriod]</black> for one exact period code. A record-list request
+uses <black>field</black>, not the broader <black>measure</black> code returned by the
+Registry.
+
+For example, this requests one field for one division in the 2016 release:
+
+```url
+/stats/v0?
+          domain={{ domainCode }}&
+          cohort={{ cohortKey }}&
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[division]=division-hk-18
+```
+
+Use <black>page[limit]</black> and <black>page[offset]</black> to work through the
+filtered results. A page can contain at most 100 records:
+
+```url
+/stats/v0?
+          domain={{ domainCode }}&
+          cohort={{ cohortKey }}&
+          page[limit]=25&
+          page[offset]=50
+```
+
+Follow the response's <black>links.next</black>, <black>links.prev</black>, and
+<black>links.first</black> instead of calculating the next offset yourself. Use
+<black>meta.page.total</black> to show or plan for the complete filtered result.
+
+## Time Travel
+
+Use <black>effectiveAt</black> to select the release that was effective at a particular
+time. Use <black>knownAt</black> to select what the API
+[catalogue](saanseoi:en:definition/catalogue/v1) knew at that time, or use
+<black>catalogRevision</black> for one exact published checkpoint.
+
+Records come from the source releases selected by that immutable release set. A later
+source compilation therefore cannot change the result returned by a saved permalink.
+
+## Domains
+
+A [domain](saanseoi:en:definition/domain/v1) is a separate collection within an API
+family. <black>{{ domainCode }}</black> is currently the only domain offered within the
+Statistics family, so there are no other domains to explore.
