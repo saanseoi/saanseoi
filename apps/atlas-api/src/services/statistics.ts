@@ -1947,6 +1947,50 @@ export async function listStatisticsRegistryMeasures(args: {
   }
 }
 
+export async function getStatisticsRegistryMeasure(args: {
+  datasetCode: string
+  measureCode: string
+  historyDbs: AppEnv['Variables']['historyDbs']
+  metaDb: AppEnv['Variables']['metaDb']
+  requestUrl: string
+  query: StatisticRegistryQuery
+  dependencies?: Partial<StatisticServiceDependencies>
+}): Promise<StatisticsRegistryResult> {
+  const dependencies = { ...defaultDependencies, ...args.dependencies }
+  const registry = await loadStatisticsRegistry({ ...args, dependencies })
+  if (!registry)
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
+  const measure = registry.measures.find(
+    candidate =>
+      candidate.datasetCode === args.datasetCode &&
+      candidate.measureCode === args.measureCode,
+  )
+  if (!measure) {
+    return {
+      status: 404,
+      body: {
+        httpStatus: 404,
+        error: 'not_found',
+        message: 'Statistic measure not found in the selected registry.',
+      },
+    }
+  }
+  const url = new URL(args.requestUrl)
+  return {
+    status: 200,
+    body: buildJsonApiDetailDocument({
+      url,
+      data: measureRegistryResource(measure),
+      meta: registryMeta(registry.activeSnapshot, registry.routeState),
+      permalink: registryPermalink({
+        activeSnapshot: registry.activeSnapshot,
+        routeState: registry.routeState,
+        url,
+      }),
+    }),
+  }
+}
+
 export async function searchStatisticsRegistry(args: {
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']

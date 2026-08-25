@@ -956,6 +956,28 @@ describe('Statistics API responses through the Worker route', () => {
         ],
       })
 
+      for (const version of ['v0', 'v0.1']) {
+        const registryMeasure = await app.fetch(
+          new Request(
+            `http://localhost/stats/${version}/registry/measures/${DATASET_CODE}/totalPopulation`,
+          ),
+          fixture.env,
+        )
+        expect(registryMeasure.status).toBe(200)
+        expect(await registryMeasure.json()).toMatchObject({
+          data: {
+            type: 'statistic-measures',
+            attributes: {
+              datasetCode: DATASET_CODE,
+              measureCode: 'totalPopulation',
+            },
+            links: {
+              self: `/stats/v0.1/registry/measures/${DATASET_CODE}/totalPopulation`,
+            },
+          },
+        })
+      }
+
       const registryField = await app.fetch(
         new Request(
           `http://localhost/stats/v0.1/registry/fields/${DATASET_CODE}/totalPopulation`,

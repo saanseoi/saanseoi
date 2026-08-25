@@ -9,6 +9,7 @@ import {
   getStatisticsRegistryField,
   getStatisticsRegistryFieldAvailability,
   getStatisticsRegistryManifest,
+  getStatisticsRegistryMeasure,
   listStatisticsRegistryDatasets,
   listStatisticsRegistryDimensions,
   listStatisticsRegistryFields,
@@ -51,6 +52,9 @@ const RegistryResponseSchema = z
 const RegistryFieldParamsSchema = z
   .object({ datasetCode: z.string().min(1), fieldName: z.string().min(1) })
   .openapi('StatisticsRegistryFieldParams')
+const RegistryMeasureParamsSchema = z
+  .object({ datasetCode: z.string().min(1), measureCode: z.string().min(1) })
+  .openapi('StatisticsRegistryMeasureParams')
 
 const variants = [
   { path: '/stats/v0/registry', suffix: 'V0' },
@@ -153,6 +157,33 @@ function fieldDetailRoute(path: string, operationId: string, description: string
   })
 }
 
+function measureDetailRoute(path: string, operationId: string, description: string) {
+  return createRoute({
+    method: 'get',
+    path,
+    operationId,
+    tags: ['Registry'],
+    request: { params: RegistryMeasureParamsSchema, query: RegistryQuerySchema },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: RegistryResponseSchema } },
+        description,
+      },
+      404: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'Statistic measure not found in the selected registry.',
+      },
+      503: {
+        content: {
+          'application/json': { schema: StatisticSnapshotNotReadyErrorResponseSchema },
+        },
+        description: openApiText('openapi_statistics_snapshot_not_ready_description'),
+      },
+      422: ValidationErrorOpenAPIResponse,
+    },
+  })
+}
+
 const manifestRoutes = variants.map(variant =>
   registryRoute(variant.path, `getStatisticsRegistry${variant.suffix}`),
 )
@@ -168,6 +199,13 @@ const measureRoutes = variants.map(variant =>
     `${variant.path}/measures`,
     `listStatisticsRegistryMeasures${variant.suffix}`,
     openApiText('openapi_statistics_registry_measures_list_description'),
+  ),
+)
+const measureDetailRoutes = variants.map(variant =>
+  measureDetailRoute(
+    `${variant.path}/measures/{datasetCode}/{measureCode}`,
+    `getStatisticsRegistryMeasure${variant.suffix}`,
+    'Get one published statistic measure.',
   ),
 )
 const datasetRoutes = variants.map(variant =>
@@ -244,6 +282,23 @@ export const statisticRegistryRoutes = [
           requestUrl: c.req.url,
         })
         if (result.status === 503) return c.json(result.body, 503)
+        return c.json(result.body as never, 200)
+      },
+    }),
+  ),
+  ...measureDetailRoutes.map(route =>
+    defineOpenAPIRoute<typeof route, AppEnv>({
+      route,
+      handler: async c => {
+        const result = await getStatisticsRegistryMeasure({
+          ...c.req.valid('param'),
+          historyDbs: c.var.historyDbs,
+          metaDb: c.var.metaDb,
+          query: c.req.valid('query'),
+          requestUrl: c.req.url,
+        })
+        if (result.status === 503) return c.json(result.body, 503)
+        if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body as never, 200)
       },
     }),
