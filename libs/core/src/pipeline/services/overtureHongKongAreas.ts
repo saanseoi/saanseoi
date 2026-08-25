@@ -3,8 +3,14 @@ import { buildDeterministicUuidV5 } from '@repo/db'
 import type { DatasetProcessingMessage } from '../../types'
 
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
-const HONG_KONG_SAR_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
+export const OVERTURE_HONG_KONG_SAR_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
 const PRC_DIVISION_ID = 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be'
+const HONG_KONG_AREA_CODES_BY_LEVEL_2_DIVISION_NAME = {
+  // Overture classifies this non-statutory division at level 2. It is in the
+  // New Territories but is not one of the 18 district members used to derive
+  // the synthetic area geometries.
+  'Lok Ma Chau Loop': 'new-territories',
+} as const
 const HISTORIC_OVERTURE_HONG_KONG_AREA_DIVISION_IDS: Readonly<Record<string, string>> =
   {
     // Keep Overture's established Kowloon identity when a later scoped extract
@@ -76,6 +82,34 @@ export function overtureHongKongAreaForCenstatdCode(code: string) {
   )
 }
 
+export function overtureHongKongAreaForDistrictName(name: string) {
+  const directMatch = overtureHongKongAreas.find(area =>
+    (area.districtNames as readonly string[]).includes(name),
+  )
+  if (directMatch) return directMatch
+
+  const areaCode =
+    HONG_KONG_AREA_CODES_BY_LEVEL_2_DIVISION_NAME[
+      name as keyof typeof HONG_KONG_AREA_CODES_BY_LEVEL_2_DIVISION_NAME
+    ]
+  return overtureHongKongAreas.find(area => area.code === areaCode) ?? null
+}
+
+export function buildOvertureHongKongAreaHierarchyEntry(area: OvertureHongKongArea) {
+  const divisionId = overtureHongKongAreaDivisionId(area.code)
+  if (!divisionId) throw new Error(`No canonical ID configured for ${area.code}.`)
+
+  return {
+    division_id: divisionId,
+    i18n: {
+      en: { name: area.names.en },
+      'zh-hant': { name: area.names['zh-hant'] },
+    },
+    level: 1,
+    type: 'area',
+  }
+}
+
 export function missingOvertureHongKongAreaRows(
   message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
   sourceRows: readonly Record<string, unknown>[],
@@ -123,7 +157,7 @@ export function missingOvertureHongKongAreaRows(
             [
               { division_id: PRC_DIVISION_ID, name: 'China', subtype: 'country' },
               {
-                division_id: HONG_KONG_SAR_DIVISION_ID,
+                division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
                 name: 'Hong Kong SAR',
                 subtype: 'dependency',
               },
@@ -150,7 +184,7 @@ export function missingOvertureHongKongAreaRows(
             ],
             primary: area.names.en,
           },
-          parent_division_id: HONG_KONG_SAR_DIVISION_ID,
+          parent_division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
           sources: [
             {
               dataset: 'SaanSeoi corrective processing',
