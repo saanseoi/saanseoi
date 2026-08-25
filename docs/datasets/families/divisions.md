@@ -182,11 +182,15 @@ context is the parent division ID and English parent name. This avoids re-transl
 the same name every month without incorrectly sharing a name whose meaning changes under
 a different parent.
 
-Each entry records its context, provenance (`ai-translated` or `human-translated`), and
-the first and last source releases that used it. Fixture review may replace an AI result
-with a human translation while retaining the same identity key. Translations are
-timeless values: a fixture entry has no validity interval. Releases instead preserve the
-exact application that was made in their immutable audit actions.
+Each entry also retains literal `sourceText` and the sorted canonical `recordIds` that
+have used it, so a web editor can show the source and link directly to affected
+divisions. Those IDs are references, not part of the identity key: the importer resolves
+each record through the context-and-source key at import time. Each entry records its
+context, provenance (`ai-translated` or `human-translated`), and the first and last
+source releases that used it. Fixture review may replace an AI result with a human
+translation while retaining the same identity key. Translations are timeless values: a
+fixture entry has no validity interval. Releases instead preserve the exact application
+that was made in their immutable audit actions.
 
 The older source-release fixture format remains available for Planning Department
 division datasets. During the Overture transition, a matching legacy entry seeds the

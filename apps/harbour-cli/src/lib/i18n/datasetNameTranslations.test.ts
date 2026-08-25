@@ -54,7 +54,12 @@ describe('dataset name translations', () => {
       ])
 
       const fixture = JSON.parse(await readFile(fixturePath, 'utf8')) as {
-        entries: Array<{ firstSeenRelease: string; lastSeenRelease: string }>
+        entries: Array<{
+          firstSeenRelease: string
+          lastSeenRelease: string
+          recordIds: string[]
+          sourceText: string
+        }>
       }
       expect(fixture.entries).toHaveLength(2)
       expect(fixture.entries).toEqual(
@@ -62,6 +67,8 @@ describe('dataset name translations', () => {
           expect.objectContaining({
             firstSeenRelease: RELEASE_1,
             lastSeenRelease: RELEASE_2,
+            recordIds: ['division-1', 'division-2'],
+            sourceText: '中環',
           }),
         ]),
       )
@@ -145,6 +152,61 @@ describe('dataset name translations', () => {
     }
   })
 
+  test('returns human provenance from a reviewed dataset entry', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
+    const fixturePath = join(root, 'fixture.json')
+    const context = { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' }
+    try {
+      await writeFile(
+        fixturePath,
+        JSON.stringify({
+          datasetCode: DATASET,
+          entries: [
+            {
+              context,
+              contextHash: hash(JSON.stringify(context)),
+              field: 'name',
+              firstSeenRelease: RELEASE_1,
+              lastSeenRelease: RELEASE_1,
+              provenance: 'human-translated',
+              recordIds: ['division-1'],
+              sourceLocale: 'zh-hant',
+              sourceText: '中環',
+              sourceTextHash: hash('中環'),
+              targetLocale: 'zh-hans',
+              text: '中环',
+            },
+          ],
+          version: 1,
+        }),
+      )
+      const result = await resolveDatasetNameTranslationsBatch({
+        datasetCode: DATASET,
+        fixturePath,
+        records: [
+          {
+            context,
+            localisations: [
+              { locale: 'en', name: 'Central' },
+              { locale: 'zh-hant', name: '中環' },
+            ],
+            recordId: 'division-1',
+          },
+        ],
+        sourceRelease: RELEASE_2,
+      })
+      expect(result.get('division-1')?.applications).toEqual([
+        expect.objectContaining({
+          locale: 'zh-hans',
+          name: '中环',
+          provenance: 'human-translated',
+        }),
+      ])
+    } finally {
+      await rm(root, { force: true, recursive: true })
+    }
+  })
+
   test('rejects conflicting translations with the same dataset identity key', async () => {
     const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
     const fixturePath = join(root, 'fixture.json')
@@ -156,7 +218,9 @@ describe('dataset name translations', () => {
       firstSeenRelease: RELEASE_1,
       lastSeenRelease: RELEASE_1,
       provenance: 'human-translated',
+      recordIds: ['division-1'],
       sourceLocale: 'zh-hant',
+      sourceText: '中環',
       sourceTextHash: hash('中環'),
       targetLocale: 'en',
     }

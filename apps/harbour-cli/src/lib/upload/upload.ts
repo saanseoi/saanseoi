@@ -36,6 +36,12 @@ export type ReconcileDraftReleaseSetsResponse = {
   publishedReleaseSetCodes: string[]
 }
 
+export type BootstrapStatsReleaseSetsResponse = {
+  createdReleaseSetCodes: string[]
+  inspectedSnapshots: number
+  skippedCohortKeys: string[]
+}
+
 type DispatchUploadOptions = {
   /** Restricted local repair path for a source-specific deterministic reprocess. */
   allowReprocessPublished?: boolean
@@ -81,6 +87,10 @@ export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
 
 export function buildReconcileDraftReleaseSetsEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/control/reconcileDraftReleaseSets`
+}
+
+export function buildBootstrapStatsReleaseSetsEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/control/bootstrapStatsReleaseSets`
 }
 
 /**
@@ -311,6 +321,28 @@ export async function reconcileDraftReleaseSets(
   return parseJsonResponse<ReconcileDraftReleaseSetsResponse>(
     response,
     'Harbour reconcileDraftReleaseSets',
+  )
+}
+
+export async function bootstrapStatsReleaseSets(
+  target: UploadTarget,
+  options: { regionCode?: 'hk' | 'mo' } = {},
+) {
+  const response = await fetch(
+    buildBootstrapStatsReleaseSetsEndpoint(resolveHarbourApiUrl(target)),
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(options),
+    },
+  )
+
+  return parseJsonResponse<BootstrapStatsReleaseSetsResponse>(
+    response,
+    'Harbour bootstrapStatsReleaseSets',
   )
 }
 
