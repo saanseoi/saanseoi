@@ -78,14 +78,24 @@ for year in 2016 2021
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
+# The Area/type C&SD source derives the required hkgov-censtatd-area geometry
+# after the Overture canonical divisions are available. It must precede draft
+# release-set reconciliation so the first initialisation run can publish them.
+init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+    --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+    --download --yes
+set -g saanseoi_init_docs_pending 1
+
 # A resumed initialiser may skip C&SD releases that are already published.
 # Re-evaluate the draft Overture sets after every dependency is available.
-init_run_step ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
+init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
     --api-family divisions --region hk
-set -g saanseoi_init_docs_pending 1
+
+# Do not delay the final summary behind a full documentation scan when any
+# source release failed. A successful --continue run will publish the docs.
+init_complete
 
 # Publishing release documentation scans every published release. Defer it until
 # all cohort uploads have completed so an initial run does not repeat that scan
 # after each individual source release.
 init_publish_docs_if_needed
-init_complete
