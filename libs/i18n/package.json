@@ -12,8 +12,8 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "paraglide-js compile --project ./project.inlang",
-    "dev": "paraglide-js compile --project ./project.inlang"
+    "build": "paraglide-js compile --project ./project.inlang --output-structure locale-modules",
+    "dev": "paraglide-js compile --project ./project.inlang --output-structure locale-modules"
   },
   "devDependencies": {
     "@inlang/paraglide-js": "2.24.1"
