@@ -163,6 +163,7 @@ $effect(() => {
 <ReleaseNavContent
   bind:panel={contentPanel}
   {hasContent}
+  {loading}
   {mobileSideNav}
   {navBar}
   scrollAction={nestedScroll}
