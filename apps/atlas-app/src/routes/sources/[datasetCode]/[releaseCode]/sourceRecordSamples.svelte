@@ -13,6 +13,7 @@ import {
 
 type Props = {
   family: string
+  onAvailabilityChange?: (available: boolean) => void
   request: number
   sourceReleaseCode: string
 }
@@ -26,7 +27,7 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
 const initialExamples = 1
 const examplesPerRequest = 4
 
-let { family, request, sourceReleaseCode }: Props = $props()
+let { family, onAvailabilityChange, request, sourceReleaseCode }: Props = $props()
 let samples = $state<AddressSample[]>([])
 let collapsedSamples = $state<Set<string>>(new Set())
 let loading = $state(false)
@@ -63,9 +64,12 @@ async function getRandomRecords(limit: number) {
   const response = await fetch(requestUrl(limit))
   if (response.status === 404) {
     unavailable = true
+    onAvailabilityChange?.(false)
     return []
   }
   if (!response.ok) throw new Error(`Sample request failed with ${response.status}.`)
+
+  onAvailabilityChange?.(true)
 
   const payload = (await response.json()) as SourceRecordsResponse
   return (payload.records ?? []).flatMap(value => {
