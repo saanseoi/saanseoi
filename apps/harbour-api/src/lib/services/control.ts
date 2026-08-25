@@ -56,6 +56,7 @@ type StageRequest = {
 }
 
 type PublishRequest = {
+  deferStatsReleaseSet?: boolean
   releaseCode?: string
   releaseId?: string
   skipSnapshotCleanup?: boolean
@@ -357,6 +358,23 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
       )
+    }
+
+    if (request.deferStatsReleaseSet) {
+      if (datasetType !== 'divisionStatistic') {
+        throw new ControlRequestError(
+          'Only Statistics source releases can defer API release-set publication.',
+        )
+      }
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        phase: null,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: 'published',
+      }
     }
 
     const releaseSets = isCenstatdGeographicGeometry

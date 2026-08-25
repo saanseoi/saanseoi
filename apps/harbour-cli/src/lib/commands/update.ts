@@ -103,6 +103,10 @@ export async function runUpdateCommand(
   if (requestedDatasets.length === 0) throw new Error('No matching datasets found.')
 
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
+  const deferStatsReleaseSet = args.options['defer-stats-release-set'] === true
+  if (deferStatsReleaseSet && selectedFamily !== 'stats') {
+    throw new Error('--defer-stats-release-set requires --scope stats.')
+  }
   const selectedFamilyDatasets =
     selectedFamily === 'all'
       ? requestedDatasets
@@ -247,6 +251,7 @@ export async function runUpdateCommand(
       await processPlannedUpdates(plan, {
         added,
         errors,
+        deferStatsReleaseSet,
         forceDownload,
         forceUpload,
         printUsage,
@@ -310,7 +315,9 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'api-family',
     'check-now',
     'dataset',
+    'defer-stats-release-set',
     'download',
+    'defer-stats-release-set',
     'force-download',
     'force-upload',
     'no-upload',
@@ -467,6 +474,7 @@ async function processPlannedUpdates(
   options: {
     added: Map<string, PublishedSourceRelease>
     errors: string[]
+    deferStatsReleaseSet: boolean
     forceDownload: boolean
     forceUpload: boolean
     printUsage: () => void
@@ -492,6 +500,7 @@ async function processPlannedUpdates(
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
         printUsage: options.printUsage,
         releaseNotesUrl:
           options.releaseNotesDatasetCode === plan.dataset.code
@@ -781,6 +790,7 @@ async function processUpdate(
     shouldDownload: boolean
     forceDownload: boolean
     forceUpload: boolean
+    deferStatsReleaseSet: boolean
     skipPrompts: boolean
     skipUpload: boolean
     target: UploadTarget
@@ -877,6 +887,7 @@ async function processUpdate(
       options.target,
       prepared,
       options.skipPrompts,
+      { deferStatsReleaseSet: options.deferStatsReleaseSet },
     )
     return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }

@@ -120,7 +120,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   plan: Plan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { promptForCuration: boolean },
+  options: { deferStatsReleaseSet?: boolean; promptForCuration: boolean },
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
@@ -385,7 +385,9 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       progress,
       { action: 'Publish', subject: 'statistic release' },
       async () => {
-        const published = await client.publishDataset(releaseId, releaseCode)
+        const published = await client.publishDataset(releaseId, releaseCode, {
+          deferStatsReleaseSet: options.deferStatsReleaseSet,
+        })
         if (target.remote) {
           await refreshRemoteMetaCache(
             target.environment === 'production' ? 'production' : 'preview',

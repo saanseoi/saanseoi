@@ -316,6 +316,7 @@ export const ControlStageRequestSchema = z
 
 export const PublishDatasetRequestSchema = z
   .object({
+    deferStatsReleaseSet: z.boolean().optional(),
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
     skipSnapshotCleanup: z.boolean().optional(),
