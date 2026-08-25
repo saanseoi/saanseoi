@@ -82,6 +82,11 @@ environment:
 ./bin/saanseoi init:divisions:hkgov-landsd --target preview
 ```
 
+`init:divisions:geophraphic` also replays the retained 2023-H2 C&SD Area/type archive as
+the required `divisionArea` `hkgov-censtatd-area` companion. This remains part of
+Geographic Divisions initialisation even when the corresponding Statistics release is
+already current.
+
 Use `--target production` for the production database after authenticating Wrangler and
 Harbour. Remote initialisers are safe to rerun after a failed cache refresh: they allow
 an existing staged release to be registered again, but never replace a published one.
