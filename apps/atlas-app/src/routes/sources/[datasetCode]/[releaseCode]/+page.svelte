@@ -36,6 +36,8 @@ import type {
 import { getDistrictCoverageMapData } from '#lib/registry/meta.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
+import SourceRecordSamples from './sourceRecordSamples.svelte'
+import SourceRecordSchema from './sourceRecordSchema.svelte'
 import {
   getSourceReleaseContentQuery,
   preloadSourceReleaseContent,
@@ -43,6 +45,7 @@ import {
 import {
   buildSourceReleaseStatsPresentation,
   buildSourceReleaseVersionLinks,
+  getSourceRecordFamily,
   getSourceReleaseTabFromUrl,
   selectDistrictAreas,
   type SourceReleaseTab,
@@ -127,6 +130,15 @@ let bulkActions = $derived(
     .flatMap(ruleset => ruleset.rules)
     .filter(rule => rule.type === 'bulk') ?? [],
 )
+let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
+let sourceSampleRequest = $state(0)
+let sourceSampleTarget = $state<string | null>(null)
+$effect(() => {
+  const target = sourceRecordFamily ? `${sourceRecordFamily}:${version?.code}` : null
+  if (sourceSampleTarget === target) return
+  sourceSampleTarget = target
+  sourceSampleRequest = 0
+})
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
@@ -163,6 +175,8 @@ let hasContent = $derived.by(() => {
       : notesPresentation.markdown.trim().length > 0
   }
   if (activeTab === 'stats') return Boolean(version?.stats?.length)
+  if (activeTab === 'schema' || activeTab === 'samples')
+    return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
     return Boolean(version?.processingActions?.length || bulkActions.length)
   }
@@ -254,6 +268,12 @@ function setActiveTab(tab: string) {
 }
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.source_ingestion_notes() },
+  ...(sourceRecordFamily
+    ? [
+        { id: 'schema', label: m.api_release_schema() },
+        { id: 'samples', label: m.api_release_samples() },
+      ]
+    : []),
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
   version?.processingActions?.length ||
@@ -270,11 +290,12 @@ const refreshRelease = () => contentResource.query.refresh()
 $effect(() => {
   const tab = getSourceReleaseTabFromUrl(page.url)
   activeTab =
-    tab === 'audit' &&
-    !(
-      isContentLoading ||
-      Boolean(version?.processingActions?.length || bulkActions.length)
-    )
+    ((tab === 'schema' || tab === 'samples') && !sourceRecordFamily) ||
+    (tab === 'audit' &&
+      !(
+        isContentLoading ||
+        Boolean(version?.processingActions?.length || bulkActions.length)
+      ))
       ? 'notes'
       : tab
 })
@@ -290,44 +311,61 @@ let actions = $derived<ReleaseNavAction[]>(
           pressed: showNoteDiff,
         },
       ]
-    : activeTab === 'audit'
+    : activeTab === 'samples' && sourceRecordFamily
       ? [
-          ...(bulkActions.length
-            ? [
-                {
-                  icon: 'ion:layers-outline',
-                  id: 'bulk',
-                  label: m.source_bulk_actions(),
-                  onSelect: () => {
-                    showBulkActions = !showBulkActions
-                    trackClientProductUsage({
-                      event: 'client.audit_control',
-                      surface: 'source_release',
-                      entityType: 'action',
-                      entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                    })
-                  },
-                  pressed: showBulkActions,
-                },
-              ]
-            : []),
-          sourceArchiveUrl
-            ? {
-                download: true,
-                href: sourceArchiveUrl,
-                icon: 'ion:download-outline',
-                id: 'download',
-                label: m.source_download_archive(),
-                analyticsSurface: 'source_release',
-              }
-            : {
-                disabled: true,
-                icon: 'ion:download-outline',
-                id: 'download',
-                label: m.source_download_archive(),
-              },
+          {
+            icon: 'ion:reload-outline',
+            id: 'more-samples',
+            label: 'Show more',
+            onSelect: () => {
+              sourceSampleRequest += 1
+              trackClientProductUsage({
+                event: 'client.sample_control',
+                surface: 'source_release',
+                entityType: 'action',
+                entityId: version?.code ?? params.releaseCode,
+              })
+            },
+          },
         ]
-      : [],
+      : activeTab === 'audit'
+        ? [
+            ...(bulkActions.length
+              ? [
+                  {
+                    icon: 'ion:layers-outline',
+                    id: 'bulk',
+                    label: m.source_bulk_actions(),
+                    onSelect: () => {
+                      showBulkActions = !showBulkActions
+                      trackClientProductUsage({
+                        event: 'client.audit_control',
+                        surface: 'source_release',
+                        entityType: 'action',
+                        entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                      })
+                    },
+                    pressed: showBulkActions,
+                  },
+                ]
+              : []),
+            sourceArchiveUrl
+              ? {
+                  download: true,
+                  href: sourceArchiveUrl,
+                  icon: 'ion:download-outline',
+                  id: 'download',
+                  label: m.source_download_archive(),
+                  analyticsSurface: 'source_release',
+                }
+              : {
+                  disabled: true,
+                  icon: 'ion:download-outline',
+                  id: 'download',
+                  label: m.source_download_archive(),
+                },
+          ]
+        : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
@@ -434,6 +472,21 @@ $effect(() => {
               bind:headings={statsHeadings}
               bind:activeHeadingId={activeStatsHeadingId}
             />
+          {:else if activeTab === 'schema' && sourceRecordFamily}
+            <SourceRecordSchema
+              family={sourceRecordFamily}
+              sourceReleaseCode={version.code}
+              sourceSchemaUrl={source.schemaURL}
+              sourceSchemaVersion={version.sourceSchemaVersion}
+            />
+          {:else if activeTab === 'samples' && sourceRecordFamily}
+            {#key `${sourceRecordFamily}:${version.code}`}
+              <SourceRecordSamples
+                family={sourceRecordFamily}
+                request={sourceSampleRequest}
+                sourceReleaseCode={version.code}
+              />
+            {/key}
           {:else if activeTab === 'audit'}
             <ReleaseAudit.Root
               analyticsSurface="source_release"
