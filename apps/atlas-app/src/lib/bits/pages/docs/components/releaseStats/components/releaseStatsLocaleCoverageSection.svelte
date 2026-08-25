@@ -19,7 +19,12 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
     ><div class="flex items-center gap-3">
       <Legend
         label={labels.localeLegend}
-        items={[{ label: labels.provided, tone: 'bg-data-success' }, { label: labels.inferred, tone: 'bg-data-alert' }]}
+        items={[
+          { label: labels.provided, tone: 'bg-data-success' },
+          { label: labels.inferred, tone: 'bg-data-inferred' },
+          { label: labels.aiTranslated, tone: 'bg-data-ai-translated' },
+          { label: labels.humanTranslated, tone: 'bg-data-human-translated' },
+        ]}
       />
       <InfoTooltip
         label={labels.completenessInfo}
@@ -35,7 +40,7 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
         <p class="font-body text-label-md font-semibold text-primary">{row.label}</p>
         <CoverageBar
           coverage={row.coverage}
-          providedCoverage={row.providedCoverage}
+          segments={row.segments}
           label={row.coverageLabel}
           ariaLabel={`${row.label}: ${row.coverageLabel}`}
         />

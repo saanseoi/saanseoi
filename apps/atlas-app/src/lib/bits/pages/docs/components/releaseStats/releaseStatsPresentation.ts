@@ -260,9 +260,27 @@ export function createReleaseStatsPresentation({
               ),
               coverage,
               coverageLabel: formatReleaseStat(locale, coverage, 'percentage'),
-              providedCoverage:
-                valueFor(group, 'locale_coverage_non_inferred', 'completeness') ??
-                coverage,
+              segments: [
+                ['provided', 'locale_coverage_provided'],
+                ['inferred', 'locale_coverage_inferred'],
+                ['ai-translated', 'locale_coverage_ai_translated'],
+                ['human-translated', 'locale_coverage_human_translated'],
+              ].flatMap(([tone, dimension]) => {
+                const value = valueFor(group, dimension, 'completeness') ?? 0
+                return value > 0
+                  ? [
+                      {
+                        label: tone,
+                        tone: tone as
+                          | 'provided'
+                          | 'inferred'
+                          | 'ai-translated'
+                          | 'human-translated',
+                        value,
+                      },
+                    ]
+                  : []
+              }),
             }
           })
           .filter(row => row.coverage > 0 || row.count !== formatReleaseStat(locale, 0))
