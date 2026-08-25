@@ -8,8 +8,6 @@ revision: "0"
 regionCode: "hk"
 cohortKey: "2016"
 domainCode: "official"
-primarySourceRelease: "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
 ---
 
 # EN
@@ -21,7 +19,7 @@ primarySourceReleaseUrl: "/sources/ds-hk-hkgov-censtatd-division-statistic-subdi
 
 ## Revision Log
 
-- `r{{ apiReleaseSetRevision }}` adds the initial statistics datasets for the
+- `r{{ revision }}` adds the initial statistics datasets for the
   <black>{{ cohortKey }}</black> reference period. The added datasets and their source
   releases are listed below.
 
@@ -73,7 +71,7 @@ The following source releases contributed to this release set.
 
 ## 修訂紀錄
 
-- `r{{ apiReleaseSetRevision }}` 新增了 <black>{{ cohortKey }}</black>
+- `r{{ revision }}` 新增了 <black>{{ cohortKey }}</black>
   參考期的初始統計資料集。新增的資料集及其來源發布列於下方。
 
 ## 發布範圍
@@ -115,7 +113,7 @@ The following source releases contributed to this release set.
 
 ## 修订记录
 
-- `r{{ apiReleaseSetRevision }}` 新增了 <black>{{ cohortKey }}</black>
+- `r{{ revision }}` 新增了 <black>{{ cohortKey }}</black>
   参考期的初始统计数据集。新增的数据集及其来源发布列于下方。
 
 ## 发布范围

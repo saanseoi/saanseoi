@@ -4,7 +4,6 @@ updatedAt: "2026-08-20T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2025-09-24.0"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2025-09-24.0"
 domainCode: "geographic"
@@ -24,7 +23,7 @@ domainCode: "geographic"
 
 ## Revision log
 
-- `r{{ apiReleaseSetRevision }}` contains 7 source snapshots.
+- `r{{ revision }}` contains 7 source snapshots.
 
 ## Release scope
 
@@ -60,7 +59,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ apiReleaseSetRevision }}` 包含 7 個來源 snapshot。
+- `r{{ revision }}` 包含 7 個來源 snapshot。
 
 ## 發布範圍
 
@@ -93,7 +92,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ apiReleaseSetRevision }}` 包含 7 个来源 snapshot。
+- `r{{ revision }}` 包含 7 个来源 snapshot。
 
 ## 发布范围
 

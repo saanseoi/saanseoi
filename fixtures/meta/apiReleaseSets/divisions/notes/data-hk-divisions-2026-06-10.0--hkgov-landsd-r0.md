@@ -4,12 +4,9 @@ updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2026-06-10.0--hkgov-landsd"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2026-06-10.0"
 domainCode: "hkgov-landsd"
-primarySourceRelease: "dr-hk-hkgov-landsd-division-2026-06-10.0"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-landsd-division/dr-hk-hkgov-landsd-division-2026-06-10.0"
 ---
 
 # EN
@@ -24,8 +21,7 @@ primarySourceReleaseUrl: "/sources/ds-hk-hkgov-landsd-division/dr-hk-hkgov-lands
 
 ## Revision log
 
-- `r{{ apiReleaseSetRevision }}` adds a <black>point division</black> from the source
-  release.
+- `r{{ revision }}` adds a <black>point division</black> from the source release.
 
 ## Release scope
 
@@ -59,7 +55,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ apiReleaseSetRevision }}` 從來源發布加入 <black>point division</black>。
+- `r{{ revision }}` 從來源發布加入 <black>point division</black>。
 
 ## 發布範圍
 
@@ -90,7 +86,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ apiReleaseSetRevision }}` 从源发布加入 <black>point division</black>。
+- `r{{ revision }}` 从源发布加入 <black>point division</black>。
 
 ## 发布范围
 

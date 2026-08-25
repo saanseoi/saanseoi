@@ -4,12 +4,9 @@ updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2021--hkgov-censtatd-hma"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2021"
 domainCode: "hkgov-censtatd-hma"
-primarySourceRelease: "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups/dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021"
 ---
 
 # EN
