@@ -43,12 +43,12 @@ describe('docs markdown fixtures', () => {
       expect(draft?.guidePath).toBe(guidePath)
       const fixture = await readFile(path, 'utf8')
       expect(fixture).toContain(`apiReleaseSet: "${apiReleaseSetCode}"`)
-      expect(fixture).toContain('apiReleaseSetRevision: "1"')
+      expect(fixture).toContain('revision: "1"')
+      expect(fixture).not.toContain('apiReleaseSetRevision:')
+      expect(fixture).not.toContain('primarySourceRelease:')
       expect(fixture).toContain('## Revision log')
-      expect(fixture).toContain(
-        '- `r{{ apiReleaseSetRevision }}` Corrected the source metadata.',
-      )
-      expect(fixture.indexOf('`r{{ apiReleaseSetRevision }}` Corrected')).toBeLessThan(
+      expect(fixture).toContain('- `r{{ revision }}` Corrected the source metadata.')
+      expect(fixture.indexOf('`r{{ revision }}` Corrected')).toBeLessThan(
         fixture.indexOf('`r0` contains 7 source snapshots'),
       )
       expect(fixture).toContain(
@@ -95,7 +95,7 @@ describe('docs markdown fixtures', () => {
       )
 
       expect(await readFile(path, 'utf8')).toContain(
-        '- `r{{ apiReleaseSetRevision }}` Added **Divisions** from the `2025-09-24.0` source release published by _Overture Maps Foundation_.',
+        '- `r{{ revision }}` Added **Divisions** from the `2025-09-24.0` source release published by _Overture Maps Foundation_.',
       )
     } finally {
       await rm(path, { force: true })
