@@ -280,10 +280,10 @@ let tabs = $derived<ReleaseNavTab[]>([
   ...((activeTab === 'audit' && isContentLoading) ||
   version?.processingActions?.length ||
   bulkActions.length
-    ? [{ id: 'audit', label: 'Audit' }]
+    ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
   { id: 'releases', label: m.source_tab_released_as() },
-  { id: 'assembly', label: 'Assembly' },
+  { id: 'assembly', label: m.source_tab_assembly() },
 ])
 
 let releaseQueryError = $derived(contentResource.error)
@@ -318,7 +318,7 @@ let actions = $derived<ReleaseNavAction[]>(
           {
             icon: 'ion:reload-outline',
             id: 'more-samples',
-            label: 'Show more',
+            label: m.source_show_more(),
             onSelect: () => {
               sourceSampleRequest += 1
               trackClientProductUsage({
@@ -427,13 +427,13 @@ $effect(() => {
           class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
           role="alert"
         >
-          <p>Source release could not be loaded.</p>
+          <p>{m.source_release_load_error()}</p>
           <button
             class="mt-3 font-semibold underline underline-offset-4"
             onclick={() => void refreshRelease()}
             type="button"
           >
-            Retry
+            {m.source_retry()}
           </button>
         </section>
       {:else}
@@ -476,11 +476,8 @@ $effect(() => {
             />
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
-              family={sourceRecordFamily}
               resourceType={source.resourceTypes[0] ?? ''}
               source={source.publisherCode}
-              sourceReleaseCode={version.code}
-              sourceSchemaUrl={source.schemaURL}
               sourceSchemaVersion={version.sourceSchemaVersion}
               sourceVersion={version.sourceVersion}
             />
@@ -508,7 +505,7 @@ $effect(() => {
               <ReleaseLinks.Provenance
                 analyticsSurface="source_release"
                 presentation={sourceReleaseLinksPresentation}
-                copyRequestLabel="Copy request"
+                copyRequestLabel={m.source_copy_request()}
                 emptyLabel={m.source_released_as_empty()}
               />
             </ReleaseLinks.Root>
@@ -517,8 +514,8 @@ $effect(() => {
               <ReleaseLinks.Provenance
                 analyticsSurface="source_release"
                 presentation={sourceReleaseAssembliesPresentation}
-                copyRequestLabel="Copy request"
-                emptyLabel="No assembled source releases."
+                copyRequestLabel={m.source_copy_request()}
+                emptyLabel={m.source_assembly_empty()}
               />
             </ReleaseLinks.Root>
           {/if}
@@ -530,13 +527,13 @@ $effect(() => {
       class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
       role="alert"
     >
-      <p>Source release could not be loaded.</p>
+      <p>{m.source_release_load_error()}</p>
       <button
         class="mt-3 font-semibold underline underline-offset-4"
         onclick={() => void refreshRelease()}
         type="button"
       >
-        Retry
+        {m.source_retry()}
       </button>
     </section>
   {:else}
