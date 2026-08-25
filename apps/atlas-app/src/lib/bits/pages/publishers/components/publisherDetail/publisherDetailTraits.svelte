@@ -20,12 +20,6 @@ const listParts = (values: string[]) =>
 const formatList = (values: string[]) =>
   new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(values)
 
-const interpolateMessage = (message: string, values: Record<string, string>) =>
-  Object.entries(values).reduce(
-    (result, [key, value]) => result.replaceAll(`{${key}}`, value),
-    message,
-  )
-
 const resourceTypeLabel = (resourceType: string) => {
   const labels: Record<string, () => string> = {
     address: m.publishers_resource_address,
@@ -103,25 +97,25 @@ let frequencies = $derived(
 )
 let licences = $derived(uniqueValues(sources.map(source => source.license?.code)))
 let publishesParts = $derived(
-  m.publishers_traits_publishes().split(/(\{resources\}|\{regions\})/),
+  m
+    .publishers_traits_publishes({ resources: '{resources}', regions: '{regions}' })
+    .split(/(\{resources\}|\{regions\})/),
 )
 let resourceListParts = $derived(listParts(resourceTypes))
 let frequencySentence = $derived(
   frequencies.length === 0
     ? ''
     : frequencies.length === 1
-      ? interpolateMessage(m.publishers_traits_frequency_single(), {
-          frequency: frequencies[0],
-        })
-      : interpolateMessage(m.publishers_traits_frequency_multiple(), {
+      ? m.publishers_traits_frequency_single({ frequency: frequencies[0] })
+      : m.publishers_traits_frequency_multiple({
           shortest: frequencies[0] ?? '',
           longest: frequencies.at(-1) ?? '',
         }),
 )
 let licenceMessage = $derived(
   licences.length === 1
-    ? m.publishers_traits_license_single()
-    : m.publishers_traits_license_multiple(),
+    ? m.publishers_traits_license_single({ licence: '{licence}' })
+    : m.publishers_traits_license_multiple({ licences: '{licences}' }),
 )
 let licenceParts = $derived(licenceMessage.split(/(\{licence\}|\{licences\})/))
 let licenceListParts = $derived(listParts(licences))

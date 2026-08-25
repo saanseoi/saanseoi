@@ -42,7 +42,7 @@ const instruction = $derived(
 const description = $derived(
   editor === 'other'
     ? m.guide_setup_editor_other_description()
-    : m.guide_setup_editor_description().replace('{name}', editorName),
+    : m.guide_setup_editor_description({ name: editorName }),
 )
 </script>
 

@@ -56,7 +56,7 @@ $effect(() => {
         <span
           class="mt-2 block max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
         >
-          {m.guide_payment_warning_complete().replace('{choice}', choice)}
+          {m.guide_payment_warning_complete({ choice })}
         </span>
       </span>
     </button>
@@ -74,7 +74,7 @@ $effect(() => {
           id="payment-warning-title"
           class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${completed ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
         >
-          {m.guide_payment_warning_title().replace('{region}', region)}
+          {m.guide_payment_warning_title({ region })}
         </h3>
         <p class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
           {m.guide_payment_warning_description()}

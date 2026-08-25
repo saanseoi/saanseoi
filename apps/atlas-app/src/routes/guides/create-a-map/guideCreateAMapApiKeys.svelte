@@ -199,7 +199,7 @@ $effect(() => {
         role="status"
       >
         <p class="font-body text-body-md font-semibold text-foreground">
-          {m.api_keys_store_title().replace('{name}', newKeyName ?? '')}
+          {m.api_keys_store_title({ name: newKeyName ?? '' })}
         </p>
         <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
           {m.api_keys_store_description()}

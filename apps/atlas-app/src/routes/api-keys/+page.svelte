@@ -18,6 +18,7 @@ let { data } = $props()
 let keys = $state<typeof data.apiKeys>([])
 let name = $state('')
 let revealedKey = $state<string | null>(null)
+let revealedKeyName = $state('')
 let keyRevealOpen = $state(false)
 let copied = $state(false)
 let showRevoked = $state(false)
@@ -40,6 +41,7 @@ const createKey = async () => {
     const result = await createApiKeyForCurrentUser({ name })
 
     revealedKey = result.rawKey
+    revealedKeyName = name
     keyRevealOpen = true
     trackClientProductUsage({
       event: 'api_key.reveal',
@@ -226,7 +228,7 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
         <Icon icon="proicons:key" class="size-5" />
       </div>
       <Dialog.Title class="mt-6 font-display text-headline-sm font-bold text-primary">
-        {m.api_keys_store_title()}
+        {m.api_keys_store_title({ name: revealedKeyName })}
       </Dialog.Title>
       <Dialog.Description
         class="mt-3 font-body text-body-md leading-7 text-foreground-alt"

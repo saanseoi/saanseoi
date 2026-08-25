@@ -429,28 +429,18 @@ const selectedLlmReadinessName = $derived(
 )
 const llmReadinessIncompleteDescription = $derived(
   aiAccess === 'web'
-    ? m
-        .guide_agentic_ai_readiness_chat_description()
-        .replace('{name}', selectedLlmReadinessName)
+    ? m.guide_agentic_ai_readiness_chat_description({ name: selectedLlmReadinessName })
     : agentTool === 'other'
       ? m.guide_agentic_ai_readiness_other_agent_prompt()
-      : m
-          .guide_agentic_ai_readiness_agent_prompt()
-          .replace('{name}', selectedLlmReadinessName),
+      : m.guide_agentic_ai_readiness_agent_prompt({ name: selectedLlmReadinessName }),
 )
 const llmReadinessCompleteDescription = $derived(
-  m
-    .guide_agentic_ai_readiness_complete_description()
-    .replace('{name}', selectedLlmReadinessName),
+  m.guide_agentic_ai_readiness_complete_description({ name: selectedLlmReadinessName }),
 )
 const llmReadinessDetailsDescription = $derived(
   aiAccess === 'web'
-    ? m
-        .guide_agentic_ai_readiness_chat_description()
-        .replace('{name}', selectedLlmReadinessName)
-    : m
-        .guide_agentic_ai_readiness_description()
-        .replace('{name}', selectedLlmReadinessName),
+    ? m.guide_agentic_ai_readiness_chat_description({ name: selectedLlmReadinessName })
+    : m.guide_agentic_ai_readiness_description({ name: selectedLlmReadinessName }),
 )
 const isPaymentConfirmationRequired = $derived(
   isVpnRequired &&
@@ -870,9 +860,9 @@ const pastePromptMessage = $derived.by(() => {
   const name =
     handoverChatChoices.find(choice => choice.value === copiedPromptProvider)?.label ??
     ''
-  return (
-    copyPromptFailed ? m.guide_llm_copy_failed() : m.guide_llm_paste_prompt()
-  ).replace('{name}', name)
+  return copyPromptFailed
+    ? m.guide_llm_copy_failed({ name })
+    : m.guide_llm_paste_prompt({ name })
 })
 
 $effect(() => {
@@ -1087,9 +1077,7 @@ const codeEditorInstallation = $derived.by(() => {
 
   return {
     href: editorDetails.href,
-    label: m
-      .guide_code_editor_readiness_download()
-      .replace('{name}', editorDetails.name),
+    label: m.guide_code_editor_readiness_download({ name: editorDetails.name }),
   }
 })
 const editorPricing = $derived.by(() => {
@@ -1132,18 +1120,16 @@ const editorReadinessDescription = $derived(
   codeEditor === 'other'
     ? m.guide_code_editor_readiness_other_description()
     : selectedCodeEditor
-      ? m
-          .guide_code_editor_readiness_description()
-          .replace('{name}', selectedCodeEditor.label)
+      ? m.guide_code_editor_readiness_description({ name: selectedCodeEditor.label })
       : '',
 )
 const editorReadinessCompleteDescription = $derived(
   codeEditor === 'other'
     ? m.guide_code_editor_readiness_complete_other_description()
     : selectedCodeEditor
-      ? m
-          .guide_code_editor_readiness_complete_description()
-          .replace('{name}', selectedCodeEditor.label)
+      ? m.guide_code_editor_readiness_complete_description({
+          name: selectedCodeEditor.label,
+        })
       : '',
 )
 const editorReadinessWelcomeDescription = $derived(
@@ -1396,9 +1382,9 @@ const setupCode = $derived(
     .join('\n'),
 )
 const hostingInstallExplanation = $derived(
-  m
-    .guide_setup_install_hosting_tool_explanation()
-    .replace('{host}', selectedHosting?.label ?? ''),
+  m.guide_setup_install_hosting_tool_explanation({
+    host: selectedHosting?.label ?? '',
+  }),
 )
 const bunInstallExplanation = $derived(
   `${m.guide_setup_install_bun_explanation()}${terminalExperience === 'basic' ? ` ${m.guide_setup_install_bun_alternative_toolchain()}` : ''}`,
@@ -1537,15 +1523,11 @@ const rendererVersionDependency = $derived(
       : { name: 'leaflet', pinnedVersion: '1.9.4' },
 )
 const rendererTerminalReminder = $derived(
-  (operatingSystem === 'windows'
-    ? m.guide_renderer_terminal_reminder_windows()
-    : m.guide_renderer_terminal_reminder_unix()
-  ).replace(
-    '{command}',
-    operatingSystem === 'windows'
-      ? 'Set-Location ~/saanseoi-project'
-      : 'cd ~/saanseoi-project',
-  ),
+  operatingSystem === 'windows'
+    ? m.guide_renderer_terminal_reminder_windows({
+        command: 'Set-Location ~/saanseoi-project',
+      })
+    : m.guide_renderer_terminal_reminder_unix({ command: 'cd ~/saanseoi-project' }),
 )
 const rendererEditorPath = 'src/main.ts'
 const rendererStylesheetPath = 'src/style.css'
@@ -1583,26 +1565,20 @@ const basemapCode = $derived(
     : '',
 )
 const rendererEditorInstruction = $derived(
-  m
-    .guide_renderer_editor_instruction()
-    .replace(
-      '{editor}',
-      selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
-    )
-    .replace('{path}', rendererEditorPath),
+  m.guide_renderer_editor_instruction({
+    editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+    path: rendererEditorPath,
+  }),
 )
 const styleEditCode = $derived(basemapCode)
 const styleEditorInstruction = $derived(
-  m
-    .guide_style_editor_instruction()
-    .replace(
-      '{editor}',
-      selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
-    )
-    .replace('{path}', rendererEditorPath),
+  m.guide_style_editor_instruction({
+    editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+    path: rendererEditorPath,
+  }),
 )
 const rendererStylesheetInstruction = $derived(
-  m.guide_renderer_stylesheet_instruction().replace('{path}', rendererStylesheetPath),
+  m.guide_renderer_stylesheet_instruction({ path: rendererStylesheetPath }),
 )
 const urbanDensityInstallCode = $derived(
   'bun add @turf/area @turf/helpers @turf/intersect @turf/union',
@@ -1917,7 +1893,7 @@ const styleChoices = $derived.by(() =>
                     alignment="left"
                     label={m.guide_vpn_access_label()}
                     marker={prerequisiteMarker('vpn-access')}
-                    hint={m.guide_vpn_access_hint().replace('{region}', visitorRegionLabel ?? '')}
+                    hint={m.guide_vpn_access_hint({ region: visitorRegionLabel ?? '' })}
                     choices={vpnAccessChoices}
                     bind:value={vpnAccess}
                     variant="tiles"
@@ -2274,9 +2250,8 @@ const styleChoices = $derived.by(() =>
             <GuideCreateAMapVersionNotice
               dependency={rendererVersionDependency}
               library={selectedRenderer?.label ?? ''}
-              noticeLabel={m.guide_renderer_version_notice_label()}
-              versionDescription={m.guide_renderer_version_description()}
-              minorDifference={m.guide_renderer_version_minor_difference()}
+              noticeLabel={m.guide_renderer_version_notice_label({})}
+              minorDifference={m.guide_renderer_version_minor_difference({})}
               majorDifference={m.guide_renderer_version_major_difference()}
               contactBefore={m.guide_renderer_version_contact_before()}
               contactLabel={m.guide_renderer_version_contact_label()}
@@ -2297,9 +2272,9 @@ const styleChoices = $derived.by(() =>
                 <div class="border-t border-border-card pt-10">
                   <GuideSubSectionHeader
                     eyebrow={m.guide_renderer_prompt_none_eyebrow()}
-                    title={m
-                      .guide_renderer_package_title()
-                      .replace('{library}', selectedRenderer?.label ?? '')}
+                    title={m.guide_renderer_package_title({
+                      library: selectedRenderer?.label ?? '',
+                    })}
                   />
                   <p
                     class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
@@ -2319,9 +2294,9 @@ const styleChoices = $derived.by(() =>
                 <div>
                   <GuideSubSectionHeader
                     eyebrow={rendererCodeLabel}
-                    title={m
-                      .guide_renderer_code_title()
-                      .replace('{library}', selectedRenderer?.label ?? '')}
+                    title={m.guide_renderer_code_title({
+                      library: selectedRenderer?.label ?? '',
+                    })}
                   />
                   <div class="mt-6 max-w-2xl">
                     <GuideCodeBlock
@@ -2435,9 +2410,7 @@ const styleChoices = $derived.by(() =>
                 : m.guide_renderer_prompt_chat_eyebrow()}
               prompt={progressiveSectionPrompts.render}
               promptIcon={selectedLlmOption?.icon}
-              title={m
-                .guide_renderer_setup_title()
-                .replace('{library}', selectedMapLibrary.label)}
+              title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
             />
           {/if}
         </div>
@@ -2522,9 +2495,9 @@ const styleChoices = $derived.by(() =>
                     variant="editor"
                   />
                   <p class="font-body text-body-md leading-7 text-foreground-alt">
-                    {@html m
-                      .guide_basemap_editor_restart()
-                      .replace('{region}', selectedRegion?.label ?? m.guide_basemap_hk())}
+                    {@html m.guide_basemap_editor_restart({
+                      region: selectedRegion?.label ?? m.guide_basemap_hk(),
+                    })}
                   </p>
                 </GuideSubSectionBody>
               </div>
@@ -2609,9 +2582,7 @@ const styleChoices = $derived.by(() =>
           <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
-              title={m
-                .guide_style_editor_title()
-                .replace('{library}', selectedRenderer?.label ?? '')}
+              title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
             />
             <GuideSubSectionBody>
               <GuideCodeBlock
@@ -2638,10 +2609,9 @@ const styleChoices = $derived.by(() =>
               : m.guide_renderer_prompt_chat_eyebrow()}
             prompt={progressiveSectionPrompts.style}
             promptIcon={selectedLlmOption?.icon}
-            title={m.guide_renderer_setup_title().replace(
-              '{library}',
-              selectedMapLibrary?.label ?? '',
-            )}
+            title={m.guide_renderer_setup_title({
+              library: selectedMapLibrary?.label ?? '',
+            })}
           />
         {/if}
       </GuideSection>
@@ -2817,10 +2787,9 @@ const styleChoices = $derived.by(() =>
                   {@html m.guide_setup_embed_title()}
                 </h3>
                 <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-                  {@html m.guide_setup_embed_description().replace(
-                      '{provider}',
-                      selectedWebsitePlatform?.label ?? '',
-                    )}
+                  {@html m.guide_setup_embed_description({
+                    provider: selectedWebsitePlatform?.label ?? '',
+                  })}
                 </p>
                 <div class="mt-5">
                   <GuideCodeBlock

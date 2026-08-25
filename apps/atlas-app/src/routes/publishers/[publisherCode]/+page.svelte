@@ -112,10 +112,9 @@ const displayDate = (value?: string | null) =>
   value ? new Date(value).toISOString().slice(0, 10) : unavailable
 
 const sourceCountLabel = (count: number) =>
-  (count === 1 ? m.publishers_dataset_count() : m.publishers_datasets_count()).replace(
-    '{count}',
-    String(count),
-  )
+  count === 1
+    ? m.publishers_dataset_count({ count: String(count) })
+    : m.publishers_datasets_count({ count: String(count) })
 </script>
 
 <Seo title={seoTitle} description={seoDescription} />

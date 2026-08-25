@@ -1,9 +1,17 @@
 import { getLocale, locales, setLocale } from '@repo/i18n/runtime'
-import { m as generatedM } from '@repo/i18n/messages'
+import {
+  language_option_en,
+  language_option_zh_hans,
+  language_option_zh_hant,
+} from '@repo/i18n/messages'
 
 import { getCurrentLocale, updateLocale } from './localeState.svelte'
 import type { AppLocale, MessageKey } from './localisedMessages'
 
+// Preserve Paraglide's generated namespace as an ESM re-export. Its message
+// modules are side-effect-free, so Vite can retain only properties used by an
+// individual client entry.
+export { m } from '@repo/i18n/messages'
 export { getLocale, locales, setLocale }
 export { getCurrentLocale, updateLocale }
 export type { AppLocale, MessageKey }
@@ -20,14 +28,8 @@ export function selectLocalisedRow<T extends { locale: string }>(
   )
 }
 
-type AppMessages = { [K in MessageKey]: () => string }
-
-// Keep established call sites that interpolate placeholders after lookup while
-// sourcing every message directly from Paraglide's generated ESM modules.
-export const m = generatedM as unknown as AppMessages
-
 export const localeOptions = [
-  { value: 'en', label: () => m.language_option_en() },
-  { value: 'zh-Hant', label: () => m.language_option_zh_hant() },
-  { value: 'zh-Hans', label: () => m.language_option_zh_hans() },
+  { value: 'en', label: language_option_en },
+  { value: 'zh-Hant', label: language_option_zh_hant },
+  { value: 'zh-Hans', label: language_option_zh_hans },
 ] as const satisfies ReadonlyArray<{ value: AppLocale; label: () => string }>
