@@ -154,7 +154,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
     .get(releaseId) as { status: string }
 
   expect(result).toMatchObject({
-    apiReleaseSetCode: 'data-hk-stats-2024-25',
+    apiReleaseSetCode: 'data-hk-stats-2024-25-r0',
     apiReleaseSetStatus: 'current',
     releaseId,
     snapshotId: snapshot.id,
