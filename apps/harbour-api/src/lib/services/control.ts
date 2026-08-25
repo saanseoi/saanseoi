@@ -386,7 +386,10 @@ export async function handlePublishDataset(
                   db,
                   datasetType,
                   { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
-                  { domainCode },
+                  // Statistics cohorts use an explicit `-r0` for their first
+                  // immutable compilation. That keeps launch bootstraps and
+                  // ordinary source ingestion on the same release-note path.
+                  { domainCode, explicitInitialRevision: true },
                 ),
               )
             }
