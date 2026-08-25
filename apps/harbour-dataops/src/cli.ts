@@ -7,6 +7,7 @@ import {
   type ParsedArgs,
 } from '../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from './lib/terminal.ts'
+import { installInterruptHandler } from '../../harbour-cli/src/lib/cli/interrupt.ts'
 
 function printUsage() {
   console.log(`  Usage:
@@ -209,6 +210,8 @@ async function main() {
       throw new Error(`Unsupported Harbour DataOps command: ${args.command}`)
   }
 }
+
+installInterruptHandler()
 
 main().catch(error => {
   cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))

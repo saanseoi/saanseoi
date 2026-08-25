@@ -34,6 +34,7 @@ import {
 } from './lib/commands/version.ts'
 import { parseArgs, resolveUploadTarget } from './lib/cli/options.ts'
 import { printUsage } from './lib/cli/usage.ts'
+import { installInterruptHandler } from './lib/cli/interrupt.ts'
 
 async function main() {
   const args = parseArgs(process.argv)
@@ -167,6 +168,8 @@ async function main() {
       throw new Error(`Unsupported harbour command: ${args.command}`)
   }
 }
+
+installInterruptHandler()
 
 main().catch(error => {
   cancel(error instanceof Error ? error.message : String(error))
