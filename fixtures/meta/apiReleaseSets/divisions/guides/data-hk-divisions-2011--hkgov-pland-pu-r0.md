@@ -4,12 +4,9 @@ updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2011--hkgov-pland-pu"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2011"
 domainCode: "hkgov-pland-pu"
-primarySourceRelease: "dr-hk-hkgov-pland-division-pu-2011"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-pland-division-pu/dr-hk-hkgov-pland-division-pu-2011"
 ---
 
 # EN
