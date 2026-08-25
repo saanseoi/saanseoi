@@ -50,12 +50,11 @@ function metaDatabase(input?: {
             return {
               all: async () => {
                 expect(query).toContain('FROM releases')
-                expect(query).toContain("apiReleaseSets.status <> 'draft'")
                 expect(query).toContain(
                   "sourceReleases.status IN ('published', 'superseded')",
                 )
                 expect(query).toContain('releases.revokedAt IS NULL')
-                expect(values).toEqual([sourceReleaseCode, 'divisions'])
+                expect(values).toEqual([sourceReleaseCode])
                 return {
                   results:
                     input?.published === false

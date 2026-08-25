@@ -9,7 +9,7 @@ const schemaNamesByApiFamily: Record<string, string> = {
   addresses: 'Address',
   divisions: 'Division',
   places: 'Place',
-  statistics: 'Statistic',
+  stats: 'Statistic',
   streets: 'Street',
 }
 
