@@ -131,6 +131,12 @@ actions, then mark those releases retryable. It does not remove the C&SD distric
 source assertions or any non-C&SD statistics. Re-ingest with
 `./bin/saanseoi update --target local --scope stats --download --yes --check-now`.
 
+For a launch bootstrap, add `--defer-stats-release-set` to that update command. It
+publishes all source releases and materialises their snapshots without publishing an
+intermediate Statistics release set. Then run
+`./bin/saanseoi release-sets:bootstrap-stats --target local --region hk` to create one
+cohort-complete `r0` per reference period.
+
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
 statistical-geography cohort.
