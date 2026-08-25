@@ -165,7 +165,7 @@ $effect(() => {
       {#each samples as sample, index (sample.id)}
         <div class="overflow-x-auto rounded-md">
           <dl
-            class="min-w-[44rem] overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
+            class="min-w-176 overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
           >
             <dt>
               <button
