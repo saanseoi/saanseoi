@@ -4,12 +4,9 @@ updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2026-06-10.0--hkgov-landsd"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2026-06-10.0"
 domainCode: "hkgov-landsd"
-primarySourceRelease: "dr-hk-hkgov-landsd-division-2026-06-10.0"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-landsd-division/dr-hk-hkgov-landsd-division-2026-06-10.0"
 ---
 
 # EN
