@@ -51,6 +51,12 @@ describe('docs markdown fixtures', () => {
       expect(fixture.indexOf('`r{{ apiReleaseSetRevision }}` Corrected')).toBeLessThan(
         fixture.indexOf('`r0` contains 7 source snapshots'),
       )
+      expect(fixture).toContain(
+        'Corrected the source metadata.\n- `r0` contains 7 source snapshots.',
+      )
+      expect(fixture).not.toContain(
+        'Corrected the source metadata.\n\n- `r0` contains 7 source snapshots.',
+      )
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
       )
