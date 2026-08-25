@@ -119,6 +119,7 @@ import {
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../dbCache/localDbCache.ts'
+import { resolveSourceReleaseNameTranslationsBatch } from '../i18n/sourceReleaseTranslations.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -529,6 +530,7 @@ export async function processLocalDivisionSqlUpload(
           currentRows,
           currentSourceRows,
           versionInsertContext.snapshotId,
+          !target.remote,
           async current => {
             await reportProgress(current)
             await harbourClient.stageRunning(
@@ -1172,6 +1174,7 @@ async function buildDivisionSqlState(
   currentRows: Map<string, OwnedDivisionVersionSnapshot>,
   currentSourceRows: Map<string, OwnedCurrentSourceRecord>,
   snapshotId: string,
+  allowTranslationGeneration: boolean,
   reportProgress: (current: number) => Promise<void>,
 ) {
   const traceDivisionIds = resolveDivisionTraceIds()
@@ -1185,10 +1188,21 @@ async function buildDivisionSqlState(
   const isInitialSourceLoad = currentSourceRows.size === 0
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   const hierarchyLookup = await buildDivisionHierarchyLookup(file)
+  const sourceRelease = message.releaseCode
+  if (!sourceRelease) {
+    throw new Error('Division i18n fixtures require a source release code.')
+  }
   const divisionCodeAssignments =
     message.source === 'overture'
       ? await loadDivisionCodeAssignments(metaDb)
       : new Map<string, string>()
+  const translationsByDivisionId = await resolveDivisionNameTranslations(
+    file,
+    message,
+    hierarchyLookup,
+    sourceRelease,
+    allowTranslationGeneration,
+  )
 
   let processedRows = 0
   let insertedVersions = 0
@@ -1224,7 +1238,15 @@ async function buildDivisionSqlState(
             null,
         })
       }
-      const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
+      const resolvedI18n = translationsByDivisionId.get(normalised.base.id)
+      if (!resolvedI18n) {
+        throw new Error(
+          `Missing source-release i18n result for ${sourceRelease}/${normalised.base.id}.`,
+        )
+      }
+      const canonicalI18n = buildCanonicalDivisionApiI18n(
+        mergeDivisionI18nTranslations(normalised.i18n, resolvedI18n.localisations),
+      )
       processingActions.push(
         ...buildOvertureDivisionLocaleProcessingActions({
           canonicalI18n,
@@ -1373,6 +1395,69 @@ async function buildDivisionSqlState(
     statsRows,
     unchangedRows,
   } satisfies DivisionSqlState
+}
+
+async function resolveDivisionNameTranslations(
+  file: Parameters<typeof buildDivisionHierarchyLookup>[0],
+  message: DatasetProcessingMessage,
+  hierarchyLookup: Awaited<ReturnType<typeof buildDivisionHierarchyLookup>>,
+  sourceRelease: string,
+  allowGeneration: boolean,
+) {
+  const records = [] as Array<{
+    localisations: Array<{ locale: string; name: string }>
+    recordId: string
+  }>
+
+  for await (const { rows } of readDivisionRowsWithFixtures(
+    file,
+    message,
+    DIVISION_BATCH_SIZE,
+  )) {
+    for (const row of rows) {
+      const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      records.push({
+        localisations: normalised.i18n.flatMap(localised =>
+          localised.name ? [{ locale: localised.locale, name: localised.name }] : [],
+        ),
+        recordId: normalised.base.id,
+      })
+    }
+  }
+
+  return resolveSourceReleaseNameTranslationsBatch({
+    allowGeneration,
+    records,
+    sourceRelease,
+  })
+}
+
+function mergeDivisionI18nTranslations(
+  source: DivisionI18nPayload[],
+  localisations: Array<{ locale: string; name: string }>,
+) {
+  const existing = new Set(source.map(localised => localised.locale))
+  const divisionId = source[0]?.divisionId
+  if (!divisionId) return source
+
+  return [
+    ...source,
+    ...localisations.flatMap(localised =>
+      existing.has(localised.locale)
+        ? []
+        : [
+            {
+              divisionId,
+              isLocaleInferred: false,
+              locale: localised.locale,
+              name: localised.name,
+              nameAlts: null,
+              nameRules: null,
+              nameVariant: [localised.name],
+            } satisfies DivisionI18nPayload,
+          ],
+    ),
+  ]
 }
 
 async function buildDivisionSourceSqlFile(

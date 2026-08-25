@@ -162,3 +162,23 @@ obscuring record-level decisions.
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
 `zh-hant`.
+
+## Reviewable API name translations
+
+Division imports complete the API's `en`, `zh-hant`, and `zh-hans` name locales only
+when a publisher has supplied at least one name. A missing Simplified Chinese value is
+translated from Traditional Chinese where available, and vice versa. When no Chinese
+name is available, English supplies a missing Chinese value. If both Chinese values are
+present but English is absent, Simplified Chinese supplies the English translation.
+
+Generated values are kept in a version-controlled fixture at
+`fixtures/i18n/source-releases/<sourceRelease>.json`. The globally unique source-release
+code is the fixture key; each entry also records the canonical record ID, source locale,
+source-text hash, target locale, translation machine, and `isTranslationVerified=false`.
+A later local import reads that fixture rather than calling the translation service
+again. It may add missing entries in locale-pair batches, which keeps the generated
+changes reviewable before release SQL is used in production.
+
+Only a local import may create a missing fixture entry. A non-local import can use an
+existing fixture but fails clearly when an entry is absent. A source that provides codes
+without a name is not translated.

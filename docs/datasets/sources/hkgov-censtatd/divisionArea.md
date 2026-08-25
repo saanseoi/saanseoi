@@ -155,6 +155,11 @@ can exceed the number of HMA records. The association does not alter HMA canonic
 division IDs and it does not emit Geometry by District measurements: whole-HMA area or
 perimeter must never be attributed to every district it crosses.
 
+The source's `hma_eng` and `hma_chi` labels become the English and Traditional Chinese
+HMA names. A missing Simplified Chinese name is created only by the reviewable
+source-release fixture process described in the Divisions family document; it is marked
+unverified until reviewed.
+
 The generated HMA division rows include the shared Parquet hierarchy columns. Their
 `class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
 HMAs have no hierarchy. Their authoritative classification remains the C&SD

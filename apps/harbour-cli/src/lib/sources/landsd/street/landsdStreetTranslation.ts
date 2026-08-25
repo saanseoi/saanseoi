@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path'
 export const AZURE_TRANSLATION_MACHINE = 'azure-translator-v3'
 export const AZURE_TRANSLATION_REGION = 'eastasia'
 
-type AzureTranslationLocale = 'en' | 'yue' | 'zh-Hans' | 'zh-Hant'
+export type AzureTranslationLocale = 'en' | 'yue' | 'zh-Hans' | 'zh-Hant'
 
 export type LandsdStreetTranslationProvenance = {
   machine: typeof AZURE_TRANSLATION_MACHINE
