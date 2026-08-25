@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9152ca2627c00ccbe6e40f120af110499fb27ec92e01c910e309b95e248fa02e",
+  "versionHash": "sha256:dc319bae669392049865d3eee37ae9718d1678415e835f45c16b60abee31feb9",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -260,6 +260,48 @@
         {
           "locale": "zh-hans",
           "description": "记录每个根据可用源变体新增的 API 区划名称语言回退。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_name_ai_translated",
+      "type": "record",
+      "sourceFieldPath": "names",
+      "targetFieldPath": "i18n.*.name",
+      "condition": "A required API name locale is added from a dataset-scoped AI translation fixture.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each AI-translated division name locale applied to the release."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄套用至發行版本的每個 AI 翻譯區劃名稱語言地區。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录应用于发行版本的每个 AI 翻译区划名称语言区域。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_name_human_translated",
+      "type": "record",
+      "sourceFieldPath": "names",
+      "targetFieldPath": "i18n.*.name",
+      "condition": "A required API name locale is added from a human translation in the dataset-scoped fixture.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each human-translated division name locale applied to the release."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄套用至發行版本的每個人工翻譯區劃名稱語言地區。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录应用于发行版本的每个人工翻译区划名称语言区域。"
         }
       ]
     },
