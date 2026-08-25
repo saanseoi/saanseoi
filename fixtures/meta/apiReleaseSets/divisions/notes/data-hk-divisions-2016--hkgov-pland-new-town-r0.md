@@ -4,12 +4,9 @@ updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2016--hkgov-pland-new-town"
-apiReleaseSetRevision: "0"
 regionCode: "hk"
 cohortKey: "2016"
 domainCode: "hkgov-pland-new-town"
-primarySourceRelease: "dr-hk-hkgov-pland-division-new-town-2016"
-primarySourceReleaseUrl: "/sources/ds-hk-hkgov-pland-division-new-town/dr-hk-hkgov-pland-division-new-town-2016"
 ---
 
 # EN
@@ -21,8 +18,8 @@ primarySourceReleaseUrl: "/sources/ds-hk-hkgov-pland-division-new-town/dr-hk-hkg
 
 ## Revision log
 
-- `r{{ apiReleaseSetRevision }}` adds <black>division</black> and
-  <black>division-area</black> from the source release.
+- `r{{ revision }}` adds <black>division</black> and <black>division-area</black> from
+  the source release.
 
 ## Release scope
 
@@ -52,7 +49,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ apiReleaseSetRevision }}` 從來源發布加入 <black>division</black> 及
+- `r{{ revision }}` 從來源發布加入 <black>division</black> 及
   <black>division-area</black>。
 
 ## 發布範圍
@@ -81,7 +78,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ apiReleaseSetRevision }}` 从源发布加入 <black>division</black> 及
+- `r{{ revision }}` 从源发布加入 <black>division</black> 及
   <black>division-area</black>。
 
 ## 发布范围
