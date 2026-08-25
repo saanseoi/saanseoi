@@ -140,9 +140,11 @@ describe('source-release name translations', () => {
     }
   })
 
-  test('uses a source-release-only fixture path', () => {
-    expect(sourceReleaseTranslationFixturePath(SOURCE_RELEASE)).toEndWith(
-      `/fixtures/i18n/source-releases/${SOURCE_RELEASE}.json`,
+  test('uses a source-release-only fixture path for a dotted release version', () => {
+    const sourceRelease = 'dr-hk-overture-division-2025-09-24.0'
+
+    expect(sourceReleaseTranslationFixturePath(sourceRelease)).toEndWith(
+      `/fixtures/i18n/source-releases/${sourceRelease}.json`,
     )
   })
 
