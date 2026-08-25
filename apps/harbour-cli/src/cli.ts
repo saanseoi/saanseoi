@@ -1,5 +1,7 @@
 import { cancel } from '@clack/prompts'
 
+import { recordInitialisationSummaryEvent } from './lib/commands/initialisationSummary.ts'
+
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
@@ -173,9 +175,24 @@ async function main() {
   }
 }
 
-installInterruptHandler()
+const disposeInterruptHandler = installInterruptHandler()
 
-main().catch(error => {
-  cancel(error instanceof Error ? error.message : String(error))
-  process.exit(1)
-})
+main()
+  .then(() => {
+    disposeInterruptHandler()
+  })
+  .catch(async error => {
+    disposeInterruptHandler()
+    const message = error instanceof Error ? error.message : String(error)
+    const releaseCode = process.env.SAANSEOI_INIT_RELEASE_CODE
+    if (releaseCode) {
+      await recordInitialisationSummaryEvent({
+        command: process.env.SAANSEOI_INIT_COMMAND || null,
+        message,
+        releaseCode,
+        type: 'error',
+      }).catch(() => undefined)
+    }
+    cancel(message)
+    process.exit(1)
+  })

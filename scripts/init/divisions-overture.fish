@@ -88,3 +88,4 @@ set -g saanseoi_init_docs_pending 1
 # all cohort uploads have completed so an initial run does not repeat that scan
 # after each individual source release.
 init_publish_docs_if_needed
+init_complete

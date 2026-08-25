@@ -13,6 +13,8 @@ if test "$saanseoi_init_cache_artefacts" -eq 1
     set cache_artefact_args --cacheArtefacts
 end
 
+set -l failed 0
+
 for command in \
     init:divisions:geophraphic \
     init:divisions:hkgov-pland-pu \
@@ -20,6 +22,11 @@ for command in \
     init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
     init:addresses:official
-    init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
+    ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_args
+    or set failed 1
+end
+
+if test $failed -ne 0
+    exit 1
 end
