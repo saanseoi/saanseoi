@@ -7,10 +7,12 @@ import NestedField from '#lib/bits/pages/docs/components/releaseSamples/componen
 import SourceIdentifier from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesIdentifier.svelte'
 import {
   getUniqueAddressSamples,
+  groupAddressSamples,
   sampleValueTones,
   toCompleteSample,
   type AddressSample,
 } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
+import GroupedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesGroupedField.svelte'
 
 type Props = {
   family: string
@@ -38,6 +40,8 @@ let errorMessage = $state<string | null>(null)
 let mounted = $state(false)
 let handledRequest = $state<number | null>(null)
 let pendingExamples = $state(0)
+
+const groupedFields = $derived(groupAddressSamples(samples))
 
 function requestUrl(limit: number) {
   const url = new URL(`${apiBaseUrl}/${family}/v0.1/sources`)
@@ -146,6 +150,16 @@ $effect(() => {
     <p class="font-body text-body-md text-foreground-alt">
       {m.source_record_samples_unavailable()}
     </p>
+  {:else if samples.length > 1}
+    <div class="space-y-3">
+      <dl
+        class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
+      >
+        {#each groupedFields as field (field.key)}
+          <GroupedField {field} sampleIds={samples.map(sample => sample.id)} />
+        {/each}
+      </dl>
+    </div>
   {:else if samples.length}
     <div class="grid gap-3">
       {#each samples as sample, index (sample.id)}
