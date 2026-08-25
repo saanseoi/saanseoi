@@ -150,10 +150,16 @@ export async function createApiReleaseSetRevisionDraft(
     message,
     parsedCode.sequence - 1,
   )
+  const {
+    apiReleaseSetRevision: _apiReleaseSetRevision,
+    primarySourceRelease: _primarySourceRelease,
+    primarySourceReleaseUrl: _primarySourceReleaseUrl,
+    ...previousFrontmatter
+  } = previousFixture.frontmatter
   const frontmatter = {
-    ...previousFixture.frontmatter,
+    ...previousFrontmatter,
     apiReleaseSet: input.apiReleaseSetCode,
-    apiReleaseSetRevision: String(parsedCode.sequence),
+    revision: String(parsedCode.sequence),
     createdAt: now,
     updatedAt: now,
   }
@@ -226,7 +232,7 @@ export async function createApiReleaseSetInitialDraft(
     apiFamily: parsedCode.apiFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: apiReleaseSetCode,
-    apiReleaseSetRevision: '0',
+    revision: '0',
     regionCode: parsedCode.regionCode,
     cohortKey: parsedCode.cohortKey,
   }
@@ -330,7 +336,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     apiFamily: selectedFamily,
     apiVersion: releaseSet.apiVersion,
     apiReleaseSet: releaseSet.code,
-    apiReleaseSetRevision: String(releaseSet.parsedCode.sequence),
+    revision: String(releaseSet.parsedCode.sequence),
     regionCode: releaseSet.parsedCode.regionCode,
     cohortKey: releaseSet.parsedCode.cohortKey,
   }
@@ -1026,14 +1032,14 @@ function appendEnglishRevisionLog(
   previousRevision: number,
 ) {
   const frozenBody = body.replaceAll(
-    /\{\{\s*apiReleaseSetRevision\s*\}\}/g,
+    /\{\{\s*revision\s*\}\}/g,
     String(previousRevision),
   )
   const englishEnd = frozenBody.indexOf('\n# ZH-HANT')
   const english = englishEnd === -1 ? frozenBody : frozenBody.slice(0, englishEnd)
   const remainder = englishEnd === -1 ? '' : frozenBody.slice(englishEnd)
   const heading = '## Revision log'
-  const entry = `- \`r{{ apiReleaseSetRevision }}\` ${message}`
+  const entry = `- \`r{{ revision }}\` ${message}`
   const existingHeading = /^## Revision log$/im.exec(english)
 
   if (existingHeading) {
@@ -1975,7 +1981,6 @@ function frontmatterForApiReleaseSetRow(
   return {
     apiFamily: row.parsedCode.apiFamily,
     apiReleaseSet: row.code,
-    apiReleaseSetRevision: String(row.parsedCode.sequence),
     revision: String(row.parsedCode.sequence),
     apiVersion: row.apiVersion,
     cohortKey: row.parsedCode.cohortKey,
