@@ -1764,6 +1764,7 @@
   "openapi_version_heading": "API 版本",
   "openapi_source_release_code_description": "全局唯一的来源发布版本代码。",
   "openapi_source_record_cursor_description": "上一条来源记录响应返回的不透明游标。",
+  "openapi_source_record_sample_description": "从所选来源版本返回独立的随机样本。随机样本不能与游标或 NDJSON 流同时使用。",
   "openapi_source_record_api_release_set_pin_description": "若为标准 sourceRelease 固定版本则为 null；该固定版本刻意独立于 API 发布集合。",
   "openapi_source_record_snapshot_pin_description": "若为标准 sourceRelease 固定版本则为 null；该固定版本刻意独立于快照。",
   "openapi_statistics_include_description": "纳入字段定义、相关分区及／或分区范围几何数据。字段定义包含所要求区域设置的标签。未限定的 areas 会依统计数据地理范围解析；限定的 areas 会要求一个确切的提供者变体。",

@@ -183,6 +183,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
             family: familyDefinition.family,
             includeGeometry: query.include === 'geometry',
             metaDb: c.var.metaDb,
+            sample: query.sample,
             sourceReleaseCode: query.sourceRelease,
             onResolved: (attribution: AccessAttribution) =>
               c.set('accessAttribution', attribution),
@@ -237,6 +238,16 @@ export async function streamSourceRecordsMiddleware(
   }
 
   const query = parsed.data
+  if (query.sample) {
+    return c.json(
+      {
+        httpStatus: 422,
+        error: 'random_sample_not_streamable',
+        message: 'Random source-record samples are available only as JSON.',
+      },
+      422,
+    )
+  }
   try {
     const stream = await streamSourceRecordsNdjson({
       cursor: query.cursor,

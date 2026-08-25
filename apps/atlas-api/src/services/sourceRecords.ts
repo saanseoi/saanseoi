@@ -263,6 +263,7 @@ async function readSourceRecordPage(args: {
   entry: SourceRecordCatalogueEntry
   includeGeometry: boolean
   limit: number
+  random: boolean
   release: SourceReleaseWithShard
   sourceDb: D1Database
 }): Promise<SourceRecordRow[]> {
@@ -270,9 +271,11 @@ async function readSourceRecordPage(args: {
     args.includeGeometry && args.entry.geometryColumn
       ? `${args.entry.geometryColumn} AS sourceGeometry`
       : 'NULL AS sourceGeometry'
-  const cursorCondition = args.cursor
-    ? 'AND (sourceRecordId > ? OR (sourceRecordId = ? AND versionHash > ?))'
-    : ''
+  const cursorCondition =
+    !args.random && args.cursor
+      ? 'AND (sourceRecordId > ? OR (sourceRecordId = ? AND versionHash > ?))'
+      : ''
+  const orderBy = args.random ? 'RANDOM()' : 'sourceRecordId ASC, versionHash ASC'
   const statement = args.sourceDb
     .prepare(
       `SELECT sourceRecordId, versionHash, rawProperties, ${geometrySelection}
@@ -280,13 +283,13 @@ async function readSourceRecordPage(args: {
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
        ${cursorCondition}
-       ORDER BY sourceRecordId ASC, versionHash ASC
+       ORDER BY ${orderBy}
        LIMIT ?`,
     )
     .bind(
       args.release.sourceVersion,
       args.release.sourceVersion,
-      ...(args.cursor
+      ...(!args.random && args.cursor
         ? [
             args.cursor.sourceRecordId,
             args.cursor.sourceRecordId,
@@ -359,6 +362,7 @@ export async function listSourceRecords(args: {
   includeGeometry: boolean
   limit?: number
   metaDb: AppEnv['Variables']['metaDb']
+  sample?: 'random'
   sourceReleaseCode: string
   onResolved?: (attribution: AccessAttribution) => void
 }): Promise<SourceRecordPage | null> {
@@ -372,6 +376,12 @@ export async function listSourceRecords(args: {
     surface: 'source',
   })
 
+  if (args.sample === 'random' && args.cursor) {
+    throw new SourceRecordRequestError(
+      'invalid_cursor',
+      'A random source-record sample cannot be combined with a cursor.',
+    )
+  }
   const cursor = decodeCursor(args.cursor)
   if (args.cursor && !cursor) {
     throw new SourceRecordRequestError(
@@ -380,18 +390,20 @@ export async function listSourceRecords(args: {
     )
   }
   const limit = Math.min(args.limit ?? DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT)
+  const random = args.sample === 'random'
   const rows = await readSourceRecordPage({
     ...resolved,
     cursor,
     includeGeometry: args.includeGeometry,
-    limit: limit + 1,
+    limit: random ? limit : limit + 1,
+    random,
   })
-  const pageRows = rows.slice(0, limit)
+  const pageRows = random ? rows : rows.slice(0, limit)
   const last = pageRows.at(-1)
 
   return {
     nextCursor:
-      rows.length > limit && last
+      !random && rows.length > limit && last
         ? encodeCursor({
             sourceRecordId: last.sourceRecordId,
             versionHash: last.versionHash,
@@ -457,6 +469,7 @@ export async function streamSourceRecordsNdjson(args: {
             cursor,
             includeGeometry: args.includeGeometry,
             limit: DOWNLOAD_PAGE_LIMIT,
+            random: false,
           })
           pageIndex = 0
           reachedLastPage = page.length < DOWNLOAD_PAGE_LIMIT
