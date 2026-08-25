@@ -204,7 +204,6 @@ function decodeCursor(value: string | undefined): Cursor | null {
 async function resolveSourceRelease(
   metaDb: AppEnv['Variables']['metaDb'],
   sourceReleaseCode: string,
-  family: SourceFamily,
 ): Promise<SourceReleaseWithShard | null> {
   const result = await runWithD1ReadRetry(() =>
     metaDb.$client
@@ -236,21 +235,9 @@ async function resolveSourceRelease(
           AND sourceReleases.revokedAt IS NULL
           AND dataShards.shardType = 'source'
           AND dataShards.status = 'active'
-          AND EXISTS (
-            SELECT 1
-            FROM snapshotSources
-            INNER JOIN apiReleaseSetSnapshots
-              ON apiReleaseSetSnapshots.snapshotId = snapshotSources.snapshotId
-            INNER JOIN apiReleaseSets
-              ON apiReleaseSets.id = apiReleaseSetSnapshots.apiReleaseSetId
-            INNER JOIN apiVersions
-              ON apiVersions.id = apiReleaseSets.apiVersionId
-            WHERE snapshotSources.sourceReleaseId = releases.id
-              AND apiReleaseSets.status <> 'draft'
-              AND apiVersions.familyType = ?
-          )`,
+          `,
       )
-      .bind(sourceReleaseCode, family)
+      .bind(sourceReleaseCode)
       .all<SourceReleaseWithShard>(),
   )
 
@@ -341,11 +328,7 @@ async function resolveRecordsRequest(args: {
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
 }) {
-  const release = await resolveSourceRelease(
-    args.metaDb,
-    args.sourceReleaseCode,
-    args.family,
-  )
+  const release = await resolveSourceRelease(args.metaDb, args.sourceReleaseCode)
   if (!release) return null
 
   const entry = sourceCatalogueFor(args.family)[release.datasetCode]
