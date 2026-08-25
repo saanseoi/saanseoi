@@ -10,6 +10,7 @@ import { runCenstatdStatsBackfillCommand } from './lib/commands/statsBackfillCen
 import { runCenstatdStatsResetCommand } from './lib/commands/statsResetCenstatd.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
+import { runBootstrapStatsReleaseSetsCommand } from './lib/commands/bootstrapStatsReleaseSets.ts'
 import {
   runCacheCompletedReleasesCommand,
   runCacheRebuildCommand,
@@ -91,6 +92,9 @@ async function main() {
       return
     case 'release-sets:reconcile':
       await runReconcileDraftReleaseSetsCommand(args, target, printUsage)
+      return
+    case 'release-sets:bootstrap-stats':
+      await runBootstrapStatsReleaseSetsCommand(args, target, printUsage)
       return
     case 'docs:new':
       await runDocsNewCommand(args, target)

@@ -42,6 +42,59 @@ test('exposes the churn explanation through an accessible tooltip trigger', asyn
     .toBeVisible()
 })
 
+test('renders all four exclusive name-provenance categories', async () => {
+  const screen = await render(ReleaseStatsRootTestHarness, {
+    stats: [
+      {
+        dimension: 'locale_count',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 4,
+      },
+      {
+        dimension: 'locale_coverage',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 100,
+      },
+      {
+        dimension: 'locale_coverage_provided',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 25,
+      },
+      {
+        dimension: 'locale_coverage_inferred',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 25,
+      },
+      {
+        dimension: 'locale_coverage_ai_translated',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 25,
+      },
+      {
+        dimension: 'locale_coverage_human_translated',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 25,
+      },
+    ],
+  })
+  await expect.element(screen.getByRole('img', { name: 'Locale legend' })).toBeVisible()
+  for (const label of ['Provided', 'Inferred', 'AI translated', 'Human translated']) {
+    await expect.element(screen.getByText(label)).toBeVisible()
+  }
+})
+
 test('renders geometry in an accessible district table', async () => {
   const screen = await render(ReleaseStatsRootTestHarness, {
     districtAreas: [
@@ -79,18 +132,12 @@ test('renders geometry in an accessible district table', async () => {
     .element(screen.getByRole('heading', { name: 'By District' }))
     .toBeVisible()
   await expect.element(screen.getByRole('table')).toBeVisible()
-  await expect
-    .element(screen.getByRole('columnheader', { name: 'Features' }))
-    .not.toBeVisible()
+  expect(screen.getByRole('columnheader', { name: 'Features' }).query()).toBeNull()
   await expect
     .element(screen.getByRole('columnheader', { name: 'Boundary segments' }))
     .toBeVisible()
-  await expect
-    .element(screen.getByRole('columnheader', { name: 'Polygons' }))
-    .not.toBeVisible()
-  await expect
-    .element(screen.getByRole('columnheader', { name: 'Area (km²)' }))
-    .not.toBeVisible()
+  expect(screen.getByRole('columnheader', { name: 'Polygons' }).query()).toBeNull()
+  expect(screen.getByRole('columnheader', { name: 'Area (km²)' }).query()).toBeNull()
   await expect
     .element(screen.getByRole('button', { name: 'About geometry measurements' }))
     .toBeVisible()
