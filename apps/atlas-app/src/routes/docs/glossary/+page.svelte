@@ -32,7 +32,7 @@ let filteredEntries = $derived.by(() => {
   )
 })
 let resultCount = $derived(
-  m.glossary_result_count().replace('{count}', String(filteredEntries.length)),
+  m.glossary_result_count({ count: String(filteredEntries.length) }),
 )
 </script>
 

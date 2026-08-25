@@ -187,9 +187,7 @@ export function createCreateAMapGuidePresentation({
   )
 
   const vpnHint = (yes: string, no: string) =>
-    isVpnRequired && vpnAccess
-      ? (vpnAccess === 'yes' ? yes : no).replace('{region}', visitorRegionLabel ?? '')
-      : undefined
+    isVpnRequired && vpnAccess ? (vpnAccess === 'yes' ? yes : no) : undefined
 
   return {
     guideUnlocked: Boolean(objective && llmMode),
@@ -405,8 +403,12 @@ export function createCreateAMapGuidePresentation({
     chatAiServiceHint: [
       m.guide_agentic_ai_primer_agent_tools_hint(),
       vpnHint(
-        m.guide_agentic_ai_primer_chat_tools_vpn_hint_yes(),
-        m.guide_agentic_ai_primer_chat_tools_vpn_hint_no(),
+        m.guide_agentic_ai_primer_chat_tools_vpn_hint_yes({
+          region: visitorRegionLabel ?? '',
+        }),
+        m.guide_agentic_ai_primer_chat_tools_vpn_hint_no({
+          region: visitorRegionLabel ?? '',
+        }),
       ),
     ].filter((paragraph): paragraph is string => Boolean(paragraph)),
     agentToolHint: [
@@ -415,8 +417,12 @@ export function createCreateAMapGuidePresentation({
         ? m.guide_agentic_ai_primer_agent_tools_terminal_hint()
         : undefined,
       vpnHint(
-        m.guide_agentic_ai_primer_agent_tools_vpn_hint_yes(),
-        m.guide_agentic_ai_primer_agent_tools_vpn_hint_no(),
+        m.guide_agentic_ai_primer_agent_tools_vpn_hint_yes({
+          region: visitorRegionLabel ?? '',
+        }),
+        m.guide_agentic_ai_primer_agent_tools_vpn_hint_no({
+          region: visitorRegionLabel ?? '',
+        }),
       ),
     ].filter((paragraph): paragraph is string => Boolean(paragraph)),
   }

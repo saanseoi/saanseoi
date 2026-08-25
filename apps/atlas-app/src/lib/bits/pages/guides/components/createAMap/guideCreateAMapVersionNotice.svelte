@@ -1,5 +1,6 @@
 <script lang="ts">
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import type { GuideDependency } from '../shared/guide.types'
 
@@ -12,7 +13,6 @@ type Props = {
   majorDifference: string
   minorDifference: string
   noticeLabel: string
-  versionDescription: string
 }
 
 let {
@@ -24,7 +24,6 @@ let {
   majorDifference,
   minorDifference,
   noticeLabel,
-  versionDescription,
 }: Props = $props()
 let currentVersion = $state<string>()
 
@@ -84,10 +83,11 @@ $effect(() => {
         {noticeLabel}
       </p>
       <p class="mt-1 font-body text-body-sm leading-6 text-foreground-alt">
-        {versionDescription
-          .replace('{library}', library)
-          .replace('{pinnedVersion}', dependency.pinnedVersion)
-          .replace('{currentVersion}', currentVersion)}
+        {m.guide_renderer_version_description({
+          library,
+          pinnedVersion: dependency.pinnedVersion,
+          currentVersion,
+        })}
         {' '}
         {hasMajorUpdate ? majorDifference : minorDifference}
         {' '}

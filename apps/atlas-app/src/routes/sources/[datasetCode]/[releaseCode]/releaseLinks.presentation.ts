@@ -40,12 +40,6 @@ const titleCase = (value: string) =>
     .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/^./, letter => letter.toUpperCase())
 
-const interpolate = (message: string, values: Record<string, string>) =>
-  Object.entries(values).reduce(
-    (result, [key, value]) => result.replaceAll(`{${key}}`, value),
-    message,
-  )
-
 const humanResourceType = (resourceType: string, plural = false) => {
   const labels: Record<string, [string, string]> = {
     address: ['address', 'addresses'],
@@ -100,7 +94,7 @@ const releaseUsage = (release: ReleasedApi): ReleaseUsage => {
   }
   if (release.apiFamily !== 'divisions') {
     return {
-      description: interpolate(m.source_released_as_usage_generic(), {
+      description: m.source_released_as_usage_generic({
         resourceType: humanResourceType(release.resourceType, true),
         supportingResourceType: humanResourceType(
           primaryResourceType(release.apiFamily),
@@ -129,7 +123,7 @@ const releaseUsage = (release: ReleasedApi): ReleaseUsage => {
   }
   if (release.resourceType === 'division') {
     return {
-      description: interpolate(m.source_released_as_usage_division(), {
+      description: m.source_released_as_usage_division({
         domain: release.domainCode,
       }),
       request: {
@@ -142,7 +136,7 @@ const releaseUsage = (release: ReleasedApi): ReleaseUsage => {
     }
   }
   return {
-    description: interpolate(m.source_released_as_usage_generic(), {
+    description: m.source_released_as_usage_generic({
       resourceType: humanResourceType(release.resourceType, true),
       supportingResourceType: humanResourceType(primaryResourceType(release.apiFamily)),
     }),
