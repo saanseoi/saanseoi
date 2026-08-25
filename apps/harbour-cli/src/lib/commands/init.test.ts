@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
-import { resolveInitialisationCommand } from './init.ts'
+import { formatInitialisationSummary, resolveInitialisationCommand } from './init.ts'
+import { parseInitialisationSummaryEvents } from './initialisationSummary.ts'
 
 describe('initialisation commands', () => {
   test('maps each supported family and domain to a dedicated script', () => {
@@ -45,5 +46,38 @@ describe('initialisation commands', () => {
 
   test('does not resolve an unsupported family and domain', () => {
     expect(resolveInitialisationCommand('init:divisions:unknown')).toBeUndefined()
+  })
+
+  test('summarises new API release sets and failed source-release publication', () => {
+    const events = parseInitialisationSummaryEvents(
+      [
+        JSON.stringify({
+          apiReleaseSetCode: 'data-hk-divisions-2026-08-19.0',
+          type: 'published-api-release-set',
+        }),
+        JSON.stringify({
+          command: 'init:divisions:geophraphic',
+          message: 'Geometry validation failed.',
+          releaseCode: 'dr-hk-overture-division-area-2026-08-19.0',
+          type: 'error',
+        }),
+      ].join('\n'),
+    )
+
+    expect(
+      formatInitialisationSummary(
+        new Set(['data-hk-divisions-2026-07-22.0']),
+        new Set(['data-hk-divisions-2026-07-22.0', 'data-hk-divisions-2026-08-19.0']),
+        events,
+      ),
+    ).toBe(
+      [
+        'Published API release sets',
+        '  data-hk-divisions-2026-08-19.0',
+        '',
+        'Initialisation errors',
+        '  dr-hk-overture-division-area-2026-08-19.0: Geometry validation failed.',
+      ].join('\n'),
+    )
   })
 })
