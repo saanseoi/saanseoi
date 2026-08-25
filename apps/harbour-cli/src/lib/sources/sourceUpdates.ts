@@ -233,6 +233,7 @@ export type DatasetUpdate = {
     target: import('../cli/options.ts').UploadTarget,
     prepared: PreparedSourceArchive,
     skipConfirm: boolean,
+    options: { deferStatsReleaseSet: boolean },
   ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase
@@ -1437,13 +1438,14 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
-        postArchiveIngest: async (target, prepared, skipConfirm) =>
+        postArchiveIngest: async (target, prepared, skipConfirm, options) =>
           runCsdiArchiveIngestPlaceholder(
             dataset,
             release,
             target,
             prepared,
             skipConfirm,
+            options,
           ),
         ...(release
           ? {
@@ -1469,6 +1471,7 @@ async function runCsdiArchiveIngestPlaceholder(
   target: import('../cli/options.ts').UploadTarget,
   prepared: PreparedSourceArchive,
   skipConfirm: boolean,
+  options: { deferStatsReleaseSet: boolean },
 ): Promise<'ingested' | 'not-implemented'> {
   const plandKind =
     dataset.code === 'ds-hk-hkgov-pland-division-pu'
@@ -1533,6 +1536,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
         yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
@@ -1559,6 +1563,7 @@ async function runCsdiArchiveIngestPlaceholder(
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
         yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
@@ -1698,6 +1703,7 @@ export function buildHkgovPlandArchiveIngestCommand(input: {
 
 /** Starts density intake from the local archive prepared by this updater run. */
 export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
+  deferStatsReleaseSet: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
@@ -1724,6 +1730,7 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.deferStatsReleaseSet ? ['--defer-stats-release-set'] : []),
     ...(input.yes ? ['--yes'] : []),
   ]
 }
@@ -1873,6 +1880,7 @@ function buildHkgovLandsdNativeArchiveIngestCommand(
 
 export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
   datasetCode: string
+  deferStatsReleaseSet: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
@@ -1901,6 +1909,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.deferStatsReleaseSet ? ['--defer-stats-release-set'] : []),
     ...(input.yes ? ['--yes'] : []),
   ]
 }
