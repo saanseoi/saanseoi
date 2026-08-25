@@ -76,7 +76,7 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
   },
   leaflet: {
     label: 'Leaflet',
-    installCommand: 'bun add leaflet maplibre-gl maplibre-gl-leaflet',
+    installCommand: 'bun add leaflet maplibre-gl @maplibre/maplibre-gl-leaflet',
     code: [
       "import L from 'leaflet'",
       "import 'leaflet/dist/leaflet.css'",
@@ -107,7 +107,8 @@ export const createAMapRendererBasemapCode = (
   renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
-        "import 'maplibre-gl-leaflet'",
+        "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
+        "import 'maplibre-gl/dist/maplibre-gl.css'",
         '',
         'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
         "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY.')",
@@ -118,7 +119,7 @@ export const createAMapRendererBasemapCode = (
         '}',
         '',
         "const map = L.map('map').setView([22.3193, 114.1694], 11)",
-        'L.maplibreGL({',
+        'maplibreGL({',
         '  style,',
         '}).addTo(map)',
       ].join('\n')
