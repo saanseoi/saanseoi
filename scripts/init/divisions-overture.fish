@@ -98,19 +98,28 @@ if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest
     exit 1
 end
 # A normal update maintains the source-statistics release. Its Geographic
-# `divisionArea` companion is replayed below from the prepared archive.
-init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-    --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
-    --download --yes
-init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
-    "$censtatd_area_archive" --target $saanseoi_init_target \
-    --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
-    --source-version 2023-H2 \
-    --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
-    --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/2023-Q4/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
-    --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
-    --geography-only
-set -g saanseoi_init_docs_pending 1
+# `divisionArea` companion is replayed below from the prepared archive. It is
+# one completed source release, so a resumed initializer must use the same
+# skip convention as the preceding division uploads rather than entering the
+# update and dataops-specific status UIs.
+set -l censtatd_area_release_code \
+    dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2
+if test "$saanseoi_init_continue" -eq 1; and init_is_completed_release "$censtatd_area_release_code"
+    echo "Skipping completed release $censtatd_area_release_code."
+else
+    init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --download --yes
+    init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
+        "$censtatd_area_archive" --target $saanseoi_init_target \
+        --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --source-version 2023-H2 \
+        --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
+        --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/2023-Q4/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
+        --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
+        --geography-only
+    set -g saanseoi_init_docs_pending 1
+end
 
 # A resumed initialiser may skip C&SD releases that are already published.
 # Re-evaluate the draft Overture sets after every dependency is available.
