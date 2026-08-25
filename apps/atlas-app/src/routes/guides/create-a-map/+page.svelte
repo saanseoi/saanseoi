@@ -6,8 +6,8 @@ import { onMount, tick } from 'svelte'
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
 import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
 import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
-import maplibreSetupResult from '#lib/assets/guides/maplibre-setup-result.png'
-import urbanDensityHeader from '#lib/assets/guides/urban-density-header-hk.png'
+import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
+import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-kong-square.png'
 import {
   CreateAMap,
   GuideAgenticAiPrimer,
@@ -24,6 +24,7 @@ import {
   GuideMissingAnswerReminder,
   GuidePaymentWarning,
   GuidePlatformSelection,
+  GuidePreviewCodeBlock,
   GuideReadinessPanel,
   GuideReference,
   GuideRoot,
@@ -74,6 +75,7 @@ import {
   createRestartProjectCode,
   createUrbanDensityMapReadyCode,
   createAMapRendererBasemapCode,
+  createAMapRendererStyleCode,
   getBunInstallCode,
   getCreateAMapRendererReference,
   getHostingInstallCode,
@@ -81,13 +83,19 @@ import {
   iframeCode,
   mapboxTokenCode,
   urbanDensityMapCode,
+  urbanDensityCalculationCode,
+  urbanDensityCalculationDisplayCode,
   urbanDensityMetricsCode,
   urbanDensityMetricsCss,
+  urbanDensityMetricsCssDisplayCode,
   urbanDensityStatsCode,
+  urbanDensityStatsDisplayCode,
   viteReadyOutput,
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
+import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
+import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import {
   createAMapAgenticHandoverPrompt,
   createAMapAgenticSectionPrompt,
@@ -545,15 +553,15 @@ const dataChoices = $derived.by(() => {
   return [
     {
       value: 'api',
-      icon: 'proicons:api',
       label: m.guide_data_api(),
       description: m.guide_data_api_description(),
+      image: saanSeoiDataHongKongSquare,
     },
     {
       value: 'existing',
-      icon: 'proicons:database',
       label: m.guide_data_existing(),
       description: m.guide_data_existing_description(),
+      image: ownDataHongKongChoropleth,
     },
   ]
 })
@@ -1449,6 +1457,7 @@ const rendererTerminalReminder = $derived(
 )
 const rendererEditorPath = 'src/main.ts'
 const rendererStylesheetPath = 'src/style.css'
+const editorNewFileShortcut = $derived(operatingSystem === 'macos' ? '⌘N' : 'Ctrl+N')
 const mapboxTokenPasteInstruction = $derived(
   operatingSystem === 'windows'
     ? m.guide_renderer_mapbox_token_paste_windows()
@@ -1474,19 +1483,83 @@ const rendererCodeLabel = $derived.by(() => {
 })
 const rendererCssCode = $derived(rendererReference.stylesheetCode)
 const rendererCode = $derived(rendererReference.code)
+const rendererCodeComments = $derived(
+  renderer === 'maplibre'
+    ? [
+        { line: 1, text: m.guide_renderer_maplibre_comment_import() },
+        { line: 2, text: m.guide_renderer_maplibre_comment_default_styles() },
+        { line: 3, text: m.guide_renderer_maplibre_comment_custom_styles() },
+        { line: 5, text: m.guide_renderer_maplibre_comment_map_node() },
+        { line: 7, text: m.guide_renderer_maplibre_comment_new_map() },
+        { line: 8, text: m.guide_renderer_maplibre_comment_container() },
+        { line: 9, text: m.guide_renderer_maplibre_comment_center() },
+        { line: 10, text: m.guide_renderer_maplibre_comment_zoom() },
+        { line: 11, text: m.guide_renderer_maplibre_comment_style() },
+      ]
+    : [],
+)
 const basemapCode = $derived(
-  selectedStyle &&
-    (renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet')
+  renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
     ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl)
     : '',
 )
-const rendererEditorInstruction = $derived(
-  m.guide_renderer_editor_instruction({
-    editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
-    path: rendererEditorPath,
-  }),
+const basemapCodeDimmedLines = $derived(
+  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 24] : [],
 )
-const styleEditCode = $derived(basemapCode)
+const basemapCodeComments = $derived(
+  renderer === 'maplibre'
+    ? [
+        { line: 1, text: m.guide_renderer_maplibre_comment_import() },
+        { line: 2, text: m.guide_renderer_maplibre_comment_default_styles() },
+        { line: 3, text: m.guide_renderer_maplibre_comment_custom_styles() },
+        { line: 5, text: m.guide_basemap_comment_access_token() },
+        { line: 6, text: m.guide_basemap_comment_validate_token() },
+        { line: 7, text: m.guide_basemap_comment_url_safe_api_key() },
+        { line: 8, text: m.guide_basemap_comment_basemap_base_url() },
+        { line: 9, text: m.guide_basemap_comment_basemap_url() },
+        { line: 11, text: m.guide_renderer_maplibre_comment_map_node() },
+        { line: 13, text: m.guide_renderer_maplibre_comment_new_map() },
+        { line: 14, text: m.guide_renderer_maplibre_comment_container() },
+        { line: 15, text: m.guide_renderer_maplibre_comment_center() },
+        { line: 16, text: m.guide_renderer_maplibre_comment_zoom() },
+        { line: 17, text: m.guide_basemap_comment_style() },
+        { line: 20, text: m.guide_basemap_comment_source() },
+      ]
+    : [],
+)
+const rendererEditorInstruction = $derived(
+  renderer === 'maplibre'
+    ? m.guide_renderer_maplibre_editor_instruction({
+        editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+        path: rendererEditorPath,
+      })
+    : m.guide_renderer_editor_instruction({
+        editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+        path: rendererEditorPath,
+      }),
+)
+const styleEditCode = $derived(
+  selectedStyle &&
+    (renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet')
+    ? createAMapRendererStyleCode(renderer, styleUrl, tilejsonUrl)
+    : '',
+)
+const styleEditDimmedLines = $derived(
+  styleEditCode
+    .split('\n')
+    .map((_, index) => index + 1)
+    .filter(lineNumber => lineNumber < 11 || lineNumber > 15),
+)
+const styleEditComments = $derived(
+  renderer === 'maplibre'
+    ? [
+        { line: 11, text: m.guide_style_comment_style_url() },
+        { line: 12, text: m.guide_style_comment_fetch() },
+        { line: 13, text: m.guide_style_comment_sources() },
+        { line: 14, text: m.guide_style_comment_basemap_source() },
+      ]
+    : [],
+)
 const styleEditorInstruction = $derived(
   m.guide_style_editor_instruction({
     editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
@@ -2091,34 +2164,15 @@ const styleChoices = $derived.by(() =>
                 </div>
                 <div>
                   <GuideSubSectionHeader
-                    eyebrow={rendererCodeLabel}
-                    title={m.guide_renderer_code_title({
-                      library: selectedRenderer?.label ?? '',
-                    })}
-                  />
-                  <div class="mt-6 max-w-2xl">
-                    <GuideCodeBlock
-                      label={rendererEditorPath}
-                      code={rendererCode}
-                      editorIcon={selectedCodeEditor?.icon}
-                      language="typescript"
-                      variant="editor"
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                    />
-                  </div>
-                  <p
-                    class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-                  >
-                    {@html rendererEditorInstruction}
-                  </p>
-                </div>
-                <div>
-                  <GuideSubSectionHeader
                     eyebrow={m.guide_renderer_css_code()}
                     title={m.guide_renderer_reset_styles_title()}
                   />
-                  <div class="mt-6 max-w-2xl">
+                  <p
+                    class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                  >
+                    {@html rendererStylesheetInstruction}
+                  </p>
+                  <div class="mt-4 max-w-2xl">
                     <GuideCodeBlock
                       label={rendererStylesheetPath}
                       code={rendererCssCode}
@@ -2129,24 +2183,58 @@ const styleChoices = $derived.by(() =>
                       copiedLabel={m.common_copied()}
                     />
                   </div>
+                </div>
+                <div>
+                  <GuideSubSectionHeader
+                    eyebrow={rendererCodeLabel}
+                    title={m.guide_renderer_code_title({
+                      library: selectedRenderer?.label ?? '',
+                    })}
+                  />
                   <p
                     class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
-                    {@html rendererStylesheetInstruction}
+                    {@html rendererEditorInstruction}
                   </p>
-                  {#if renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'}
+                  {#if renderer === 'maplibre'}
+                    <div class="mt-4 max-w-[80ch]">
+                      <GuidePreviewCodeBlock
+                        label={rendererEditorPath}
+                        code={rendererCode}
+                        comments={rendererCodeComments}
+                        editorIcon={selectedCodeEditor?.icon}
+                        language="typescript"
+                        variant="editor"
+                        copyLabel={m.common_copy()}
+                        copiedLabel={m.common_copied()}
+                        previewLabel={m.guide_code_block_preview()}
+                        showCodeLabel={m.guide_code_block_code()}
+                      >
+                        {#snippet preview()}
+                          <GuideMapLibreBlankPreview />
+                        {/snippet}
+                      </GuidePreviewCodeBlock>
+                    </div>
+                  {:else}
+                    <div class="mt-4 max-w-2xl">
+                      <GuideCodeBlock
+                        label={rendererEditorPath}
+                        code={rendererCode}
+                        editorIcon={selectedCodeEditor?.icon}
+                        language="typescript"
+                        variant="editor"
+                        copyLabel={m.common_copy()}
+                        copiedLabel={m.common_copied()}
+                      />
+                    </div>
+                  {/if}
+                  {#if renderer === 'mapbox' || renderer === 'leaflet'}
                     <div class="mt-5 max-w-3xl">
                       <GuideScreenshot
-                        src={renderer === 'maplibre'
-                          ? maplibreSetupResult
-                          : renderer === 'mapbox'
-                            ? mapboxSetupResult
-                            : leafletSetupResult}
-                        alt={renderer === 'maplibre'
-                            ? m.guide_renderer_maplibre_setup_screenshot_alt()
-                            : renderer === 'mapbox'
-                              ? m.guide_renderer_mapbox_setup_screenshot_alt()
-                              : m.guide_renderer_leaflet_setup_screenshot_alt()}
+                        src={renderer === 'mapbox' ? mapboxSetupResult : leafletSetupResult}
+                        alt={renderer === 'mapbox'
+                          ? m.guide_renderer_mapbox_setup_screenshot_alt()
+                          : m.guide_renderer_leaflet_setup_screenshot_alt()}
                       />
                     </div>
                   {/if}
@@ -2155,6 +2243,13 @@ const styleChoices = $derived.by(() =>
                   >
                     {@html rendererEditorRefreshNote}
                   </p>
+                  {#if renderer === 'maplibre'}
+                    <p
+                      class="mt-3 max-w-3xl font-body text-body-md font-bold leading-7 text-primary"
+                    >
+                      {m.guide_renderer_preview_tip()}
+                    </p>
+                  {/if}
                 </div>
                 {#if objective === 'web-embed'}
                   <GuideCallout>
@@ -2252,6 +2347,10 @@ const styleChoices = $derived.by(() =>
             />
             <GuideCreateAMapApiKeys
               apiKeyReady={hasBasemapApiKey}
+              editorIcon={selectedCodeEditor?.icon}
+              editorLabel={selectedCodeEditor?.label}
+              newFileShortcut={editorNewFileShortcut}
+              {operatingSystem}
               onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
               showHeading={false}
             />
@@ -2275,7 +2374,7 @@ const styleChoices = $derived.by(() =>
               />
             </div>
           </div>
-          {#if region && selectedStyle && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
+          {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             {#if !llmGuidanceEnabled}
               <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
                 <GuideSubSectionHeader
@@ -2283,15 +2382,41 @@ const styleChoices = $derived.by(() =>
                   title={m.guide_basemap_editor_title()}
                 />
                 <GuideSubSectionBody content={m.guide_basemap_editor_description()}>
-                  <GuideCodeBlock
-                    label={rendererEditorPath}
-                    code={basemapCode}
-                    editorIcon={selectedCodeEditor?.icon}
-                    copyLabel={m.common_copy()}
-                    copiedLabel={m.common_copied()}
-                    language="typescript"
-                    variant="editor"
-                  />
+                  {#if renderer === 'maplibre'}
+                    <GuidePreviewCodeBlock
+                      label={rendererEditorPath}
+                      code={basemapCode}
+                      comments={basemapCodeComments}
+                      dimmedLines={basemapCodeDimmedLines}
+                      editorIcon={selectedCodeEditor?.icon}
+                      copyLabel={m.common_copy()}
+                      copiedLabel={m.common_copied()}
+                      language="typescript"
+                      variant="editor"
+                      previewLabel={m.guide_code_block_preview()}
+                      showCodeLabel={m.guide_code_block_code()}
+                    >
+                      {#snippet preview()}
+                        <GuideMapLibreBlankPreview
+                          title={m.guide_basemap_preview_title()}
+                          description={m.guide_basemap_preview_description()}
+                        />
+                      {/snippet}
+                    </GuidePreviewCodeBlock>
+                  {:else}
+                    <GuideCodeBlock
+                      label={rendererEditorPath}
+                      code={basemapCode}
+                      comments={basemapCodeComments}
+                      commentsVisible={true}
+                      dimmedLines={basemapCodeDimmedLines}
+                      editorIcon={selectedCodeEditor?.icon}
+                      copyLabel={m.common_copy()}
+                      copiedLabel={m.common_copied()}
+                      language="typescript"
+                      variant="editor"
+                    />
+                  {/if}
                   <p class="font-body text-body-md leading-7 text-foreground-alt">
                     {@html m.guide_basemap_editor_restart({
                       region: selectedRegion?.label ?? m.guide_basemap_hk(),
@@ -2383,20 +2508,46 @@ const styleChoices = $derived.by(() =>
               title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
             />
             <GuideSubSectionBody>
-              <GuideCodeBlock
-                label={rendererEditorPath}
-                code={styleEditCode}
-                editorIcon={selectedCodeEditor?.icon}
-                language="typescript"
-                variant="editor"
-                copyLabel={m.common_copy()}
-                copiedLabel={m.common_copied()}
-              />
               <p
                 class="font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
               >
                 {@html styleEditorInstruction}
               </p>
+              {#if renderer === 'maplibre'}
+                <GuidePreviewCodeBlock
+                  label={rendererEditorPath}
+                  code={styleEditCode}
+                  comments={styleEditComments}
+                  dimmedLines={styleEditDimmedLines}
+                  editorIcon={selectedCodeEditor?.icon}
+                  language="typescript"
+                  variant="editor"
+                  copyLabel={m.common_copy()}
+                  copiedLabel={m.common_copied()}
+                  previewLabel={m.guide_code_block_preview()}
+                  showCodeLabel={m.guide_code_block_code()}
+                >
+                  {#snippet preview()}
+                    <GuideMapLibreStylePreview
+                      label={selectedStyle?.name ?? ''}
+                      {styleUrl}
+                      {tilejsonUrl}
+                    />
+                  {/snippet}
+                </GuidePreviewCodeBlock>
+              {:else}
+                <GuideCodeBlock
+                  label={rendererEditorPath}
+                  code={styleEditCode}
+                  comments={styleEditComments}
+                  dimmedLines={styleEditDimmedLines}
+                  editorIcon={selectedCodeEditor?.icon}
+                  language="typescript"
+                  variant="editor"
+                  copyLabel={m.common_copy()}
+                  copiedLabel={m.common_copied()}
+                />
+              {/if}
             </GuideSubSectionBody>
           </div>
         {/if}
@@ -2414,18 +2565,24 @@ const styleChoices = $derived.by(() =>
         {/if}
       </GuideSection>
 
-      <GuideSection
-        id="data"
-        number={4}
-        eyebrow={m.guide_data_eyebrow()}
-        title={m.guide_data_title()}
-        description={m.guide_data_description()}
-      >
+      <GuideSection id="data" number={4} eyebrow={m.guide_data_eyebrow()}>
+        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_data_description()}
+        </p>
         <div id="project-data" class="scroll-mt-28">
           <GuideChoiceGroup
+            alignment="left"
             label={m.guide_data_label()}
+            marker={{
+              current: 1,
+              label: m.guide_prerequisites_requirement_label(),
+              total: 1,
+            }}
             choices={dataChoices}
             bind:value={dataSource}
+            illustratedCardSizing="fixed"
+            illustratedFitWhenPossible
+            variant="illustrated"
           />
         </div>
         {#if dataSource === 'existing'}
@@ -2444,7 +2601,7 @@ const styleChoices = $derived.by(() =>
           </GuideCallout>
         {:else if dataSource === 'api' && renderer === 'maplibre' && selectedStyle}
           <GuideUrbanDensityExample
-            headerImage={urbanDensityHeader}
+            editorIcon={selectedCodeEditor?.icon}
             hongKongBasemapNote={region && region !== 'hk'
               ? m.guide_data_urban_density_hong_kong_note({
                   region: selectedRegion?.label ?? '',
@@ -2457,9 +2614,13 @@ const styleChoices = $derived.by(() =>
             {styleUrl}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
+            calculationCode={urbanDensityCalculationCode}
+            calculationDisplayCode={urbanDensityCalculationDisplayCode}
             metricsCode={urbanDensityMetricsCode}
             metricsCss={urbanDensityMetricsCss}
+            metricsCssDisplayCode={urbanDensityMetricsCssDisplayCode}
             statsCode={urbanDensityStatsCode}
+            statsDisplayCode={urbanDensityStatsDisplayCode}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">
