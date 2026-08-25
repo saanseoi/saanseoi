@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a3a09677044906920a535673cda2d8b2d5634623dedb8d9cd3813e50a3032654",
+  "versionHash": "sha256:94c7da964edb1df48a5ef6d1df92127e01aa3f8f50018d291a1e47bac4457773",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
@@ -52,6 +52,7 @@
         "derive_division_type_from_overture_taxonomy",
         "derive_division_level_from_overture_taxonomy",
         "normalise_overture_division_hierarchy",
+        "overture_division_hong_kong_area_hierarchy_assigned",
         "decode_wkb_geometry_to_geojson",
         "overture_division_locale_inferred",
         "overture_division_api_locale_fallback_added",

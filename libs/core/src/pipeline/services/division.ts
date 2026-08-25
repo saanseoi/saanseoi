@@ -82,6 +82,13 @@ import {
   resolveDivisionTraceIds,
 } from '../logging'
 import { readDivisionRowsWithFixtures } from './divisionFixtures'
+import {
+  buildOvertureHongKongAreaHierarchyEntry,
+  OVERTURE_HONG_KONG_SAR_DIVISION_ID,
+  overtureHongKongAreaForDistrictName,
+  overtureHongKongAreas,
+  type OvertureHongKongArea,
+} from './overtureHongKongAreas'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -418,6 +425,7 @@ export async function processDivisionDataset(
   let localisedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
   const districtCounts = new Map<string, number>()
+  const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
   const processingActions: ReleaseProcessingAction[] = []
   const sourceBaselineSources =
     sourceDb && message.source === 'overture'
@@ -507,6 +515,13 @@ export async function processDivisionDataset(
 
     for (const row of batch) {
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      if (normalised.overtureHongKongAreaHierarchyAssignment) {
+        const { code } = normalised.overtureHongKongAreaHierarchyAssignment
+        hongKongAreaHierarchyAssignmentCounts.set(
+          code,
+          (hongKongAreaHierarchyAssignmentCounts.get(code) ?? 0) + 1,
+        )
+      }
       const divisionCodeDomain = divisionCodeDomainFor(message, normalised.base)
       if (divisionCodeDomain) {
         Object.assign(normalised.base, {
@@ -882,6 +897,11 @@ export async function processDivisionDataset(
       ...qualityStats,
     ]),
   )
+  processingActions.push(
+    ...buildOvertureHongKongAreaHierarchyProcessingActions(
+      hongKongAreaHierarchyAssignmentCounts,
+    ),
+  )
   await timings.measure('replaceReleaseProcessingActionsMs', () =>
     replaceReleaseProcessingActions(
       metaRepoDb,
@@ -1164,6 +1184,11 @@ export function normaliseDivisionRow(
     id,
     options.hierarchyLookup,
   )
+  const hierarchyWithHongKongArea = insertOvertureHongKongAreaIntoHierarchy({
+    division: { id, level, type },
+    hierarchy: normalisedHierarchies,
+    i18n,
+  })
   const normalisedGeometry = parseWkbGeometry(row.geometry)
 
   return {
@@ -1173,7 +1198,7 @@ export function normaliseDivisionRow(
       createdAt: now,
       divisionCode: null,
       geometry: normalisedGeometry,
-      hierarchy: normalisedHierarchies,
+      hierarchy: hierarchyWithHongKongArea.hierarchy,
       id,
       identifiers: row.identifiers ?? null,
       level,
@@ -1210,7 +1235,107 @@ export function normaliseDivisionRow(
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
+    overtureHongKongAreaHierarchyAssignment: hierarchyWithHongKongArea.assignment,
   }
+}
+
+type OvertureHongKongAreaHierarchyAssignment = Pick<
+  OvertureHongKongArea,
+  'code' | 'names'
+>
+
+type NormalisedHierarchyEntry = {
+  division_id: string
+  i18n: DivisionHierarchyI18n
+  level: number
+  type: string
+}
+
+function insertOvertureHongKongAreaIntoHierarchy(input: {
+  division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
+  hierarchy: unknown
+  i18n: DivisionI18nPayload[]
+}): {
+  assignment: OvertureHongKongAreaHierarchyAssignment | null
+  hierarchy: unknown
+} {
+  if (!Array.isArray(input.hierarchy)) {
+    return { assignment: null, hierarchy: input.hierarchy }
+  }
+
+  const hierarchy = input.hierarchy as NormalisedHierarchyEntry[]
+  const districtName = resolveDistrictNameForHongKongArea(input, hierarchy)
+  const area = districtName ? overtureHongKongAreaForDistrictName(districtName) : null
+  if (!area) return { assignment: null, hierarchy }
+
+  const hongKongSarIndex = hierarchy.findIndex(
+    entry => entry.division_id === OVERTURE_HONG_KONG_SAR_DIVISION_ID,
+  )
+  if (hongKongSarIndex === -1) return { assignment: null, hierarchy }
+
+  const areaEntry = buildOvertureHongKongAreaHierarchyEntry(area)
+  const withoutArea = hierarchy.filter(
+    entry => entry.division_id !== areaEntry.division_id,
+  )
+  const insertionIndex =
+    withoutArea.findIndex(
+      entry => entry.division_id === OVERTURE_HONG_KONG_SAR_DIVISION_ID,
+    ) + 1
+  const enrichedHierarchy = [
+    ...withoutArea.slice(0, insertionIndex),
+    areaEntry,
+    ...withoutArea.slice(insertionIndex),
+  ]
+  const unchanged =
+    enrichedHierarchy.length === hierarchy.length &&
+    enrichedHierarchy.every(
+      (entry, index) => entry.division_id === hierarchy[index]?.division_id,
+    )
+
+  return {
+    assignment: unchanged ? null : area,
+    hierarchy: unchanged ? hierarchy : enrichedHierarchy,
+  }
+}
+
+function resolveDistrictNameForHongKongArea(
+  input: Pick<
+    Parameters<typeof insertOvertureHongKongAreaIntoHierarchy>[0],
+    'division' | 'i18n'
+  >,
+  hierarchy: NormalisedHierarchyEntry[],
+) {
+  if (input.division.type === 'district' && input.division.level === 2) {
+    return input.i18n.find(row => row.locale === 'en')?.name ?? null
+  }
+
+  return hierarchy.find(entry => entry.type === 'district')?.i18n.en?.name ?? null
+}
+
+export function buildOvertureHongKongAreaHierarchyProcessingActions(
+  assignmentCounts: ReadonlyMap<string, number>,
+): ReleaseProcessingAction[] {
+  return overtureHongKongAreas.flatMap(area => {
+    const affectedRecordCount = assignmentCounts.get(area.code) ?? 0
+    if (affectedRecordCount === 0) return []
+
+    const areaHierarchyEntry = buildOvertureHongKongAreaHierarchyEntry(area)
+    return [
+      {
+        action: 'overture_division_hong_kong_area_hierarchy_assigned',
+        affectedRecordCount,
+        evidence: {
+          area: {
+            code: area.code,
+            divisionId: areaHierarchyEntry.division_id,
+            names: area.names,
+          },
+        },
+        mode: 'automatic',
+        summary: `Assigned ${affectedRecordCount} divisions to the ${area.names.en} hierarchy area.`,
+      },
+    ]
+  })
 }
 
 function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>) {
@@ -1246,6 +1371,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>
       wikidata: null,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n: normaliseDivisionI18n(id, names),
+    overtureHongKongAreaHierarchyAssignment: null,
   }
 }
 
