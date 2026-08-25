@@ -4,8 +4,7 @@ import { join, resolve } from 'node:path'
 
 import { note } from '@clack/prompts'
 
-import { resolveUploadTarget, type ParsedArgs } from '../cli/options.ts'
-import { fetchApiReleaseSetDocsRows } from './docs.ts'
+import type { ParsedArgs } from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
   recordInitialisationSummaryEvent,
@@ -103,9 +102,6 @@ export async function runInitialisationCommand(
     summaryDirectory = await mkdtemp(join(tmpdir(), 'saanseoi-init-'))
     summaryPath = join(summaryDirectory, 'summary.jsonl')
   }
-  const uploadTarget = resolveUploadTarget(args)
-  const publishedBefore = await listPublishedApiReleaseSets(uploadTarget)
-
   const child = Bun.spawn({
     cmd: [
       'fish',
@@ -127,21 +123,24 @@ export async function runInitialisationCommand(
   })
   const exitCode = await child.exited
   if (exitCode !== 0) {
-    await recordInitialisationSummaryEvent({
-      command: args.command ?? null,
-      message: `Initialisation failed with exit code ${exitCode}; see the preceding command output.`,
-      releaseCode: null,
-      type: 'error',
-    })
+    await recordInitialisationSummaryEvent(
+      {
+        command: args.command ?? null,
+        message: `Initialisation failed with exit code ${exitCode}; see the preceding command output.`,
+        releaseCode: null,
+        type: 'error',
+      },
+      summaryPath,
+    )
   }
 
   if (summaryDirectory) {
     try {
-      const [publishedAfter, events] = await Promise.all([
-        listPublishedApiReleaseSets(uploadTarget),
-        readInitialisationSummaryEvents(summaryPath),
-      ])
-      renderInitialisationSummary(publishedBefore, publishedAfter, events)
+      renderInitialisationSummary(
+        undefined,
+        undefined,
+        await readInitialisationSummaryEvents(summaryPath),
+      )
     } finally {
       await rm(summaryDirectory, { force: true, recursive: true })
     }
@@ -149,19 +148,6 @@ export async function runInitialisationCommand(
 
   if (exitCode !== 0) {
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
-  }
-}
-
-async function listPublishedApiReleaseSets(
-  target: Parameters<typeof fetchApiReleaseSetDocsRows>[0],
-) {
-  try {
-    const rows = await fetchApiReleaseSetDocsRows(target)
-    return new Set(rows.filter(row => row.status === 'current').map(row => row.code))
-  } catch {
-    // Publication reporting must not prevent a recovery run. The upload events
-    // still provide exact successful publications when the metadata read fails.
-    return undefined
   }
 }
 

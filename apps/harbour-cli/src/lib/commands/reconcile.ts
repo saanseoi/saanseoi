@@ -3,6 +3,7 @@ import { note, outro } from '@clack/prompts'
 import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { reconcileDraftReleaseSets } from '../upload/upload.ts'
+import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
 
 export async function runReconcileDraftReleaseSetsCommand(
   args: ParsedArgs,
@@ -27,6 +28,12 @@ export async function runReconcileDraftReleaseSetsCommand(
   }
 
   const result = await reconcileDraftReleaseSets(target, { apiFamily, regionCode })
+  for (const apiReleaseSetCode of result.publishedReleaseSetCodes) {
+    await recordInitialisationSummaryEvent({
+      apiReleaseSetCode,
+      type: 'published-api-release-set',
+    })
+  }
   note(
     [
       formatField('inspected', String(result.inspected)),
