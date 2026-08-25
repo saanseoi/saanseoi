@@ -12,6 +12,7 @@ import {
   prepareHkgovCenstatdStatisticUpload,
   type CenstatdStatisticDatasetCode,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
+import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { unzipSelected } from '../lib/zip.ts'
@@ -43,8 +44,17 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       'C&SD statistics ingestion requires <source.zip>, --dataset-code, --source-version, --release-notes-url, --source-archive-key and --source-archive-sha256.',
     )
   }
-  const bytes = await readFile(resolve(input))
+  const sourcePath = resolve(input)
+  const bytes = await readFile(sourcePath)
   assertSourceArchiveHash(bytes, sha, 'Prepared CSDI archive')
+  await ensurePreparedCsdiSourceArchive(target, {
+    expected: {
+      datasetCode,
+      objectKey: key,
+      sha256: sha,
+    },
+    sourcePath,
+  })
   const inputGml = Object.fromEntries(
     Object.entries(unzipSelected(bytes, entry => entry.name.endsWith('.gml'))).map(
       ([name, content]) => [name, new TextDecoder().decode(content)],
