@@ -1763,6 +1763,7 @@
   "openapi_version_heading": "API Version",
   "openapi_source_release_code_description": "Globally unique source release code.",
   "openapi_source_record_cursor_description": "Opaque cursor returned by a prior source-record response.",
+  "openapi_source_record_sample_description": "Return an independent random sample from the selected source release. Random samples cannot be combined with a cursor or NDJSON streaming.",
   "openapi_source_record_api_release_set_pin_description": "Null for a canonical sourceRelease pin, which is intentionally independent of an API release set.",
   "openapi_source_record_snapshot_pin_description": "Null for a canonical sourceRelease pin, which is intentionally independent of a snapshot.",
   "openapi_statistics_include_description": "Include field definitions, related divisions and/or division-area geometry. Field definitions include the requested locale labels. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.",

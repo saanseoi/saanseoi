@@ -55,6 +55,12 @@ export const SourceRecordsQuerySchema = z
     sourceRelease: SourceReleaseCodeSchema,
     cursor: SourceRecordCursorSchema.optional(),
     limit: z.coerce.number().int().min(1).max(500).optional(),
+    sample: z
+      .literal('random')
+      .optional()
+      .openapi({
+        description: openApiText('openapi_source_record_sample_description'),
+      }),
     include: z.literal('geometry').optional(),
     format: z.enum(['json', 'ndjson']).optional(),
     download: z.literal('1').optional(),
