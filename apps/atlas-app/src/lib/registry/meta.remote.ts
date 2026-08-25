@@ -36,7 +36,6 @@ import {
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
-import { dev } from '$app/env'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
@@ -453,7 +452,6 @@ export const getSourceReleaseShellData = query(
 export const getSourceReleaseContentData = query(
   sourceReleaseContentSchema,
   async ({ datasetCode, releaseCode, previousReleaseCode }) => {
-    const startedAt = performance.now()
     const db = getMetaDb()
     const source = await getRegistrySourceRelease(db, datasetCode, releaseCode)
     if (!source) error(404, 'Source dataset not found.')
@@ -529,11 +527,6 @@ export const getSourceReleaseContentData = query(
       version: SourceVersion
       previousNotes: string | null
     }
-
-    if (dev)
-      console.info('[source-release-content]', {
-        content: performance.now() - startedAt,
-      })
 
     recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
     return result
