@@ -1309,7 +1309,7 @@
   "guide_data_readiness_done": "Data step complete",
   "guide_data_readiness_complete_eyebrow": "Data step complete",
   "guide_data_readiness_complete_description": "The Publish AI prompt is now available. Reset this status if the data work is no longer complete.",
-  "guide_data_urban_density_badge": "SaanSeoi data example",
+  "guide_data_urban_density_badge": "SaanSeoi project",
   "guide_data_urban_density_title": "Which part of Hong Kong is really the most densely populated?",
   "guide_data_urban_density_description": "Between Hong Kong Island, Kowloon and the New Territories, which area has the most people for every square kilometre? Now look again: if you set the greenery aside and focus on the built environment, would your answer still be the same? You are going to make a map that makes the first comparison from published statistics and lets the landscape prompt the second question.",
   "guide_data_urban_density_definition": "Start with the honest baseline: combined district population divided by combined district land area. The SaanSeoi basemap can visually quieten named green land-use features, but its <code>earth</code> layer is not the city that remains after land use has been assigned. Vector tiles are clipped and generalised for drawing, so use an original, complete polygon dataset before publishing a built-environment-only density figure.",

@@ -7,7 +7,7 @@ import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory
 import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
 import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
 import maplibreSetupResult from '#lib/assets/guides/maplibre-setup-result.png'
-import urbanDensityHeader from '#lib/assets/guides/urban-density-header.png'
+import urbanDensityHeader from '#lib/assets/guides/urban-density-header-hk.png'
 import {
   CreateAMap,
   GuideAgenticAiPrimer,
@@ -2451,10 +2451,11 @@ const styleChoices = $derived.by(() =>
                 })
               : undefined}
             mapReadyCode={urbanDensityMapReadyCode}
-            mapPreviewImage={createAMapStylePreviewUrl(selectedStyle.id, 'hk', 'hongkong')}
             mapPreviewLabel={m.guide_data_urban_density_map_preview_label({
               style: selectedStyle.name,
             })}
+            {styleUrl}
+            tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
             metricsCode={urbanDensityMetricsCode}
             metricsCss={urbanDensityMetricsCss}
