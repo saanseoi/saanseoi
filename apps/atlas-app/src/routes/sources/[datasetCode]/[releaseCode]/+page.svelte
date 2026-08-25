@@ -282,8 +282,18 @@ let tabs = $derived<ReleaseNavTab[]>([
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
-  { id: 'releases', label: m.source_tab_released_as() },
-  { id: 'assembly', label: m.source_tab_assembly() },
+  {
+    id: 'releases',
+    label: m.source_tab_released_as(),
+    infoDescription: m.source_tab_released_as_description(),
+    infoLabel: m.source_tab_released_as_info(),
+  },
+  {
+    id: 'assembly',
+    label: m.source_tab_assembly(),
+    infoDescription: m.source_tab_assembly_description(),
+    infoLabel: m.source_tab_assembly_info(),
+  },
 ])
 
 let releaseQueryError = $derived(contentResource.error)
