@@ -10,7 +10,7 @@ import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 
-type ApiReleaseSetDocsRow = {
+export type ApiReleaseSetDocsRow = {
   id: string
   apiFamily: string
   apiVersion: string
@@ -620,7 +620,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
   outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published')
 }
 
-async function fetchApiReleaseSetDocsRows(target: UploadTarget) {
+export async function fetchApiReleaseSetDocsRows(target: UploadTarget) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(`${baseUrl}/api/v1/meta/docs/apiReleaseSets`, {
     headers: getAuthHeaders(),

@@ -61,6 +61,7 @@ import {
   createApiReleaseSetInitialDraft,
   createApiReleaseSetRevisionDraft,
 } from './docs.ts'
+import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import {
   assertRetainableSourceReleaseInput,
@@ -1479,6 +1480,10 @@ async function logApiReleaseSetPublication(
       log.success(
         `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
       )
+      await recordInitialisationSummaryEvent({
+        apiReleaseSetCode: publication.apiReleaseSetCode,
+        type: 'published-api-release-set',
+      })
       if (publication.apiCatalogRevisionCode) {
         log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
       }
@@ -1489,6 +1494,10 @@ async function logApiReleaseSetPublication(
 
   if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
     log.success(`Published API domain release ${rainbowWaveText(releaseSetCode)}.`)
+    await recordInitialisationSummaryEvent({
+      apiReleaseSetCode: releaseSetCode,
+      type: 'published-api-release-set',
+    })
     if (result.apiCatalogRevisionCode) {
       log.info(`Catalogue revision ${blueText(result.apiCatalogRevisionCode)}`)
     }
