@@ -1703,7 +1703,7 @@ export function buildHkgovPlandArchiveIngestCommand(input: {
 
 /** Starts density intake from the local archive prepared by this updater run. */
 export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
-  deferStatsReleaseSet: boolean
+  deferStatsReleaseSet?: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
@@ -1880,7 +1880,7 @@ function buildHkgovLandsdNativeArchiveIngestCommand(
 
 export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
   datasetCode: string
-  deferStatsReleaseSet: boolean
+  deferStatsReleaseSet?: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string

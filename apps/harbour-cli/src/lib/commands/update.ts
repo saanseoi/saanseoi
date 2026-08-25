@@ -104,13 +104,16 @@ export async function runUpdateCommand(
 
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
   const deferStatsReleaseSet = args.options['defer-stats-release-set'] === true
-  if (deferStatsReleaseSet && selectedFamily !== 'stats') {
-    throw new Error('--defer-stats-release-set requires --scope stats.')
-  }
   const selectedFamilyDatasets =
     selectedFamily === 'all'
       ? requestedDatasets
       : requestedDatasets.filter(dataset => dataset.theme === selectedFamily)
+  if (
+    deferStatsReleaseSet &&
+    !selectedFamilyDatasets.every(dataset => dataset.theme === 'stats')
+  ) {
+    throw new Error('--defer-stats-release-set requires a Stats-only selection.')
+  }
   const selectedDatasets = orderDatasetsByCompositionDependencies(
     datasets,
     selectedFamilyDatasets,
@@ -317,7 +320,6 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'dataset',
     'defer-stats-release-set',
     'download',
-    'defer-stats-release-set',
     'force-download',
     'force-upload',
     'no-upload',
@@ -331,6 +333,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
   )
   const booleanOptions = [
     'check-now',
+    'defer-stats-release-set',
     'download',
     'force-download',
     'force-upload',

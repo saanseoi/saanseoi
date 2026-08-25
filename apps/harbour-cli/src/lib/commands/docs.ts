@@ -131,7 +131,7 @@ export async function createApiReleaseSetRevisionDraft(
   }
 
   const publisherName = await resolvePublisherName(input.publisherCode)
-  const defaultMessage = `Added **${input.datasetName}** \`${input.sourceVersion}\` by _${publisherName}_ to this API Family Release.`
+  const defaultMessage = `Added **${input.datasetName}** from the \`${input.sourceVersion}\` source release published by _${publisherName}_.`
   let message = input.message?.trim() || defaultMessage
 
   if (options.prompt && !input.message) {
