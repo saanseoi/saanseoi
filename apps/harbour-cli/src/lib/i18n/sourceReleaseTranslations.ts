@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
+import { isDatasetReleaseCode } from '@repo/core'
+
 import {
   AZURE_TRANSLATION_MACHINE,
   AZURE_TRANSLATION_REGION,
@@ -236,7 +238,7 @@ export async function resolveSourceReleaseNameTranslationsBatch(input: {
 }
 
 export function sourceReleaseTranslationFixturePath(sourceRelease: string) {
-  if (!/^dr-[a-z0-9-]+$/.test(sourceRelease)) {
+  if (!isDatasetReleaseCode(sourceRelease)) {
     throw new Error(`Invalid source release code for i18n fixture: ${sourceRelease}`)
   }
   return resolve(FIXTURE_ROOT, `${sourceRelease}.json`)
