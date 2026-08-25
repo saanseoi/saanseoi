@@ -50,6 +50,7 @@ import {
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
+  buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
   normaliseDivisionI18nSnapshotRow,
   normaliseDivisionRow,
@@ -1185,6 +1186,7 @@ async function buildDivisionSqlState(
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
   const statsAccumulator = createLocaleStatsAccumulator()
   const districtCounts = new Map<string, number>()
+  const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
   const processingActions: ReleaseProcessingAction[] = []
   const records: DivisionPreparedRecord[] = []
   const seenIds = new Set<string>()
@@ -1234,6 +1236,13 @@ async function buildDivisionSqlState(
     for (const row of batch) {
       const raw = row as Record<string, unknown>
       const normalised = normaliseDivisionRow(raw, { hierarchyLookup })
+      if (normalised.overtureHongKongAreaHierarchyAssignment) {
+        const { code } = normalised.overtureHongKongAreaHierarchyAssignment
+        hongKongAreaHierarchyAssignmentCounts.set(
+          code,
+          (hongKongAreaHierarchyAssignmentCounts.get(code) ?? 0) + 1,
+        )
+      }
       if (message.source === 'overture') {
         Object.assign(normalised.base, {
           divisionCode:
@@ -1391,6 +1400,11 @@ async function buildDivisionSqlState(
       }),
     ),
   ]
+  processingActions.push(
+    ...buildOvertureHongKongAreaHierarchyProcessingActions(
+      hongKongAreaHierarchyAssignmentCounts,
+    ),
+  )
 
   return {
     currentRows,
