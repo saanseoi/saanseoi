@@ -10,7 +10,7 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
-    expect(resolveInitialisationCommand('init:divisions:geophraphic')).toEqual({
+    expect(resolveInitialisationCommand('init:divisions:geographic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
       supportsTarget: true,
@@ -56,7 +56,7 @@ describe('initialisation commands', () => {
           type: 'published-api-release-set',
         }),
         JSON.stringify({
-          command: 'init:divisions:geophraphic',
+          command: 'init:divisions:geographic',
           message: 'Geometry validation failed.',
           releaseCode: 'dr-hk-overture-division-area-2026-08-19.0',
           type: 'error',
