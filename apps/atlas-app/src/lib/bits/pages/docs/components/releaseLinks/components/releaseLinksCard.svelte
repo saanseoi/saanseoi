@@ -110,6 +110,7 @@ let contentId = $derived(id ? `${id}-content` : undefined)
   class="scroll-mt-32 overflow-hidden rounded-md border border-data-outline-variant/60 bg-data-surface-container-low"
 >
   <div
+    data-release-link-heading
     class="flex flex-col gap-4 bg-data-surface-container-lowest px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
   >
     {#if children}

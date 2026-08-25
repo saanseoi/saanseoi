@@ -29,6 +29,26 @@ let {
 }: Props = $props()
 
 let groups = $derived(presentation.groups.filter(group => group.entries.length))
+
+function positionConnector(node: HTMLElement) {
+  const header = node.querySelector<HTMLElement>('[data-release-link-heading]')
+  if (!header) return
+
+  const update = () => {
+    const connectorY =
+      header.getBoundingClientRect().top -
+      node.getBoundingClientRect().top +
+      header.getBoundingClientRect().height / 2
+    node.style.setProperty('--release-connector-y', `${connectorY}px`)
+  }
+  const observer = new ResizeObserver(update)
+  observer.observe(header)
+  update()
+
+  return {
+    destroy: () => observer.disconnect(),
+  }
+}
 </script>
 
 <Tooltip.Provider delayDuration={200}>
@@ -45,25 +65,30 @@ let groups = $derived(presentation.groups.filter(group => group.entries.length))
             <div
               class="relative"
               style:--release-accent={entry.accentColour ?? 'var(--secondary)'}
+              use:positionConnector
             >
               {#if index === 0}
                 <span
-                  class="absolute -top-5 -left-6 h-11.5 border-l border-data-outline-variant/70"
+                  class="absolute -top-5 -left-6 border-l border-data-outline-variant/70"
+                  style="height: calc(var(--release-connector-y, 1.625rem) + 1.25rem)"
                   aria-hidden="true"
                 ></span>
               {/if}
               {#if index < group.entries.length - 1}
                 <span
-                  class="absolute top-6.5 -bottom-12.5 -left-6 border-l border-data-outline-variant/70"
+                  class="absolute -left-6 border-l border-data-outline-variant/70"
+                  style="top: var(--release-connector-y, 1.625rem); bottom: calc(-1.5rem - var(--release-connector-y, 1.625rem))"
                   aria-hidden="true"
                 ></span>
               {/if}
               <span
-                class="absolute top-6.5 -left-6 z-0 h-px w-6 bg-data-outline-variant/70"
+                class="absolute -left-6 z-0 h-px w-6 bg-data-outline-variant/70"
+                style="top: var(--release-connector-y, 1.625rem)"
                 aria-hidden="true"
               ></span>
               <span
-                class="absolute top-5.5 left-[-1.65rem] z-10 size-2 rounded-full bg-(--release-accent) ring-4 ring-(--release-list-surface)"
+                class="absolute left-[-1.65rem] z-10 size-2 rounded-full bg-(--release-accent) ring-4 ring-(--release-list-surface)"
+                style="top: calc(var(--release-connector-y, 1.625rem) - 0.25rem)"
                 aria-hidden="true"
               ></span>
               {#if entry.description || entry.request || entry.facts?.length || entry.actions?.length}
