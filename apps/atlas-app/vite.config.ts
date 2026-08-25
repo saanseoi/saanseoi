@@ -65,7 +65,6 @@ export default defineConfig({
     // MapLibre v6 resolves its worker relative to import.meta.url. Pre-bundling
     // the Svelte wrapper changes that URL without emitting the worker alongside it.
     exclude: ['@tailwindcss/vite', 'maplibre-gl', 'svelte-maplibre-gl'],
-    force: true,
   },
   resolve: {
     // Scalar ships several Vue-based packages. Some of them contain a nested
