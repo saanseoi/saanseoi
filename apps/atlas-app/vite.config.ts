@@ -12,6 +12,7 @@ export default defineConfig({
     paraglideVitePlugin({
       project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
       outdir: resolve(import.meta.dirname, '../../libs/i18n/src/paraglide'),
+      emitTsDeclarations: true,
     }),
     sveltekit({
       compilerOptions: {
@@ -50,14 +51,14 @@ export default defineConfig({
       interval: 1000,
       // Do not let Vite observe its own dependency cache or SvelteKit's
       // generated output. Both are rewritten during a reload and otherwise
-      // form a reload loop when polling is enabled.
+      // form a reload loop when polling is enabled. Paraglide output remains
+      // watched so its generated modules can invalidate the app graph.
       ignored: [
         '**/.git/**',
         '**/node_modules/**',
         '**/.svelte-kit/**',
         '**/.local/**',
         '**/.turbo/**',
-        '**/libs/i18n/src/paraglide/**',
       ],
     },
   },
