@@ -39,7 +39,7 @@
     "DIAGNOSTIC_ORIGINS": "https://maplibre.org,https://pmtiles.io,https://protomaps.github.io",
     "DEV_ORIGINS": "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175",
     "CORE_ORIGIN_SUFFIXES": "*.hype.hk,*.type.hk,*.saanseoi.hk",
-    "HUB_ORIGINS": "https://hype.hk,https://breadline.hk,https://hkghostsigns.com",
+    "HUB_ORIGINS": "https://saanseoi.hk,https://hype.hk,https://breadline.hk,https://hkghostsigns.com",
     "PREVIEW_PREFIXES": "preview.",
     "EXTERNAL_ORIGINS": "*",
     "CACHE_CONTROL": "public, max-age=31536000, immutable",
