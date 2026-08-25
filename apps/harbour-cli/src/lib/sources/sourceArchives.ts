@@ -72,6 +72,12 @@ export type PreparedSourceArchive = {
   sourcePath: string
 }
 
+export type SourceArchiveExpectation = {
+  datasetCode: string
+  objectKey: string
+  sha256: string
+}
+
 export function buildSourceArchivePrefix(input: { datasetId: string }) {
   assertDatasetId(input.datasetId)
   return [SOURCE_ARCHIVE_ROOT, 'hk', CSDI_ARCHIVE_PUBLISHER, input.datasetId].join('/')
@@ -130,6 +136,29 @@ export async function loadPreparedSourceArchive(sourcePath: string) {
   return { manifest, manifestPath, sourcePath }
 }
 
+/**
+ * Ensures that a prepared CSDI archive is registered in the selected asset
+ * store before a native importer links derived releases to it. The managed
+ * source-asset upload is idempotent: a target that already has the immutable
+ * object is checked rather than replaced.
+ */
+export async function ensurePreparedCsdiSourceArchive(
+  target: UploadTarget,
+  input: { expected: SourceArchiveExpectation; sourcePath: string },
+) {
+  const prepared = await loadPreparedSourceArchive(input.sourcePath)
+  assertPreparedCsdiSourceArchive(prepared, input.expected)
+  const archive: CsdiSourceArchive = {
+    datasetCode: prepared.manifest.dataset.code,
+    datasetId: prepared.manifest.dataset.id,
+    releaseSlot: prepared.manifest.provenance.releaseSlot,
+    sourceFormat: prepared.manifest.provenance.format,
+    sourceUrl: prepared.manifest.provenance.sourceUrl,
+  }
+  const mirrored = await mirrorCsdiSourceArchive(target, archive, prepared)
+  return { ...mirrored, prepared }
+}
+
 export async function mirrorCsdiSourceArchive(
   target: UploadTarget,
   archive: CsdiSourceArchive,
@@ -179,6 +208,33 @@ export async function mirrorCsdiSourceArchive(
   return {
     manifestUrl: buildManagedAssetUrl(target, manifest.assetId),
     sourceUrl: buildManagedAssetUrl(target, source.assetId),
+  }
+}
+
+function assertPreparedCsdiSourceArchive(
+  prepared: PreparedSourceArchive,
+  expected: SourceArchiveExpectation,
+) {
+  const { manifest } = prepared
+  if (manifest.dataset.publisher !== CSDI_ARCHIVE_PUBLISHER) {
+    throw new Error(
+      `Prepared source archive is not a CSDI archive: ${prepared.sourcePath}`,
+    )
+  }
+  if (manifest.dataset.code !== expected.datasetCode) {
+    throw new Error(
+      `Prepared source archive belongs to ${manifest.dataset.code}, expected ${expected.datasetCode}.`,
+    )
+  }
+  if (manifest.archive.objectKey !== expected.objectKey) {
+    throw new Error(
+      `Prepared source archive object key does not match the requested provenance: ${prepared.sourcePath}`,
+    )
+  }
+  if (manifest.archive.sha256 !== expected.sha256) {
+    throw new Error(
+      `Prepared source archive SHA-256 does not match the requested provenance: ${prepared.sourcePath}`,
+    )
   }
 }
 

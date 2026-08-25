@@ -8,6 +8,7 @@ import { unzipSync } from 'fflate'
 import {
   buildSourceArchiveObjectKey,
   buildSourceArchivePrefix,
+  ensurePreparedCsdiSourceArchive,
   mirrorCsdiSourceArchive,
   prepareCsdiSourceArchive,
 } from './sourceArchives.ts'
@@ -124,6 +125,43 @@ describe('CSDI source archives', () => {
         sourceUrl:
           'http://localhost:8787/v0/assets/00000000-0000-4000-8000-000000000001',
       })
+    } finally {
+      await rm(root, { force: true, recursive: true })
+    }
+  })
+
+  test('requires a prepared archive to match the requested source provenance', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-archive-'))
+    const inputPath = join(root, 'source.zip')
+    const outputPath = join(root, 'prepared-source.zip')
+    const archive = {
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      datasetId: 'censtatd_rcd_1635933883228_46491',
+      releaseSlot: '2023-Q4',
+      sourceUrl: 'https://publisher.example/archive',
+    }
+    await writeFile(inputPath, 'not a ZIP', 'utf8')
+
+    try {
+      const prepared = await prepareCsdiSourceArchive({
+        archive,
+        inputPath,
+        outputPath,
+      })
+      await expect(
+        ensurePreparedCsdiSourceArchive(
+          { environment: 'dev', remote: false },
+          {
+            expected: {
+              datasetCode: archive.datasetCode,
+              objectKey: prepared.manifest.archive.objectKey,
+              sha256: 'a'.repeat(64),
+            },
+            sourcePath: outputPath,
+          },
+        ),
+      ).rejects.toThrow('SHA-256 does not match the requested provenance')
     } finally {
       await rm(root, { force: true, recursive: true })
     }
