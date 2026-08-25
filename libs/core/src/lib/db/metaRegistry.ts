@@ -2931,6 +2931,7 @@ export async function ensureDraftSnapshotForRelease(
     .where(
       and(
         eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
+        eq(metaSnapshotLineages.resourceType, resourceType),
         eq(metaSnapshotLineages.variant, variant),
       ),
     )

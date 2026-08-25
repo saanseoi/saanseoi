@@ -1,8 +1,12 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
 
-import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
+import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
+import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
+
+import GuideUrbanDensityPreview from './guideUrbanDensityPreview.svelte'
 
 type Props = {
   calculateCode: string
@@ -27,7 +31,7 @@ let {
 }: Props = $props()
 </script>
 
-<GuideCallout class="mt-8" size="generous">
+<section class="mt-10">
   <span
     class="inline-flex rounded-full bg-secondary-container px-3 py-1 font-body text-label-sm font-semibold text-secondary"
     >{@html m.guide_data_urban_density_badge()}</span
@@ -41,84 +45,93 @@ let {
   <p class="mt-4 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
     {@html m.guide_data_urban_density_definition()}
   </p>
-  <div class="mt-6 space-y-6">
-    <GuideCodeBlock
-      label={m.guide_data_urban_density_install()}
-      code={installCode}
-      language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
-      copyLabel={m.common_copy()}
-      copiedLabel={m.common_copied()}
-    />
-    <div>
-      <h4 class="font-display text-title-lg font-bold text-primary">
-        {@html m.guide_data_urban_density_inputs_title()}
-      </h4>
-      <p class="mt-2 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
-        {@html m.guide_data_urban_density_inputs_description()}
-      </p>
-      <div class="mt-4">
+  <div class="mt-8 space-y-12">
+    <section>
+      <GuideSubSectionHeader title={m.guide_data_urban_density_install()} />
+      <GuideSubSectionBody>
+        <GuideCodeBlock
+          label={m.guide_data_urban_density_install()}
+          code={installCode}
+          language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+      </GuideSubSectionBody>
+    </section>
+    <section>
+      <GuideSubSectionHeader title={m.guide_data_urban_density_inputs_title()} />
+      <GuideSubSectionBody content={m.guide_data_urban_density_inputs_description()}>
         <GuideCodeBlock
           label={m.guide_data_urban_density_inputs_code()}
           code={inputsCode}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
-      </div>
-    </div>
-    <div>
-      <h4 class="font-display text-title-lg font-bold text-primary">
-        {@html m.guide_data_urban_density_calculate_title()}
-      </h4>
-      <p class="mt-2 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
-        {@html m.guide_data_urban_density_calculate_description()}
-      </p>
-      <div class="mt-4">
+      </GuideSubSectionBody>
+    </section>
+    <section>
+      <GuideSubSectionHeader title={m.guide_data_urban_density_calculate_title()} />
+      <GuideSubSectionBody content={m.guide_data_urban_density_calculate_description()}>
         <GuideCodeBlock
           label={m.guide_data_urban_density_calculate_code()}
           code={calculateCode}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
-      </div>
-      <div class="mt-4">
         <GuideCodeBlock
           label={m.guide_data_urban_density_write_code()}
           code={writeCode}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
-      </div>
-    </div>
-    <div>
-      <h4 class="font-display text-title-lg font-bold text-primary">
-        {@html m.guide_data_urban_density_map_title()}
-      </h4>
-      <p class="mt-2 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
-        {@html m.guide_data_urban_density_map_description()}
-      </p>
-      <div class="mt-4 space-y-4">
-        <GuideCodeBlock
+      </GuideSubSectionBody>
+    </section>
+    <section>
+      <GuideSubSectionHeader title={m.guide_data_urban_density_map_title()} />
+      <GuideSubSectionBody content={m.guide_data_urban_density_map_description()}>
+        <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_map_code()}
           code={mapCode}
+          editorIcon="material-symbols-light:map-rounded"
+          language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
-        />
-        <GuideCodeBlock
+          previewLabel={m.guide_code_block_preview()}
+          showCodeLabel={m.guide_code_block_code()}
+        >
+          {#snippet preview()}
+            <GuideUrbanDensityPreview />
+          {/snippet}
+        </GuidePreviewCodeBlock>
+        <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_metrics_code()}
           code={metricsCode}
+          editorIcon="material-symbols-light:map-rounded"
+          language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
-        />
-        <GuideCodeBlock
+          previewLabel={m.guide_code_block_preview()}
+          showCodeLabel={m.guide_code_block_code()}
+        >
+          {#snippet preview()}
+            <GuideUrbanDensityPreview />
+          {/snippet}
+        </GuidePreviewCodeBlock>
+        <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_metrics_css()}
           code={metricsCss}
+          editorIcon="material-symbols-light:palette-outline-rounded"
+          language="css"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
-        />
-      </div>
-    </div>
+          previewLabel={m.guide_code_block_preview()}
+          showCodeLabel={m.guide_code_block_code()}
+        >
+          {#snippet preview()}
+            <GuideUrbanDensityPreview />
+          {/snippet}
+        </GuidePreviewCodeBlock>
+      </GuideSubSectionBody>
+    </section>
   </div>
-  <p class="mt-6 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
-    {@html m.guide_data_urban_density_availability()}
-  </p>
-</GuideCallout>
+</section>

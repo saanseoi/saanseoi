@@ -3,6 +3,7 @@ export { default as GuideFoundations } from './components/guideFoundations.svelt
 export { default as GuideChoiceGroup } from './components/shared/guideChoiceGroup.svelte'
 export { default as GuideColophon } from './components/shared/guideColophon.svelte'
 export { default as GuideCodeBlock } from './components/shared/guideCodeBlock.svelte'
+export { default as GuidePreviewCodeBlock } from './components/shared/guidePreviewCodeBlock.svelte'
 export { default as GuideCallout } from './components/shared/guideCallout.svelte'
 export { default as GuideMissingAnswerReminder } from './components/shared/guideMissingAnswerReminder.svelte'
 export { default as GuideReference } from './components/shared/guideReference.svelte'

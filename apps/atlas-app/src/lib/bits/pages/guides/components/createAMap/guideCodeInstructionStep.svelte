@@ -29,7 +29,9 @@ let {
 }: Props = $props()
 </script>
 
-<div class="space-y-6">
+<div
+  class={`grid gap-6 ${instruction ? 'md:grid-cols-[minmax(0,1fr)_16rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(16rem,26rem)]' : ''}`}
+>
   <GuideCodeBlock
     label={codeLabel}
     {code}
@@ -39,6 +41,8 @@ let {
     {language}
   />
   {#if instruction}
-    <GuideInstructionCallout {...instruction} />
+    <aside>
+      <GuideInstructionCallout {...instruction} />
+    </aside>
   {/if}
 </div>

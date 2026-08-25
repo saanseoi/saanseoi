@@ -1381,14 +1381,22 @@ describe('ensureDraftSnapshotForRelease', () => {
       variant: 'hkgov-pland-pu',
     }
 
-    await ensureDraftSnapshotForRelease(db as never, 'division', {
-      ...args,
-      sourceReleaseId: 'release-pland-division-pu-2001',
-    })
-    await ensureDraftSnapshotForRelease(db as never, 'divisionArea', {
-      ...args,
-      sourceReleaseId: 'release-pland-division-area-pu-2001',
-    })
+    const divisionSnapshot = await ensureDraftSnapshotForRelease(
+      db as never,
+      'division',
+      {
+        ...args,
+        sourceReleaseId: 'release-pland-division-pu-2001',
+      },
+    )
+    const divisionAreaSnapshot = await ensureDraftSnapshotForRelease(
+      db as never,
+      'divisionArea',
+      {
+        ...args,
+        sourceReleaseId: 'release-pland-division-area-pu-2001',
+      },
+    )
 
     expect(
       sqlite
@@ -1404,6 +1412,9 @@ describe('ensureDraftSnapshotForRelease', () => {
         resourceType: 'divisionArea',
       },
     ])
+    expect(divisionAreaSnapshot.snapshotLineageId).not.toBe(
+      divisionSnapshot.snapshotLineageId,
+    )
 
     sqlite.close()
   })
