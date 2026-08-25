@@ -2,6 +2,7 @@
 import { onMount } from 'svelte'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
+import { m } from '#lib/bits/internal/i18n.js'
 import NestedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesNestedField.svelte'
 import SourceIdentifier from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesIdentifier.svelte'
 import {
@@ -26,6 +27,7 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
 )
 const initialExamples = 1
 const examplesPerRequest = 4
+const candidatesPerRequest = 10
 
 let { family, onAvailabilityChange, request, sourceReleaseCode }: Props = $props()
 let samples = $state<AddressSample[]>([])
@@ -35,6 +37,7 @@ let unavailable = $state(false)
 let errorMessage = $state<string | null>(null)
 let mounted = $state(false)
 let handledRequest = $state<number | null>(null)
+let pendingExamples = $state(0)
 
 function requestUrl(limit: number) {
   const url = new URL(`${apiBaseUrl}/${family}/v0.1/sources`)
@@ -78,15 +81,24 @@ async function getRandomRecords(limit: number) {
   })
 }
 
-async function loadMore(count: number) {
+function enqueueExamples(count: number) {
+  pendingExamples += count
+  void loadMore()
+}
+
+async function loadMore() {
   if (loading || unavailable) return
 
+  const count = pendingExamples
+  if (!count) return
+
   loading = true
+  pendingExamples = 0
   errorMessage = null
   try {
     const selected: AddressSample[] = []
     for (let attempt = 0; attempt < 4 && selected.length < count; attempt += 1) {
-      const candidates = await getRandomRecords(count)
+      const candidates = await getRandomRecords(candidatesPerRequest)
       selected.push(
         ...getUniqueAddressSamples(candidates, [...samples, ...selected]).slice(
           0,
@@ -97,9 +109,10 @@ async function loadMore(count: number) {
     }
     samples = [...samples, ...selected]
   } catch {
-    errorMessage = 'Examples could not be loaded. Please try again.'
+    errorMessage = m.source_record_samples_load_error()
   } finally {
     loading = false
+    if (!errorMessage && pendingExamples > 0) void loadMore()
   }
 }
 
@@ -113,61 +126,63 @@ function toggleSample(id: string) {
 onMount(() => {
   mounted = true
   handledRequest = request
-  void loadMore(initialExamples)
+  enqueueExamples(initialExamples)
 })
 
 $effect(() => {
   if (!mounted || request === handledRequest) return
+  const previousRequest = handledRequest ?? request
   handledRequest = request
-  void loadMore(examplesPerRequest)
+  enqueueExamples(Math.max(request - previousRequest, 1) * examplesPerRequest)
 })
 </script>
 
-<section class="space-y-4" aria-label="Random source-record samples">
+<section class="space-y-4" aria-label={m.source_record_samples_aria_label()}>
   <p class="font-body text-body-md text-foreground-alt">
-    A random raw source record from this release. The complete stored payload appears
-    under <code>rawProperties</code>.
+    {m.source_record_samples_intro()} <code>rawProperties</code>.
   </p>
 
   {#if unavailable}
     <p class="font-body text-body-md text-foreground-alt">
-      Source records are not available for this release.
+      {m.source_record_samples_unavailable()}
     </p>
   {:else if samples.length}
     <div class="grid gap-3">
       {#each samples as sample, index (sample.id)}
-        <dl
-          class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
-        >
-          <dt>
-            <button
-              class="grid w-full min-w-0 grid-cols-[minmax(9rem,0.32fr)_minmax(0,1fr)] gap-5 bg-surface-container-low px-4 py-4 text-left transition hover:bg-surface-container"
-              type="button"
-              aria-expanded={!collapsedSamples.has(sample.id)}
-              onclick={() => toggleSample(sample.id)}
-            >
-              <span class="font-mono text-label-md font-semibold text-primary"
-                >sourceRecordId</span
+        <div class="overflow-x-auto rounded-md">
+          <dl
+            class="min-w-[44rem] overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
+          >
+            <dt>
+              <button
+                class="grid w-full min-w-0 grid-cols-[minmax(13rem,0.36fr)_minmax(0,1fr)] gap-5 bg-surface-container-low px-4 py-4 text-left transition hover:bg-surface-container"
+                type="button"
+                aria-expanded={!collapsedSamples.has(sample.id)}
+                onclick={() => toggleSample(sample.id)}
               >
-              <span class="min-w-0">
-                <SourceIdentifier
-                  id={sample.id}
-                  marker={sampleValueTones[index % sampleValueTones.length].marker}
-                />
-              </span>
-            </button>
-          </dt>
-          {#if !collapsedSamples.has(sample.id)}
-            {#each sample.fields as field (field.key)}
-              <NestedField {field} />
-            {/each}
-          {/if}
-        </dl>
+                <span class="font-mono text-label-md font-semibold text-primary"
+                  >sourceRecordId</span
+                >
+                <span class="min-w-0">
+                  <SourceIdentifier
+                    id={sample.id}
+                    marker={sampleValueTones[index % sampleValueTones.length].marker}
+                  />
+                </span>
+              </button>
+            </dt>
+            {#if !collapsedSamples.has(sample.id)}
+              {#each sample.fields as field (field.key)}
+                <NestedField {field} />
+              {/each}
+            {/if}
+          </dl>
+        </div>
       {/each}
     </div>
   {:else if !loading && !errorMessage}
     <p class="font-body text-body-md text-foreground-alt">
-      No source records are available for this release.
+      {m.source_record_samples_empty()}
     </p>
   {/if}
 
