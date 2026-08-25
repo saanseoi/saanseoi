@@ -7,7 +7,7 @@ import { getCurrentLocale, m, type MessageKey } from '#lib/bits/internal/i18n.js
 let locale = $derived(getCurrentLocale())
 const t = (key: MessageKey) => {
   locale
-  return m[key]()
+  return (m[key] as () => string)()
 }
 </script>
 

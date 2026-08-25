@@ -12,12 +12,7 @@ import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/inde
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 
-import {
-  getCurrentLocale,
-  getLocalisedMessage,
-  m,
-  selectLocalisedRow,
-} from '#lib/bits/internal/i18n.js'
+import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
 import {
   getApiReleasePageData,
@@ -378,10 +373,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       ? m.source_missing_street_linkage()
       : humaniseStat(value),
   districtFallback: districtId =>
-    getLocalisedMessage('source_geometry_district_fallback', locale).replace(
-      '{district}',
-      districtId,
-    ),
+    m.source_geometry_district_fallback({ district: districtId }),
   processingAction: code => {
     const [mode, ...action] = code.split(':')
     return {

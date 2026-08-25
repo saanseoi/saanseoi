@@ -168,7 +168,7 @@ $effect(() => {
   }
 })
 
-let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale, m))
+let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale))
 let hasContent = $derived.by(() => {
   if (isContentLoading) return true
   if (activeTab === 'notes') {
