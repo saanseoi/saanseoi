@@ -489,6 +489,7 @@ export async function processDivisionDataset(
       {
         divisionId: string
         isLocaleInferred: boolean
+        nameProvenance?: DivisionI18nPayload['nameProvenance']
         locale: string
         name: string | null
         nameAlts: string | null
@@ -1342,6 +1343,8 @@ export function normaliseDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
   return {
     ...row,
     isLocaleInferred: Boolean(row.isLocaleInferred),
+    nameProvenance:
+      row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided'),
   } satisfies DivisionI18nPayload
 }
 

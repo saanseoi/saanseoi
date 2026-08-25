@@ -10,8 +10,11 @@ export type StatsLocaleGroup = 'en' | 'zh-hant' | 'zh-hans'
 
 export type LocaleStatsAccumulator = {
   altCoverage: Map<StatsLocaleGroup, number>
+  aiTranslatedCoverage: Map<StatsLocaleGroup, number>
   count: Map<StatsLocaleGroup, number>
-  nonInferredCoverage: Map<StatsLocaleGroup, number>
+  humanTranslatedCoverage: Map<StatsLocaleGroup, number>
+  inferredCoverage: Map<StatsLocaleGroup, number>
+  providedCoverage: Map<StatsLocaleGroup, number>
   total: number
 }
 
@@ -159,7 +162,14 @@ export type LocalisedStatsRow = {
   hasName: boolean
   isLocaleInferred: boolean
   locale: string
+  nameProvenance?: NameProvenance | null
 }
+
+export type NameProvenance =
+  | 'provided'
+  | 'inferred'
+  | 'ai-translated'
+  | 'human-translated'
 
 export type StatsSnapshot<TLocalisedRow> = {
   churnHash: string
@@ -176,8 +186,11 @@ export type StatsSnapshot<TLocalisedRow> = {
 export function createLocaleStatsAccumulator(): LocaleStatsAccumulator {
   return {
     altCoverage: new Map(),
+    aiTranslatedCoverage: new Map(),
     count: new Map(),
-    nonInferredCoverage: new Map(),
+    humanTranslatedCoverage: new Map(),
+    inferredCoverage: new Map(),
+    providedCoverage: new Map(),
     total: 0,
   }
 }
@@ -192,7 +205,12 @@ export function updateLocaleStatsAccumulator(
   statsAccumulator.total += 1
 
   const coverageGroups = new Set<StatsLocaleGroup>()
-  const nonInferredCoverageGroups = new Set<StatsLocaleGroup>()
+  const provenanceGroups = {
+    'ai-translated': new Set<StatsLocaleGroup>(),
+    'human-translated': new Set<StatsLocaleGroup>(),
+    inferred: new Set<StatsLocaleGroup>(),
+    provided: new Set<StatsLocaleGroup>(),
+  }
   const altCoverageGroups = new Set<StatsLocaleGroup>()
 
   for (const row of rows) {
@@ -204,9 +222,7 @@ export function updateLocaleStatsAccumulator(
 
     coverageGroups.add(group)
 
-    if (!row.isLocaleInferred) {
-      nonInferredCoverageGroups.add(group)
-    }
+    provenanceGroups[resolveNameProvenance(row)].add(group)
 
     if (row.hasAltName) {
       altCoverageGroups.add(group)
@@ -214,7 +230,16 @@ export function updateLocaleStatsAccumulator(
   }
 
   incrementStatsCounts(statsAccumulator.count, coverageGroups)
-  incrementStatsCounts(statsAccumulator.nonInferredCoverage, nonInferredCoverageGroups)
+  incrementStatsCounts(statsAccumulator.providedCoverage, provenanceGroups.provided)
+  incrementStatsCounts(statsAccumulator.inferredCoverage, provenanceGroups.inferred)
+  incrementStatsCounts(
+    statsAccumulator.aiTranslatedCoverage,
+    provenanceGroups['ai-translated'],
+  )
+  incrementStatsCounts(
+    statsAccumulator.humanTranslatedCoverage,
+    provenanceGroups['human-translated'],
+  )
   incrementStatsCounts(statsAccumulator.altCoverage, altCoverageGroups)
 }
 
@@ -227,7 +252,12 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
 
   return locales.flatMap(locale => {
     const localeCount = statsAccumulator.count.get(locale) ?? 0
-    const localeNonInferredCount = statsAccumulator.nonInferredCoverage.get(locale) ?? 0
+    const localeProvidedCount = statsAccumulator.providedCoverage.get(locale) ?? 0
+    const localeInferredCount = statsAccumulator.inferredCoverage.get(locale) ?? 0
+    const localeAiTranslatedCount =
+      statsAccumulator.aiTranslatedCoverage.get(locale) ?? 0
+    const localeHumanTranslatedCount =
+      statsAccumulator.humanTranslatedCoverage.get(locale) ?? 0
     const localeAltCount = statsAccumulator.altCoverage.get(locale) ?? 0
     const total = statsAccumulator.total
 
@@ -254,16 +284,25 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
           groupValue: locale,
         },
       ),
-      buildReleaseStatsRow(
-        'locale_coverage_non_inferred',
-        'completeness',
-        'percentage',
-        percentage(localeNonInferredCount, total),
-        createdAt,
-        {
-          groupBy: 'locale',
-          groupValue: locale,
-        },
+      ...(
+        [
+          ['locale_coverage_provided', localeProvidedCount],
+          ['locale_coverage_inferred', localeInferredCount],
+          ['locale_coverage_ai_translated', localeAiTranslatedCount],
+          ['locale_coverage_human_translated', localeHumanTranslatedCount],
+        ] as const
+      ).map(([dimension, count]) =>
+        buildReleaseStatsRow(
+          dimension,
+          'completeness',
+          'percentage',
+          percentage(count, total),
+          createdAt,
+          {
+            groupBy: 'locale',
+            groupValue: locale,
+          },
+        ),
       ),
       buildReleaseStatsRow(
         'locale_alt_coverage',
@@ -278,6 +317,10 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
       ),
     ]
   })
+}
+
+function resolveNameProvenance(row: LocalisedStatsRow): NameProvenance {
+  return row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided')
 }
 
 /**
@@ -949,7 +992,12 @@ function buildApiReleaseSetLocaleStatsRows(
 
   return locales.flatMap(locale => {
     const localeCount = statsAccumulator.count.get(locale) ?? 0
-    const localeNonInferredCount = statsAccumulator.nonInferredCoverage.get(locale) ?? 0
+    const localeProvidedCount = statsAccumulator.providedCoverage.get(locale) ?? 0
+    const localeInferredCount = statsAccumulator.inferredCoverage.get(locale) ?? 0
+    const localeAiTranslatedCount =
+      statsAccumulator.aiTranslatedCoverage.get(locale) ?? 0
+    const localeHumanTranslatedCount =
+      statsAccumulator.humanTranslatedCoverage.get(locale) ?? 0
     const localeAltCount = statsAccumulator.altCoverage.get(locale) ?? 0
     const total = statsAccumulator.total
 
@@ -976,16 +1024,25 @@ function buildApiReleaseSetLocaleStatsRows(
           groupValue: locale,
         },
       ),
-      buildApiReleaseSetStatsRow(
-        'locale_coverage_non_inferred',
-        'completeness',
-        'percentage',
-        percentage(localeNonInferredCount, total),
-        createdAt,
-        {
-          groupBy: 'locale',
-          groupValue: locale,
-        },
+      ...(
+        [
+          ['locale_coverage_provided', localeProvidedCount],
+          ['locale_coverage_inferred', localeInferredCount],
+          ['locale_coverage_ai_translated', localeAiTranslatedCount],
+          ['locale_coverage_human_translated', localeHumanTranslatedCount],
+        ] as const
+      ).map(([dimension, count]) =>
+        buildApiReleaseSetStatsRow(
+          dimension,
+          'completeness',
+          'percentage',
+          percentage(count, total),
+          createdAt,
+          {
+            groupBy: 'locale',
+            groupValue: locale,
+          },
+        ),
       ),
       buildApiReleaseSetStatsRow(
         'locale_alt_coverage',

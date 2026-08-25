@@ -399,7 +399,7 @@ async function buildAddressLocaleStats(
 
     const count = Number(row.count ?? 0)
     stats.count.set(group, count)
-    stats.nonInferredCoverage.set(group, count)
+    stats.providedCoverage.set(group, count)
   }
 
   return stats
@@ -407,7 +407,7 @@ async function buildAddressLocaleStats(
 
 async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: string) {
   const stats = createLocaleStatsAccumulator()
-  const [coverageRows, nonInferredRows, altRows] = await Promise.all([
+  const [coverageRows, provenanceRows, altRows] = await Promise.all([
     db
       .select({
         count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
@@ -426,16 +426,20 @@ async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: strin
       .select({
         count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
         groupValue: currentSchema.divisionsI18n.locale,
+        provenance: sql<string>`coalesce(${currentSchema.divisionsI18n.nameProvenance}, case when ${currentSchema.divisionsI18n.isLocaleInferred} then 'inferred' else 'provided' end)`,
       })
       .from(currentSchema.divisionsI18n)
       .where(
         and(
           eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
           sql`${currentSchema.divisionsI18n.name} IS NOT NULL`,
-          eq(currentSchema.divisionsI18n.isLocaleInferred, false),
         ),
       )
-      .groupBy(currentSchema.divisionsI18n.locale)
+      .groupBy(
+        currentSchema.divisionsI18n.locale,
+        currentSchema.divisionsI18n.nameProvenance,
+        currentSchema.divisionsI18n.isLocaleInferred,
+      )
       .all(),
     db
       .select({
@@ -454,7 +458,17 @@ async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: strin
   ])
 
   applyLocaleCountRows(stats.count, coverageRows)
-  applyLocaleCountRows(stats.nonInferredCoverage, nonInferredRows)
+  for (const row of provenanceRows) {
+    const map =
+      row.provenance === 'inferred'
+        ? stats.inferredCoverage
+        : row.provenance === 'ai-translated'
+          ? stats.aiTranslatedCoverage
+          : row.provenance === 'human-translated'
+            ? stats.humanTranslatedCoverage
+            : stats.providedCoverage
+    applyLocaleCountRows(map, [row])
+  }
   applyLocaleCountRows(stats.altCoverage, altRows)
 
   return stats

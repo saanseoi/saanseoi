@@ -1,0 +1,1 @@
+ALTER TABLE `divisionsI18n` ADD `nameProvenance` text;

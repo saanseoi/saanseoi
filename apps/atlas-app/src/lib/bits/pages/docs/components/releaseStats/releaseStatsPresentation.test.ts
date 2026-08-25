@@ -20,6 +20,8 @@ const copy: ReleaseStatsCopy = {
     namesByLocale: 'Names by locale',
     provided: 'Provided',
     inferred: 'Inferred',
+    aiTranslated: 'AI translated',
+    humanTranslated: 'Human translated',
     localeLegend: 'Locale legend',
     completenessInfo: 'Completeness info',
     completenessInfoDescription: 'Coverage details',
@@ -325,6 +327,34 @@ describe('createReleaseStatsPresentation', () => {
         value: 62.5,
       },
       {
+        dimension: 'locale_coverage_provided',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 20,
+      },
+      {
+        dimension: 'locale_coverage_inferred',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 10,
+      },
+      {
+        dimension: 'locale_coverage_ai_translated',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 25,
+      },
+      {
+        dimension: 'locale_coverage_human_translated',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 7.5,
+      },
+      {
         dimension: 'component_coverage',
         metric: 'completeness',
         groupBy: 'addressComponent',
@@ -347,6 +377,12 @@ describe('createReleaseStatsPresentation', () => {
       { dimension: 'name_regression_count', metric: 'quality', value: 1 },
     ])
     expect(model.localeCoverage?.[0]?.coverageLabel).toBe('62.5%')
+    expect(model.localeCoverage?.[0]?.segments).toEqual([
+      { label: 'provided', tone: 'provided', value: 20 },
+      { label: 'inferred', tone: 'inferred', value: 10 },
+      { label: 'ai-translated', tone: 'ai-translated', value: 25 },
+      { label: 'human-translated', tone: 'human-translated', value: 7.5 },
+    ])
     expect(model.componentCoverage?.[0]?.formattedValue).toBe('50%')
     expect(model.processing).toHaveLength(1)
     expect(model.processing?.[0]?.issue).toBe('automatic:normalised')
