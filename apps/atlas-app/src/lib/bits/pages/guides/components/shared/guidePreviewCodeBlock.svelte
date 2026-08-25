@@ -7,8 +7,11 @@ import GuideCodeBlock from './guideCodeBlock.svelte'
 
 type Props = {
   code: string
+  displayCode?: string
+  comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
   copiedLabel: string
   copyLabel: string
+  dimmedLines?: number[]
   editorIcon?: string
   label: string
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
@@ -20,8 +23,11 @@ type Props = {
 
 let {
   code,
+  displayCode,
+  comments = [],
   copiedLabel,
   copyLabel,
+  dimmedLines,
   editorIcon,
   label,
   language = 'text',
@@ -31,22 +37,27 @@ let {
   variant = 'editor',
 }: Props = $props()
 let view = $state<'code' | 'preview'>('code')
+let commentsVisible = $state(true)
 </script>
 
-<div class="grid w-full min-w-0 max-w-[80ch] [perspective:1200px]">
+<div class="grid w-full min-w-0 max-w-[80ch] font-mono [perspective:1200px]">
   <div
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
-    class={`col-start-1 row-start-1 min-w-0 transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
+    class={`col-start-1 row-start-1 w-full min-w-0 transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
       view === 'code'
         ? 'pointer-events-auto opacity-100 [transform:rotateY(0deg)]'
         : 'pointer-events-none opacity-0 [transform:rotateY(-180deg)]'
     }`}
   >
     <GuideCodeBlock
-      {code}
+      code={displayCode ?? code}
+      copyCode={code}
+      {comments}
+      bind:commentsVisible
       {copiedLabel}
       {copyLabel}
+      {dimmedLines}
       {editorIcon}
       {label}
       {language}
@@ -59,11 +70,7 @@ let view = $state<'code' | 'preview'>('code')
           aria-pressed="false"
           onclick={() => (view = 'preview')}
         >
-          <Icon
-            icon="material-symbols-light:play-circle-outline-rounded"
-            class="size-4"
-            aria-hidden="true"
-          />
+          <Icon icon="proicons:map" class="size-4" aria-hidden="true" />
           {previewLabel}
         </button>
       {/snippet}
@@ -73,7 +80,7 @@ let view = $state<'code' | 'preview'>('code')
     aria-label={previewLabel}
     aria-hidden={view !== 'preview'}
     inert={view !== 'preview'}
-    class={`col-start-1 row-start-1 flex h-full min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
+    class={`col-start-1 row-start-1 flex h-full w-full min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
       view === 'preview'
         ? 'pointer-events-auto opacity-100 [transform:rotateY(0deg)]'
         : 'pointer-events-none opacity-0 [transform:rotateY(180deg)]'
@@ -87,10 +94,7 @@ let view = $state<'code' | 'preview'>('code')
           class="inline-flex size-7 items-center justify-center rounded-sm bg-[#2d3547] text-[#a5d6ff]"
           aria-hidden="true"
         >
-          <Icon
-            icon="material-symbols-light:play-circle-outline-rounded"
-            class="size-4"
-          />
+          <Icon icon="proicons:map" class="size-4" />
         </span>
         <span class="truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
           >{previewLabel}</span
