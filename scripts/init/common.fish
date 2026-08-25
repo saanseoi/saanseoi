@@ -163,6 +163,40 @@ function init_publish_docs_if_needed
     end
 end
 
+function init_published_api_release_set_count
+    if not set -q SAANSEOI_INIT_SUMMARY_PATH; or not test -f "$SAANSEOI_INIT_SUMMARY_PATH"
+        echo 0
+        return
+    end
+
+    jq -s '[.[] | select(.type == "published-api-release-set")] | length' \
+        "$SAANSEOI_INIT_SUMMARY_PATH"
+end
+
+# Reconciliation can make previously draft sets current after a resumed run.
+# It is only worth scanning and publishing their documentation if that actually
+# occurred; otherwise a failed initialisation needlessly waits on docs:publish
+# before its final error summary is rendered.
+function init_reconcile_draft_release_sets
+    if not set -q SAANSEOI_INIT_SUMMARY_PATH
+        init_run_step $argv
+        set -g saanseoi_init_docs_pending 1
+        return
+    end
+
+    set -l published_before (init_published_api_release_set_count)
+    init_run_step $argv
+    set -l command_status $status
+    if test $command_status -ne 0
+        return $command_status
+    end
+
+    set -l published_after (init_published_api_release_set_count)
+    if test "$published_after" -gt "$published_before"
+        set -g saanseoi_init_docs_pending 1
+    end
+end
+
 function init_domain_has_pending_releases
     set -l domain $argv[1]
     set -e argv[1]
