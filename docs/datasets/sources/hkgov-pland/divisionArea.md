@@ -91,6 +91,10 @@ The TPU/subunit source has no published names—only hierarchy codes. The adapte
 those codes in canonical `identifiers` and does not manufacture labels for TPU/subunit
 canonical divisions.
 
+The division import's reviewable locale-completion process does not translate these
+codes: without a publisher name, there is no source text from which to create an API
+name fixture.
+
 ## New Town boundaries
 
 New Towns are a separate Planning Department planning-domain resource and provider
