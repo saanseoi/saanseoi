@@ -256,11 +256,11 @@ to the resources you loaded. It contains the resolved
 [catalogue revision](saanseoi:en:definition/catalogue-revision/v1) selectors, so save it
 to replay that exact result later.
 
-## Switching Domains
+## Switching domains
 
-A [domain](saanseoi:en:definition/domain/v1) is a separate collection within an API
-family. Records from different domains cannot sensibly be combined. In the {{apiFamily}}
-API, the following domains are available:
+A [domain](saanseoi:en:definition/domain/v1) is a separate collection within the
+Divisions API. Keep domains separate when comparing results: their identities, geometry,
+and fields come from different sources.
 
 {{domains:en}}
 
@@ -514,9 +514,8 @@ selector；請保存它，以便日後重播完全相同的結果。
 
 ## 切換 domain
 
-[domain](saanseoi:zh-hant:definition/domain/v1) 是 API
-family 內獨立的集合。不同 domain 的記錄無法合理地合併。在 {{apiFamily}}
-API 中，可使用以下 domain：
+[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions
+API 中獨立的集合。比較結果時，應將不同 domain 分開處理：它們的識別、幾何資料和欄位來自不同來源。
 
 {{domains:zh-Hant}}
 
@@ -767,9 +766,8 @@ selector；请保存它，以便日后重放完全相同的结果。
 
 ## 切换 domain
 
-[domain](saanseoi:zh-hans:definition/domain/v1) 是 API
-family 内独立的集合。不同 domain 的记录无法合理地合并。在 {{apiFamily}}
-API 中，可使用以下 domain：
+[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions
+API 中独立的集合。比较结果时，应将不同 domain 分开处理：它们的标识、几何数据和字段来自不同来源。
 
 {{domains:zh-Hans}}
 
