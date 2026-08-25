@@ -3531,7 +3531,11 @@ export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
-  options: { domainCode?: string; forceNew?: boolean } = {},
+  options: {
+    domainCode?: string
+    explicitInitialRevision?: boolean
+    forceNew?: boolean
+  } = {},
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
   const apiVersion = await db
@@ -3641,6 +3645,7 @@ export async function ensureDraftReleaseSetForRelease(
       apiVersion.familyType,
       release.cohortKey,
       nextRevision,
+      { explicitInitialRevision: options.explicitInitialRevision },
     ),
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
   ]
