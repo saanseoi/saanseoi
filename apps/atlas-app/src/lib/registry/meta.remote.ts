@@ -414,10 +414,8 @@ export const getSourceReleaseShellData = query(
   sourceReleaseShellSchema,
   async ({ datasetCode, releaseCode }) => {
     const startedAt = performance.now()
-    const shell = await getRegistrySourceReleaseShell(
-      getMetaDb(),
-      datasetCode,
-      releaseCode,
+    const shell = await runWithD1ReadRetry(() =>
+      getRegistrySourceReleaseShell(getMetaDb(), datasetCode, releaseCode),
     )
     if (!shell) error(404, 'Source dataset not found.')
 
@@ -434,10 +432,8 @@ export const getSourceReleaseShellData = query(
       selectedReleaseCode: _selectedReleaseCode,
       ...source
     } = shell
-    const accessMetrics = await getRegistryAccessMetrics(
-      getMetaDb(),
-      'source_release',
-      version.id,
+    const accessMetrics = await runWithD1ReadRetry(() =>
+      getRegistryAccessMetrics(getMetaDb(), 'source_release', version.id),
     )
     const result = {
       source: source as RegistrySource,
@@ -451,86 +447,87 @@ export const getSourceReleaseShellData = query(
 
 export const getSourceReleaseContentData = query(
   sourceReleaseContentSchema,
-  async ({ datasetCode, releaseCode, previousReleaseCode }) => {
-    const db = getMetaDb()
-    const source = await getRegistrySourceRelease(db, datasetCode, releaseCode)
-    if (!source) error(404, 'Source dataset not found.')
+  ({ datasetCode, releaseCode, previousReleaseCode }) =>
+    runWithD1ReadRetry(async () => {
+      const db = getMetaDb()
+      const source = await getRegistrySourceRelease(db, datasetCode, releaseCode)
+      if (!source) error(404, 'Source dataset not found.')
 
-    const version = source.sourceVersions?.[0]
-    if (!version) error(404, 'Source release not found.')
+      const version = source.sourceVersions?.[0]
+      if (!version) error(404, 'Source release not found.')
 
-    const previousNotesPromise = previousReleaseCode
-      ? db
-          .select({ notes: metaSourceReleases.notes })
-          .from(metaSourceReleases)
+      const previousNotesPromise = previousReleaseCode
+        ? db
+            .select({ notes: metaSourceReleases.notes })
+            .from(metaSourceReleases)
+            .where(
+              and(
+                eq(metaSourceReleases.datasetId, version.datasetId),
+                eq(metaSourceReleases.code, previousReleaseCode),
+              ),
+            )
+            .limit(1)
+            .get()
+            .then(previous => previous?.notes ?? null)
+        : db
+            .select({ code: metaSourceReleases.code, notes: metaSourceReleases.notes })
+            .from(metaSourceReleases)
+            .where(eq(metaSourceReleases.datasetId, version.datasetId))
+            .orderBy(
+              desc(metaSourceReleases.publicationDate),
+              desc(metaSourceReleases.createdAt),
+            )
+            .all()
+            .then(releases => {
+              const currentIndex = releases.findIndex(
+                release => release.code === releaseCode,
+              )
+              return currentIndex >= 0
+                ? (releases[currentIndex + 1]?.notes ?? null)
+                : null
+            })
+
+      const [previousNotes, archive] = await Promise.all([
+        previousNotesPromise,
+        db
+          .select({ assetId: metaAssets.id })
+          .from(metaAssets)
+          .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
           .where(
             and(
-              eq(metaSourceReleases.datasetId, version.datasetId),
-              eq(metaSourceReleases.code, previousReleaseCode),
+              eq(metaAssets.role, 'sourceArchive'),
+              eq(metaReleases.sourceReleaseId, version.id),
             ),
           )
+          .orderBy(desc(metaAssets.retrievedAt))
           .limit(1)
-          .get()
-          .then(previous => previous?.notes ?? null)
-      : db
-          .select({ code: metaSourceReleases.code, notes: metaSourceReleases.notes })
-          .from(metaSourceReleases)
-          .where(eq(metaSourceReleases.datasetId, version.datasetId))
-          .orderBy(
-            desc(metaSourceReleases.publicationDate),
-            desc(metaSourceReleases.createdAt),
-          )
-          .all()
-          .then(releases => {
-            const currentIndex = releases.findIndex(
-              release => release.code === releaseCode,
-            )
-            return currentIndex >= 0
-              ? (releases[currentIndex + 1]?.notes ?? null)
-              : null
-          })
+          .get(),
+      ])
 
-    const [previousNotes, archive] = await Promise.all([
-      previousNotesPromise,
-      db
-        .select({ assetId: metaAssets.id })
-        .from(metaAssets)
-        .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
-        .where(
-          and(
-            eq(metaAssets.role, 'sourceArchive'),
-            eq(metaReleases.sourceReleaseId, version.id),
-          ),
-        )
-        .orderBy(desc(metaAssets.retrievedAt))
-        .limit(1)
-        .get(),
-    ])
+      const measures = await getSourceReleaseMeasures({
+        datasetCode,
+        releaseId: version.id,
+      })
+      const accessMetrics = await getRegistryAccessMetrics(
+        db,
+        'source_release',
+        version.id,
+      )
+      const result = {
+        version: archive
+          ? { ...version, sourceArchiveAssetId: archive.assetId, accessMetrics }
+          : { ...version, accessMetrics },
+        previousNotes,
+        measures,
+      } as {
+        measures: Awaited<ReturnType<typeof getSourceReleaseMeasures>>
+        version: SourceVersion
+        previousNotes: string | null
+      }
 
-    const measures = await getSourceReleaseMeasures({
-      datasetCode,
-      releaseId: version.id,
-    })
-    const accessMetrics = await getRegistryAccessMetrics(
-      db,
-      'source_release',
-      version.id,
-    )
-    const result = {
-      version: archive
-        ? { ...version, sourceArchiveAssetId: archive.assetId, accessMetrics }
-        : { ...version, accessMetrics },
-      previousNotes,
-      measures,
-    } as {
-      measures: Awaited<ReturnType<typeof getSourceReleaseMeasures>>
-      version: SourceVersion
-      previousNotes: string | null
-    }
-
-    recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
-    return result
-  },
+      recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
+      return result
+    }),
 )
 
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'

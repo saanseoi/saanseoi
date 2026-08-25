@@ -35,6 +35,23 @@ describe('atlas-app D1 read retries', () => {
     expect(attempts).toBe(2)
   })
 
+  test('retries a closed D1 binding socket', async () => {
+    let attempts = 0
+
+    const result = await runWithD1ReadRetry(async () => {
+      attempts += 1
+      if (attempts === 1) {
+        const error = new Error('Failed query: select * from publishers')
+        error.cause = new Error('fetch failed')
+        throw error
+      }
+      return 'ok'
+    })
+
+    expect(result).toBe('ok')
+    expect(attempts).toBe(2)
+  })
+
   test('does not retry non-transient failures', async () => {
     let attempts = 0
 

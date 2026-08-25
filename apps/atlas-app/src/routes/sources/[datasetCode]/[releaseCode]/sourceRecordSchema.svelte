@@ -1,5 +1,8 @@
 <script lang="ts">
-import { resolveSourceRecordSchema, type ResourceType } from '@repo/core'
+import {
+  resolveSourceRecordSchema,
+  type ResourceType,
+} from '@repo/core/sourceRecordSchemas'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
 import Node from '#lib/bits/pages/docs/components/releaseSchema/components/releaseSchemaNode.svelte'
