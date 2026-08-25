@@ -1406,10 +1406,17 @@ async function resolveDivisionNameTranslations(
   sourceRelease: string,
   allowGeneration: boolean,
 ) {
-  const records = [] as Array<{
-    localisations: Array<{ locale: string; name: string }>
-    recordId: string
-  }>
+  // Supplemental division rows are emitted after source rows so they can replace an
+  // identically keyed Overture point with its corrective area record. Resolve one
+  // translation input per final canonical division, preserving that last-row-wins
+  // ordering while retaining the duplicate-ID guard in the generic resolver.
+  const recordsById = new Map<
+    string,
+    {
+      localisations: Array<{ locale: string; name: string }>
+      recordId: string
+    }
+  >()
 
   for await (const { rows } of readDivisionRowsWithFixtures(
     file,
@@ -1418,7 +1425,7 @@ async function resolveDivisionNameTranslations(
   )) {
     for (const row of rows) {
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
-      records.push({
+      recordsById.set(normalised.base.id, {
         localisations: normalised.i18n.flatMap(localised =>
           localised.name ? [{ locale: localised.locale, name: localised.name }] : [],
         ),
@@ -1429,7 +1436,7 @@ async function resolveDivisionNameTranslations(
 
   return resolveSourceReleaseNameTranslationsBatch({
     allowGeneration,
-    records,
+    records: [...recordsById.values()],
     sourceRelease,
   })
 }
