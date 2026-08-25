@@ -36,6 +36,11 @@ Traditional Chinese labels with the publisher's `Official` or `Alias` status; it
 not create locale-normalised source child rows. There is no GeoJSON or Parquet
 preparation/upload boundary.
 
+For the Divisions projection, the official English and Traditional Chinese labels form
+the canonical names. A missing Simplified Chinese name is created only by the reviewable
+source-release fixture process described in the Divisions family document; it is marked
+unverified until reviewed.
+
 The divisions projection is a LandsD-specific SQL concern: it selects only
 `PLACE_CLASS=Settlement` rows while retaining the full gazetteer as durable source
 evidence. This preserves the native archive provenance for both the projected division
