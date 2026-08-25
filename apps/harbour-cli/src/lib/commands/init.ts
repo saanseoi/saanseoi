@@ -24,6 +24,11 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:stats:official': {
+    script: 'scripts/init/stats-hkgov-censtatd.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:divisions:hkgov-pland-new-town': {
     script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
     supportsContinue: true,
