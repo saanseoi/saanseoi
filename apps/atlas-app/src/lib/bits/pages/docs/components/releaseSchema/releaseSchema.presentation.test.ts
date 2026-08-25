@@ -17,12 +17,17 @@ describe('getOpenApiSchemaForFamily', () => {
     components: {
       schemas: {
         Division: { properties: { attributes: { type: 'object' } }, type: 'object' },
+        Statistic: { properties: { attributes: { type: 'object' } }, type: 'object' },
       },
     },
   }
 
   test('selects the canonical resource schema for a plural API family', () => {
     expect(getOpenApiSchemaForFamily(document, 'divisions')?.name).toBe('Division')
+  })
+
+  test('selects the Statistic schema for the canonical stats API family', () => {
+    expect(getOpenApiSchemaForFamily(document, 'stats')?.name).toBe('Statistic')
   })
 
   test('returns null when the document has no matching resource schema', () => {

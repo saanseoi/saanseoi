@@ -1,4 +1,9 @@
-import type { ResourceType, UploadInspection, UploadPlan } from '@repo/core'
+import {
+  overtureSourceRecordSchemas,
+  type ResourceType,
+  type UploadInspection,
+  type UploadPlan,
+} from '@repo/core'
 
 type SchemaWindow = {
   validFromVersion?: string
@@ -26,6 +31,7 @@ type SchemaValidationResult = {
 }
 
 const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
+  ...overtureSourceRecordSchemas,
   {
     id: 'overture-division-area-v2025-09-24.0',
     source: 'overture',
@@ -145,68 +151,6 @@ const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
       { name: 'brand', type: 'struct', nullable: true },
       { name: 'addresses', type: 'list', nullable: true },
       { name: 'operating_status', type: 'utf8', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-division-v2025-09-24.0',
-    source: 'overture',
-    type: 'division',
-    validFromRelease: '2025-09-24.0',
-    validToRelease: '2026-02-17.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'cartography', type: 'struct', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'names', type: 'struct', nullable: true },
-      { name: 'wikidata', type: 'utf8', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'perspectives', type: 'struct', nullable: true },
-      { name: 'local_type', type: 'map', nullable: true },
-      { name: 'hierarchies', type: 'list', nullable: true },
-      { name: 'parent_division_id', type: 'utf8', nullable: true },
-      { name: 'norms', type: 'struct', nullable: true },
-      { name: 'population', type: 'int_32', nullable: true },
-      { name: 'capital_division_ids', type: 'list', nullable: true },
-      { name: 'capital_of_divisions', type: 'list', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-division-v2026-02-18.0',
-    source: 'overture',
-    type: 'division',
-    validFromRelease: '2026-02-18.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'cartography', type: 'struct', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'names', type: 'struct', nullable: true },
-      { name: 'wikidata', type: 'utf8', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'perspectives', type: 'struct', nullable: true },
-      { name: 'local_type', type: 'map', nullable: true },
-      { name: 'hierarchies', type: 'list', nullable: true },
-      { name: 'parent_division_id', type: 'utf8', nullable: true },
-      { name: 'norms', type: 'struct', nullable: true },
-      { name: 'population', type: 'int_32', nullable: true },
-      { name: 'capital_division_ids', type: 'list', nullable: true },
-      { name: 'capital_of_divisions', type: 'list', nullable: true },
-      { name: 'admin_level', type: 'int_32', nullable: true },
       { name: 'theme', type: 'utf8', nullable: true },
       { name: 'type', type: 'utf8', nullable: true },
     ],

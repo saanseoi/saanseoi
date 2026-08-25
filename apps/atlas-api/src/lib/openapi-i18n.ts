@@ -123,6 +123,50 @@ export function localiseOpenApiDocument<T>(document: T, locale: OpenApiLocale): 
   return (description === undefined ? localised : { ...localised, description }) as T
 }
 
+function localeForLanguageRange(languageRange: string): OpenApiLocale | null {
+  const range = languageRange.trim().toLowerCase()
+  if (range === '*' || range === 'en' || range.startsWith('en-')) return 'en'
+  if (
+    range === 'zh-hant' ||
+    range.startsWith('zh-hant-') ||
+    range === 'zh-tw' ||
+    range.startsWith('zh-tw-')
+  ) {
+    return 'zh-Hant'
+  }
+  if (
+    range === 'zh-hans' ||
+    range.startsWith('zh-hans-') ||
+    range === 'zh-cn' ||
+    range.startsWith('zh-cn-')
+  ) {
+    return 'zh-Hans'
+  }
+  return null
+}
+
+function acceptedLocales(acceptLanguage: string) {
+  return acceptLanguage
+    .split(',')
+    .map((entry, index) => {
+      const [range, ...parameters] = entry.split(';').map(value => value.trim())
+      if (!range) return null
+      const qualityParameter = parameters.find(parameter =>
+        parameter.toLowerCase().startsWith('q='),
+      )
+      const quality = qualityParameter ? Number(qualityParameter.slice(2)) : 1
+      if (!Number.isFinite(quality) || quality < 0 || quality > 1) return null
+      return { index, locale: localeForLanguageRange(range), quality }
+    })
+    .filter(
+      (
+        value,
+      ): value is { index: number; locale: OpenApiLocale | null; quality: number } =>
+        value !== null,
+    )
+    .sort((left, right) => right.quality - left.quality || left.index - right.index)
+}
+
 export function resolveOpenApiLocale(
   requestedLocale: string | undefined,
   acceptLanguage: string | undefined,
@@ -132,8 +176,8 @@ export function resolveOpenApiLocale(
   if (requested === 'zh-hans') return 'zh-Hans'
   if (requested === 'en') return 'en'
 
-  const accepted = acceptLanguage?.toLowerCase() ?? ''
-  if (accepted.includes('zh-hant') || accepted.includes('zh-tw')) return 'zh-Hant'
-  if (accepted.includes('zh-hans') || accepted.includes('zh-cn')) return 'zh-Hans'
+  for (const accepted of acceptedLocales(acceptLanguage ?? '')) {
+    if (accepted.quality > 0 && accepted.locale) return accepted.locale
+  }
   return 'en'
 }
