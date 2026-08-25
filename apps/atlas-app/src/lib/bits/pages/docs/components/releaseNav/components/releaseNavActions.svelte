@@ -4,6 +4,7 @@ import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import { fade } from 'svelte/transition'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 import type { ReleaseNavAction } from '../releaseNav.types'
+import ReleaseNavInfoAction from './releaseNavInfoAction.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
@@ -14,7 +15,13 @@ let { actions = [], analyticsSurface }: Props = $props()
 
 <div class="ml-auto flex h-10 items-center gap-1 md:gap-4">
   {#each actions as action (action.id)}
-    {#if action.options}
+    {#if action.infoDescription && action.icon}
+      <ReleaseNavInfoAction
+        description={action.infoDescription}
+        icon={action.icon}
+        label={action.label}
+      />
+    {:else if action.options}
       <label
         class="relative inline-flex h-8 items-center border border-data-outline-variant/70 bg-background text-foreground-alt transition hover:border-data-primary hover:text-data-primary focus-within:border-secondary focus-within:text-secondary"
       >
