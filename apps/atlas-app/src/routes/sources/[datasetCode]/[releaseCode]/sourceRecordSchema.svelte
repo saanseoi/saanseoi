@@ -21,6 +21,11 @@ let expandedNodeStates = $state<Record<string, boolean>>({})
 let expandAllToken = $state(0)
 
 let samplesUrl = $derived(`${page.url.pathname}?tab=samples`)
+let upstreamSpecificationUrl = $derived(
+  sourceSchemaVersion
+    ? `https://github.com/OvertureMaps/schema/tree/v${encodeURIComponent(sourceSchemaVersion)}`
+    : 'https://github.com/OvertureMaps/schema',
+)
 let sourceSchema = $derived(
   resolveSourceRecordSchema({
     resourceType: resourceType as ResourceType,
@@ -99,13 +104,23 @@ function setExpandedNodeState(path: string, expanded: boolean) {
 
 <section class="space-y-4" aria-label={m.source_record_schema_aria_label()}>
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {m.source_record_schema_intro_before()} <code>rawProperties</code>
-    {m.source_record_schema_intro_after()}
+    {m.source_record_schema_intro()}
+  </p>
+
+  <p class="font-body text-body-md leading-relaxed text-foreground-alt">
+    {m.source_record_schema_not_one_to_one_before()} <code>rawProperties</code>
+    {m.source_record_schema_not_one_to_one_after()}
+  </p>
+
+  <p class="font-body text-body-md leading-relaxed text-foreground-alt">
     {m.source_record_schema_upstream_specification()}
-    {#if sourceSchemaVersion}
-      <code>({sourceSchemaVersion})</code>
-    {/if}
-    {m.source_record_schema_available_in()}
+    <a
+      class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+      href={upstreamSpecificationUrl}
+      >{m.source_record_schema_upstream_specification_link({
+        version: sourceSchemaVersion ?? 'latest',
+      })}</a
+    >. {m.source_record_schema_examples()}
     <a
       class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
       href={samplesUrl}
