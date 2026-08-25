@@ -14,7 +14,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
   {#key `${styleUrl}:${tilejsonUrl}`}
     <GuideMappingPreview
       ariaLabel={label}
-      center={[114.165, 22.34]}
+      center={[114.1694, 22.3193]}
       renderer="maplibre"
       {styleUrl}
       {tilejsonUrl}
