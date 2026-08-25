@@ -336,6 +336,12 @@ export const ReconcileDraftReleaseSetsRequestSchema = z
   })
   .openapi('HarbourReconcileDraftReleaseSetsRequest')
 
+export const BootstrapStatsReleaseSetsRequestSchema = z
+  .object({
+    regionCode: z.enum(['hk', 'mo']).optional(),
+  })
+  .openapi('HarbourBootstrapStatsReleaseSetsRequest')
+
 const ReleaseSetPublicationSchema = z.object({
   apiCatalogRevisionCode: z.string().optional(),
   apiFamily: z.string(),
@@ -358,6 +364,14 @@ export const ReconcileDraftReleaseSetsResponseSchema = z
     publishedReleaseSetCodes: z.array(z.string()),
   })
   .openapi('HarbourReconcileDraftReleaseSetsResponse')
+
+export const BootstrapStatsReleaseSetsResponseSchema = z
+  .object({
+    createdReleaseSetCodes: z.array(z.string()),
+    inspectedSnapshots: z.number().int().nonnegative(),
+    skippedCohortKeys: z.array(z.string()),
+  })
+  .openapi('HarbourBootstrapStatsReleaseSetsResponse')
 
 export const CleanupSnapshotsRequestSchema = z
   .object({

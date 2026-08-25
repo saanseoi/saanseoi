@@ -2,6 +2,7 @@ import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
+  getDatasetRecordByReleaseId,
   getCurrentReleaseForDatasetId,
   listDraftReleaseSetPrimaryReleases,
   listDraftReleaseSets,
@@ -33,11 +34,14 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
+  inArray,
   metaApiComposition,
   metaApiReleaseSets,
   metaApiVersions,
+  metaDatasets,
   metaPublisherI18n,
   metaPublishers,
+  metaReleases,
   type ApiFamilyType,
 } from '@repo/db'
 
@@ -66,6 +70,10 @@ type CleanupSnapshotsRequest = {
 
 export type ReconcileDraftReleaseSetsRequest = {
   apiFamily?: ApiFamilyType
+  regionCode?: RegionCode
+}
+
+export type BootstrapStatsReleaseSetsRequest = {
   regionCode?: RegionCode
 }
 
@@ -101,6 +109,12 @@ export type ReconcileDraftReleaseSetsResult = {
   publishedReleaseSetAnnouncements: ReleaseSetPublication[]
   publishedReleaseSetPublications: ReleaseSetPublication[]
   publishedReleaseSetCodes: string[]
+}
+
+export type BootstrapStatsReleaseSetsResult = {
+  createdReleaseSetCodes: string[]
+  inspectedSnapshots: number
+  skippedCohortKeys: string[]
 }
 
 export class ControlRequestError extends Error {}
@@ -633,6 +647,173 @@ export async function handleReconcileDraftReleaseSets(
       publishedReleaseSetPublications,
       publishedReleaseSetCodes,
     }
+  })
+}
+
+/**
+ * Creates the initial Statistics release set for every cohort that has prepared
+ * source snapshots but no published release set yet. This is intentionally a
+ * one-off launch operation: routine uploads continue to create later immutable
+ * revisions for a cohort.
+ */
+export async function handleBootstrapStatsReleaseSets(
+  db: HarbourReadableDb & HarbourWritableDb,
+  request: BootstrapStatsReleaseSetsRequest = {},
+): Promise<BootstrapStatsReleaseSetsResult> {
+  return runWithTransientControlRetry(async () => {
+    const regionCode = request.regionCode ?? 'hk'
+    const members = (
+      await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
+    ).filter(member => member.domainCode === 'official')
+    const memberVariants = new Set(members.map(member => member.variant))
+    const sourceReleases = await db
+      .select({ id: metaReleases.id })
+      .from(metaReleases)
+      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+      .where(
+        and(
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaDatasets.theme, 'stats'),
+          eq(metaReleases.resourceType, 'divisionStatistic'),
+          inArray(metaReleases.status, ['staged', 'processing', 'published']),
+        ),
+      )
+      .all()
+
+    const candidatesByCohort = new Map<
+      string,
+      Array<{
+        dataset: NonNullable<Awaited<ReturnType<typeof getDatasetRecordByReleaseId>>>
+        snapshotId: string
+        variant: string
+      }>
+    >()
+
+    for (const sourceRelease of sourceReleases) {
+      const dataset = await getDatasetRecordByReleaseId(db, sourceRelease.id)
+      if (!dataset) continue
+      const variant = datasetVariantForSource('divisionStatistic', dataset.source, {
+        cohortKey: dataset.cohortKey,
+        datasetCode: dataset.datasetCode,
+        sourceVariant: dataset.sourceVariant,
+        sourceVersion: dataset.sourceVersion,
+      })
+      if (!memberVariants.has(variant)) continue
+
+      const snapshots = await listSnapshotsForRelease(
+        db,
+        sourceRelease.id,
+        'divisionStatistic',
+        {
+          variant,
+        },
+      )
+      for (const snapshot of snapshots) {
+        if (snapshot.status === 'archived') continue
+        const candidates = candidatesByCohort.get(snapshot.cohortKey) ?? []
+        candidates.push({ dataset, snapshotId: snapshot.id, variant })
+        candidatesByCohort.set(snapshot.cohortKey, candidates)
+      }
+    }
+
+    const createdReleaseSetCodes: string[] = []
+    const skippedCohortKeys: string[] = []
+    let inspectedSnapshots = 0
+
+    for (const [cohortKey, candidates] of [...candidatesByCohort.entries()].sort(
+      ([left], [right]) => left.localeCompare(right),
+    )) {
+      inspectedSnapshots += candidates.length
+      const existing = await resolveLatestReleaseSetForTypeDomainCohort(
+        db,
+        'divisionStatistic',
+        'official',
+        regionCode,
+        cohortKey,
+      )
+      if (existing) {
+        skippedCohortKeys.push(cohortKey)
+        continue
+      }
+
+      const existingDraft = await db
+        .select({ code: metaApiReleaseSets.code })
+        .from(metaApiReleaseSets)
+        .innerJoin(
+          metaApiVersions,
+          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        )
+        .where(
+          and(
+            eq(metaApiVersions.code, 'api-stats-v0.1'),
+            eq(metaApiReleaseSets.regionCode, regionCode),
+            eq(metaApiReleaseSets.domainCode, 'official'),
+            eq(metaApiReleaseSets.cohortKey, cohortKey),
+            eq(metaApiReleaseSets.status, 'draft'),
+          ),
+        )
+        .limit(1)
+        .get()
+      if (existingDraft && !existingDraft.code.endsWith('-r0')) {
+        skippedCohortKeys.push(cohortKey)
+        continue
+      }
+
+      const snapshotIdsByVariant = new Map<string, string>()
+      for (const candidate of candidates) {
+        const previousSnapshotId = snapshotIdsByVariant.get(candidate.variant)
+        if (previousSnapshotId && previousSnapshotId !== candidate.snapshotId) {
+          throw new ControlRequestError(
+            `Cannot bootstrap Statistics cohort ${cohortKey}: multiple snapshots are available for ${candidate.variant}.`,
+          )
+        }
+        snapshotIdsByVariant.set(candidate.variant, candidate.snapshotId)
+      }
+
+      const releaseSet = await ensureDraftReleaseSetForRelease(
+        db,
+        'divisionStatistic',
+        { cohortKey, regionCode },
+        { domainCode: 'official', explicitInitialRevision: true },
+      )
+      const orderedCandidates = candidates
+        .slice()
+        .sort(
+          (left, right) =>
+            left.variant.localeCompare(right.variant) ||
+            left.snapshotId.localeCompare(right.snapshotId),
+        )
+      const finalCandidate = orderedCandidates.at(-1)
+      if (!finalCandidate) continue
+
+      for (const candidate of orderedCandidates) {
+        await publishReleaseArtefacts(db, {
+          carriedSnapshots: [],
+          currentRelease: null,
+          currentReleaseIsCorrected: false,
+          dataset: candidate.dataset,
+          publishedAt: new Date().toISOString(),
+          releaseSetId: releaseSet.id,
+          snapshotId: candidate.snapshotId,
+          type: 'divisionStatistic',
+          deferApiReleaseSet: true,
+        })
+      }
+
+      await publishReleaseArtefacts(db, {
+        carriedSnapshots: [],
+        currentRelease: null,
+        currentReleaseIsCorrected: false,
+        dataset: finalCandidate.dataset,
+        publishedAt: new Date().toISOString(),
+        releaseSetId: releaseSet.id,
+        snapshotId: finalCandidate.snapshotId,
+        type: 'divisionStatistic',
+      })
+      createdReleaseSetCodes.push(releaseSet.code)
+    }
+
+    return { createdReleaseSetCodes, inspectedSnapshots, skippedCohortKeys }
   })
 }
 

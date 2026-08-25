@@ -12,6 +12,7 @@ import {
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
+  ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   getDatasetRecordByReleaseId,
   upsertSnapshotSource,
@@ -22,6 +23,7 @@ const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migration
 const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 
 const {
+  handleBootstrapStatsReleaseSets,
   handlePublishDataset,
   handleReconcileDraftReleaseSets,
   handleStageCompleted,
@@ -165,6 +167,170 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
       .get(result.apiReleaseSetId),
   ).toEqual({ cohortKey: '2024/25' })
   expect(release.status).toBe('published')
+  sqlite.close()
+})
+
+test('bootstraps one cohort-complete Statistics r0 release set', async () => {
+  const tempDir = createTempDir()
+  const sqlite = initDb(join(tempDir, 'harbour-control-statistics-bootstrap.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const datasetCodes = [
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+  ] as const
+
+  sqlite.exec(`
+    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher', 1761264000000, 1761264000000);
+    INSERT INTO apiVersions (
+      id, code, familyType, version, status, publishedAt,
+      versionHash, createdAt, updatedAt
+    ) VALUES (
+      'api-version-stats-v0.1', 'api-stats-v0.1', 'stats', '0.1', 'current',
+      1761264000000, 'vh-api-stats-v0.1', 1761264000000, 1761264000000
+    );
+    INSERT INTO apiComposition (
+      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode,
+      status, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'api-composition-stats-v1', 'api-version-stats-v0.1', 'comp-stats-v1', 1,
+      'divisionStatistic', 'official', 'current', 'vh-comp-stats-v1',
+      1761264000000, 1761264000000
+    );
+  `)
+
+  for (const [index, datasetCode] of datasetCodes.entries()) {
+    const datasetId = `dataset-${index}`
+    const releaseId = `release-${index}`
+    sqlite.exec(`
+      INSERT INTO datasets (
+        id, publisherId, code, regionCode, releaseType, releaseFrequency,
+        theme, sourceVariant, versionHash, createdAt, updatedAt
+      ) VALUES (
+        '${datasetId}', 'publisher-hkgov-censtatd', '${datasetCode}',
+        'hk', 'static', 'five-yearly', 'stats', 'official-statistics',
+        'vh-dataset-${index}', 1761264000000, 1761264000000
+      );
+      INSERT INTO datasetResourceTypes (datasetId, resourceType)
+      VALUES ('${datasetId}', 'divisionStatistic');
+      INSERT INTO apiCompositionMembers (
+        apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+        cohortMatchingMode, priority
+      ) VALUES (
+        'api-composition-stats-v1', 'official', 'divisionStatistic', '${datasetCode}',
+        'primary', 0, 'exact_ref', ${index}
+      );
+      INSERT INTO releases (
+        id, datasetId, resourceType, code, sourceVersion, cohortKey,
+        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2021',
+        '2021', '2021', 'hk/test/2021/${index}.parquet', '${index}.parquet',
+        'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
+        '2026-08-25T00:00:00.000Z'
+      );
+    `)
+    const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
+      cohortKey: '2021',
+      datasetCode,
+      datasetId,
+      regionCode: 'hk',
+      sourceReleaseId: releaseId,
+      variant: datasetCode,
+    })
+    await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
+  }
+
+  const result = await handleBootstrapStatsReleaseSets(db)
+
+  expect(result).toEqual({
+    createdReleaseSetCodes: ['data-hk-stats-2021-r0'],
+    inspectedSnapshots: 2,
+    skippedCohortKeys: [],
+  })
+  expect(
+    sqlite
+      .query(
+        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'`,
+      )
+      .get(),
+  ).toEqual({ revision: 0, status: 'current' })
+  expect(
+    sqlite
+      .query(
+        `SELECT count(*) AS count FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = (
+          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'
+        )`,
+      )
+      .get(),
+  ).toEqual({ count: 2 })
+  expect(
+    sqlite
+      .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
+      .get(),
+  ).toEqual({ count: 2 })
+
+  expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
+    createdReleaseSetCodes: [],
+    inspectedSnapshots: 2,
+    skippedCohortKeys: ['2021'],
+  })
+  expect(
+    sqlite
+      .query(
+        `SELECT count(*) AS count
+         FROM apiReleaseSets
+         WHERE code LIKE 'data-hk-stats-2021%'`,
+      )
+      .get(),
+  ).toEqual({ count: 1 })
+
+  sqlite.exec(`
+    INSERT INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      'legacy-release-2022', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2022',
+      '2022', '2022', 'hk/test/2022/legacy.parquet', 'legacy.parquet',
+      'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
+      '2026-08-25T00:00:00.000Z'
+    );
+  `)
+  const legacySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
+    cohortKey: '2022',
+    datasetCode: datasetCodes[0],
+    datasetId: 'dataset-0',
+    regionCode: 'hk',
+    sourceReleaseId: 'legacy-release-2022',
+    variant: datasetCodes[0],
+  })
+  await upsertSnapshotSource(
+    db,
+    legacySnapshot.id,
+    'dataset-0',
+    'legacy-release-2022',
+    'primary',
+  )
+  const legacyReleaseSet = await ensureDraftReleaseSetForRelease(
+    db,
+    'divisionStatistic',
+    { cohortKey: '2022', regionCode: 'hk' },
+    { domainCode: 'official' },
+  )
+  expect(legacyReleaseSet.code).toBe('data-hk-stats-2022')
+
+  expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
+    createdReleaseSetCodes: [],
+    inspectedSnapshots: 3,
+    skippedCohortKeys: ['2021', '2022'],
+  })
+  expect(
+    sqlite
+      .query(
+        `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022-r0'`,
+      )
+      .get(),
+  ).toEqual({ count: 0 })
   sqlite.close()
 })
 

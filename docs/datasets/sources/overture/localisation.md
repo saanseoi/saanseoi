@@ -54,6 +54,9 @@ contains the parent division ID and English parent name, so equal source text is
 only when it has the same parent context.
 
 Each entry retains AI or human provenance plus `firstSeenRelease` and `lastSeenRelease`.
+It also records the literal `sourceText` and sorted canonical `recordIds` that have used
+the entry. Record IDs are editor-facing references; they are not part of the translation
+key, so the importer can reuse a contextual term across records and releases.
 Translations have no validity-time dimension: fixture edits affect later imports only.
 The release audit action remains the immutable evidence of what was applied at the time.
 Locale coverage statistics categorise each name exclusively as provided, inferred,
