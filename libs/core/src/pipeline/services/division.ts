@@ -1404,10 +1404,12 @@ export function buildOvertureDivisionLocaleProcessingActions(input: {
     const sourceRow = input.sourceI18n.find(candidate =>
       isDivisionI18nFallbackSource(candidate, row),
     )
+    if (!sourceRow) return []
+
     return [
       {
         ...row,
-        sourceLocale: sourceRow?.locale ?? null,
+        sourceLocale: sourceRow.locale,
       },
     ]
   })
@@ -1454,6 +1456,7 @@ function isDivisionI18nFallbackSource(
     source.name === fallback.name &&
     source.nameAlts === fallback.nameAlts &&
     source.nameRules === fallback.nameRules &&
+    source.nameProvenance === fallback.nameProvenance &&
     source.nameVariant === fallback.nameVariant &&
     source.isLocaleInferred === fallback.isLocaleInferred
   )

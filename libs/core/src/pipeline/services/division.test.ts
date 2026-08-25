@@ -721,4 +721,38 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
       }),
     ).toEqual([])
   })
+
+  test('does not classify a translated locale as an API-locale fallback', () => {
+    const normalised = normaliseDivisionRow({
+      id: 'division-translated-locale',
+      subtype: 'locality',
+      class: 'city',
+      names: {
+        common: {
+          en: 'Pak Nai',
+          'zh-hant': '白泥',
+        },
+      },
+    })
+    const sourceI18n = normalised.i18n
+    const traditional = sourceI18n.find(row => row.locale === 'zh-hant')
+    if (!traditional) throw new Error('Expected a Traditional Chinese source name.')
+    const canonicalI18n = [
+      ...sourceI18n,
+      {
+        ...traditional,
+        locale: 'zh-hans',
+        nameProvenance: 'ai-translated' as const,
+      },
+    ]
+
+    expect(
+      buildOvertureDivisionLocaleProcessingActions({
+        canonicalI18n,
+        division: normalised.base,
+        rawNames: null,
+        sourceI18n,
+      }),
+    ).toEqual([])
+  })
 })

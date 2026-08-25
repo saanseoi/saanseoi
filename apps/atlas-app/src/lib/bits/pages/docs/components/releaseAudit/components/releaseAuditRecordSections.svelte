@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'
@@ -10,6 +11,8 @@ import type {
   AuditSection,
 } from './releaseAudit.types'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
+
+const COLLAPSE_THRESHOLD = 25
 type Props = {
   copiedEvidenceId: string | null
   analyticsSurface: ReleaseAnalyticsSurface
@@ -41,12 +44,26 @@ let {
   presentRow,
   sections,
 }: Props = $props()
+
+let expandedSections = $state<Map<string, boolean>>(new Map())
+
+const isSectionExpanded = (section: AuditSection) =>
+  expandedSections.get(section.id) ?? section.rows.length <= COLLAPSE_THRESHOLD
+
+const toggleSection = (section: AuditSection) => {
+  expandedSections = new Map(expandedSections).set(
+    section.id,
+    !isSectionExpanded(section),
+  )
+}
 </script>
 
 {#if sections.length}
   <div class="mt-6 grid gap-6">
     {#each sections as section}
       {@const action = formatAction(section.action)}
+      {@const expanded = isSectionExpanded(section)}
+      {@const recordListId = `${section.id}-records`}
       <ReleaseAuditCard>
         <ReleaseAuditCardHeader>
           <div class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4">
@@ -82,24 +99,42 @@ let {
                 >
                 <span class="ml-2 font-semibold text-primary">{action.outcome}</span>
               </p>
+              {#if section.rows.length > COLLAPSE_THRESHOLD}
+                <button
+                  class="mt-3 inline-flex cursor-pointer items-center gap-1.5 font-body text-label-sm font-semibold text-data-primary transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+                  type="button"
+                  aria-controls={recordListId}
+                  aria-expanded={expanded}
+                  onclick={() => toggleSection(section)}
+                >
+                  {expanded ? m.source_audit_collapse_records() : m.source_audit_expand_records()}
+                  <Icon
+                    icon="ion:chevron-down-outline"
+                    class={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              {/if}
             </div>
           </div>
         </ReleaseAuditCardHeader>
-        <div class="divide-y divide-data-outline-variant/60">
-          {#each section.rows as row}
-            <ReleaseAuditActionRow
-              {analyticsSurface}
-              copied={copiedEvidenceId === row.id}
-              expanded={expandedEvidenceId === row.id}
-              {onCopy}
-              {onFullscreen}
-              {onToggle}
-              presentation={presentRow(row.action, row.evidence, row.summary)}
-              {row}
-              transitionName={evidenceTransitionName(row.id)}
-            />
-          {/each}
-        </div>
+        {#if expanded}
+          <div id={recordListId} class="divide-y divide-data-outline-variant/60">
+            {#each section.rows as row}
+              <ReleaseAuditActionRow
+                {analyticsSurface}
+                copied={copiedEvidenceId === row.id}
+                expanded={expandedEvidenceId === row.id}
+                {onCopy}
+                {onFullscreen}
+                {onToggle}
+                presentation={presentRow(row.action, row.evidence, row.summary)}
+                {row}
+                transitionName={evidenceTransitionName(row.id)}
+              />
+            {/each}
+          </div>
+        {/if}
       </ReleaseAuditCard>
     {/each}
   </div>
