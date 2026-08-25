@@ -27,6 +27,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     releaseNotesUrl = args.options['release-notes-url'],
     key = args.options['source-archive-key'],
     sha = args.options['source-archive-sha256']
+  const geographyOnly = args.options['geography-only'] === true
   if (
     !input ||
     args.positionals.length !== 1 ||
@@ -59,55 +60,57 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         await Bun.write(join(workDir, name), content)
       }),
     )
-    const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
-    await prepareHkgovCenstatdStatisticUpload({
-      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
-      inputFiles,
-      outputFile: parquetPath,
-      sourceArchiveKey: key,
-      sourceArchiveSha256: sha,
-      sourceVersion,
-    })
-    await runUploadCommand(
-      {
-        command: 'upload',
-        positionals: [parquetPath],
-        options: {
-          'cohort-key': sourceVersion,
-          'dataset-code': datasetCode,
-          region: 'hk',
-          'release-notes-url': releaseNotesUrl,
-          source: 'hkgov-censtatd',
-          'source-archive-key': key,
-          'source-archive-sha256': sha,
-          'source-version': sourceVersion,
-          theme: 'stats',
-          type: 'divisionStatistic',
-          // Preserve the caller's explicit automation choice. New publisher
-          // measures must be reviewed interactively before their canonical
-          // metadata is admitted, so this command cannot force --yes.
-          yes: Boolean(args.options.yes),
+    if (!geographyOnly) {
+      const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
+      await prepareHkgovCenstatdStatisticUpload({
+        datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+        inputFiles,
+        outputFile: parquetPath,
+        sourceArchiveKey: key,
+        sourceArchiveSha256: sha,
+        sourceVersion,
+      })
+      await runUploadCommand(
+        {
+          command: 'upload',
+          positionals: [parquetPath],
+          options: {
+            'cohort-key': sourceVersion,
+            'dataset-code': datasetCode,
+            region: 'hk',
+            'release-notes-url': releaseNotesUrl,
+            source: 'hkgov-censtatd',
+            'source-archive-key': key,
+            'source-archive-sha256': sha,
+            'source-version': sourceVersion,
+            theme: 'stats',
+            type: 'divisionStatistic',
+            // Preserve the caller's explicit automation choice. New publisher
+            // measures must be reviewed interactively before their canonical
+            // metadata is admitted, so this command cannot force --yes.
+            yes: Boolean(args.options.yes),
+          },
         },
-      },
-      target,
-      {
-        allowReprocessPublished: true,
-        deferStatsReleaseSet: args.options['defer-stats-release-set'] === true,
-        dryRun: false,
-        forceUpload: true,
-        invocationCwd: resolve(import.meta.dir, '../../../..'),
-        printUsage: () => undefined,
-        skipConfirm: Boolean(args.options.yes),
-        skipSnapshotCleanup: false,
-        validateGeometry: false,
-      },
-    )
+        target,
+        {
+          allowReprocessPublished: true,
+          deferStatsReleaseSet: args.options['defer-stats-release-set'] === true,
+          dryRun: false,
+          forceUpload: true,
+          invocationCwd: resolve(import.meta.dir, '../../../..'),
+          printUsage: () => undefined,
+          skipConfirm: Boolean(args.options.yes),
+          skipSnapshotCleanup: false,
+          validateGeometry: false,
+        },
+      )
+    }
     // Launch bootstrap prepares all Statistics snapshots before publishing a
     // cohort-complete r0. HMA/area companion geometry belongs to the Divisions
     // family and may depend on Division inputs that are deliberately outside
     // that Stats-only batch. Do not let that optional fan-out invalidate the
     // successfully published Statistics source release.
-    if (args.options['defer-stats-release-set'] === true) return
+    if (!geographyOnly && args.options['defer-stats-release-set'] === true) return
     const geographyDivisionPath = join(
       workDir,
       'hkgov-censtatd-geography-division.parquet',
