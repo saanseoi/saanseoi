@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildSourceReleaseVersionLinks,
+  getSourceRecordFamily,
   getSourceReleaseTabFromUrl,
   humaniseStat,
   selectDistrictAreas,
@@ -15,12 +16,21 @@ describe('source release page utilities', () => {
   })
 
   test('accepts only supported tabs from the URL', () => {
+    expect(getSourceReleaseTabFromUrl(new URL('https://saanseoi.hk?tab=schema'))).toBe(
+      'schema',
+    )
     expect(getSourceReleaseTabFromUrl(new URL('https://saanseoi.hk?tab=stats'))).toBe(
       'stats',
     )
     expect(getSourceReleaseTabFromUrl(new URL('https://saanseoi.hk?tab=unknown'))).toBe(
       'notes',
     )
+  })
+
+  test('limits raw source-record tabs to their public API family', () => {
+    expect(getSourceRecordFamily(['division'])).toBe('divisions')
+    expect(getSourceRecordFamily(['divisionArea'])).toBe('divisions')
+    expect(getSourceRecordFamily(['address'])).toBeNull()
   })
 
   test('keeps note diff state on every older release link', () => {

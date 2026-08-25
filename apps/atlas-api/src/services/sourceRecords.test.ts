@@ -188,6 +188,77 @@ describe('source records', () => {
     })
   })
 
+  test('returns a cursor-free random sample of raw source records', async () => {
+    let query = ''
+    const randomSourceDatabase = {
+      prepare(value: string) {
+        query = value
+        return {
+          bind(...values: unknown[]) {
+            expect(values).toEqual(['2026-07-22.0', '2026-07-22.0', 2])
+            return {
+              all: async () => ({
+                results: [
+                  {
+                    rawProperties: JSON.stringify({ id: 'division-2' }),
+                    sourceRecordId: 'division-2',
+                    versionHash: 'version-2',
+                  },
+                  {
+                    rawProperties: JSON.stringify({ id: 'division-1' }),
+                    sourceRecordId: 'division-1',
+                    versionHash: 'version-1',
+                  },
+                ],
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    } as never
+
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: randomSourceDatabase,
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: false,
+      limit: 2,
+      metaDb: metaDatabase(),
+      sample: 'random',
+      sourceReleaseCode,
+    })
+
+    expect(query).toContain('ORDER BY RANDOM()')
+    expect(result?.nextCursor).toBeNull()
+    expect(result?.records.map(record => record.sourceRecordId)).toEqual([
+      'division-2',
+      'division-1',
+    ])
+  })
+
+  test('rejects a cursor combined with a random source-record sample', async () => {
+    await expect(
+      listSourceRecords({
+        cursor:
+          'eyJzb3VyY2VSZWNvcmRJZCI6ImRpdmlzaW9uLTEiLCJ2ZXJzaW9uSGFzaCI6InZlcnNpb24tMSJ9',
+        env: {
+          DB_SOURCE_HK_2025: sourceDatabase([]),
+          DB_SOURCE_HK_2026: sourceDatabase([]),
+          DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+        } as never,
+        family: 'divisions',
+        includeGeometry: false,
+        metaDb: metaDatabase(),
+        sample: 'random',
+        sourceReleaseCode,
+      }),
+    ).rejects.toBeInstanceOf(SourceRecordRequestError)
+  })
+
   test('returns Overture geometry retained in the raw source properties', async () => {
     const geometry = {
       coordinates: [114.1, 22.3],
