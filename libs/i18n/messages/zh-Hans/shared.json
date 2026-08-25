@@ -380,6 +380,8 @@
   "source_audit_search_placeholder": "模糊搜索地址、ID、来源文件或决策",
   "source_audit_clear_search": "清除审计搜索",
   "source_audit_record_action": "记录操作",
+  "source_audit_expand_records": "显示记录",
+  "source_audit_collapse_records": "收起记录",
   "source_audit_mode_automatic": "自动",
   "source_audit_mode_manual": "手动",
   "source_audit_decision": "决策",
