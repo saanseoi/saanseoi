@@ -42,6 +42,11 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
+    expect(resolveInitialisationCommand('init:stats:official')).toEqual({
+      script: 'scripts/init/stats-hkgov-censtatd.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
   })
 
   test('does not resolve an unsupported family and domain', () => {
