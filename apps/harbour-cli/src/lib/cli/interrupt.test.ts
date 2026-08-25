@@ -58,7 +58,12 @@ test('exits once with the conventional interrupt status', () => {
 
 test('removes its interrupt listeners when disposed', () => {
   const listeners = new Map<string, () => void>()
-  const keypressListeners = new Set<() => void>()
+  const keypressListeners = new Set<
+    (
+      character: string,
+      key: { ctrl?: boolean; name?: string; sequence?: string },
+    ) => void
+  >()
   const processRef: {
     exit(code?: number): never
     off(signal: 'SIGINT' | 'SIGTERM', listener: () => void): unknown
@@ -78,11 +83,23 @@ test('removes its interrupt listeners when disposed', () => {
   }
 
   const inputRef = {
-    off(_event: 'keypress', listener: () => void) {
+    off(
+      _event: 'keypress',
+      listener: (
+        character: string,
+        key: { ctrl?: boolean; name?: string; sequence?: string },
+      ) => void,
+    ) {
       keypressListeners.delete(listener)
       return inputRef
     },
-    on(_event: 'keypress', listener: () => void) {
+    on(
+      _event: 'keypress',
+      listener: (
+        character: string,
+        key: { ctrl?: boolean; name?: string; sequence?: string },
+      ) => void,
+    ) {
       keypressListeners.add(listener)
       return inputRef
     },
