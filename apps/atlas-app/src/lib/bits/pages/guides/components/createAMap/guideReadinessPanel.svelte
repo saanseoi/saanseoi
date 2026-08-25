@@ -61,7 +61,7 @@ const toggleExpanded = () => {
 <aside
   bind:this={panelElement}
   {id}
-  class={`-mt-4 mb-12 max-w-3xl border-l-4 px-5 py-5 ${complete ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
+  class={`mt-4 mb-12 max-w-3xl border-l-4 px-5 py-5 ${complete ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
   aria-labelledby={titleId}
 >
   {#if children}

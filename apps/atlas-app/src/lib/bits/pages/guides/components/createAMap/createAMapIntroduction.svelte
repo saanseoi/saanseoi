@@ -26,6 +26,9 @@ let { foundations }: Props = $props()
     </p>
     <PageTitle class="mt-3">{@html m.guide_create_map_hero()}</PageTitle>
     <PageDescription class="mt-5">{@html m.guide_create_map_intro()}</PageDescription>
+    <p class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      {@html m.guide_create_map_preview_intro()}
+    </p>
   </PageHeader>
   <GuideFoundations
     title={m.guide_foundations_title()}

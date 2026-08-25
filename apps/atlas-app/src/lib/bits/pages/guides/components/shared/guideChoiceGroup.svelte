@@ -470,7 +470,7 @@ onMount(() => {
           {/if}
           {#if choice.icon}
             <Icon
-              class={`${variant === 'tiles' ? 'size-8' : 'mt-0.5 size-5 shrink-0'} text-secondary`}
+              class={`${variant === 'tiles' ? 'size-8 shrink-0 overflow-visible' : 'mt-0.5 size-5 shrink-0'} text-secondary`}
               icon={choice.icon}
               aria-hidden="true"
             />
