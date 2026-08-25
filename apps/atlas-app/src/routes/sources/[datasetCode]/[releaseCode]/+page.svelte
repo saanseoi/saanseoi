@@ -282,18 +282,8 @@ let tabs = $derived<ReleaseNavTab[]>([
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
-  {
-    id: 'releases',
-    label: m.source_tab_released_as(),
-    infoDescription: m.source_tab_released_as_description(),
-    infoLabel: m.source_tab_released_as_info(),
-  },
-  {
-    id: 'assembly',
-    label: m.source_tab_assembly(),
-    infoDescription: m.source_tab_assembly_description(),
-    infoLabel: m.source_tab_assembly_info(),
-  },
+  { id: 'releases', label: m.source_tab_released_as() },
+  { id: 'assembly', label: m.source_tab_assembly() },
 ])
 
 let releaseQueryError = $derived(contentResource.error)
@@ -323,61 +313,81 @@ let actions = $derived<ReleaseNavAction[]>(
           pressed: showNoteDiff,
         },
       ]
-    : activeTab === 'samples' && sourceRecordFamily && sourceRecordsAvailable !== false
+    : activeTab === 'releases'
       ? [
           {
-            icon: 'ion:reload-outline',
-            id: 'more-samples',
-            label: m.source_show_more(),
-            onSelect: () => {
-              sourceSampleRequest += 1
-              trackClientProductUsage({
-                event: 'client.sample_control',
-                surface: 'source_release',
-                entityType: 'action',
-                entityId: version?.code ?? params.releaseCode,
-              })
-            },
+            icon: 'proicons:info',
+            id: 'releases-info',
+            infoDescription: m.source_tab_released_as_description(),
+            label: m.source_tab_released_as_info(),
           },
         ]
-      : activeTab === 'audit'
+      : activeTab === 'assembly'
         ? [
-            ...(bulkActions.length
-              ? [
-                  {
-                    icon: 'ion:layers-outline',
-                    id: 'bulk',
-                    label: m.source_bulk_actions(),
-                    onSelect: () => {
-                      showBulkActions = !showBulkActions
-                      trackClientProductUsage({
-                        event: 'client.audit_control',
-                        surface: 'source_release',
-                        entityType: 'action',
-                        entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                      })
-                    },
-                    pressed: showBulkActions,
-                  },
-                ]
-              : []),
-            sourceArchiveUrl
-              ? {
-                  download: true,
-                  href: sourceArchiveUrl,
-                  icon: 'ion:download-outline',
-                  id: 'download',
-                  label: m.source_download_archive(),
-                  analyticsSurface: 'source_release',
-                }
-              : {
-                  disabled: true,
-                  icon: 'ion:download-outline',
-                  id: 'download',
-                  label: m.source_download_archive(),
-                },
+            {
+              icon: 'proicons:info',
+              id: 'assembly-info',
+              infoDescription: m.source_tab_assembly_description(),
+              label: m.source_tab_assembly_info(),
+            },
           ]
-        : [],
+        : activeTab === 'samples' &&
+            sourceRecordFamily &&
+            sourceRecordsAvailable !== false
+          ? [
+              {
+                icon: 'ion:reload-outline',
+                id: 'more-samples',
+                label: m.source_show_more(),
+                onSelect: () => {
+                  sourceSampleRequest += 1
+                  trackClientProductUsage({
+                    event: 'client.sample_control',
+                    surface: 'source_release',
+                    entityType: 'action',
+                    entityId: version?.code ?? params.releaseCode,
+                  })
+                },
+              },
+            ]
+          : activeTab === 'audit'
+            ? [
+                ...(bulkActions.length
+                  ? [
+                      {
+                        icon: 'ion:layers-outline',
+                        id: 'bulk',
+                        label: m.source_bulk_actions(),
+                        onSelect: () => {
+                          showBulkActions = !showBulkActions
+                          trackClientProductUsage({
+                            event: 'client.audit_control',
+                            surface: 'source_release',
+                            entityType: 'action',
+                            entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
+                          })
+                        },
+                        pressed: showBulkActions,
+                      },
+                    ]
+                  : []),
+                sourceArchiveUrl
+                  ? {
+                      download: true,
+                      href: sourceArchiveUrl,
+                      icon: 'ion:download-outline',
+                      id: 'download',
+                      label: m.source_download_archive(),
+                      analyticsSurface: 'source_release',
+                    }
+                  : {
+                      disabled: true,
+                      icon: 'ion:download-outline',
+                      id: 'download',
+                      label: m.source_download_archive(),
+                    },
+              ]
+            : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
