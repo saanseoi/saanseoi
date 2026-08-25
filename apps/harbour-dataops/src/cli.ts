@@ -211,9 +211,14 @@ async function main() {
   }
 }
 
-installInterruptHandler()
+const disposeInterruptHandler = installInterruptHandler()
 
-main().catch(error => {
-  cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))
-  process.exit(1)
-})
+main()
+  .then(() => {
+    disposeInterruptHandler()
+  })
+  .catch(error => {
+    disposeInterruptHandler()
+    cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))
+    process.exit(1)
+  })
