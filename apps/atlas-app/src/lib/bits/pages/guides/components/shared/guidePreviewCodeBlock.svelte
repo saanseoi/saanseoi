@@ -73,7 +73,7 @@ let view = $state<'code' | 'preview'>('code')
     aria-label={previewLabel}
     aria-hidden={view !== 'preview'}
     inert={view !== 'preview'}
-    class={`col-start-1 row-start-1 min-w-0 overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
+    class={`col-start-1 row-start-1 flex h-full min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
       view === 'preview'
         ? 'pointer-events-auto opacity-100 [transform:rotateY(0deg)]'
         : 'pointer-events-none opacity-0 [transform:rotateY(180deg)]'
@@ -110,6 +110,6 @@ let view = $state<'code' | 'preview'>('code')
         {showCodeLabel}
       </button>
     </header>
-    <div class="bg-[#131722] p-4">{@render preview()}</div>
+    <div class="min-h-0 flex-1 bg-[#131722] p-4">{@render preview()}</div>
   </section>
 </div>

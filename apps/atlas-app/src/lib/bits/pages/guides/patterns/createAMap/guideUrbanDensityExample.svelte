@@ -2,36 +2,45 @@
 import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
 
 import GuideUrbanDensityPreview from './guideUrbanDensityPreview.svelte'
+import GuideUrbanDensityMapPreview from './guideUrbanDensityMapPreview.svelte'
 
 type Props = {
-  calculateCode: string
-  inputsCode: string
-  installCode: string
+  headerImage: string
+  hongKongBasemapNote?: string
+  mapReadyCode: string
+  mapPreviewImage: string
+  mapPreviewLabel: string
   mapCode: string
   metricsCode: string
   metricsCss: string
-  operatingSystem?: string
-  writeCode: string
+  statsCode: string
 }
 
 let {
-  calculateCode,
-  inputsCode,
-  installCode,
+  headerImage,
+  hongKongBasemapNote,
+  mapReadyCode,
+  mapPreviewImage,
+  mapPreviewLabel,
   mapCode,
   metricsCode,
   metricsCss,
-  operatingSystem,
-  writeCode,
+  statsCode,
 }: Props = $props()
 </script>
 
 <section class="mt-10">
+  <img
+    class="mb-8 aspect-[16/9] w-full rounded-sm border border-border-card object-cover shadow-card"
+    src={headerImage}
+    alt="Hand-drawn map of Hong Kong’s built-up land, hills and density cards"
+  >
   <span
     class="inline-flex rounded-full bg-secondary-container px-3 py-1 font-body text-label-sm font-semibold text-secondary"
     >{@html m.guide_data_urban_density_badge()}</span
@@ -45,28 +54,34 @@ let {
   <p class="mt-4 max-w-3xl font-body text-body-sm leading-6 text-foreground-alt">
     {@html m.guide_data_urban_density_definition()}
   </p>
+  {#if hongKongBasemapNote}
+    <GuideCallout class="mt-6">
+      <p class="font-body text-body-md leading-7 text-foreground-alt">
+        {hongKongBasemapNote}
+      </p>
+    </GuideCallout>
+  {/if}
   <div class="mt-8 space-y-12">
-    <section>
-      <GuideSubSectionHeader title={m.guide_data_urban_density_install()} />
-      <GuideSubSectionBody>
-        <GuideCodeBlock
-          label={m.guide_data_urban_density_install()}
-          code={installCode}
-          language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-      </GuideSubSectionBody>
-    </section>
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_inputs_title()} />
       <GuideSubSectionBody content={m.guide_data_urban_density_inputs_description()}>
-        <GuideCodeBlock
+        <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_inputs_code()}
-          code={inputsCode}
+          code={mapReadyCode}
+          editorIcon="material-symbols-light:map-rounded"
+          language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
-        />
+          previewLabel={m.guide_code_block_preview()}
+          showCodeLabel={m.guide_code_block_code()}
+        >
+          {#snippet preview()}
+            <GuideUrbanDensityMapPreview
+              src={mapPreviewImage}
+              label={mapPreviewLabel}
+            />
+          {/snippet}
+        </GuidePreviewCodeBlock>
       </GuideSubSectionBody>
     </section>
     <section>
@@ -74,13 +89,9 @@ let {
       <GuideSubSectionBody content={m.guide_data_urban_density_calculate_description()}>
         <GuideCodeBlock
           label={m.guide_data_urban_density_calculate_code()}
-          code={calculateCode}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <GuideCodeBlock
-          label={m.guide_data_urban_density_write_code()}
-          code={writeCode}
+          code={statsCode}
+          editorIcon="material-symbols-light:data-object-rounded"
+          language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
