@@ -9,12 +9,17 @@ import { m } from '#lib/bits/internal/i18n.js'
 type Props = {
   actions?: Snippet
   code: string
+  copyCode?: string
+  comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
+  commentsVisible?: boolean
   copyable?: boolean
   copiedLabel: string
   copyLabel: string
+  dimmedLines?: number[]
   editorIcon?: string
   label: string
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
+  leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
   promptIcon?: string
   variant?: 'code' | 'editor' | 'prompt'
@@ -90,10 +95,16 @@ const highlightBash = (source: string, prompt = '$') =>
     })
     .join('')
 
-const highlightSource = (source: string, language: 'css' | 'typescript') =>
+const highlightSource = (
+  source: string,
+  language: 'css' | 'typescript',
+  dimmedLines: number[] = [],
+  comments: Array<{ line: number; spacerAfter?: boolean; text: string }> = [],
+  commentsVisible = false,
+) =>
   source
     .split('\n')
-    .map(line => {
+    .map((line, index) => {
       const tokens =
         line.match(
           /\/\/[^\n]*|\/\*[\s\S]*?\*\/|'[^']*'|"[^"]*"|`[^`]*`|#[\w-]+|\.[\w-]+|\b\d+(?:\.\d+)?\b|\b(?:import|from|new|const|let|return|type|interface|export|default|class|function|async|await|if|else|true|false|html|body|width|height|margin|padding|display|background|color)\b|\s+|[^\s]+/g,
@@ -126,19 +137,36 @@ const highlightSource = (source: string, language: 'css' | 'typescript') =>
         })
         .join('')
 
-      return `<span class="block">${content || '&nbsp;'}</span>`
+      const matchingComments = comments.filter(
+        candidate =>
+          candidate.line === index + 1 && !dimmedLines.includes(candidate.line),
+      )
+      const indentation = escapeHtml(line.match(/^\s*/)?.[0] ?? '')
+      const renderedComments = matchingComments
+        .map(
+          comment =>
+            `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 [transform-origin:top] motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 [transform:rotateX(0deg)]' : 'max-h-0 opacity-0 [transform:rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 [transform-origin:top] motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 [transform:rotateX(0deg)]' : 'max-h-0 opacity-0 [transform:rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
+        )
+        .join('')
+
+      return `${renderedComments}<span class="block${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
     })
     .join('')
 
 let {
   actions,
   code,
+  copyCode,
+  comments = [],
+  commentsVisible = $bindable(true),
   copyable = true,
   copiedLabel,
   copyLabel,
+  dimmedLines = [],
   editorIcon = 'material-symbols-light:code-rounded',
   label,
   language = 'text',
+  leadingActions,
   onCopy,
   promptIcon = 'material-symbols-light:auto-awesome',
   variant = 'code',
@@ -152,7 +180,7 @@ const highlightedCode = $derived(
     : language === 'powershell'
       ? highlightBash(code, 'PS>')
       : language === 'typescript' || language === 'css'
-        ? highlightSource(code, language)
+        ? highlightSource(code, language, dimmedLines, comments, commentsVisible)
         : escapeHtml(code),
 )
 
@@ -170,6 +198,8 @@ const copyWithFallback = (text: string) => {
 }
 
 async function copy() {
+  const codeToCopy = copyCode ?? code
+
   if (variant === 'prompt') {
     manualCopyOpen = true
     onCopy?.('success')
@@ -177,9 +207,9 @@ async function copy() {
   }
 
   try {
-    await navigator.clipboard.writeText(code)
+    await navigator.clipboard.writeText(codeToCopy)
   } catch {
-    if (!copyWithFallback(code)) {
+    if (!copyWithFallback(codeToCopy)) {
       onCopy?.('failure')
       manualCopyOpen = true
       return
@@ -248,8 +278,20 @@ const selectManualCopyText = () => {
         >{@html label}</span
       >
     </div>
-    {#if copyable || actions}
+    {#if copyable || actions || comments.length > 0}
       <div class="flex shrink-0 items-center gap-4">
+        {@render leadingActions?.()}
+        {#if comments.length > 0}
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            aria-pressed={commentsVisible}
+            onclick={() => (commentsVisible = !commentsVisible)}
+          >
+            <Icon icon="proicons:chat" class="size-4" aria-hidden="true" />
+            {m.guide_code_block_comments()}
+          </button>
+        {/if}
         {#if copyable}
           <button
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
@@ -297,7 +339,7 @@ const selectManualCopyText = () => {
         bind:this={manualCopyText}
         class="mt-6 min-h-64 w-full resize-y border border-border-card bg-[#0c1111] p-4 font-mono text-sm leading-6 text-[#d6e4df] outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
         readonly
-        value={code}
+        value={copyCode ?? code}
         aria-label={m.guide_code_block_manual_copy_text_label()}
         onclick={selectManualCopyText}
       ></textarea>
