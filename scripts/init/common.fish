@@ -14,6 +14,7 @@ set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
 set -g saanseoi_init_completed_release_codes
 set -g saanseoi_init_docs_pending 0
+set -g saanseoi_init_upload_failures 0
 
 function init_configure
     set -l usage $argv[1]
@@ -141,7 +142,12 @@ function init_run_upload
     if test "$saanseoi_init_cache_artefacts" -eq 1
         set cache_artefact_args --cacheArtefacts
     end
-    init_run_step ./bin/saanseoi upload --target $saanseoi_init_target $argv $retry_args $cache_artefact_args
+    SAANSEOI_INIT_RELEASE_CODE=$release_code ./bin/saanseoi upload \
+        --target $saanseoi_init_target $argv $retry_args $cache_artefact_args
+    if test $status -ne 0
+        set -g saanseoi_init_upload_failures 1
+        return 1
+    end
     set -g saanseoi_init_last_upload_processed 1
 end
 
@@ -174,4 +180,10 @@ function init_domain_has_pending_releases
     end
 
     return 1
+end
+
+function init_complete
+    if test "$saanseoi_init_upload_failures" -ne 0
+        exit 1
+    end
 end

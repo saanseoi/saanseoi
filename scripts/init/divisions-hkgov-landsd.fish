@@ -17,3 +17,4 @@ init_run_upload dr-hk-hkgov-landsd-division-2026-06-10.0 "$file" \
     --release-notes-url "$release_notes_url" --yes
 init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 init_publish_docs_if_needed
+init_complete

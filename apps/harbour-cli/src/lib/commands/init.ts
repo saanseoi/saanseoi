@@ -1,6 +1,16 @@
-import { resolve } from 'node:path'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
-import type { ParsedArgs } from '../cli/options.ts'
+import { note } from '@clack/prompts'
+
+import { resolveUploadTarget, type ParsedArgs } from '../cli/options.ts'
+import { fetchApiReleaseSetDocsRows } from './docs.ts'
+import {
+  parseInitialisationSummaryEvents,
+  recordInitialisationSummaryEvent,
+  type InitialisationSummaryEvent,
+} from './initialisationSummary.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 
@@ -87,6 +97,15 @@ export async function runInitialisationCommand(
     throw new Error(`\`${args.command}\`${suffix}`)
   }
 
+  let summaryDirectory: string | undefined
+  let summaryPath = process.env.SAANSEOI_INIT_SUMMARY_PATH
+  if (!summaryPath) {
+    summaryDirectory = await mkdtemp(join(tmpdir(), 'saanseoi-init-'))
+    summaryPath = join(summaryDirectory, 'summary.jsonl')
+  }
+  const uploadTarget = resolveUploadTarget(args)
+  const publishedBefore = await listPublishedApiReleaseSets(uploadTarget)
+
   const child = Bun.spawn({
     cmd: [
       'fish',
@@ -99,14 +118,124 @@ export async function runInitialisationCommand(
     env: {
       ...process.env,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
+      SAANSEOI_INIT_COMMAND: args.command ?? '',
+      SAANSEOI_INIT_SUMMARY_PATH: summaryPath,
     },
     stdin: 'inherit',
     stdout: 'inherit',
     stderr: 'inherit',
   })
   const exitCode = await child.exited
+  if (exitCode !== 0) {
+    await recordInitialisationSummaryEvent({
+      command: args.command ?? null,
+      message: `Initialisation failed with exit code ${exitCode}; see the preceding command output.`,
+      releaseCode: null,
+      type: 'error',
+    })
+  }
+
+  if (summaryDirectory) {
+    try {
+      const [publishedAfter, events] = await Promise.all([
+        listPublishedApiReleaseSets(uploadTarget),
+        readInitialisationSummaryEvents(summaryPath),
+      ])
+      renderInitialisationSummary(publishedBefore, publishedAfter, events)
+    } finally {
+      await rm(summaryDirectory, { force: true, recursive: true })
+    }
+  }
 
   if (exitCode !== 0) {
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
   }
+}
+
+async function listPublishedApiReleaseSets(
+  target: Parameters<typeof fetchApiReleaseSetDocsRows>[0],
+) {
+  try {
+    const rows = await fetchApiReleaseSetDocsRows(target)
+    return new Set(rows.filter(row => row.status === 'current').map(row => row.code))
+  } catch {
+    // Publication reporting must not prevent a recovery run. The upload events
+    // still provide exact successful publications when the metadata read fails.
+    return undefined
+  }
+}
+
+async function readInitialisationSummaryEvents(path: string) {
+  try {
+    return parseInitialisationSummaryEvents(await readFile(path, 'utf8'))
+  } catch {
+    return []
+  }
+}
+
+export function renderInitialisationSummary(
+  publishedBefore: ReadonlySet<string> | undefined,
+  publishedAfter: ReadonlySet<string> | undefined,
+  events: readonly InitialisationSummaryEvent[],
+) {
+  note(
+    formatInitialisationSummary(publishedBefore, publishedAfter, events),
+    'INITIALISATION SUMMARY',
+  )
+}
+
+export function formatInitialisationSummary(
+  publishedBefore: ReadonlySet<string> | undefined,
+  publishedAfter: ReadonlySet<string> | undefined,
+  events: readonly InitialisationSummaryEvent[],
+) {
+  const published = new Set(
+    publishedBefore && publishedAfter
+      ? [...publishedAfter].filter(code => !publishedBefore.has(code))
+      : [],
+  )
+  for (const event of events) {
+    if (event.type === 'published-api-release-set') {
+      published.add(event.apiReleaseSetCode)
+    }
+  }
+
+  const errors = new Map<string, string>()
+  const commandsWithReleaseErrors = new Set(
+    events.flatMap(event =>
+      event.type === 'error' && event.releaseCode && event.command
+        ? [event.command]
+        : [],
+    ),
+  )
+  for (const event of events) {
+    if (event.type !== 'error') continue
+    if (
+      !event.releaseCode &&
+      event.command &&
+      commandsWithReleaseErrors.has(event.command)
+    ) {
+      continue
+    }
+    const subject = event.releaseCode ?? event.command ?? 'initialisation'
+    errors.set(subject, event.message)
+  }
+
+  return [
+    'Published API release sets',
+    published.size > 0
+      ? [...published]
+          .sort()
+          .map(code => `  ${code}`)
+          .join('\n')
+      : '  -',
+    '',
+    'Initialisation errors',
+    errors.size > 0
+      ? [...errors.entries()]
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([releaseCode, message]) => `  ${releaseCode}: ${message}`)
+          .join('\n')
+      : '  -',
+  ].join('\n')
 }
