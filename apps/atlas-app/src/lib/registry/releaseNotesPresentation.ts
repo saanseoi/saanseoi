@@ -1,4 +1,9 @@
-import { getLocalisedMessage, type AppLocale } from '#lib/bits/internal/i18n.js'
+import {
+  reference_close_transclusion,
+  reference_show_transclusion,
+  source_notes_empty,
+} from '@repo/i18n/messages'
+import type { AppLocale } from '#lib/bits/internal/i18n.js'
 import type { ReleaseNotesPresentation } from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 
 import {
@@ -63,13 +68,9 @@ export function buildReleaseNotesPresentation(
     markdown,
     headings: getMarkdownHeadings(markdown).filter(heading => heading.level >= 2),
     labels: {
-      empty: getLocalisedMessage('source_notes_empty', locale),
-      closeTransclusion: getLocalisedMessage('reference_close_transclusion', locale),
-      showTransclusion: title =>
-        getLocalisedMessage('reference_show_transclusion', locale).replace(
-          '{title}',
-          title,
-        ),
+      empty: source_notes_empty({}, { locale }),
+      closeTransclusion: reference_close_transclusion({}, { locale }),
+      showTransclusion: title => reference_show_transclusion({ title }, { locale }),
     },
     transclusions,
   }
