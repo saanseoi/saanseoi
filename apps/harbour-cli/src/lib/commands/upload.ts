@@ -95,6 +95,8 @@ export async function runUploadCommand(
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
     divisionCohortKey?: string
+    /** Leave Statistics API release-set publication to a cohort bootstrap. */
+    deferStatsReleaseSet?: boolean
     processingActions?: ReleaseProcessingAction[]
     quiet?: boolean
     /** Interactive command to offer when a non-interactive run lacks release notes. */
@@ -787,7 +789,10 @@ ${mutedBar}  `)
             },
             uploadResult,
             preparedUploadFile,
-            { promptForCuration: !options.skipConfirm },
+            {
+              deferStatsReleaseSet: options.deferStatsReleaseSet,
+              promptForCuration: !options.skipConfirm,
+            },
           )
         await logApiReleaseSetPublication(processingResult, revisionDraft(), target)
         await discardSuccessfulReleaseArtefacts(
@@ -812,7 +817,10 @@ ${mutedBar}  `)
           },
           uploadResult,
           preparedUploadFile,
-          { promptForCuration: !options.skipConfirm },
+          {
+            deferStatsReleaseSet: options.deferStatsReleaseSet,
+            promptForCuration: !options.skipConfirm,
+          },
         )
         await logApiReleaseSetPublication(processingResult, revisionDraft(), target)
         await discardSuccessfulReleaseArtefacts(
