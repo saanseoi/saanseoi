@@ -1034,11 +1034,17 @@ function appendEnglishRevisionLog(
   const remainder = englishEnd === -1 ? '' : frozenBody.slice(englishEnd)
   const heading = '## Revision log'
   const entry = `- \`r{{ apiReleaseSetRevision }}\` ${message}`
-  const existingHeading = english.indexOf(heading)
+  const existingHeading = /^## Revision log$/im.exec(english)
 
-  if (existingHeading !== -1) {
-    const insertionPoint = existingHeading + heading.length
-    return `${english.slice(0, insertionPoint).trimEnd()}\n${entry}\n${english.slice(insertionPoint)}${remainder}`
+  if (existingHeading) {
+    const insertionPoint = existingHeading.index + existingHeading[0].length
+    const nextHeading = english.indexOf('\n## ', insertionPoint)
+    const existingEntriesEnd = nextHeading === -1 ? english.length : nextHeading
+    const existingEntries = english
+      .slice(insertionPoint, existingEntriesEnd)
+      .replace(/^\n+/, '\n')
+      .replace(/\n{2,}(?=- `r)/g, '\n')
+    return `${english.slice(0, insertionPoint).trimEnd()}\n\n${entry}${existingEntries}${english.slice(existingEntriesEnd)}${remainder}`
   }
 
   return `${english.trimEnd()}\n\n${heading}\n\n${entry}\n${remainder}`
