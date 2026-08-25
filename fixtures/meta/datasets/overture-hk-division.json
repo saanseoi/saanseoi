@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:d102b77f6d484006fbe785689ad06f79bc2dcfd482720bc6ffbf65a8f77192ff",
+  "versionHash": "sha256:a3a09677044906920a535673cda2d8b2d5634623dedb8d9cd3813e50a3032654",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "resourceTypes": [
-    "division"
-  ],
+  "resourceTypes": ["division"],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation",
   "sourceUrl": "https://docs.overturemaps.org/",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ]
+        "discoveries": ["new-release"]
       }
     },
     "archives": {
@@ -58,7 +54,9 @@
         "normalise_overture_division_hierarchy",
         "decode_wkb_geometry_to_geojson",
         "overture_division_locale_inferred",
-        "overture_division_api_locale_fallback_added"
+        "overture_division_api_locale_fallback_added",
+        "overture_division_name_ai_translated",
+        "overture_division_name_human_translated"
       ]
     }
   ],
