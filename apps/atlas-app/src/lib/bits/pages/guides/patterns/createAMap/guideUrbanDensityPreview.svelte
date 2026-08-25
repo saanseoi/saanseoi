@@ -1,8 +1,8 @@
 <script lang="ts">
 const metrics = [
-  { name: 'Hong Kong', value: '29,400', width: 'w-[84%]' },
-  { name: 'Kowloon', value: '47,800', width: 'w-[96%]' },
-  { name: 'New Territories', value: '7,200', width: 'w-[42%]' },
+  { name: 'Hong Kong Island', value: '—', width: 'w-[58%]' },
+  { name: 'Kowloon', value: '—', width: 'w-[96%]' },
+  { name: 'New Territories', value: '—', width: 'w-[42%]' },
 ]
 </script>
 
@@ -29,7 +29,7 @@ const metrics = [
     <p
       class="absolute top-3 left-3 rounded-sm bg-[#fff9ed]/90 px-2 py-1 font-mono text-[0.68rem] font-semibold tracking-[0.08em] uppercase shadow-sm"
     >
-      Urban land
+      Green-land context
     </p>
     <p
       class="absolute right-3 bottom-3 rounded-sm bg-[#1d2b29]/85 px-2 py-1 font-mono text-[0.68rem] text-white/80 shadow-sm"
@@ -39,13 +39,15 @@ const metrics = [
   </div>
   <section
     class="grid divide-y divide-[#26433d]/35 bg-[#fff9ed] sm:grid-cols-3 sm:divide-x sm:divide-y-0"
-    aria-label="Urban population density"
+    aria-label="District-land population density"
   >
     {#each metrics as metric}
       <article class="p-4">
         <p class="text-label-sm font-semibold text-[#53645e]">{metric.name}</p>
         <strong class="mt-1 block text-2xl leading-none">{metric.value}</strong>
-        <span class="mt-1 block text-xs text-[#53645e]">people per km²</span>
+        <span class="mt-1 block text-xs text-[#53645e]"
+          >people per km² · district land</span
+        >
         <span
           class={`mt-3 block h-1.5 rounded-full bg-[#d65332] ${metric.width}`}
         ></span>

@@ -1,7 +1,7 @@
 import {
   createAMapRendererReferenceInstructions,
   getCreateAMapRendererReference,
-} from './createAMapRendererReference'
+} from './snippets'
 
 const renderReferences = (['maplibre', 'mapbox', 'leaflet'] as const)
   .map(renderer => {

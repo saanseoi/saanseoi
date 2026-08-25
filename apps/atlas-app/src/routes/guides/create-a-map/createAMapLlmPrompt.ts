@@ -9,7 +9,7 @@ import {
   createAMapRendererReferenceInstructions,
   getCreateAMapRendererReference,
   isCreateAMapRenderer,
-} from './createAMapRendererReference'
+} from './snippets'
 
 export type CreateAMapLlmPromptSection =
   | 'prerequisites'
