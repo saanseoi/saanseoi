@@ -497,11 +497,12 @@ for (const path of apiRoutePaths) {
           },
         }),
       )
-      return new Response(body, {
+      c.res = new Response(body, {
         headers: c.res.headers,
         status: c.res.status,
         statusText: c.res.statusText,
       })
+      return c.res
     }
 
     return c.res
