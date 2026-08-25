@@ -34,6 +34,7 @@ export type ReleaseNavAction = {
   download?: boolean
   href?: string
   icon?: string
+  infoDescription?: string
   id: string
   label: string
   onSelect?: () => void
