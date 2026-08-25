@@ -8,7 +8,6 @@ set -eu
 
 ZERO_OID=0000000000000000000000000000000000000000
 REPO_ROOT=$(git rev-parse --show-toplevel)
-UPGRADE_BIN="$REPO_ROOT/node_modules/.bin/upgrade"
 CHECK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/saanseoi-tailwind.XXXXXX")
 CHECK_OIDS="$CHECK_DIR/local-oids"
 CURRENT_WORKTREE=
@@ -51,8 +50,8 @@ if [ ! -s "$CHECK_OIDS" ]; then
   exit 0
 fi
 
-if [ ! -x "$UPGRADE_BIN" ]; then
-  echo "Tailwind upgrader is not installed at $UPGRADE_BIN." >&2
+if ! command -v bun >/dev/null 2>&1; then
+  echo "Bun is required to install Tailwind checks in the disposable worktree." >&2
   exit 1
 fi
 
@@ -67,7 +66,23 @@ do
   # provisions local files and databases. This disposable check must not do
   # either, so disable hooks for its checkout explicitly.
   git -c core.hooksPath=/dev/null worktree add --detach "$CURRENT_WORKTREE" "$local_oid" >/dev/null
-  ln -s "$REPO_ROOT/node_modules" "$CURRENT_WORKTREE/node_modules"
+
+  # The Tailwind upgrader follows CSS imports and can rewrite package CSS.
+  # Install an isolated dependency tree here rather than sharing the
+  # developer's node_modules through a symlink.
+  if ! (
+    cd "$CURRENT_WORKTREE"
+    bun install --frozen-lockfile --ignore-scripts >/dev/null
+  ); then
+    echo "Could not install dependencies for the disposable Tailwind check." >&2
+    exit 1
+  fi
+
+  UPGRADE_BIN="$CURRENT_WORKTREE/node_modules/.bin/upgrade"
+  if [ ! -x "$UPGRADE_BIN" ]; then
+    echo "Tailwind upgrader is not installed at $UPGRADE_BIN." >&2
+    exit 1
+  fi
 
   echo "Checking Tailwind canonical class names..."
   if ! (
