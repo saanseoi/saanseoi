@@ -675,6 +675,7 @@ describe('atlas-api', () => {
       operations.some(operation => operation.query.includes('accessAnalytics')),
     ).toBe(false)
     expect(res.status).toBe(200)
+    expect(await res.text()).toBe('source-pdf')
   })
 
   test('records first-party API requests separately from API_USAGE billing events', async () => {
