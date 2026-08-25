@@ -178,6 +178,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
     'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
   ] as const
+  const releaseIds: string[] = []
 
   sqlite.exec(`
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
@@ -202,6 +203,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   for (const [index, datasetCode] of datasetCodes.entries()) {
     const datasetId = `dataset-${index}`
     const releaseId = `release-${index}`
+    releaseIds.push(releaseId)
     sqlite.exec(`
       INSERT INTO datasets (
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
@@ -240,6 +242,17 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
     })
     await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
   }
+
+  for (const releaseId of releaseIds) {
+    await handlePublishDataset(db, { deferStatsReleaseSet: true, releaseId })
+  }
+  expect(
+    sqlite
+      .query(
+        "SELECT count(*) AS count FROM apiReleaseSets WHERE code LIKE 'data-hk-stats-2021%'",
+      )
+      .get(),
+  ).toEqual({ count: 0 })
 
   const result = await handleBootstrapStatsReleaseSets(db)
 

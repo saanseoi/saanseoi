@@ -92,6 +92,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       target,
       {
         allowReprocessPublished: true,
+        deferStatsReleaseSet: args.options['defer-stats-release-set'] === true,
         dryRun: false,
         forceUpload: true,
         invocationCwd: resolve(import.meta.dir, '../../../..'),
@@ -101,6 +102,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         validateGeometry: false,
       },
     )
+    // Launch bootstrap prepares all Statistics snapshots before publishing a
+    // cohort-complete r0. HMA/area companion geometry belongs to the Divisions
+    // family and may depend on Division inputs that are deliberately outside
+    // that Stats-only batch. Do not let that optional fan-out invalidate the
+    // successfully published Statistics source release.
+    if (args.options['defer-stats-release-set'] === true) return
     const geographyDivisionPath = join(
       workDir,
       'hkgov-censtatd-geography-division.parquet',

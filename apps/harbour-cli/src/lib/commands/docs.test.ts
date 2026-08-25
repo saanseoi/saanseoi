@@ -60,6 +60,43 @@ describe('docs markdown fixtures', () => {
     }
   })
 
+  test('makes a dataset addition explicit in the default revision note', async () => {
+    const apiReleaseSetCode = 'data-hk-divisions-2025-09-24.0-r1'
+    const path = resolve(
+      import.meta.dir,
+      '../../../../../fixtures/meta/apiReleaseSets/divisions',
+      'notes',
+      `${apiReleaseSetCode}.md`,
+    )
+    const guidePath = resolve(
+      import.meta.dir,
+      '../../../../../fixtures/meta/apiReleaseSets/divisions',
+      'guides',
+      `${apiReleaseSetCode}.md`,
+    )
+
+    await rm(path, { force: true })
+    await rm(guidePath, { force: true })
+    try {
+      await createApiReleaseSetRevisionDraft(
+        {
+          apiReleaseSetCode,
+          datasetName: 'Divisions',
+          publisherCode: 'overture',
+          sourceVersion: '2025-09-24.0',
+        },
+        { prompt: false },
+      )
+
+      expect(await readFile(path, 'utf8')).toContain(
+        '- `r{{ apiReleaseSetRevision }}` Added **Divisions** from the `2025-09-24.0` source release published by _Overture Maps Foundation_.',
+      )
+    } finally {
+      await rm(path, { force: true })
+      await rm(guidePath, { force: true })
+    }
+  })
+
   test('normalises source versions for the release-version frontmatter', () => {
     expect(releaseVersionFromSourceVersion('2022')).toBe('2022.0')
     expect(releaseVersionFromSourceVersion('2025-09-24.0')).toBe('2025-09-24.0')

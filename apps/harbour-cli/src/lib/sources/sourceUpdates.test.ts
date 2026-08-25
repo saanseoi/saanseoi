@@ -213,6 +213,7 @@ describe('dataset update registry', () => {
 
   test('starts C&SD density intake from the prepared archive and retains its identity', () => {
     const command = buildHkgovCenstatdDistrictStatisticArchiveIngestCommand({
+      deferStatsReleaseSet: true,
       inputFile: '/tmp/prepared-density.zip',
       releaseNotesUrl: 'https://portal.csdi.gov.hk/density',
       sourceArchiveKey: 'by-source/hk/hkgov-csdi/density/archive-source.zip',
@@ -232,6 +233,7 @@ describe('dataset update registry', () => {
         'by-source/hk/hkgov-csdi/density/archive-source.zip',
         '--source-archive-sha256',
         'b'.repeat(64),
+        '--defer-stats-release-set',
         '--yes',
       ]),
     )
@@ -263,6 +265,7 @@ describe('dataset update registry', () => {
     expect(
       buildHkgovCenstatdStatisticsArchiveIngestCommand({
         datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        deferStatsReleaseSet: true,
         inputFile: '/tmp/new-towns.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/new-towns',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/new-towns/source.zip',
@@ -279,6 +282,7 @@ describe('dataset update registry', () => {
         'preview',
         '--dataset-code',
         'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        '--defer-stats-release-set',
         '--yes',
       ]),
     )

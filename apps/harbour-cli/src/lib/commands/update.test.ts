@@ -171,7 +171,11 @@ test('uses explicit update flags instead of ambiguous --force', () => {
       {
         command: 'update',
         positionals: [],
-        options: { 'check-now': true, 'force-upload': true },
+        options: {
+          'check-now': true,
+          'defer-stats-release-set': true,
+          'force-upload': true,
+        },
       },
       printUsage,
     ),
