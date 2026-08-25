@@ -9,7 +9,7 @@ import {
   createAMapAgenticSectionPrompt,
   createAMapChatSectionPrompt,
 } from './createAMapLlmPrompt'
-import { createAMapRendererBasemapCode } from './createAMapRendererReference'
+import { createAMapRendererBasemapCode } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
   test('renders the complete guide', () => {
