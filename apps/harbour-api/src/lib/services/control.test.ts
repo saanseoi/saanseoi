@@ -246,6 +246,16 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   for (const releaseId of releaseIds) {
     await handlePublishDataset(db, { deferStatsReleaseSet: true, releaseId })
   }
+  const firstReleaseId = releaseIds[0]
+  if (!firstReleaseId) throw new Error('Expected a Statistics source release.')
+  await handleStageFailed(db, {
+    error: 'Late worker failure after deferred publication.',
+    phase: 'processDataset',
+    releaseId: firstReleaseId,
+  })
+  expect(
+    sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
+  ).toEqual({ status: 'published' })
   expect(
     sqlite
       .query(
