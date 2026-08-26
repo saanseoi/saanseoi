@@ -19,6 +19,9 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
+// SQLite represents an OR chain as a nested expression. Keep composite
+// identities well below D1's maximum expression depth of 100.
+const MAX_COMPOSITE_IDENTITY_PREDICATES_PER_STATEMENT = 48
 
 export type CanonicalStatsDictionaryTable =
   | 'statsFields'
@@ -247,14 +250,50 @@ function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {
   if (!rows.length) return []
   const identity = historyIdentityColumns(table)
   const updatedAt = requiredString(rows[0]?.updatedAt, 'updatedAt')
-  const conditions = uniqueTuples(rows, identity).map(
+  const identities = uniqueTuples(rows, identity)
+  if (identity.length === 1) {
+    const [column] = identity
+    if (!column) return []
+    return buildSingleColumnCloseStatements(
+      table,
+      column,
+      identities.map(([value]) => value),
+      updatedAt,
+    )
+  }
+  const conditions = identities.map(
     tuple =>
       `(${identity.map((column, index) => `${identifier(column)} = ${sqlValue(tuple[index])}`).join(' AND ')})`,
   )
-  return chunk(conditions, 100).map(
+  return chunk(conditions, MAX_COMPOSITE_IDENTITY_PREDICATES_PER_STATEMENT).map(
     group =>
       `UPDATE ${identifier(table)} SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND (${group.join(' OR ')});`,
   )
+}
+
+function buildSingleColumnCloseStatements(
+  table: CanonicalStatsTable,
+  column: string,
+  identities: unknown[],
+  updatedAt: string,
+) {
+  const statement = (values: unknown[]) =>
+    `UPDATE ${identifier(table)} SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND ${identifier(column)} IN (${values.map(sqlValue).join(', ')});`
+  const statements: string[] = []
+  let values: unknown[] = []
+  for (const identity of identities) {
+    const candidate = statement([...values, identity])
+    if (Buffer.byteLength(candidate) > SQL_STATEMENT_BYTE_LIMIT) {
+      if (!values.length)
+        throw new Error('A canonical statistic SQL statement exceeds the D1 limit.')
+      statements.push(statement(values))
+      values = [identity]
+      continue
+    }
+    values.push(identity)
+  }
+  if (values.length) statements.push(statement(values))
+  return statements
 }
 
 function buildUpsertStatements(

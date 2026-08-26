@@ -1282,6 +1282,14 @@ function resolveMarkdownTemplateValue(
     )
   }
 
+  if (key === 'cohortYear') {
+    const cohortYear = frontmatter.cohortKey?.match(/^\d{4}/)?.[0]
+    if (cohortYear) return cohortYear
+    throw new Error(
+      `Cannot derive cohort year from cohortKey: ${frontmatter.cohortKey ?? '-'}`,
+    )
+  }
+
   const regionName = /^regionName:(en|zh-Hant|zh-Hans)$/.exec(key)
   if (regionName) {
     const names = {

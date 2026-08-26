@@ -48,6 +48,7 @@ import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChu
 import {
   replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
+  replayStatisticSnapshotMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
 import {
   completeStatisticCache,
@@ -57,6 +58,7 @@ import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot.ts
 
 type Plan = {
   cohortKey: string
+  datasetCode: string
   regionCode: 'hk'
   releaseCode: string
   rowCount: number
@@ -65,7 +67,10 @@ type Plan = {
   theme: 'stats'
   type: 'divisionStatistic'
 }
-type UploadResult = { releaseCode?: string; releaseId?: string }
+type UploadResult = {
+  releaseCode?: string
+  releaseId?: string
+}
 
 type SourceStatisticRow = {
   createdAt: string
@@ -134,7 +139,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       plan.regionCode,
       plan.sourceVersion.slice(0, 4),
       {
-        cacheTableProfile: 'statistics',
+        cacheTableProfile: 'divisionStatistic',
         includeAllHistoryShardYears: true,
         onProgress(event) {
           updateDbCacheProgress(progress, event)
@@ -196,14 +201,13 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     const canonicalInput = sourceRows.map(row => {
       const resolution = resolutionBySourceDistrictCode.get(row.districtCode)
       return {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        datasetCode: plan.datasetCode,
         divisionId: resolution?.divisionId ?? null,
         geography: resolution
           ? { code: resolution.districtCode, kind: 'district' }
           : undefined,
         properties: object(row.rawProperties, 'rawProperties'),
-        sourceFeatureRef: `hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district/${plan.sourceVersion}/Density:${row.districtCode}`,
+        sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
         sourceReleaseId: releaseId,
         sourceVersion: plan.sourceVersion,
       }
@@ -310,7 +314,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         }),
     )
     const statsProfile = censtatdReleaseStatsProfileFor(
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      plan.datasetCode,
       plan.sourceVersion,
     )
     const structuralStats = buildCenstatdReleaseStats(
@@ -373,14 +377,20 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       },
       releaseCode,
     )
-    await materialiseStatisticSnapshots({
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    const snapshots = await materialiseStatisticSnapshots({
+      datasetCode: plan.datasetCode,
       metaDb,
       referencePeriods: uniqueReferencePeriods(canonical.records),
       releaseId,
       target,
     })
+    await replayStatisticSnapshotMetaToRemote(
+      target,
+      context,
+      metaDb,
+      releaseId,
+      snapshots.map(snapshot => snapshot.id),
+    )
     const published = await runStatisticProgressStep(
       progress,
       { action: 'Publish', subject: 'statistic release' },
