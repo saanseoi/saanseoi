@@ -15,7 +15,13 @@ type User = {
   name: string
 }
 
-let { user = null }: { user?: User | null } = $props()
+type Props = {
+  signInHref?: string
+  signUpHref?: string
+  user?: User | null
+}
+
+let { signInHref = '/sign-in', signUpHref = '/sign-up', user = null }: Props = $props()
 
 const initials = $derived(
   (user?.name ?? '')
@@ -93,14 +99,14 @@ const handleSignOut = async () => {
       <div class="flex items-center gap-0">
         <Button
           class="min-h-11 rounded-none px-0 text-body-md font-medium tracking-[-0.01em] text-nowrap"
-          href="/sign-in"
+          href={signInHref}
           variant="text"
         >
           {m.auth_sign_in_title()}
         </Button>
         <Button
           class="min-h-11 rounded-none px-6 text-body-md font-medium tracking-[-0.01em] text-nowrap"
-          href="/sign-up"
+          href={signUpHref}
           variant="primary"
         >
           {m.nav_sign_up()}
@@ -109,5 +115,5 @@ const handleSignOut = async () => {
     {/if}
   </div>
 
-  <MobileMenu {user} />
+  <MobileMenu {signInHref} {signUpHref} {user} />
 </div>
