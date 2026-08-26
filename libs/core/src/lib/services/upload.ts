@@ -562,7 +562,7 @@ function ensureChronologicalUpload(
 
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
-  nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
   nextInspection: UploadInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
@@ -875,10 +875,29 @@ export function createRawObjectKey(plan: UploadPlan) {
 
 function isAllowedKnownSchemaTransition(
   latestDataset: DatasetRecord,
-  nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
   previousFingerprint: string,
   nextInspection: UploadInspection,
 ) {
+  const previousSchema = parseSchemaFingerprint(previousFingerprint)
+
+  if (
+    latestDataset.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
+    nextPlan.datasetCode === latestDataset.datasetCode &&
+    latestDataset.source === 'hkgov-censtatd' &&
+    nextPlan.source === 'hkgov-censtatd' &&
+    latestDataset.type === 'divisionStatistic' &&
+    nextPlan.type === 'divisionStatistic' &&
+    previousSchema &&
+    matchesCenstatdDensityReferencePeriodTransition(
+      previousSchema,
+      nextInspection.schema,
+    )
+  ) {
+    return true
+  }
+
   const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
 
   if (
@@ -900,13 +919,56 @@ function isAllowedKnownSchemaTransition(
     return false
   }
 
-  const previousSchema = parseSchemaFingerprint(previousFingerprint)
-
   if (!previousSchema) {
     return false
   }
 
   return matchesAdminLevelTransition(previousSchema, nextInspection.schema)
+}
+
+function matchesCenstatdDensityReferencePeriodTransition(
+  previousSchema: UploadInspection['schema'],
+  nextSchema: UploadInspection['schema'],
+) {
+  const previousReferencePeriod = previousSchema.find(
+    field => field.name === 'reference_year',
+  )
+  const nextReferencePeriodFields = [
+    { name: 'reference_period_code', nullable: false },
+    { name: 'reference_period_start', nullable: true },
+    { name: 'reference_period_end', nullable: true },
+    { name: 'reference_period_granularity', nullable: false },
+    { name: 'reference_period_end_year', nullable: false },
+  ] as const
+
+  if (
+    previousReferencePeriod?.type !== 'utf8' ||
+    previousReferencePeriod.nullable ||
+    nextSchema.some(field => field.name === 'reference_year') ||
+    !nextReferencePeriodFields.every(expected =>
+      nextSchema.some(
+        field =>
+          field.name === expected.name &&
+          field.type === 'utf8' &&
+          field.nullable === expected.nullable,
+      ),
+    )
+  ) {
+    return false
+  }
+
+  const removed = new Set([
+    'reference_year',
+    ...nextReferencePeriodFields.map(field => field.name),
+  ])
+  return (
+    createSchemaFingerprintFromSchema(
+      previousSchema.filter(field => !removed.has(field.name)),
+    ) ===
+    createSchemaFingerprintFromSchema(
+      nextSchema.filter(field => !removed.has(field.name)),
+    )
+  )
 }
 
 function parseSchemaFingerprint(
