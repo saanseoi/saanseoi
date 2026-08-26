@@ -1136,6 +1136,10 @@ async function resolveAggregateValues(args: {
   }
 
   const domainCode = divisionDomainForStatisticDataset(args.datasetCode)
+  const directDistrictValues = directDistrictGeographyValues(
+    args.records,
+    args.fieldName,
+  )
   const selection = await resolveRelatedDivisionSelection(
     args.metaDb,
     domainCode,
@@ -1144,6 +1148,9 @@ async function resolveAggregateValues(args: {
   )
   const snapshotId = selection?.divisionSnapshotIds[0]
   if (!selection || !snapshotId) {
+    if (directDistrictValues) {
+      return directDistrictAggregate(domainCode, dimensions, directDistrictValues)
+    }
     return {
       error: {
         httpStatus: 409 as const,
@@ -1179,6 +1186,9 @@ async function resolveAggregateValues(args: {
     const divisionCode = divisionId ? divisionCodes.get(divisionId) : null
     const value = record.values[args.fieldName]
     if (!divisionCode || value === undefined || values[divisionCode] !== undefined) {
+      if (directDistrictValues) {
+        return directDistrictAggregate(domainCode, dimensions, directDistrictValues)
+      }
       return {
         error: {
           httpStatus: 409 as const,
@@ -1213,6 +1223,40 @@ async function resolveAggregateValues(args: {
     dimensions,
     values,
   }
+}
+
+function directDistrictAggregate(
+  domainCode: string,
+  dimensions: Record<string, string>,
+  values: Record<string, string>,
+) {
+  return {
+    geography: {
+      codeAttribute: 'divisionCode' as const,
+      domainCode,
+      kind: 'division' as const,
+      level: 2,
+    },
+    dimensions,
+    values,
+  }
+}
+
+/**
+ * C&SD district records retain their reviewed canonical district code. That
+ * code remains sufficient for a map even while a newer Divisions current-view
+ * snapshot has not materialised the matching IDs yet.
+ */
+function directDistrictGeographyValues(records: StatisticRecord[], fieldName: string) {
+  const values: Record<string, string> = {}
+  for (const record of records) {
+    if (record.geography.kind !== 'district') return null
+    const code = record.geography.code
+    const value = record.values[fieldName]
+    if (!code || value === undefined || values[code] !== undefined) return null
+    values[code] = value
+  }
+  return Object.keys(values).length > 0 ? values : null
 }
 
 async function buildAggregateMeta(args: {

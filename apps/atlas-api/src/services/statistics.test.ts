@@ -460,4 +460,38 @@ describe('Statistics service', () => {
       },
     })
   })
+
+  test('uses persisted C&SD district codes when the current Divisions lookup is unavailable', async () => {
+    const mocks = dependencies()
+    mocks.listStatisticRecordsForGeography = async () =>
+      [{ ...statistic, geography: { kind: 'district', code: 'CW' } }] as never
+    mocks.listDivisionRecordsCurrentByIds = async () => []
+
+    const result = await getStatisticsGeographies({
+      currentDb: {} as never,
+      historyDbs: [],
+      metaDb: {} as never,
+      query: {
+        'filter[dataset]': statistic.datasetCode,
+        'filter[field]': 'totalPopulation',
+        'filter[referencePeriod]': '2021',
+      },
+      dependencies: mocks as never,
+    })
+
+    expect(result).toMatchObject({
+      status: 200,
+      body: {
+        meta: {
+          geography: {
+            codeAttribute: 'divisionCode',
+            domainCode: 'geographic',
+            kind: 'division',
+            level: 2,
+          },
+        },
+        values: { CW: '235953' },
+      },
+    })
+  })
 })
