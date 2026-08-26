@@ -2,6 +2,7 @@
 import type { LayerSpecification } from 'maplibre-gl'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
+import { nonLiveableLandUse } from './urbanDensityLandUse.ts'
 
 type Props = {
   label: string
@@ -11,43 +12,6 @@ type Props = {
 }
 
 let { label, showExclusions = true, styleUrl, tilejsonUrl }: Props = $props()
-
-const nonLiveableLandUse = [
-  'aerodrome',
-  'airfield',
-  'allotments',
-  'bare_rock',
-  'beach',
-  'cemetery',
-  'commercial',
-  'construction',
-  'dam',
-  'dog_park',
-  'farmland',
-  'forest',
-  'garden',
-  'golf_course',
-  'grass',
-  'grassland',
-  'industrial',
-  'meadow',
-  'military',
-  'nature_reserve',
-  'park',
-  'pedestrian',
-  'pier',
-  'pitch',
-  'platform',
-  'playground',
-  'railway',
-  'recreation_ground',
-  'runway',
-  'sand',
-  'scrub',
-  'wetland',
-  'wood',
-  'zoo',
-]
 
 const notLiveableLayer: LayerSpecification = {
   id: 'not-liveable',

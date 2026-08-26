@@ -20,6 +20,7 @@ import {
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
+import { resolveReleaseSetRef } from '#lib/registry/releaseSetRef.js'
 import {
   compareApiReleaseVersions,
   getVisibleApiReleaseVersions,
@@ -67,7 +68,7 @@ let api = $derived.by(() => {
 let isContentLoading = $derived(contentResource.loading)
 
 let release = $derived.by(() => {
-  const selected = api.releases?.find(item => item.code === params.releaseCode)
+  const selected = resolveReleaseSetRef(api.releases, params.releaseCode)
 
   if (!selected) error(404, 'API release not found.')
 

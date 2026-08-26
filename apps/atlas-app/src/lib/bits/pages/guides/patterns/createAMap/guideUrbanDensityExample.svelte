@@ -20,6 +20,7 @@ type ShareLink = {
   href: string
   icon: string
   label: string
+  newWindow?: boolean
 }
 
 type Props = {
@@ -445,8 +446,8 @@ const liveableMetricsComments = [
               class="inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary no-underline transition-colors hover:bg-secondary-container"
               href={link.href}
               onclick={() => onShareExternalLink(link.icon)}
-              target="_blank"
-              rel="noreferrer"
+              target={link.newWindow === false ? undefined : '_blank'}
+              rel={link.newWindow === false ? undefined : 'noreferrer'}
               aria-label={link.label}
               title={link.label}
             >
