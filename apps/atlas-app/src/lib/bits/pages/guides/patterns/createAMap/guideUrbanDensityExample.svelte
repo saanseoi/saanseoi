@@ -105,6 +105,15 @@ const mapComments = [
   { line: 11, text: m.guide_data_urban_density_map_comment_source() },
   { line: 13, text: m.guide_data_urban_density_map_comment_filter() },
   { line: 14, text: m.guide_data_urban_density_map_comment_paint() },
+  { line: 17, text: m.guide_data_urban_density_map_comment_outline() },
+]
+
+const metricsComments = [
+  { line: 1, text: m.guide_data_urban_density_metrics_comment_section() },
+  { line: 2, text: m.guide_data_urban_density_metrics_comment_identifier() },
+  { line: 3, text: m.guide_data_urban_density_metrics_comment_label() },
+  { line: 4, text: m.guide_data_urban_density_metrics_comment_cards() },
+  { line: 11, text: m.guide_data_urban_density_metrics_comment_append() },
 ]
 </script>
 
@@ -238,6 +247,7 @@ const mapComments = [
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_results_map_code()}
               code={metricsCode}
+              comments={metricsComments}
               {editorIcon}
               language="typescript"
               copyLabel={m.common_copy()}
