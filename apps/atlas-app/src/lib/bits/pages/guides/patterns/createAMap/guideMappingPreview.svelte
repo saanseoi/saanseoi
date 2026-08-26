@@ -1,6 +1,10 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { setWorkerUrl, type StyleSpecification } from 'maplibre-gl'
+import {
+  setWorkerUrl,
+  type LayerSpecification,
+  type StyleSpecification,
+} from 'maplibre-gl'
 import type { StyleSpecification as MapboxStyleSpecification } from 'mapbox-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'leaflet/dist/leaflet.css'
@@ -13,7 +17,10 @@ type Renderer = 'leaflet' | 'mapbox' | 'maplibre'
 type Coordinates = [longitude: number, latitude: number]
 
 type Props = {
+  additionalLayers?: LayerSpecification[]
+  additionalSources?: StyleSpecification['sources']
   ariaLabel: string
+  beforeLayerId?: string
   center: Coordinates
   renderer: Renderer
   styleUrl?: string
@@ -23,7 +30,10 @@ type Props = {
 }
 
 let {
+  additionalLayers = [],
+  additionalSources = {},
   ariaLabel,
+  beforeLayerId,
   center,
   renderer,
   styleUrl,
@@ -42,7 +52,7 @@ const loadStyle = async (signal: AbortSignal): Promise<StyleSpecification> => {
   if (unstyled) {
     return {
       version: 8,
-      sources: {},
+      sources: additionalSources,
       layers: [
         {
           id: 'background',
@@ -66,14 +76,35 @@ const loadStyle = async (signal: AbortSignal): Promise<StyleSpecification> => {
       type: 'vector',
       url: tilejsonUrl,
     },
+    ...additionalSources,
   }
+
+  if (additionalLayers.length > 0) {
+    const beforeIndex = beforeLayerId
+      ? style.layers.findIndex(layer => layer.id === beforeLayerId)
+      : -1
+    style.layers.splice(
+      beforeIndex === -1 ? style.layers.length : beforeIndex,
+      0,
+      ...additionalLayers,
+    )
+  }
+
   return style
 }
 
 onMount(() => {
   let disposed = false
   let remove: (() => void) | undefined
+  let resizeObserver: ResizeObserver | undefined
   const controller = new AbortController()
+
+  const observeResize = (resize: () => void) => {
+    if (!container) return
+    resizeObserver = new ResizeObserver(resize)
+    resizeObserver.observe(container)
+    resize()
+  }
 
   void (async () => {
     try {
@@ -96,6 +127,7 @@ onMount(() => {
         map.setView([center[1], center[0]], zoom)
         maplibreGL({ style }).addTo(map)
         remove = () => map.remove()
+        observeResize(() => map.invalidateSize())
       } else if (renderer === 'mapbox') {
         const { default: mapboxgl } = await import('mapbox-gl')
         if (disposed || !container) return
@@ -108,6 +140,7 @@ onMount(() => {
           zoom,
         })
         remove = () => map.remove()
+        observeResize(() => map.resize())
       } else {
         const { Map: MapLibreMap } = await import('maplibre-gl')
         if (disposed || !container) return
@@ -120,6 +153,7 @@ onMount(() => {
           zoom,
         })
         remove = () => map.remove()
+        observeResize(() => map.resize())
       }
     } catch (cause) {
       if (!disposed && !controller.signal.aborted) {
@@ -136,6 +170,7 @@ onMount(() => {
   return () => {
     disposed = true
     controller.abort()
+    resizeObserver?.disconnect()
     remove?.()
   }
 })
