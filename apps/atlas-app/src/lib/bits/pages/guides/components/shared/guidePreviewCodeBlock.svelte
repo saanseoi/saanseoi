@@ -89,15 +89,15 @@ function closePreview() {
 </script>
 
 <div
-  class={`grid w-full min-w-0 max-w-[80ch] font-mono ${expanded ? '' : '[perspective:1200px]'}`}
+  class={`grid w-full min-w-0 max-w-[80ch] font-mono ${expanded ? '' : 'perspective-distant'}`}
 >
   <div
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
-    class={`col-start-1 row-start-1 w-full min-w-0 transition-[opacity,transform] duration-500 [backface-visibility:hidden] [transform-style:preserve-3d] motion-reduce:transition-none ${
+    class={`col-start-1 row-start-1 w-full min-w-0 transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'code'
-        ? 'pointer-events-auto opacity-100 [transform:rotateY(0deg)]'
-        : 'pointer-events-none opacity-0 [transform:rotateY(-180deg)]'
+        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+        : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
     }`}
   >
     <GuideCodeBlock
@@ -136,12 +136,12 @@ function closePreview() {
       : undefined}
     class={`${
       expanded
-        ? 'fixed top-1/2 left-1/2 z-[100] h-[calc(100dvh-2rem)] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
         : 'col-start-1 row-start-1 h-full w-full'
-    } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 [backface-visibility:hidden] [contain:size] [transform-style:preserve-3d] motion-reduce:transition-none ${
+    } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
       view === 'preview'
-        ? 'pointer-events-auto opacity-100 [transform:rotateY(0deg)]'
-        : 'pointer-events-none opacity-0 [transform:rotateY(180deg)]'
+        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+        : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
     }`}
   >
     {#if expanded}
