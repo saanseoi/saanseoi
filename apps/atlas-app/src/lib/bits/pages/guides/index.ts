@@ -6,6 +6,7 @@ export { default as GuideCodeBlock } from './components/shared/guideCodeBlock.sv
 export { default as GuidePreviewCodeBlock } from './components/shared/guidePreviewCodeBlock.svelte'
 export { default as GuideCallout } from './components/shared/guideCallout.svelte'
 export { default as GuideMissingAnswerReminder } from './components/shared/guideMissingAnswerReminder.svelte'
+export { default as GuideParagraph } from './components/shared/guideParagraph.svelte'
 export { default as GuideReference } from './components/shared/guideReference.svelte'
 export { default as GuideRoot } from './components/shared/guideRoot.svelte'
 export { default as GuideScreenshot } from './components/shared/guideScreenshot.svelte'

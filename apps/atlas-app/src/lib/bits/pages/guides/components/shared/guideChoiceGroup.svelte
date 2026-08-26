@@ -4,6 +4,7 @@ import { onMount } from 'svelte'
 
 import CarouselRoot from '#lib/bits/components/carousel/carouselRoot.svelte'
 
+import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
 import type { GuideChoice } from './guide.types'
 
@@ -498,18 +499,15 @@ onMount(() => {
       {/each}
     </div>
     {#if hasTileDescriptions}
-      <div
-        class="mt-4 grid max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-        aria-live="polite"
-      >
+      <div class="mt-4 grid" aria-live="polite">
         {#each choices as choice}
           {#if choice.description}
-            <p
+            <GuideParagraph
               class={`col-start-1 row-start-1 ${inspectedChoice?.value === choice.value ? '' : 'invisible'}`}
-              aria-hidden={inspectedChoice?.value === choice.value ? undefined : true}
+              ariaHidden={inspectedChoice?.value === choice.value ? undefined : true}
             >
               {@html choice.description}
-            </p>
+            </GuideParagraph>
           {/if}
         {/each}
       </div>

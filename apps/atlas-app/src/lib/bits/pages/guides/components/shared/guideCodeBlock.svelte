@@ -9,6 +9,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 type Props = {
   actions?: Snippet
   code: string
+  copyLabelSuffix?: Snippet
   copyCode?: string
   displayCode?: string
   comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
@@ -19,10 +20,12 @@ type Props = {
   dimmedLines?: number[]
   editorIcon?: string
   label: string
+  labelContent?: Snippet
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
   promptIcon?: string
+  terminalDotsSuffix?: Snippet
   variant?: 'code' | 'editor' | 'prompt'
 }
 
@@ -54,10 +57,23 @@ const sourceTokenClass: Record<Exclude<SourceTokenKind, 'plain'>, string> = {
   string: 'text-[#a5d6ff]',
 }
 
-const highlightBash = (source: string, prompt = '$') =>
-  source
+const highlightBash = (source: string, prompt = '$') => {
+  let multilineTerminator: string | undefined
+  let continuesFromPreviousLine = false
+
+  return source
     .split('\n')
     .map(line => {
+      const trimmedLine = line.trim()
+
+      if (multilineTerminator) {
+        if (trimmedLine === multilineTerminator) multilineTerminator = undefined
+
+        return `<span class="block">${escapeHtml(line) || '&nbsp;'}</span>`
+      }
+
+      if (!trimmedLine) return '<span class="block">&nbsp;</span>'
+
       const comment = line.match(/^(\s*)#\s?(.*)$/)
       if (comment) {
         const indentation = comment[1] ?? ''
@@ -92,9 +108,26 @@ const highlightBash = (source: string, prompt = '$') =>
         })
         .join('')
 
-      return `<span class="block"><span class="mr-[0.6rem] select-none text-[#65d8ba]" aria-hidden="true">${prompt}</span>${content}</span>`
+      const bashHereDocument = line.match(
+        /<<-?\s*(?:'([^']+)'|"([^"]+)"|([A-Za-z_][\w-]*))/,
+      )
+      const powershellHereString = /@\s*(['"])\s*$/.exec(line)
+      if (bashHereDocument) {
+        multilineTerminator =
+          bashHereDocument[1] ?? bashHereDocument[2] ?? bashHereDocument[3]
+      } else if (powershellHereString) {
+        multilineTerminator = `${powershellHereString[1]}@`
+      }
+
+      const prefix = continuesFromPreviousLine
+        ? ''
+        : `<span class="mr-[0.6rem] select-none text-[#65d8ba]" aria-hidden="true">${prompt}</span>`
+      continuesFromPreviousLine = /(?<!\\)\\$/.test(line)
+
+      return `<span class="block">${prefix}${content}</span>`
     })
     .join('')
+}
 
 const highlightSource = (
   source: string,
@@ -157,6 +190,7 @@ const highlightSource = (
 let {
   actions,
   code,
+  copyLabelSuffix,
   copyCode,
   displayCode,
   comments = [],
@@ -169,8 +203,10 @@ let {
   label,
   language = 'text',
   leadingActions,
+  labelContent,
   onCopy,
   promptIcon = 'material-symbols-light:auto-awesome',
+  terminalDotsSuffix,
   variant = 'code',
 }: Props = $props()
 let copied = $state(false)
@@ -274,6 +310,7 @@ const selectManualCopyText = () => {
           <span class="size-2.5 rounded-full bg-[#f2c26d]"></span>
           <span class="size-2.5 rounded-full bg-[#75c89c]"></span>
         </span>
+        {@render terminalDotsSuffix?.()}
       {/if}
       <span
         class={`font-semibold ${
@@ -283,7 +320,11 @@ const selectManualCopyText = () => {
               ? 'font-mono text-label-sm text-[#d6e4ff]'
             : 'font-mono text-label-sm text-white/75'
         }`}
-        >{@html label}</span
+        >{#if labelContent}
+          {@render labelContent()}
+        {:else}
+          {@html label}
+        {/if}</span
       >
     </div>
     {#if copyable || actions || comments.length > 0}
@@ -312,6 +353,7 @@ const selectManualCopyText = () => {
               aria-hidden="true"
             />
             {copied ? copiedLabel : copyLabel}
+            {@render copyLabelSuffix?.()}
           </button>
         {/if}
         {@render actions?.()}
