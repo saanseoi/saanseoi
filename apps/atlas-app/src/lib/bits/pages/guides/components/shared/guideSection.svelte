@@ -17,6 +17,7 @@ type Props = {
   id: string
   intro?: string
   number?: number
+  showBorder?: boolean
   step?: string
   title?: string
 }
@@ -29,6 +30,7 @@ let {
   id,
   intro,
   number,
+  showBorder = true,
   step,
   title,
 }: Props = $props()
@@ -36,18 +38,18 @@ let {
 
 <section
   {id}
-  class="scroll-mt-28 border-t border-border-card py-12 first:border-t-0 first:pt-0 md:py-16"
+  class={`scroll-mt-28 ${showBorder ? 'border-t border-border-card py-12 first:border-t-0 first:pt-0 md:py-16' : 'py-5 md:py-6'}`}
 >
   {#if eyebrow}
     <p class="font-display text-headline-lg font-bold leading-tight text-primary">
-      {#if number}
+      {#if number !== undefined}
         <span aria-hidden="true">{number}. </span>
       {/if}
       {@html eyebrow}
     </p>
   {/if}
   {#if intro}
-    <p class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
       {@html intro}
     </p>
   {/if}
@@ -76,7 +78,7 @@ let {
   {/if}
   {#if description}
     <p
-      class={`${actionLabel ? 'mt-2' : 'mt-4'} max-w-3xl font-body text-body-md leading-7 text-foreground-alt`}
+      class={`${actionLabel ? 'mt-2' : 'mt-4'} max-w-3xl font-body text-body-lg leading-8 text-foreground-alt`}
     >
       {@html description}
     </p>

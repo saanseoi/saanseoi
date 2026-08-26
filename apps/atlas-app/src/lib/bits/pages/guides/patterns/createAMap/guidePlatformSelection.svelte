@@ -43,7 +43,7 @@ let {
 </script>
 
 {#if objective === 'local'}
-  <p class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+  <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
     {@html m.guide_platform_local_description()}
   </p>
 {:else if objective === 'web'}
@@ -74,7 +74,7 @@ let {
     />
     {#if websitePlatform === 'other'}
       <p
-        class="border-l-4 border-secondary bg-background p-5 font-body text-body-md leading-7 text-foreground-alt"
+        class="border-l-4 border-secondary bg-background p-5 font-body text-body-lg leading-8 text-foreground-alt"
       >
         {@html m.guide_embed_other_notice()}
         <a
@@ -98,7 +98,7 @@ let {
   </div>
 {:else if objective === 'mobile-embed'}
   <div class="mt-5 space-y-5">
-    <p class="font-body text-body-md leading-7 text-foreground-alt">
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_mobile_integration_note()}
     </p>
     <GuideChoiceGroup
@@ -134,11 +134,11 @@ let {
       />
     {/if}
     {#if notebookLibrary === 'maplibre-jupyter'}
-      <p class="font-body text-body-md leading-7 text-foreground-alt">
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_notebook_maplibre_note()}
       </p>
     {:else if notebookLibrary === 'folium'}
-      <p class="font-body text-body-md leading-7 text-foreground-alt">
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_notebook_folium_note()}
       </p>
     {/if}

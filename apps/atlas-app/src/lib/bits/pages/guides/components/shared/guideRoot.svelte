@@ -244,7 +244,7 @@ onMount(() => {
                         href={`#${targetId}`}
                         aria-current={currentOutlineId === item.id ? 'location' : undefined}
                         onclick={event => navigate(event, targetId)}
-                        >{index}. {@html item.label}</a
+                        >{index + 1}. {@html item.label}</a
                       >
                     </li>
                   {/each}
@@ -349,7 +349,7 @@ onMount(() => {
                   href={`#${targetId}`}
                   aria-current={currentOutlineId === item.id ? 'location' : undefined}
                   onclick={event => navigate(event, targetId)}
-                  >{index}. {@html item.label}</a
+                  >{index + 1}. {@html item.label}</a
                 >
               </li>
             {/each}

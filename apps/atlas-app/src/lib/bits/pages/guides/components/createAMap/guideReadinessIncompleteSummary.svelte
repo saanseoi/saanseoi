@@ -25,7 +25,7 @@ let { children, description, eyebrow, titleId }: Props = $props()
     >
       {@html eyebrow}
     </p>
-    <p class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+    <p class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
       {@html description}
     </p>
     {@render children?.()}

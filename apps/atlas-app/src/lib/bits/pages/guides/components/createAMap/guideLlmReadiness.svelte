@@ -91,7 +91,7 @@ let expanded = $state(false)
         <GuideCreateAMapPricingTable options={chatPricing.options} />
       {/if}
       {#if aiAccess === 'web' && option.signUpUrl}
-        <p class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_agentic_ai_readiness_chat_sign_up_prompt()}
         </p>
       {/if}
@@ -104,12 +104,12 @@ let expanded = $state(false)
       class={`ml-8 ${complete ? 'mt-10 border-t border-[#6fdec9]/35 pt-0' : 'mt-5'}`}
     >
       {#if complete}
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html detailsDescription}
         </p>
         {#if aiAccess === 'web' && option.signUpUrl}
           <p
-            class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+            class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
           >
             {@html m.guide_agentic_ai_readiness_chat_sign_up_prompt()}
           </p>
@@ -214,7 +214,7 @@ let expanded = $state(false)
 </GuideReadinessPanel>
 
 {#if aiAccess === 'web' && complete}
-  <p class="-mt-7 mb-12 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+  <p class="-mt-7 mb-12 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
     {m.guide_agentic_ai_primer_chat_tools_free_tier_hint()}
   </p>
 {/if}

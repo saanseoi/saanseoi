@@ -499,7 +499,7 @@ onMount(() => {
     </div>
     {#if hasTileDescriptions}
       <div
-        class="mt-4 grid max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+        class="mt-4 grid max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
         aria-live="polite"
       >
         {#each choices as choice}
