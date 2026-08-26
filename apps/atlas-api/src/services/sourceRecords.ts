@@ -254,15 +254,15 @@ async function readSourceRecordPage(args: {
   release: SourceReleaseWithShard
   sourceDb: D1Database
 }): Promise<SourceRecordRow[]> {
+  if (args.random) return readRandomSourceRecordPage(args)
+
   const geometrySelection =
     args.includeGeometry && args.entry.geometryColumn
       ? `${args.entry.geometryColumn} AS sourceGeometry`
       : 'NULL AS sourceGeometry'
-  const cursorCondition =
-    !args.random && args.cursor
-      ? 'AND (sourceRecordId > ? OR (sourceRecordId = ? AND versionHash > ?))'
-      : ''
-  const orderBy = args.random ? 'RANDOM()' : 'sourceRecordId ASC, versionHash ASC'
+  const cursorCondition = args.cursor
+    ? 'AND (sourceRecordId > ? OR (sourceRecordId = ? AND versionHash > ?))'
+    : ''
   const statement = args.sourceDb
     .prepare(
       `SELECT sourceRecordId, versionHash, rawProperties, ${geometrySelection}
@@ -270,13 +270,13 @@ async function readSourceRecordPage(args: {
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
        ${cursorCondition}
-       ORDER BY ${orderBy}
+       ORDER BY sourceRecordId ASC, versionHash ASC
        LIMIT ?`,
     )
     .bind(
       args.release.sourceVersion,
       args.release.sourceVersion,
-      ...(!args.random && args.cursor
+      ...(args.cursor
         ? [
             args.cursor.sourceRecordId,
             args.cursor.sourceRecordId,
@@ -288,6 +288,46 @@ async function readSourceRecordPage(args: {
 
   const result = await runWithD1ReadRetry(() => statement.all<SourceRecordRow>())
   return result.results
+}
+
+/**
+ * Pick a random point in Overture's UUID-shaped source-record key space, then
+ * read forward through the primary-key index. This avoids evaluating RANDOM()
+ * for, and sorting, every record that is valid in the requested release.
+ */
+async function readRandomSourceRecordPage(args: {
+  entry: SourceRecordCatalogueEntry
+  includeGeometry: boolean
+  limit: number
+  release: SourceReleaseWithShard
+  sourceDb: D1Database
+}): Promise<SourceRecordRow[]> {
+  const geometrySelection =
+    args.includeGeometry && args.entry.geometryColumn
+      ? `${args.entry.geometryColumn} AS sourceGeometry`
+      : 'NULL AS sourceGeometry'
+  const randomStart = crypto.randomUUID().replaceAll('-', '')
+
+  const readRange = async (operator: '>=' | '<', limit: number) => {
+    const statement = args.sourceDb
+      .prepare(
+        `SELECT sourceRecordId, versionHash, rawProperties, ${geometrySelection}
+         FROM ${args.entry.tableName}
+         WHERE validFromRelease <= ?
+           AND (validToRelease IS NULL OR validToRelease > ?)
+           AND sourceRecordId ${operator} ?
+         ORDER BY sourceRecordId ASC, versionHash ASC
+         LIMIT ?`,
+      )
+      .bind(args.release.sourceVersion, args.release.sourceVersion, randomStart, limit)
+    const result = await runWithD1ReadRetry(() => statement.all<SourceRecordRow>())
+    return result.results
+  }
+
+  const rows = await readRange('>=', args.limit)
+  if (rows.length === args.limit) return rows
+
+  return [...rows, ...(await readRange('<', args.limit - rows.length))]
 }
 
 function toSourceRecord(
