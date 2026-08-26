@@ -118,12 +118,17 @@ const liveableLayers: LayerSpecification[] = [
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
         <span class="block font-body text-xs text-[#52615d]">people per km²</span>
-        <div
-          class="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-body text-xs text-[#52615d]"
-        >
-          <span>{metric.landAreaSqKm.toFixed(1)} km² liveable land</span>
-          <span>{metric.liveablePercentage.toFixed(0)}% liveable</span>
-        </div>
+        <p class="mt-2 font-body text-xs text-[#52615d]">
+          <strong class="font-semibold text-[#10151a]"
+            >{metric.liveablePercentage.toFixed(0)}%</strong
+          >
+          or
+          <strong class="font-semibold text-[#10151a]"
+            >{metric.landAreaSqKm.toFixed(1)}
+            km²</strong
+          >
+          liveable land
+        </p>
       </article>
     {/each}
   </section>
