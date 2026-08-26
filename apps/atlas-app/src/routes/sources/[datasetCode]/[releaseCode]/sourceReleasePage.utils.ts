@@ -1,4 +1,5 @@
-import { m, type AppLocale } from '#lib/bits/internal/i18n.js'
+import { m } from '@repo/i18n/messages'
+import type { AppLocale } from '#lib/bits/internal/localisedMessages.js'
 import type {
   ReleaseStatsCopy,
   ReleaseStatsDistrictArea,
