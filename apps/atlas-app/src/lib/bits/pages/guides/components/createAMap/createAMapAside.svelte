@@ -45,7 +45,7 @@ let {
     >
       {@html m.guide_llm_callout_title()}
     </h2>
-    <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_llm_callout_intro()}
     </p>
     <ul

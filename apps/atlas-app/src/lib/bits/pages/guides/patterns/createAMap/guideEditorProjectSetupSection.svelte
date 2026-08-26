@@ -32,11 +32,9 @@ const instruction = $derived(
     ? m.guide_setup_editor_zed_instruction()
     : editor === 'vscode'
       ? m.guide_setup_editor_vscode_instruction()
-      : editor === 'sublime-text'
-        ? m.guide_setup_editor_sublime_text_instruction()
-        : editor === 'cursor'
-          ? m.guide_setup_editor_cursor_instruction()
-          : undefined,
+      : editor === 'cursor'
+        ? m.guide_setup_editor_cursor_instruction()
+        : undefined,
 )
 
 const description = $derived(
@@ -61,11 +59,11 @@ const description = $derived(
       {@html m.guide_setup_editor_title()}
     </h3>
   {/if}
-  <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+  <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
     {@html description}
   </p>
   {#if instruction}
-    <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+    <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
       {@html instruction}
     </p>
   {/if}

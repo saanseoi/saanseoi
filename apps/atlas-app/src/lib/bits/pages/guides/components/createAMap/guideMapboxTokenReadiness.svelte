@@ -19,6 +19,7 @@ type Props = {
   onReset: () => void
   tokenCode: string
   tokenPasteInstruction: string
+  terminalProjectPath: string
 }
 
 let {
@@ -28,6 +29,7 @@ let {
   onReset,
   tokenCode,
   tokenPasteInstruction,
+  terminalProjectPath,
 }: Props = $props()
 let expanded = $state(false)
 let restrictionsExpanded = $state(false)
@@ -57,7 +59,7 @@ let restrictionsExpanded = $state(false)
       <h3 class="mt-2 font-display text-headline-sm font-bold text-primary">
         {@html m.guide_renderer_mapbox_account_title()}
       </h3>
-      <p class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_renderer_mapbox_account_description()}
       </p>
     </div>
@@ -65,7 +67,7 @@ let restrictionsExpanded = $state(false)
 {/snippet}
 {#snippet mapboxTokenDetails()}
   <ol
-    class="max-w-3xl list-inside list-decimal space-y-5 font-body text-body-md leading-7 text-foreground-alt marker:font-semibold marker:text-secondary"
+    class="max-w-3xl list-inside list-decimal space-y-5 font-body text-body-lg leading-8 text-foreground-alt marker:font-semibold marker:text-secondary"
   >
     <li>
       <p class="inline">
@@ -111,12 +113,15 @@ let restrictionsExpanded = $state(false)
       caption={m.guide_renderer_mapbox_account_create_screenshot_caption()}
     />
   </div>
-  <p class="mt-5 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+  <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
     {@html m.guide_renderer_mapbox_account_copy_token()}
   </p>
   <div class="mt-5 max-w-2xl">
     <GuideCodeBlock
-      label={m.guide_renderer_mapbox_token_code()}
+      label={m.guide_setup_terminal_label({
+        action: m.guide_renderer_mapbox_token_code(),
+        path: terminalProjectPath,
+      })}
       code={tokenCode}
       language="bash"
       copyLabel={m.common_copy()}
@@ -148,7 +153,7 @@ let restrictionsExpanded = $state(false)
         </button>
       </h4>
       {#if restrictionsExpanded}
-        <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_renderer_mapbox_token_restrictions_description()}
         </p>
         <div class="mt-5">

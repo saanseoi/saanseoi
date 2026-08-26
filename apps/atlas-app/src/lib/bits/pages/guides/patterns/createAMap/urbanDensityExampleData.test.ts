@@ -6,6 +6,7 @@ import {
   urbanDensityDivisionsResponse,
   urbanDensityStatsResponses,
 } from './urbanDensityExampleData.ts'
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
 test('groups Kwai Tsing with the New Territories', () => {
   const kwaiTsing = urbanDensityDivisionsResponse.data.find(
@@ -40,4 +41,13 @@ test('groups Kwai Tsing with the New Territories', () => {
     liveablePercentage: 79.36830977836763,
     peoplePerSqKm: 60162.9538164813,
   })
+})
+
+test('ships the simplified land-clipped census districts used by the previews', () => {
+  expect(urbanDensityCensusDistricts.features).toHaveLength(18)
+  expect(
+    urbanDensityCensusDistricts.features.map(
+      feature => feature.properties.divisionCode,
+    ),
+  ).toContain('ILD')
 })

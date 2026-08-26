@@ -47,6 +47,8 @@ let commentsVisible = $state(true)
 let expanded = $state(false)
 let viewTransitionName = $state<string>()
 let previewInstance = $state(0)
+let previewInViewport = $state(false)
+let previewPanel: HTMLElement
 
 function showPreview() {
   // Recreate an interactive preview so its map returns to the configured view.
@@ -55,8 +57,14 @@ function showPreview() {
 }
 
 onMount(() => {
-  if (!expandable) return
-  viewTransitionName = `guide-map-preview-${crypto.randomUUID()}`
+  if (expandable) viewTransitionName = `guide-map-preview-${crypto.randomUUID()}`
+
+  const observer = new IntersectionObserver(([entry]) => {
+    previewInViewport = entry?.isIntersecting ?? false
+  })
+  observer.observe(previewPanel)
+
+  return () => observer.disconnect()
 })
 
 function expandPreview() {
@@ -127,6 +135,7 @@ function closePreview() {
     </GuideCodeBlock>
   </div>
   <section
+    bind:this={previewPanel}
     aria-label={previewLabel}
     aria-hidden={view !== 'preview'}
     inert={view !== 'preview'}
@@ -200,9 +209,11 @@ function closePreview() {
       </header>
     {/if}
     <div class={`min-h-0 flex-1 bg-[#131722] ${expanded ? '' : 'p-4'}`}>
-      {#key previewInstance}
-        {@render preview()}
-      {/key}
+      {#if previewInViewport}
+        {#key previewInstance}
+          {@render preview()}
+        {/key}
+      {/if}
     </div>
   </section>
 </div>
