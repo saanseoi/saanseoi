@@ -2144,7 +2144,14 @@ function resolveMirrorTablesForBinding(
 
   if (bindingName === 'DB_CURRENT') {
     if (cacheTableProfile === 'divisionStatistic') {
-      return []
+      return [
+        'statsRecords',
+        'statsFields',
+        'statsFieldsI18n',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsValuesI18n',
+      ]
     }
 
     if (cacheTableProfile === 'statistics') {
@@ -2189,7 +2196,15 @@ function resolveMirrorTablesForBinding(
 
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
-      return ['divisionStatistics']
+      return [
+        'divisionStatistics',
+        'statsRecords',
+        'statsFields',
+        'statsFieldsI18n',
+        'statsMeasures',
+        'statsMeasuresI18n',
+        'statsValuesI18n',
+      ]
     }
 
     if (cacheTableProfile === 'statistics') {
@@ -2451,11 +2466,14 @@ function shouldMirrorTableSchemaOnly(
   cacheTableProfile?: CacheTableProfile,
 ) {
   return (
-    cacheTableProfile === 'planningDivisionGeometry' &&
-    bindingName === 'DB_HISTORY_HK_BEFORE' &&
-    (tableName === 'divisionAreas' ||
-      tableName === 'divisionBoundaries' ||
-      tableName === 'snapshotVersionChanges')
+    (cacheTableProfile === 'divisionStatistic' &&
+      (bindingName === 'DB_CURRENT' ||
+        /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName))) ||
+    (cacheTableProfile === 'planningDivisionGeometry' &&
+      bindingName === 'DB_HISTORY_HK_BEFORE' &&
+      (tableName === 'divisionAreas' ||
+        tableName === 'divisionBoundaries' ||
+        tableName === 'snapshotVersionChanges'))
   )
 }
 

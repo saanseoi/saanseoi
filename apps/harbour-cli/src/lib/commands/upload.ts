@@ -780,6 +780,7 @@ ${mutedBar}  `)
             target,
             {
               cohortKey: previewResult.plan.cohortKey,
+              datasetCode: previewResult.plan.datasetCode,
               regionCode: 'hk',
               releaseCode: previewResult.plan.releaseCode,
               rowCount: previewResult.plan.rowCount,
