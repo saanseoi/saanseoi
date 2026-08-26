@@ -8,6 +8,8 @@ import GuideReference from '../../components/shared/guideReference.svelte'
 import GuideScreenshot from '../../components/shared/guideScreenshot.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
 import GuideEditorProjectSetupSection from './guideEditorProjectSetupSection.svelte'
+import GuideMacosCurlCertificateWarning from './guideMacosCurlCertificateWarning.svelte'
+import GuideTerminalCommandAnatomy from './guideTerminalCommandAnatomy.svelte'
 
 type Props = {
   bunInstallCode: string
@@ -55,42 +57,21 @@ let {
 
 const terminalLanguage = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
 const showGuidance = $derived(terminalExperience !== 'advanced')
+const terminalHomePath = $derived(
+  operatingSystem === 'windows' ? 'C:\\Users\\your-name' : '~/',
+)
+const terminalProjectPath = $derived(
+  operatingSystem === 'windows'
+    ? 'C:\\Users\\your-name\\saanseoi-project'
+    : '~/saanseoi-project',
+)
+const terminalLabel = (path: string, action: string) =>
+  m.guide_setup_terminal_label({ action, path })
 </script>
 
-<div class="mt-14 border-t border-border-card pt-10">
-  <GuideSubSectionHeader
-    eyebrow={m.guide_setup_eyebrow()}
-    title={m.guide_setup_title()}
-  />
-  {#if objective === 'notebook-embed' || objective === 'mobile-embed'}
-    <p class="mt-1 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
-      {@html objective === 'notebook-embed' ? m.guide_setup_notebook_manual() : m.guide_setup_mobile_manual()}
-    </p>
-  {:else}
-    <p
-      class="mt-1 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:inline-flex [&_code]:min-h-[1.55em] [&_code]:items-center [&_code]:justify-center [&_code]:rounded-[0.2rem] [&_code]:border [&_code]:border-secondary/65 [&_code]:border-b-2 [&_code]:bg-secondary-container/12 [&_code]:px-[0.35em] [&_code]:align-[0.06em] [&_code]:font-mono [&_code]:text-[0.78em] [&_code]:font-bold [&_code]:leading-none [&_code]:text-secondary"
-    >
-      {@html terminalExperience === 'none' || terminalExperience === 'basic'
-        ? operatingSystem === 'windows'
-          ? m.guide_setup_terminal_instructions_windows()
-          : m.guide_setup_terminal_instructions_unix()
-        : m.guide_setup_commands_before_bun()}
-      <GuideReference
-        href={`saanseoi:${locale.toLowerCase()}:definition/bun/v1`}
-        label={m.reference_bun()}
-      />
-      {@html m.guide_setup_commands_after_bun()}
-      <GuideReference
-        href={`saanseoi:${locale.toLowerCase()}:definition/typescript/v1`}
-        label={m.reference_typescript()}
-      />
-      {@html m.guide_setup_commands_after_typescript()}
-      <GuideReference
-        href={`saanseoi:${locale.toLowerCase()}:definition/packages/v1`}
-        label={m.reference_packages()}
-      />
-      {@html m.guide_setup_commands_after_packages()}
-    </p>
+<div class="mt-8">
+  {#if showGuidance && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
+    <GuideTerminalCommandAnatomy {operatingSystem} />
   {/if}
   {#if objective === 'notebook-embed'}
     {#if notebookRuntime === 'local'}
@@ -125,17 +106,31 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
       </div>
     {/if}
   {:else if objective !== 'mobile-embed'}
+    <div class:mt-8={showGuidance}>
+      <GuideSubSectionHeader
+        eyebrow={m.guide_setup_eyebrow()}
+        title={m.guide_setup_terminal_title()}
+      />
+    </div>
+    {#if showGuidance}
+      <p class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+        {@html m.guide_setup_terminal_transition()}
+      </p>
+    {/if}
     <div class="mt-7 space-y-7">
       <GuideCodeInstructionStep
-        codeLabel={m.guide_setup_install_bun()}
+        codeLabel={terminalLabel(terminalHomePath, m.guide_setup_install_bun())}
         code={bunInstallCode}
         language={terminalLanguage}
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
         instruction={showGuidance ? { description: bunInstallExplanation, stepLabel: m.guide_setup_install_step_label(), stepNumber: 1, title: m.guide_setup_install_bun() } : undefined}
       />
+      {#if operatingSystem === 'macos'}
+        <GuideMacosCurlCertificateWarning />
+      {/if}
       <GuideCodeInstructionStep
-        codeLabel={m.guide_setup_project()}
+        codeLabel={terminalLabel(terminalHomePath, m.guide_setup_project())}
         code={setupCode}
         language={terminalLanguage}
         copyLabel={m.common_copy()}
@@ -144,7 +139,10 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
       />
       {#if hostingInstallCode}
         <GuideCodeInstructionStep
-          codeLabel={m.guide_setup_install_hosting_tool()}
+          codeLabel={terminalLabel(
+            terminalProjectPath,
+            m.guide_setup_install_hosting_tool(),
+          )}
           code={hostingInstallCode}
           language={terminalLanguage}
           copyLabel={m.common_copy()}
@@ -153,7 +151,7 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
         />
       {/if}
       <GuideCodeInstructionStep
-        codeLabel={m.guide_setup_start_server()}
+        codeLabel={terminalLabel(terminalProjectPath, m.guide_setup_start_server())}
         code="bun dev"
         language={terminalLanguage}
         copyLabel={m.common_copy()}
@@ -161,7 +159,7 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
         instruction={showGuidance ? { description: m.guide_setup_start_server_explanation(), stepLabel: m.guide_setup_start_step_label(), stepNumber: setupStartStepNumber, title: m.guide_setup_start_server() } : undefined}
       />
       <div class="space-y-5">
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_setup_complete()}
         </p>
         <GuideCodeInstructionStep
@@ -172,7 +170,7 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
           copiedLabel={m.common_copied()}
           instruction={showGuidance ? { description: m.guide_setup_server_address_description(), label: m.guide_setup_server_address_label(), title: m.guide_setup_server_address_title() } : undefined}
         />
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_setup_complete_browser_before()}
           <a
             class="font-semibold text-secondary underline underline-offset-4"
@@ -183,14 +181,14 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
         <div class="max-w-3xl">
           <GuideScreenshot src={viteDemoPage} alt={m.guide_setup_vite_demo_alt()} />
         </div>
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           <GuideReference
             href={`saanseoi:${locale.toLowerCase()}:note/vite/v1`}
             label={m.reference_vite()}
           />{@html m.guide_setup_complete_browser_vite_after()}
         </p>
         {#if showGuidance}
-          <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+          <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
             {@html m.guide_setup_complete_stop_before()}
             <kbd
               class="inline-flex min-h-[1.55em] items-center justify-center rounded-sm border border-secondary/65 border-b-2 bg-secondary-container px-[0.35em] align-[0.06em] font-mono text-[0.78em] font-bold leading-none text-white shadow-kbd"
@@ -203,11 +201,11 @@ const showGuidance = $derived(terminalExperience !== 'advanced')
             >{@html m.guide_setup_complete_stop_after()}
           </p>
         {/if}
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_setup_continue()}
         </p>
         <GuideCodeInstructionStep
-          codeLabel={m.guide_setup_continue_command()}
+          codeLabel={terminalLabel(terminalHomePath, m.guide_setup_continue_command())}
           code={restartProjectCode}
           language={terminalLanguage}
           copyLabel={m.common_copy()}

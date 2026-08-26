@@ -22,7 +22,7 @@ let { description, items, title }: Props = $props()
   >
     {@html title}
   </h2>
-  <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+  <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
     {@html description}
   </p>
   <ol class="mt-8 flex flex-col gap-2 md:gap-3">

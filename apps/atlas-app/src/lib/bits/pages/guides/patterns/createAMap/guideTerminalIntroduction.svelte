@@ -8,9 +8,12 @@ import GuideTerminalDemo from './guideTerminalDemo.svelte'
 
 type OperatingSystem = 'windows' | 'macos' | 'linux'
 
-type Props = { operatingSystem?: OperatingSystem }
+type Props = {
+  expanded?: boolean
+  operatingSystem?: OperatingSystem
+}
 
-let { operatingSystem }: Props = $props()
+let { expanded = $bindable(true), operatingSystem }: Props = $props()
 
 const terminalInstructions = $derived(
   operatingSystem === 'windows'
@@ -42,7 +45,6 @@ const terminalLearningResource = $derived(
         url: 'https://www.learnenough.com/command-line-tutorial',
       },
 )
-let expanded = $state(true)
 </script>
 
 <GuideExpandablePattern
@@ -55,7 +57,7 @@ let expanded = $state(true)
   <div class="terminal-introduction__hero">
     <div>
       <p class="terminal-introduction__eyebrow">01 / Getting started</p>
-      <p class="mt-3 max-w-xl font-body text-body-md leading-7 text-foreground-alt">
+      <p class="mt-3 max-w-xl font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_terminal_intro_description()}
       </p>
     </div>

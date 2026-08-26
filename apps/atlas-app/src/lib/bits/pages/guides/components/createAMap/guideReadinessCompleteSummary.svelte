@@ -23,7 +23,7 @@ let { description, eyebrow, titleId }: Props = $props()
     {@html eyebrow}
   </span>
   <span
-    class="mt-2 block max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+    class="mt-2 block max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
   >
     {@html description}
   </span>

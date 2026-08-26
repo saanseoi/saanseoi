@@ -171,10 +171,10 @@ const agentWorkflowScreenshots = $derived([
         transition:slide={{ duration: 180 }}
       >
         <div class="space-y-4 border-b border-[#7dd3fc]/25 pb-8">
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {@html m.guide_zed_setup_intro()}
           </p>
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {@html m.guide_zed_setup_without_vpn()}
           </p>
         </div>
@@ -188,7 +188,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading id="zed-setup-heading" number="01">
                   {@html m.guide_zed_setup_step_install()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_step_install_description()}
                 </p>
                 <GuideExternalAction
@@ -214,7 +214,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading number="02">
                   {@html m.guide_zed_setup_step_account()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_account_description()}
                 </p>
                 <GuideExternalAction
@@ -223,7 +223,7 @@ const agentWorkflowScreenshots = $derived([
                 >
                   {@html m.guide_zed_setup_account_button()}
                 </GuideExternalAction>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_account_confirmation()}
                 </p>
               </div>
@@ -243,7 +243,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading number="03">
                   {@html m.guide_zed_setup_step_credit()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_credit_description()}
                 </p>
                 <GuideExternalAction
@@ -252,7 +252,7 @@ const agentWorkflowScreenshots = $derived([
                 >
                   {@html m.guide_zed_setup_open_credits()}
                 </GuideExternalAction>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_credit_note()}
                 </p>
               </div>
@@ -272,7 +272,7 @@ const agentWorkflowScreenshots = $derived([
             >
               <li class="space-y-3 pl-1">
                 <div class="flex flex-wrap items-center gap-3">
-                  <p class="font-body text-body-md leading-7 text-foreground-alt">
+                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
                     {@html m.guide_zed_setup_key_description()}
                   </p>
                   <GuideExternalAction
@@ -284,7 +284,7 @@ const agentWorkflowScreenshots = $derived([
                 </div>
               </li>
               <li class="space-y-3 pl-1">
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_image_api_key_dialog_caption()}
                 </p>
                 <GuideScreenshot
@@ -293,7 +293,7 @@ const agentWorkflowScreenshots = $derived([
                 />
               </li>
               <li class="space-y-3 pl-1">
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_key_once()}
                 </p>
                 <GuideScreenshot
@@ -302,7 +302,7 @@ const agentWorkflowScreenshots = $derived([
                 />
               </li>
             </ol>
-            <p class="mt-6 font-body text-body-md leading-7 text-foreground-alt">
+            <p class="mt-6 font-body text-body-lg leading-8 text-foreground-alt">
               {@html m.guide_zed_setup_key_manage()}
             </p>
           </li>
@@ -317,7 +317,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideSubstepHeading marker="1.">
                   {@html m.guide_zed_setup_open_zed_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_open_zed_description()}
                 </p>
               </li>
@@ -326,7 +326,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideSubstepHeading marker="2.">
                   {@html m.guide_zed_setup_project_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_project_description()}
                 </p>
                 <GuideScreenshot
@@ -348,7 +348,7 @@ const agentWorkflowScreenshots = $derived([
               {@html m.guide_zed_setup_provider_title()}
             </GuideNumberedStepHeading>
             <div class="mt-5 space-y-4">
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_provider_description()}
               </p>
               <div class="grid gap-5">
@@ -360,7 +360,7 @@ const agentWorkflowScreenshots = $derived([
                 src={zedOpenRouterProviderImage}
                 alt={m.guide_zed_setup_image_provider_alt()}
               />
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_provider_docs()}
               </p>
             </div>
@@ -371,7 +371,7 @@ const agentWorkflowScreenshots = $derived([
               {@html m.guide_zed_setup_model_title()}
             </GuideNumberedStepHeading>
             <div class="mt-5 space-y-4">
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_model_intro()}
               </p>
               <GuideSubstepHeading marker="Step 1">
@@ -382,7 +382,7 @@ const agentWorkflowScreenshots = $derived([
                 alt={m.guide_zed_setup_image_settings_file_menu_alt()}
                 caption={m.guide_zed_setup_image_settings_file_menu_caption()}
               />
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_model_description()}
               </p>
               <GuideScreenshot
@@ -396,7 +396,7 @@ const agentWorkflowScreenshots = $derived([
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
               />
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_full_settings_description()}
               </p>
               <GuideCodeBlock
@@ -405,7 +405,7 @@ const agentWorkflowScreenshots = $derived([
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
               />
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_zed_setup_save({ shortcut: saveShortcut })}
               </p>
               <GuideScreenshot
@@ -417,7 +417,7 @@ const agentWorkflowScreenshots = $derived([
                 <GuideSubstepHeading marker="Step 2">
                   {@html m.guide_zed_setup_ready_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-md leading-7 text-foreground-alt">
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_zed_setup_ready_intro()}
                 </p>
                 <GuideScreenshot
@@ -443,7 +443,7 @@ const agentWorkflowScreenshots = $derived([
       class="mt-16 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
       aria-label="Zed setup alternative"
     >
-      <p class="font-body text-body-md leading-7 text-foreground-alt">
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_zed_setup_alternative()}
       </p>
     </aside>
@@ -455,7 +455,7 @@ const agentWorkflowScreenshots = $derived([
     <h3 class="font-display text-headline-sm font-bold text-primary">
       {@html m.guide_zed_setup_prompt_title()}
     </h3>
-    <p class="font-body text-body-md leading-7 text-foreground-alt">
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_zed_setup_prompt_intro()}
     </p>
     <GuideCodeBlock

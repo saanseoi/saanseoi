@@ -25,7 +25,7 @@ let {
     src={projectTrustImage}
     alt={m.guide_zed_setup_image_project_trust_alt()}
   />
-  <p class="font-body text-body-md leading-7 text-foreground-alt">
+  <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html m.guide_zed_setup_trust_description()}
   </p>
   <GuideScreenshot

@@ -339,7 +339,7 @@ const selectManualCopyText = () => {
         {m.guide_code_block_manual_copy_title()}
       </Dialog.Title>
       <Dialog.Description
-        class="mt-3 font-body text-body-md leading-7 text-foreground-alt"
+        class="mt-3 font-body text-body-lg leading-8 text-foreground-alt"
       >
         {m.guide_code_block_manual_copy_description()}
       </Dialog.Description>
