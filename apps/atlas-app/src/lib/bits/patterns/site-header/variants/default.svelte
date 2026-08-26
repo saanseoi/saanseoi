@@ -14,6 +14,11 @@ type User = {
 let { user = null }: { user?: User | null } = $props()
 let mobileHeaderVisible = $state(true)
 let isLandingPage = $derived(page.url.pathname === '/')
+let authRedirectPath = $derived(
+  `${page.url.pathname}${page.url.search}${page.url.hash}`,
+)
+let signInHref = $derived(`/sign-in?next=${encodeURIComponent(authRedirectPath)}`)
+let signUpHref = $derived(`/sign-up?continue=${encodeURIComponent(authRedirectPath)}`)
 
 $effect(() => {
   if (typeof window === 'undefined') return
@@ -119,6 +124,6 @@ $effect(() => {
   >
     <SiteBrand />
     <PrimaryNavigation />
-    <HeaderActions {user} />
+    <HeaderActions {user} {signInHref} {signUpHref} />
   </div>
 </header>
