@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildReleaseProcessingActionsMetaSqlBatches,
   buildReleaseStatsMetaSqlBatches,
+  buildStatisticSnapshotMetaSqlBatches,
   replayReleaseStatsMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
 
@@ -126,5 +127,64 @@ describe('release statistics metadata replay', () => {
     expect(sql).toContain(`AND "type" = 'processing';`)
     expect(sql).toContain("'audit-1'")
     expect(sql).toContain("'processing-1'")
+  })
+
+  test('replays statistic snapshot metadata before publication', () => {
+    const sql = buildStatisticSnapshotMetaSqlBatches({
+      lineages: [
+        {
+          code: 'division-statistic/hk/dataset-statistics',
+          createdAt: '2026-08-18T00:00:00.000Z',
+          id: 'lineage',
+          identityMode: 'persistent',
+          primaryDatasetId: 'dataset',
+          regionCode: 'hk',
+          resourceType: 'divisionStatistic',
+          updatedAt: '2026-08-18T00:00:00.000Z',
+          variant: 'dataset-statistics',
+          versionHash: 'lineage-hash',
+        },
+      ],
+      releaseAssignments: [{ dataShardId: 'source-2021', releaseId }],
+      snapshotAssignments: [{ dataShardId: 'history-2021', snapshotId: 'snapshot' }],
+      snapshots: [
+        {
+          code: 'division-statistic/hk/2021/dataset-statistics',
+          cohortKey: '2021',
+          createdAt: '2026-08-18T00:00:00.000Z',
+          id: 'snapshot',
+          notes: null,
+          parentSnapshotId: null,
+          publishedAt: null,
+          resourceType: 'divisionStatistic',
+          revision: 0,
+          snapshotLineageId: 'lineage',
+          status: 'draft',
+          updatedAt: '2026-08-18T00:00:00.000Z',
+          validFrom: null,
+          validTo: null,
+        },
+      ],
+      sources: [
+        {
+          anchorReleaseId: releaseId,
+          createdAt: '2026-08-18T00:00:00.000Z',
+          datasetId: 'dataset',
+          role: 'primary',
+          selectedByRule: 'stats-reference-period-exact-release-v1',
+          selectionMode: 'exact_ref',
+          snapshotId: 'snapshot',
+          sourceCohortKey: '2021',
+          sourceReleaseId: releaseId,
+        },
+      ],
+    }).join('\n')
+
+    expect(sql).toContain('INSERT INTO "snapshotLineages"')
+    expect(sql).toContain('INSERT INTO "snapshots"')
+    expect(sql).toContain('INSERT INTO "snapshotSources"')
+    expect(sql).toContain('INSERT INTO "releaseShardAssignments"')
+    expect(sql).toContain('INSERT INTO "snapshotShardAssignments"')
+    expect(sql).toContain("'snapshot'")
   })
 })
