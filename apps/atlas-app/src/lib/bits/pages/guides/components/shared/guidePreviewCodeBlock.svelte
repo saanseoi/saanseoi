@@ -123,6 +123,7 @@ function closePreview() {
     >
       {#snippet actions()}
         <button
+          data-guide-code-preview
           class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
           type="button"
           aria-pressed="false"

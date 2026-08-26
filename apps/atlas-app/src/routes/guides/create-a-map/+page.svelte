@@ -16,6 +16,7 @@ import {
   GuideChoiceGroup,
   GuideCodeBlock,
   GuideCreateAMapVersionNotice,
+  GuideEditorCardExplainer,
   GuideEditorProjectSetupSection,
   GuideEditorReadiness,
   GuideLlmReadiness,
@@ -71,6 +72,8 @@ import { createCreateAMapGuidePresentation } from './createAMapGuidePresentation
 import {
   createAgentProjectCommand,
   createDeploymentCode,
+  editorCardExplainerCode,
+  editorCardExplainerDisplayCode,
   createNotebookCode,
   createNotebookSetupCode,
   createProjectSetupCode,
@@ -210,6 +213,7 @@ let zedSetupContentExpanded = $state(
 let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
+let usingExistingBasemapApiKey = $state(false)
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
 let dataReadinessKey = $derived(dataSource ?? '')
@@ -1558,15 +1562,11 @@ const basemapCodeComments = $derived(
     : [],
 )
 const rendererEditorInstruction = $derived(
-  renderer === 'maplibre'
-    ? m.guide_renderer_maplibre_editor_instruction({
-        editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
-        path: rendererEditorPath,
-      })
-    : m.guide_renderer_editor_instruction({
-        editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
-        path: rendererEditorPath,
-      }),
+  m.guide_renderer_editor_instruction({
+    editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+    library: selectedRenderer?.label ?? '',
+    path: rendererEditorPath,
+  }),
 )
 const styleEditCode = $derived(
   selectedStyle &&
@@ -2144,6 +2144,11 @@ const styleChoices = $derived.by(() =>
               editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
             })}
           </GuideParagraph>
+          <GuideEditorCardExplainer
+            code={editorCardExplainerCode}
+            displayCode={editorCardExplainerDisplayCode}
+            editorIcon={selectedCodeEditor?.icon}
+          />
         {/if}
         <div class="mt-8 space-y-8">
           {#if objective !== 'mobile-embed' && objective !== 'notebook-embed'}
@@ -2257,11 +2262,6 @@ const styleChoices = $derived.by(() =>
                     {@html rendererEditorInstruction}
                   </p>
                   {#if renderer === 'maplibre'}
-                    <p
-                      class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
-                      {@html m.guide_create_map_preview_intro()}
-                    </p>
                     <div class="mt-4 max-w-[80ch]">
                       <GuidePreviewCodeBlock
                         label={rendererEditorPath}
@@ -2311,13 +2311,6 @@ const styleChoices = $derived.by(() =>
                   >
                     {@html rendererEditorRefreshNote}
                   </p>
-                  {#if renderer === 'maplibre'}
-                    <p
-                      class="mt-3 max-w-3xl font-body text-body-md font-bold leading-7 text-primary"
-                    >
-                      {m.guide_renderer_preview_tip()}
-                    </p>
-                  {/if}
                 </div>
                 {#if objective === 'web-embed'}
                   <GuideCallout>
@@ -2383,13 +2376,13 @@ const styleChoices = $derived.by(() =>
         showBorder={false}
         eyebrow={m.guide_basemap_eyebrow()}
       >
-        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+        <GuideParagraph class="mt-3">
           {@html m.guide_basemap_description_before()}
           <GuideReference
             href={`saanseoi:${locale.toLowerCase()}:note/basemap/v1`}
             label={m.reference_basemap()}
           />{@html m.guide_basemap_description_after()}
-        </p>
+        </GuideParagraph>
         <div class="mt-10 max-w-3xl">
           <GuideSubSectionHeader
             requirement={{
@@ -2417,15 +2410,40 @@ const styleChoices = $derived.by(() =>
                 total: 3,
               }}
               title={m.guide_basemap_api_key_requirement_title()}
-            />
+            >
+              {#snippet actions()}
+                {#if usingExistingBasemapApiKey}
+                  <Button
+                    onclick={() => (usingExistingBasemapApiKey = false)}
+                    size="compact"
+                    type="button"
+                    variant="secondary"
+                  >
+                    <Icon
+                      aria-hidden="true"
+                      class="size-5"
+                      icon="material-symbols-light:restart-alt-rounded"
+                    />
+                    {@html m.guide_readiness_reset()}
+                  </Button>
+                {/if}
+              {/snippet}
+            </GuideSubSectionHeader>
+            {#if !hasBasemapApiKey && !usingExistingBasemapApiKey}
+              <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+                {m.guide_basemap_api_key_create_instruction()}
+              </p>
+            {/if}
             <GuideCreateAMapApiKeys
               apiKeyReady={hasBasemapApiKey}
               editorIcon={selectedCodeEditor?.icon}
               editorLabel={selectedCodeEditor?.label}
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
+              {terminalProjectPath}
               onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
               showHeading={false}
+              bind:usingExistingKey={usingExistingBasemapApiKey}
             />
           </div>
         {/if}
@@ -2455,9 +2473,6 @@ const styleChoices = $derived.by(() =>
                   title={m.guide_basemap_editor_title()}
                 />
                 <GuideSubSectionBody content={m.guide_basemap_editor_description()}>
-                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
-                    {m.guide_basemap_editor_dimmed_lines_note()}
-                  </p>
                   {#if renderer === 'maplibre'}
                     <GuidePreviewCodeBlock
                       label={rendererEditorPath}
@@ -2497,9 +2512,10 @@ const styleChoices = $derived.by(() =>
                     />
                   {/if}
                   <p class="font-body text-body-lg leading-8 text-foreground-alt">
-                    {@html m.guide_basemap_editor_restart({
-                      region: selectedRegion?.label ?? m.guide_basemap_hk(),
-                    })}
+                    {m.guide_basemap_editor_restart()}
+                  </p>
+                  <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+                    {m.guide_basemap_editor_style_next()}
                   </p>
                 </GuideSubSectionBody>
               </div>
@@ -2538,14 +2554,11 @@ const styleChoices = $derived.by(() =>
         showBorder={false}
         eyebrow={m.guide_style_eyebrow()}
       >
-        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-          {@html m.guide_style_description()}
-        </p>
-        <a
-          class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-          href="/themes"
-          >{@html m.guide_style_gallery()}</a
+        <GuideParagraph
+          class="mt-3 [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
         >
+          {@html m.guide_style_description()}
+        </GuideParagraph>
         <div id="style-choice" class="scroll-mt-28">
           <GuideChoiceGroup
             alignment="left"
@@ -2622,6 +2635,9 @@ const styleChoices = $derived.by(() =>
                     />
                   {/snippet}
                 </GuidePreviewCodeBlock>
+                <GuideParagraph class="mt-4">
+                  {m.guide_style_editor_success()}
+                </GuideParagraph>
               {:else}
                 <GuideCodeBlock
                   label={rendererEditorPath}
@@ -2658,9 +2674,9 @@ const styleChoices = $derived.by(() =>
         showBorder={false}
         eyebrow={m.guide_data_eyebrow()}
       >
-        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+        <GuideParagraph class="mt-3">
           {@html m.guide_data_description()}
-        </p>
+        </GuideParagraph>
         <div id="project-data" class="scroll-mt-28">
           <GuideChoiceGroup
             alignment="left"
