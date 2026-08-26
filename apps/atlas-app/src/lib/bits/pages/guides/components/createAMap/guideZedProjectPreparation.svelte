@@ -1,6 +1,7 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
 
+import GuideParagraph from '../shared/guideParagraph.svelte'
 import GuideScreenshot from '../shared/guideScreenshot.svelte'
 
 type Props = {
@@ -25,9 +26,7 @@ let {
     src={projectTrustImage}
     alt={m.guide_zed_setup_image_project_trust_alt()}
   />
-  <p class="font-body text-body-lg leading-8 text-foreground-alt">
-    {@html m.guide_zed_setup_trust_description()}
-  </p>
+  <GuideParagraph> {@html m.guide_zed_setup_trust_description()} </GuideParagraph>
   <GuideScreenshot
     src={projectReadyImage}
     alt={projectReadyAlt}

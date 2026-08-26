@@ -23,6 +23,7 @@ import {
   GuideMapboxTokenReadiness,
   GuideManualSetup,
   GuideMissingAnswerReminder,
+  GuideParagraph,
   GuidePaymentWarning,
   GuidePlatformSelection,
   GuidePreviewCodeBlock,
@@ -1472,7 +1473,7 @@ const rendererVersionDependency = $derived(
   renderer === 'maplibre'
     ? { name: 'maplibre-gl', pinnedVersion: '6.6.0' }
     : renderer === 'mapbox'
-      ? { name: 'mapbox-gl', pinnedVersion: '3.28.1' }
+      ? { name: 'mapbox-gl', pinnedVersion: '3.29.0' }
       : { name: 'leaflet', pinnedVersion: '1.9.4' },
 )
 const rendererTerminalReminder = $derived(
@@ -2134,34 +2135,16 @@ const styleChoices = $derived.by(() =>
         showBorder={false}
         eyebrow={m.guide_render_eyebrow()}
       >
-        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-          {@html m.guide_render_description_before()}
-          <GuideReference
-            href={`saanseoi:${locale.toLowerCase()}:definition/render/v1`}
-            label={m.guide_render_description_link()}
-          />{@html m.guide_render_description_after()}
-        </p>
-        <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-          {@html m.guide_render_project_description_before()}
-          <GuideReference
-            href={`saanseoi:${locale.toLowerCase()}:note/vite/v1`}
-            label={m.reference_vite()}
-          />{@html m.guide_render_project_description_after()}
-        </p>
+        <GuideParagraph class="mt-3">
+          {@html m.guide_render_description()}
+        </GuideParagraph>
         {#if codeEditor && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
-          <p
-            class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-          >
+          <GuideParagraph class="mt-3">
             {@html m.guide_render_editor_intro({
               editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
             })}
-          </p>
+          </GuideParagraph>
         {/if}
-        <p
-          class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-secondary/65 [&_code]:bg-secondary-container/12 [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:font-semibold [&_code]:text-secondary"
-        >
-          {@html m.guide_render_script_tag_note()}
-        </p>
         <div class="mt-8 space-y-8">
           {#if objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             <div id="map-library" class="scroll-mt-28">
@@ -2205,7 +2188,7 @@ const styleChoices = $derived.by(() =>
             {/if}
             {#if renderer !== 'mapbox' || mapboxTokenConfigured}
               {#if !llmGuidanceEnabled}
-                <div class="border-t border-border-card pt-10">
+                <div class="pt-10">
                   <GuideSubSectionHeader
                     eyebrow={m.guide_renderer_prompt_none_eyebrow()}
                     title={m.guide_renderer_package_title({

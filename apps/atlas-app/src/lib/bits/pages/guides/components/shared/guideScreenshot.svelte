@@ -2,6 +2,8 @@
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
+import GuideParagraph from './guideParagraph.svelte'
+
 type Props = {
   alt: string
   caption?: string
@@ -37,9 +39,7 @@ const enlarge = () => {
     >
   </button>
   {#if caption}
-    <figcaption class="font-body text-body-sm leading-6 text-foreground-alt">
-      {caption}
-    </figcaption>
+    <figcaption><GuideParagraph>{caption}</GuideParagraph></figcaption>
   {/if}
 </figure>
 
