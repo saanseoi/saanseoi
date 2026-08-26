@@ -23,17 +23,17 @@
     "bun-types": "^1.4.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.126.0"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.1",
-    "@aws-sdk/client-s3": "^3.1117.0",
-    "@aws-sdk/s3-request-presigner": "^3.1117.0",
+    "@aws-sdk/client-s3": "^3.1118.0",
+    "@aws-sdk/s3-request-presigner": "^3.1118.0",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@scalar/hono-api-reference": "^0.11.16",
     "@scalar/openapi-to-markdown": "^0.5.42",
-    "hono": "^4.13.4",
+    "hono": "^4.13.5",
     "zod": "^4.4.3"
   }
 }
