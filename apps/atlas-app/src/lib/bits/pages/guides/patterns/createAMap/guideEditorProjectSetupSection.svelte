@@ -5,6 +5,7 @@ import GuideEditorProjectSetupCursorSection from '../../components/createAMap/gu
 import GuideEditorProjectSetupSublimeTextSection from '../../components/createAMap/guideEditorProjectSetupSublimeTextSection.svelte'
 import GuideEditorProjectSetupVsCodeSection from '../../components/createAMap/guideEditorProjectSetupVsCodeSection.svelte'
 import GuideEditorProjectSetupZedSection from '../../components/createAMap/guideEditorProjectSetupZedSection.svelte'
+import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 
 type CodeEditor = 'zed' | 'vscode' | 'sublime-text' | 'cursor' | 'other'
 
@@ -59,16 +60,12 @@ const description = $derived(
       {@html m.guide_setup_editor_title()}
     </h3>
   {/if}
-  <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-    {@html description}
-  </p>
-  {#if instruction}
-    <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-      {@html instruction}
-    </p>
+  <GuideParagraph> {@html description} </GuideParagraph>
+  {#if instruction && editor !== 'zed'}
+    <GuideParagraph> {@html instruction} </GuideParagraph>
   {/if}
   {#if editor === 'zed'}
-    <GuideEditorProjectSetupZedSection />
+    <GuideEditorProjectSetupZedSection {instruction} />
   {:else if editor === 'vscode'}
     <GuideEditorProjectSetupVsCodeSection />
   {:else if editor === 'sublime-text'}
