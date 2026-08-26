@@ -108,7 +108,7 @@ const liveableLayers: LayerSpecification[] = [
     </p>
   </div>
   <section
-    class="shrink-0 grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0_/_24%)] sm:grid-cols-3"
+    class="shrink-0 grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:grid-cols-3"
     aria-label="Liveable-area population density"
   >
     {#each metrics as metric}

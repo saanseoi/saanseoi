@@ -263,106 +263,153 @@ const mapComments = [
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_map_title()} />
       <GuideSubSectionBody content={m.guide_data_urban_density_map_description()}>
-        <GuidePreviewCodeBlock
-          label={m.guide_data_urban_density_map_code()}
-          code={mapCode}
-          comments={mapComments}
-          {editorIcon}
-          language="typescript"
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-          previewLabel={m.guide_code_block_preview()}
-          showCodeLabel={m.guide_code_block_code()}
-          expandable
-          expandLabel={m.guide_code_block_expand()}
-          closeLabel={m.common_close()}
+        <GuideSubSectionBody
+          content={m.guide_data_urban_density_exclusion_description()}
         >
-          {#snippet preview()}
-            <GuideUrbanDensityMapPreview
-              label={mapPreviewLabel}
-              {styleUrl}
-              {tilejsonUrl}
+          <GuidePreviewCodeBlock
+            label={m.guide_data_urban_density_map_code()}
+            code={mapCode}
+            comments={mapComments}
+            {editorIcon}
+            language="typescript"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+            previewLabel={m.guide_code_block_preview()}
+            showCodeLabel={m.guide_code_block_code()}
+            expandable
+            expandLabel={m.guide_code_block_expand()}
+            closeLabel={m.common_close()}
+          >
+            {#snippet preview()}
+              <GuideUrbanDensityMapPreview
+                label={mapPreviewLabel}
+                {styleUrl}
+                {tilejsonUrl}
+              />
+            {/snippet}
+          </GuidePreviewCodeBlock>
+        </GuideSubSectionBody>
+        <div class="mt-8">
+          <GuideSubSectionBody
+            content={m.guide_data_urban_density_census_areas_description()}
+          >
+            <GuidePreviewCodeBlock
+              label={m.guide_data_urban_density_census_areas_code()}
+              code={censusAreasCode}
+              {editorIcon}
+              language="typescript"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+              previewLabel={m.guide_code_block_preview()}
+              showCodeLabel={m.guide_code_block_code()}
+              expandable
+              expandLabel={m.guide_code_block_expand()}
+              closeLabel={m.common_close()}
+            >
+              {#snippet preview()}
+                <GuideUrbanDensityCensusAreasPreview
+                  label={mapPreviewLabel}
+                  {styleUrl}
+                  {tilejsonUrl}
+                />
+              {/snippet}
+            </GuidePreviewCodeBlock>
+          </GuideSubSectionBody>
+        </div>
+        <div class="mt-8">
+          <GuideSubSectionBody
+            content={m.guide_data_urban_density_install_description()}
+          >
+            <GuideCodeBlock
+              label={m.guide_data_urban_density_install_code()}
+              code={turfInstallCode}
+              language="bash"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
             />
-          {/snippet}
-        </GuidePreviewCodeBlock>
+          </GuideSubSectionBody>
+        </div>
         <div class="mt-8">
-          <GuidePreviewCodeBlock
-            label={m.guide_data_urban_density_census_areas_code()}
-            code={censusAreasCode}
-            {editorIcon}
-            language="typescript"
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-            previewLabel={m.guide_code_block_preview()}
-            showCodeLabel={m.guide_code_block_code()}
-            expandable
-            expandLabel={m.guide_code_block_expand()}
-            closeLabel={m.common_close()}
+          <GuideSubSectionBody
+            content={m.guide_data_urban_density_liveable_area_description()}
           >
-            {#snippet preview()}
-              <GuideUrbanDensityCensusAreasPreview
-                label={mapPreviewLabel}
-                {styleUrl}
-                {tilejsonUrl}
-              />
-            {/snippet}
-          </GuidePreviewCodeBlock>
+            <GuidePreviewCodeBlock
+              label={m.guide_data_urban_density_liveable_area_code()}
+              code={liveableAreaCode}
+              {editorIcon}
+              language="typescript"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+              previewLabel={m.guide_code_block_preview()}
+              showCodeLabel={m.guide_code_block_code()}
+              expandable
+              expandLabel={m.guide_code_block_expand()}
+              closeLabel={m.common_close()}
+            >
+              {#snippet preview()}
+                <GuideUrbanDensityLiveableAreaPreview
+                  label={mapPreviewLabel}
+                  {styleUrl}
+                  {tilejsonUrl}
+                />
+              {/snippet}
+            </GuidePreviewCodeBlock>
+          </GuideSubSectionBody>
         </div>
         <div class="mt-8">
-          <GuideCodeBlock
-            label={m.guide_data_urban_density_install_code()}
-            code={turfInstallCode}
-            language="bash"
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-          />
-        </div>
-        <div class="mt-8">
-          <GuidePreviewCodeBlock
-            label={m.guide_data_urban_density_liveable_area_code()}
-            code={liveableAreaCode}
-            {editorIcon}
-            language="typescript"
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-            previewLabel={m.guide_code_block_preview()}
-            showCodeLabel={m.guide_code_block_code()}
-            expandable
-            expandLabel={m.guide_code_block_expand()}
-            closeLabel={m.common_close()}
+          <GuideSubSectionBody
+            content={m.guide_data_urban_density_liveable_metrics_description()}
           >
-            {#snippet preview()}
-              <GuideUrbanDensityLiveableAreaPreview
-                label={mapPreviewLabel}
-                {styleUrl}
-                {tilejsonUrl}
-              />
-            {/snippet}
-          </GuidePreviewCodeBlock>
+            <GuidePreviewCodeBlock
+              label={m.guide_data_urban_density_liveable_metrics_code()}
+              code={liveableMetricsCode}
+              {editorIcon}
+              language="typescript"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+              previewLabel={m.guide_code_block_preview()}
+              showCodeLabel={m.guide_code_block_code()}
+              expandable
+              expandLabel={m.guide_code_block_expand()}
+              closeLabel={m.common_close()}
+            >
+              {#snippet preview()}
+                <GuideUrbanDensityLiveableDensityPreview
+                  label={mapPreviewLabel}
+                  {styleUrl}
+                  {tilejsonUrl}
+                />
+              {/snippet}
+            </GuidePreviewCodeBlock>
+          </GuideSubSectionBody>
         </div>
-        <div class="mt-8">
-          <GuidePreviewCodeBlock
-            label={m.guide_data_urban_density_liveable_metrics_code()}
-            code={liveableMetricsCode}
-            {editorIcon}
-            language="typescript"
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-            previewLabel={m.guide_code_block_preview()}
-            showCodeLabel={m.guide_code_block_code()}
-            expandable
-            expandLabel={m.guide_code_block_expand()}
-            closeLabel={m.common_close()}
+      </GuideSubSectionBody>
+    </section>
+    <section>
+      <GuideSubSectionHeader title={m.guide_data_urban_density_conclusion_title()} />
+      <GuideSubSectionBody
+        content={m.guide_data_urban_density_conclusion_description()}
+      >
+        <nav class="flex flex-wrap gap-3" aria-label="Explore SaanSeoi APIs">
+          <a
+            class="font-body font-semibold text-secondary underline underline-offset-4"
+            href="/docs#tag/divisions/GET/divisions/v0"
+            >{m.openapi_label_divisions()}
+            API</a
           >
-            {#snippet preview()}
-              <GuideUrbanDensityLiveableDensityPreview
-                label={mapPreviewLabel}
-                {styleUrl}
-                {tilejsonUrl}
-              />
-            {/snippet}
-          </GuidePreviewCodeBlock>
-        </div>
+          <a
+            class="font-body font-semibold text-secondary underline underline-offset-4"
+            href="/docs#tag/stats/GET/stats/v0"
+            >{m.openapi_label_statistics()}
+            API</a
+          >
+          <a
+            class="font-body font-semibold text-secondary underline underline-offset-4"
+            href="/docs#tag/places/GET/places/v0"
+            >{m.openapi_label_places()}
+            API</a
+          >
+        </nav>
       </GuideSubSectionBody>
     </section>
   </div>

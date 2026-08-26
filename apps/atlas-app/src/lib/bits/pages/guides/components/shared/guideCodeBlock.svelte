@@ -146,7 +146,7 @@ const highlightSource = (
       const renderedComments = matchingComments
         .map(
           comment =>
-            `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 [transform-origin:top] motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 [transform:rotateX(0deg)]' : 'max-h-0 opacity-0 [transform:rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 [transform-origin:top] motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 [transform:rotateX(0deg)]' : 'max-h-0 opacity-0 [transform:rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
+            `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
         )
         .join('')
 
