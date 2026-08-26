@@ -1319,6 +1319,7 @@
   "guide_basemap_api_key_complete_eyebrow": "API 密钥已准备就绪",
   "guide_basemap_api_key_complete": "准备好",
   "guide_basemap_api_key_create_instruction": "请为密钥提供一个说明其用途的名称，例如“SaanSeoi Project”。然后点击“创建密钥”以生成公钥。",
+  "guide_basemap_api_key_assumed_env": "我们假设您的 API 密钥已作为 <code>VITE_SAANSEOI_API_KEY</code> 存储在 <code>.env</code> 中。",
   "guide_basemap_api_key_name_placeholder": "例如 SaanSeoi Project",
   "guide_basemap_env_file_title": "将 API 密钥添加到项目",
   "guide_basemap_env_file_editor_instruction": "在 <b>{editor}</b> 中按 <kbd>{shortcut}</kbd> 新建文件，然后将其保存为项目文件夹中的 <code>.env</code>。",
