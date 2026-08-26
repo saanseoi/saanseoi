@@ -243,6 +243,54 @@ describe('source records', () => {
     ])
   })
 
+  test('wraps an indexed random sample when its initial key range is exhausted', async () => {
+    const queries: string[] = []
+    const randomSourceDatabase = {
+      prepare(query: string) {
+        queries.push(query)
+        return {
+          bind(...values: unknown[]) {
+            expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
+            expect(values[2]).toMatch(/^[0-9a-f]{32}$/)
+            return {
+              all: async () => ({
+                results: query.includes('sourceRecordId >= ?')
+                  ? []
+                  : [
+                      {
+                        rawProperties: JSON.stringify({ id: 'division-1' }),
+                        sourceRecordId: 'division-1',
+                        versionHash: 'version-1',
+                      },
+                    ],
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    } as never
+
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: randomSourceDatabase,
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: false,
+      limit: 1,
+      metaDb: metaDatabase(),
+      sample: 'random',
+      sourceReleaseCode,
+    })
+
+    expect(queries).toHaveLength(2)
+    expect(queries[0]).toContain('sourceRecordId >= ?')
+    expect(queries[1]).toContain('sourceRecordId < ?')
+    expect(result?.records.map(record => record.sourceRecordId)).toEqual(['division-1'])
+  })
+
   test('rejects a cursor combined with a random source-record sample', async () => {
     await expect(
       listSourceRecords({
