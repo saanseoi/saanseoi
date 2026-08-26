@@ -23,9 +23,9 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
 </script>
 
 <div
-  class="overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
+  class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
-  <div class="relative h-52 overflow-hidden sm:h-64">
+  <div class="guide-map-preview-canvas relative h-52 shrink-0 overflow-hidden sm:h-64">
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
@@ -48,21 +48,26 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     </p>
   </div>
   <section
-    class="grid divide-y divide-[#596074] bg-[#131722] sm:grid-cols-3 sm:divide-x sm:divide-y-0"
-    aria-label="District-land population density"
+    class="grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0_/_24%)] sm:grid-cols-3"
+    aria-label="Urban population density"
   >
     {#each metrics as metric}
-      <article class="p-4">
-        <p class="text-label-sm font-semibold text-[#a5d6ff]">{metric.name}</p>
-        <strong class="mt-1 block text-2xl leading-none text-white"
+      <article class="bg-[#fff9ed] p-4 sm:px-5">
+        <p class="font-body text-sm text-[#10151a]">{metric.name}</p>
+        <strong class="my-1 block font-body text-[2rem] leading-none text-[#10151a]"
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
-        <span class="mt-1 block text-xs text-white/60">people per km²</span>
-        <span class="mt-3 block text-xs text-white/45"
-          >{metric.population.toLocaleString()}
-          people · {metric.landAreaSqKm.toFixed(2)} km²</span
+        <span class="block font-body text-xs text-[#10151a]"
+          >people per km² · {metric.landAreaSqKm.toFixed(1)} km² district land</span
         >
       </article>
     {/each}
   </section>
 </div>
+
+<style>
+:global([data-guide-map-expanded="true"]) .guide-map-preview-canvas {
+  height: auto;
+  flex: 1 1 auto;
+}
+</style>

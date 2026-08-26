@@ -83,13 +83,17 @@ import {
   iframeCode,
   mapboxTokenCode,
   urbanDensityMapCode,
+  urbanDensityCensusAreasCode,
   urbanDensityCalculationCode,
   urbanDensityCalculationDisplayCode,
   urbanDensityMetricsCode,
   urbanDensityMetricsCss,
   urbanDensityMetricsCssDisplayCode,
+  urbanDensityLiveableAreaCode,
+  urbanDensityLiveableMetricsCode,
   urbanDensityStatsCode,
   urbanDensityStatsDisplayCode,
+  urbanDensityTurfInstallCode,
   viteReadyOutput,
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
@@ -1585,7 +1589,10 @@ const styleChoiceDescription = (styleId: string) => {
 }
 const styleChoices = $derived.by(() =>
   [
-    ...mapStyleDefinitions.map(candidate => candidate.id),
+    'midnight',
+    ...mapStyleDefinitions
+      .map(candidate => candidate.id)
+      .filter(styleId => styleId !== 'midnight'),
     {
       value: 'custom',
       label: m.guide_style_custom(),
@@ -1600,6 +1607,7 @@ const styleChoices = $derived.by(() =>
       return {
         value: choice,
         label: definition?.name ?? choice,
+        badge: choice === 'midnight' ? m.guide_recommended() : undefined,
         description: styleChoiceDescription(choice),
         image: selectedStylePreview(choice),
       }
@@ -2209,6 +2217,9 @@ const styleChoices = $derived.by(() =>
                         copiedLabel={m.common_copied()}
                         previewLabel={m.guide_code_block_preview()}
                         showCodeLabel={m.guide_code_block_code()}
+                        expandable
+                        expandLabel={m.guide_code_block_expand()}
+                        closeLabel={m.common_close()}
                       >
                         {#snippet preview()}
                           <GuideMapLibreBlankPreview />
@@ -2395,6 +2406,9 @@ const styleChoices = $derived.by(() =>
                       variant="editor"
                       previewLabel={m.guide_code_block_preview()}
                       showCodeLabel={m.guide_code_block_code()}
+                      expandable
+                      expandLabel={m.guide_code_block_expand()}
+                      closeLabel={m.common_close()}
                     >
                       {#snippet preview()}
                         <GuideMapLibreBlankPreview
@@ -2526,6 +2540,9 @@ const styleChoices = $derived.by(() =>
                   copiedLabel={m.common_copied()}
                   previewLabel={m.guide_code_block_preview()}
                   showCodeLabel={m.guide_code_block_code()}
+                  expandable
+                  expandLabel={m.guide_code_block_expand()}
+                  closeLabel={m.common_close()}
                 >
                   {#snippet preview()}
                     <GuideMapLibreStylePreview
@@ -2614,13 +2631,17 @@ const styleChoices = $derived.by(() =>
             {styleUrl}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
+            censusAreasCode={urbanDensityCensusAreasCode}
             calculationCode={urbanDensityCalculationCode}
             calculationDisplayCode={urbanDensityCalculationDisplayCode}
             metricsCode={urbanDensityMetricsCode}
             metricsCss={urbanDensityMetricsCss}
             metricsCssDisplayCode={urbanDensityMetricsCssDisplayCode}
+            liveableAreaCode={urbanDensityLiveableAreaCode}
+            liveableMetricsCode={urbanDensityLiveableMetricsCode}
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
+            turfInstallCode={urbanDensityTurfInstallCode}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">
