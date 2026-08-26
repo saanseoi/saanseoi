@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { eq } from 'drizzle-orm'
 
 import type { ReleaseStatsRow } from '@repo/db/metaSchema'
+import { metaSchema } from '@repo/db'
 import type { MaterialisedReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import type { UploadTarget } from '../cli/options.ts'
 import {
@@ -24,6 +27,14 @@ type MetaContext = {
       DB_META?: { databaseId?: string | null }
     }
   }
+}
+
+type StatisticSnapshotMeta = {
+  lineages: Array<Record<string, unknown>>
+  releaseAssignments: Array<Record<string, unknown>>
+  snapshotAssignments: Array<Record<string, unknown>>
+  snapshots: Array<Record<string, unknown>>
+  sources: Array<Record<string, unknown>>
 }
 
 /**
@@ -177,6 +188,172 @@ export async function replayReleaseProcessingActionsMetaToRemote(
   }
 }
 
+/** Replays locally materialised statistic snapshots to DB_META before publish. */
+export async function replayStatisticSnapshotMetaToRemote(
+  target: UploadTarget,
+  context: MetaContext,
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  snapshotIds: readonly string[],
+  options: {
+    executeSql?: typeof executeSqlText
+    importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
+  } = {},
+) {
+  if (!target.remote) return
+
+  const uniqueSnapshotIds = [...new Set(snapshotIds)].sort()
+  const snapshots = (
+    await Promise.all(
+      uniqueSnapshotIds.map(snapshotId =>
+        metaDb
+          .select()
+          .from(metaSchema.metaSnapshots)
+          .where(eq(metaSchema.metaSnapshots.id, snapshotId))
+          .all(),
+      ),
+    )
+  ).flat()
+  if (snapshots.length !== uniqueSnapshotIds.length) {
+    throw new Error(`Statistic snapshot metadata is incomplete for ${releaseId}.`)
+  }
+
+  const snapshotLineageIds = [
+    ...new Set(
+      snapshots
+        .map(snapshot => snapshot.snapshotLineageId)
+        .filter((id): id is string => typeof id === 'string'),
+    ),
+  ]
+  const [sources, snapshotAssignments, lineages, releaseAssignments] =
+    await Promise.all([
+      Promise.all(
+        uniqueSnapshotIds.map(snapshotId =>
+          metaDb
+            .select()
+            .from(metaSchema.metaSnapshotSources)
+            .where(eq(metaSchema.metaSnapshotSources.snapshotId, snapshotId))
+            .all(),
+        ),
+      ).then(rows => rows.flat()),
+      Promise.all(
+        uniqueSnapshotIds.map(snapshotId =>
+          metaDb
+            .select()
+            .from(metaSchema.metaSnapshotShardAssignments)
+            .where(eq(metaSchema.metaSnapshotShardAssignments.snapshotId, snapshotId))
+            .all(),
+        ),
+      ).then(rows => rows.flat()),
+      Promise.all(
+        snapshotLineageIds.map(lineageId =>
+          metaDb
+            .select()
+            .from(metaSchema.metaSnapshotLineages)
+            .where(eq(metaSchema.metaSnapshotLineages.id, lineageId))
+            .all(),
+        ),
+      ).then(rows => rows.flat()),
+      metaDb
+        .select()
+        .from(metaSchema.metaReleaseShardAssignments)
+        .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, releaseId))
+        .all(),
+    ])
+  if (
+    !sources.some(source => source.sourceReleaseId === releaseId) ||
+    snapshotAssignments.length < uniqueSnapshotIds.length ||
+    releaseAssignments.length === 0 ||
+    lineages.length !== snapshotLineageIds.length
+  ) {
+    throw new Error(`Statistic snapshot metadata is incomplete for ${releaseId}.`)
+  }
+
+  await replayMetaSql(
+    target,
+    context,
+    buildStatisticSnapshotMetaSqlBatches({
+      lineages,
+      releaseAssignments,
+      snapshotAssignments,
+      snapshots,
+      sources,
+    }),
+    options,
+  )
+}
+
+export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshotMeta) {
+  return chunkSql([
+    ...buildMetaInsertStatements(
+      'snapshotLineages',
+      [
+        'id',
+        'code',
+        'regionCode',
+        'resourceType',
+        'variant',
+        'identityMode',
+        'primaryDatasetId',
+        'versionHash',
+        'createdAt',
+        'updatedAt',
+      ],
+      metadata.lineages,
+      ['id'],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshots',
+      [
+        'id',
+        'snapshotLineageId',
+        'parentSnapshotId',
+        'resourceType',
+        'code',
+        'cohortKey',
+        'revision',
+        'status',
+        'publishedAt',
+        'validFrom',
+        'validTo',
+        'notes',
+        'createdAt',
+        'updatedAt',
+      ],
+      metadata.snapshots,
+      ['id'],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshotSources',
+      [
+        'snapshotId',
+        'datasetId',
+        'sourceReleaseId',
+        'role',
+        'selectedByRule',
+        'selectionMode',
+        'anchorReleaseId',
+        'sourceCohortKey',
+        'createdAt',
+      ],
+      metadata.sources,
+      ['snapshotId', 'sourceReleaseId'],
+    ),
+    ...buildMetaInsertStatements(
+      'releaseShardAssignments',
+      ['releaseId', 'dataShardId'],
+      metadata.releaseAssignments,
+      [],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshotShardAssignments',
+      ['snapshotId', 'dataShardId'],
+      metadata.snapshotAssignments,
+      [],
+    ),
+  ])
+}
+
 function insertStatsRow(row: ReleaseStatsRow) {
   return (
     'INSERT INTO "stats" ("id", "type", "releaseId", "snapshotId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
@@ -201,6 +378,62 @@ function insertStatsRow(row: ReleaseStatsRow) {
   )
 }
 
+async function replayMetaSql(
+  target: UploadTarget,
+  context: MetaContext,
+  batches: readonly string[],
+  options: {
+    executeSql?: typeof executeSqlText
+    importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
+  },
+) {
+  const accountId =
+    options.importOptions?.accountId ?? resolveCloudflareAccountId(target)
+  const apiToken =
+    options.importOptions?.apiToken ?? process.env.CLOUDFLARE_D1_TOKEN?.trim()
+  const databaseId = context.state.bindings.DB_META?.databaseId
+  const missing = [
+    !accountId?.trim() && 'CLOUDFLARE_ACCOUNT_ID',
+    !apiToken?.trim() && 'CLOUDFLARE_D1_TOKEN',
+    !databaseId?.trim() && 'meta.databaseId',
+  ].filter(Boolean)
+  if (missing.length) {
+    throw new Error(
+      `Statistic snapshot metadata replay requires ${missing.join(', ')}.`,
+    )
+  }
+  const execute = options.executeSql ?? executeSqlText
+  const destination: SqlImportTargetContext = {
+    databaseId: databaseId ?? null,
+    name: 'meta',
+  }
+  for (const sql of batches) {
+    await execute(destination, sql, { accountId, apiToken, isLocal: false })
+  }
+}
+
+function buildMetaInsertStatements(
+  table: string,
+  columns: readonly string[],
+  rows: readonly Record<string, unknown>[],
+  conflictColumns: readonly string[],
+) {
+  const suffix = conflictColumns.length
+    ? ` ON CONFLICT (${conflictColumns.join(', ')}) DO UPDATE SET ${columns
+        .filter(column => !conflictColumns.includes(column))
+        .map(column => `${column} = excluded.${column}`)
+        .join(', ')}`
+    : ` ON CONFLICT (${columns.join(', ')}) DO NOTHING`
+  return [...rows]
+    .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)))
+    .map(
+      row =>
+        `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns
+          .map(column => sqlAnyValue(row[column]))
+          .join(', ')})${suffix};`,
+    )
+}
+
 function chunkSql(statements: string[]) {
   const chunks: string[] = []
   let chunk = ''
@@ -222,6 +455,17 @@ function chunkSql(statements: string[]) {
   }
   if (chunk) chunks.push(chunk)
   return chunks
+}
+
+function sqlAnyValue(value: unknown) {
+  if (value === null || value === undefined) return 'NULL'
+  if (typeof value === 'boolean') return value ? '1' : '0'
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new Error('Metadata values must be finite.')
+    return String(value)
+  }
+  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  return `'${text.replaceAll("'", "''")}'`
 }
 
 function sqlValue(value: string | number | null) {

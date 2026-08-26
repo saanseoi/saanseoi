@@ -50,6 +50,7 @@ import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChu
 import {
   replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
+  replayStatisticSnapshotMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
 import {
   completeStatisticCache,
@@ -332,13 +333,20 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
       releaseCode,
     )
-    await materialiseStatisticSnapshots({
+    const snapshots = await materialiseStatisticSnapshots({
       datasetCode,
       metaDb,
       referencePeriods: uniqueReferencePeriods(canonical.records),
       releaseId,
       target,
     })
+    await replayStatisticSnapshotMetaToRemote(
+      target,
+      context,
+      metaDb,
+      releaseId,
+      snapshots.map(snapshot => snapshot.id),
+    )
     const published = await runStatisticProgressStep(
       progress,
       { action: 'Publish', subject: 'statistic release' },

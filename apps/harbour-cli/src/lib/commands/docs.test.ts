@@ -177,6 +177,15 @@ Publishes revision r{{ revision }}.
     expect(rendered).toBe('v0.1 Hong Kong 香港\n')
   })
 
+  test('derives the calendar year from the start of a cohort key', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: '{{cohortYear}} {{ cohortKey }}\n',
+      frontmatter: { cohortKey: '2023-H2' },
+    })
+
+    expect(rendered).toBe('2023 2023-H2\n')
+  })
+
   test('renders transcluded API-key notes in every supported locale', async () => {
     const rendered = await renderMarkdownFixtureBody({
       body: `{{apiKeyNote:en}}

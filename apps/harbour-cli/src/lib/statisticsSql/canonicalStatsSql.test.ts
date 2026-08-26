@@ -64,6 +64,85 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.current[0]).toContain("'stats:99'")
   })
 
+  test('closes large record groups with byte-bounded IN predicates', () => {
+    const rows = Array.from({ length: 180 }, (_, index) => ({
+      createdAt: '2026-08-18T00:00:00.000Z',
+      datasetCode: 'stats',
+      dimensions: {},
+      geography: null,
+      divisionId: null,
+      id: `stats:${index}`,
+      isCurrent: true,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: `feature:${index}`,
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }))
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows, table: 'statsRecords' }],
+      dictionaries: [],
+    })
+
+    const historySql = batches.history[0]?.batches.join('\n') ?? ''
+    expect(historySql.match(/UPDATE "statsRecords"/g)).toHaveLength(1)
+    expect(historySql).toContain('"id" IN (')
+    expect(historySql).not.toContain('"id" = \'stats:0\' OR')
+    expect(historySql).toContain("'stats:179'")
+  })
+
+  test('keeps composite history predicates below D1 expression depth', () => {
+    const record = {
+      createdAt: '2026-08-18T00:00:00.000Z',
+      datasetCode: 'stats',
+      dimensions: {},
+      geography: null,
+      divisionId: null,
+      id: 'stats:2021',
+      isCurrent: true,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: 'feature',
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows: [record], table: 'statsRecords' }],
+      dictionaries: [
+        {
+          rows: Array.from({ length: 97 }, (_, index) => ({
+            createdAt: record.createdAt,
+            datasetCode: 'stats',
+            fieldName: `field-${index}`,
+            isCurrent: true,
+            sourceReleaseId: record.sourceReleaseId,
+            updatedAt: record.updatedAt,
+            versionHash: 'version',
+          })),
+          table: 'statsFields',
+        },
+      ],
+    })
+
+    const closeStatements =
+      batches.history[0]?.batches.join('\n').match(/UPDATE "statsFields"[^;]*;/g) ?? []
+    expect(closeStatements).toHaveLength(3)
+    for (const statement of closeStatements)
+      expect((statement.match(/ OR /g) ?? []).length).toBeLessThanOrEqual(47)
+  })
+
   test('groups history by period end year and versions dictionaries in each shard', () => {
     const base = {
       createdAt: '2026-08-20T00:00:00.000Z',
