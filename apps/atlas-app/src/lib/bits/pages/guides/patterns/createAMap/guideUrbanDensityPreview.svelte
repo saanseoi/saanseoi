@@ -58,7 +58,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
         <span class="block font-body text-xs text-[#10151a]"
-          >people per km² · {metric.landAreaSqKm.toFixed(1)} km² district land</span
+          >people per km² on {metric.landAreaSqKm.toFixed(1)} km²</span
         >
       </article>
     {/each}
