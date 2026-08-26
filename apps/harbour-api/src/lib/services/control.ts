@@ -34,7 +34,6 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
-  inArray,
   metaApiComposition,
   metaApiReleaseSets,
   metaApiVersions,
