@@ -1313,6 +1313,7 @@
   "guide_basemap_api_key_complete": "準備好",
   "guide_basemap_api_key_complete_eyebrow": "API 金鑰已準備就緒",
   "guide_basemap_api_key_create_instruction": "請為金鑰提供一個可說明其用途的名稱，例如「SaanSeoi Project」。然後按一下「建立金鑰」來產生公開金鑰。",
+  "guide_basemap_api_key_assumed_env": "我們假設您的 API 金鑰已作為 <code>VITE_SAANSEOI_API_KEY</code> 儲存於 <code>.env</code>。",
   "guide_basemap_api_key_name_placeholder": "例如 SaanSeoi Project",
   "guide_basemap_env_file_title": "將 API 金鑰加入專案",
   "guide_basemap_env_file_editor_instruction": "在 <b>{editor}</b> 按 <kbd>{shortcut}</kbd> 新增檔案，然後將其儲存為專案資料夾中的 <code>.env</code>。",

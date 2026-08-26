@@ -1313,6 +1313,7 @@
   "guide_basemap_api_key_complete_title": "Your requests can now make use of a public API key.",
   "guide_basemap_api_key_complete": "Ready",
   "guide_basemap_api_key_confirm": "I have added my API key to .env",
+  "guide_basemap_api_key_assumed_env": "We assume your API key is stored as <code>VITE_SAANSEOI_API_KEY</code> in <code>.env</code>.",
   "guide_basemap_api_key_create_instruction": "Please provide a name for the key that tells you how the key is being used, e.g. “SaanSeoi Project”. Then click “Create Key” to generate a public key.",
   "guide_basemap_api_key_name_placeholder": "e.g. SaanSeoi Project",
   "guide_basemap_env_file_title": "Add your API key to the project",
