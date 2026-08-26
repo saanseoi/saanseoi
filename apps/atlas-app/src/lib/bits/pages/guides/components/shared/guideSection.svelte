@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
+import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
 
 type Props = {
@@ -49,9 +50,7 @@ let {
     </p>
   {/if}
   {#if intro}
-    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-      {@html intro}
-    </p>
+    <GuideParagraph class="mt-3"> {@html intro} </GuideParagraph>
   {/if}
   {#if actionLabel}
     <p
@@ -77,11 +76,9 @@ let {
     </h2>
   {/if}
   {#if description}
-    <p
-      class={`${actionLabel ? 'mt-2' : 'mt-4'} max-w-3xl font-body text-body-lg leading-8 text-foreground-alt`}
-    >
+    <GuideParagraph class={actionLabel ? 'mt-2' : 'mt-4'}>
       {@html description}
-    </p>
+    </GuideParagraph>
   {/if}
   <div>{@render children?.()}</div>
 </section>
