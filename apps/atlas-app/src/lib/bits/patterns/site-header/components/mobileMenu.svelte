@@ -14,7 +14,13 @@ let mobileMenuOpen = $state(false)
 
 type User = { email: string; image?: string | null; name: string }
 
-let { user = null }: { user?: User | null } = $props()
+type Props = {
+  signInHref?: string
+  signUpHref?: string
+  user?: User | null
+}
+
+let { signInHref = '/sign-in', signUpHref = '/sign-up', user = null }: Props = $props()
 
 const closeMobileMenu = () => {
   mobileMenuOpen = false
@@ -100,7 +106,7 @@ const handleSignOut = async () => {
           {:else}
             <Button
               class="min-h-11 px-0 text-body-md font-medium text-nowrap"
-              href="/sign-in"
+              href={signInHref}
               onclick={closeMobileMenu}
               variant="text"
             >
@@ -108,7 +114,7 @@ const handleSignOut = async () => {
             </Button>
             <Button
               class="min-h-11 px-4 text-body-md font-medium text-nowrap"
-              href="/sign-up"
+              href={signUpHref}
               onclick={closeMobileMenu}
               variant="primary"
             >
