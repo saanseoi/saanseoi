@@ -12,13 +12,15 @@ type Props = {
 
 let { label, showExclusions = true, styleUrl, tilejsonUrl }: Props = $props()
 
-const quietLandUse = [
+const nonLiveableLandUse = [
   'aerodrome',
   'airfield',
   'allotments',
   'bare_rock',
   'beach',
   'cemetery',
+  'commercial',
+  'construction',
   'dam',
   'dog_park',
   'farmland',
@@ -47,21 +49,21 @@ const quietLandUse = [
   'zoo',
 ]
 
-const noResidencesLayer: LayerSpecification = {
-  id: 'no-residences',
+const notLiveableLayer: LayerSpecification = {
+  id: 'not-liveable',
   type: 'fill',
   source: 'basemap',
   'source-layer': 'landuse',
-  filter: ['in', 'kind', ...quietLandUse],
+  filter: ['in', 'kind', ...nonLiveableLandUse],
   paint: { 'fill-color': '#e76f51', 'fill-opacity': 0.62 },
 }
 
-const noResidencesOutlineLayer: LayerSpecification = {
-  id: 'no-residences-outline',
+const notLiveableOutlineLayer: LayerSpecification = {
+  id: 'not-liveable-outline',
   type: 'line',
   source: 'basemap',
   'source-layer': 'landuse',
-  filter: ['in', 'kind', ...quietLandUse],
+  filter: ['in', 'kind', ...nonLiveableLandUse],
   paint: { 'line-color': '#8c3427', 'line-width': 1 },
 }
 </script>
@@ -73,7 +75,7 @@ const noResidencesOutlineLayer: LayerSpecification = {
       center={[114.165, 22.34]}
       renderer="maplibre"
       additionalLayers={showExclusions
-        ? [noResidencesLayer, noResidencesOutlineLayer]
+        ? [notLiveableLayer, notLiveableOutlineLayer]
         : []}
       {styleUrl}
       {tilejsonUrl}
@@ -84,7 +86,7 @@ const noResidencesOutlineLayer: LayerSpecification = {
     <div
       class="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-sm border border-white/20 bg-[#10151a]/90 px-3 py-2 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/80 uppercase shadow-sm"
     >
-      <span class="text-[#ffad9d]">Excluded non-residential land</span>
+      <span class="text-[#ffad9d]">Excluded non-liveable land</span>
       <span class="truncate text-right text-white/60">{label}</span>
     </div>
   {/if}
