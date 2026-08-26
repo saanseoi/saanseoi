@@ -38,6 +38,7 @@
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
     "@scalar/api-reference": "^1.66.1",
+    "@turf/turf": "^7.4.0",
     "better-auth": "1.7.1",
     "bits-ui": "^2.19.0",
     "diff": "^9.0.0",
