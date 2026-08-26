@@ -48,7 +48,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     </p>
   </div>
   <section
-    class="grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0_/_24%)] sm:grid-cols-3"
+    class="grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:grid-cols-3"
     aria-label="Urban population density"
   >
     {#each metrics as metric}
