@@ -5,6 +5,9 @@ import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import GuideCodeBlock from '#lib/bits/pages/guides/components/shared/guideCodeBlock.svelte'
+import GuideCallout from '#lib/bits/pages/guides/components/shared/guideCallout.svelte'
+import GuideScreenshot from '#lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
+import sublimeEnvFile from '#lib/assets/guides/macos_sublimetext_env.jpg'
 
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
@@ -42,6 +45,9 @@ const environmentSetupVisible = $derived(isApiKeyReady || Boolean(newKey))
 const environmentFileCode = $derived(
   `VITE_SAANSEOI_API_KEY=${newKey ?? 'REPLACE_ME_WITH_YOUR_API_KEY'}`,
 )
+const environmentFileStructureCommand = $derived(
+  operatingSystem === 'windows' ? 'Get-ChildItem -Force' : 'ls -la',
+)
 const environmentFileStructureCode = $derived(
   operatingSystem === 'windows'
     ? [
@@ -54,6 +60,7 @@ const environmentFileStructureCode = $derived(
         '-a---                index.html',
         '-a---                package.json',
         '-a---                tsconfig.json',
+        '-a---                vite.config.js',
         '-a---                vite.config.ts',
       ].join('\n')
     : [
@@ -67,6 +74,7 @@ const environmentFileStructureCode = $derived(
         '-rw-r--r--  1 you you   581 package.json',
         'drwxr-xr-x  2 you you  4096 src',
         '-rw-r--r--  1 you you   614 tsconfig.json',
+        '-rw-r--r--  1 you you   220 vite.config.js',
         '-rw-r--r--  1 you you   302 vite.config.ts',
       ].join('\n'),
 )
@@ -136,7 +144,7 @@ $effect(() => {
     >
       {m.api_keys_title()}
     </h3>
-    <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {m.api_keys_description()}
     </p>
   {/if}
@@ -176,6 +184,9 @@ $effect(() => {
         <h4 class="font-body text-body-md font-semibold text-foreground">
           {m.api_keys_create_heading()}
         </h4>
+        <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_basemap_api_key_create_instruction()}
+        </p>
         <form
           class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
           onsubmit={event => {
@@ -187,7 +198,7 @@ $effect(() => {
             bind:value={name}
             class="col-span-2 min-h-12 min-w-0 border border-border-input bg-background-alt px-4 font-body text-foreground md:col-span-1"
             maxlength="64"
-            placeholder={m.api_keys_name_placeholder()}
+            placeholder={m.guide_basemap_api_key_name_placeholder()}
             required
           >
           <Button
@@ -292,7 +303,7 @@ $effect(() => {
         {m.guide_basemap_env_file_title()}
       </h4>
       <p
-        class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_kbd]:rounded-sm [&_kbd]:border [&_kbd]:border-border-card [&_kbd]:bg-surface-container-low [&_kbd]:px-1 [&_kbd]:font-mono [&_kbd]:text-[0.85em]"
+        class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_kbd]:rounded-sm [&_kbd]:border [&_kbd]:border-border-card [&_kbd]:bg-surface-container-low [&_kbd]:px-1 [&_kbd]:font-mono [&_kbd]:text-[0.85em]"
       >
         {@html editorLabel && newFileShortcut
           ? m.guide_basemap_env_file_editor_instruction({
@@ -301,8 +312,29 @@ $effect(() => {
             })
           : m.guide_basemap_env_file_other_instruction()}
       </p>
+      {#if editorLabel === 'Sublime Text'}
+        <GuideCallout class="mt-4">
+          <div class="flex items-start gap-3">
+            <Icon
+              icon="material-symbols-light:warning-rounded"
+              class="mt-0.5 size-5 shrink-0 text-[#f2c26d]"
+              aria-hidden="true"
+            />
+            <p>{@html m.guide_basemap_env_file_sublime_location_note()}</p>
+          </div>
+        </GuideCallout>
+        <div class="mt-5 max-w-2xl">
+          <GuideScreenshot
+            src={sublimeEnvFile}
+            alt={m.guide_basemap_env_file_sublime_location_image_alt()}
+          />
+        </div>
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_basemap_env_file_sublime_hidden_file_note()}
+        </p>
+      {/if}
       <p
-        class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+        class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
       >
         {@html m.guide_basemap_env_file_description()}
       </p>
@@ -322,7 +354,7 @@ $effect(() => {
           {m.guide_basemap_env_file_structure_title()}
         </h5>
         <p
-          class="mt-3 font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+          class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
         >
           {@html operatingSystem === 'windows'
             ? m.guide_basemap_env_file_structure_description_windows()
@@ -332,6 +364,7 @@ $effect(() => {
           <GuideCodeBlock
             label={m.guide_basemap_env_file_structure_label()}
             code={environmentFileStructureCode}
+            copyCode={environmentFileStructureCommand}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
             language="text"

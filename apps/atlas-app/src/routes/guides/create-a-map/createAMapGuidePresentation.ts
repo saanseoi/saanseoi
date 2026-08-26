@@ -195,6 +195,7 @@ export function createCreateAMapGuidePresentation({
     showPublishStep,
     outline: [
       { id: 'prerequisites', label: m.guide_step_prerequisites() },
+      { id: 'project-setup', label: m.guide_step_project_setup() },
       { id: 'render', label: m.guide_step_render() },
       { id: 'basemap', label: m.guide_step_basemap() },
       { id: 'style', label: m.guide_step_style() },
