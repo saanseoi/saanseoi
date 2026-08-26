@@ -72,7 +72,15 @@ const terminalLabel = (path: string, action: string) =>
 
 <div class="mt-8">
   {#if showGuidance && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
-    <GuideTerminalCommandAnatomy {operatingSystem} />
+    <section
+      class="space-y-5"
+      aria-label={m.guide_terminal_anatomy_command_card_title()}
+    >
+      <h4 class="font-display text-headline-sm font-bold text-primary">
+        {@html m.guide_terminal_anatomy_command_card_title()}
+      </h4>
+      <GuideTerminalCommandAnatomy {operatingSystem} />
+    </section>
   {/if}
   {#if objective === 'notebook-embed'}
     {#if notebookRuntime === 'local'}
