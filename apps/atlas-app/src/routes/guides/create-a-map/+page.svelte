@@ -2642,6 +2642,8 @@ const styleChoices = $derived.by(() =>
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
+            {shareLinks}
+            onShareExternalLink={shareExternalLink}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">

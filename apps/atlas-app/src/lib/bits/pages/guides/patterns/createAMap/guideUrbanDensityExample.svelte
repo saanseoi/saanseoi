@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
@@ -14,6 +15,12 @@ import GuideUrbanDensityLiveableDensityPreview from './guideUrbanDensityLiveable
 import GuideUrbanDensityPreview from './guideUrbanDensityPreview.svelte'
 import GuideUrbanDensityMapPreview from './guideUrbanDensityMapPreview.svelte'
 import GuideUrbanDensityStatsPreview from './guideUrbanDensityStatsPreview.svelte'
+
+type ShareLink = {
+  href: string
+  icon: string
+  label: string
+}
 
 type Props = {
   editorIcon?: string
@@ -34,6 +41,8 @@ type Props = {
   statsCode: string
   statsDisplayCode: string
   turfInstallCode: string
+  shareLinks: ShareLink[]
+  onShareExternalLink: (provider: string) => void
 }
 
 let {
@@ -55,6 +64,8 @@ let {
   statsCode,
   statsDisplayCode,
   turfInstallCode,
+  shareLinks,
+  onShareExternalLink,
 }: Props = $props()
 
 const statsComments = [
@@ -114,6 +125,29 @@ const metricsComments = [
   { line: 3, text: m.guide_data_urban_density_metrics_comment_label() },
   { line: 4, text: m.guide_data_urban_density_metrics_comment_cards() },
   { line: 11, text: m.guide_data_urban_density_metrics_comment_append() },
+]
+
+const censusAreasComments = [
+  { line: 1, text: m.guide_data_urban_density_census_comment_request() },
+  { line: 3, text: m.guide_data_urban_density_census_comment_geometry() },
+  { line: 8, text: m.guide_data_urban_density_census_comment_index() },
+  { line: 17, text: m.guide_data_urban_density_census_comment_districts() },
+  { line: 25, text: m.guide_data_urban_density_census_comment_map() },
+]
+
+const liveableAreaComments = [
+  { line: 1, text: m.guide_data_urban_density_liveable_area_comment_import() },
+  { line: 5, text: m.guide_data_urban_density_liveable_area_comment_query() },
+  { line: 9, text: m.guide_data_urban_density_liveable_area_comment_union() },
+  { line: 12, text: m.guide_data_urban_density_liveable_area_comment_subtract() },
+  { line: 20, text: m.guide_data_urban_density_liveable_area_comment_layer() },
+]
+
+const liveableMetricsComments = [
+  { line: 1, text: m.guide_data_urban_density_liveable_metrics_comment_totals() },
+  { line: 6, text: m.guide_data_urban_density_liveable_metrics_comment_start() },
+  { line: 14, text: m.guide_data_urban_density_liveable_metrics_comment_density() },
+  { line: 20, text: m.guide_data_urban_density_liveable_metrics_comment_display() },
 ]
 </script>
 
@@ -306,6 +340,7 @@ const metricsComments = [
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_census_areas_code()}
               code={censusAreasCode}
+              comments={censusAreasComments}
               {editorIcon}
               language="typescript"
               copyLabel={m.common_copy()}
@@ -346,6 +381,7 @@ const metricsComments = [
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_liveable_area_code()}
               code={liveableAreaCode}
+              comments={liveableAreaComments}
               {editorIcon}
               language="typescript"
               copyLabel={m.common_copy()}
@@ -373,6 +409,7 @@ const metricsComments = [
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_liveable_metrics_code()}
               code={liveableMetricsCode}
+              comments={liveableMetricsComments}
               {editorIcon}
               language="typescript"
               copyLabel={m.common_copy()}
@@ -397,30 +434,27 @@ const metricsComments = [
     </section>
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_conclusion_title()} />
-      <GuideSubSectionBody
-        content={m.guide_data_urban_density_conclusion_description()}
+      <div
+        class="mt-3 max-w-3xl space-y-5 font-body text-body-md leading-7 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
       >
-        <nav class="flex flex-wrap gap-3" aria-label="Explore SaanSeoi APIs">
-          <a
-            class="font-body font-semibold text-secondary underline underline-offset-4"
-            href="/docs#tag/divisions/GET/divisions/v0"
-            >{m.openapi_label_divisions()}
-            API</a
-          >
-          <a
-            class="font-body font-semibold text-secondary underline underline-offset-4"
-            href="/docs#tag/stats/GET/stats/v0"
-            >{m.openapi_label_statistics()}
-            API</a
-          >
-          <a
-            class="font-body font-semibold text-secondary underline underline-offset-4"
-            href="/docs#tag/places/GET/places/v0"
-            >{m.openapi_label_places()}
-            API</a
-          >
+        <p>{@html m.guide_data_urban_density_conclusion_community()}</p>
+        <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
+        <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
+          {#each shareLinks as link}
+            <a
+              class="inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary no-underline transition-colors hover:bg-secondary-container"
+              href={link.href}
+              onclick={() => onShareExternalLink(link.icon)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={link.label}
+              title={link.label}
+            >
+              <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
+            </a>
+          {/each}
         </nav>
-      </GuideSubSectionBody>
+      </div>
     </section>
   </div>
 </section>
