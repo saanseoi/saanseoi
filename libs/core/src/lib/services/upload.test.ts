@@ -72,6 +72,45 @@ const reorderedFixtureInspection: UploadInspection = {
   ]),
 }
 
+const censtatdDensityLegacyInspection: UploadInspection = {
+  rowCount: 18,
+  schema: [
+    { name: 'district_code', type: 'int64', nullable: false },
+    { name: 'id', type: 'utf8', nullable: false },
+    { name: 'land_area_sq_km', type: 'double', nullable: false },
+    {
+      name: 'mid_year_population_density_per_sq_km',
+      type: 'int64',
+      nullable: false,
+    },
+    { name: 'mid_year_population', type: 'int64', nullable: false },
+    { name: 'name_en', type: 'utf8', nullable: false },
+    { name: 'name_zh_hant', type: 'utf8', nullable: false },
+    { name: 'raw_properties', type: 'utf8', nullable: false },
+    { name: 'reference_year', type: 'utf8', nullable: false },
+    { name: 'source_geometry', type: 'utf8', nullable: false },
+    { name: 'sources', type: 'utf8', nullable: false },
+  ],
+  distinctThemeValues: ['stats'],
+  distinctTypeValues: ['divisionStatistic'],
+  distinctCountryValues: ['hk'],
+  distinctRegionValues: ['hk'],
+}
+
+const censtatdDensityReferencePeriodInspection: UploadInspection = {
+  ...censtatdDensityLegacyInspection,
+  schema: [
+    ...censtatdDensityLegacyInspection.schema.filter(
+      field => field.name !== 'reference_year',
+    ),
+    { name: 'reference_period_code', type: 'utf8', nullable: false },
+    { name: 'reference_period_start', type: 'utf8', nullable: true },
+    { name: 'reference_period_end', type: 'utf8', nullable: true },
+    { name: 'reference_period_granularity', type: 'utf8', nullable: false },
+    { name: 'reference_period_end_year', type: 'utf8', nullable: false },
+  ],
+}
+
 function reorderSchemaFields(
   inspection: UploadInspection,
   fieldNames: string[],
@@ -133,6 +172,38 @@ function initDb(dbPath: string) {
   seedFixtureCatalog(db)
 
   return db
+}
+
+function seedCenstatdDensityDataset(db: Database) {
+  db.exec(`
+    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+      (
+        'publisher-hkgov-censtatd',
+        'hkgov-censtatd',
+        'vh-publisher-hkgov-censtatd-v1',
+        0,
+        0
+      );
+
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'hkgov-censtatd-hk-density',
+      'publisher-hkgov-censtatd',
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      'hk',
+      'static',
+      'yearly',
+      'stats',
+      'https://portal.csdi.gov.hk/',
+      'vh-dataset-hkgov-censtatd-hk-density-v1',
+      0,
+      0
+    );
+
+    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+      ('hkgov-censtatd-hk-density', 'divisionStatistic');
+  `)
 }
 
 async function assertAdminLevelTransitionAllowed(
@@ -990,6 +1061,54 @@ describe('upload', () => {
 
   test('allows the known overture divisionBoundary admin_level schema transition', async () => {
     await assertAdminLevelTransitionAllowed('divisionBoundary', 'division-boundary')
+  })
+
+  test('allows the known C&SD density reference-period schema transition', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    seedCenstatdDensityDataset(sqlite)
+    const db = createLocalHarbourDb(sqlite)
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+    await registerUpload(db, {
+      source: 'hkgov-censtatd',
+      regionCode: 'hk',
+      cohortKey: '2024',
+      datasetCode,
+      filePath: fixtureFile,
+      inspection: censtatdDensityLegacyInspection,
+      theme: 'stats',
+      type: 'divisionStatistic',
+      sourceVersion: '2024',
+      rawObjectKey: 'hk/hkgov-censtatd/2024/density.parquet',
+    })
+    sqlite.exec("UPDATE releases SET status = 'published';")
+
+    const planned = await planUpload(db, {
+      cohortKey: '2024',
+      datasetCode,
+      filePath: fixtureFile,
+      inspection: censtatdDensityReferencePeriodInspection,
+      source: 'hkgov-censtatd',
+      sourceVersion: '2024',
+      theme: 'stats',
+      type: 'divisionStatistic',
+      allowExistingDatasetStatuses: ['published'],
+      resolveSchemaFingerprint: async () =>
+        createSchemaFingerprint(censtatdDensityLegacyInspection),
+    })
+
+    expect(planned).toMatchObject({
+      plan: {
+        datasetCode,
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024',
+      },
+    })
+
+    sqlite.close()
   })
 
   test('allows schema-compatible uploads when parquet field order changes', async () => {
