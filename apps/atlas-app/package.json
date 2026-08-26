@@ -24,7 +24,7 @@
   "dependencies": {
     "@better-auth/core": "1.7.1",
     "@better-auth/passkey": "1.7.1",
-    "@humanspeak/svelte-markdown": "^1.8.7",
+    "@humanspeak/svelte-markdown": "^1.8.8",
     "@iconify-svelte/emojione-monotone": "1.0.3",
     "@iconify-svelte/hugeicons": "1.0.18",
     "@iconify-svelte/ion": "1.0.3",
@@ -44,7 +44,7 @@
     "diff": "^9.0.0",
     "github-slugger": "^2.0.0",
     "leaflet": "1.9.4",
-    "mapbox-gl": "3.28.1",
+    "mapbox-gl": "3.29.0",
     "maplibre-gl": "^6.6.0",
     "svelte-maplibre-gl": "^2.2.1",
     "zod": "^4.4.3"
@@ -55,7 +55,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/leaflet": "1.9.21",
+    "@types/leaflet": "1.9.22",
     "@types/node": "^26.3.0",
     "@vitest/browser-playwright": "^4.1.11",
     "drizzle-kit": "^0.31.10",
@@ -67,7 +67,7 @@
     "vite": "^8.2.2",
     "vitest": "^4.1.11",
     "vitest-browser-svelte": "^3.0.0",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.126.0"
   },
   "imports": {
     "#lib": "./src/lib/index.js",
