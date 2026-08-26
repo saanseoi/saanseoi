@@ -283,9 +283,9 @@ onMount(() => {
 </script>
 
 <div
-  class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-[3.25rem] xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
+  class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-13 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
 >
-  <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-none">
+  <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
     <div bind:this={terminalCardElement} class="terminal-card relative">
       {#snippet dotsReference()}
         <span class="reference-marker ml-1" aria-hidden="true">1</span>
@@ -322,49 +322,49 @@ onMount(() => {
 
   <p
     bind:this={cardCallout}
-    class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-none xl:self-end xl:border-l-0 xl:pl-0"
+    class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">1</span>
     {@html m.guide_terminal_anatomy_card()}
   </p>
   <p
     bind:this={folderCallout}
-    class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-4 xl:row-start-1 xl:order-none xl:self-end xl:border-l-0 xl:pl-0"
+    class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-4 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">2</span>
     {@html locationInstruction}
   </p>
   <p
     bind:this={titleCallout}
-    class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-none xl:self-end xl:border-l-0 xl:pl-0"
+    class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">3</span>
     {@html m.guide_terminal_anatomy_action()}
   </p>
   <p
     bind:this={copyCallout}
-    class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-none xl:self-end xl:border-l-0 xl:pl-0"
+    class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">4</span>
     {@html copyInstruction}
   </p>
   <p
     bind:this={commentCallout}
-    class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-none xl:self-start xl:border-l-0 xl:pl-0"
+    class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">5</span>
     {@html m.guide_terminal_anatomy_comment()}
   </p>
   <p
     bind:this={promptCallout}
-    class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-3 xl:row-start-3 xl:order-none xl:self-start xl:border-l-0 xl:pl-0"
+    class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">6</span>
     {@html m.guide_terminal_anatomy_prompt({ prompt })}
   </p>
   <p
     bind:this={commandCallout}
-    class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-none xl:self-start xl:border-l-0 xl:pl-0"
+    class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">7</span>
     {@html m.guide_terminal_anatomy_command()}
