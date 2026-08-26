@@ -146,8 +146,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.10.11",
-    "wrangler": "^4.125.0"
+    "turbo": "^2.10.12",
+    "wrangler": "^4.126.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
