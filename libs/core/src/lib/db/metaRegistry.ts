@@ -2184,6 +2184,10 @@ export async function updateDatasetStatus(
 ) {
   const sourceReleaseId = await resolveSourceReleaseId(db, releaseId)
   const updatedAt = toIsoTimestamp()
+  const releaseStatusCondition =
+    status === 'published'
+      ? eq(metaReleases.id, releaseId)
+      : and(eq(metaReleases.id, releaseId), ne(metaReleases.status, 'published'))
 
   await db
     .update(metaReleases)
@@ -2191,17 +2195,24 @@ export async function updateDatasetStatus(
       status,
       updatedAt,
     })
-    .where(eq(metaReleases.id, releaseId))
+    .where(releaseStatusCondition)
     .run()
 
   if (sourceReleaseId) {
+    const sourceReleaseStatusCondition =
+      status === 'published'
+        ? eq(metaSourceReleases.id, sourceReleaseId)
+        : and(
+            eq(metaSourceReleases.id, sourceReleaseId),
+            ne(metaSourceReleases.status, 'published'),
+          )
     await db
       .update(metaSourceReleases)
       .set({
         status,
         updatedAt,
       })
-      .where(eq(metaSourceReleases.id, sourceReleaseId))
+      .where(sourceReleaseStatusCondition)
       .run()
   }
 }
