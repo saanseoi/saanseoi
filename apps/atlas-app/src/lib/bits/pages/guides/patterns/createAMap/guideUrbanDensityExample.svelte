@@ -29,6 +29,7 @@ type Props = {
   mapReadyCode: string
   mapPreviewLabel: string
   styleUrl: string
+  terminalProjectPath: string
   tilejsonUrl: string
   mapCode: string
   calculationCode: string
@@ -52,6 +53,7 @@ let {
   mapReadyCode,
   mapPreviewLabel,
   styleUrl,
+  terminalProjectPath,
   tilejsonUrl,
   mapCode,
   calculationCode,
@@ -81,8 +83,8 @@ const statsComments = [
   { line: 17, text: m.guide_data_urban_density_stats_comment_reference_period() },
   { line: 19, text: m.guide_data_urban_density_stats_comment_request() },
   { line: 21, text: m.guide_data_urban_density_stats_comment_error() },
-  { line: 22, text: m.guide_data_urban_density_stats_comment_values() },
-  { line: 25, text: m.guide_data_urban_density_stats_comment_fields() },
+  { line: 26, text: m.guide_data_urban_density_stats_comment_values() },
+  { line: 29, text: m.guide_data_urban_density_stats_comment_fields() },
 ]
 
 const calculationComments = [
@@ -168,14 +170,14 @@ const liveableMetricsComments = [
       >
         {@html m.guide_data_urban_density_title()}
       </h3>
-      <p class="mt-5 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_data_urban_density_description()}
       </p>
     </div>
   </header>
   {#if hongKongBasemapNote}
     <GuideCallout class="mt-6">
-      <p class="font-body text-body-md leading-7 text-foreground-alt">
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
         {hongKongBasemapNote}
       </p>
     </GuideCallout>
@@ -213,7 +215,7 @@ const liveableMetricsComments = [
       <GuideSubSectionBody content={m.guide_data_urban_density_calculate_description()}>
         <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_calculate_code()}
-          code={statsCode}
+          code={`\n${statsCode}`}
           displayCode={statsDisplayCode}
           comments={statsComments}
           {editorIcon}
@@ -367,7 +369,10 @@ const liveableMetricsComments = [
             content={m.guide_data_urban_density_install_description()}
           >
             <GuideCodeBlock
-              label={m.guide_data_urban_density_install_code()}
+              label={m.guide_setup_terminal_label({
+                action: m.guide_data_urban_density_install_code(),
+                path: terminalProjectPath,
+              })}
               code={turfInstallCode}
               language="bash"
               copyLabel={m.common_copy()}
@@ -436,7 +441,7 @@ const liveableMetricsComments = [
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_conclusion_title()} />
       <div
-        class="mt-3 max-w-3xl space-y-5 font-body text-body-md leading-7 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+        class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
       >
         <p>{@html m.guide_data_urban_density_conclusion_community()}</p>
         <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>

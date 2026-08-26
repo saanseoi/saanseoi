@@ -118,7 +118,7 @@ const switchMode = (nextMode: AccountMode) => {
 
 {#snippet accessOptions(accountMode: AccountMode)}
   <div class="min-w-0">
-    <p class="font-body text-body-md leading-7 text-foreground-alt">
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
       {accountMode === 'sign-up'
         ? m.guide_basemap_account_options()
         : m.guide_basemap_sign_in_options()}

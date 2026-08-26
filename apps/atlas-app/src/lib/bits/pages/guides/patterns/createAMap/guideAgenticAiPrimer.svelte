@@ -24,7 +24,7 @@ let { expanded = $bindable(true), onExpandedChange }: Props = $props()
   <div class="agentic-ai-primer__hero">
     <div>
       <p class="agentic-ai-primer__eyebrow">01 / Two ways to work with an LLM</p>
-      <p class="mt-3 max-w-xl font-body text-body-md leading-7 text-foreground-alt">
+      <p class="mt-3 max-w-xl font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_agentic_ai_primer_description()}
       </p>
     </div>

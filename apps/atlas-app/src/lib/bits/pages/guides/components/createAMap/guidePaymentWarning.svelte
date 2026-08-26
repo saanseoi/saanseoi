@@ -54,7 +54,7 @@ $effect(() => {
           {m.guide_payment_warning_complete_title()}
         </span>
         <span
-          class="mt-2 block max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+          class="mt-2 block max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
         >
           {m.guide_payment_warning_complete({ choice })}
         </span>
@@ -76,7 +76,7 @@ $effect(() => {
         >
           {m.guide_payment_warning_title({ region })}
         </h3>
-        <p class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {m.guide_payment_warning_description()}
         </p>
         <div class="mt-4 flex flex-wrap items-center justify-end gap-3">

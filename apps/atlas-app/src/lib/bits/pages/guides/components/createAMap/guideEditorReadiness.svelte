@@ -64,7 +64,7 @@ let expanded = $state(false)
     >
       {#if installation}
         <div
-          class="mt-4 flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 font-body text-body-md leading-7 text-foreground-alt"
+          class="mt-4 flex max-w-3xl flex-wrap items-center gap-x-2 gap-y-2 font-body text-body-lg leading-8 text-foreground-alt"
         >
           <span>{installationPrefix}</span>
           <Button href={installation.href} size="compact" variant="secondary">
@@ -90,12 +90,12 @@ let expanded = $state(false)
       class={`ml-8 ${complete ? 'mt-5 border-t border-[#6fdec9]/35 pt-5' : 'mt-4'}`}
     >
       {#if complete}
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html completeDescription}
         </p>
       {/if}
       {#if welcomeDescription}
-        <p class="mt-5 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html welcomeDescription}
         </p>
       {/if}

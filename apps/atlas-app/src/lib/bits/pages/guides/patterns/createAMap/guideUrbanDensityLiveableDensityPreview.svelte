@@ -1,16 +1,14 @@
 <script lang="ts">
-import { onMount } from 'svelte'
 import type { Feature } from 'geojson'
 import type { LayerSpecification, Map as MapLibreMap } from 'maplibre-gl'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
-  calculateLiveableMetrics,
-  deriveLiveableDistricts,
-  loadUrbanDensityData,
+  getUrbanDensityLiveableDistricts,
   type DistrictGeometry,
 } from './urbanDensityCensusDistricts.ts'
 import { nonLiveableLandUse } from './urbanDensityLandUse.ts'
+import { calculateUrbanDensityLiveableMetrics } from './urbanDensityExampleData.ts'
 
 type Props = {
   label: string
@@ -19,21 +17,9 @@ type Props = {
 }
 
 let { label, styleUrl, tilejsonUrl }: Props = $props()
-let densityData = $state<Awaited<ReturnType<typeof loadUrbanDensityData>>>()
-let metrics = $state<ReturnType<typeof calculateLiveableMetrics>>()
-let error = $state<string>()
-
-onMount(() => {
-  void loadUrbanDensityData()
-    .then(value => (densityData = value))
-    .catch(cause => {
-      error =
-        cause instanceof Error ? cause.message : 'Density data could not be loaded.'
-    })
-})
+const metrics = calculateUrbanDensityLiveableMetrics()
 
 const addLiveableDistricts = (map: MapLibreMap) => {
-  if (!densityData) return
   try {
     const nonLiveableFeatures = map
       .querySourceFeatures('basemap', {
@@ -45,10 +31,7 @@ const addLiveableDistricts = (map: MapLibreMap) => {
           ? [feature as unknown as Feature<DistrictGeometry>]
           : [],
       )
-    const liveableDistricts = deriveLiveableDistricts(
-      densityData.censusDistricts,
-      nonLiveableFeatures,
-    )
+    const liveableDistricts = getUrbanDensityLiveableDistricts(nonLiveableFeatures)
     map.addSource('liveable-districts', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: liveableDistricts },
@@ -62,14 +45,8 @@ const addLiveableDistricts = (map: MapLibreMap) => {
       },
       'not-liveable',
     )
-    metrics = calculateLiveableMetrics(
-      liveableDistricts,
-      densityData.populationByDistrict,
-      densityData.landAreaByDistrict,
-    )
   } catch (cause) {
-    error =
-      cause instanceof Error ? cause.message : 'Liveable areas could not be calculated.'
+    console.error('Liveable areas could not be calculated.', cause)
   }
 }
 
@@ -97,26 +74,18 @@ const liveableLayers: LayerSpecification[] = [
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
   <div class="guide-map-preview-canvas relative min-h-64 flex-1 overflow-hidden">
-    {#if densityData}
-      {#key `${styleUrl}:${tilejsonUrl}`}
-        <GuideMappingPreview
-          ariaLabel={label}
-          additionalLayers={liveableLayers}
-          center={[114.165, 22.34]}
-          onMapReady={addLiveableDistricts}
-          renderer="maplibre"
-          {styleUrl}
-          {tilejsonUrl}
-          zoom={10.25}
-        />
-      {/key}
-    {:else}
-      <div
-        class="grid size-full place-items-center px-6 text-center text-body-sm text-white/70"
-      >
-        {error ?? 'Loading census areas…'}
-      </div>
-    {/if}
+    {#key `${styleUrl}:${tilejsonUrl}`}
+      <GuideMappingPreview
+        ariaLabel={label}
+        additionalLayers={liveableLayers}
+        center={[114.165, 22.34]}
+        onMapReady={addLiveableDistricts}
+        renderer="maplibre"
+        {styleUrl}
+        {tilejsonUrl}
+        zoom={10.25}
+      />
+    {/key}
     <p
       class="absolute top-3 left-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/80 uppercase shadow-sm"
     >

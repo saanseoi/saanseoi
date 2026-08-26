@@ -58,7 +58,7 @@ let {
               {@html m.guide_llm_modal_title()}
             </Dialog.Title>
             <Dialog.Description
-              class="mt-3 max-w-2xl font-body text-body-md leading-7 text-foreground-alt"
+              class="mt-3 max-w-2xl font-body text-body-lg leading-8 text-foreground-alt"
             >
               {@html m.guide_llm_modal_description()}
             </Dialog.Description>
@@ -108,7 +108,7 @@ let {
 
         {#if copiedPromptProvider === 'local'}
           <p
-            class="mt-4 border-l-4 border-secondary bg-secondary-container px-4 py-3 font-body text-body-md leading-7 text-foreground-alt"
+            class="mt-4 border-l-4 border-secondary bg-secondary-container px-4 py-3 font-body text-body-lg leading-8 text-foreground-alt"
             role="status"
           >
             {pastePromptMessage}
@@ -154,7 +154,7 @@ let {
 
         {#if copiedPromptProvider === 'gemini' || copiedPromptProvider === 'kimi'}
           <p
-            class="mt-5 border-l-4 border-secondary bg-secondary-container px-4 py-3 font-body text-body-md leading-7 text-foreground-alt"
+            class="mt-5 border-l-4 border-secondary bg-secondary-container px-4 py-3 font-body text-body-lg leading-8 text-foreground-alt"
             role="status"
           >
             {pastePromptMessage}
