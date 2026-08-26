@@ -9,6 +9,7 @@ type ShareLink = {
   href: string
   icon: string
   label: string
+  newWindow?: boolean
 }
 
 const cardClass = 'border border-border-card bg-surface-container-low p-6 shadow-card'
@@ -78,8 +79,8 @@ let {
             class={shareActionClass}
             href={link.href}
             onclick={() => onShareExternalLink(link.icon)}
-            target="_blank"
-            rel="noreferrer"
+            target={link.newWindow === false ? undefined : '_blank'}
+            rel={link.newWindow === false ? undefined : 'noreferrer'}
             aria-label={link.label}
             title={link.label}
           >

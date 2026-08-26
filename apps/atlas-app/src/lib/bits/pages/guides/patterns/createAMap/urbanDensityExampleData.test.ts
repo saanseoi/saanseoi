@@ -36,8 +36,8 @@ test('groups Kwai Tsing with the New Territories', () => {
     metric => metric.name === 'Kowloon',
   )
   expect(liveableKowloon).toMatchObject({
-    landAreaSqKm: 37.35185709476874,
-    liveablePercentage: 79.5736197161669,
-    peoplePerSqKm: 60007.72583577688,
+    landAreaSqKm: 37.25548460996576,
+    liveablePercentage: 79.36830977836763,
+    peoplePerSqKm: 60162.9538164813,
   })
 })
