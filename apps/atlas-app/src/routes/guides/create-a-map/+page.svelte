@@ -4,6 +4,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
+import sublimeOpenStyleCss from '#lib/assets/guides/editor-sublime-open-style-css.png'
 import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
 import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
 import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
@@ -198,6 +199,9 @@ let paymentCompletionWarning = $state(false)
 let agenticAiPrimerExpanded = $state(
   page.url.searchParams.get('ai-primer') !== 'collapsed',
 )
+let terminalIntroductionExpanded = $state(
+  page.url.searchParams.get('terminal-101') !== 'collapsed',
+)
 let zedSetupExpanded = $state(page.url.searchParams.has('zed-setup'))
 let zedSetupContentExpanded = $state(
   page.url.searchParams.get('zed-setup') !== 'collapsed',
@@ -378,6 +382,7 @@ createCreateAMapGuideAdapter({
     completedPaymentKey,
     mapboxTokenConfigured,
     agenticAiPrimerExpanded,
+    terminalIntroductionExpanded,
     zedSetupExpanded,
     zedSetupContentExpanded,
   }),
@@ -1387,7 +1392,7 @@ const guideDecisions = $derived.by(() => {
 })
 
 const hostingInstallCode = $derived(getHostingInstallCode(hosting))
-const setupCode = $derived(createProjectSetupCode(operatingSystem))
+const setupCode = $derived(createProjectSetupCode(operatingSystem, renderer))
 const hostingInstallExplanation = $derived(
   m.guide_setup_install_hosting_tool_explanation({
     host: selectedHosting?.label ?? '',
@@ -1401,6 +1406,18 @@ const setupContinueStepNumber = $derived(hostingInstallCode ? 5 : 4)
 const restartProjectCode = $derived(createRestartProjectCode(operatingSystem))
 const agentProjectCommand = $derived(createAgentProjectCommand(agentTool))
 const stopServerModifier = $derived(operatingSystem === 'macos' ? 'Control' : 'Ctrl')
+const terminalProjectPath = $derived(
+  operatingSystem === 'windows'
+    ? 'C:\\Users\\your-name\\saanseoi-project'
+    : '~/saanseoi-project',
+)
+const projectSetupIntro = $derived.by(() => {
+  if (llmMode !== 'manual' || !setupReady || terminalExperience === 'advanced') {
+    return m.guide_project_setup_intro()
+  }
+
+  return `${m.guide_project_setup_intro()}<br><br>${m.guide_project_setup_terminal_intro()}`
+})
 const bunInstallCode = $derived(getBunInstallCode(operatingSystem))
 const notebookSetupCode = $derived(
   createNotebookSetupCode(operatingSystem, notebookLibrary),
@@ -1579,7 +1596,10 @@ const styleEditorInstruction = $derived(
   }),
 )
 const rendererStylesheetInstruction = $derived(
-  m.guide_renderer_stylesheet_instruction({ path: rendererStylesheetPath }),
+  m.guide_renderer_stylesheet_instruction({
+    editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+    path: rendererStylesheetPath,
+  }),
 )
 const urbanDensityMapReadyCode = $derived(
   selectedStyle ? createUrbanDensityMapReadyCode(styleUrl) : '',
@@ -1717,7 +1737,7 @@ const styleChoices = $derived.by(() =>
     />
   </section>
 
-  <div class="mt-14">
+  <div class="mt-7">
     <GuideRoot
       {outline}
       decisions={guideDecisions}
@@ -1726,7 +1746,8 @@ const styleChoices = $derived.by(() =>
     >
       <GuideSection
         id="prerequisites"
-        number={0}
+        number={1}
+        showBorder={false}
         actionLabel={prerequisiteMarker('destination')}
         eyebrow={m.guide_prerequisites_eyebrow()}
         intro={m.guide_prerequisites_intro()}
@@ -1890,7 +1911,10 @@ const styleChoices = $derived.by(() =>
                   />
                   {#if terminalExperience === 'none'}
                     <div id="terminal-introduction" class="mt-6 scroll-mt-28 lg:-mr-56">
-                      <GuideTerminalIntroduction {operatingSystem} />
+                      <GuideTerminalIntroduction
+                        bind:expanded={terminalIntroductionExpanded}
+                        {operatingSystem}
+                      />
                     </div>
                   {/if}
                 </div>
@@ -1945,172 +1969,196 @@ const styleChoices = $derived.by(() =>
                 />
               </div>
             {/if}
-
-            {#if objective && llmMode === 'manual' && setupReady}
-              <GuideManualSetup
-                {bunInstallCode}
-                {bunInstallExplanation}
-                {codeEditor}
-                {hostingInstallCode}
-                {hostingInstallExplanation}
-                {locale}
-                {notebookCode}
-                {notebookLibrary}
-                {notebookRuntime}
-                {notebookSetupCode}
-                {objective}
-                {operatingSystem}
-                {restartProjectCode}
-                {setupCode}
-                {setupContinueStepNumber}
-                {setupStartStepNumber}
-                {stopServerModifier}
-                {terminalExperience}
-                {viteReadyOutput}
-              />
-            {:else if objective && llmMode === 'assisted' && setupReady && (aiAccess !== 'agentic' || isLlmReadinessComplete)}
-              <div class="mt-14 space-y-6">
-                {#if aiAccess === 'agentic'}
-                  <div class="space-y-5">
-                    <GuideSubSectionHeader
-                      eyebrow={m.guide_setup_agent_eyebrow()}
-                      title={m.guide_setup_agent_title()}
-                    />
-                    {#if agentTool === 'zed' || agentTool === 'cursor'}
-                      <GuideEditorProjectSetupSection
-                        editor={agentTool}
-                        showHeading={false}
-                      />
-                    {:else if agentProjectCommand}
-                      <p
-                        class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                      >
-                        {@html m.guide_setup_agent_terminal_instruction()}
-                      </p>
-                      <GuideCodeBlock
-                        label={m.guide_setup_agent_terminal_label()}
-                        code={agentProjectCommand}
-                        language="bash"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                      />
-                      {#if agentTool === 'codex-cli'}
-                        <p
-                          class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                        >
-                          {@html m.guide_setup_agent_codex_cli_trust_directory()}
-                        </p>
-                        <div class="max-w-3xl">
-                          <GuideScreenshot
-                            src={codexCliTrustDirectory}
-                            alt={m.guide_setup_agent_codex_cli_trust_directory_alt()}
-                          />
-                        </div>
-                      {/if}
-                    {:else if agentTool === 'codex-app'}
-                      <p
-                        class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                      >
-                        {@html m.guide_setup_agent_codex_app_instruction()}
-                      </p>
-                    {:else if agentTool === 'claude-cowork'}
-                      <p
-                        class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                      >
-                        {@html m.guide_setup_agent_claude_cowork_instruction()}
-                      </p>
-                    {:else}
-                      <p
-                        class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                      >
-                        {@html m.guide_setup_agent_other_instruction()}
-                      </p>
-                    {/if}
-                    {#if agentModelSelectionInstruction}
-                      <p
-                        class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                      >
-                        {@html agentModelSelectionInstruction}
-                      </p>
-                    {/if}
-                  </div>
-                {/if}
-                {#if aiAccess === 'agentic'}
-                  {#if agentTool === 'zed'}
-                    <p
-                      class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                    >
-                      {@html m.guide_setup_agent_zed_prompt_instruction()}
-                    </p>
-                  {/if}
-                  <GuidePromptBlock
-                    code={progressiveSectionPrompts.prerequisites}
-                    promptIcon={selectedLlmOption?.icon}
-                  />
-                {/if}
-                {#if aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
-                  <GuideEditorProjectSetupSection editor={codeEditor} />
-                {/if}
-                {#if aiAccess === 'web' && isProjectEditorReady && isLlmReadinessComplete}
-                  <div class="mt-14 space-y-5">
-                    <GuideSubSectionHeader
-                      eyebrow={m.guide_setup_llm_eyebrow()}
-                      title={m.guide_setup_llm_title()}
-                    />
-                    <p
-                      class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
-                    >
-                      {@html m.guide_setup_llm_instruction_before()}
-                      {#if selectedLlmChatUrl}
-                        <Button
-                          class="mx-1 min-h-0 px-1.5 py-0 align-baseline text-secondary underline decoration-secondary/60 underline-offset-4"
-                          href={selectedLlmChatUrl}
-                          size="compact"
-                          variant="text"
-                        >
-                          <Icon
-                            icon={selectedLlmOption?.icon ?? 'proicons:more'}
-                            class="size-4"
-                          />
-                          {@html selectedLlmOption?.label ?? ''}
-                          <Icon icon="proicons:arrow-up-right" class="size-3.5" />
-                        </Button>
-                      {:else}
-                        <span class="font-semibold text-foreground">
-                          {@html selectedLlmOption?.label ?? ''}
-                        </span>
-                      {/if}
-                      {@html m.guide_setup_llm_instruction_after()}
-                    </p>
-                    <GuidePromptBlock
-                      code={progressiveSectionPrompts.prerequisites}
-                      promptIcon={selectedLlmOption?.icon}
-                    />
-                  </div>
-                {/if}
-              </div>
-            {/if}
           {/if}
         </div>
       </GuideSection>
 
-      <GuideSection id="render" number={1} eyebrow={m.guide_render_eyebrow()}>
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <GuideSection
+        id="project-setup"
+        number={2}
+        showBorder={false}
+        eyebrow={m.guide_project_setup_eyebrow()}
+        intro={projectSetupIntro}
+      >
+        {#if guideUnlocked}
+          {#if objective && llmMode === 'manual' && setupReady}
+            <GuideManualSetup
+              {bunInstallCode}
+              {bunInstallExplanation}
+              {codeEditor}
+              {hostingInstallCode}
+              {hostingInstallExplanation}
+              {locale}
+              {notebookCode}
+              {notebookLibrary}
+              {notebookRuntime}
+              {notebookSetupCode}
+              {objective}
+              {operatingSystem}
+              {restartProjectCode}
+              {setupCode}
+              {setupContinueStepNumber}
+              {setupStartStepNumber}
+              {stopServerModifier}
+              {terminalExperience}
+              {viteReadyOutput}
+            />
+          {:else if objective && llmMode === 'assisted' && setupReady && (aiAccess !== 'agentic' || isLlmReadinessComplete)}
+            <div class="mt-14 space-y-6">
+              {#if aiAccess === 'agentic'}
+                <div class="space-y-5">
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_setup_agent_eyebrow()}
+                    title={m.guide_setup_agent_title()}
+                  />
+                  {#if agentTool === 'zed' || agentTool === 'cursor'}
+                    <GuideEditorProjectSetupSection
+                      editor={agentTool}
+                      showHeading={false}
+                    />
+                  {:else if agentProjectCommand}
+                    <p
+                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html m.guide_setup_agent_terminal_instruction()}
+                    </p>
+                    <GuideCodeBlock
+                      label={m.guide_setup_agent_terminal_label()}
+                      code={agentProjectCommand}
+                      language="bash"
+                      copyLabel={m.common_copy()}
+                      copiedLabel={m.common_copied()}
+                    />
+                    {#if agentTool === 'codex-cli'}
+                      <p
+                        class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                      >
+                        {@html m.guide_setup_agent_codex_cli_trust_directory()}
+                      </p>
+                      <div class="max-w-3xl">
+                        <GuideScreenshot
+                          src={codexCliTrustDirectory}
+                          alt={m.guide_setup_agent_codex_cli_trust_directory_alt()}
+                        />
+                      </div>
+                    {/if}
+                  {:else if agentTool === 'codex-app'}
+                    <p
+                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html m.guide_setup_agent_codex_app_instruction()}
+                    </p>
+                  {:else if agentTool === 'claude-cowork'}
+                    <p
+                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html m.guide_setup_agent_claude_cowork_instruction()}
+                    </p>
+                  {:else}
+                    <p
+                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html m.guide_setup_agent_other_instruction()}
+                    </p>
+                  {/if}
+                  {#if agentModelSelectionInstruction}
+                    <p
+                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html agentModelSelectionInstruction}
+                    </p>
+                  {/if}
+                </div>
+              {/if}
+              {#if aiAccess === 'agentic'}
+                {#if agentTool === 'zed'}
+                  <p
+                    class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                  >
+                    {@html m.guide_setup_agent_zed_prompt_instruction()}
+                  </p>
+                {/if}
+                <GuidePromptBlock
+                  code={progressiveSectionPrompts.prerequisites}
+                  promptIcon={selectedLlmOption?.icon}
+                />
+              {/if}
+              {#if aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
+                <GuideEditorProjectSetupSection editor={codeEditor} />
+              {/if}
+              {#if aiAccess === 'web' && isProjectEditorReady && isLlmReadinessComplete}
+                <div class="mt-14 space-y-5">
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_setup_llm_eyebrow()}
+                    title={m.guide_setup_llm_title()}
+                  />
+                  <p
+                    class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                  >
+                    {@html m.guide_setup_llm_instruction_before()}
+                    {#if selectedLlmChatUrl}
+                      <Button
+                        class="mx-1 min-h-0 px-1.5 py-0 align-baseline text-secondary underline decoration-secondary/60 underline-offset-4"
+                        href={selectedLlmChatUrl}
+                        size="compact"
+                        variant="text"
+                      >
+                        <Icon
+                          icon={selectedLlmOption?.icon ?? 'proicons:more'}
+                          class="size-4"
+                        />
+                        {@html selectedLlmOption?.label ?? ''}
+                        <Icon icon="proicons:arrow-up-right" class="size-3.5" />
+                      </Button>
+                    {:else}
+                      <span class="font-semibold text-foreground">
+                        {@html selectedLlmOption?.label ?? ''}
+                      </span>
+                    {/if}
+                    {@html m.guide_setup_llm_instruction_after()}
+                  </p>
+                  <GuidePromptBlock
+                    code={progressiveSectionPrompts.prerequisites}
+                    promptIcon={selectedLlmOption?.icon}
+                  />
+                </div>
+              {/if}
+            </div>
+          {/if}
+        {/if}
+      </GuideSection>
+
+      <GuideSection
+        id="render"
+        number={3}
+        showBorder={false}
+        eyebrow={m.guide_render_eyebrow()}
+      >
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_render_description_before()}
           <GuideReference
             href={`saanseoi:${locale.toLowerCase()}:definition/render/v1`}
             label={m.guide_render_description_link()}
           />{@html m.guide_render_description_after()}
         </p>
-        <p class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_render_project_description_before()}
           <GuideReference
             href={`saanseoi:${locale.toLowerCase()}:note/vite/v1`}
             label={m.reference_vite()}
           />{@html m.guide_render_project_description_after()}
         </p>
+        {#if codeEditor && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
+          <p
+            class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+          >
+            {@html m.guide_render_editor_intro({
+              editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+            })}
+          </p>
+        {/if}
         <p
-          class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-secondary/65 [&_code]:bg-secondary-container/12 [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:font-semibold [&_code]:text-secondary"
+          class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-secondary/65 [&_code]:bg-secondary-container/12 [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:font-semibold [&_code]:text-secondary"
         >
           {@html m.guide_render_script_tag_note()}
         </p>
@@ -2152,6 +2200,7 @@ const styleChoices = $derived.by(() =>
                 onReset={resetMapboxToken}
                 tokenCode={mapboxTokenCode}
                 tokenPasteInstruction={mapboxTokenPasteInstruction}
+                {terminalProjectPath}
               />
             {/if}
             {#if renderer !== 'mapbox' || mapboxTokenConfigured}
@@ -2164,13 +2213,16 @@ const styleChoices = $derived.by(() =>
                     })}
                   />
                   <p
-                    class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererTerminalReminder}
                   </p>
                   <div class="mt-6 max-w-2xl">
                     <GuideCodeBlock
-                      label={m.guide_renderer_install()}
+                      label={m.guide_setup_terminal_label({
+                        action: m.guide_renderer_install(),
+                        path: terminalProjectPath,
+                      })}
                       code={rendererInstallCode}
                       language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
                       copyLabel={m.common_copy()}
@@ -2184,10 +2236,19 @@ const styleChoices = $derived.by(() =>
                     title={m.guide_renderer_reset_styles_title()}
                   />
                   <p
-                    class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererStylesheetInstruction}
                   </p>
+                  {#if codeEditor === 'sublime-text'}
+                    <div class="mt-6 max-w-2xl">
+                      <GuideScreenshot
+                        src={sublimeOpenStyleCss}
+                        alt={m.guide_renderer_sublime_stylesheet_image_alt()}
+                        caption={m.guide_renderer_sublime_stylesheet_image_caption()}
+                      />
+                    </div>
+                  {/if}
                   <div class="mt-4 max-w-2xl">
                     <GuideCodeBlock
                       label={rendererStylesheetPath}
@@ -2208,11 +2269,16 @@ const styleChoices = $derived.by(() =>
                     })}
                   />
                   <p
-                    class="mt-4 max-w-3xl font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererEditorInstruction}
                   </p>
                   {#if renderer === 'maplibre'}
+                    <p
+                      class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      {@html m.guide_create_map_preview_intro()}
+                    </p>
                     <div class="mt-4 max-w-[80ch]">
                       <GuidePreviewCodeBlock
                         label={rendererEditorPath}
@@ -2258,7 +2324,7 @@ const styleChoices = $derived.by(() =>
                     </div>
                   {/if}
                   <p
-                    class="mt-3 max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+                    class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
                   >
                     {@html rendererEditorRefreshNote}
                   </p>
@@ -2302,7 +2368,7 @@ const styleChoices = $derived.by(() =>
             </GuideCallout>
           {:else if objective === 'notebook-embed'}
             <GuideCallout id="map-library" class="space-y-4 scroll-mt-28">
-              <p class="font-body text-body-md leading-7 text-foreground-alt">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html m.guide_renderer_notebook()}
               </p>
               {#if notebookLibrary}
@@ -2328,8 +2394,13 @@ const styleChoices = $derived.by(() =>
         </div>
       </GuideSection>
 
-      <GuideSection id="basemap" number={2} eyebrow={m.guide_basemap_eyebrow()}>
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <GuideSection
+        id="basemap"
+        number={4}
+        showBorder={false}
+        eyebrow={m.guide_basemap_eyebrow()}
+      >
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_basemap_description_before()}
           <GuideReference
             href={`saanseoi:${locale.toLowerCase()}:note/basemap/v1`}
@@ -2401,6 +2472,9 @@ const styleChoices = $derived.by(() =>
                   title={m.guide_basemap_editor_title()}
                 />
                 <GuideSubSectionBody content={m.guide_basemap_editor_description()}>
+                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                    {m.guide_basemap_editor_dimmed_lines_note()}
+                  </p>
                   {#if renderer === 'maplibre'}
                     <GuidePreviewCodeBlock
                       label={rendererEditorPath}
@@ -2439,7 +2513,7 @@ const styleChoices = $derived.by(() =>
                       variant="editor"
                     />
                   {/if}
-                  <p class="font-body text-body-md leading-7 text-foreground-alt">
+                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
                     {@html m.guide_basemap_editor_restart({
                       region: selectedRegion?.label ?? m.guide_basemap_hk(),
                     })}
@@ -2475,8 +2549,13 @@ const styleChoices = $derived.by(() =>
         {/if}
       </GuideSection>
 
-      <GuideSection id="style" number={3} eyebrow={m.guide_style_eyebrow()}>
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <GuideSection
+        id="style"
+        number={5}
+        showBorder={false}
+        eyebrow={m.guide_style_eyebrow()}
+      >
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_style_description()}
         </p>
         <a
@@ -2505,7 +2584,7 @@ const styleChoices = $derived.by(() =>
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_style_custom_title()}
             </h3>
-            <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
               {@html m.guide_style_custom_description()}
             </p>
             <div class="mt-5 flex flex-wrap gap-4">
@@ -2531,7 +2610,7 @@ const styleChoices = $derived.by(() =>
             />
             <GuideSubSectionBody>
               <p
-                class="font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
               >
                 {@html styleEditorInstruction}
               </p>
@@ -2590,8 +2669,13 @@ const styleChoices = $derived.by(() =>
         {/if}
       </GuideSection>
 
-      <GuideSection id="data" number={4} eyebrow={m.guide_data_eyebrow()}>
-        <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
+      <GuideSection
+        id="data"
+        number={6}
+        showBorder={false}
+        eyebrow={m.guide_data_eyebrow()}
+      >
+        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
           {@html m.guide_data_description()}
         </p>
         <div id="project-data" class="scroll-mt-28">
@@ -2637,6 +2721,7 @@ const styleChoices = $derived.by(() =>
               style: selectedStyle.name,
             })}
             {styleUrl}
+            {terminalProjectPath}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
             censusAreasCode={urbanDensityCensusAreasCode}
@@ -2658,7 +2743,7 @@ const styleChoices = $derived.by(() =>
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_data_urban_density_maplibre_only_title()}
             </h3>
-            <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
               {@html m.guide_data_urban_density_maplibre_only_description()}
             </p>
           </GuideCallout>
@@ -2695,7 +2780,7 @@ const styleChoices = $derived.by(() =>
                     : m.guide_data_readiness_eyebrow()}
                 </p>
                 <p
-                  class="mt-2 max-w-3xl font-body text-body-md leading-7 text-foreground-alt"
+                  class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
                 >
                   {@html isDataStepComplete
                     ? m.guide_data_readiness_complete_description()
@@ -2735,7 +2820,8 @@ const styleChoices = $derived.by(() =>
       {#if showPublishStep}
         <GuideSection
           id="publish"
-          number={5}
+          number={7}
+          showBorder={false}
           eyebrow={m.guide_publish_eyebrow()}
           title={m.guide_setup_publish_title()}
           description={objective === 'mobile-embed'
@@ -2773,7 +2859,10 @@ const styleChoices = $derived.by(() =>
             {/if}
           {:else}
             <GuideCodeBlock
-              label={m.guide_setup_publish_code()}
+              label={m.guide_setup_terminal_label({
+                action: m.guide_setup_publish_code(),
+                path: terminalProjectPath,
+              })}
               code={deploymentCode}
               language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
               copyLabel={m.common_copy()}
@@ -2793,7 +2882,7 @@ const styleChoices = $derived.by(() =>
                 <h3 class="font-display text-headline-sm font-bold text-primary">
                   {@html m.guide_setup_embed_title()}
                 </h3>
-                <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+                <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_setup_embed_description({
                     provider: selectedWebsitePlatform?.label ?? '',
                   })}

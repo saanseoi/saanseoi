@@ -15,6 +15,7 @@ type CreateAMapGuideUrlState = CreateAMapSelectionQuery & {
   completedLlmReadinessKey?: string
   completedPaymentKey?: string
   mapboxTokenConfigured: boolean
+  terminalIntroductionExpanded: boolean
   zedSetupContentExpanded: boolean
   zedSetupExpanded: boolean
 }
@@ -69,6 +70,7 @@ export function createCreateAMapGuideAdapter({
       'payment-ready': state.completedPaymentKey,
       'mapbox-token-ready': state.mapboxTokenConfigured ? 'true' : undefined,
       'ai-primer': state.agenticAiPrimerExpanded ? undefined : 'collapsed',
+      'terminal-101': state.terminalIntroductionExpanded ? undefined : 'collapsed',
       'zed-setup': state.zedSetupExpanded
         ? state.zedSetupContentExpanded
           ? 'open'
