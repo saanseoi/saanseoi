@@ -137,6 +137,10 @@ const resetApiKeyConfirmation = () => {
   hasConfirmedApiKey = false
   apiKeyOptionsExpanded = false
   usingExistingKey = false
+  newKey = undefined
+  newKeyName = undefined
+  isNewKeyRevealed = false
+  copied = false
 }
 
 const completeApiKeyConfirmation = () => {
@@ -194,7 +198,7 @@ $effect(() => {
   {/if}
 
   {#if (!isApiKeyReady && !usingExistingKey) || apiKeyOptionsExpanded}
-    {#if !newKey}
+    {#if !newKey && !isApiKeyReady}
       <div
         id="guide-api-key-options"
         class="mt-6 min-w-0 max-w-full border border-border-card bg-surface-container-low p-5"
@@ -226,22 +230,7 @@ $effect(() => {
             ? m.api_keys_creating()
             : m.api_keys_create_button()}
           </Button>
-          {#if isApiKeyReady}
-            <Button
-              class="w-full whitespace-nowrap md:w-auto"
-              onclick={resetApiKeyConfirmation}
-              size="compact"
-              type="button"
-              variant="secondary"
-            >
-              <Icon
-                aria-hidden="true"
-                class="size-5"
-                icon="material-symbols-light:restart-alt-rounded"
-              />
-              {@html m.guide_readiness_reset()}
-            </Button>
-          {:else}
+          {#if !isApiKeyReady}
             <Button
               class="w-full whitespace-nowrap md:w-auto"
               onclick={() => (usingExistingKey = true)}
@@ -260,7 +249,7 @@ $effect(() => {
       </div>
     {/if}
 
-    {#if newKey}
+    {#if newKey && !isApiKeyReady}
       <div
         class="mt-6 border border-secondary bg-secondary-container/20 p-5"
         role="status"
@@ -308,6 +297,34 @@ $effect(() => {
             </Button>
           </div>
         </div>
+      </div>
+    {/if}
+
+    {#if isApiKeyReady}
+      <div
+        id="guide-api-key-options"
+        class="mt-6 border border-border-card bg-surface-container-low p-5"
+      >
+        <p
+          class="font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-background-alt [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+        >
+          {@html m.guide_basemap_api_key_assumed_env()}
+        </p>
+      </div>
+      <div class="mt-6 flex max-w-3xl justify-end">
+        <Button
+          onclick={resetApiKeyConfirmation}
+          size="compact"
+          type="button"
+          variant="secondary"
+        >
+          <Icon
+            aria-hidden="true"
+            class="size-5"
+            icon="material-symbols-light:restart-alt-rounded"
+          />
+          {@html m.guide_readiness_reset()}
+        </Button>
       </div>
     {/if}
   {/if}
