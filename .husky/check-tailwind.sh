@@ -21,6 +21,37 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
+import_canonicalisations() {
+  local_oid=$1
+  patch_file=$2
+  changed_files=$3
+  head_oid=$(git rev-parse HEAD)
+
+  # A pre-push hook can validate a ref that is not checked out. Never apply a
+  # patch generated from that ref to an unrelated working tree.
+  if [ "$head_oid" != "$local_oid" ]; then
+    echo "Tailwind canonicalisations were not imported because $local_oid is not the checked-out HEAD." >&2
+    return 1
+  fi
+
+  while IFS= read -r changed_file
+  do
+    if ! git diff --quiet -- "$changed_file" || \
+      ! git diff --cached --quiet -- "$changed_file"; then
+      echo "Tailwind canonicalisations were not imported because $changed_file has local changes." >&2
+      return 1
+    fi
+  done < "$changed_files"
+
+  if ! git apply --whitespace=nowarn "$patch_file"; then
+    echo "Tailwind canonicalisations could not be imported into the current worktree." >&2
+    return 1
+  fi
+
+  echo "Imported Tailwind canonicalisations into the current worktree. Review and commit them before pushing."
+  return 0
+}
+
 : > "$CHECK_OIDS"
 
 while read -r local_ref local_oid remote_ref remote_oid
@@ -94,11 +125,20 @@ do
 
   TAILWIND_CHANGES=$(git -C "$CURRENT_WORKTREE" status --porcelain | sed '/^?? node_modules$/d')
   if [ -n "$TAILWIND_CHANGES" ]; then
+    PATCH_FILE="$CHECK_DIR/canonical-$CHECK_INDEX.patch"
+    CHANGED_FILES="$CHECK_DIR/canonical-$CHECK_INDEX-files"
+    git -C "$CURRENT_WORKTREE" diff --binary --no-ext-diff > "$PATCH_FILE"
+    git -C "$CURRENT_WORKTREE" diff --name-only > "$CHANGED_FILES"
+
     echo
     echo "Tailwind found canonicalised files for $local_oid. Commit these changes before pushing."
     echo
     echo "Changed files:"
     printf '%s\n' "$TAILWIND_CHANGES" | sed 's/^/  - /'
+
+    if ! import_canonicalisations "$local_oid" "$PATCH_FILE" "$CHANGED_FILES"; then
+      echo "Resolve the reported local state, then rerun the push to import the canonicalisations." >&2
+    fi
     TAILWIND_FAILURES=1
   fi
 
