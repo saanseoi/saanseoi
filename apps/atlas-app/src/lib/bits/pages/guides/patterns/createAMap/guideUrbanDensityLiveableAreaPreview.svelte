@@ -11,13 +11,15 @@ type Props = {
 
 let { label, styleUrl, tilejsonUrl }: Props = $props()
 
-const quietLandUse = [
+const nonLiveableLandUse = [
   'aerodrome',
   'airfield',
   'allotments',
   'bare_rock',
   'beach',
   'cemetery',
+  'commercial',
+  'construction',
   'dam',
   'dog_park',
   'farmland',
@@ -61,19 +63,19 @@ const liveableLayers: LayerSpecification[] = [
     paint: { 'fill-color': '#36a269', 'fill-opacity': 0.48 },
   },
   {
-    id: 'no-residences',
+    id: 'not-liveable',
     type: 'fill',
     source: 'basemap',
     'source-layer': 'landuse',
-    filter: ['in', 'kind', ...quietLandUse],
+    filter: ['in', 'kind', ...nonLiveableLandUse],
     paint: { 'fill-color': '#e76f51', 'fill-opacity': 0.62 },
   },
   {
-    id: 'no-residences-outline',
+    id: 'not-liveable-outline',
     type: 'line',
     source: 'basemap',
     'source-layer': 'landuse',
-    filter: ['in', 'kind', ...quietLandUse],
+    filter: ['in', 'kind', ...nonLiveableLandUse],
     paint: { 'line-color': '#8c3427', 'line-width': 1 },
   },
 ]
