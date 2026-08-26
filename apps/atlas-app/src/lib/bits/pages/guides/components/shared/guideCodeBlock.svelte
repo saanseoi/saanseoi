@@ -179,11 +179,11 @@ const highlightSource = (
       const renderedComments = matchingComments
         .map(
           comment =>
-            `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
+            `<span data-code-comment-for="${comment.line}" aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
         )
         .join('')
 
-      return `${renderedComments}<span class="block${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
+      return `${renderedComments}<span data-code-line="${index + 1}" class="block${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
     })
     .join('')
 
@@ -281,6 +281,7 @@ const selectManualCopyText = () => {
   }`}
 >
   <div
+    data-guide-code-header
     class={`flex items-center justify-between gap-3 border-b px-4 py-2.5 ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
@@ -289,7 +290,7 @@ const selectManualCopyText = () => {
       : 'border-[#47605b] bg-[#182021]'
     }`}
   >
-    <div class="flex min-w-0 items-center gap-3">
+    <div data-guide-code-header-leading class="flex min-w-0 items-center gap-3">
       {#if variant === 'prompt'}
         <span
           class="inline-flex size-7 items-center justify-center rounded-full [background:color-mix(in_srgb,var(--color-secondary)_18%,#211d32)] text-secondary"
@@ -299,6 +300,7 @@ const selectManualCopyText = () => {
         </span>
       {:else if variant === 'editor'}
         <span
+          data-guide-code-editor-icon
           class="inline-flex size-7 items-center justify-center rounded-sm bg-[#2d3547] text-[#a5d6ff]"
           aria-hidden="true"
         >
@@ -313,6 +315,7 @@ const selectManualCopyText = () => {
         {@render terminalDotsSuffix?.()}
       {/if}
       <span
+        data-guide-code-label
         class={`font-semibold ${
           variant === 'prompt'
             ? 'font-body tracking-[0.01em] text-[#eeeaff]'
@@ -328,10 +331,11 @@ const selectManualCopyText = () => {
       >
     </div>
     {#if copyable || actions || comments.length > 0}
-      <div class="flex shrink-0 items-center gap-4">
+      <div data-guide-code-actions class="flex shrink-0 items-center gap-4">
         {@render leadingActions?.()}
         {#if comments.length > 0}
           <button
+            data-guide-code-comments-toggle
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
             type="button"
             aria-pressed={commentsVisible}
@@ -341,8 +345,10 @@ const selectManualCopyText = () => {
             {m.guide_code_block_comments()}
           </button>
         {/if}
+        {@render actions?.()}
         {#if copyable}
           <button
+            data-guide-code-copy
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
             type="button"
             onclick={copy}
@@ -356,7 +362,6 @@ const selectManualCopyText = () => {
             {@render copyLabelSuffix?.()}
           </button>
         {/if}
-        {@render actions?.()}
       </div>
     {/if}
   </div>
