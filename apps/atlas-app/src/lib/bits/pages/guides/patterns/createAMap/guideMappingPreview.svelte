@@ -2,6 +2,7 @@
 import { onMount } from 'svelte'
 import {
   setWorkerUrl,
+  type Map as MapLibreMap,
   type LayerSpecification,
   type StyleSpecification,
 } from 'maplibre-gl'
@@ -22,6 +23,7 @@ type Props = {
   ariaLabel: string
   beforeLayerId?: string
   center: Coordinates
+  onMapReady?: (map: MapLibreMap) => void | Promise<void>
   renderer: Renderer
   styleUrl?: string
   tilejsonUrl?: string
@@ -35,6 +37,7 @@ let {
   ariaLabel,
   beforeLayerId,
   center,
+  onMapReady,
   renderer,
   styleUrl,
   tilejsonUrl,
@@ -151,6 +154,9 @@ onMount(() => {
           center,
           style,
           zoom,
+        })
+        map.once('idle', () => {
+          void onMapReady?.(map)
         })
         remove = () => map.remove()
         observeResize(() => map.resize())
