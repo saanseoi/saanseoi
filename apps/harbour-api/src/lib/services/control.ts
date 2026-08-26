@@ -696,7 +696,7 @@ export async function handleBootstrapStatsReleaseSets(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
           eq(metaReleases.resourceType, 'divisionStatistic'),
-          inArray(metaReleases.status, ['staged', 'processing', 'published']),
+          eq(metaReleases.status, 'published'),
         ),
       )
       .all()

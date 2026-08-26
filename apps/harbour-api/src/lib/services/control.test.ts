@@ -324,6 +324,63 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
     'legacy-release-2022',
     'primary',
   )
+  sqlite.exec(`
+    INSERT INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      'staged-release-2023', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2023',
+      '2023', '2023', 'hk/test/2023/staged.parquet', 'staged.parquet',
+      'staged', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
+      '2026-08-25T00:00:00.000Z'
+    );
+  `)
+  const stagedSnapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
+    cohortKey: '2023',
+    datasetCode: datasetCodes[0],
+    datasetId: 'dataset-0',
+    regionCode: 'hk',
+    sourceReleaseId: 'staged-release-2023',
+    variant: datasetCodes[0],
+  })
+  await upsertSnapshotSource(
+    db,
+    stagedSnapshot.id,
+    'dataset-0',
+    'staged-release-2023',
+    'primary',
+  )
+
+  expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
+    createdReleaseSetCodes: [],
+    inspectedSnapshots: 2,
+    skippedCohortKeys: ['2021'],
+  })
+  expect(
+    sqlite.query(`SELECT status FROM releases WHERE id = 'legacy-release-2022'`).get(),
+  ).toEqual({ status: 'processing' })
+  expect(
+    sqlite.query(`SELECT status FROM releases WHERE id = 'staged-release-2023'`).get(),
+  ).toEqual({ status: 'staged' })
+  expect(
+    sqlite.query(`SELECT status FROM snapshots WHERE id = ?`).get(legacySnapshot.id),
+  ).toEqual({ status: 'draft' })
+  expect(
+    sqlite.query(`SELECT status FROM snapshots WHERE id = ?`).get(stagedSnapshot.id),
+  ).toEqual({ status: 'draft' })
+  expect(
+    sqlite
+      .query(
+        `SELECT count(*) AS count
+         FROM apiReleaseSets
+         WHERE code IN ('data-hk-stats-2022-r0', 'data-hk-stats-2023-r0')`,
+      )
+      .get(),
+  ).toEqual({ count: 0 })
+
+  sqlite.exec(
+    "UPDATE releases SET status = 'published' WHERE id = 'legacy-release-2022'",
+  )
   const legacyReleaseSet = await ensureDraftReleaseSetForRelease(
     db,
     'divisionStatistic',
