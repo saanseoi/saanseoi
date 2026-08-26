@@ -852,6 +852,8 @@ const shareLinks = $derived.by(() => {
   locale
   const url = encodeURIComponent(guideUrl)
   const text = encodeURIComponent(m.guide_share_description())
+  const emailSubject = encodeURIComponent(m.guide_share_email_subject())
+  const emailBody = encodeURIComponent(m.guide_share_email_body({ url: guideUrl }))
 
   return [
     {
@@ -873,6 +875,12 @@ const shareLinks = $derived.by(() => {
       href: `https://service.weibo.com/share/share.php?url=${url}&title=${text}`,
       icon: 'simple-icons:sinaweibo',
       label: m.guide_share_weibo(),
+    },
+    {
+      href: `mailto:?subject=${emailSubject}&body=${emailBody}`,
+      icon: 'lucide:mail',
+      label: m.guide_share_email(),
+      newWindow: false,
     },
   ]
 })
