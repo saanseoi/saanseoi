@@ -3,7 +3,7 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
 </script>
 
 <div
-  class="overflow-hidden border border-[#596074] bg-[#10151a] font-mono text-sm shadow-inner"
+  class="flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-mono text-sm shadow-inner"
 >
   <div class="border-b border-[#596074] bg-[#202633] px-4 py-3 text-[#d6e4ff]">
     <div class="flex items-center justify-between gap-3">
@@ -14,9 +14,9 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
   </div>
 
   <div
-    class="grid divide-y divide-[#596074] sm:grid-cols-[minmax(13rem,1fr)_auto_minmax(0,2fr)] sm:divide-x sm:divide-y-0"
+    class="grid min-h-0 flex-1 divide-y divide-[#596074] sm:grid-cols-[minmax(13rem,1fr)_auto_minmax(0,2fr)] sm:divide-x sm:divide-y-0"
   >
-    <section class="p-4">
+    <section class="flex min-h-0 flex-col p-4">
       <p class="text-xs font-semibold tracking-[0.08em] text-[#a5d6ff] uppercase">
         Request
       </p>
@@ -43,18 +43,20 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
       →
     </div>
 
-    <section class="p-4">
+    <section class="flex min-h-0 flex-col p-4">
       <p class="text-xs font-semibold tracking-[0.08em] text-[#a5d6ff] uppercase">
         Response
       </p>
-      <div class="mt-3 space-y-3">
+      <div class="mt-3 flex min-h-0 flex-1 flex-col gap-3">
         {#each urbanDensityStatsResponses as response}
-          <article class="overflow-hidden border border-white/10 bg-black/15">
+          <article
+            class="flex min-h-0 flex-1 flex-col overflow-hidden border border-white/10 bg-black/15"
+          >
             <p class="border-b border-white/10 px-3 py-2 text-xs text-[#ffd28a]">
               <code>filter[field]={response.field}</code>
             </p>
             <pre
-              class="max-h-64 overflow-auto p-3 text-[11px] leading-5 text-white/70"
+              class="min-h-0 flex-1 overflow-auto p-3 text-[11px] leading-5 text-white/70"
             >{JSON.stringify({ values: response.values }, null, 2)}</pre>
           </article>
         {/each}

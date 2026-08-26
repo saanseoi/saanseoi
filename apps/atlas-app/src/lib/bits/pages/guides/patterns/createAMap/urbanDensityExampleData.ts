@@ -15,15 +15,15 @@ type DivisionsResponse = { data: Division[] }
 
 const areas = {
   'Hong Kong Island': {
-    codes: ['CW', 'WC', 'EST', 'STH', 'ILD'],
+    codes: ['CW', 'WC', 'EST', 'STH'],
     id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
   },
   Kowloon: {
-    codes: ['YTM', 'SSP', 'KLC', 'WTS', 'KT', 'KC'],
+    codes: ['YTM', 'SSP', 'KLC', 'WTS', 'KT'],
     id: '17009785-57fd-4e5b-af86-2d27352e4718',
   },
   'New Territories': {
-    codes: ['TW', 'TM', 'YL', 'NTH', 'TP', 'ST', 'SK'],
+    codes: ['KC', 'TW', 'TM', 'YL', 'NTH', 'TP', 'ST', 'SK', 'ILD'],
     id: '780c42b7-213b-5076-9d36-6ae0024e3bd3',
   },
 } as const
@@ -133,5 +133,40 @@ export function calculateUrbanDensityMetrics(
   return [...totalsByArea.values()].map(total => ({
     ...total,
     peoplePerSqKm: total.population / total.landAreaSqKm,
+  }))
+}
+
+export const urbanDensityLiveableLandAreas = {
+  'Hong Kong Island': 42.1,
+  Kowloon: 37.6,
+  'New Territories': 479.8,
+} as const
+
+export const calculateUrbanDensityLiveableMetrics = () => {
+  const [populationResponse] = urbanDensityStatsResponses
+  const baselineMetrics = calculateUrbanDensityMetrics(
+    urbanDensityDivisionsResponse,
+    populationResponse.values,
+    urbanDensityStatsResponses[1].values,
+  )
+
+  return baselineMetrics.map(metric => ({
+    ...metric,
+    districtLandAreaSqKm: metric.landAreaSqKm,
+    landAreaSqKm:
+      urbanDensityLiveableLandAreas[
+        metric.name as keyof typeof urbanDensityLiveableLandAreas
+      ],
+    liveablePercentage:
+      (urbanDensityLiveableLandAreas[
+        metric.name as keyof typeof urbanDensityLiveableLandAreas
+      ] /
+        metric.landAreaSqKm) *
+      100,
+    peoplePerSqKm:
+      metric.population /
+      urbanDensityLiveableLandAreas[
+        metric.name as keyof typeof urbanDensityLiveableLandAreas
+      ],
   }))
 }
