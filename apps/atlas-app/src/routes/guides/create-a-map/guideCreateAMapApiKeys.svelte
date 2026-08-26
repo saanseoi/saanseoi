@@ -7,7 +7,7 @@ import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import GuideCodeBlock from '#lib/bits/pages/guides/components/shared/guideCodeBlock.svelte'
 import GuideCallout from '#lib/bits/pages/guides/components/shared/guideCallout.svelte'
 import GuideScreenshot from '#lib/bits/pages/guides/components/shared/guideScreenshot.svelte'
-import sublimeEnvFile from '#lib/assets/guides/macos_sublimetext_env.jpg'
+import macosEnvFile from '#lib/assets/guides/macos_sublimetext_env.jpg'
 
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
@@ -20,6 +20,8 @@ type Props = {
   onApiKeyCreated?: (key: string) => void
   onApiKeyReadyChange?: (ready: boolean) => void
   showHeading?: boolean
+  terminalProjectPath?: string
+  usingExistingKey?: boolean
 }
 
 let {
@@ -31,6 +33,8 @@ let {
   onApiKeyCreated,
   onApiKeyReadyChange,
   showHeading = true,
+  terminalProjectPath,
+  usingExistingKey = $bindable(false),
 }: Props = $props()
 let hasConfirmedApiKey = $state<boolean>()
 let isApiKeyReady = $derived(hasConfirmedApiKey ?? apiKeyReady)
@@ -41,12 +45,24 @@ let newKey = $state<string>()
 let newKeyName = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
-const environmentSetupVisible = $derived(isApiKeyReady || Boolean(newKey))
+const environmentSetupVisible = $derived(
+  !isApiKeyReady && (usingExistingKey || Boolean(newKey)),
+)
 const environmentFileCode = $derived(
   `VITE_SAANSEOI_API_KEY=${newKey ?? 'REPLACE_ME_WITH_YOUR_API_KEY'}`,
 )
 const environmentFileStructureCommand = $derived(
   operatingSystem === 'windows' ? 'Get-ChildItem -Force' : 'ls -la',
+)
+const environmentFileStructureLabel = $derived(
+  m.guide_setup_terminal_label({
+    action: m.guide_basemap_env_file_structure_title(),
+    path:
+      terminalProjectPath ??
+      (operatingSystem === 'windows'
+        ? 'C:\\Users\\your-name\\saanseoi-project'
+        : '~/saanseoi-project'),
+  }),
 )
 const environmentFileStructureCode = $derived(
   operatingSystem === 'windows'
@@ -64,18 +80,18 @@ const environmentFileStructureCode = $derived(
         '-a---                vite.config.ts',
       ].join('\n')
     : [
-        '$ ls -la',
-        'total 212',
-        'drwxr-xr-x  4 you you  4096 .',
-        'drwxr-xr-x  1 you you  4096 ..',
-        '-rw-r--r--  1 you you    48 .env',
-        '-rw-r--r--  1 you you   324 index.html',
-        'drwxr-xr-x 68 you you  4096 node_modules',
-        '-rw-r--r--  1 you you   581 package.json',
-        'drwxr-xr-x  2 you you  4096 src',
-        '-rw-r--r--  1 you you   614 tsconfig.json',
-        '-rw-r--r--  1 you you   220 vite.config.js',
-        '-rw-r--r--  1 you you   302 vite.config.ts',
+        'total 72',
+        'drwxr-xr-x@ 11 saan seoi    352 Aug 26 21:28 .',
+        'drwxr-x---@ 66 saan seoi   2112 Aug 26 21:33 ..',
+        '-rw-r--r--   1 saan seoi     68 Aug 26 21:30 .env',
+        '-rw-r--r--@  1 saan seoi    253 Aug 26 20:52 .gitignore',
+        '-rw-r--r--@  1 saan seoi  15617 Aug 26 21:03 bun.lock',
+        '-rw-r--r--@  1 saan seoi    366 Aug 26 20:52 index.html',
+        'drwxr-xr-x@ 36 saan seoi   1152 Aug 26 21:03 node_modules',
+        '-rw-r--r--@  1 saan seoi    327 Aug 26 21:03 package.json',
+        'drwxr-xr-x@  4 saan seoi    128 Aug 26 20:52 public',
+        'drwxr-xr-x@  6 saan seoi    192 Aug 26 20:52 src',
+        '-rw-r--r--@  1 saan seoi    560 Aug 26 20:52 tsconfig.json',
       ].join('\n'),
 )
 
@@ -120,11 +136,13 @@ const copyNewKey = async () => {
 const resetApiKeyConfirmation = () => {
   hasConfirmedApiKey = false
   apiKeyOptionsExpanded = false
+  usingExistingKey = false
 }
 
 const completeApiKeyConfirmation = () => {
   hasConfirmedApiKey = true
   apiKeyOptionsExpanded = false
+  usingExistingKey = false
 }
 
 $effect(() => {
@@ -175,7 +193,7 @@ $effect(() => {
     </button>
   {/if}
 
-  {#if !isApiKeyReady || apiKeyOptionsExpanded}
+  {#if (!isApiKeyReady && !usingExistingKey) || apiKeyOptionsExpanded}
     {#if !newKey}
       <div
         id="guide-api-key-options"
@@ -184,9 +202,6 @@ $effect(() => {
         <h4 class="font-body text-body-md font-semibold text-foreground">
           {m.api_keys_create_heading()}
         </h4>
-        <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
-          {m.guide_basemap_api_key_create_instruction()}
-        </p>
         <form
           class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
           onsubmit={event => {
@@ -229,7 +244,7 @@ $effect(() => {
           {:else}
             <Button
               class="w-full whitespace-nowrap md:w-auto"
-              onclick={() => (hasConfirmedApiKey = true)}
+              onclick={() => (usingExistingKey = true)}
               type="button"
               variant="secondary"
             >
@@ -325,13 +340,21 @@ $effect(() => {
         </GuideCallout>
         <div class="mt-5 max-w-2xl">
           <GuideScreenshot
-            src={sublimeEnvFile}
+            src={macosEnvFile}
             alt={m.guide_basemap_env_file_sublime_location_image_alt()}
           />
         </div>
         <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
           {m.guide_basemap_env_file_sublime_hidden_file_note()}
         </p>
+      {/if}
+      {#if editorLabel === 'Zed'}
+        <div class="mt-5 max-w-2xl">
+          <GuideScreenshot
+            src={macosEnvFile}
+            alt={m.guide_basemap_env_file_zed_location_image_alt()}
+          />
+        </div>
       {/if}
       <p
         class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
@@ -362,9 +385,18 @@ $effect(() => {
         </p>
         <div class="mt-5">
           <GuideCodeBlock
-            label={m.guide_basemap_env_file_structure_label()}
+            label={environmentFileStructureLabel}
+            code={environmentFileStructureCommand}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+            language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
+          />
+        </div>
+        <div class="mt-5">
+          <GuideCodeBlock
+            label={m.guide_setup_complete_output()}
             code={environmentFileStructureCode}
-            copyCode={environmentFileStructureCommand}
+            copyable={false}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
             language="text"
@@ -374,7 +406,7 @@ $effect(() => {
     </div>
   {/if}
 
-  {#if newKey && !isApiKeyReady}
+  {#if environmentSetupVisible && !isApiKeyReady}
     <div class="mt-6 flex max-w-3xl justify-end">
       <Button
         class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"

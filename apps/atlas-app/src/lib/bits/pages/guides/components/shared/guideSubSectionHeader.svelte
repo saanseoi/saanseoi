@@ -1,7 +1,10 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
+
 import GuideProgressMarker from './guideProgressMarker.svelte'
 
 type Props = {
+  actions?: Snippet
   eyebrow?: string
   requirement?: {
     current: number
@@ -11,7 +14,7 @@ type Props = {
   title: string
 }
 
-let { eyebrow, requirement, title }: Props = $props()
+let { actions, eyebrow, requirement, title }: Props = $props()
 </script>
 
 {#if eyebrow || requirement}
@@ -25,6 +28,11 @@ let { eyebrow, requirement, title }: Props = $props()
     {/if}
   </p>
 {/if}
-<h3 class="mt-1 font-display text-headline-md leading-tight font-bold text-primary">
-  {@html title}
-</h3>
+<div class="mt-1 flex flex-wrap items-center justify-between gap-3">
+  <h3 class="font-display text-headline-md leading-tight font-bold text-primary">
+    {@html title}
+  </h3>
+  {#if actions}
+    <div class="shrink-0">{@render actions()}</div>
+  {/if}
+</div>

@@ -38,6 +38,7 @@ export { default as GuideAgenticAiPrimer } from './patterns/createAMap/guideAgen
 export { default as GuideTerminalDemo } from './patterns/createAMap/guideTerminalDemo.svelte'
 export { default as GuideTerminalIntroduction } from './patterns/createAMap/guideTerminalIntroduction.svelte'
 export { default as GuideCreateAMapZedSetup } from './patterns/createAMap/guideCreateAMapZedSetup.svelte'
+export { default as GuideEditorCardExplainer } from './patterns/createAMap/guideEditorCardExplainer.svelte'
 export { default as GuideEditorProjectSetupSection } from './patterns/createAMap/guideEditorProjectSetupSection.svelte'
 export { default as GuideManualSetup } from './patterns/createAMap/guideManualSetup.svelte'
 export { default as GuidePlatformSelection } from './patterns/createAMap/guidePlatformSelection.svelte'
