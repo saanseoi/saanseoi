@@ -21,6 +21,16 @@ const stylesheetSnippet = [
   '}',
 ].join('\n')
 
+const mapLibreViteConfigCode = [
+  "import { defineConfig } from 'vite'",
+  '',
+  'export default defineConfig({',
+  '  optimizeDeps: {',
+  "    exclude: ['maplibre-gl'],",
+  '  },',
+  '})',
+].join('\n')
+
 const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference> = {
   maplibre: {
     label: 'MapLibre',
@@ -261,7 +271,10 @@ export const getHostingInstallCode = (hosting?: string) =>
           ? 'bun add -d netlify-cli'
           : ''
 
-export const createProjectSetupCode = (operatingSystem?: string) =>
+export const createProjectSetupCode = (
+  operatingSystem?: string,
+  renderer?: CreateAMapRenderer,
+) =>
   ['mkdir saanseoi-project', 'cd saanseoi-project']
     .concat([
       '# If prompted that the directory is not empty, choose “Ignore files and continue”.',
@@ -271,6 +284,22 @@ export const createProjectSetupCode = (operatingSystem?: string) =>
             '# This selects “Ignore files and continue” if Vite shows that prompt.',
             String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`,
           ]),
+      ...(renderer === 'maplibre' || renderer === 'leaflet'
+        ? operatingSystem === 'windows'
+          ? [
+              '# Prepare Vite for MapLibre support.',
+              "$viteConfig = @'",
+              mapLibreViteConfigCode,
+              "'@",
+              '$viteConfig | Set-Content vite.config.js',
+            ]
+          : [
+              '# Prepare Vite for MapLibre support.',
+              "cat <<'EOF' > vite.config.js",
+              mapLibreViteConfigCode,
+              'EOF',
+            ]
+        : []),
       'bun install',
     ])
     .join('\n')
@@ -385,13 +414,13 @@ export const createAgentProjectCommand = (
 
 export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
   [
-    "import { Map } from 'maplibre-gl'",
+    "import { Map as MapLibreMap } from 'maplibre-gl'",
     "import 'maplibre-gl/dist/maplibre-gl.css'",
     "import './style.css'",
     '',
-    'const apiKey = import.meta.env.VITE_SAANSEOI_API_KEY',
-    "if (!apiKey?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY in a (new) file called .env')",
-    'const urlSafeApiKey = encodeURIComponent(apiKey)',
+    'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
+    "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY in a (new) file called .env')",
+    'const urlSafeApiKey = encodeURIComponent(accessToken)',
     "const basemapBaseUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'",
     'const basemapUrl = `${basemapBaseUrl}?access_token=${urlSafeApiKey}`',
     '',
@@ -403,7 +432,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '',
     "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
     '',
-    'const map = new Map({',
+    'const map = new MapLibreMap({',
     "  container: 'map',",
     '  center: [114.165, 22.34],',
     '  zoom: 10.25,',
@@ -423,9 +452,13 @@ export const urbanDensityStatsCode = [
   "  url.searchParams.set('filter[field]', field)",
   "  url.searchParams.set('filter[referencePeriod]', '2024')",
   '',
-  "  const response = await fetch(url, { headers: { 'x-api-key': apiKey } })",
+  "  const response = await fetch(url, { headers: { 'x-api-key': accessToken } })",
   '',
-  '  if (!response.ok) throw new Error(`Statistics request failed: ${response.status}`)',
+  '  if (!response.ok) {',
+  '    const error = await response.json().catch(() => null)',
+  "    const message = typeof error?.message === 'string' ? `: ${error.message}` : ''",
+  '    throw new Error(`Statistics request failed: ${response.status}${message}`)',
+  '  }',
   '  return (await response.json()).values as Record<string, string>',
   '}',
   '',
@@ -436,7 +469,7 @@ export const urbanDensityStatsCode = [
 ].join('\n')
 
 export const urbanDensityStatsDisplayCode = [
-  "import { Map } from 'maplibre-gl'",
+  "import { Map as MapLibreMap } from 'maplibre-gl'",
   "import 'maplibre-gl/dist/maplibre-gl.css'",
   "import './style.css'",
   '',
@@ -452,7 +485,7 @@ export const urbanDensityCalculationCode = [
   'const divisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
   "divisionsUrl.searchParams.set('filter[level]', '2')",
   "divisionsUrl.searchParams.set('include', 'hierarchy')",
-  "const divisionsResponse = await fetch(divisionsUrl, { headers: { 'x-api-key': apiKey } })",
+  "const divisionsResponse = await fetch(divisionsUrl, { headers: { 'x-api-key': accessToken } })",
   'if (!divisionsResponse.ok) throw new Error(`Divisions request failed: ${divisionsResponse.status}`)',
   'const response = await divisionsResponse.json()',
   '',
@@ -529,8 +562,8 @@ export const urbanDensityMapCode = [
 export const urbanDensityCensusAreasCode = [
   'const censusDivisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
   "censusDivisionsUrl.searchParams.set('filter[level]', '2')",
-  "censusDivisionsUrl.searchParams.set('include', 'hierarchy,areas:hkgov-censtatd:2021')",
-  "const censusDivisionsResponse = await fetch(censusDivisionsUrl, { headers: { 'x-api-key': apiKey } })",
+  "censusDivisionsUrl.searchParams.set('include', 'hierarchy,areas:hkgov-censtatd:2021:simplified')",
+  "const censusDivisionsResponse = await fetch(censusDivisionsUrl, { headers: { 'x-api-key': accessToken } })",
   'if (!censusDivisionsResponse.ok) throw new Error(`Census divisions request failed: ${censusDivisionsResponse.status}`)',
   'const censusDivisions = await censusDivisionsResponse.json()',
   '',
