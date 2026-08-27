@@ -171,6 +171,7 @@ ${mutedBar}  `)
     }
     const hkgovCenstatdPreparation = await prepareHkgovCenstatdGmlUpload(
       registerOptions.filePath,
+      registerOptions.datasetCode,
       registerOptions.source,
       registerOptions.sourceVersion,
       typeof args.options.transform === 'string' ? args.options.transform : undefined,
@@ -885,6 +886,7 @@ async function prepareHkgovHadGeoJsonUpload(
 
 async function prepareHkgovCenstatdGmlUpload(
   filePath: string,
+  datasetCode: string | undefined,
   source: string | undefined,
   sourceVersion: string | undefined,
   transform: string | undefined,
@@ -913,7 +915,10 @@ async function prepareHkgovCenstatdGmlUpload(
       filePath,
       tempDir,
       inputSourceVersion,
-      { sourceArchive },
+      {
+        datasetCode: censtatdDistrictDatasetCode(datasetCode),
+        sourceArchive,
+      },
     )
     return {
       ...prepared,
@@ -926,6 +931,26 @@ async function prepareHkgovCenstatdGmlUpload(
     await rm(tempDir, { force: true, recursive: true })
     throw error
   }
+}
+
+export function censtatdDistrictDatasetCode(datasetCode: string | undefined) {
+  if (
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+  ) {
+    return datasetCode
+  }
+  if (datasetCode) {
+    throw new Error(
+      `C&SD District Council GML does not support dataset ${datasetCode}.`,
+    )
+  }
+  return undefined
 }
 
 function sourceArchiveReference(args: ParsedArgs) {
