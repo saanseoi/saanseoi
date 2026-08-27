@@ -14,11 +14,14 @@ import { join, resolve } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
+  listCurrentApiCompositionMembersForType,
   resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
 } from '@repo/core/db/metaRegistry'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { resolveSourceSchemaVersion } from '@repo/core'
+import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
 import { and, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
@@ -1242,68 +1245,20 @@ type AddressReleaseSetReadiness = {
   divisionCohortKey: string | null
 }
 
-type CohortIndependentReleaseDefinition = {
-  cohortKey?: string
-  datasetCode: string
-  optional: boolean
-  resourceType: string
-  variant: string
-}
-
-const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentReleaseDefinition[] =
-  [
-    {
-      datasetCode: 'ds-hk-hkgov-had-division-area-district',
-      optional: false,
-      resourceType: 'divisionArea',
-      variant: 'hkgov-had',
-    },
-    {
-      cohortKey: '2016',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-      optional: false,
-      resourceType: 'divisionArea',
-      variant: 'hkgov-censtatd-landclipped',
-    },
-    {
-      cohortKey: '2021',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-      optional: false,
-      resourceType: 'divisionArea',
-      variant: 'hkgov-censtatd-landclipped',
-    },
-    {
-      cohortKey: '2024',
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-      optional: false,
-      resourceType: 'divisionArea',
-      variant: 'hkgov-censtatd',
-    },
-    {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      optional: false,
-      resourceType: 'divisionArea',
-      variant: 'hkgov-censtatd',
-    },
-  ]
-
 const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 
-type CohortIndependentReleaseReadiness = {
-  cohortKey: string | null
-  datasetCode: string
-  optional: boolean
+type DivisionReleaseSetMemberReadiness = {
+  cohortKeys: string[]
+  cohortMatchingMode: string
+  isRequired: boolean
   releaseCode: string | null
   resourceType: string
   variant: string
 }
 
 type DivisionReleaseSetReadiness = {
-  areaAvailable: boolean
-  boundaryAvailable: boolean
-  cohortIndependentReleases: CohortIndependentReleaseReadiness[]
-  divisionAvailable: boolean
+  domainCode: string
+  members: DivisionReleaseSetMemberReadiness[]
   ready: boolean
 }
 
@@ -1363,36 +1318,24 @@ export async function resolveDivisionApiReleaseSetReadiness(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ): Promise<DivisionReleaseSetReadiness> {
-  const snapshots = target.remote
-    ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
-    : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
   const domainCode = resolveDivisionDomainCode(plan.source, plan.datasetCode)
-  const cohortIndependentReleases =
-    domainCode === 'geographic'
-      ? target.remote
-        ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
-        : await resolveLocalCohortIndependentDivisionReleases(target, plan)
-      : []
-  const divisionAvailable = snapshots.division
-  const areaAvailable = snapshots.divisionArea
-  const cohortIndependentRequirementsAvailable = cohortIndependentReleases.every(
-    release => release.optional || release.releaseCode !== null,
-  )
-  const boundaryAvailable = snapshots.divisionBoundary
-  const ready =
-    domainCode === 'geographic'
-      ? divisionAvailable &&
-        areaAvailable &&
-        cohortIndependentRequirementsAvailable &&
-        boundaryAvailable
-      : divisionAvailable && areaAvailable
+  const resolveReadiness = (db: HarbourReadableDb) =>
+    resolveDivisionCompositionReadiness(db, plan, domainCode)
 
-  return {
-    areaAvailable,
-    boundaryAvailable,
-    cohortIndependentReleases,
-    divisionAvailable,
-    ready,
+  if (target.remote) {
+    return withRemoteCachedMetaDb(target, resolveReadiness)
+  }
+
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    resolveShardYear(plan.cohortKey, plan.sourceVersion),
+    { cacheTableProfile: 'division' },
+  )
+  try {
+    return resolveReadiness(dbContext.metaDb as unknown as HarbourReadableDb)
+  } finally {
+    dbContext.cleanup()
   }
 }
 
@@ -1401,34 +1344,17 @@ export function formatDivisionApiReleaseSetReadiness(
     Partial<Pick<DivisionGeometryPlan, 'datasetCode' | 'source'>>,
   readiness: DivisionReleaseSetReadiness,
 ) {
-  const rows = [
-    ['division', readiness.divisionAvailable],
-    ['divisionArea', readiness.areaAvailable],
-    ...(resolveDivisionDomainCode(plan.source, plan.datasetCode) === 'geographic'
-      ? ([['divisionBoundary', readiness.boundaryAvailable]] as const)
-      : []),
-  ] as const
-  const width = Math.max(...rows.map(([dataset]) => dataset.length))
+  const width = Math.max(...readiness.members.map(member => member.resourceType.length))
 
   return [
-    '# EXACT REF',
-    `${plan.regionCode.toUpperCase()} / ${resolveDivisionReleaseSetVariant(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
-    ...rows.map(
-      ([dataset, available]) =>
-        `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
-    ),
-    ...(readiness.cohortIndependentReleases.length > 0
-      ? [
-          '',
-          '# AT OR BEFORE',
-          ...readiness.cohortIndependentReleases.flatMap(release => [
-            [plan.regionCode.toUpperCase(), release.variant, release.cohortKey]
-              .filter((segment): segment is string => segment !== null)
-              .join(' / '),
-            `  ${release.releaseCode === null ? (release.optional ? yellowText('○') : redText('○')) : greenText('✓')} ${formatResourceType(release.resourceType)}  ${release.releaseCode === null ? (release.optional ? yellowText('[optional]') : redText('unavailable')) : greenText('available')}`,
-          ]),
-        ]
-      : []),
+    '# REQUIRED MEMBERS',
+    `${plan.regionCode.toUpperCase()} / ${readiness.domainCode} / ${plan.cohortKey}`,
+    ...readiness.members.map(member => {
+      const available = member.releaseCode !== null
+      const cohort = member.cohortKeys.join(', ')
+      const mode = member.cohortMatchingMode.replaceAll('_', ' ')
+      return `  ${available ? greenText('✓') : member.isRequired ? redText('○') : yellowText('○')} ${formatResourceType(member.resourceType.padEnd(width))}  ${mutedText(`(${member.variant}; ${mode}${cohort ? `: ${cohort}` : ''})`)}  ${available ? greenText('available') : member.isRequired ? redText('unavailable') : yellowText('[optional]')}`
+    }),
   ].join('\n')
 }
 
