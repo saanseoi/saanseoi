@@ -71,7 +71,8 @@ for year in 2016 2021
 
     # A standard C&SD upload also publishes its simplified display-geometry
     # companion. Do not explicitly upload --transform simplified again.
-    init_run_upload "dr-hk-hkgov-censtatd-division-area-district-$year" "$file" \
+    init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year" "$file" \
+        --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
         --yes
