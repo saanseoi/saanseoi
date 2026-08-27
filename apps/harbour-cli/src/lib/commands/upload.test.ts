@@ -8,6 +8,7 @@ import {
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
   rainbowWaveText,
+  selectPublishedApiReleaseSetPublications,
 } from './upload.ts'
 
 describe('upload command address prerequisites', () => {
@@ -125,7 +126,7 @@ describe('division API release set readiness display', () => {
     )
   })
 
-  test('reports an Overture area as unavailable when only the HAD area is present', () => {
+  test('renders the required members from the active API composition', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
@@ -133,178 +134,85 @@ describe('division API release set readiness display', () => {
           regionCode: 'hk',
         },
         {
-          areaAvailable: false,
-          boundaryAvailable: false,
-          cohortIndependentReleases: [
+          domainCode: 'geographic',
+          members: [
             {
-              cohortKey: '2022',
-              datasetCode: 'ds-hk-hkgov-had-division-area-district',
-              optional: false,
-              releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
-              resourceType: 'divisionArea',
-              variant: 'hkgov-had',
+              cohortKeys: ['2025-09-24.0'],
+              cohortMatchingMode: 'exact_ref',
+              isRequired: true,
+              releaseCode: 'ss-hk-division-2025-09-24.0',
+              resourceType: 'division',
+              variant: 'overture',
             },
             {
-              cohortKey: '2016',
-              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              optional: true,
-              releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2016',
-              resourceType: 'divisionArea',
-              variant: 'hkgov-censtatd-landclipped',
-            },
-            {
-              cohortKey: '2021',
-              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              optional: true,
-              releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
-              resourceType: 'divisionArea',
-              variant: 'hkgov-censtatd-landclipped',
-            },
-            {
-              cohortKey: null,
-              datasetCode:
-                'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-              optional: false,
-              releaseCode: null,
+              cohortKeys: ['2022'],
+              cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
+              isRequired: true,
+              releaseCode: 'ss-hk-division-area-2022',
               resourceType: 'divisionArea',
               variant: 'hkgov-censtatd',
             },
           ],
-          divisionAvailable: true,
           ready: false,
         },
       ),
     ).toBe(
       [
-        '# EXACT REF',
-        'HK / overture / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
-        '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[31munavailable\u001B[39m',
-        '  \u001B[31m○\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[31munavailable\u001B[39m',
-        '',
-        '# AT OR BEFORE',
-        'HK / hkgov-had / 2022',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd-landclipped / 2016',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd-landclipped / 2021',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd',
-        '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[31munavailable\u001B[39m',
+        '# REQUIRED MEMBERS',
+        'HK / geographic / 2025-09-24.0',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision    \u001B[39m  \u001B[90m(overture; exact ref: 2025-09-24.0)\u001B[39m  \u001B[32mavailable\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[90m(hkgov-censtatd; latest at or before cohort per dataset: 2022)\u001B[39m  \u001B[32mavailable\u001B[39m',
       ].join('\n'),
     )
   })
 
-  test('reports the selected release-set cohort and provider release as available', () => {
+  test('reports LandsD as its own domain', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
-          cohortKey: '2025-09-24.0',
+          cohortKey: '2026-06-10.0',
           regionCode: 'hk',
+          source: 'hkgov-landsd',
         },
         {
-          areaAvailable: true,
-          boundaryAvailable: true,
-          cohortIndependentReleases: [
+          domainCode: 'hkgov-landsd',
+          members: [
             {
-              cohortKey: '2022',
-              datasetCode: 'ds-hk-hkgov-had-division-area-district',
-              optional: false,
-              releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
-              resourceType: 'divisionArea',
-              variant: 'hkgov-had',
+              cohortKeys: ['2026-06-10.0'],
+              cohortMatchingMode: 'exact_ref',
+              isRequired: true,
+              releaseCode: 'ss-hk-division-2026-06-10.0',
+              resourceType: 'division',
+              variant: 'hkgov-landsd',
             },
           ],
-          divisionAvailable: true,
           ready: true,
         },
       ),
-    ).toBe(
-      [
-        '# EXACT REF',
-        'HK / overture / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[32mavailable\u001B[39m',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[32mavailable\u001B[39m',
-        '',
-        '# AT OR BEFORE',
-        'HK / hkgov-had / 2022',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-      ].join('\n'),
-    )
+    ).toContain('HK / hkgov-landsd / 2026-06-10.0')
   })
+})
 
-  test('labels an unavailable C&SD release as required', () => {
+describe('API release-set publication display', () => {
+  test('deduplicates the selected current release set from publication results', () => {
     expect(
-      formatDivisionApiReleaseSetReadiness(
-        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
-        {
-          areaAvailable: true,
-          boundaryAvailable: true,
-          cohortIndependentReleases: [
-            {
-              cohortKey: null,
-              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              optional: false,
-              releaseCode: null,
-              resourceType: 'divisionArea',
-              variant: 'hkgov-censtatd',
-            },
-          ],
-          divisionAvailable: true,
-          ready: false,
-        },
-      ),
-    ).toContain(
-      '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[31munavailable\u001B[39m',
-    )
-    expect(
-      formatDivisionApiReleaseSetReadiness(
-        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
-        {
-          areaAvailable: true,
-          boundaryAvailable: true,
-          cohortIndependentReleases: [
-            {
-              cohortKey: null,
-              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              optional: false,
-              releaseCode: null,
-              resourceType: 'divisionArea',
-              variant: 'hkgov-censtatd',
-            },
-          ],
-          divisionAvailable: true,
-          ready: false,
-        },
-      ),
-    ).toContain('HK / hkgov-censtatd\n')
-  })
-
-  test('reports planning domains independently from Overture requirements', () => {
-    expect(
-      formatDivisionApiReleaseSetReadiness(
-        {
-          cohortKey: '2006',
-          regionCode: 'hk',
-          source: 'hkgov-pland-pu',
-        },
-        {
-          areaAvailable: true,
-          boundaryAvailable: false,
-          cohortIndependentReleases: [],
-          divisionAvailable: true,
-          ready: true,
-        },
-      ),
-    ).toBe(
-      [
-        '# EXACT REF',
-        'HK / hkgov-pland-pu / 2006',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivision    \u001B[39m  \u001B[32mavailable\u001B[39m',
-        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-      ].join('\n'),
-    )
+      selectPublishedApiReleaseSetPublications({
+        apiCatalogRevisionCode: 'catalog-hk-divisions-v0.1-2026-08-27.0',
+        apiReleaseSetCode: 'data-hk-divisions-2026-06-10.0--hkgov-landsd',
+        apiReleaseSetStatus: 'current',
+        apiReleaseSetPublications: [
+          {
+            apiCatalogRevisionCode: 'catalog-hk-divisions-v0.1-2026-08-27.0',
+            apiReleaseSetCode: 'data-hk-divisions-2026-06-10.0--hkgov-landsd',
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        apiCatalogRevisionCode: 'catalog-hk-divisions-v0.1-2026-08-27.0',
+        apiReleaseSetCode: 'data-hk-divisions-2026-06-10.0--hkgov-landsd',
+      },
+    ])
   })
 })
 
