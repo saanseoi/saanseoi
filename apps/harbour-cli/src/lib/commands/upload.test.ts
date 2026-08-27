@@ -8,6 +8,7 @@ import {
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
   rainbowWaveText,
+  resolveDivisionDomainCode,
   selectPublishedApiReleaseSetPublications,
 } from './upload.ts'
 
@@ -167,6 +168,7 @@ describe('division API release set readiness display', () => {
   })
 
   test('reports LandsD as its own domain', () => {
+    expect(resolveDivisionDomainCode('hkgov-landsd')).toBe('hkgov-landsd')
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
