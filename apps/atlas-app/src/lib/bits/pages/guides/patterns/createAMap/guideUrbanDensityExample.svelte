@@ -74,19 +74,19 @@ let {
 }: Props = $props()
 
 const statsComments = [
-  { line: 8, text: m.guide_data_urban_density_stats_comment_api_base_url() },
-  { line: 9, text: m.guide_data_urban_density_stats_comment_endpoint() },
-  { line: 10, text: m.guide_data_urban_density_stats_comment_dataset() },
-  { line: 12, text: m.guide_data_urban_density_stats_comment_helper() },
-  { line: 13, text: m.guide_data_urban_density_stats_comment_url() },
-  { line: 14, text: m.guide_data_urban_density_stats_comment_cohort() },
-  { line: 15, text: m.guide_data_urban_density_stats_comment_dataset_filter() },
-  { line: 16, text: m.guide_data_urban_density_stats_comment_field() },
-  { line: 17, text: m.guide_data_urban_density_stats_comment_reference_period() },
-  { line: 19, text: m.guide_data_urban_density_stats_comment_request() },
-  { line: 21, text: m.guide_data_urban_density_stats_comment_error() },
-  { line: 26, text: m.guide_data_urban_density_stats_comment_values() },
-  { line: 29, text: m.guide_data_urban_density_stats_comment_fields() },
+  { line: 4, text: m.guide_data_urban_density_stats_comment_api_base_url() },
+  { line: 5, text: m.guide_data_urban_density_stats_comment_endpoint() },
+  { line: 6, text: m.guide_data_urban_density_stats_comment_dataset() },
+  { line: 8, text: m.guide_data_urban_density_stats_comment_helper() },
+  { line: 9, text: m.guide_data_urban_density_stats_comment_url() },
+  { line: 10, text: m.guide_data_urban_density_stats_comment_cohort() },
+  { line: 11, text: m.guide_data_urban_density_stats_comment_dataset_filter() },
+  { line: 12, text: m.guide_data_urban_density_stats_comment_field() },
+  { line: 13, text: m.guide_data_urban_density_stats_comment_reference_period() },
+  { line: 15, text: m.guide_data_urban_density_stats_comment_request() },
+  { line: 17, text: m.guide_data_urban_density_stats_comment_error() },
+  { line: 22, text: m.guide_data_urban_density_stats_comment_values() },
+  { line: 25, text: m.guide_data_urban_density_stats_comment_fields() },
 ]
 
 const calculationComments = [
@@ -223,6 +223,11 @@ const liveableMetricsComments = [
           class="font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
         >
           {@html m.guide_data_urban_density_calculate_explore_statistics()}
+        </p>
+        <p
+          class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:!border-[#005142] [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:!text-[0.78em] [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:!border-[#2f8f78]"
+        >
+          {@html m.guide_data_urban_density_calculate_preview_explanation()}
         </p>
         <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_calculate_code()}
