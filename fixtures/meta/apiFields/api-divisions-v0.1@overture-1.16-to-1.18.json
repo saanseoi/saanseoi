@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f3740310c4e81cd542f11374aa44ad47f5b086f130592b701807b48bd8ccd93d",
+  "versionHash": "sha256:74cad96d9739303ab67460715a2e1e275293d93cfaeec42ec26e4c5313790984",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -12,8 +12,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -24,8 +24,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -36,8 +36,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -48,8 +48,8 @@
         "ds-hk-overture-division-area": "1.16.0",
         "ds-hk-overture-division-boundary": "1.16.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -60,8 +60,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -72,8 +72,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -84,8 +84,8 @@
         "ds-hk-overture-division-area": "1.17.0",
         "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
@@ -96,8 +96,8 @@
         "ds-hk-overture-division-area": "1.18.0",
         "ds-hk-overture-division-boundary": "1.18.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-area-district-annual": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     }
@@ -450,7 +450,7 @@
     {
       "apiField": "divisionArea.attributes.variant",
       "variant": "hkgov-censtatd-landclipped",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -460,7 +460,7 @@
     {
       "apiField": "divisionArea.attributes.variant",
       "variant": "hkgov-censtatd-landclipped:simplified",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -470,7 +470,7 @@
     {
       "apiField": "divisionArea.attributes.variant",
       "variant": "hkgov-censtatd",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district-annual",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -480,7 +480,7 @@
     {
       "apiField": "divisionArea.attributes.variant",
       "variant": "hkgov-censtatd:simplified",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district-annual",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",

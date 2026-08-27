@@ -1,12 +1,12 @@
 {
-  "versionHash": "sha256:f89f0ada43d764c6f73172c0318bd057bfa4e6c325b4cd39bf4aeb92a2346891",
+  "versionHash": "sha256:7a249627a13ad7f3f68a5099af2c824c24a9f5d8692c200b7828393e2af89703",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "stats",
-  "sourceVariant": "census",
+  "sourceVariant": "hkgov-censtatd-landclipped",
   "areaCompanionByReferencePeriod": {
     "2016": {
       "variant": "hkgov-censtatd-landclipped",
@@ -20,7 +20,7 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic"],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
@@ -127,6 +127,34 @@
           "contentHash": "fbb07f6e7341392472293ea3c78997d7abb6765c410087bfdc1d8936ab0996a2"
         }
       ]
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2016",
+      "outputVariant": "hkgov-censtatd-landclipped:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesLandClip": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-censtatd-landclipped:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesLandClip": true
+      }
     }
   ],
   "i18n": [

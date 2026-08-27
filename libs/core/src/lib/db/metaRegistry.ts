@@ -2856,6 +2856,11 @@ export async function ensureDraftSnapshotForRelease(
      * example annual districts and Area/type polygons) in one draft snapshot.
      */
     reuseDraftSnapshotForVariant?: boolean
+    /**
+     * Keep several publisher-authorised source datasets in one geometry
+     * companion family. Their source releases remain distinct snapshot sources.
+     */
+    reuseSnapshotLineageForVariant?: boolean
     regionCode: string
     sourceReleaseId: string
     variant?: string
@@ -2925,8 +2930,29 @@ export async function ensureDraftSnapshotForRelease(
     if (sharedDraft) return sharedDraft
   }
 
-  const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
-  const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
+  const reusableLineage = args.reuseSnapshotLineageForVariant
+    ? await db
+        .select({
+          id: metaSnapshotLineages.id,
+          code: metaSnapshotLineages.code,
+        })
+        .from(metaSnapshotLineages)
+        .where(
+          and(
+            eq(metaSnapshotLineages.regionCode, args.regionCode),
+            eq(metaSnapshotLineages.resourceType, resourceType),
+            eq(metaSnapshotLineages.variant, variant),
+          ),
+        )
+        .orderBy(desc(metaSnapshotLineages.createdAt))
+        .limit(1)
+        .get()
+    : null
+  const lineageCode =
+    reusableLineage?.code ??
+    buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
+  const deterministicLineageId =
+    reusableLineage?.id ?? buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
     args.identityMode ??
     (variant === 'hkgov-pland-new-town' ? 'cohort_scoped' : 'persistent')
@@ -2940,50 +2966,54 @@ export async function ensureDraftSnapshotForRelease(
     primaryDatasetId: args.datasetId,
   })
 
-  await db
-    .insert(metaSnapshotLineages)
-    .values({
-      id: deterministicLineageId,
-      code: lineageCode,
-      regionCode: args.regionCode,
-      resourceType,
-      variant,
-      identityMode,
-      primaryDatasetId: args.datasetId,
-      versionHash: lineageVersionHash,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: [
-        metaSnapshotLineages.primaryDatasetId,
-        metaSnapshotLineages.resourceType,
-        metaSnapshotLineages.variant,
-      ],
-      set: {
+  if (!reusableLineage) {
+    await db
+      .insert(metaSnapshotLineages)
+      .values({
+        id: deterministicLineageId,
         code: lineageCode,
         regionCode: args.regionCode,
         resourceType,
         variant,
         identityMode,
+        primaryDatasetId: args.datasetId,
         versionHash: lineageVersionHash,
+        createdAt: now,
         updatedAt: now,
-      },
-    })
-    .run()
+      })
+      .onConflictDoUpdate({
+        target: [
+          metaSnapshotLineages.primaryDatasetId,
+          metaSnapshotLineages.resourceType,
+          metaSnapshotLineages.variant,
+        ],
+        set: {
+          code: lineageCode,
+          regionCode: args.regionCode,
+          resourceType,
+          variant,
+          identityMode,
+          versionHash: lineageVersionHash,
+          updatedAt: now,
+        },
+      })
+      .run()
+  }
 
-  const lineage = await db
-    .select({ id: metaSnapshotLineages.id })
-    .from(metaSnapshotLineages)
-    .where(
-      and(
-        eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
-        eq(metaSnapshotLineages.resourceType, resourceType),
-        eq(metaSnapshotLineages.variant, variant),
-      ),
-    )
-    .limit(1)
-    .get()
+  const lineage =
+    reusableLineage ??
+    (await db
+      .select({ id: metaSnapshotLineages.id })
+      .from(metaSnapshotLineages)
+      .where(
+        and(
+          eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
+          eq(metaSnapshotLineages.resourceType, resourceType),
+          eq(metaSnapshotLineages.variant, variant),
+        ),
+      )
+      .limit(1)
+      .get())
 
   if (!lineage) {
     throw new Error(`Snapshot lineage not found for dataset ${args.datasetCode}.`)

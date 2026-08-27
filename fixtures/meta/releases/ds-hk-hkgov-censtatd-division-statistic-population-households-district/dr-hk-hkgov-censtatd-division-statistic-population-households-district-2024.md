@@ -1,8 +1,8 @@
 ---
 createdAt: "2026-08-27T00:00:00.000Z"
 updatedAt: "2026-08-27T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-division-area-district-annual"
-release: "dr-hk-hkgov-censtatd-division-area-district-annual-2024"
+dataset: "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
+release: "dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024"
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2024"
