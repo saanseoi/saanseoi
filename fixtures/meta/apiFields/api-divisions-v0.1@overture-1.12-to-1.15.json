@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f7b7b3eb02d911bbeaadfbbc0a2629e22389fcb1aec4b30f9bbe032fd1fe112b",
+  "versionHash": "sha256:bf4947b4a34949469ef2106fe3fb6412becf379915ec091e3f1e62c9d541609b",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -63,6 +63,61 @@
         "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-09-24.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.12.0",
+        "ds-hk-overture-division-area": "1.12.0",
+        "ds-hk-overture-division-boundary": "1.12.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-10-22.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.13.0",
+        "ds-hk-overture-division-area": "1.13.0",
+        "ds-hk-overture-division-boundary": "1.13.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-11-19.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.14.0",
+        "ds-hk-overture-division-area": "1.14.0",
+        "ds-hk-overture-division-boundary": "1.14.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-12-17.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.15.0",
+        "ds-hk-overture-division-area": "1.15.0",
+        "ds-hk-overture-division-boundary": "1.15.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-01-21.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.15.0",
+        "ds-hk-overture-division-area": "1.15.0",
+        "ds-hk-overture-division-boundary": "1.15.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
       }
     }
   ],

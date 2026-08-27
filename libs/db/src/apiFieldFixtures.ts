@@ -38,8 +38,8 @@ export type ApiFieldFixtureLineageAnchor = {
 }
 
 const apiFieldFixtures: ApiFieldFixture[] = [
-  apiDivisionsV01FixtureOverture112To115 as ApiFieldFixture,
-  apiDivisionsV01FixtureOverture116To118 as ApiFieldFixture,
+  apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
+  apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
