@@ -8,6 +8,7 @@ type DragState = { cardId: string | null }
 type Props = {
   children?: Snippet
   class?: string
+  scrollable?: boolean
   onnavigationchange?: (state: NavigationState) => void
   ondragstatechange?: (state: DragState) => void
   onreachend?: () => void
@@ -15,6 +16,7 @@ type Props = {
 let {
   children,
   class: className = '',
+  scrollable = true,
   onnavigationchange,
   ondragstatechange,
   onreachend,
@@ -30,6 +32,10 @@ let lastWheelNavigationAt = 0
 
 const updateNavigation = () => {
   if (!viewport) return
+  if (!scrollable) {
+    onnavigationchange?.({ canMoveBackward: false, canMoveForward: false })
+    return
+  }
   const maximumScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth)
   onnavigationchange?.({
     canMoveBackward: viewport.scrollLeft > 1,
@@ -41,7 +47,7 @@ const updateNavigation = () => {
 }
 
 export function scrollByPage(direction: -1 | 1) {
-  if (!viewport) return
+  if (!viewport || !scrollable) return
   const cardStep = 320 + 16
   const visibleCards = Math.max(1, Math.floor(viewport.clientWidth / cardStep))
   viewport.scrollBy({ left: direction * visibleCards * cardStep, behavior: 'smooth' })
@@ -49,6 +55,7 @@ export function scrollByPage(direction: -1 | 1) {
 }
 
 const handlePointerDown = (event: PointerEvent) => {
+  if (!scrollable) return
   if (event.pointerType === 'mouse' && event.button !== 0) return
   pointerId = event.pointerId
   startX = event.clientX
@@ -61,6 +68,7 @@ const handlePointerDown = (event: PointerEvent) => {
   pendingCardId = card?.dataset.carouselCard ?? null
 }
 const handlePointerMove = (event: PointerEvent) => {
+  if (!scrollable) return
   if (event.pointerId !== pointerId || !viewport) return
   const offset = event.clientX - startX
   if (Math.abs(offset) > 6 && !hasDragged) {
@@ -74,6 +82,7 @@ const handlePointerMove = (event: PointerEvent) => {
   updateNavigation()
 }
 const endPointerInteraction = (event: PointerEvent) => {
+  if (!scrollable) return
   if (event.pointerId !== pointerId) return
   if (hasDragged) {
     event.preventDefault()
@@ -86,7 +95,8 @@ const endPointerInteraction = (event: PointerEvent) => {
 }
 
 const handleWheel = (event: WheelEvent) => {
-  if (!viewport || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+  if (!viewport || !scrollable || Math.abs(event.deltaY) <= Math.abs(event.deltaX))
+    return
   const maximumScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth)
   if (
     (event.deltaY > 0 && viewport.scrollLeft >= maximumScrollLeft - 1) ||
@@ -126,11 +136,21 @@ onMount(() => {
     viewport?.removeEventListener('scroll', updateNavigation)
   }
 })
+
+$effect(() => {
+  scrollable
+  updateNavigation()
+})
 </script>
 <section
   bind:this={viewport}
   use:suppressDraggedClick
-  class={cn('cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:transparent_transparent] scrollbar-thin [touch-action:pan-y] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--secondary)_55%,transparent)] [&::-webkit-scrollbar-thumb]:opacity-0 [&::-webkit-scrollbar-thumb]:transition-opacity [&::-webkit-scrollbar-thumb]:duration-220 hover:[scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] hover:[&::-webkit-scrollbar-thumb]:opacity-100 active:cursor-grabbing', className)}
+  class={cn(
+    scrollable
+      ? 'cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:transparent_transparent] scrollbar-thin [touch-action:pan-y] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--secondary)_55%,transparent)] [&::-webkit-scrollbar-thumb]:opacity-0 [&::-webkit-scrollbar-thumb]:transition-opacity [&::-webkit-scrollbar-thumb]:duration-220 hover:[scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] hover:[&::-webkit-scrollbar-thumb]:opacity-100 active:cursor-grabbing'
+      : 'cursor-default overflow-x-hidden select-none',
+    className,
+  )}
   aria-label="Carousel"
   onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}
