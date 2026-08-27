@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path'
 
 import { note } from '@clack/prompts'
 
+import { registerInterruptCleanup } from '../cli/interrupt.ts'
 import type { ParsedArgs } from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
@@ -67,6 +68,38 @@ export function resolveInitialisationCommand(command: string) {
   return initialisationCommands[command as InitialisationCommand]
 }
 
+type InitialisationSubprocess = {
+  kill(signal?: number | NodeJS.Signals): void
+  pid: number
+}
+
+type ProcessSignaller = {
+  kill(pid: number, signal: NodeJS.Signals): void
+  platform: string
+}
+
+/** Signal every process started by an initialisation script. */
+export function interruptInitialisationProcess(
+  child: InitialisationSubprocess,
+  signal: NodeJS.Signals,
+  processRef: ProcessSignaller = process,
+) {
+  if (processRef.platform === 'win32') {
+    child.kill(signal)
+    return
+  }
+
+  try {
+    // `detached` makes the Fish script the leader of its own process group.
+    // A negative PID targets it and every nested `saanseoi` command.
+    processRef.kill(-child.pid, signal)
+  } catch {
+    // The child can finish between the interrupt and this signal. Fall back to
+    // its direct handle when the process group is no longer available.
+    child.kill(signal)
+  }
+}
+
 export async function runInitialisationCommand(
   args: ParsedArgs,
   printUsage: () => void,
@@ -121,6 +154,7 @@ export async function runInitialisationCommand(
       ...(cacheArtefacts ? ['--cache-artefacts'] : []),
     ],
     cwd: REPO_ROOT,
+    detached: true,
     env: {
       ...process.env,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
@@ -131,7 +165,15 @@ export async function runInitialisationCommand(
     stdout: 'inherit',
     stderr: 'inherit',
   })
-  const exitCode = await child.exited
+  const disposeChildInterrupt = registerInterruptCleanup(signal =>
+    interruptInitialisationProcess(child, signal),
+  )
+  let exitCode: number
+  try {
+    exitCode = await child.exited
+  } finally {
+    disposeChildInterrupt()
+  }
   if (exitCode !== 0) {
     await recordInitialisationSummaryEvent(
       {
