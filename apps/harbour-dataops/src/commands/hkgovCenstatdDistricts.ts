@@ -48,7 +48,11 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
     const gmlPath = join(workDir, `district-council-districts-${sourceVersion}.gml`)
     await writeFile(
       gmlPath,
-      readHkgovCenstatdDistrictGmlArchive(archiveBytes, sourceVersion),
+      readHkgovCenstatdDistrictGmlArchive(
+        archiveBytes,
+        sourceVersion,
+        datasetCode as Parameters<typeof readHkgovCenstatdDistrictGmlArchive>[2],
+      ),
       'utf8',
     )
     await runUploadCommand(

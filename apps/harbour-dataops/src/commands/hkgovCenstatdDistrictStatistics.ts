@@ -7,6 +7,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { prepareHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { unzipSelected } from '../lib/zip.ts'
@@ -95,6 +96,46 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
         skipConfirm: Boolean(args.options.yes),
+        skipSnapshotCleanup: false,
+        validateGeometry: false,
+      },
+    )
+    const geometry = await prepareHkgovCenstatdDistrictUpload(
+      gmlPath,
+      workDir,
+      sourceVersion,
+      {
+        datasetCode: DATASET_CODE,
+        sourceArchive: { key: sourceArchiveKey, sha256: sourceArchiveSha256 },
+      },
+    )
+    await runUploadCommand(
+      {
+        command: 'upload',
+        positionals: [geometry.filePath],
+        options: {
+          'cohort-key': geometry.cohortKey,
+          'dataset-code': DATASET_CODE,
+          region: 'hk',
+          'release-notes-url': releaseNotesUrl,
+          source: 'hkgov-censtatd',
+          'source-archive-key': sourceArchiveKey,
+          'source-archive-sha256': sourceArchiveSha256,
+          'source-version': sourceVersion,
+          theme: 'divisions',
+          type: 'divisionArea',
+          yes: true,
+        },
+      },
+      target,
+      {
+        allowHistoricalCohort: true,
+        allowReprocessPublished: true,
+        dryRun: false,
+        forceUpload: true,
+        invocationCwd: REPO_ROOT,
+        printUsage: () => undefined,
+        skipConfirm: true,
         skipSnapshotCleanup: false,
         validateGeometry: false,
       },
