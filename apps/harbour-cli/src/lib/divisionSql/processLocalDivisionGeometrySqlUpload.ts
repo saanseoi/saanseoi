@@ -212,7 +212,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       },
     )
   } catch (error) {
-    progress.fail()
+    progress.fail(error)
     throw error
   }
 
@@ -781,7 +781,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       publishResult,
     }
   } catch (error) {
-    progress.fail()
+    progress.fail(error)
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)
     if (!remotePublished) {
