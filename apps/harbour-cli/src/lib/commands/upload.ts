@@ -24,7 +24,7 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, or, sql } from 'drizzle-orm'
+import { and, eq, or, sql } from 'drizzle-orm'
 
 import {
   resolveLocalAddressDbContext,
@@ -1323,7 +1323,9 @@ export async function resolveDivisionApiReleaseSetReadiness(
     resolveDivisionCompositionReadiness(db, plan, domainCode)
 
   if (target.remote) {
-    return withRemoteCachedMetaDb(target, resolveReadiness)
+    return withRemoteCachedMetaDb(target, db =>
+      resolveReadiness(db as unknown as HarbourReadableDb),
+    )
   }
 
   const dbContext = await resolveLocalAddressDbContext(
@@ -1522,7 +1524,7 @@ export function selectPublishedApiReleaseSetPublications(
   return [...publications.values()]
 }
 
-function resolveDivisionDomainCode(
+export function resolveDivisionDomainCode(
   source: DivisionGeometryPlan['source'] | undefined,
   datasetCode?: string,
 ) {
@@ -1762,7 +1764,7 @@ async function resolveCompositionMemberSnapshots(
   db: HarbourReadableDb,
   member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
   plan: DivisionGeometryPlan,
-) {
+): Promise<Array<{ code: string; cohortKey: string }>> {
   if (member.variant === 'default') {
     const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
       db,
@@ -1770,7 +1772,7 @@ async function resolveCompositionMemberSnapshots(
       plan.regionCode,
       plan.cohortKey,
     )
-    return snapshot ? [snapshot] : []
+    return snapshot ? [{ code: snapshot.code, cohortKey: plan.cohortKey }] : []
   }
 
   const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
@@ -1786,10 +1788,18 @@ async function resolveCompositionMemberSnapshots(
     )
 
   if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
-    return snapshots
+    return snapshots.map(snapshot => ({
+      code: snapshot.code,
+      cohortKey: snapshot.cohortKey,
+    }))
   }
   if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
-    if (snapshots.length > 0) return snapshots
+    if (snapshots.length > 0) {
+      return snapshots.map(snapshot => ({
+        code: snapshot.code,
+        cohortKey: snapshot.cohortKey,
+      }))
+    }
     const snapshot =
       await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
         db,
@@ -1798,10 +1808,12 @@ async function resolveCompositionMemberSnapshots(
         plan.cohortKey,
         { datasetCode, publisherCode },
       )
-    return snapshot ? [snapshot] : []
+    return snapshot ? [{ code: snapshot.code, cohortKey: snapshot.cohortKey }] : []
   }
 
-  return snapshots.filter(snapshot => snapshot.cohortKey === plan.cohortKey)
+  return snapshots
+    .filter(snapshot => snapshot.cohortKey === plan.cohortKey)
+    .map(snapshot => ({ code: snapshot.code, cohortKey: snapshot.cohortKey }))
 }
 
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
