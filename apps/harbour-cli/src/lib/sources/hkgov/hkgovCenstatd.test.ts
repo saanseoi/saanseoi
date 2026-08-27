@@ -99,19 +99,31 @@ describe('C&SD district GML preparation', () => {
       const inputFile = join(inputDir, 'district-council-districts-2024.gml')
       await writeFile(
         inputFile,
-        readHkgovCenstatdDistrictGmlArchive(districtArchive, '2024'),
+        readHkgovCenstatdDistrictGmlArchive(
+          districtArchive,
+          '2024',
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        ),
         'utf8',
       )
       const prepared = await prepareHkgovCenstatdDistrictUpload(
         inputFile,
         outputDir,
         '2024',
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        },
       )
       const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
         inputFile,
         outputDir,
         '2024',
-        { transform: 'simplified' },
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          transform: 'simplified',
+        },
       )
       const file = await asyncBufferFromFile(prepared.filePath)
       const rows = await parquetReadObjects({
