@@ -286,24 +286,42 @@ onMount(() => {
   class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-13 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
 >
   <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
-    <div bind:this={terminalCardElement} class="terminal-card relative">
+    <div
+      bind:this={terminalCardElement}
+      class="relative max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:mr-2 max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:inline-flex max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:size-[1.125rem] max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:items-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:justify-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:rounded-full max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:bg-secondary max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-mono max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-[0.6875rem] max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-bold max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:leading-none max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:align-text-bottom max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-on-secondary max-xl:[&_pre_code_>_span:nth-child(1)]:before:content-['5'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:first-child]:before:content-['6'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:nth-child(2)]:before:content-['7']"
+    >
       {#snippet dotsReference()}
-        <span class="reference-marker ml-1" aria-hidden="true">1</span>
+        <span
+          class="ml-1 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+          aria-hidden="true"
+          >1</span
+        >
       {/snippet}
       {#snippet terminalLabel()}
         <span class="inline-flex items-center gap-1.5">
           <span data-terminal-path class="inline-flex"
-            >{path}<sup class="reference-marker xl:hidden">2</sup></span
+            >{path}
+            <sup
+              class="inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+              >2</sup
+            ></span
           >
           <span aria-hidden="true">•</span>
           <span data-terminal-title class="inline-flex"
             >{m.guide_setup_install_bun()}
-            <sup class="reference-marker xl:hidden">3</sup></span
+            <sup
+              class="inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+              >3</sup
+            ></span
           >
         </span>
       {/snippet}
       {#snippet copyReference()}
-        <span class="reference-marker ml-0.5 xl:hidden" aria-hidden="true">4</span>
+        <span
+          class="ml-0.5 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+          aria-hidden="true"
+          >4</span
+        >
       {/snippet}
       <GuideCodeBlock
         label={m.guide_setup_terminal_label({ action: m.guide_setup_install_bun(), path })}
@@ -324,106 +342,77 @@ onMount(() => {
     bind:this={cardCallout}
     class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">1</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >1</span
+    >
     {@html m.guide_terminal_anatomy_card()}
   </p>
   <p
     bind:this={folderCallout}
     class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-4 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">2</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >2</span
+    >
     {@html locationInstruction}
   </p>
   <p
     bind:this={titleCallout}
     class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">3</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >3</span
+    >
     {@html m.guide_terminal_anatomy_action()}
   </p>
   <p
     bind:this={copyCallout}
     class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">4</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >4</span
+    >
     {@html copyInstruction}
   </p>
   <p
     bind:this={commentCallout}
     class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">5</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >5</span
+    >
     {@html m.guide_terminal_anatomy_comment()}
   </p>
   <p
     bind:this={promptCallout}
     class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">6</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >6</span
+    >
     {@html m.guide_terminal_anatomy_prompt({ prompt })}
   </p>
   <p
     bind:this={commandCallout}
     class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
-    <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">7</span>
+    <span
+      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      aria-hidden="true"
+      >7</span
+    >
     {@html m.guide_terminal_anatomy_command()}
   </p>
 </div>
-
-<style>
-.reference-marker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: 9999px;
-  background: var(--color-secondary);
-  color: var(--color-on-secondary);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: text-bottom;
-}
-
-@media (min-width: 1280px) {
-  .reference-marker {
-    display: none !important;
-  }
-}
-
-@media (max-width: 1279px) {
-  .terminal-card :global(pre code > span:nth-child(1)::before) {
-    content: "5";
-  }
-
-  .terminal-card :global(pre code > span:nth-child(2) > span:first-child::before) {
-    content: "6";
-  }
-
-  .terminal-card :global(pre code > span:nth-child(2) > span:nth-child(2)::before) {
-    content: "7";
-  }
-
-  .terminal-card :global(pre code > span:nth-child(1)::before),
-  .terminal-card :global(pre code > span:nth-child(2) > span:first-child::before),
-  .terminal-card :global(pre code > span:nth-child(2) > span:nth-child(2)::before) {
-    display: inline-flex;
-    width: 1.125rem;
-    height: 1.125rem;
-    margin-right: 0.5rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    background: var(--color-secondary);
-    color: var(--color-on-secondary);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1;
-    vertical-align: text-bottom;
-  }
-}
-</style>
