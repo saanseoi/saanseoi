@@ -1227,21 +1227,22 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
     },
     {
       cohortKey: '2016',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
       domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
     },
     {
       cohortKey: '2021',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
       domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
     },
     {
       cohortKey: '2024',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district-annual',
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
       domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
@@ -1294,8 +1295,14 @@ export async function assertDivisionGeometryUploadPrerequisites(
   if (
     plan.source === 'hkgov-had' ||
     (plan.source === 'hkgov-censtatd' &&
-      (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
-        plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual'))
+      (plan.datasetCode ===
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'))
   ) {
     return
   }

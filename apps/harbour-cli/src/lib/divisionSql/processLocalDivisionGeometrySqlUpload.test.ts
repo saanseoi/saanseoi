@@ -8,6 +8,7 @@ import {
   decodeStoredGeoJsonGeometry,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
+  hasIdenticalGeometryMaterialisation,
   hasDivisionReferences,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   selectOvertureHongKongAreasWithoutSourceGeometry,
@@ -180,6 +181,34 @@ describe('createGeometryChurnCounts', () => {
   })
 })
 
+describe('C&SD geometry materialisation identity', () => {
+  test('recognises a complete matching geometry row set', () => {
+    const expected = [
+      { hash: 'district-a', id: 'district-a' },
+      { hash: 'district-b', id: 'district-b' },
+    ]
+
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [...expected].reverse()),
+    ).toBeTrue()
+  })
+
+  test('rejects a changed overlapping geometry or a partial contribution', () => {
+    const expected = [
+      { hash: 'district-a', id: 'district-a' },
+      { hash: 'district-b', id: 'district-b' },
+    ]
+
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [
+        { hash: 'changed', id: 'district-a' },
+        { hash: 'district-b', id: 'district-b' },
+      ]),
+    ).toBeFalse()
+    expect(hasIdenticalGeometryMaterialisation(expected, [expected[0]!])).toBeFalse()
+  })
+})
+
 describe('exact geometry release statistics', () => {
   test('C&SD simplified derivatives cannot replace exact release measurements', () => {
     expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
@@ -208,9 +237,11 @@ describe('exact geometry release statistics', () => {
     expect(
       supportsDistrictGeometryStatistics({
         cohortKey: '2021',
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         regionCode: 'hk',
-        releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021',
         rowCount: 18,
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
