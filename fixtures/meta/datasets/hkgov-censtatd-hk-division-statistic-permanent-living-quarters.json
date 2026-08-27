@@ -1,14 +1,17 @@
 {
-  "versionHash": "sha256:1648f8ca1b773d91420fa2f787ef5873ec9980716105783ad44dd9b15d6f124c",
+  "versionHash": "sha256:dfc7f456d6a2491a24ca1c1f76b1d2a66525488163fa636968ab3527d2f5540b",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "half-yearly",
   "theme": "stats",
-  "sourceVariant": "hkgov-censtatd-area",
-  "areaVariantByReferencePeriod": {
-    "*": "hkgov-censtatd-area"
+  "sourceVariant": "hkgov-censtatd",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
   },
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic", "division", "divisionArea"],

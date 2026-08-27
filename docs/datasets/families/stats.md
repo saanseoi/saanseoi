@@ -18,11 +18,14 @@ Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
 constructed `sourceFeatureRef`.
 
 When a reviewed statistic has an area companion, its dataset fixture declares
-`areaVariantByReferencePeriod`. Ingestion resolves that declaration for each observation
-and stores the selected companion in `geography.areaVariant`. Thus bare `include=areas`
-uses the geometry explicitly reviewed for the record's own reference period; the API
-does not infer it from a dataset name, delivery release, or the Geographic domain's
-Overture default. The response permalink qualifies the resolved variant.
+`areaCompanionByReferencePeriod`. Ingestion resolves that declaration for each
+observation and stores both its `variant` and `cohortKey` in `geography.areaCompanion`.
+Thus bare `include=areas` uses the geometry explicitly reviewed for the record's own
+reference period; the API never infers it from a dataset name, delivery release, or the
+Geographic domain's Overture default. A qualified `areas:<variant>` request changes only
+the variant and retains that stored cohort. If that exact counterpart is unavailable, it
+returns `409 variant_cohort_unavailable` rather than falling back. The response
+permalink qualifies the resolved variant.
 
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
 records the mirrored archive's managed key and SHA-256 in source provenance. Only GML

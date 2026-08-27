@@ -255,7 +255,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('pairs C&SD HMA geometry with its canonical division and maps Area/type to Overture areas', () => {
+  test('pairs C&SD HMA geometry with its canonical division and maps Permanent Living Quarters to Overture areas', () => {
     const divisionsComposition = initialApiCompositions.find(
       composition => composition.code === 'comp-divisions-v1',
     )

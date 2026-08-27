@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9823ed87a1f4d4876d82372644dacdd190098a571cea2840b0e4deae4766b36b",
+  "versionHash": "sha256:6960dcd682c95de9ef60eb8fc577fdc5ea262ad04798b5e07ccd1134afb24839",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -7,6 +7,12 @@
   "releaseFrequency": "five-yearly",
   "theme": "stats",
   "sourceVariant": "census",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-pland-new-town",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",

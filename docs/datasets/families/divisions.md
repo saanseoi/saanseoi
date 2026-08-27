@@ -40,13 +40,13 @@ C&SD's 173 polygonal Housing Market Areas. Building Groups are not divisions: th
 source centroids remain source history for a future buildings projection.
 
 The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
-those stable Overture area identities. It is a required member of each publishable
-Geographic release set, while remaining an explicitly selected `divisionArea` response
-variant through `include=areas:hkgov-censtatd-area`; it never adds a second Geographic
-division collection. The 2021 HMA statistics output instead supplies the separate HMA
-domain's primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its
-native `hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
-statistics, its statistics and its division geography have distinct snapshot lineages.
+those stable Overture area identities. Its Area/type polygons join the same
+cohort-qualified `hkgov-censtatd` companion as C&SD's annual district polygons; it does
+not add a second Geographic division collection. The 2021 HMA statistics output instead
+supplies the separate HMA domain's primary canonical division snapshot
+(`hkgov-censtatd:2021`), paired with its native `hkgov-censtatd-hma` geometry. Although
+the HMA source dataset also publishes statistics, its statistics and its division
+geography have distinct snapshot lineages.
 
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset
@@ -136,14 +136,13 @@ indicates geometric complexity rather than positional accuracy; an exact C&SD re
 and its `simplified` display derivative therefore never share or replace these
 measurements.
 
-Historical C&SD district areas are required, cohort-qualified statistical-geometry
-variants, never defaults. Each census cohort has an exact source variant
-(`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named
-display transform on that source variant, requested as
-`areas:hkgov-censtatd:<cohort>&transform=simplified`; it is not an independent
-composition member. Both source cohorts are required inputs to each Overture release, so
-their source-schema versions are always present in API-field provenance and only one
-mapping is needed for each Overture schema range.
+Historical C&SD district areas are cohort-qualified statistical-geometry companions,
+never defaults. The census land-clipped district releases use
+`hkgov-censtatd-landclipped`; annual district polygons and C&SD Area/type polygons use
+`hkgov-censtatd`. Both keep an explicit snapshot for each source-authorised cohort, even
+when its geometry bytes match an earlier cohort. `simplified` is a named 10-metre
+display transform of the selected companion snapshot, not an independent composition
+member.
 
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when

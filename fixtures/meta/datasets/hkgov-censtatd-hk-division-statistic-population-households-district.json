@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:958afdedf42153963229b6e6fa0af448255efdc1283c9640020c18ee6f251bcb",
+  "versionHash": "sha256:c1feaf12685239579f174ad0e99e92fef0ec5b4aba27bd25564c26c2a2a41ce5",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -7,6 +7,12 @@
   "releaseFrequency": "yearly",
   "theme": "stats",
   "sourceVariant": "official-statistics",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",

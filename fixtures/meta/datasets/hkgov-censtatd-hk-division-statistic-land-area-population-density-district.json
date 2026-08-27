@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4894cc58cf57b35be0da9f8dd829643fc3861329a6eb821d5b1febd19f88ef5d",
+  "versionHash": "sha256:cea58111315e115ac3b3223909a9b09ecba83ca86244a9cf9c87844c0017538d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -7,10 +7,18 @@
   "releaseFrequency": "yearly",
   "theme": "stats",
   "sourceVariant": "official-statistics",
+  "areaCompanionByReferencePeriod": {
+    "2022": {
+      "variant": "hkgov-censtatd",
+      "cohortKey": "2022"
+    },
+    "2024": {
+      "variant": "hkgov-censtatd",
+      "cohortKey": "2024"
+    }
+  },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
@@ -33,9 +41,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
