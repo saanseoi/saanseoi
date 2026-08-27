@@ -283,7 +283,10 @@ onMount(() => {
     class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-13 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
   >
     <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
-      <div bind:this={editorCardElement} class="editor-card relative">
+      <div
+        bind:this={editorCardElement}
+        class="relative max-sm:[&_[data-guide-code-header]]:items-start max-sm:[&_[data-guide-code-header]]:flex-col max-sm:[&_[data-guide-code-header]]:gap-2 max-sm:[&_[data-guide-code-actions]]:w-full max-sm:[&_[data-guide-code-actions]]:justify-between max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:relative max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:absolute max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:-top-[0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:-right-[0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:inline-flex max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:size-[1.125rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:items-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:justify-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:rounded-full max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:bg-secondary max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-mono max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-[0.6875rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-bold max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:leading-none max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-on-secondary max-xl:[&_[data-guide-code-editor-icon]]:after:content-['1'] max-xl:[&_[data-guide-code-label]]:after:content-['2'] max-xl:[&_[data-guide-code-comments-toggle]]:after:content-['3'] max-xl:[&_[data-guide-code-preview]]:after:content-['4'] max-xl:[&_[data-guide-code-copy]]:after:content-['5'] max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:relative max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:absolute max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:top-[0.15rem] max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:-left-[1.35rem] max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:inline-flex max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:size-[1.125rem] max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:items-center max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:justify-center max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:rounded-full max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:bg-secondary max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:font-mono max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:text-[0.6875rem] max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:font-bold max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:leading-none max-xl:[&_:is([data-code-line=4],[data-code-line=1])]:before:text-on-secondary max-xl:[&_[data-code-line=4]]:before:content-['7'] max-xl:[&_[data-code-line=1]]:before:content-['8'] max-xl:[&_[data-code-comment-for=4]]:relative max-xl:[&_[data-code-comment-for=4]]:pl-6 max-xl:[&_[data-code-comment-for=4]]:before:absolute max-xl:[&_[data-code-comment-for=4]]:before:top-[0.15rem] max-xl:[&_[data-code-comment-for=4]]:before:left-0 max-xl:[&_[data-code-comment-for=4]]:before:inline-flex max-xl:[&_[data-code-comment-for=4]]:before:size-[1.125rem] max-xl:[&_[data-code-comment-for=4]]:before:items-center max-xl:[&_[data-code-comment-for=4]]:before:justify-center max-xl:[&_[data-code-comment-for=4]]:before:rounded-full max-xl:[&_[data-code-comment-for=4]]:before:bg-secondary max-xl:[&_[data-code-comment-for=4]]:before:font-mono max-xl:[&_[data-code-comment-for=4]]:before:text-[0.6875rem] max-xl:[&_[data-code-comment-for=4]]:before:font-bold max-xl:[&_[data-code-comment-for=4]]:before:leading-none max-xl:[&_[data-code-comment-for=4]]:before:text-on-secondary max-xl:[&_[data-code-comment-for=4]]:before:content-['6']"
+      >
         <GuidePreviewCodeBlock
           {code}
           {displayCode}
@@ -306,186 +309,91 @@ onMount(() => {
     </div>
     <p
       bind:this={editorIconCallout}
-      class="editor-callout order-2 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end"
+      class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">1</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >1</span
+      >
       {@html m.guide_editor_card_explainer_icon()}
     </p>
     <p
       bind:this={pathCallout}
-      class="editor-callout order-3 xl:col-start-4 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end"
+      class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">2</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >2</span
+      >
       {@html m.guide_editor_card_explainer_path()}
     </p>
     <p
       bind:this={commentsToggleCallout}
-      class="editor-callout order-4 xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end"
+      class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">3</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >3</span
+      >
       {@html m.guide_editor_card_explainer_comments_toggle()}
     </p>
     <p
       bind:this={previewCallout}
-      class="editor-callout order-5 xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end"
+      class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">4</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >4</span
+      >
       {@html m.guide_editor_card_explainer_preview()}
     </p>
     <p
       bind:this={copyCallout}
-      class="editor-callout order-6 xl:col-start-11 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end"
+      class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">5</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >5</span
+      >
       {@html m.guide_editor_card_explainer_copy()}
     </p>
     <p
       bind:this={commentCallout}
-      class="editor-callout order-7 xl:col-start-1 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start"
+      class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">6</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >6</span
+      >
       {@html m.guide_editor_card_explainer_comment()}
     </p>
     <p
       bind:this={codeCallout}
-      class="editor-callout order-8 xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start"
+      class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">7</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >7</span
+      >
       {@html m.guide_editor_card_explainer_code()}
     </p>
     <p
       bind:this={dimmedCodeCallout}
-      class="editor-callout order-9 xl:col-start-8 xl:col-span-5 xl:row-start-3 xl:order-0 xl:self-start"
+      class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-5 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
     >
-      <span class="reference-marker mr-2 xl:hidden" aria-hidden="true">8</span>
+      <span
+        class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+        aria-hidden="true"
+        >8</span
+      >
       {@html m.guide_editor_card_explainer_dimmed_code()}
     </p>
   </div>
 </section>
-
-<style>
-.editor-callout {
-  max-width: none;
-  margin: 0;
-  border-left: 2px solid var(--color-secondary);
-  padding-left: 0.75rem;
-  color: var(--color-foreground-alt);
-  font-family: var(--font-body);
-  font-size: var(--text-body-sm);
-  line-height: 1.5rem;
-}
-.reference-marker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: 9999px;
-  background: var(--color-secondary);
-  color: var(--color-on-secondary);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: text-bottom;
-}
-@media (max-width: 639px) {
-  .editor-card :global([data-guide-code-header]) {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .editor-card :global([data-guide-code-actions]) {
-    width: 100%;
-    justify-content: space-between;
-  }
-}
-@media (max-width: 1279px) {
-  .editor-card :global([data-guide-code-editor-icon]),
-  .editor-card :global([data-guide-code-label]),
-  .editor-card :global([data-guide-code-comments-toggle]),
-  .editor-card :global([data-guide-code-copy]),
-  .editor-card :global([data-guide-code-preview]),
-  .editor-card :global([data-code-line]),
-  .editor-card :global([data-code-comment-for]) {
-    position: relative;
-  }
-  .editor-card :global([data-guide-code-editor-icon]::after),
-  .editor-card :global([data-guide-code-label]::after),
-  .editor-card :global([data-guide-code-comments-toggle]::after),
-  .editor-card :global([data-guide-code-copy]::after),
-  .editor-card :global([data-guide-code-preview]::after) {
-    position: absolute;
-    top: -0.55rem;
-    right: -0.55rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 9999px;
-    background: var(--color-secondary);
-    color: var(--color-on-secondary);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .editor-card :global([data-guide-code-editor-icon]::after) {
-    content: "1";
-  }
-  .editor-card :global([data-guide-code-label]::after) {
-    content: "2";
-  }
-  .editor-card :global([data-guide-code-comments-toggle]::after) {
-    content: "3";
-  }
-  .editor-card :global([data-guide-code-copy]::after) {
-    content: "5";
-  }
-  .editor-card :global([data-guide-code-preview]::after) {
-    content: "4";
-  }
-  .editor-card :global([data-code-comment-for="4"]::before),
-  .editor-card :global([data-code-line="4"]::before),
-  .editor-card :global([data-code-line="1"]::before) {
-    position: absolute;
-    top: 0.15rem;
-    left: -1.35rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 9999px;
-    background: var(--color-secondary);
-    color: var(--color-on-secondary);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .editor-card :global([data-code-comment-for="4"]::before) {
-    content: "6";
-    left: 0;
-  }
-  .editor-card :global([data-code-comment-for="4"]) {
-    padding-left: 1.5rem;
-  }
-  .editor-card :global([data-code-line="4"]::before) {
-    content: "7";
-  }
-  .editor-card :global([data-code-line="1"]::before) {
-    content: "8";
-  }
-}
-@media (min-width: 1280px) {
-  .editor-callout {
-    border-left: 0;
-    padding-left: 0;
-  }
-  .reference-marker {
-    display: none;
-  }
-}
-</style>

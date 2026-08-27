@@ -25,7 +25,9 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
 <div
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
-  <div class="guide-map-preview-canvas relative h-52 shrink-0 overflow-hidden sm:h-64">
+  <div
+    class="relative h-52 shrink-0 overflow-hidden sm:h-64 [[data-guide-map-expanded=true]_&]:h-auto [[data-guide-map-expanded=true]_&]:flex-[1_1_auto]"
+  >
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
@@ -64,10 +66,3 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     {/each}
   </section>
 </div>
-
-<style>
-:global([data-guide-map-expanded="true"]) .guide-map-preview-canvas {
-  height: auto;
-  flex: 1 1 auto;
-}
-</style>
