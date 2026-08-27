@@ -50,16 +50,18 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     </p>
   </div>
   <section
-    class="grid gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:grid-cols-3"
+    class="grid grid-cols-3 gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)]"
     aria-label="Urban population density"
   >
     {#each metrics as metric}
-      <article class="bg-[#fff9ed] p-4 sm:px-5">
-        <p class="font-body text-sm text-[#10151a]">{metric.name}</p>
-        <strong class="my-1 block font-body text-[2rem] leading-none text-[#10151a]"
+      <article class="bg-[#fff9ed] p-2.5 sm:px-5 sm:py-4">
+        <p class="font-body text-xs text-[#10151a] sm:text-sm">{metric.name}</p>
+        <strong
+          class="font-body text-[1.35rem] leading-none tracking-tight tabular-nums text-[#10151a] sm:my-1 sm:block sm:text-[2rem]"
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
-        <span class="block font-body text-xs text-[#10151a]"
+        <span
+          class="ml-0.75 inline font-body text-[0.68rem] leading-tight text-[#10151a] sm:ml-0 sm:block sm:text-xs"
           >people per km² on {metric.landAreaSqKm.toFixed(1)} km²</span
         >
       </article>

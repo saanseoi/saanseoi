@@ -12,7 +12,12 @@ type Props = {
   copyLabelSuffix?: Snippet
   copyCode?: string
   displayCode?: string
-  comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
+  comments?: Array<{
+    alwaysVisible?: boolean
+    line: number
+    spacerAfter?: boolean
+    text: string
+  }>
   commentsVisible?: boolean
   copyable?: boolean
   copiedLabel: string
@@ -133,7 +138,12 @@ const highlightSource = (
   source: string,
   language: 'css' | 'typescript',
   dimmedLines: number[] = [],
-  comments: Array<{ line: number; spacerAfter?: boolean; text: string }> = [],
+  comments: Array<{
+    alwaysVisible?: boolean
+    line: number
+    spacerAfter?: boolean
+    text: string
+  }> = [],
   commentsVisible = false,
 ) =>
   source
@@ -179,7 +189,7 @@ const highlightSource = (
       const renderedComments = matchingComments
         .map(
           comment =>
-            `<span data-code-comment-for="${comment.line}" aria-hidden="${!commentsVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
+            `<span data-code-comment-for="${comment.line}" aria-hidden="${!commentsVisible && !comment.alwaysVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible || comment.alwaysVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible && !comment.alwaysVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible || comment.alwaysVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
         )
         .join('')
 
