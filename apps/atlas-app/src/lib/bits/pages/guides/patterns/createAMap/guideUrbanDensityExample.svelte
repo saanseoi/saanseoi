@@ -239,7 +239,7 @@ const liveableMetricsComments = [
           {@html m.guide_data_urban_density_calculate_explore_statistics()}
         </p>
         <p
-          class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:!border-[#005142] [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:!text-[0.78em] [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:!border-[#2f8f78]"
+          class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
         >
           {@html m.guide_data_urban_density_calculate_preview_explanation()}
         </p>
