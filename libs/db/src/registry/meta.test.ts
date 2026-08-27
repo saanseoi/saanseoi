@@ -9,6 +9,7 @@ import {
   initialApiVersions,
   initialDatasets,
   initialDatasetResourceTypes,
+  initialDatasetTransforms,
   initialDataShards,
   initialDivisionCodes,
   initialIdentifierBridges,
@@ -452,6 +453,25 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('allows source-versioned transforms to share a public output variant', () => {
+    const sharedVariantTransforms = initialDatasetTransforms.filter(
+      transform => transform.outputVariant === 'hkgov-censtatd:simplified',
+    )
+    const statements = buildMetaRegistrySyncStatements('preview')
+
+    expect(sharedVariantTransforms.length).toBeGreaterThan(1)
+    expect(
+      new Set(
+        sharedVariantTransforms.map(transform =>
+          [transform.datasetCode, transform.code, transform.sourceVersion].join(':'),
+        ),
+      ).size,
+    ).toBe(sharedVariantTransforms.length)
+    expect(statements).toContainEqual(
+      expect.stringContaining('ON CONFLICT(datasetId, code, sourceVersion) DO UPDATE'),
+    )
+  })
+
   test('orders parent publishers before their children', () => {
     const parentIndex = initialPublishers.findIndex(
       publisher => publisher.code === 'hkgov',
