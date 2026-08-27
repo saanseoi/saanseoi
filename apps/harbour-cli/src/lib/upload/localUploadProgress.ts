@@ -125,11 +125,13 @@ export class LocalUploadProgress {
     this.state = null
   }
 
-  fail() {
+  fail(error?: unknown) {
     if (this.progressBar) {
-      this.progressBar.stop(
-        this.currentLabel ? `Failed during ${this.currentLabel}` : 'Failed',
-      )
+      const reason = error instanceof Error ? error.message : String(error ?? '')
+      const failureLabel = this.currentLabel
+        ? `Failed during ${this.currentLabel}`
+        : 'Failed'
+      this.progressBar.stop(reason ? `${failureLabel}: ${reason}` : failureLabel)
       this.progressBar = null
     }
 
