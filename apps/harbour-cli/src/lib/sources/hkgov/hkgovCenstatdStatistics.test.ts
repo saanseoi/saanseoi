@@ -74,7 +74,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 180,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -82,7 +82,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 126,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -90,7 +90,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 144,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -98,7 +98,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 162,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
