@@ -528,13 +528,13 @@ function seedCompleteDivisionSourceSignature(
     ) VALUES
       (
         'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'as-needed',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district', 'hk', 'static', 'as-needed',
         'divisions', 'default', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
       ),
       (
         'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-area-district-annual', 'hk', 'static', 'yearly',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly',
         'divisions', 'official-statistics', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-annual-v1', 1761264000000, 1761264000000
       ),
@@ -609,6 +609,7 @@ function seedCompleteDivisionSourceSignature(
       schemaVersion: '1.2',
     },
     {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
       source: 'hkgov-censtatd',
       type: 'divisionArea' as const,
       sourceVersion: '2016',
@@ -620,6 +621,7 @@ function seedCompleteDivisionSourceSignature(
     const releaseCode = `dr-hk-${release.source}-${release.type === 'divisionArea' && release.source !== 'overture' ? 'division-area-district' : release.type === 'divisionBoundary' ? 'division-boundary' : 'division-area'}-${release.sourceVersion}`
     const releaseId = `release-${releaseCode}`
     insertFixtureRelease(sqlite, {
+      datasetCode: release.datasetCode,
       releaseId,
       source: release.source,
       regionCode: 'hk',
@@ -1743,9 +1745,9 @@ describe('control service', () => {
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
         theme, sourceUrl, versionHash, createdAt, updatedAt
       ) VALUES (
-        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'five-yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district', 1761264000001, 1761264000001
+        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district', 'hk', 'static', 'five-yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district', 1761264000001, 1761264000001
       ), (
-        'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district-annual', 'hk', 'static', 'yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district-annual', 1761264000001, 1761264000001
+        'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district-annual', 1761264000001, 1761264000001
       );
 
       INSERT INTO datasetResourceTypes (datasetId, resourceType)
