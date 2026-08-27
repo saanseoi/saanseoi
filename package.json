@@ -161,5 +161,8 @@
   "homepage": "https://saanseoi.hk",
   "bugs": {
     "url": "https://github.com/saanseoi/saanseoi/issues"
+  },
+  "patchedDependencies": {
+    "runed@0.35.1": "patches/runed@0.35.1.patch"
   }
 }
