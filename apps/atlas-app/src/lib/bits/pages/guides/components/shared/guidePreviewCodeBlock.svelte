@@ -8,7 +8,12 @@ import GuideCodeBlock from './guideCodeBlock.svelte'
 type Props = {
   code: string
   displayCode?: string
-  comments?: Array<{ line: number; spacerAfter?: boolean; text: string }>
+  comments?: Array<{
+    alwaysVisible?: boolean
+    line: number
+    spacerAfter?: boolean
+    text: string
+  }>
   copiedLabel: string
   copyLabel: string
   dimmedLines?: number[]

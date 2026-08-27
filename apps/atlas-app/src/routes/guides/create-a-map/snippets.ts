@@ -675,6 +675,13 @@ export const urbanDensityMetricsCode = [
   'document.body.append(metricBar)',
 ].join('\n')
 
+export const urbanDensityMetricsDisplayCode = [
+  '// { 89 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
+  '// APPEND THIS HTML MANIPULATION TO THE END OF src/main.ts',
+  '',
+  urbanDensityMetricsCode,
+].join('\n')
+
 export const urbanDensityMetricsCss = [
   '#urban-density-metrics {',
   '  position: fixed; inset: auto 1.5rem 1.5rem; z-index: 1;',

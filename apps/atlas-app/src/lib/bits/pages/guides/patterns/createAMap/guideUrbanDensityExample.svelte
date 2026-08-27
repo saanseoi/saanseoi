@@ -39,6 +39,7 @@ type Props = {
   liveableAreaCode: string
   liveableMetricsCode: string
   metricsCode: string
+  metricsDisplayCode: string
   metricsCss: string
   metricsCssDisplayCode: string
   statsCode: string
@@ -64,6 +65,7 @@ let {
   liveableAreaCode,
   liveableMetricsCode,
   metricsCode,
+  metricsDisplayCode,
   metricsCss,
   metricsCssDisplayCode,
   statsCode,
@@ -90,27 +92,31 @@ const statsComments = [
 ]
 
 const calculationComments = [
-  { line: 1, text: m.guide_data_urban_density_calculation_comment_divisions() },
-  { line: 4, text: m.guide_data_urban_density_calculation_comment_level() },
-  { line: 5, text: m.guide_data_urban_density_calculation_comment_hierarchy() },
-  { line: 6, text: m.guide_data_urban_density_calculation_comment_request() },
-  { line: 7, text: m.guide_data_urban_density_calculation_comment_error() },
-  { line: 8, text: m.guide_data_urban_density_calculation_comment_response() },
-  { line: 11, text: m.guide_data_urban_density_calculation_comment_index() },
-  { line: 12, text: m.guide_data_urban_density_calculation_comment_each_district() },
-  { line: 13, text: m.guide_data_urban_density_calculation_comment_district_code() },
-  { line: 14, text: m.guide_data_urban_density_calculation_comment_area() },
-  { line: 19, text: m.guide_data_urban_density_calculation_comment_available() },
-  { line: 26, text: m.guide_data_urban_density_calculation_comment_totals() },
-  { line: 28, text: m.guide_data_urban_density_calculation_comment_lookup() },
-  { line: 29, text: m.guide_data_urban_density_calculation_comment_missing_area() },
-  { line: 31, text: m.guide_data_urban_density_calculation_comment_start_total() },
-  { line: 34, text: m.guide_data_urban_density_calculation_comment_population() },
-  { line: 35, text: m.guide_data_urban_density_calculation_comment_land_area() },
-  { line: 36, text: m.guide_data_urban_density_calculation_comment_save_total() },
-  { line: 39, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
-  { line: 42, text: m.guide_data_urban_density_calculation_comment_metrics() },
-  { line: 44, text: m.guide_data_urban_density_calculation_comment_density() },
+  {
+    alwaysVisible: true,
+    line: 2,
+    text: m.guide_data_urban_density_calculation_comment_divisions(),
+  },
+  { line: 6, text: m.guide_data_urban_density_calculation_comment_level() },
+  { line: 7, text: m.guide_data_urban_density_calculation_comment_hierarchy() },
+  { line: 8, text: m.guide_data_urban_density_calculation_comment_request() },
+  { line: 9, text: m.guide_data_urban_density_calculation_comment_error() },
+  { line: 10, text: m.guide_data_urban_density_calculation_comment_response() },
+  { line: 13, text: m.guide_data_urban_density_calculation_comment_index() },
+  { line: 14, text: m.guide_data_urban_density_calculation_comment_each_district() },
+  { line: 15, text: m.guide_data_urban_density_calculation_comment_district_code() },
+  { line: 16, text: m.guide_data_urban_density_calculation_comment_area() },
+  { line: 20, text: m.guide_data_urban_density_calculation_comment_available() },
+  { line: 28, text: m.guide_data_urban_density_calculation_comment_totals() },
+  { line: 29, text: m.guide_data_urban_density_calculation_comment_lookup() },
+  { line: 30, text: m.guide_data_urban_density_calculation_comment_missing_area() },
+  { line: 32, text: m.guide_data_urban_density_calculation_comment_start_total() },
+  { line: 35, text: m.guide_data_urban_density_calculation_comment_population() },
+  { line: 36, text: m.guide_data_urban_density_calculation_comment_land_area() },
+  { line: 37, text: m.guide_data_urban_density_calculation_comment_save_total() },
+  { line: 40, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
+  { line: 43, text: m.guide_data_urban_density_calculation_comment_metrics() },
+  { line: 45, text: m.guide_data_urban_density_calculation_comment_density() },
 ]
 
 const mapComments = [
@@ -253,6 +259,11 @@ const liveableMetricsComments = [
           <GuideSubSectionBody
             content={m.guide_data_urban_density_results_description()}
           >
+            <p
+              class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code.guide-urban-density-metrics]:text-secondary"
+            >
+              {@html m.guide_data_urban_density_results_instruction()}
+            </p>
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_results_code()}
               code={calculationCode}
@@ -300,6 +311,7 @@ const liveableMetricsComments = [
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_results_map_code()}
               code={metricsCode}
+              displayCode={metricsDisplayCode}
               comments={metricsComments}
               {editorIcon}
               language="typescript"
