@@ -1,4 +1,5 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
@@ -62,6 +63,6 @@ const censusDistrictLayers: LayerSpecification[] = [
   <p
     class="pointer-events-none absolute top-3 left-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/85 uppercase shadow-sm"
   >
-    Land-clipped C&amp;SD census districts · 2021
+    {m.guide_data_urban_density_census_preview_title()}
   </p>
 </div>

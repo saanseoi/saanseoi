@@ -1,4 +1,6 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
+
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
   calculateUrbanDensityMetrics,
@@ -39,7 +41,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     <p
       class="absolute top-3 left-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/80 uppercase shadow-sm"
     >
-      Calculated district-land density
+      {m.guide_data_urban_density_preview_density_title()}
     </p>
     <p
       class="absolute right-3 bottom-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] text-white/80 shadow-sm"
@@ -49,7 +51,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
   </div>
   <section
     class="grid grid-cols-3 gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)]"
-    aria-label="Urban population density"
+    aria-label={m.guide_data_urban_density_preview_density_label()}
   >
     {#each metrics as metric}
       <article class="bg-[#fff9ed] p-2.5 sm:px-5 sm:py-4">
@@ -60,7 +62,9 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
         >
         <span
           class="ml-0.75 inline font-body text-[0.68rem] leading-tight text-[#10151a] sm:ml-0 sm:block sm:text-xs"
-          >people per km² on {metric.landAreaSqKm.toFixed(1)} km²</span
+          >{m.guide_data_urban_density_preview_density_for_area({
+            area: metric.landAreaSqKm.toFixed(1),
+          })}</span
         >
       </article>
     {/each}

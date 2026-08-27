@@ -1,4 +1,5 @@
 <script module lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
 import type { StyleSpecification } from 'maplibre-gl'
 
 const cachedStyles = new Map<string, Promise<StyleSpecification>>()
@@ -19,7 +20,9 @@ const getCachedStyle = (url: string) => {
   const request = fetch(url)
     .then(async response => {
       if (!response.ok)
-        throw new Error(`The map style could not be loaded (${response.status}).`)
+        throw new Error(
+          m.guide_mapping_preview_style_load_error({ status: String(response.status) }),
+        )
 
       return (await response.json()) as StyleSpecification
     })
@@ -39,11 +42,15 @@ const getCachedTileJson = (url: string) => {
   const request = fetch(url)
     .then(async response => {
       if (!response.ok)
-        throw new Error(`The basemap could not be loaded (${response.status}).`)
+        throw new Error(
+          m.guide_mapping_preview_basemap_load_error({
+            status: String(response.status),
+          }),
+        )
 
       const tileJson = (await response.json()) as Partial<CachedTileJson>
       if (!tileJson.tiles?.every(tile => typeof tile === 'string'))
-        throw new Error('The basemap did not return any tile URLs.')
+        throw new Error(m.guide_mapping_preview_tile_urls_missing())
 
       return tileJson as CachedTileJson
     })
@@ -125,7 +132,7 @@ const loadStyle = async (): Promise<StyleSpecification> => {
   }
 
   if (!styleUrl || !tilejsonUrl)
-    throw new Error('A map style and basemap are required.')
+    throw new Error(m.guide_mapping_preview_style_and_basemap_required())
 
   // Keep the immutable network response for transient previews, while every map
   // receives its own mutable style object.
@@ -223,9 +230,7 @@ onMount(() => {
     } catch (cause) {
       if (!disposed) {
         error =
-          cause instanceof Error
-            ? cause.message
-            : 'The map preview could not be loaded.'
+          cause instanceof Error ? cause.message : m.guide_mapping_preview_load_error()
       }
     } finally {
       if (!disposed) loading = false
@@ -252,7 +257,9 @@ onMount(() => {
     <div
       class="absolute inset-0 grid place-items-center bg-[#10151a] px-6 text-center font-body text-body-sm leading-6 text-white/70"
     >
-      <span>{libraryName(renderer)} preview unavailable: {error}</span>
+      <span
+        >{m.guide_mapping_preview_unavailable({ library: libraryName(renderer), error })}</span
+      >
     </div>
   {/if}
 </div>

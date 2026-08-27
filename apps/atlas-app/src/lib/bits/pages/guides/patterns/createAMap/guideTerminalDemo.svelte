@@ -1,4 +1,5 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 type Props = {
@@ -32,7 +33,7 @@ const terminalExample = $derived(
 {#if variant === 'navigation'}
   <div
     class="terminal-demo"
-    aria-label="A terminal listing folders, then moving into one"
+    aria-label={m.guide_terminal_demo_navigation_label()}
     role="img"
   >
     <div class="terminal-demo__bar"><span></span><span></span><span></span></div>
@@ -61,7 +62,7 @@ const terminalExample = $derived(
 {:else if variant === 'completion'}
   <div
     class="terminal-demo"
-    aria-label="A terminal completing a folder name after Tab is pressed"
+    aria-label={m.guide_terminal_demo_completion_label()}
     role="img"
   >
     <div class="terminal-demo__bar"><span></span><span></span><span></span></div>
@@ -83,7 +84,7 @@ const terminalExample = $derived(
 {:else if variant === 'history'}
   <div
     class="terminal-demo"
-    aria-label="A terminal recalling the previous command after the Up Arrow is pressed"
+    aria-label={m.guide_terminal_demo_history_label()}
     role="img"
   >
     <div class="terminal-demo__bar"><span></span><span></span><span></span></div>
@@ -108,7 +109,7 @@ const terminalExample = $derived(
 {:else}
   <div
     class="terminal-demo"
-    aria-label="A terminal stopping a running command after Control C is pressed"
+    aria-label={m.guide_terminal_demo_interrupt_label()}
     role="img"
   >
     <div class="terminal-demo__bar"><span></span><span></span><span></span></div>
