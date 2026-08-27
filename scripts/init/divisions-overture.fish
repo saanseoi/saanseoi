@@ -83,7 +83,7 @@ end
 # after the Overture canonical divisions are available. It must precede draft
 # release-set reconciliation so the first initialisation run can publish them.
 set -l censtatd_area_archive \
-    "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/source.zip"
+    "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip"
 set -l censtatd_area_manifest "$censtatd_area_archive.manifest.json"
 if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
     # A cache miss is recoverable: force the CSDI archive updater to retrieve
@@ -116,7 +116,7 @@ else
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
         --source-version 2023-H2 \
         --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
-        --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/2023-Q4/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
+        --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
         --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
         --geography-only
     set -g saanseoi_init_docs_pending 1

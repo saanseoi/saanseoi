@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
+  censtatdDistrictDatasetCode,
   formatAddressApiReleaseSetReadiness,
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
@@ -98,6 +99,16 @@ describe('division geometry upload prerequisites', () => {
         },
       ),
     ).resolves.toBeUndefined()
+  })
+})
+
+describe('C&SD District Council GML preparation', () => {
+  test('retains the annual population-and-households dataset selection', () => {
+    expect(
+      censtatdDistrictDatasetCode(
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      ),
+    ).toBe('ds-hk-hkgov-censtatd-division-statistic-population-households-district')
   })
 })
 
