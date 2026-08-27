@@ -389,7 +389,7 @@ export const DivisionsListQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
@@ -468,7 +468,7 @@ export const DivisionDetailQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
