@@ -927,6 +927,7 @@ dependencies = [
     { name = "paddleocr" },
     { name = "paddlepaddle" },
     { name = "setuptools" },
+    { name = "shapely" },
 ]
 
 [package.metadata]
@@ -934,6 +935,7 @@ requires-dist = [
     { name = "paddleocr", specifier = "==2.9.1" },
     { name = "paddlepaddle", specifier = "==2.6.2" },
     { name = "setuptools", specifier = ">=75,<81" },
+    { name = "shapely", specifier = ">=2.1,<2.2" },
 ]
 
 [[package]]
