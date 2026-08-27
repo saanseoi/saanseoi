@@ -1,8 +1,15 @@
 import { expect, test } from 'bun:test'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 
-import { simplifyPolygonCoverage } from './simplifyPolygonCoverage.ts'
+import {
+  simplifyPolygonCoverage,
+  simplifyPolygonCoverageCached,
+  type SimplifiedCoverage,
+} from './simplifyPolygonCoverage.ts'
 
 test('simplifies a shared coverage edge once for both polygons', async () => {
   const geometries: GeoJsonGeometry[] = [
@@ -48,6 +55,48 @@ test('simplifies a shared coverage edge once for both polygons', async () => {
   expect(left).toBeDefined()
   expect(right).toBeDefined()
   expect(sharedSegments(left!, right!).length).toBeGreaterThan(0)
+})
+
+test('caches a simplified GeoJSON coverage by its input and simplification contract', async () => {
+  const cacheRoot = await mkdtemp(join(tmpdir(), 'saanseoi-simplified-coverage-'))
+  const geometries: GeoJsonGeometry[] = [
+    {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [113.9, 22.2],
+          [114, 22.2],
+          [114, 22.3],
+          [113.9, 22.2],
+        ],
+      ],
+    },
+  ]
+  let calls = 0
+  const result: SimplifiedCoverage = {
+    engine: 'Shapely',
+    engineVersion: '2.1.0',
+    geometries,
+    inputValidationRepairIndexes: [],
+  }
+  const simplify = async () => {
+    calls += 1
+    return result
+  }
+
+  try {
+    await simplifyPolygonCoverageCached(geometries, 10, { cacheRoot, simplify })
+    const cached = await simplifyPolygonCoverageCached(geometries, 10, {
+      cacheRoot,
+      simplify,
+    })
+    await simplifyPolygonCoverageCached(geometries, 20, { cacheRoot, simplify })
+
+    expect(calls).toBe(2)
+    expect(cached).toEqual(result)
+  } finally {
+    await rm(cacheRoot, { force: true, recursive: true })
+  }
 })
 
 function sharedSegments(left: GeoJsonGeometry, right: GeoJsonGeometry) {
