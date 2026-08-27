@@ -39,6 +39,12 @@ District Land Area, Population and Density is an exception: its `Density_2022.gm
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
 and `2024.0` source releases rather than archive no-ops.
 
+Its district geometry can seed the early C&SD companion, but it is not a competing
+canonical API-field relationship. When the Population and Household district source or
+Permanent Living Quarters is available for the same Geographic release set, the density
+source remains retained as redundant provenance while the canonical C&SD relationship is
+used for API-field selection.
+
 ## Remaining native statistics ingestion
 
 The updater invokes one shared native CSDI statistics importer for the seven remaining

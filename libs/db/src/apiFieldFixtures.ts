@@ -78,12 +78,47 @@ function derivePermanentLivingQuartersFixture(
   }
 }
 
+/**
+ * Population and Household Statistics can provide the canonical C&SD district
+ * geometry before Permanent Living Quarters is available. Its field mapping is
+ * the same as the complete Population and Household branch; only the source
+ * signature differs.
+ */
+function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFixture {
+  const derivedFixture = {
+    ...fixture,
+    lineageAnchors: fixture.lineageAnchors.flatMap(anchor => {
+      if (
+        anchor.sourceSchemas[populationHouseholdsDistrictDataset] !== '1.0' ||
+        anchor.sourceSchemas[permanentLivingQuartersDataset] !== '1.0'
+      ) {
+        return []
+      }
+
+      const { [permanentLivingQuartersDataset]: _omitted, ...sourceSchemas } =
+        anchor.sourceSchemas
+      return [{ ...anchor, sourceSchemas }]
+    }),
+  }
+
+  return {
+    ...derivedFixture,
+    versionHash: computeVersionHash(derivedFixture),
+  }
+}
+
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
+  derivePopulationHouseholdsFixture(
+    apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
+  ),
   derivePermanentLivingQuartersFixture(
     apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
   ),
   apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
+  derivePopulationHouseholdsFixture(
+    apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
+  ),
   derivePermanentLivingQuartersFixture(
     apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
   ),
