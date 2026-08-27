@@ -566,6 +566,13 @@ export const urbanDensityMapCode = [
   '})',
 ].join('\n')
 
+export const urbanDensityMapDisplayCode = [
+  '// { 100 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
+  '// APPEND THIS LAND-USE HIGHLIGHTING TO THE END OF src/main.ts',
+  '',
+  urbanDensityMapCode,
+].join('\n')
+
 export const urbanDensityCensusAreasCode = [
   'const censusDivisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
   "censusDivisionsUrl.searchParams.set('filter[level]', '2')",
@@ -601,6 +608,13 @@ export const urbanDensityCensusAreasCode = [
   '})',
 ].join('\n')
 
+export const urbanDensityCensusAreasDisplayCode = [
+  '// { 124 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
+  '// APPEND THIS CENSUS-DISTRICT REQUEST TO THE END OF src/main.ts',
+  '',
+  urbanDensityCensusAreasCode,
+].join('\n')
+
 export const urbanDensityTurfInstallCode = 'bun add @turf/turf'
 
 export const urbanDensityLiveableAreaCode = [
@@ -627,6 +641,13 @@ export const urbanDensityLiveableAreaCode = [
   "  id: 'liveable-districts', type: 'fill', source: 'liveable-districts',",
   "  paint: { 'fill-color': '#36a269', 'fill-opacity': 0.48 },",
   "}, 'not-liveable')",
+].join('\n')
+
+export const urbanDensityLiveableAreaDisplayCode = [
+  '// { 156 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
+  '// APPEND THIS LIVEABLE-LAND CALCULATION TO THE END OF src/main.ts',
+  '',
+  urbanDensityLiveableAreaCode,
 ].join('\n')
 
 export const urbanDensityLiveableMetricsCode = [
@@ -659,6 +680,13 @@ export const urbanDensityLiveableMetricsCode = [
   `  <strong>\${metric.landAreaSqKm.toFixed(1)} km²</strong> liveable land</p></article>`,
   "`).join('')",
   'document.body.append(metricBar)',
+].join('\n')
+
+export const urbanDensityLiveableMetricsDisplayCode = [
+  '// { 179 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
+  '// APPEND THIS LIVEABLE-AREA DENSITY TO THE END OF src/main.ts',
+  '',
+  urbanDensityLiveableMetricsCode,
 ].join('\n')
 
 export const urbanDensityMetricsCode = [
