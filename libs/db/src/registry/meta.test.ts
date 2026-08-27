@@ -207,7 +207,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
     expect(
       censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
-    ).toHaveLength(3)
+    ).toHaveLength(2)
     expect(
       censtatdStats
         .filter(dataset => dataset.sourceVariant === 'census')
