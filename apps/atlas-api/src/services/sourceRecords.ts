@@ -14,6 +14,7 @@ type SourceRecordCatalogueEntry = {
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
   geometryProperty?: string
+  randomSampleStrategy?: 'uuid-pivot'
   tableName: string
 }
 
@@ -101,14 +102,17 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
   },
   'ds-hk-overture-division': {
     geometryProperty: 'geometry',
+    randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisions',
   },
   'ds-hk-overture-division-area': {
     geometryProperty: 'geometry',
+    randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisionAreas',
   },
   'ds-hk-overture-division-boundary': {
     geometryProperty: 'geometry',
+    randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisionBoundaries',
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
@@ -290,12 +294,26 @@ async function readSourceRecordPage(args: {
   return result.results
 }
 
+async function readRandomSourceRecordPage(args: {
+  entry: SourceRecordCatalogueEntry
+  includeGeometry: boolean
+  limit: number
+  release: SourceReleaseWithShard
+  sourceDb: D1Database
+}): Promise<SourceRecordRow[]> {
+  if (args.entry.randomSampleStrategy !== 'uuid-pivot') {
+    return readRandomOrderedSourceRecordPage(args)
+  }
+
+  return readUuidPivotSourceRecordPage(args)
+}
+
 /**
  * Pick a random point in Overture's UUID-shaped source-record key space, then
  * read forward through the primary-key index. This avoids evaluating RANDOM()
- * for, and sorting, every record that is valid in the requested release.
+ * for, and sorting, every Overture record that is valid in the requested release.
  */
-async function readRandomSourceRecordPage(args: {
+async function readUuidPivotSourceRecordPage(args: {
   entry: SourceRecordCatalogueEntry
   includeGeometry: boolean
   limit: number
@@ -328,6 +346,36 @@ async function readRandomSourceRecordPage(args: {
   if (rows.length === args.limit) return rows
 
   return [...rows, ...(await readRange('<', args.limit - rows.length))]
+}
+
+/**
+ * Publisher identifiers are intentionally retained verbatim and do not share
+ * a sortable key space. The non-Overture source tables are small enough that
+ * a random ordering is preferable to biasing samples toward their first key.
+ */
+async function readRandomOrderedSourceRecordPage(args: {
+  entry: SourceRecordCatalogueEntry
+  includeGeometry: boolean
+  limit: number
+  release: SourceReleaseWithShard
+  sourceDb: D1Database
+}): Promise<SourceRecordRow[]> {
+  const geometrySelection =
+    args.includeGeometry && args.entry.geometryColumn
+      ? `${args.entry.geometryColumn} AS sourceGeometry`
+      : 'NULL AS sourceGeometry'
+  const statement = args.sourceDb
+    .prepare(
+      `SELECT sourceRecordId, versionHash, rawProperties, ${geometrySelection}
+       FROM ${args.entry.tableName}
+       WHERE validFromRelease <= ?
+         AND (validToRelease IS NULL OR validToRelease > ?)
+       ORDER BY RANDOM()
+       LIMIT ?`,
+    )
+    .bind(args.release.sourceVersion, args.release.sourceVersion, args.limit)
+  const result = await runWithD1ReadRetry(() => statement.all<SourceRecordRow>())
+  return result.results
 }
 
 function toSourceRecord(
