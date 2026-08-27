@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:74cad96d9739303ab67460715a2e1e275293d93cfaeec42ec26e4c5313790984",
+  "versionHash": "sha256:b787a600e64f15242512cf5ff9dca2485d6aafd02e7f24cbe375fb0db69f1605",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -99,6 +99,83 @@
         "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-02-18.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-03-18.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-04-15.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-05-20.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.17.0",
+        "ds-hk-overture-division-area": "1.17.0",
+        "ds-hk-overture-division-boundary": "1.17.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-06-17.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.17.0",
+        "ds-hk-overture-division-area": "1.17.0",
+        "ds-hk-overture-division-boundary": "1.17.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-06-24.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.17.0",
+        "ds-hk-overture-division-area": "1.17.0",
+        "ds-hk-overture-division-boundary": "1.17.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-07-22.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.18.0",
+        "ds-hk-overture-division-area": "1.18.0",
+        "ds-hk-overture-division-boundary": "1.18.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
       }
     }
   ],
