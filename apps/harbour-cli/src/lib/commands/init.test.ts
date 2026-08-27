@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { formatInitialisationSummary, resolveInitialisationCommand } from './init.ts'
+import {
+  formatInitialisationSummary,
+  interruptInitialisationProcess,
+  resolveInitialisationCommand,
+} from './init.ts'
 import { parseInitialisationSummaryEvents } from './initialisationSummary.ts'
 
 describe('initialisation commands', () => {
@@ -56,6 +60,44 @@ describe('initialisation commands', () => {
 
   test('does not resolve an unsupported family and domain', () => {
     expect(resolveInitialisationCommand('init:divisions:unknown')).toBeUndefined()
+  })
+
+  test('interrupts the complete detached initialisation process group', () => {
+    const signals: Array<[number, NodeJS.Signals]> = []
+    const child = {
+      kill() {
+        throw new Error('the direct child should not be signalled on POSIX')
+      },
+      pid: 1234,
+    }
+
+    interruptInitialisationProcess(child, 'SIGINT', {
+      kill(pid, signal) {
+        signals.push([pid, signal])
+      },
+      platform: 'linux',
+    })
+
+    expect(signals).toEqual([[-1234, 'SIGINT']])
+  })
+
+  test('uses the direct child signal when a process group is unavailable', () => {
+    const signals: NodeJS.Signals[] = []
+    const child = {
+      kill(signal?: number | NodeJS.Signals) {
+        if (typeof signal === 'string') signals.push(signal)
+      },
+      pid: 1234,
+    }
+
+    interruptInitialisationProcess(child, 'SIGTERM', {
+      kill() {
+        throw new Error('no such process group')
+      },
+      platform: 'linux',
+    })
+
+    expect(signals).toEqual(['SIGTERM'])
   })
 
   test('summarises new API release sets and failed source-release publication', () => {
