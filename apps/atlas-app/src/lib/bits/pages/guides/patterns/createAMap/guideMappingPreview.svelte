@@ -1,10 +1,68 @@
+<script module lang="ts">
+import type { StyleSpecification } from 'maplibre-gl'
+
+const cachedStyles = new Map<string, Promise<StyleSpecification>>()
+type CachedTileJson = {
+  attribution?: string
+  bounds?: [number, number, number, number]
+  maxzoom?: number
+  minzoom?: number
+  scheme?: 'xyz' | 'tms'
+  tiles: string[]
+}
+const cachedTileJsons = new Map<string, Promise<CachedTileJson>>()
+
+const getCachedStyle = (url: string) => {
+  const cached = cachedStyles.get(url)
+  if (cached) return cached
+
+  const request = fetch(url)
+    .then(async response => {
+      if (!response.ok)
+        throw new Error(`The map style could not be loaded (${response.status}).`)
+
+      return (await response.json()) as StyleSpecification
+    })
+    .catch(cause => {
+      cachedStyles.delete(url)
+      throw cause
+    })
+
+  cachedStyles.set(url, request)
+  return request
+}
+
+const getCachedTileJson = (url: string) => {
+  const cached = cachedTileJsons.get(url)
+  if (cached) return cached
+
+  const request = fetch(url)
+    .then(async response => {
+      if (!response.ok)
+        throw new Error(`The basemap could not be loaded (${response.status}).`)
+
+      const tileJson = (await response.json()) as Partial<CachedTileJson>
+      if (!tileJson.tiles?.every(tile => typeof tile === 'string'))
+        throw new Error('The basemap did not return any tile URLs.')
+
+      return tileJson as CachedTileJson
+    })
+    .catch(cause => {
+      cachedTileJsons.delete(url)
+      throw cause
+    })
+
+  cachedTileJsons.set(url, request)
+  return request
+}
+</script>
+
 <script lang="ts">
 import { onMount } from 'svelte'
 import {
   setWorkerUrl,
   type Map as MapLibreMap,
   type LayerSpecification,
-  type StyleSpecification,
 } from 'maplibre-gl'
 import type { StyleSpecification as MapboxStyleSpecification } from 'mapbox-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -51,7 +109,7 @@ let loading = $state(true)
 const libraryName = (value: Renderer) =>
   value === 'mapbox' ? 'Mapbox GL JS' : value === 'leaflet' ? 'Leaflet' : 'MapLibre'
 
-const loadStyle = async (signal: AbortSignal): Promise<StyleSpecification> => {
+const loadStyle = async (): Promise<StyleSpecification> => {
   if (unstyled) {
     return {
       version: 8,
@@ -69,15 +127,17 @@ const loadStyle = async (signal: AbortSignal): Promise<StyleSpecification> => {
   if (!styleUrl || !tilejsonUrl)
     throw new Error('A map style and basemap are required.')
 
-  const response = await fetch(styleUrl, { signal })
-  if (!response.ok)
-    throw new Error(`The map style could not be loaded (${response.status}).`)
-
-  const style = (await response.json()) as StyleSpecification
+  // Keep the immutable network response for transient previews, while every map
+  // receives its own mutable style object.
+  const [styleResponse, tileJson] = await Promise.all([
+    getCachedStyle(styleUrl),
+    getCachedTileJson(tilejsonUrl),
+  ])
+  const style = structuredClone(styleResponse)
   style.sources = {
     basemap: {
       type: 'vector',
-      url: tilejsonUrl,
+      ...tileJson,
     },
     ...additionalSources,
   }
@@ -100,7 +160,6 @@ onMount(() => {
   let disposed = false
   let remove: (() => void) | undefined
   let resizeObserver: ResizeObserver | undefined
-  const controller = new AbortController()
 
   const observeResize = (resize: () => void) => {
     if (!container) return
@@ -113,7 +172,7 @@ onMount(() => {
     try {
       loading = true
       error = undefined
-      const style = await loadStyle(controller.signal)
+      const style = await loadStyle()
       if (disposed || !container) return
 
       if (renderer === 'leaflet') {
@@ -162,7 +221,7 @@ onMount(() => {
         observeResize(() => map.resize())
       }
     } catch (cause) {
-      if (!disposed && !controller.signal.aborted) {
+      if (!disposed) {
         error =
           cause instanceof Error
             ? cause.message
@@ -175,7 +234,6 @@ onMount(() => {
 
   return () => {
     disposed = true
-    controller.abort()
     resizeObserver?.disconnect()
     remove?.()
   }

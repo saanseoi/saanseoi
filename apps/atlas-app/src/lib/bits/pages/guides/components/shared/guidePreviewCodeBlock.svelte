@@ -46,13 +46,11 @@ let view = $state<'code' | 'preview'>('code')
 let commentsVisible = $state(true)
 let expanded = $state(false)
 let viewTransitionName = $state<string>()
-let previewInstance = $state(0)
 let previewInViewport = $state(false)
+let previewCard: HTMLElement
 let previewPanel: HTMLElement
 
 function showPreview() {
-  // Recreate an interactive preview so its map returns to the configured view.
-  previewInstance += 1
   view = 'preview'
 }
 
@@ -62,7 +60,7 @@ onMount(() => {
   const observer = new IntersectionObserver(([entry]) => {
     previewInViewport = entry?.isIntersecting ?? false
   })
-  observer.observe(previewPanel)
+  observer.observe(previewCard)
 
   return () => observer.disconnect()
 })
@@ -97,6 +95,7 @@ function closePreview() {
 </script>
 
 <div
+  bind:this={previewCard}
   class={`grid w-full min-w-0 max-w-[80ch] font-mono ${expanded ? '' : 'perspective-distant'}`}
 >
   <div
@@ -211,9 +210,7 @@ function closePreview() {
     {/if}
     <div class={`min-h-0 flex-1 bg-[#131722] ${expanded ? '' : 'p-4'}`}>
       {#if previewInViewport}
-        {#key previewInstance}
-          {@render preview()}
-        {/key}
+        {@render preview()}
       {/if}
     </div>
   </section>

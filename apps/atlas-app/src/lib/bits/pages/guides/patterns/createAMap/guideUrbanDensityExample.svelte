@@ -25,6 +25,7 @@ type ShareLink = {
 
 type Props = {
   editorIcon?: string
+  hasNonHongKongBasemap?: boolean
   hongKongBasemapNote?: string
   mapReadyCode: string
   mapPreviewLabel: string
@@ -49,6 +50,7 @@ type Props = {
 
 let {
   editorIcon,
+  hasNonHongKongBasemap = false,
   hongKongBasemapNote,
   mapReadyCode,
   mapPreviewLabel,
@@ -185,7 +187,11 @@ const liveableMetricsComments = [
   <div class="mt-8 space-y-12">
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_inputs_title()} />
-      <GuideSubSectionBody content={m.guide_data_urban_density_inputs_description()}>
+      <GuideSubSectionBody
+        content={hasNonHongKongBasemap
+          ? m.guide_data_urban_density_inputs_hong_kong_description()
+          : m.guide_data_urban_density_inputs_description()}
+      >
         <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_inputs_code()}
           code={mapReadyCode}
