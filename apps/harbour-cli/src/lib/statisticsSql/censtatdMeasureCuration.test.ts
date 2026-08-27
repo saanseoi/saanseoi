@@ -71,7 +71,7 @@ test('curates C&SD analytical dimensions without turning scalar statistics into 
   })
   expect(
     dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
       'QTR_PRH_HA',
     ),
   ).toEqual({

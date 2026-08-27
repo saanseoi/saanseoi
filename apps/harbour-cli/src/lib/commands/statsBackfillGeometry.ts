@@ -347,6 +347,7 @@ function isDistrictGeometryRelease(release: BackfillRelease) {
   return (
     release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
     release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual' ||
     release.datasetCode === 'ds-hk-overture-division-area' ||
     release.datasetCode === 'ds-hk-overture-division-boundary'
   )
@@ -355,7 +356,8 @@ function isDistrictGeometryRelease(release: BackfillRelease) {
 function usesReviewedDistrictBridge(release: BackfillRelease) {
   return (
     release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
-    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district'
+    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual'
   )
 }
 

@@ -1588,20 +1588,15 @@ function companionResourceShortDescription(
   locale: ApiReleaseSetSourceDocsLocale,
 ) {
   const descriptions = {
-    'areas:hkgov-censtatd:2016': {
-      en: '2016 census district areas.',
-      'zh-Hant': '2016 年人口普查區議會分區範圍。',
-      'zh-Hans': '2016 年人口普查区议会分区范围。',
+    'areas:hkgov-censtatd': {
+      en: 'C&SD annual district and Area/type statistical geometry.',
+      'zh-Hant': '政府統計處按年區議會分區及地區／類別統計地理資料。',
+      'zh-Hans': '政府统计处年度区议会分区及地区／类别统计地理数据。',
     },
-    'areas:hkgov-censtatd:2021': {
-      en: '2021 census district areas.',
-      'zh-Hant': '2021 年人口普查區議會分區範圍。',
-      'zh-Hans': '2021 年人口普查区议会分区范围。',
-    },
-    'areas:hkgov-censtatd-area': {
-      en: 'Areas for permanent living quarters by area and type.',
-      'zh-Hant': '按地區及類別劃分的常住屋宇單位範圍。',
-      'zh-Hans': '按地区及类别划分的常住屋宇单位范围。',
+    'areas:hkgov-censtatd-landclipped': {
+      en: 'C&SD census land-clipped district areas.',
+      'zh-Hant': '政府統計處人口普查經土地裁切的區議會分區範圍。',
+      'zh-Hans': '政府统计处人口普查经土地裁切的区议会分区范围。',
     },
     'areas:hkgov-had': {
       en: 'Official district areas.',

@@ -8,6 +8,13 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        areaCompanionByReferencePeriod: {
+          '*': {
+            variant: 'hkgov-censtatd',
+            domainCode: 'geographic',
+            cohortKey: '{referencePeriodEndYear}',
+          },
+        },
         properties: {
           dc: '11',
           dc_chi: '中西區',
@@ -33,6 +40,16 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       expect.objectContaining({
         referencePeriodCode: '2016',
         sourceFeatureRef: 'DC_GHS:11-2016',
+        geography: {
+          code: '11',
+          kind: 'district',
+          class: 'A',
+          areaCompanion: {
+            variant: 'hkgov-censtatd',
+            domainCode: 'geographic',
+            cohortKey: '2016',
+          },
+        },
       }),
     ])
     expect(rows.records).toHaveLength(1)

@@ -207,7 +207,7 @@ test('labels an explicit dataset selection without implying every dataset', () =
   expect(
     updateSelectionLabel({
       requested: new Set([
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
       ]),
       selectedFamily: 'all',
     }),
@@ -242,9 +242,10 @@ test('keeps an explicit C&SD dataset selection exact unless dependencies are req
   const area = datasets.find(
     dataset =>
       dataset.code ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
   )
-  if (!area) throw new Error('C&SD Area/type dataset fixture is missing.')
+  if (!area)
+    throw new Error('C&SD Permanent Living Quarters dataset fixture is missing.')
 
   const dependencies = await loadCurrentCompositionIngestDependencies()
   const exact = selectUpdateDatasets(datasets, [area], dependencies, false)

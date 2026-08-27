@@ -33,13 +33,18 @@ import {
   hashDivisionGeometrySourceRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
+  type NormalisedDivisionArea,
 } from '@repo/core/pipeline/services/divisionGeometry'
 import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
 } from '@repo/core/pipeline/services/geometryStats'
-import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import {
+  calculateGeoJsonBbox,
+  type GeoJsonGeometry,
+  type GeoJsonPosition,
+} from '@repo/core/pipeline/geojson'
 import {
   compressJsonBrotli,
   decompressJsonBrotli,
@@ -47,7 +52,7 @@ import {
 } from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
@@ -55,6 +60,7 @@ import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import type Geometry from 'jsts/org/locationtech/jts/geom/Geometry.js'
 import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
+import TopologyPreservingSimplifier from 'jsts/org/locationtech/jts/simplify/TopologyPreservingSimplifier.js'
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
@@ -127,7 +133,13 @@ type GeometryWriteProgress = (label: string, current?: number, total?: number) =
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
-const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd:2021'
+const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd-landclipped'
+const HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES = 10
+const HONG_KONG_REFERENCE_LONGITUDE = 114
+const HONG_KONG_REFERENCE_LATITUDE = 22.35
+const METRES_PER_DEGREE_LATITUDE = 110_574
+const METRES_PER_DEGREE_LONGITUDE =
+  111_320 * Math.cos((HONG_KONG_REFERENCE_LATITUDE * Math.PI) / 180)
 // D1 accepts statements no larger than 100 KB. Reserve a small margin for
 // platform-side import handling rather than producing statements at the limit.
 export const MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES = 96 * 1024
@@ -306,6 +318,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       regionCode: previewPlan.regionCode,
       sourceReleaseId: dataset.releaseId,
       variant: geometryVariant(previewPlan),
+      reuseDraftSnapshotForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
     })
     await upsertSnapshotSource(
       metaDb,
@@ -380,7 +393,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const file = options.inputFilePath
       ? await asyncBufferFromFile(options.inputFilePath)
       : await createAsyncBufferFromR2(bucket, rawObjectKey)
-    const normalised: Array<NonNullable<NormalisedGeometry>> = []
+    let normalised: Array<NonNullable<NormalisedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -482,6 +495,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       normalised.push(...syntheticRows)
     }
 
+    if (previewPlan.transform === 'simplified') {
+      if (previewPlan.type !== 'divisionArea') {
+        throw new Error('The simplified display transform is available only for areas.')
+      }
+      normalised = simplifyHkgovDivisionAreas(
+        normalised as NormalisedDivisionArea[],
+      ) as Array<NonNullable<NormalisedGeometry>>
+    }
+
     progress.complete(
       formatGeometryCompletedLabel(
         'Normalise source',
@@ -545,6 +567,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         snapshotId: snapshot.id,
         parentSnapshotId: snapshot.parentSnapshotId,
         cohortKey: previewPlan.cohortKey,
+        merge: isCenstatdGeometryCompanionPlan(previewPlan),
         transform: previewPlan.transform,
       },
       (() => {
@@ -1212,17 +1235,25 @@ function normaliseHkgovCenstatdInputRow(
 }
 
 function geometryVariant(plan: GeometryUploadPlan) {
+  const withTransform = (variant: string) =>
+    plan.transform ? `${variant}:${plan.transform}` : variant
+  if (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district') {
+    return withTransform('hkgov-censtatd-landclipped')
+  }
+  if (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual') {
+    return withTransform('hkgov-censtatd')
+  }
   if (
     plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   ) {
-    return 'hkgov-censtatd-area'
+    return withTransform('hkgov-censtatd')
   }
   if (
     plan.datasetCode ===
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
-    return 'hkgov-censtatd-hma'
+    return withTransform('hkgov-censtatd-hma')
   }
   return datasetVariantForSource('divisionArea', plan.source, {
     cohortKey: plan.cohortKey,
@@ -1231,11 +1262,19 @@ function geometryVariant(plan: GeometryUploadPlan) {
   })
 }
 
-function isCenstatdAreaTypePlan(plan: GeometryUploadPlan) {
+function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.type === 'divisionArea' &&
+    ['hkgov-censtatd', 'hkgov-censtatd:simplified'].includes(geometryVariant(plan))
+  )
+}
+
+function isCenstatdPermanentLivingQuartersPlan(plan: GeometryUploadPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   )
 }
 
@@ -1245,7 +1284,8 @@ function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
   }
   if (
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district'
+    (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual')
   ) {
     return { authority: 'hkgov-censtatd' }
   }
@@ -1313,8 +1353,8 @@ async function assertDivisionReferences(
   const lookup = await resolveDivisionReferenceLookup(metaDb, plan)
   if (lookup.snapshots.length === 0) {
     throw new Error(
-      isCenstatdAreaTypePlan(plan)
-        ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD area/type references cannot be validated.`
+      isCenstatdPermanentLivingQuartersPlan(plan)
+        ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD permanent living quarters references cannot be validated.`
         : `No published division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; geometry references cannot be validated.`,
     )
   }
@@ -1393,7 +1433,7 @@ async function resolveDivisionReferenceLookup(
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
 ) {
-  if (isCenstatdAreaTypePlan(plan)) {
+  if (isCenstatdPermanentLivingQuartersPlan(plan)) {
     const prior =
       await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
         metaDb,
@@ -1582,6 +1622,139 @@ function formatDiagnosticRecord(record: unknown) {
   return JSON.stringify(record, bigintJsonReplacer, 2)
 }
 
+/**
+ * Produces the shared map-display representation for every Hong Kong Government
+ * area publisher. Exact publisher geometry remains in the source assertion and
+ * in the exact snapshot; this pass only writes the named display snapshot.
+ */
+function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
+  const exactGeometries = rows.map(row =>
+    requireAreaGeometry(row.canonical.geometry, row.canonical.id),
+  )
+  const reader = new GeoJSONReader(new GeometryFactory())
+  const parsed = reader.read({
+    type: 'GeometryCollection',
+    geometries: exactGeometries.map(toLocalMetreGeometry),
+  })
+  const simplified = TopologyPreservingSimplifier.simplify(
+    parsed,
+    HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+  )
+  if (!new IsValidOp(simplified).isValid()) {
+    throw new Error(
+      'Hong Kong Government display simplification produced invalid geometry.',
+    )
+  }
+  const written = new GeoJSONWriter().write(simplified) as unknown
+  if (
+    !isGeoJsonGeometryCollection(written) ||
+    written.geometries.length !== exactGeometries.length
+  ) {
+    throw new Error('Hong Kong Government display simplification changed the area set.')
+  }
+  return rows.map((row, index) => {
+    const simplifiedGeometry = written.geometries[index]
+    if (!simplifiedGeometry) {
+      throw new Error(
+        `Display simplification did not produce an area for ${row.canonical.id}.`,
+      )
+    }
+    const geometry = requireAreaGeometry(
+      fromLocalMetreGeometry(simplifiedGeometry),
+      row.canonical.id,
+    )
+    return {
+      ...row,
+      canonical: {
+        ...row.canonical,
+        bbox: calculateGeoJsonBbox(geometry),
+        geometry,
+      },
+      source: {
+        ...row.source,
+        derivation: {
+          inputGeometryProjection: 'EPSG:4326',
+          method: 'topology-preserving-simplification',
+          toleranceMetres: HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+          workingProjection: 'local-equirectangular',
+        },
+      },
+    }
+  })
+}
+
+function requireAreaGeometry(value: unknown, id: string): GeoJsonGeometry {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !('type' in value) ||
+    ((value as { type?: unknown }).type !== 'Polygon' &&
+      (value as { type?: unknown }).type !== 'MultiPolygon')
+  ) {
+    throw new Error(`Display simplification did not produce an area for ${id}.`)
+  }
+  return value as GeoJsonGeometry
+}
+
+function isGeoJsonGeometryCollection(
+  value: unknown,
+): value is { type: 'GeometryCollection'; geometries: GeoJsonGeometry[] } {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    (value as { type?: unknown }).type === 'GeometryCollection' &&
+    Array.isArray((value as { geometries?: unknown }).geometries)
+  )
+}
+
+function toLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  return mapGeometryPositions(geometry, ([longitude, latitude, elevation]) =>
+    positionWithOptionalElevation(
+      (longitude - HONG_KONG_REFERENCE_LONGITUDE) * METRES_PER_DEGREE_LONGITUDE,
+      (latitude - HONG_KONG_REFERENCE_LATITUDE) * METRES_PER_DEGREE_LATITUDE,
+      elevation,
+    ),
+  )
+}
+
+function fromLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  return mapGeometryPositions(geometry, ([x, y, elevation]) =>
+    positionWithOptionalElevation(
+      x / METRES_PER_DEGREE_LONGITUDE + HONG_KONG_REFERENCE_LONGITUDE,
+      y / METRES_PER_DEGREE_LATITUDE + HONG_KONG_REFERENCE_LATITUDE,
+      elevation,
+    ),
+  )
+}
+
+function positionWithOptionalElevation(
+  first: number,
+  second: number,
+  elevation: number | undefined,
+): GeoJsonPosition {
+  return elevation === undefined ? [first, second] : [first, second, elevation]
+}
+
+function mapGeometryPositions(
+  geometry: GeoJsonGeometry,
+  transform: (position: GeoJsonPosition) => GeoJsonPosition,
+): GeoJsonGeometry {
+  if (geometry.type === 'GeometryCollection') {
+    return {
+      type: 'GeometryCollection',
+      geometries: geometry.geometries.map(child =>
+        mapGeometryPositions(child, transform),
+      ),
+    }
+  }
+  const mapValue = (value: unknown): unknown => {
+    if (!Array.isArray(value)) return value
+    if (typeof value[0] === 'number') return transform(value as GeoJsonPosition)
+    return value.map(mapValue)
+  }
+  return { ...geometry, coordinates: mapValue(geometry.coordinates) } as GeoJsonGeometry
+}
+
 async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   type: GeometryUploadPlan['type'],
@@ -1594,6 +1767,7 @@ async function writeGeometryRows(
     snapshotId: string
     parentSnapshotId: string | null
     cohortKey: string
+    merge?: boolean
     transform?: GeometryUploadPlan['transform']
   },
   onProgress?: GeometryWriteProgress,
@@ -1615,8 +1789,9 @@ async function writeGeometryRows(
           ? sourceSchema.sourceHkgovCenstatdDivisionAreas
           : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
+  const isDisplayDerivative = version.transform === 'simplified'
   const isCenstatdDerivative =
-    version.source === 'hkgov-censtatd' && version.transform === 'simplified'
+    version.source === 'hkgov-censtatd' && isDisplayDerivative
   // Statistics archive geometries are already retained in
   // hkgovCenstatdStatistics. The district-only source table has mandatory
   // district columns and must not be misused for Area/HMA assertions.
@@ -1631,22 +1806,24 @@ async function writeGeometryRows(
           'dc_class' in row.source.rawProperties
         ),
     )
-  onProgress?.('clear current rows')
-  await context.currentDb
-    .delete(currentTable)
-    // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
-    // A snapshot therefore represents exactly one geometry variant. Clear the full
-    // snapshot so a retry also replaces rows written before a variant was renamed
-    // (for example the legacy `hkgov-censtatd` C&SD variant).
-    .where(eq(currentTable.snapshotId, version.snapshotId))
-    .run()
+  onProgress?.(version.merge ? 'retain companion rows' : 'clear current rows')
+  if (!version.merge) {
+    await context.currentDb
+      .delete(currentTable)
+      // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
+      // A snapshot therefore represents exactly one geometry variant. Clear the full
+      // snapshot so a retry also replaces rows written before a variant was renamed
+      // (for example the legacy `hkgov-censtatd` C&SD variant).
+      .where(eq(currentTable.snapshotId, version.snapshotId))
+      .run()
+  }
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()
   onProgress?.('hash geometry rows', 0, rows.length)
   for (const [index, row] of rows.entries()) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
     if (
-      !isCenstatdDerivative &&
+      !isDisplayDerivative &&
       !isCenstatdStatisticGeometry &&
       version.source !== 'hkgov-pland-pu' &&
       version.source !== 'hkgov-pland-new-town'
@@ -1671,15 +1848,17 @@ async function writeGeometryRows(
   )
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById)
   onProgress?.('close history rows')
-  const closedHistoryRows = await closeChangedRows(
-    context.historyDb,
-    historyTable,
-    historyTable.id,
-    historyHashes,
-    {
-      isCurrent: false,
-    },
-  )
+  const closedHistoryRows = version.merge
+    ? []
+    : await closeChangedRows(
+        context.historyDb,
+        historyTable,
+        historyTable.id,
+        historyHashes,
+        {
+          isCurrent: false,
+        },
+      )
   await recordSnapshotVersionChanges(
     context.historyDb as unknown as HarbourWritableDb,
     {
@@ -1692,7 +1871,7 @@ async function writeGeometryRows(
   )
   onProgress?.('close source rows')
   if (
-    !isCenstatdDerivative &&
+    !isDisplayDerivative &&
     !isCenstatdStatisticGeometry &&
     version.source !== 'hkgov-pland-pu' &&
     version.source !== 'hkgov-pland-new-town'
@@ -1736,7 +1915,7 @@ async function writeGeometryRows(
     })),
   )
   const sourceRows =
-    isCenstatdDerivative ||
+    isDisplayDerivative ||
     isCenstatdStatisticGeometry ||
     version.source === 'hkgov-pland-pu' ||
     version.source === 'hkgov-pland-new-town'
@@ -1792,6 +1971,20 @@ async function writeGeometryRows(
     await context.currentDb
       .insert(currentTable)
       .values(chunk as never)
+      .onConflictDoUpdate({
+        target: [currentTable.snapshotId, currentTable.id],
+        set: {
+          bbox: sql`excluded.bbox`,
+          geometry: sql`excluded.geometry`,
+          isLand: sql`excluded.isLand`,
+          isTerritorial: sql`excluded.isTerritorial`,
+          sourceKeys: sql`excluded.sourceKeys`,
+          sources: sql`excluded.sources`,
+          type: sql`excluded.type`,
+          variant: sql`excluded.variant`,
+          updatedAt: now,
+        },
+      })
       .run()
     writtenCurrentRows += chunk.length
     onProgress?.('write current rows', writtenCurrentRows, currentRows.length)
@@ -1852,7 +2045,7 @@ async function writeGeometryRows(
       onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }
   }
-  if (isCenstatdDerivative) {
+  if (isCenstatdDerivative && !isCenstatdStatisticGeometry) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       rows,
@@ -2359,7 +2552,8 @@ export function supportsDistrictGeometryStatistics(plan: GeometryUploadPlan) {
     plan.source === 'hkgov-had' ||
     plan.source === 'overture' ||
     (plan.source === 'hkgov-censtatd' &&
-      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+      (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual'))
   )
 }
 

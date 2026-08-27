@@ -242,6 +242,7 @@ describe('dataset update registry', () => {
   test('starts C&SD district-area intake from the prepared native archive', () => {
     expect(
       buildHkgovCenstatdDistrictArchiveIngestCommand({
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
         inputFile: '/tmp/prepared-districts.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
