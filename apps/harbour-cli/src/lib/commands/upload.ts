@@ -93,6 +93,8 @@ export async function runUploadCommand(
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
     divisionCohortKey?: string
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     /** Leave Statistics API release-set publication to a cohort bootstrap. */
     deferStatsReleaseSet?: boolean
     processingActions?: ReleaseProcessingAction[]
@@ -230,6 +232,10 @@ ${mutedBar}  `)
       publisherCode: datasetFixture?.publisherCode ?? previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
     })
+
+    if (options.deferApiReleaseSet && previewResult.plan.theme !== 'divisions') {
+      throw new Error('--defer-api-release-set requires a Divisions upload.')
+    }
 
     note(
       formatSummary(previewResult, target, {
@@ -686,6 +692,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            deferApiReleaseSet: options.deferApiReleaseSet,
             deferPublish: shouldDeriveHkgovSimplifiedGeometry,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
@@ -716,6 +723,7 @@ ${mutedBar}  `)
             uploadResult,
             preparedUploadFile,
             {
+              deferApiReleaseSet: options.deferApiReleaseSet,
               inputFilePath: preparedUploadFile.filePath,
               reuseRunningRelease: true,
               skipRawSeed: true,
@@ -1552,7 +1560,9 @@ async function logApiReleaseSetPublication(
     ...(result?.apiReleaseSetPublications?.map(
       publication => publication.apiReleaseSetCode,
     ) ?? []),
-    ...(releaseSetCode ? [releaseSetCode] : []),
+    ...(releaseSetCode && result?.apiReleaseSetStatus === 'current'
+      ? [releaseSetCode]
+      : []),
   ]
 
   for (const apiReleaseSetCode of new Set(releaseSetCodes)) {

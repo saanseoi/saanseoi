@@ -55,6 +55,7 @@ type StageRequest = {
 }
 
 type PublishRequest = {
+  deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   releaseCode?: string
   releaseId?: string
@@ -514,6 +515,7 @@ export async function handlePublishDataset(
       )
       const isNewestReleaseSet = index === newestReleaseSetIndex
       const shouldPublishReleaseSet =
+        !request.deferApiReleaseSet &&
         releaseSetIsComplete &&
         (isCenstatdGeographicGeometry ||
           datasetType === 'divisionStatistic' ||

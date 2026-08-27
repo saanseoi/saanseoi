@@ -1890,6 +1890,19 @@ describe('control service', () => {
         'supporting',
       )
 
+    // Initialisation stages the Overture members as draft r0 sets until every
+    // required C&SD area is ready. Publishing the final provider with the
+    // deferral must preserve that r0 rather than minting an enrichment r1.
+    const deferredPublication = await handlePublishDataset(db, {
+      deferApiReleaseSet: true,
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    })
+    const revisionRowsBeforeReconciliation = sqlite
+      .query(
+        'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      )
+      .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
+
     const reconciliation = await handleReconcileDraftReleaseSets(db, {
       apiFamily: 'divisions',
       regionCode: 'hk',
@@ -1910,6 +1923,17 @@ describe('control service', () => {
       publishedReleaseSetCodes: [],
     })
     expect(stillDraftSet.status).toBe('draft')
+    expect(deferredPublication).toMatchObject({
+      apiReleaseSetCode: `data-hk-divisions-${cohortKey}`,
+      apiReleaseSetStatus: 'draft',
+    })
+    expect(revisionRowsBeforeReconciliation).toEqual([
+      {
+        code: `data-hk-divisions-${cohortKey}`,
+        revision: 0,
+        status: 'draft',
+      },
+    ])
     expect(reconciliation).toMatchObject({
       inspected: 1,
       pendingReleaseSetCodes: [],
