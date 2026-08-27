@@ -149,7 +149,7 @@ describe('Hong Kong Government display simplification', () => {
     const [simplified] = await simplifyHkgovDivisionAreas([row])
     if (!simplified) throw new Error('Expected a simplified Planning area.')
 
-    expect(simplified.canonical.geometry.type).toBe('Polygon')
+    expect(['Polygon', 'MultiPolygon']).toContain(simplified.canonical.geometry.type)
     expect(simplified.source.derivation).toMatchObject({
       inputValidationRepair: 'make-valid',
     })

@@ -105,15 +105,19 @@ applies   hkgov-censtatd-landclipped
           hkgov-censtatd
 ```
 
-The derivation runs a topology-preserving simplification across all 18 canonical
-EPSG:4326 polygons at a 10-metre tolerance in a local Hong Kong metre plane. Processing
-all districts together keeps shared boundaries consistent. The exact source row retains
-the untouched C&SD geometry and no derivation metadata; its derivative records the input
-dataset/release, method, tolerance and `preservesLandClip: true`. The derived geometry
-is materialised internally for fast map reads in a derivative row keyed to the exact
-source record and its version hash; it remains a transform of the same source release
-rather than a separate dataset, source record or API-composition member. The 2016 and
-2021 derivatives declare `preservesLandClip: true`; the 2024 derivative declares
+The derivation uses Shapely 2.1's GEOS-backed coverage simplifier at a 10-metre
+tolerance. Its interface consumes and emits WGS84 GeoJSON; a temporary local metre plane
+is used only to apply that tolerance. It simplifies shared coverage edges as one
+operation, validates every resulting Polygon or MultiPolygon, and records the engine
+version in derivation metadata. The exact source row retains the untouched C&SD geometry
+and no derivation metadata; its derivative records the input dataset/release, method,
+tolerance and `preservesLandClip: true`. The known invalid `CENSTATD:T` input is
+repaired only in the helper's temporary display-processing copy with GEOS `make_valid`;
+that derivative records `inputValidationRepair: make-valid`. The derived geometry is
+materialised internally for fast map reads in a derivative row keyed to the exact source
+record and its version hash; it remains a transform of the same source release rather
+than a separate dataset, source record or API-composition member. The 2016 and 2021
+derivatives declare `preservesLandClip: true`; the 2024 derivative declares
 `preservesPublisherGeometry: true`.
 
 Use `include=areas:hkgov-censtatd-landclipped:simplified` or
