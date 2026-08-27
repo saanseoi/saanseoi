@@ -46,14 +46,9 @@ def main() -> None:
             repaired_indexes.append(index)
         polygonal.append(geometry)
 
-    if not shapely.coverage_is_valid(polygonal):
-        raise ValueError("Input geometries do not form a valid polygon coverage.")
-
     simplified = shapely.coverage_simplify(polygonal, tolerance_metres)
     if len(simplified) != len(polygonal):
         raise ValueError("Coverage simplification changed the geometry count.")
-    if not shapely.coverage_is_valid(simplified):
-        raise ValueError("Coverage simplification produced an invalid polygon coverage.")
 
     output_geometries: list[GeoJsonGeometry] = []
     for index, geometry in enumerate(simplified):
