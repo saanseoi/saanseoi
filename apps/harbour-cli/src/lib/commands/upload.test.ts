@@ -346,7 +346,8 @@ describe('C&SD geometry prerequisites', () => {
         remote: true,
       },
       {
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         source: 'hkgov-censtatd',
         theme: 'divisions',
         type: 'divisionArea',
