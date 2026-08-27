@@ -84,6 +84,11 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     geometryEncoding: 'brotli-json',
     tableName: 'hkgovCenstatdDivisionAreas',
   },
+  'ds-hk-hkgov-censtatd-division-area-district-annual': {
+    geometryColumn: 'sourceGeometry',
+    geometryEncoding: 'brotli-json',
+    tableName: 'hkgovCenstatdDivisionAreas',
+  },
   'ds-hk-hkgov-had-division-area-district': {
     geometryColumn: 'sourceGeometry',
     tableName: 'hkgovHadDivisionAreas',

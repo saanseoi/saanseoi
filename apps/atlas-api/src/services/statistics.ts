@@ -7,6 +7,7 @@ import {
 import {
   listApiReleaseSetSnapshotsForRegistryRequest,
   listSnapshotSourceReleases,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveApiReleaseSetSnapshotsForRequest,
 } from '@repo/core/db/metaRegistry'
 
@@ -107,6 +108,7 @@ type StatisticServiceDependencies = {
   listApiReleaseSetSnapshotsForRegistryRequest: typeof listApiReleaseSetSnapshotsForRegistryRequest
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
   listSnapshotSourceReleases: typeof listSnapshotSourceReleases
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey: typeof resolvePublishedSnapshotForResourceTypeRegionCohortKey
   listStatisticRecords: typeof listStatisticRecords
   listStatisticRecordsForGeography: typeof listStatisticRecordsForGeography
   countStatisticRecords: typeof countStatisticRecords
@@ -121,6 +123,7 @@ const defaultDependencies: StatisticServiceDependencies = {
   listApiReleaseSetSnapshotsForRegistryRequest,
   resolveApiReleaseSetSnapshotsForRequest,
   listSnapshotSourceReleases,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   listStatisticRecords,
   listStatisticRecordsForGeography,
   countStatisticRecords,
@@ -168,7 +171,6 @@ type StatisticRegistrySnapshot = {
 type RelatedDivisionSelection = {
   domainCode: string
   divisionSnapshotIds: string[]
-  areaSnapshotByVariant: Map<string, string>
 }
 
 type StatisticResourcePayload = {
@@ -275,7 +277,7 @@ type NotFoundResponse = {
 }
 type RelatedVariantUnavailableResponse = {
   httpStatus: 409
-  error: 'variant_unavailable'
+  error: 'variant_cohort_unavailable'
   message: string
 }
 
@@ -332,34 +334,12 @@ function requestedQualifiedAreaVariant(value?: string) {
     ?.slice('areas:'.length)
 }
 
-function defaultAreaVariant(record: StatisticRecord) {
-  if (
-    record.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
-  ) {
-    return 'hkgov-censtatd-area'
-  }
-  if (
-    record.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
-  ) {
-    return 'hkgov-censtatd-hma'
-  }
-  if (record.datasetCode === NEW_TOWNS_DATASET) {
-    return 'hkgov-pland-new-town'
-  }
-  const sourceVersion = record.sourceFeatureRef.split('/')[2]
-  return /^(?:2016|2021)$/.test(sourceVersion ?? '')
-    ? `hkgov-censtatd:${sourceVersion}`
-    : null
+function defaultAreaCompanion(record: StatisticRecord) {
+  return record.geography.areaCompanion ?? null
 }
 
 function relatedDivisionDomain(record: StatisticRecord) {
-  if (record.datasetCode === NEW_TOWNS_DATASET) return 'hkgov-pland-new-town'
-  return record.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
-    ? 'hkgov-censtatd-hma'
-    : 'geographic'
+  return defaultAreaCompanion(record)?.domainCode ?? 'geographic'
 }
 
 function createStatisticResource(args: {
@@ -488,11 +468,6 @@ async function resolveRelatedDivisionSelection(
   return {
     domainCode,
     divisionSnapshotIds,
-    areaSnapshotByVariant: new Map(
-      selection.snapshots
-        .filter(snapshot => snapshot.snapshotResourceType === 'divisionArea')
-        .map(snapshot => [snapshot.variant, snapshot.snapshotId]),
-    ),
   }
 }
 
@@ -569,47 +544,49 @@ async function loadIncludedResources(args: {
   const qualifiedVariant = requestedQualifiedAreaVariant(args.include)
   const areaGroups = new Map<
     string,
-    { domain: string; selection: RelatedDivisionSelection; divisionIds: Set<string> }
+    { divisionIds: Set<string>; snapshotId: string; variant: string }
   >()
   if (includeAreas) {
     for (const record of linkedRecords) {
-      const domain = relatedDivisionDomain(record)
-      const selection = selections.get(domain)
-      if (!selection) continue
-      const variant = qualifiedVariant ?? defaultAreaVariant(record)
-      if (!variant) continue
-      const snapshotId = selection.areaSnapshotByVariant.get(variant)
+      const companion = defaultAreaCompanion(record)
+      if (!companion) continue
+      const variant = qualifiedVariant ?? companion.variant
+      const snapshot = await runWithD1ReadRetry(() =>
+        args.dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+          args.metaDb as never,
+          'divisionArea',
+          'hk',
+          companion.cohortKey,
+          { variant },
+        ),
+      )
+      const snapshotId = snapshot?.id
       if (!snapshotId) {
-        if (qualifiedVariant) {
-          return {
-            status: 409,
-            body: {
-              httpStatus: 409,
-              error: 'variant_unavailable',
-              message: `The requested areas:${variant} variant is not available for the related divisions.`,
-            },
-          }
+        return {
+          status: 409,
+          body: {
+            httpStatus: 409,
+            error: 'variant_cohort_unavailable',
+            message: `The areas:${variant} variant is not available for geometry cohort ${companion.cohortKey}.`,
+          },
         }
-        continue
       }
-      const key = `${domain}\u0000${variant}\u0000${snapshotId}`
+      const key = `${companion.cohortKey}\u0000${variant}\u0000${snapshotId}`
       const group = areaGroups.get(key) ?? {
-        domain,
-        selection,
         divisionIds: new Set<string>(),
+        snapshotId,
+        variant,
       }
       group.divisionIds.add(record.divisionId)
       areaGroups.set(key, group)
     }
   }
-  for (const [key, group] of areaGroups) {
-    const [, variant, snapshotId] = key.split('\u0000')
-    if (!variant || !snapshotId) continue
+  for (const group of areaGroups.values()) {
     const areas = await runWithD1ReadRetry(() =>
       args.dependencies.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
-        snapshotId,
+        snapshotId: group.snapshotId,
         divisionIds: [...group.divisionIds],
-        variant,
+        variant: group.variant,
       }),
     )
     included.push(

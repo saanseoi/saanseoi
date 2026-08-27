@@ -249,17 +249,37 @@ const historyDbsByBinding = {
 const resolveSnapshotReplayPlanMock = mock(async () => [])
 const resolveSnapshotVersionStateMock = mock(async () => new Map())
 const listReplayedDivisionRecordsMock = mock(async () => listRecords)
+const resolvePublishedAreaSnapshotMock = mock(
+  async (): Promise<{ id: string } | null> => null,
+)
+let divisionAreaLookups: Array<{
+  snapshotId: string
+  divisionIds: string[]
+  variant?: string
+}> = []
+const listDivisionAreasCurrentByDivisionIdsMock = mock(
+  async (
+    _db: never,
+    lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
+  ) => {
+    divisionAreaLookups.push(lookup)
+    return []
+  },
+)
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey:
+    resolvePublishedAreaSnapshotMock as unknown as DivisionServiceDependencies['resolvePublishedSnapshotForResourceTypeRegionCohortKey'],
   resolveSnapshotReplayPlan:
     resolveSnapshotReplayPlanMock as unknown as DivisionServiceDependencies['resolveSnapshotReplayPlan'],
   resolveSnapshotVersionState:
     resolveSnapshotVersionStateMock as unknown as DivisionServiceDependencies['resolveSnapshotVersionState'],
   listReplayedDivisionRecords:
     listReplayedDivisionRecordsMock as unknown as DivisionServiceDependencies['listReplayedDivisionRecords'],
-  listDivisionAreasCurrentByDivisionIds: mock(async () => []),
+  listDivisionAreasCurrentByDivisionIds:
+    listDivisionAreasCurrentByDivisionIdsMock as unknown as DivisionServiceDependencies['listDivisionAreasCurrentByDivisionIds'],
   listDivisionBoundariesCurrentByDivisionIds: mock(async () => []),
 }
 
@@ -270,11 +290,15 @@ describe('division services', () => {
       async () => resolvedReleaseSet,
     )
     listReplayedDivisionRecordsMock.mockImplementation(async () => listRecords)
+    resolvePublishedAreaSnapshotMock.mockImplementation(async () => null)
+    divisionAreaLookups = []
   })
 
   test('accepts the configured domains and C&SD area alternatives', () => {
     for (const query of [
-      { domain: 'geographic', include: 'areas:hkgov-censtatd-area' },
+      { domain: 'geographic', include: 'areas:hkgov-censtatd' },
+      { domain: 'geographic', include: 'areas:hkgov-censtatd-landclipped' },
+      { domain: 'geographic', include: 'areas:hkgov-censtatd@2021' },
       { domain: 'hkgov-censtatd-hma', include: 'areas:hkgov-censtatd-hma' },
       { domain: 'hkgov-landsd' },
     ]) {
@@ -284,6 +308,48 @@ describe('division services', () => {
     expect(DivisionsListQuerySchema.safeParse({ domain: 'overture' }).success).toBe(
       false,
     )
+    expect(
+      DivisionsListQuerySchema.safeParse({
+        domain: 'geographic',
+        include: 'areas:hkgov-censtatd:2021',
+      }).success,
+    ).toBe(false)
+  })
+
+  test('keeps current division identities while selecting an explicit area cohort', async () => {
+    resolvePublishedAreaSnapshotMock.mockImplementation(async () => ({
+      id: 'snapshot-censtatd-2021-areas',
+    }))
+
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl:
+        'http://localhost/divisions/v0.1?include=areas:hkgov-censtatd@2021&transform=simplified',
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: {
+        include: 'areas:hkgov-censtatd@2021',
+        transform: 'simplified',
+      },
+      dependencies: divisionServiceDependencies,
+    })
+
+    expect(result.status).toBe(200)
+    expect(resolvePublishedAreaSnapshotMock).toHaveBeenLastCalledWith(
+      expect.anything(),
+      'divisionArea',
+      'hk',
+      '2021',
+      { variant: 'hkgov-censtatd:simplified' },
+    )
+    expect(divisionAreaLookups).toContainEqual({
+      snapshotId: 'snapshot-censtatd-2021-areas',
+      divisionIds: ['division-a-kung-ngam'],
+      variant: 'hkgov-censtatd:simplified',
+    })
   })
 
   test('rejects a registered but unavailable provider area variant', async () => {

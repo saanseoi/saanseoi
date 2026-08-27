@@ -6,6 +6,7 @@ import {
 } from '@repo/core/apiLocales'
 import {
   resolveApiReleaseSetSnapshotsForRequest,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
@@ -46,6 +47,7 @@ export type DivisionProfile = ApiProfileName
 
 export type DivisionServiceDependencies = {
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey: typeof resolvePublishedSnapshotForResourceTypeRegionCohortKey
   resolveSnapshotReplayPlan: typeof resolveSnapshotReplayPlan
   resolveSnapshotVersionState: typeof resolveSnapshotVersionState
   listReplayedDivisionRecords: typeof listReplayedDivisionRecords
@@ -55,6 +57,7 @@ export type DivisionServiceDependencies = {
 
 const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
   resolveApiReleaseSetSnapshotsForRequest,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveSnapshotReplayPlan,
   resolveSnapshotVersionState,
   listReplayedDivisionRecords,
@@ -885,6 +888,24 @@ async function getActiveDivisionSnapshot(
   }
 }
 
+async function resolveRequestedAreaSnapshot(args: {
+  metaDb: AppEnv['Variables']['metaDb']
+  cohortKey: string | undefined
+  variant: string | undefined
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey: DivisionServiceDependencies['resolvePublishedSnapshotForResourceTypeRegionCohortKey']
+}) {
+  if (!args.cohortKey || !args.variant) return null
+  return runWithD1ReadRetry(() =>
+    args.resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      args.metaDb as never,
+      'divisionArea',
+      'hk',
+      args.cohortKey!,
+      { variant: args.variant! },
+    ),
+  )
+}
+
 async function replayDivisionSnapshot(args: {
   snapshotId: string
   historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
@@ -930,18 +951,28 @@ function requestedGeometryVariants(
   const includes = requestedIncludes(value)
   const area = [...includes].find(item => item.startsWith('areas:'))
   const boundary = [...includes].find(item => item.startsWith('boundaries:'))
+  const requestedArea = area?.slice('areas:'.length)
   const areaVariant =
-    area?.slice('areas:'.length) ||
+    requestedArea?.split('@', 1)[0] ||
     (domainCode === 'geographic' ? 'overture' : undefined)
   return {
     area:
-      transform && /^hkgov-censtatd:(?:2016|2021)$/.test(areaVariant ?? '')
+      transform &&
+      /^(?:hkgov-had|hkgov-censtatd(?:-landclipped)?|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town)$/.test(
+        areaVariant ?? '',
+      )
         ? `${areaVariant}:${transform}`
         : areaVariant,
     boundary:
       boundary?.slice('boundaries:'.length) ||
       (domainCode === 'geographic' ? 'overture' : undefined),
   }
+}
+
+function requestedAreaCohort(value: string | undefined) {
+  const area = [...requestedIncludes(value)].find(item => item.startsWith('areas:'))
+  const separator = area?.indexOf('@') ?? -1
+  return separator >= 0 ? area?.slice(separator + 1) : undefined
 }
 
 function requestedGeometryKinds(value: string | undefined) {
@@ -958,17 +989,24 @@ function requestedGeometryKinds(value: string | undefined) {
 function buildVariantUnavailableResponse(args: {
   kind: 'areas' | 'boundaries'
   variant: string
+  cohortKey?: string
 }): VariantUnavailableResponse {
+  const requested = `${args.kind}:${args.variant}${
+    args.cohortKey ? `@${args.cohortKey}` : ''
+  }`
   return {
     httpStatus: 409,
     error: 'variant_unavailable',
-    message: `The requested ${args.kind}:${args.variant} variant is not available in the active division release set.`,
+    message: args.cohortKey
+      ? `The requested ${requested} geometry cohort is not published.`
+      : `The requested ${requested} variant is not available in the active division release set.`,
   }
 }
 
 async function loadDivisionGeometry(args: {
   currentDb: AppEnv['Variables']['currentDb']
   snapshot: ActiveDivisionSnapshot
+  areaSnapshotId?: string | null
   divisionIds: string[]
   variants?: { area?: string; boundary?: string }
   includeArea?: boolean
@@ -977,9 +1015,9 @@ async function loadDivisionGeometry(args: {
   listDivisionBoundariesCurrentByDivisionIds: DivisionServiceDependencies['listDivisionBoundariesCurrentByDivisionIds']
 }) {
   const [areas, boundaries] = await Promise.all([
-    args.includeArea && args.snapshot.areaSnapshotId
+    args.includeArea && (args.areaSnapshotId ?? args.snapshot.areaSnapshotId)
       ? args.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
-          snapshotId: args.snapshot.areaSnapshotId,
+          snapshotId: args.areaSnapshotId ?? args.snapshot.areaSnapshotId!,
           divisionIds: args.divisionIds,
           variant: args.variants?.area,
         })
@@ -1096,11 +1134,12 @@ export async function listDivisions(args: {
     domainCode,
     args.query.transform,
   )
+  const areaCohort = requestedAreaCohort(args.query.include)
   const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
     domainCode,
-    geometryVariants,
+    { ...geometryVariants, area: areaCohort ? undefined : geometryVariants.area },
     args.query,
     dependencies.resolveApiReleaseSetSnapshotsForRequest,
   )
@@ -1111,6 +1150,13 @@ export async function listDivisions(args: {
       body: buildSnapshotNotReadyDivisionResponse(),
     }
   }
+  const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    metaDb: args.metaDb,
+    cohortKey: areaCohort,
+    variant: geometryVariants.area,
+    resolvePublishedSnapshotForResourceTypeRegionCohortKey:
+      dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  })
   const replayedRecords = await replayDivisionSnapshot({
     snapshotId: activeDivisionSnapshot.snapshotId,
     historyDbsByBinding: args.historyDbsByBinding,
@@ -1129,7 +1175,17 @@ export async function listDivisions(args: {
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }
-  if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
+  if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'areas',
+        variant: geometryVariants.area ?? domainCode,
+        cohortKey: areaCohort,
+      }),
+    }
+  }
+  if (requestedGeometry.area && !areaCohort && !activeDivisionSnapshot.areaSnapshotId) {
     return {
       status: 409,
       body: buildVariantUnavailableResponse({
@@ -1181,6 +1237,7 @@ export async function listDivisions(args: {
     loadDivisionGeometry({
       currentDb: args.currentDb,
       snapshot: activeDivisionSnapshot,
+      areaSnapshotId: scopedAreaSnapshot?.id,
       divisionIds: records.map(record => record.division.id),
       variants: geometryVariants,
       includeArea: requestedGeometry.area,
@@ -1267,11 +1324,12 @@ export async function getDivisionDetail(args: {
     domainCode,
     args.query.transform,
   )
+  const areaCohort = requestedAreaCohort(args.query.include)
   const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
     domainCode,
-    geometryVariants,
+    { ...geometryVariants, area: areaCohort ? undefined : geometryVariants.area },
     args.query,
     dependencies.resolveApiReleaseSetSnapshotsForRequest,
   )
@@ -1282,6 +1340,13 @@ export async function getDivisionDetail(args: {
       body: buildSnapshotNotReadyDivisionResponse(),
     }
   }
+  const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    metaDb: args.metaDb,
+    cohortKey: areaCohort,
+    variant: geometryVariants.area,
+    resolvePublishedSnapshotForResourceTypeRegionCohortKey:
+      dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  })
   const replayedRecords = await replayDivisionSnapshot({
     snapshotId: activeDivisionSnapshot.snapshotId,
     historyDbsByBinding: args.historyDbsByBinding,
@@ -1300,7 +1365,17 @@ export async function getDivisionDetail(args: {
     )
     if (accessAttribution) args.onResolved(accessAttribution)
   }
-  if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
+  if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'areas',
+        variant: geometryVariants.area ?? domainCode,
+        cohortKey: areaCohort,
+      }),
+    }
+  }
+  if (requestedGeometry.area && !areaCohort && !activeDivisionSnapshot.areaSnapshotId) {
     return {
       status: 409,
       body: buildVariantUnavailableResponse({
@@ -1349,6 +1424,7 @@ export async function getDivisionDetail(args: {
     loadDivisionGeometry({
       currentDb: args.currentDb,
       snapshot: activeDivisionSnapshot,
+      areaSnapshotId: scopedAreaSnapshot?.id,
       divisionIds: [record.division.id],
       variants: geometryVariants,
       includeArea: requestedGeometry.area,
