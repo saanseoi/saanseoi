@@ -498,6 +498,7 @@ $effect(() => {
             <SourceRecordSchema
               resourceType={source.resourceTypes[0] ?? ''}
               source={source.publisherCode}
+              sourceSchemaUrl={source.schemaURL}
               sourceSchemaVersion={version.sourceSchemaVersion}
               sourceVersion={version.sourceVersion}
             />

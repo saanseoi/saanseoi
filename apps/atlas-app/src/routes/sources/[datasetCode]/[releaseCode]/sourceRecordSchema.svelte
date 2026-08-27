@@ -12,20 +12,22 @@ import type { OpenApiSchema } from '#lib/bits/pages/docs/components/releaseSchem
 type Props = {
   resourceType: string
   source: string
+  sourceSchemaUrl?: string | null
   sourceSchemaVersion?: string | null
   sourceVersion: string
 }
 
-let { resourceType, source, sourceSchemaVersion, sourceVersion }: Props = $props()
+let {
+  resourceType,
+  source,
+  sourceSchemaUrl,
+  sourceSchemaVersion,
+  sourceVersion,
+}: Props = $props()
 let expandedNodeStates = $state<Record<string, boolean>>({})
 let expandAllToken = $state(0)
 
 let samplesUrl = $derived(`${page.url.pathname}?tab=samples`)
-let upstreamSpecificationUrl = $derived(
-  sourceSchemaVersion
-    ? `https://github.com/OvertureMaps/schema/tree/v${encodeURIComponent(sourceSchemaVersion)}`
-    : 'https://github.com/OvertureMaps/schema',
-)
 let sourceSchema = $derived(
   resolveSourceRecordSchema({
     resourceType: resourceType as ResourceType,
@@ -113,14 +115,17 @@ function setExpandedNodeState(path: string, expanded: boolean) {
   </p>
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {m.source_record_schema_upstream_specification()}
-    <a
-      class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-      href={upstreamSpecificationUrl}
-      >{m.source_record_schema_upstream_specification_link({
-        version: sourceSchemaVersion ?? 'latest',
-      })}</a
-    >. {m.source_record_schema_examples()}
+    {#if sourceSchemaUrl}
+      {m.source_record_schema_upstream_specification()}
+      <a
+        class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+        href={sourceSchemaUrl}
+        >{m.source_record_schema_upstream_specification_link({
+          version: sourceSchemaVersion ?? 'latest',
+        })}</a
+      >.
+    {/if}
+    {m.source_record_schema_examples()}
     <a
       class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
       href={samplesUrl}
