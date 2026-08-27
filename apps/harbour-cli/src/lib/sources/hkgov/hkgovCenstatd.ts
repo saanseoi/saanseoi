@@ -24,17 +24,68 @@ const METRES_PER_DEGREE_LATITUDE = 110_574
 const METRES_PER_DEGREE_LONGITUDE =
   111_320 * Math.cos((HONG_KONG_REFERENCE_LATITUDE * Math.PI) / 180)
 
-type CenstatdDistrictSourceVersion = '2016' | '2021' | '2024'
+type CenstatdDistrictSourceVersion =
+  | '2016'
+  | '2021'
+  | '2022'
+  | '2023-H2'
+  | '2024'
+  | '2026-Q2'
 
-const SOURCE_PROFILE: Record<
-  CenstatdDistrictSourceVersion,
-  { layerName: string; referencePeriodField?: string }
+type CenstatdDistrictDatasetCode =
+  | 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+
+const DEFAULT_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+
+const SOURCE_PROFILES: Record<
+  CenstatdDistrictDatasetCode,
+  Partial<
+    Record<
+      CenstatdDistrictSourceVersion,
+      { layerName: string; referencePeriodField?: string }
+    >
+  >
 > = {
-  '2016': { layerName: 'DC_16BC_SDU' },
-  '2021': { layerName: 'DC_21C_SDU' },
-  // The annual District Council statistics release retains one DC_GHS feature
-  // per district and year. Its 2024 features are byte-identical to Density_2024.
-  '2024': { layerName: 'DC_GHS', referencePeriodField: 'year' },
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
+    '2022': { layerName: 'Density_2022' },
+    '2024': { layerName: 'Density_2024' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
+    '2023-H2': { layerName: 'DCD_LQ_Q32023' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+    // The annual release is filtered to its publisher-labelled year below.
+    '2024': { layerName: 'DC_GHS', referencePeriodField: 'year' },
+    '2026-Q2': { layerName: 'DC_GHS', referencePeriodField: 'year' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
+    '2016': { layerName: 'DC_16BC_SDU' },
+    '2021': { layerName: 'DC_21C_SDU' },
+  },
+}
+
+function sourceProfile(
+  datasetCode: CenstatdDistrictDatasetCode,
+  sourceVersion: CenstatdDistrictSourceVersion,
+) {
+  const profile = SOURCE_PROFILES[datasetCode][sourceVersion]
+  if (!profile) {
+    throw new Error(
+      `No C&SD district parser profile exists for ${datasetCode} ${sourceVersion}.`,
+    )
+  }
+  return profile
+}
+
+export function hkgovCenstatdDistrictLayerName(
+  datasetCode: CenstatdDistrictDatasetCode,
+  sourceVersion: CenstatdDistrictSourceVersion,
+) {
+  return sourceProfile(datasetCode, sourceVersion).layerName
 }
 
 export type PreparedHkgovCenstatdDistrictUpload = {
@@ -60,6 +111,8 @@ type CsdIFeature = {
 }
 
 type CsdIProperties = {
+  DC?: unknown
+  DC_CLASS?: unknown
   dc?: unknown
   dc_chi?: unknown
   dc_class?: unknown
@@ -90,27 +143,25 @@ export async function prepareHkgovCenstatdDistrictUpload(
   outputDir: string,
   sourceVersion: CenstatdDistrictSourceVersion,
   options: {
-    datasetCode?: string
+    datasetCode?: CenstatdDistrictDatasetCode
+    cohortKey?: string
     sourceArchive?: { key: string; sha256: string }
     transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
   } = {},
 ): Promise<PreparedHkgovCenstatdDistrictUpload> {
-  const profile = SOURCE_PROFILE[sourceVersion]
-  if (!profile) {
-    throw new Error(
-      `No registered ${HKGOV_CENSTATD_SOURCE} parser profile exists for source version ${sourceVersion}.`,
-    )
-  }
+  const datasetCode = options.datasetCode ?? DEFAULT_DISTRICT_DATASET
+  const profile = sourceProfile(datasetCode, sourceVersion)
   const resolvedInputFile = resolve(inputFile)
   const input = await readFile(resolvedInputFile, 'utf8')
   if (!input.trimStart().startsWith('<')) {
     throw new Error('C&SD district input must be a GML 3.2 WFS FeatureCollection.')
   }
+  const cohortKey = options.cohortKey ?? sourceVersion
   const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName)
   const referencePeriodField = profile.referencePeriodField
   const features = referencePeriodField
     ? sourceFeatures.filter(
-        feature => String(feature.properties[referencePeriodField]) === sourceVersion,
+        feature => String(feature.properties[referencePeriodField]) === cohortKey,
       )
     : sourceFeatures
   if (features.length !== 18) {
@@ -120,12 +171,12 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 
   const exactRows = features.map((feature, index) =>
-    normaliseCsdIDistrictFeature(feature, index, sourceVersion, options.sourceArchive),
+    normaliseCsdIDistrictFeature(feature, index, cohortKey, options.sourceArchive),
   )
   assertUniqueDistricts(exactRows, sourceVersion)
   const rows =
     options.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
-      ? withDisplayGeometry(exactRows, sourceVersion, options.datasetCode)
+      ? withDisplayGeometry(exactRows, sourceVersion, datasetCode)
       : exactRows
   const outputSourceVersion = sourceVersion
   const filePath = join(
@@ -201,7 +252,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   await writeFile(filePath, new Uint8Array(parquet))
 
   return {
-    cohortKey: sourceVersion,
+    cohortKey,
     cleanup: async () => undefined,
     filePath,
     originalFileName: basename(resolvedInputFile),
@@ -222,9 +273,9 @@ export async function prepareHkgovCenstatdDistrictUpload(
 export function readHkgovCenstatdDistrictGmlArchive(
   archiveBytes: Uint8Array,
   sourceVersion: CenstatdDistrictSourceVersion,
+  datasetCode: CenstatdDistrictDatasetCode = DEFAULT_DISTRICT_DATASET,
 ) {
-  const profile = SOURCE_PROFILE[sourceVersion]
-  if (!profile) throw new Error(`No C&SD district profile exists for ${sourceVersion}.`)
+  const profile = sourceProfile(datasetCode, sourceVersion)
   const expectedMember = `${profile.layerName}.gml`
   const { entries: archive, files } = readSafeZipArchive(archiveBytes, {
     select: member => member.toLowerCase().endsWith('.gml'),
@@ -269,22 +320,22 @@ function normaliseCsdIDistrictFeature(
   if (!properties) {
     throw new Error(`C&SD district feature ${index + 1} has no properties.`)
   }
-  const districtClass = requireString(properties.dc_class, 'dc_class', index)
-  const districtCode = requireInteger(properties.dc, 'dc', index)
+  const districtClass = optionalString(properties.dc_class ?? properties.DC_CLASS)
+  const districtCode = requireInteger(properties.dc ?? properties.DC, 'DC', index)
 
   return {
     census_year: sourceVersion,
     derivation: null,
-    district_class: districtClass,
+    district_class: districtClass ?? '',
     district_code: districtCode,
     geometry,
-    id: `CENSTATD:${districtClass}`,
+    id: `CENSTATD:${districtClass || districtCode}`,
     source_geometry: sourceGeometry,
     source_properties: properties as Record<string, unknown>,
     sources: [
       {
         dataset: HKGOV_CENSTATD_SOURCE,
-        districtClass,
+        ...(districtClass ? { districtClass } : {}),
         districtCode,
         ...(sourceArchive
           ? {
@@ -302,7 +353,7 @@ function normaliseCsdIDistrictFeature(
 function withDisplayGeometry(
   rows: PreparedDistrictRow[],
   sourceVersion: string,
-  datasetCode = 'ds-hk-hkgov-censtatd-division-area-district',
+  datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
 ) {
   const simplifiedGeometries = simplifyTogether(rows.map(row => row.geometry))
   return rows.map((row, index) => {
@@ -428,7 +479,10 @@ function mapCoordinates(
 function assertUniqueDistricts(rows: PreparedDistrictRow[], sourceVersion: string) {
   const classes = new Set(rows.map(row => row.district_class))
   const codes = new Set(rows.map(row => row.district_code))
-  if (classes.size !== rows.length || codes.size !== rows.length) {
+  if (
+    (rows.every(row => row.district_class) && classes.size !== rows.length) ||
+    codes.size !== rows.length
+  ) {
     throw new Error(
       `C&SD ${sourceVersion} district input has duplicate district identifiers.`,
     )
@@ -474,6 +528,10 @@ function requireString(value: unknown, field: string, index: number) {
     throw new Error(`C&SD district feature ${index + 1} requires ${field}.`)
   }
   return value.trim()
+}
+
+function optionalString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function requireInteger(value: unknown, field: string, index: number) {
