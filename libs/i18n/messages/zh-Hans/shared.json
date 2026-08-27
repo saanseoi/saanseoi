@@ -1712,7 +1712,7 @@
   "openapi_divisions_effective_at_description": "选择在此时间点生效的领域发布版本。",
   "openapi_divisions_known_at_description": "解析在此时间点已知的最新目录检查点。",
   "openapi_divisions_release_set_description": "所选目录中确切且不可变的领域发布版本。",
-  "openapi_divisions_include_description": "在顶层 included 数组中加入规范上级分区资源。一定会返回 relationships.hierarchy 标识符。",
+  "openapi_divisions_include_description": "在顶层 included 数组中加入规范上级分区资源及可选的几何数据。一定会返回 relationships.hierarchy 标识符。使用 areas:<variant>@<cohort> 可保留所选 Divisions 发布集的标识符，同时选取指定已发布面积几何分期。",
   "openapi_divisions_transform_description": "选择具名几何转换。`simplified` 适用于香港特区政府发布的区划面几何，并返回所选精确面积变体经 10 米拓扑保留简化后的显示几何。",
   "openapi_divisions_included_description": "通过 include 请求时返回的相关分区及几何资源。",
   "openapi_divisions_list_response_description": "列出分区。",

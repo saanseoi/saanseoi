@@ -120,19 +120,30 @@ You can name a specific companion, or let the API choose the usual one:
 
 **Simplify Geometry**
 
-For division-level maps, detailed boundaries are often unnecessary. Use
-<black>transform=simplified</black> for land-clipped display geometry. It is available
-only for the 2016 and 2021 C&SD area companions, as the originals are highly detailed:
+For division-level maps, detailed boundaries can be unnecessary. Combine
+<black>transform=simplified</black> with a Government-department area provider to
+request topology-preserving, low-detail display geometry. This will keep your map
+running smoothly. The <black>transform=simplified</black> is available for every
+Government-department-sourced geometry companion.
+
+You may also want a <i>specific</i> reference year when including government geometry,
+for example when using statistics from that year. Use the <black>@{year}</black> suffix
+to include geometry from C&SD's published <black>{year}</black> cohort. The request's
+<black>domain</black> and <black>cohort</black> still select the release set that
+supplies the canonical division identities and hierarchy. The following therefore
+returns the <black>{{ cohortKey }}</black> division definitions, but geometry from the
+<black>2021</black> reference year.
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
-                 include=areas:hkgov-censtatd:2021&
+                 include=areas:hkgov-censtatd-landclipped@2021&
                  transform=simplified
 ```
 
-Do not use this transform when your analysis depends on the original detailed boundary.
+Omit <black>transform=simplified</black> when your analysis depends on the original
+detailed boundary.
 
 ## Adding Hierarchies
 
@@ -380,18 +391,26 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 
 **簡化幾何資料**
 
-區劃層級地圖通常不需要精細邊界。請使用 <black>transform=simplified</black>
-取得經陸地裁切、供顯示用的幾何資料。原始資料非常精細，因此這項功能只適用於 2016 及 2021 年 C&SD 面積配套資源：
+區劃層級地圖的詳細邊界有時並非必要。將 <black>transform=simplified</black>
+與政府部門的面積提供者配合使用，即可請求保留拓撲、低細節的顯示幾何資料。這可令地圖保持流暢運作。每個由政府部門提供的幾何資料配套資源均可使用
+<black>transform=simplified</black>。
+
+納入政府幾何資料時，您可能也希望使用<i>特定</i>參考年份，例如配合該年份的統計資料。請使用
+<black>@{year}</black> 後綴，納入 C&SD 已發布的 <black>{year}</black>
+組別中之幾何資料。要求中的 <black>domain</black> 和 <black>cohort</black>
+仍會選取提供標準區劃識別資料及階層結構的 <black>release set</black>。因此，下例會取得
+<black>{{ cohortKey }}</black> 的區劃定義，但使用 <black>2021</black>
+參考年份的幾何資料。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
-                 include=areas:hkgov-censtatd:2021&
+                 include=areas:hkgov-censtatd-landclipped@2021&
                  transform=simplified
 ```
 
-如分析依賴原有的詳細邊界，請勿使用此轉換。
+如分析依賴原有的精細邊界，請省略 <black>transform=simplified</black>。
 
 ## 加入層級關係
 
@@ -632,18 +651,26 @@ Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是�
 
 **简化几何数据**
 
-区划层级地图通常不需要精细边界。请使用 <black>transform=simplified</black>
-获取经陆地裁切、供显示用的几何数据。原始数据非常精细，因此这项功能只适用于 2016 及 2021 年 C&SD 面积配套资源：
+区划层级地图的精细边界有时并非必要。将 <black>transform=simplified</black>
+与政府部门的面积提供方配合使用，即可请求保留拓扑、低细节的显示几何数据。这可使地图保持流畅运行。每个由政府部门提供的几何数据配套资源均可使用
+<black>transform=simplified</black>。
+
+包含政府几何数据时，您可能也希望使用<i>特定</i>参考年份，例如配合该年份的统计数据。请使用
+<black>@{year}</black> 后缀，包含 C&SD 已发布的 <black>{year}</black>
+cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort</black>
+仍会选择提供规范区划标识和层级的 <black>release set</black>。因此，下例会取得
+<black>{{ cohortKey }}</black> 的区划定义，但使用 <black>2021</black>
+参考年份的几何数据。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
-                 include=areas:hkgov-censtatd:2021&
+                 include=areas:hkgov-censtatd-landclipped@2021&
                  transform=simplified
 ```
 
-如分析依赖原有的详细边界，请勿使用此转换。
+如分析依赖原有的精细边界，请省略 <black>transform=simplified</black>。
 
 ## 添加层级关系
 

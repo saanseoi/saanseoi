@@ -298,7 +298,10 @@ describe('division services', () => {
     for (const query of [
       { domain: 'geographic', include: 'areas:hkgov-censtatd' },
       { domain: 'geographic', include: 'areas:hkgov-censtatd-landclipped' },
-      { domain: 'geographic', include: 'areas:hkgov-censtatd@2021' },
+      {
+        domain: 'geographic',
+        include: 'areas:hkgov-censtatd-landclipped@2021',
+      },
       { domain: 'hkgov-censtatd-hma', include: 'areas:hkgov-censtatd-hma' },
       { domain: 'hkgov-landsd' },
     ]) {
@@ -326,12 +329,12 @@ describe('division services', () => {
       historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/divisions/v0.1?include=areas:hkgov-censtatd@2021&transform=simplified',
+        'http://localhost/divisions/v0.1?include=areas:hkgov-censtatd-landclipped@2021&transform=simplified',
       requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: {
-        include: 'areas:hkgov-censtatd@2021',
+        include: 'areas:hkgov-censtatd-landclipped@2021',
         transform: 'simplified',
       },
       dependencies: divisionServiceDependencies,
@@ -343,12 +346,12 @@ describe('division services', () => {
       'divisionArea',
       'hk',
       '2021',
-      { variant: 'hkgov-censtatd:simplified' },
+      { variant: 'hkgov-censtatd-landclipped:simplified' },
     )
     expect(divisionAreaLookups).toContainEqual({
       snapshotId: 'snapshot-censtatd-2021-areas',
       divisionIds: ['division-a-kung-ngam'],
-      variant: 'hkgov-censtatd:simplified',
+      variant: 'hkgov-censtatd-landclipped:simplified',
     })
   })
 

@@ -37,6 +37,10 @@ eligible HAD area, while its boundary requirement remains exact-cohort Overture.
 
 Geometry relationships are sparse and opt-in. Clients request plural paths such as
 `include=areas` or `include=boundaries`; a qualified path (`areas:<provider>` or
-`boundaries:<provider>`) selects a named variant. Unknown or unavailable variants are
-errors rather than silent fallback. See
+`boundaries:<provider>`) selects a named variant. An area selector may append
+`@<cohort>` to scope only the geometry, for example
+`include=areas:hkgov-censtatd-landclipped@2021&transform=simplified`. The main Divisions
+release set still supplies canonical identities and hierarchy; only the included
+provider geometry comes from the published 2021 cohort. Unknown or unavailable variants
+are errors rather than silent fallback. See
 [`spec/atlas-api.md`](../../../spec/atlas-api.md) for response semantics.

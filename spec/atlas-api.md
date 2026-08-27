@@ -70,6 +70,7 @@ The Divisions family exposes sparse geometry through plural, opt-in relationship
 - `include=areas`
 - `include=boundaries`
 - `include=areas:<provider>`
+- `include=areas:<provider>@<cohort>`
 - `include=boundaries:<provider>`
 
 An unqualified relationship resolves the provider configured as the API composition

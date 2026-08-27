@@ -119,6 +119,10 @@ rather than a separate dataset, source record or API-composition member. The 201
 Use `include=areas:hkgov-censtatd-landclipped:simplified` or
 `include=areas:hkgov-censtatd:simplified` for low-detail display maps; omit the
 transformation for source precision, reference-year accuracy and geometry auditability.
+When querying the Divisions API, append `@<cohort>` to retain the selected release set's
+canonical identities while choosing a particular C&SD geometry companion, for example
+`include=areas:hkgov-censtatd-landclipped@2021&transform=simplified`. The cohort applies
+only to the included area geometry; it does not change the top-level division snapshot.
 The transformation belongs to its exact C&SD source dataset and does not introduce a new
 publisher or snapshot family. For C&SD district statistics, unqualified `include=areas`
 selects the exact reviewed C&SD companion automatically: 2024 district statistics select
