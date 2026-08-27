@@ -75,7 +75,7 @@ export const CENSTATD_STATISTIC_PROFILES = {
         rowsPerReferencePeriod: { field: 'year', count: 18 },
       },
     ],
-    sourceVersions: ['2021'],
+    sourceVersions: ['2026-Q2'],
   },
   'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
     layers: [

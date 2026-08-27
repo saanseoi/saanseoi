@@ -216,7 +216,7 @@ describe('buildCenstatdReleaseStats', () => {
       },
       censtatdReleaseStatsProfileFor(
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-        '2021',
+        '2026-Q2',
       ),
       timestamp,
     )
