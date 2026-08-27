@@ -32,8 +32,9 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   if (
     source.sourceVariant === 'overture' ||
     source.sourceVariant === 'hkgov-had' ||
-    /^hkgov-censtatd:(?:2016|2021)(?::simplified)?$/.test(source.sourceVariant) ||
-    source.sourceVariant === 'hkgov-censtatd-area'
+    /^(?:hkgov-censtatd|hkgov-censtatd-landclipped)(?::simplified)?$/.test(
+      source.sourceVariant,
+    )
   ) {
     return 'geographic'
   }
