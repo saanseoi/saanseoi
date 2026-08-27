@@ -1,8 +1,8 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { createHash } from 'node:crypto'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
 const preparedInputs: string[] = []
@@ -14,9 +14,16 @@ const uploadedTypes: Array<{
 let divisionPublishComplete = false
 
 const prepareHkgovPlandTpuNativeShpZipMock = mock(
-  async (options: { inputFile: string; sourceVersion: string; type: string }) => {
+  async (options: {
+    inputFile: string
+    outputFile: string
+    sourceVersion: string
+    type: string
+  }) => {
     preparedInputs.push(options.inputFile)
     preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
+    await mkdir(dirname(options.outputFile), { recursive: true })
+    await writeFile(options.outputFile, 'prepared parquet')
     return {
       divisionCount: 0,
       invalidSourceFeatureCount: 0,
@@ -58,20 +65,26 @@ import {
 
 describe('Planning Department backfills', () => {
   test('publishes each division before attaching its division area', async () => {
-    await runHkgovPlandBackfillCommand(
-      {
-        command: 'hkgov-pland:backfill',
-        positionals: [],
-        options: { target: 'preview' },
-      },
-      { environment: 'preview', remote: true },
-      'pu',
-      () => undefined,
-      {
-        prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
-        runUploadCommand: runUploadCommandMock,
-      },
-    )
+    const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
+    try {
+      await runHkgovPlandBackfillCommand(
+        {
+          command: 'hkgov-pland:backfill',
+          positionals: [],
+          options: { target: 'preview' },
+        },
+        { environment: 'preview', remote: true },
+        'pu',
+        () => undefined,
+        {
+          prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+          preparedArtefactCacheRoot: cacheRoot,
+          runUploadCommand: runUploadCommandMock,
+        },
+      )
+    } finally {
+      await rm(cacheRoot, { force: true, recursive: true })
+    }
 
     expect(preparedTypes).toHaveLength(10)
     expect(preparedInputs[0]).toBe(
@@ -92,6 +105,47 @@ describe('Planning Department backfills', () => {
       { skipSnapshotCleanup: true, sourceVersion: '2021', type: 'division' },
       { skipSnapshotCleanup: false, sourceVersion: '2021', type: 'divisionArea' },
     ])
+  })
+
+  test('reuses verified prepared artefacts on a backfill retry', async () => {
+    const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
+    const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+    try {
+      const dependencies = {
+        prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+        preparedArtefactCacheRoot: cacheRoot,
+        runUploadCommand: runUploadCommandMock,
+      }
+      const args = {
+        command: 'hkgov-pland:backfill' as const,
+        positionals: [],
+        options: { target: 'preview' },
+      }
+      const target = { environment: 'preview' as const, remote: true }
+
+      await runHkgovPlandBackfillCommand(
+        args,
+        target,
+        'pu',
+        () => undefined,
+        dependencies,
+      )
+      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+        prepareCalls + 10,
+      )
+      await runHkgovPlandBackfillCommand(
+        args,
+        target,
+        'pu',
+        () => undefined,
+        dependencies,
+      )
+      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+        prepareCalls + 10,
+      )
+    } finally {
+      await rm(cacheRoot, { force: true, recursive: true })
+    }
   })
 
   test('continues a remote backfill from that target’s completed releases', async () => {

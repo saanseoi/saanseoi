@@ -1,6 +1,6 @@
-import { createHash, createHmac } from 'node:crypto'
+import { createHash, createHmac, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { readFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
@@ -37,7 +37,30 @@ type BackfillDependencies = {
   prepareHkgovPlandTpuNativeShpZip?: typeof prepareHkgovPlandTpuNativeShpZip
   runUploadCommand?: typeof runUploadCommand
   getCompletedReleaseCodes?: (target: UploadTarget) => Promise<Set<string>>
+  preparedArtefactCacheRoot?: string
 }
+
+type PreparedArtefactManifest = {
+  schemaVersion: 1
+  sourceArchiveSha256: string
+  sourceVersion: string
+  parserContractVersion: string
+  type: 'division' | 'divisionArea'
+  outputByteLength: number
+  outputSha256: string
+}
+
+type NativePlandPrepare = (options: {
+  inputFile: string
+  outputFile: string
+  sourceVersion: string
+  type: 'division' | 'divisionArea'
+}) => Promise<unknown>
+
+const PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION = 1
+// Bump this when a Planning source adapter change can alter the generated
+// Parquet for the same native archive.
+const PLAND_NATIVE_PREPARATION_CONTRACT_VERSION = '1'
 
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
   {
@@ -115,66 +138,181 @@ export async function runHkgovPlandBackfillCommand(
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
   const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
-  const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-backfill-`))
+  const preparedArtefactCacheRoot = resolve(
+    dependencies.preparedArtefactCacheRoot ??
+      join(REPO_ROOT, '.local/dataops/prepared-artefacts'),
+  )
 
-  try {
-    for (const release of releases) {
-      const types = (['division', 'divisionArea'] as const).filter(type => {
-        const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
-        return !completedReleaseCodes.has(releaseCode)
-      })
+  for (const release of releases) {
+    const types = (['division', 'divisionArea'] as const).filter(type => {
+      const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
+      return !completedReleaseCodes.has(releaseCode)
+    })
 
-      if (types.length === 0) {
-        console.log(`Skipping completed ${source} ${release.year} backfill.`)
-        continue
-      }
+    if (types.length === 0) {
+      console.log(`Skipping completed ${source} ${release.year} backfill.`)
+      continue
+    }
 
-      const inputFile = resolve(
-        sourceArchiveRoot,
-        release.archiveDatasetId,
-        '2023-Q4/source.zip',
-      )
-      const divisionFile = join(
-        outputDir,
-        `${source}-hk-${release.year}-division.parquet`,
-      )
-      const divisionAreaFile = join(
-        outputDir,
-        `${source}-hk-${release.year}-division-area.parquet`,
-      )
-      const prepare =
-        kind === 'pu'
-          ? (dependencies.prepareHkgovPlandTpuNativeShpZip ??
-            prepareHkgovPlandTpuNativeShpZip)
-          : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
-            prepareHkgovPlandNewTownNativeShpZip)
-      // The 2021 native TPU aggregate performs topology canonicalisation over
-      // thousands of source cells. Prepare the two artefacts serially so their
-      // geometry workspaces do not compete for the local process memory.
-      for (const type of types) {
-        await prepare({
+    const inputFile = resolve(
+      sourceArchiveRoot,
+      release.archiveDatasetId,
+      '2023-Q4/source.zip',
+    )
+    const prepare =
+      kind === 'pu'
+        ? (dependencies.prepareHkgovPlandTpuNativeShpZip ??
+          prepareHkgovPlandTpuNativeShpZip)
+        : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
+          prepareHkgovPlandNewTownNativeShpZip)
+    const sourceArchiveSha256 = createHash('sha256')
+      .update(await readFile(inputFile))
+      .digest('hex')
+    // The 2021 native TPU aggregate performs topology canonicalisation over
+    // thousands of source cells. Prepare the two artefacts serially so their
+    // geometry workspaces do not compete for the local process memory.
+    const preparedFiles = new Map<'division' | 'divisionArea', string>()
+    for (const type of types) {
+      preparedFiles.set(
+        type,
+        await prepareCachedArtefact({
+          cacheRoot: preparedArtefactCacheRoot,
           inputFile,
-          outputFile: type === 'division' ? divisionFile : divisionAreaFile,
+          parserContractVersion: PLAND_NATIVE_PREPARATION_CONTRACT_VERSION,
+          prepare,
+          source,
+          sourceArchiveSha256,
           sourceVersion: release.year,
           type,
-        })
-      }
-
-      for (const type of types) {
-        await uploadPreparedArtefact({
-          filePath: type === 'division' ? divisionFile : divisionAreaFile,
-          invocationCwd,
-          release,
-          source,
-          target,
-          type,
-          forceUpload: continueUpload,
-          runUploadCommand: dependencies.runUploadCommand,
-        })
-      }
+        }),
+      )
     }
+
+    for (const type of types) {
+      const filePath = preparedFiles.get(type)
+      if (!filePath) {
+        throw new Error(
+          `Prepared ${source} ${release.year} ${type} artefact is missing.`,
+        )
+      }
+      await uploadPreparedArtefact({
+        filePath,
+        invocationCwd,
+        release,
+        source,
+        target,
+        type,
+        forceUpload: continueUpload,
+        runUploadCommand: dependencies.runUploadCommand,
+      })
+    }
+  }
+}
+
+async function prepareCachedArtefact(args: {
+  cacheRoot: string
+  inputFile: string
+  parserContractVersion: string
+  prepare: NativePlandPrepare
+  source: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  type: 'division' | 'divisionArea'
+}) {
+  const cacheDirectory = join(
+    args.cacheRoot,
+    args.source,
+    `v${args.parserContractVersion}`,
+    args.sourceArchiveSha256,
+    args.sourceVersion,
+  )
+  const outputFile = join(cacheDirectory, `${args.type}.parquet`)
+  const manifestFile = join(cacheDirectory, `${args.type}.manifest.json`)
+  const expectedManifest = {
+    sourceArchiveSha256: args.sourceArchiveSha256,
+    sourceVersion: args.sourceVersion,
+    parserContractVersion: args.parserContractVersion,
+    type: args.type,
+  } as const
+
+  if (await isValidPreparedArtefact(outputFile, manifestFile, expectedManifest)) {
+    console.log(
+      `Reusing cached prepared ${args.source} ${args.sourceVersion} ${args.type} geometry.`,
+    )
+    return outputFile
+  }
+
+  await mkdir(cacheDirectory, { recursive: true })
+  const temporaryOutputFile = join(
+    cacheDirectory,
+    `.${args.type}-${randomUUID()}.parquet`,
+  )
+  const temporaryManifestFile = join(
+    cacheDirectory,
+    `.${args.type}-${randomUUID()}.manifest.json`,
+  )
+
+  try {
+    await args.prepare({
+      inputFile: args.inputFile,
+      outputFile: temporaryOutputFile,
+      sourceVersion: args.sourceVersion,
+      type: args.type,
+    })
+    const output = await readFile(temporaryOutputFile)
+    const outputStats = await stat(temporaryOutputFile)
+    const manifest: PreparedArtefactManifest = {
+      schemaVersion: PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION,
+      ...expectedManifest,
+      outputByteLength: outputStats.size,
+      outputSha256: createHash('sha256').update(output).digest('hex'),
+    }
+    await writeFile(temporaryManifestFile, `${JSON.stringify(manifest)}\n`, {
+      flag: 'wx',
+    })
+    await rename(temporaryOutputFile, outputFile)
+    // Publish the manifest last: its presence is the cache's completion marker.
+    await rename(temporaryManifestFile, manifestFile)
+    return outputFile
   } finally {
-    await rm(outputDir, { force: true, recursive: true })
+    await rm(temporaryOutputFile, { force: true })
+    await rm(temporaryManifestFile, { force: true })
+  }
+}
+
+async function isValidPreparedArtefact(
+  outputFile: string,
+  manifestFile: string,
+  expected: Pick<
+    PreparedArtefactManifest,
+    'sourceArchiveSha256' | 'sourceVersion' | 'parserContractVersion' | 'type'
+  >,
+) {
+  try {
+    const manifest = JSON.parse(
+      await readFile(manifestFile, 'utf8'),
+    ) as Partial<PreparedArtefactManifest>
+    if (
+      manifest.schemaVersion !== PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION ||
+      manifest.sourceArchiveSha256 !== expected.sourceArchiveSha256 ||
+      manifest.sourceVersion !== expected.sourceVersion ||
+      manifest.parserContractVersion !== expected.parserContractVersion ||
+      manifest.type !== expected.type ||
+      typeof manifest.outputByteLength !== 'number' ||
+      !isSha256(manifest.outputSha256)
+    ) {
+      return false
+    }
+    const [output, outputStats] = await Promise.all([
+      readFile(outputFile),
+      stat(outputFile),
+    ])
+    return (
+      outputStats.size === manifest.outputByteLength &&
+      createHash('sha256').update(output).digest('hex') === manifest.outputSha256
+    )
+  } catch {
+    return false
   }
 }
 
