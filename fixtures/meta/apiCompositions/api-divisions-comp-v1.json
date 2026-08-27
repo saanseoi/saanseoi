@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:591d22c81e58c53a310198908cb59e81ca8548ecc5ca77472cc4157f1df8cc8a",
+  "versionHash": "sha256:245f5b956dd39b070afc31419b4eda6c3e7e24c09f0d839f6a30a64370fec298",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -62,15 +62,7 @@
         },
         {
           "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd:2016",
-          "role": "geometry",
-          "isRequired": true,
-          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
-          "priority": 12
-        },
-        {
-          "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd:2021",
+          "variant": "hkgov-censtatd-landclipped",
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
@@ -78,11 +70,11 @@
         },
         {
           "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd-area",
+          "variant": "hkgov-censtatd",
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
-          "priority": 15,
+          "priority": 14,
           "ingestDependencies": [
             {
               "resourceType": "division",

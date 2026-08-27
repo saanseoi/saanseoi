@@ -287,7 +287,7 @@ describe('fixture version hashes', () => {
       member =>
         member.apiCompositionCode === 'comp-divisions-v1' &&
         member.domainCode === 'geographic' &&
-        member.variant === 'hkgov-censtatd-area',
+        member.variant === 'hkgov-censtatd',
     )
     expect(areaTypeMembers).toEqual([
       expect.objectContaining({

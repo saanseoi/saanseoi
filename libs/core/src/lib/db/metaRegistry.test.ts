@@ -1018,6 +1018,7 @@ function createPublishReleaseArtefactsDb() {
       ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
       ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district'),
+      ('dataset-hkgov-censtatd-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district-annual'),
       ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters');
   `)
 
@@ -1045,6 +1046,7 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000),
+      ('release-supporting-censtatd-annual', '2024', '1.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
 
     INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
@@ -1052,6 +1054,7 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
+      ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
 }

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cea58111315e115ac3b3223909a9b09ecba83ca86244a9cf9c87844c0017538d",
+  "versionHash": "sha256:2276b4ce49b01c1c3e7afcba798b427435b2ef8a120677663112901095745bb1",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -10,10 +10,12 @@
   "areaCompanionByReferencePeriod": {
     "2022": {
       "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
       "cohortKey": "2022"
     },
     "2024": {
       "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
       "cohortKey": "2024"
     }
   },

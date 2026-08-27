@@ -2851,6 +2851,11 @@ export async function ensureDraftSnapshotForRelease(
     datasetCode: string
     datasetId: string
     identityMode?: 'persistent' | 'cohort_scoped'
+    /**
+     * C&SD statistical companions can combine several source releases (for
+     * example annual districts and Area/type polygons) in one draft snapshot.
+     */
+    reuseDraftSnapshotForVariant?: boolean
     regionCode: string
     sourceReleaseId: string
     variant?: string
@@ -2887,6 +2892,37 @@ export async function ensureDraftSnapshotForRelease(
 
   if (snapshotForSourceRelease) {
     return snapshotForSourceRelease
+  }
+
+  if (args.reuseDraftSnapshotForVariant) {
+    const sharedDraft = await db
+      .select({
+        id: metaSnapshots.id,
+        parentSnapshotId: metaSnapshots.parentSnapshotId,
+        snapshotLineageId: metaSnapshots.snapshotLineageId,
+        code: metaSnapshots.code,
+        cohortKey: metaSnapshots.cohortKey,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .where(
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.cohortKey, args.cohortKey),
+          eq(metaSnapshots.status, 'draft'),
+          eq(metaSnapshotLineages.regionCode, args.regionCode),
+          eq(metaSnapshotLineages.variant, variant),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.revision), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()
+    if (sharedDraft) return sharedDraft
   }
 
   const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
@@ -3195,7 +3231,7 @@ export async function resolveSnapshotForRelease(
   )
 }
 
-/** Returns the latest snapshot revision for every cohort materialised by a release. */
+/** Returns the latest snapshot revision for every cohort and variant materialised by a release. */
 export async function listSnapshotsForRelease(
   db: HarbourReadableDb,
   releaseId: string,
@@ -3209,6 +3245,7 @@ export async function listSnapshotsForRelease(
       id: metaSnapshots.id,
       revision: metaSnapshots.revision,
       status: metaSnapshots.status,
+      variant: metaSnapshotLineages.variant,
     })
     .from(metaSnapshotSources)
     .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
@@ -3228,7 +3265,8 @@ export async function listSnapshotsForRelease(
 
   const latestByCohort = new Map<string, (typeof rows)[number]>()
   for (const row of rows) {
-    if (!latestByCohort.has(row.cohortKey)) latestByCohort.set(row.cohortKey, row)
+    const key = `${row.cohortKey}\u0000${row.variant}`
+    if (!latestByCohort.has(key)) latestByCohort.set(key, row)
   }
   return [...latestByCohort.values()]
 }
@@ -4010,6 +4048,8 @@ export async function publishReleaseArtefacts(
     publishedAt: string
     releaseSetId: string
     snapshotId: string
+    /** The materialised snapshot variant, when it is more specific than its dataset. */
+    snapshotVariant?: string
     type: ResourceType
     /** Publish the dataset snapshot, but leave the API release set as draft. */
     deferApiReleaseSet?: boolean
@@ -4091,12 +4131,14 @@ export async function publishReleaseArtefacts(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
-  const datasetVariant = datasetVariantForSource(args.type, args.dataset.source, {
-    cohortKey: args.dataset.cohortKey,
-    datasetCode: args.dataset.datasetCode,
-    sourceVariant: args.dataset.sourceVariant,
-    sourceVersion: args.dataset.sourceVersion,
-  })
+  const datasetVariant =
+    args.snapshotVariant ??
+    datasetVariantForSource(args.type, args.dataset.source, {
+      cohortKey: args.dataset.cohortKey,
+      datasetCode: args.dataset.datasetCode,
+      sourceVariant: args.dataset.sourceVariant,
+      sourceVersion: args.dataset.sourceVersion,
+    })
   const datasetMember = compositionMembers.find(
     member =>
       member.domainCode === releaseSet.domainCode &&

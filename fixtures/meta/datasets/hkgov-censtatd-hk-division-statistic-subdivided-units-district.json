@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:624b6d68bc08673b2c3958f7938884170d7bfff95e57627ec74e64471c9c526b",
+  "versionHash": "sha256:f89f0ada43d764c6f73172c0318bd057bfa4e6c325b4cd39bf4aeb92a2346891",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -10,10 +10,12 @@
   "areaCompanionByReferencePeriod": {
     "2016": {
       "variant": "hkgov-censtatd-landclipped",
+      "domainCode": "geographic",
       "cohortKey": "2016"
     },
     "2021": {
       "variant": "hkgov-censtatd-landclipped",
+      "domainCode": "geographic",
       "cohortKey": "2021"
     }
   },

@@ -19,13 +19,14 @@ constructed `sourceFeatureRef`.
 
 When a reviewed statistic has an area companion, its dataset fixture declares
 `areaCompanionByReferencePeriod`. Ingestion resolves that declaration for each
-observation and stores both its `variant` and `cohortKey` in `geography.areaCompanion`.
-Thus bare `include=areas` uses the geometry explicitly reviewed for the record's own
-reference period; the API never infers it from a dataset name, delivery release, or the
-Geographic domain's Overture default. A qualified `areas:<variant>` request changes only
-the variant and retains that stored cohort. If that exact counterpart is unavailable, it
-returns `409 variant_cohort_unavailable` rather than falling back. The response
-permalink qualifies the resolved variant.
+observation and stores its `domainCode`, `variant` and `cohortKey` in
+`geography.areaCompanion`. Thus bare `include=areas` and `include=divisions` use the
+geometry and canonical division domain explicitly reviewed for the record's own
+reference period; the API never infers either from a dataset name, delivery release, or
+the Geographic domain's Overture default. A qualified `areas:<variant>` request changes
+only the variant and retains that stored cohort. If that exact counterpart is
+unavailable, it returns `409 variant_cohort_unavailable` rather than falling back. The
+response permalink qualifies the resolved variant.
 
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
 records the mirrored archive's managed key and SHA-256 in source provenance. Only GML
