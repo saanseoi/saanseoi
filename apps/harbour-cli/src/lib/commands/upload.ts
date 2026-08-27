@@ -1212,46 +1212,46 @@ type AddressReleaseSetReadiness = {
 type CohortIndependentReleaseDefinition = {
   cohortKey?: string
   datasetCode: string
-  domainCode: string
   optional: boolean
   resourceType: string
+  variant: string
 }
 
 const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentReleaseDefinition[] =
   [
     {
       datasetCode: 'ds-hk-hkgov-had-division-area-district',
-      domainCode: 'hkgov-had',
       optional: false,
       resourceType: 'divisionArea',
+      variant: 'hkgov-had',
     },
     {
       cohortKey: '2016',
       datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
+      variant: 'hkgov-censtatd-landclipped',
     },
     {
       cohortKey: '2021',
       datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
+      variant: 'hkgov-censtatd-landclipped',
     },
     {
       cohortKey: '2024',
       datasetCode:
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
+      variant: 'hkgov-censtatd',
     },
     {
       datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
+      variant: 'hkgov-censtatd',
     },
   ]
 
@@ -1260,10 +1260,10 @@ const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 type CohortIndependentReleaseReadiness = {
   cohortKey: string | null
   datasetCode: string
-  domainCode: string
   optional: boolean
   releaseCode: string | null
   resourceType: string
+  variant: string
 }
 
 type DivisionReleaseSetReadiness = {
@@ -1295,8 +1295,9 @@ export async function assertDivisionGeometryUploadPrerequisites(
   if (
     plan.source === 'hkgov-had' ||
     (plan.source === 'hkgov-censtatd' &&
-      (plan.datasetCode ===
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+      (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
         plan.datasetCode ===
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
         plan.datasetCode ===
@@ -1378,7 +1379,7 @@ export function formatDivisionApiReleaseSetReadiness(
 
   return [
     '# EXACT REF',
-    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
+    `${plan.regionCode.toUpperCase()} / ${resolveDivisionReleaseSetVariant(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
         `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
@@ -1388,7 +1389,7 @@ export function formatDivisionApiReleaseSetReadiness(
           '',
           '# AT OR BEFORE',
           ...readiness.cohortIndependentReleases.flatMap(release => [
-            [plan.regionCode.toUpperCase(), release.domainCode, release.cohortKey]
+            [plan.regionCode.toUpperCase(), release.variant, release.cohortKey]
               .filter((segment): segment is string => segment !== null)
               .join(' / '),
             `  ${release.releaseCode === null ? (release.optional ? yellowText('○') : redText('○')) : greenText('✓')} ${formatResourceType(release.resourceType)}  ${release.releaseCode === null ? (release.optional ? yellowText('[optional]') : redText('unavailable')) : greenText('available')}`,
@@ -1560,6 +1561,14 @@ function resolveDivisionDomainCode(
   return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
     ? source
     : 'geographic'
+}
+
+function resolveDivisionReleaseSetVariant(
+  source: DivisionGeometryPlan['source'] | undefined,
+  datasetCode?: string,
+) {
+  const domainCode = resolveDivisionDomainCode(source, datasetCode)
+  return domainCode === 'geographic' ? (source ?? 'overture') : domainCode
 }
 
 function matchesDivisionDomain(

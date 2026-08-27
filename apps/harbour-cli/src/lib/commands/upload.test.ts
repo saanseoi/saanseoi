@@ -66,6 +66,41 @@ describe('upload command address prerequisites', () => {
   })
 })
 
+describe('division geometry upload prerequisites', () => {
+  test('allows C&SD district areas with their reviewed district bridge', async () => {
+    await expect(
+      assertDivisionGeometryUploadPrerequisites(
+        { environment: 'dev', remote: false },
+        {
+          cohortKey: '2016',
+          datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+          datasetId: 'dataset-hkgov-censtatd-hk-division-area-district',
+          fileName: 'district-council-districts-2016.gml',
+          filePath: '/tmp/district-council-districts-2016.gml',
+          inferredFrom: {
+            cohortKey: 'path',
+            regionCode: 'path',
+            source: 'path',
+            sourceVersion: 'cohortKey',
+            theme: 'path',
+            type: 'path',
+          },
+          originalFileName: 'district-council-districts-2016.gml',
+          regionCode: 'hk',
+          releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2016',
+          rowCount: 18,
+          schemaFingerprint: 'schema-fingerprint',
+          source: 'hkgov-censtatd',
+          sourceVersion: '2016',
+          supersedesDatasetId: null,
+          theme: 'divisions',
+          type: 'divisionArea',
+        },
+      ),
+    ).resolves.toBeUndefined()
+  })
+})
+
 describe('division API release set readiness display', () => {
   test('resolves the cohort from an initial variant API release-set code', () => {
     expect(
@@ -93,35 +128,35 @@ describe('division API release set readiness display', () => {
             {
               cohortKey: '2022',
               datasetCode: 'ds-hk-hkgov-had-division-area-district',
-              domainCode: 'hkgov-had',
               optional: false,
               releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
               resourceType: 'divisionArea',
+              variant: 'hkgov-had',
             },
             {
               cohortKey: '2016',
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              domainCode: 'hkgov-censtatd',
               optional: true,
               releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2016',
               resourceType: 'divisionArea',
+              variant: 'hkgov-censtatd-landclipped',
             },
             {
               cohortKey: '2021',
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              domainCode: 'hkgov-censtatd',
               optional: true,
               releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
               resourceType: 'divisionArea',
+              variant: 'hkgov-censtatd-landclipped',
             },
             {
               cohortKey: null,
               datasetCode:
                 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-              domainCode: 'hkgov-censtatd-area',
               optional: false,
               releaseCode: null,
               resourceType: 'divisionArea',
+              variant: 'hkgov-censtatd',
             },
           ],
           divisionAvailable: true,
@@ -131,7 +166,7 @@ describe('division API release set readiness display', () => {
     ).toBe(
       [
         '# EXACT REF',
-        'HK / geographic / 2025-09-24.0',
+        'HK / overture / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[31munavailable\u001B[39m',
         '  \u001B[31m○\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[31munavailable\u001B[39m',
@@ -139,11 +174,11 @@ describe('division API release set readiness display', () => {
         '# AT OR BEFORE',
         'HK / hkgov-had / 2022',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd / 2016',
+        'HK / hkgov-censtatd-landclipped / 2016',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd / 2021',
+        'HK / hkgov-censtatd-landclipped / 2021',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
-        'HK / hkgov-censtatd-area',
+        'HK / hkgov-censtatd',
         '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[31munavailable\u001B[39m',
       ].join('\n'),
     )
@@ -163,10 +198,10 @@ describe('division API release set readiness display', () => {
             {
               cohortKey: '2022',
               datasetCode: 'ds-hk-hkgov-had-division-area-district',
-              domainCode: 'hkgov-had',
               optional: false,
               releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
               resourceType: 'divisionArea',
+              variant: 'hkgov-had',
             },
           ],
           divisionAvailable: true,
@@ -176,7 +211,7 @@ describe('division API release set readiness display', () => {
     ).toBe(
       [
         '# EXACT REF',
-        'HK / geographic / 2025-09-24.0',
+        'HK / overture / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[32mavailable\u001B[39m',
         '  \u001B[32m✓\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[32mavailable\u001B[39m',
@@ -199,10 +234,10 @@ describe('division API release set readiness display', () => {
             {
               cohortKey: null,
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              domainCode: 'hkgov-censtatd',
               optional: false,
               releaseCode: null,
               resourceType: 'divisionArea',
+              variant: 'hkgov-censtatd',
             },
           ],
           divisionAvailable: true,
@@ -222,10 +257,10 @@ describe('division API release set readiness display', () => {
             {
               cohortKey: null,
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-              domainCode: 'hkgov-censtatd',
               optional: false,
               releaseCode: null,
               resourceType: 'divisionArea',
+              variant: 'hkgov-censtatd',
             },
           ],
           divisionAvailable: true,
