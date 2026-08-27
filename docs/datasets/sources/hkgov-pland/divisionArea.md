@@ -160,6 +160,9 @@ release is published.
 The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
 metadata emitted by the current writer; this does not alter the geometry or records.
+Exact canonical Planning geometry is Brotli-materialised once and reused by the current
+and immutable history writes. This preserves the same decoded geometry and version hash
+while avoiding a second maximum-quality compression pass.
 
 ```sh
 bun run dataops -- hkgov-pland:backfill --kind pu --target preview

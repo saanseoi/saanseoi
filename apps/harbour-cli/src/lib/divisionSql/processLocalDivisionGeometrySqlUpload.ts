@@ -2149,15 +2149,28 @@ async function writeGeometryRows(
       { ...row, snapshotId: version.snapshotId },
     ]),
   )
+  const materialisedGeometryById = new Map<string, unknown>()
+  if (!version.skipCanonicalMaterialisation) {
+    onProgress?.('materialise geometry rows', 0, rows.length)
+    for (const [index, row] of rows.entries()) {
+      materialisedGeometryById.set(
+        row.canonical.id,
+        shouldCompressCanonicalGeometry(version.source, version.transform)
+          ? compressJsonBrotli(
+              row.canonical.geometry,
+              version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
+            )
+          : row.canonical.geometry,
+      )
+      if ((index + 1) % 32 === 0 || index + 1 === rows.length) {
+        onProgress?.('materialise geometry rows', index + 1, rows.length)
+      }
+    }
+  }
   if (!version.skipCanonicalMaterialisation)
     for (const row of rows.map(row => ({
       ...row.canonical,
-      geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-        ? compressJsonBrotli(
-            row.canonical.geometry,
-            version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
-          )
-        : row.canonical.geometry,
+      geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
       snapshotId: version.snapshotId,
       createdAt: now,
       updatedAt: now,
@@ -2180,23 +2193,16 @@ async function writeGeometryRows(
     ]),
   )
   if (!version.skipCanonicalMaterialisation)
-    for (const row of await Promise.all(
-      rows.map(async row => ({
-        ...row.canonical,
-        geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-          ? compressJsonBrotli(
-              row.canonical.geometry,
-              version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
-            )
-          : row.canonical.geometry,
-        versionHash: requireGeometryHash(historyHashes, row.canonical.id),
-        sourceReleaseId: version.releaseId,
-        snapshotId: version.snapshotId,
-        isCurrent: true,
-        createdAt: now,
-        updatedAt: now,
-      })),
-    )) {
+    for (const row of rows.map(row => ({
+      ...row.canonical,
+      geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
+      versionHash: requireGeometryHash(historyHashes, row.canonical.id),
+      sourceReleaseId: version.releaseId,
+      snapshotId: version.snapshotId,
+      isCurrent: true,
+      createdAt: now,
+      updatedAt: now,
+    }))) {
       historyRowsById.set(row.id, row)
     }
   const historyRows = [...historyRowsById.values()]
@@ -2348,6 +2354,17 @@ function requireGeometryHash(hashes: Map<string, string>, id: string) {
   const hash = hashes.get(id)
   if (!hash) throw new Error(`Missing computed geometry hash for ${id}.`)
   return hash
+}
+
+function requireMaterialisedGeometry(
+  materialisedGeometryById: ReadonlyMap<string, unknown>,
+  id: string,
+) {
+  const geometry = materialisedGeometryById.get(id)
+  if (geometry === undefined) {
+    throw new Error(`Missing materialised geometry for ${id}.`)
+  }
+  return geometry
 }
 
 function hashGeometrySourceAssertion(
