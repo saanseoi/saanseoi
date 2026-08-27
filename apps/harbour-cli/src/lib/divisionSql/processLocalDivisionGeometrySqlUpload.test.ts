@@ -6,6 +6,7 @@ import {
   calculateHousingMarketAreaDistrictCoverage,
   createGeometryChurnCounts,
   decodeStoredGeoJsonGeometry,
+  divisionReferenceVariant,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   hasIdenticalGeometryMaterialisation,
@@ -98,6 +99,25 @@ describe('C&SD permanent living quarters division references', () => {
 
     expect(hasDivisionReferences(preSyntheticSnapshot, references)).toBeFalse()
     expect(hasDivisionReferences(firstSyntheticSnapshot, references)).toBeTrue()
+  })
+})
+
+describe('divisionReferenceVariant', () => {
+  test('uses the exact Planning Unit division snapshot for a simplified area', () => {
+    expect(
+      divisionReferenceVariant({
+        cohortKey: '2001',
+        datasetCode: 'ds-hk-hkgov-pland-division-pu',
+        regionCode: 'hk',
+        releaseCode: 'dr-hk-hkgov-pland-division-area-pu-2001',
+        rowCount: 4978,
+        source: 'hkgov-pland-pu',
+        sourceVersion: '2001',
+        theme: 'divisions',
+        transform: 'simplified',
+        type: 'divisionArea',
+      }),
+    ).toBe('hkgov-pland-pu')
   })
 })
 

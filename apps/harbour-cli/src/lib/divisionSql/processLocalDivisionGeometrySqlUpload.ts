@@ -1362,6 +1362,15 @@ function geometryVariant(plan: GeometryUploadPlan) {
   })
 }
 
+/**
+ * Area simplification is a display derivative. Its division references remain
+ * anchored to the exact-source division snapshot, which has no transform
+ * suffix.
+ */
+export function divisionReferenceVariant(plan: GeometryUploadPlan) {
+  return geometryVariant({ ...plan, transform: undefined })
+}
+
 function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
@@ -1690,7 +1699,7 @@ async function resolveDivisionReferenceLookup(
         'division',
         plan.regionCode,
         plan.cohortKey,
-        { variant: geometryVariant(plan) },
+        { variant: divisionReferenceVariant(plan) },
       ),
     ].filter((snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot)),
     selectedByRule: 'api-composition:divisions:division-geometry->division',
