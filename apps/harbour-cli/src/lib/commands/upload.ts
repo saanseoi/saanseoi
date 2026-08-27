@@ -1715,256 +1715,86 @@ function isCenstatdPermanentLivingQuartersPlan(plan: DivisionGeometryPlan) {
   )
 }
 
-async function resolveLocalDivisionReleaseSetSnapshots(
-  target: UploadTarget,
+async function resolveDivisionCompositionReadiness(
+  db: HarbourReadableDb,
   plan: DivisionGeometryPlan,
-) {
-  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    shardYear,
-    { cacheTableProfile: 'division' },
-  )
-  try {
-    const db = dbContext.metaDb
-    const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-    const entries = await Promise.all(
-      resourceTypes.map(
-        async resourceType =>
-          [
-            resourceType,
-            Boolean(
-              await db
-                .select({ id: metaSchema.metaSnapshots.id })
-                .from(metaSchema.metaSnapshots)
-                .leftJoin(
-                  metaSchema.metaSnapshotLineages,
-                  eq(
-                    metaSchema.metaSnapshots.snapshotLineageId,
-                    metaSchema.metaSnapshotLineages.id,
-                  ),
-                )
-                .innerJoin(
-                  metaSchema.metaSnapshotSources,
-                  eq(
-                    metaSchema.metaSnapshots.id,
-                    metaSchema.metaSnapshotSources.snapshotId,
-                  ),
-                )
-                .innerJoin(
-                  metaSchema.metaDatasets,
-                  eq(
-                    metaSchema.metaSnapshotSources.datasetId,
-                    metaSchema.metaDatasets.id,
-                  ),
-                )
-                .where(
-                  and(
-                    eq(metaSchema.metaSnapshots.resourceType, resourceType),
-                    eq(metaSchema.metaSnapshots.status, 'published'),
-                    eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
-                    eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-                    matchesDivisionDomain(plan.source, plan.datasetCode),
-                    eq(metaSchema.metaSnapshotSources.role, 'primary'),
-                  ),
-                )
-                .limit(1)
-                .get(),
-            ),
-          ] as const,
-      ),
-    )
-    return Object.fromEntries(entries) as Record<
-      (typeof resourceTypes)[number],
-      boolean
-    >
-  } finally {
-    dbContext.cleanup()
-  }
-}
+  domainCode: string,
+): Promise<DivisionReleaseSetReadiness> {
+  const members = (await listCurrentApiCompositionMembersForType(db, 'division'))
+    .filter(member => member.domainCode === domainCode)
+    .filter(member => member.resourceType.startsWith('division'))
 
-async function resolveRemoteDivisionReleaseSetSnapshots(
-  target: UploadTarget,
-  plan: DivisionGeometryPlan,
-) {
-  const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-  const rows = await withRemoteCachedMetaDb(target, db =>
-    db
-      .select({
-        resourceType: metaSchema.metaSnapshots.resourceType,
-        snapshotId: metaSchema.metaSnapshots.id,
-      })
-      .from(metaSchema.metaSnapshots)
-      .leftJoin(
-        metaSchema.metaSnapshotLineages,
-        eq(
-          metaSchema.metaSnapshots.snapshotLineageId,
-          metaSchema.metaSnapshotLineages.id,
-        ),
-      )
-      .innerJoin(
-        metaSchema.metaSnapshotSources,
-        eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
-      )
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          inArray(metaSchema.metaSnapshots.resourceType, resourceTypes),
-          eq(metaSchema.metaSnapshots.status, 'published'),
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          matchesDivisionDomain(plan.source, plan.datasetCode),
-          eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
-          eq(metaSchema.metaSnapshotSources.role, 'primary'),
-        ),
-      )
-      .all(),
-  )
-  const present = new Set(rows.map(row => row.resourceType))
-  return Object.fromEntries(
-    resourceTypes.map(resourceType => [resourceType, present.has(resourceType)]),
-  ) as Record<(typeof resourceTypes)[number], boolean>
-}
-
-async function resolveLocalCohortIndependentDivisionReleases(
-  target: UploadTarget,
-  plan: DivisionGeometryPlan,
-): Promise<CohortIndependentReleaseReadiness[]> {
-  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    shardYear,
-    { cacheTableProfile: 'division' },
-  )
-
-  try {
-    const rows = await (dbContext.metaDb as unknown as HarbourReadableDb)
-      .select({
-        cohortKey: metaSchema.metaReleases.cohortKey,
-        datasetCode: metaSchema.metaDatasets.code,
-        releaseCode: metaSchema.metaReleases.code,
-      })
-      .from(metaSchema.metaReleases)
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          inArray(
-            metaSchema.metaDatasets.code,
-            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
-              dataset => dataset.datasetCode,
-            ),
-          ),
-          eq(metaSchema.metaReleases.status, 'published'),
-          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
-        ),
-      )
-      .orderBy(
-        desc(metaSchema.metaReleases.cohortKey),
-        desc(metaSchema.metaReleases.ingestedAt),
-        desc(metaSchema.metaReleases.createdAt),
-      )
-      .all()
-
-    return resolveCohortIndependentReleaseReadiness(rows)
-  } finally {
-    dbContext.cleanup()
-  }
-}
-
-async function resolveRemoteCohortIndependentDivisionReleases(
-  target: UploadTarget,
-  plan: DivisionGeometryPlan,
-): Promise<CohortIndependentReleaseReadiness[]> {
-  const rows = await withRemoteCachedMetaDb(target, db =>
-    db
-      .select({
-        cohortKey: metaSchema.metaReleases.cohortKey,
-        datasetCode: metaSchema.metaDatasets.code,
-        releaseCode: metaSchema.metaReleases.code,
-      })
-      .from(metaSchema.metaReleases)
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          inArray(
-            metaSchema.metaDatasets.code,
-            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
-              dataset => dataset.datasetCode,
-            ),
-          ),
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          eq(metaSchema.metaReleases.status, 'published'),
-          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
-        ),
-      )
-      .orderBy(
-        desc(metaSchema.metaReleases.cohortKey),
-        desc(metaSchema.metaReleases.ingestedAt),
-        desc(metaSchema.metaReleases.createdAt),
-      )
-      .all(),
-  )
-
-  return resolveCohortIndependentReleaseReadiness(
-    rows.flatMap(row =>
-      row.cohortKey === null
-        ? []
-        : [
-            {
-              cohortKey: row.cohortKey,
-              datasetCode: row.datasetCode,
-              releaseCode: row.releaseCode,
-            },
-          ],
-    ),
-  )
-}
-
-function resolveCohortIndependentReleaseReadiness(
-  releases: Array<{
-    cohortKey: string
-    datasetCode: string
-    releaseCode: string
-  }>,
-): CohortIndependentReleaseReadiness[] {
-  const latestReleaseByDatasetCohort = new Map<string, (typeof releases)[number]>()
-  for (const release of releases) {
-    const key = `${release.datasetCode}:${release.cohortKey}`
-    if (!latestReleaseByDatasetCohort.has(key)) {
-      latestReleaseByDatasetCohort.set(key, release)
-    }
-  }
-
-  const readiness: CohortIndependentReleaseReadiness[] = []
-  for (const dataset of COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS) {
-    const matchingReleases = [...latestReleaseByDatasetCohort.values()]
-      .filter(
-        release =>
-          release.datasetCode === dataset.datasetCode &&
-          (!dataset.cohortKey || release.cohortKey === dataset.cohortKey),
-      )
-      .sort((left, right) => left.cohortKey.localeCompare(right.cohortKey))
-
-    const matchingRelease = matchingReleases.at(-1)
-    readiness.push(
-      matchingRelease
-        ? { ...dataset, ...matchingRelease }
-        : { ...dataset, cohortKey: dataset.cohortKey ?? null, releaseCode: null },
+  if (members.length === 0) {
+    throw new Error(
+      `No current Divisions API composition members were found for domain ${domainCode}.`,
     )
   }
 
-  return readiness
+  const readinessMembers = await Promise.all(
+    members.map(async member => {
+      const snapshots = await resolveCompositionMemberSnapshots(db, member, plan)
+      return {
+        cohortKeys: snapshots.map(snapshot => snapshot.cohortKey),
+        cohortMatchingMode: member.cohortMatchingMode,
+        isRequired: member.isRequired,
+        releaseCode: snapshots[0]?.code ?? null,
+        resourceType: member.resourceType,
+        variant: member.variant,
+      }
+    }),
+  )
+
+  return {
+    domainCode,
+    members: readinessMembers,
+    ready: readinessMembers.every(member => !member.isRequired || member.releaseCode),
+  }
+}
+
+async function resolveCompositionMemberSnapshots(
+  db: HarbourReadableDb,
+  member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
+  plan: DivisionGeometryPlan,
+) {
+  if (member.variant === 'default') {
+    const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      db,
+      member.resourceType,
+      plan.regionCode,
+      plan.cohortKey,
+    )
+    return snapshot ? [snapshot] : []
+  }
+
+  const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
+  const source = member.variant.split(':')[0] ?? member.variant
+  const publisherCode = datasetCode ? undefined : publisherCodeForSource(source)
+  const snapshots =
+    await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+      db,
+      member.resourceType,
+      plan.regionCode,
+      plan.cohortKey,
+      { datasetCode, publisherCode, variant: member.variant },
+    )
+
+  if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
+    return snapshots
+  }
+  if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
+    if (snapshots.length > 0) return snapshots
+    const snapshot =
+      await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+        db,
+        member.resourceType,
+        plan.regionCode,
+        plan.cohortKey,
+        { datasetCode, publisherCode },
+      )
+    return snapshot ? [snapshot] : []
+  }
+
+  return snapshots.filter(snapshot => snapshot.cohortKey === plan.cohortKey)
 }
 
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
