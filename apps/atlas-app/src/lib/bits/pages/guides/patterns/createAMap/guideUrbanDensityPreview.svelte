@@ -26,7 +26,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
   <div
-    class="relative h-52 shrink-0 overflow-hidden sm:h-64 [[data-guide-map-expanded=true]_&]:h-auto [[data-guide-map-expanded=true]_&]:flex-[1_1_auto]"
+    class="relative h-52 shrink-0 overflow-hidden sm:h-64 in-data-[guide-map-expanded=true]:h-auto in-data-[guide-map-expanded=true]:flex-[1_1_auto]"
   >
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview

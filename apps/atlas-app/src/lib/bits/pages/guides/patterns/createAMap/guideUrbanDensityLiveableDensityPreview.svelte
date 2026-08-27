@@ -74,7 +74,7 @@ const liveableLayers: LayerSpecification[] = [
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
   <div
-    class="relative min-h-64 flex-1 overflow-hidden [[data-guide-map-expanded=true]_&]:h-auto [[data-guide-map-expanded=true]_&]:flex-[1_1_auto]"
+    class="relative min-h-64 flex-1 overflow-hidden in-data-[guide-map-expanded=true]:h-auto in-data-[guide-map-expanded=true]:flex-[1_1_auto]"
   >
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
