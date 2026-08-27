@@ -150,7 +150,15 @@ already present with the same materialisation, it is retained as a `snapshotSour
 `verified_identical_geometry`, rather than duplicating canonical current/history rows.
 Non-overlapping rows are recorded as `contributed_geometry` and merged into the
 companion. This distinction is per complete materialisation, not a source-level
-duplicate label.
+duplicate.
+
+For API-field provenance, Population and Household Statistics is the canonical C&SD
+district relationship whenever it is available. Permanent Living Quarters may still
+contribute geometry to that companion. District Land Area, Population and Density
+remains a retained source and can seed an earlier companion, but becomes redundant for
+the API-field signature once either canonical C&SD source is present. The redundant
+source is reported with the release-set lookup rather than becoming a competing field
+mapping.
 
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when

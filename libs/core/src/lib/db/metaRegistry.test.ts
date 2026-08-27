@@ -8,6 +8,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   ensureIngestRunStarted,
+  canonicaliseApiFieldSourceSchemas,
   getCurrentReleaseForDatasetId,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceDatasetType,
@@ -32,6 +33,27 @@ import {
   resolveShardForTypeRegionYear,
   updateDatasetStatus,
 } from './metaRegistry'
+
+describe('canonicaliseApiFieldSourceSchemas', () => {
+  test('retains Density as source provenance but excludes it from the canonical Population and Household field relationship', () => {
+    const result = canonicaliseApiFieldSourceSchemas({
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
+        '1.0',
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+    })
+
+    expect(result).toEqual({
+      redundantDatasetCodes: [
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      ],
+      sourceSchemas: {
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+      },
+    })
+  })
+})
 
 describe('resolveRegistryReleaseDisplayStatus', () => {
   test('keeps older cohort revisions reader-facing as revised', () => {

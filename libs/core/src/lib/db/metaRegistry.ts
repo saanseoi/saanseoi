@@ -4407,15 +4407,19 @@ export async function publishReleaseArtefacts(
     sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
   }
 
+  const canonicalSourceSchemas = canonicaliseApiFieldSourceSchemas(
+    Object.fromEntries(
+      [...sourceSchemas.entries()].sort(([left], [right]) => left.localeCompare(right)),
+    ),
+  )
   const apiFieldFixtureLookup = {
     apiVersion: releaseSet.apiVersion,
     domainCode: releaseSet.domainCode,
     lineageSnapshotVersions: primarySnapshotLineageVersions,
     schemaVersion: releaseSet.schemaVersion,
     rulesetVersion: releaseSet.rulesetVersion,
-    sourceSchemas: Object.fromEntries(
-      [...sourceSchemas.entries()].sort(([left], [right]) => left.localeCompare(right)),
-    ),
+    sourceSchemas: canonicalSourceSchemas.sourceSchemas,
+    redundantSourceDatasetCodes: canonicalSourceSchemas.redundantDatasetCodes,
   }
   const resolvedApiFieldFixture = deferApiReleaseSet
     ? null
@@ -4755,6 +4759,44 @@ export async function publishReleaseArtefacts(
   })
 
   return apiCatalogRevision
+}
+
+const CENSTATD_DENSITY_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const CENSTATD_PERMANENT_LIVING_QUARTERS_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+const CENSTATD_POPULATION_HOUSEHOLDS_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+
+/**
+ * Selects the canonical C&SD source relationship for API field provenance.
+ *
+ * Density remains a retained snapshot source because it can supply the first
+ * reviewed district geometry. Once Population and Household Statistics or
+ * Permanent Living Quarters is present, however, it is redundant for the API
+ * field contract and must not create a second competing field signature.
+ */
+export function canonicaliseApiFieldSourceSchemas(
+  sourceSchemas: Record<string, string>,
+) {
+  const canonicalSourceSchemas = { ...sourceSchemas }
+  const hasDensity =
+    canonicalSourceSchemas[CENSTATD_DENSITY_DISTRICT_DATASET] !== undefined
+  const hasCanonicalCenstatdSource =
+    canonicalSourceSchemas[CENSTATD_POPULATION_HOUSEHOLDS_DISTRICT_DATASET] !==
+      undefined ||
+    canonicalSourceSchemas[CENSTATD_PERMANENT_LIVING_QUARTERS_DATASET] !== undefined
+  const redundantDatasetCodes =
+    hasDensity && hasCanonicalCenstatdSource ? [CENSTATD_DENSITY_DISTRICT_DATASET] : []
+
+  for (const datasetCode of redundantDatasetCodes) {
+    delete canonicalSourceSchemas[datasetCode]
+  }
+
+  return {
+    redundantDatasetCodes,
+    sourceSchemas: canonicalSourceSchemas,
+  }
 }
 
 export async function publishSnapshot(
