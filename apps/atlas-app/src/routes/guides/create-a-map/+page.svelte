@@ -2675,7 +2675,7 @@ const styleChoices = $derived.by(() =>
         eyebrow={m.guide_data_eyebrow()}
       >
         <GuideParagraph class="mt-3">
-          {@html m.guide_data_description()}
+          {@html m.guide_data_description({ region: selectedRegion?.label ?? '' })}
         </GuideParagraph>
         <div id="project-data" class="scroll-mt-28">
           <GuideChoiceGroup
