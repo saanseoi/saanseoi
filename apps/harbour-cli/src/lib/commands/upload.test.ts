@@ -117,7 +117,7 @@ describe('division API release set readiness display', () => {
             {
               cohortKey: null,
               datasetCode:
-                'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+                'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
               domainCode: 'hkgov-censtatd-area',
               optional: false,
               releaseCode: null,

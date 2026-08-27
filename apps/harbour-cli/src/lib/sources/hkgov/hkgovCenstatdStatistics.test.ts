@@ -55,8 +55,7 @@ const CASES: Array<{
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
     rowCount: 3,
     sourceVersion: '2023-H2',
   },
@@ -194,7 +193,7 @@ describe('C&SD native statistics archives', () => {
     ).rejects.toThrow('CSDI archive is missing NewTown_21C.gml.')
   })
 
-  test('fans native Area/type and HMA polygons into reviewed division contracts', async () => {
+  test('fans native Permanent Living Quarters and HMA polygons into reviewed division contracts', async () => {
     for (const entry of [CASES[0]!, CASES[3]!]) {
       const dir = await unpack(entry.archive)
       const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
@@ -241,7 +240,7 @@ describe('C&SD native statistics archives', () => {
     for (const area of overtureHongKongAreas) {
       expect(
         hkgovCenstatdStatisticDivisionId(
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
           area.censtatdCode,
         ),
       ).toBe(overtureHongKongAreaDivisionId(area.code))
@@ -257,8 +256,7 @@ function expectedFirstReferencePeriod(datasetCode: string, sourceVersion: string
     return '2016'
   }
   if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   ) {
     return '2023'
   }

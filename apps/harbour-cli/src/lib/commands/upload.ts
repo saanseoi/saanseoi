@@ -28,10 +28,7 @@ import {
   updateDbCacheProgress,
   withRemoteCachedMetaDb,
 } from '../dbCache/localDbCache.ts'
-import {
-  HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
-  prepareHkgovCenstatdDistrictUpload,
-} from '../sources/hkgov/hkgovCenstatd.ts'
+import { prepareHkgovCenstatdDistrictUpload } from '../sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../sources/hkgov/hkgovHad.ts'
 import { prepareLandsdPlaceNameDivisionUpload } from '../sources/landsd/landsdPlaceName.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
@@ -191,16 +188,7 @@ ${mutedBar}  `)
         theme: registerOptions.theme ?? hkgovCenstatdPreparation.theme,
         type: registerOptions.type ?? hkgovCenstatdPreparation.type,
       })
-      log.message(
-        hkgovCenstatdPreparation.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
-          ? 'Prepared simplified, land-clipped C&SD display geometry.'
-          : 'Prepared Census and Statistics Department District Council GML.',
-      )
-      if (!hkgovCenstatdPreparation.transform) {
-        log.message(
-          'This upload will also publish the derived simplified C&SD display geometry.',
-        )
-      }
+      log.message('Prepared Census and Statistics Department District Council GML.')
     }
     const landsdPlaceNamePreparation = await prepareLandsdPlaceNameGeoJsonUpload(
       registerOptions.filePath,
@@ -673,6 +661,13 @@ ${mutedBar}  `)
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
 
+        const shouldDeriveHkgovSimplifiedGeometry =
+          previewResult.plan.type === 'divisionArea' &&
+          (previewResult.plan.source === 'hkgov-had' ||
+            previewResult.plan.source === 'hkgov-censtatd' ||
+            previewResult.plan.source === 'hkgov-pland-pu' ||
+            previewResult.plan.source === 'hkgov-pland-new-town')
+
         const processingResult = await processLocalDivisionGeometrySqlUpload(
           target,
           {
@@ -690,7 +685,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
-            deferPublish: Boolean(hkgovCenstatdPreparation?.displayFilePath),
+            deferPublish: shouldDeriveHkgovSimplifiedGeometry,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
           },
@@ -698,9 +693,9 @@ ${mutedBar}  `)
         let companionProcessingResult:
           | Awaited<ReturnType<typeof processLocalDivisionGeometrySqlUpload>>
           | undefined
-        if (hkgovCenstatdPreparation?.displayFilePath) {
+        if (shouldDeriveHkgovSimplifiedGeometry) {
           note(
-            'Building the derived simplified C&SD display geometry.',
+            'Building the derived simplified Hong Kong Government display geometry.',
             'SIMPLIFYING GEOMETRY PASS',
           )
           companionProcessingResult = await processLocalDivisionGeometrySqlUpload(
@@ -711,16 +706,16 @@ ${mutedBar}  `)
               regionCode: previewResult.plan.regionCode,
               releaseCode: previewResult.plan.releaseCode,
               rowCount: previewResult.plan.rowCount,
-              source: 'hkgov-censtatd',
+              source: previewResult.plan.source,
               sourceVersion: previewResult.plan.sourceVersion,
-              transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+              transform: 'simplified',
               theme: 'divisions',
               type: 'divisionArea',
             },
             uploadResult,
             preparedUploadFile,
             {
-              inputFilePath: hkgovCenstatdPreparation.displayFilePath,
+              inputFilePath: preparedUploadFile.filePath,
               reuseRunningRelease: true,
               skipRawSeed: true,
               skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -898,8 +893,14 @@ async function prepareHkgovCenstatdGmlUpload(
   if (!isHkgovCenstatdDistrictFile(filePath, source)) return null
 
   const inputSourceVersion = sourceVersion ?? inferCenstatdSourceVersion(filePath)
-  if (inputSourceVersion !== '2016' && inputSourceVersion !== '2021') {
-    throw new Error('C&SD District Council GML requires --source-version 2016 or 2021.')
+  if (
+    inputSourceVersion !== '2016' &&
+    inputSourceVersion !== '2021' &&
+    inputSourceVersion !== '2024'
+  ) {
+    throw new Error(
+      'C&SD District Council GML requires --source-version 2016, 2021, or 2024.',
+    )
   }
   if (transform) {
     throw new Error(
@@ -914,18 +915,10 @@ async function prepareHkgovCenstatdGmlUpload(
       inputSourceVersion,
       { sourceArchive },
     )
-    const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
-      filePath,
-      tempDir,
-      inputSourceVersion,
-      { sourceArchive, transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM },
-    )
     return {
       ...prepared,
-      displayFilePath: displayPrepared?.filePath,
       cleanup: async () => {
         await prepared.cleanup()
-        await displayPrepared?.cleanup()
         await rm(tempDir, { force: true, recursive: true })
       },
     }
@@ -1005,7 +998,7 @@ function isLandsdPlaceNameGeoJson(filePath: string, source: string | undefined) 
 }
 
 function inferCenstatdSourceVersion(filePath: string) {
-  return filePath.match(/(?:^|[^0-9])(2016|2021)(?:[^0-9]|$)/)?.[1]
+  return filePath.match(/(?:^|[^0-9])(2016|2021|2024)(?:[^0-9]|$)/)?.[1]
 }
 
 function resolveUploadProcessingStrategy(
@@ -1235,21 +1228,27 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
     {
       cohortKey: '2016',
       datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-      domainCode: 'hkgov-censtatd',
+      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
     },
     {
       cohortKey: '2021',
       datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-      domainCode: 'hkgov-censtatd',
+      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
     },
     {
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
-      domainCode: 'hkgov-censtatd-area',
+      cohortKey: '2024',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district-annual',
+      domainCode: 'geographic',
+      optional: false,
+      resourceType: 'divisionArea',
+    },
+    {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      domainCode: 'geographic',
       optional: false,
       resourceType: 'divisionArea',
     },
@@ -1295,7 +1294,8 @@ export async function assertDivisionGeometryUploadPrerequisites(
   if (
     plan.source === 'hkgov-had' ||
     (plan.source === 'hkgov-censtatd' &&
-      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+      (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district-annual'))
   ) {
     return
   }
@@ -1613,8 +1613,8 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   )
   try {
     const db = dbContext.metaDb
-    if (isCenstatdAreaTypePlan(plan)) {
-      return await resolveCenstatdAreaTypeDivisionSnapshot(
+    if (isCenstatdPermanentLivingQuartersPlan(plan)) {
+      return await resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
         db as unknown as HarbourReadableDb,
         plan,
       )
@@ -1664,8 +1664,8 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   plan: DivisionGeometryPlan,
 ) {
   return withRemoteCachedMetaDb(target, async db => {
-    if (isCenstatdAreaTypePlan(plan)) {
-      return resolveCenstatdAreaTypeDivisionSnapshot(
+    if (isCenstatdPermanentLivingQuartersPlan(plan)) {
+      return resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
         db as unknown as HarbourReadableDb,
         plan,
       )
@@ -1708,7 +1708,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   })
 }
 
-async function resolveCenstatdAreaTypeDivisionSnapshot(
+async function resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
   db: HarbourReadableDb,
   plan: DivisionGeometryPlan,
 ) {
@@ -1730,11 +1730,11 @@ async function resolveCenstatdAreaTypeDivisionSnapshot(
   )
 }
 
-function isCenstatdAreaTypePlan(plan: DivisionGeometryPlan) {
+function isCenstatdPermanentLivingQuartersPlan(plan: DivisionGeometryPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   )
 }
 

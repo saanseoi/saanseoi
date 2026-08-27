@@ -316,7 +316,7 @@ Publishes revision r{{ revision }}.
           resourceType: 'divisionArea',
           role: 'supporting',
           sourceVersion: '2016',
-          variant: 'hkgov-censtatd:2016',
+          variant: 'hkgov-censtatd-landclipped',
         },
         {
           datasetCode: 'ds-hk-hkgov-had-division-area',
@@ -392,7 +392,7 @@ Publishes revision r{{ revision }}.
 
     expect(rendered).toContain('| Code | Type | Publisher | Description |')
     expect(rendered).toContain(
-      '| `areas:hkgov-censtatd:2016` | Area | [C&SD](/publishers/hkgov-censtatd "Census and Statistics Department") | 2016 census district areas. |',
+      '| `areas:hkgov-censtatd-landclipped` | Area | [C&SD](/publishers/hkgov-censtatd "Census and Statistics Department") | C&SD census land-clipped district areas. |',
     )
     expect(rendered).toContain(
       '| `areas:hkgov-had` | Area | [HAD](/publishers/hkgov-had "Home Affairs Department") | Official district areas. |',

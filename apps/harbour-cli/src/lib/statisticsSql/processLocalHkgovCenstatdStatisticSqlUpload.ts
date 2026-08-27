@@ -46,6 +46,7 @@ import {
   resolveCenstatdFieldMetadata,
 } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
+import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
   replayReleaseProcessingActionsMetaToRemote,
@@ -118,6 +119,8 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         `Expected ${plan.rowCount} C&SD statistic rows; found ${rows.length}.`,
       )
     const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
+    const [dataset] = await loadDatasetFixtures(new Set([datasetCode]))
+    if (!dataset) throw new Error(`Missing dataset fixture: ${datasetCode}.`)
     const sourceFeatures = rows.map(row => ({
       featureId: requiredString(row.featureId, 'featureId'),
       layerName: requiredString(row.layerName, 'layerName'),
@@ -173,6 +176,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
               ),
             }
           : {}),
+        areaCompanionByReferencePeriod: dataset.areaCompanionByReferencePeriod,
       }
     })
     let canonical = await runStatisticProgressStep(
@@ -478,8 +482,7 @@ function divisionIdForSourceProperties(
   newTownsBySourceCode: ReadonlyMap<string, { divisionId: string }> | null,
 ) {
   if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   ) {
     return hkgovCenstatdStatisticDivisionId(
       datasetCode,

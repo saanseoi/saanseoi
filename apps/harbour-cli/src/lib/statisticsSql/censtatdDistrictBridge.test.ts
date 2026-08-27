@@ -51,7 +51,7 @@ describe('C&SD statistic district bridge selection', () => {
     ).toThrow('has no reviewed New Town bridge')
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
         '2023-H2',
       ),
     ).toBeNull()

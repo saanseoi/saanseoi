@@ -17,8 +17,8 @@ import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 // release or geometry hashes. C&SD's native feature codes are the identifier.
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 
-const AREA_TYPE_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+const PERMANENT_LIVING_QUARTERS_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
 const HMA_DATASET =
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
 
@@ -55,7 +55,7 @@ export const CENSTATD_STATISTIC_PROFILES = {
     ],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': {
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': {
     layers: [
       { expectedRowCount: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] },
     ],
@@ -258,7 +258,7 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
 }
 
 function geographyLayerForDataset(datasetCode: string) {
-  if (datasetCode === AREA_TYPE_DATASET) return 'AREA_LQ_2023'
+  if (datasetCode === PERMANENT_LIVING_QUARTERS_DATASET) return 'AREA_LQ_2023'
   if (datasetCode === HMA_DATASET) return 'HMA_21C'
   return null
 }
@@ -268,7 +268,7 @@ function statisticGeography(
   featureId: string,
   properties: Record<string, unknown>,
 ): StatisticGeography | null {
-  if (datasetCode === AREA_TYPE_DATASET) {
+  if (datasetCode === PERMANENT_LIVING_QUARTERS_DATASET) {
     const code = featureId.trim()
     const identity = statisticGeographyIdentity(datasetCode, code)
     const nameEn = string(properties.AREA_ENG)
@@ -289,7 +289,10 @@ function statisticGeography(
 
 function statisticGeographyIdentity(datasetCode: string, sourceCode: string) {
   const code = sourceCode.trim()
-  if (datasetCode === AREA_TYPE_DATASET && ['HK', 'KLN', 'NT'].includes(code)) {
+  if (
+    datasetCode === PERMANENT_LIVING_QUARTERS_DATASET &&
+    ['HK', 'KLN', 'NT'].includes(code)
+  ) {
     return { code, level: 1, type: 'area' as const }
   }
   if (datasetCode === HMA_DATASET && /^HMA\d+$/i.test(code)) {

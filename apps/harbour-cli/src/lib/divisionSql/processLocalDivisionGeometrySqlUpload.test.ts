@@ -85,7 +85,7 @@ describe('asOptionalInteger', () => {
   })
 })
 
-describe('C&SD area/type division references', () => {
+describe('C&SD permanent living quarters division references', () => {
   test('skips an older Overture snapshot until all synthetic Hong Kong area IDs exist', () => {
     const references = new Set([
       'hong-kong-island-id',

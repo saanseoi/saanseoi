@@ -45,6 +45,7 @@ import {
   resolveCenstatdFieldMetadata,
 } from './censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
+import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import {
   replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
@@ -127,6 +128,8 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   preparedUpload: PreparedUploadFile,
   options: { deferStatsReleaseSet?: boolean; promptForCuration: boolean },
 ) {
+  const [dataset] = await loadDatasetFixtures(new Set([plan.datasetCode]))
+  if (!dataset) throw new Error(`Missing dataset fixture: ${plan.datasetCode}.`)
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
   const progress = new LocalUploadProgress()
@@ -206,6 +209,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         geography: resolution
           ? { code: resolution.districtCode, kind: 'district' }
           : undefined,
+        areaCompanionByReferencePeriod: dataset.areaCompanionByReferencePeriod,
         properties: object(row.rawProperties, 'rawProperties'),
         sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
         sourceReleaseId: releaseId,

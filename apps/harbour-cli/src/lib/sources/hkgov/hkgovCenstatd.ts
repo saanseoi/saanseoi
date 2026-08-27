@@ -24,9 +24,17 @@ const METRES_PER_DEGREE_LATITUDE = 110_574
 const METRES_PER_DEGREE_LONGITUDE =
   111_320 * Math.cos((HONG_KONG_REFERENCE_LATITUDE * Math.PI) / 180)
 
-const SOURCE_PROFILE: Record<string, { layerName: string }> = {
+type CenstatdDistrictSourceVersion = '2016' | '2021' | '2024'
+
+const SOURCE_PROFILE: Record<
+  CenstatdDistrictSourceVersion,
+  { layerName: string; referencePeriodField?: string }
+> = {
   '2016': { layerName: 'DC_16BC_SDU' },
   '2021': { layerName: 'DC_21C_SDU' },
+  // The annual District Council statistics release retains one DC_GHS feature
+  // per district and year. Its 2024 features are byte-identical to Density_2024.
+  '2024': { layerName: 'DC_GHS', referencePeriodField: 'year' },
 }
 
 export type PreparedHkgovCenstatdDistrictUpload = {
@@ -74,15 +82,15 @@ type PreparedDistrictRow = {
 
 /**
  * Converts either Census dataset's GML 3.2 WFS delivery into the normalised
- * division-area Parquet contract. The source delivery already contains the
- * detailed land-clipped census district boundaries; its geometry and complete
- * GML feature member are retained for the C&SD provider variant.
+ * division-area Parquet contract. The source delivery's district geometry and
+ * complete GML feature member are retained for the C&SD provider variant.
  */
 export async function prepareHkgovCenstatdDistrictUpload(
   inputFile: string,
   outputDir: string,
-  sourceVersion: '2016' | '2021',
+  sourceVersion: CenstatdDistrictSourceVersion,
   options: {
+    datasetCode?: string
     sourceArchive?: { key: string; sha256: string }
     transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
   } = {},
@@ -98,7 +106,13 @@ export async function prepareHkgovCenstatdDistrictUpload(
   if (!input.trimStart().startsWith('<')) {
     throw new Error('C&SD district input must be a GML 3.2 WFS FeatureCollection.')
   }
-  const features = parseHkgovCenstatdDistrictGml(input, profile.layerName)
+  const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName)
+  const referencePeriodField = profile.referencePeriodField
+  const features = referencePeriodField
+    ? sourceFeatures.filter(
+        feature => String(feature.properties[referencePeriodField]) === sourceVersion,
+      )
+    : sourceFeatures
   if (features.length !== 18) {
     throw new Error(
       `C&SD ${sourceVersion} district input must contain 18 district areas; found ${features.length}.`,
@@ -111,7 +125,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   assertUniqueDistricts(exactRows, sourceVersion)
   const rows =
     options.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
-      ? withDisplayGeometry(exactRows, sourceVersion)
+      ? withDisplayGeometry(exactRows, sourceVersion, options.datasetCode)
       : exactRows
   const outputSourceVersion = sourceVersion
   const filePath = join(
@@ -207,7 +221,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
  */
 export function readHkgovCenstatdDistrictGmlArchive(
   archiveBytes: Uint8Array,
-  sourceVersion: '2016' | '2021',
+  sourceVersion: CenstatdDistrictSourceVersion,
 ) {
   const profile = SOURCE_PROFILE[sourceVersion]
   if (!profile) throw new Error(`No C&SD district profile exists for ${sourceVersion}.`)
@@ -285,7 +299,11 @@ function normaliseCsdIDistrictFeature(
   }
 }
 
-function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string) {
+function withDisplayGeometry(
+  rows: PreparedDistrictRow[],
+  sourceVersion: string,
+  datasetCode = 'ds-hk-hkgov-censtatd-division-area-district',
+) {
   const simplifiedGeometries = simplifyTogether(rows.map(row => row.geometry))
   return rows.map((row, index) => {
     const geometry = simplifiedGeometries[index]
@@ -295,14 +313,16 @@ function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string)
     return {
       ...row,
       derivation: {
-        inputDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        inputDatasetCode: datasetCode,
         inputSource: HKGOV_CENSTATD_SOURCE,
         inputSourceVersion: sourceVersion,
         inputGeometryProjection: 'EPSG:4326',
         method: 'topology-preserving-simplification',
         toleranceMetres: DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
         coordinateSpace: 'local-equirectangular-metre-plane',
-        preservesLandClip: true,
+        ...(sourceVersion === '2024'
+          ? { preservesPublisherGeometry: true }
+          : { preservesLandClip: true }),
       },
       geometry,
       // A display transform is another representation of the same C&SD

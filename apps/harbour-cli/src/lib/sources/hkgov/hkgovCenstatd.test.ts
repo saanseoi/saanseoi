@@ -6,12 +6,14 @@ import { describe, expect, test } from 'bun:test'
 import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+import { strFromU8 } from 'fflate'
 
 import {
   prepareHkgovCenstatdDistrictUpload,
   readHkgovCenstatdDistrictGmlArchive,
 } from './hkgovCenstatd.ts'
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
+import { readSafeZipArchive } from '../zipArchive.ts'
 
 const districtClasses = [
   'A',
@@ -72,6 +74,83 @@ describe('C&SD district GML preparation', () => {
       expect(geometryProfilesByDistrictClass(nativeFeatures)).toEqual(
         geometryProfilesByDistrictClass(baselineFeatures),
       )
+    }
+  })
+
+  test('extracts the 2024 DC_GHS district cohort that is identical to Density_2024', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../')
+    const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
+    const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-output-'))
+    try {
+      const [districtArchive, densityArchive] = await Promise.all([
+        readFile(
+          join(
+            repoRoot,
+            'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+          ),
+        ),
+        readFile(
+          join(
+            repoRoot,
+            'data/hkgov/csdi/archive/censtatd_rcd_1635934215448_25451/2025-Q3/source.zip',
+          ),
+        ),
+      ])
+      const inputFile = join(inputDir, 'district-council-districts-2024.gml')
+      await writeFile(
+        inputFile,
+        readHkgovCenstatdDistrictGmlArchive(districtArchive, '2024'),
+        'utf8',
+      )
+      const prepared = await prepareHkgovCenstatdDistrictUpload(
+        inputFile,
+        outputDir,
+        '2024',
+      )
+      const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
+        inputFile,
+        outputDir,
+        '2024',
+        { transform: 'simplified' },
+      )
+      const file = await asyncBufferFromFile(prepared.filePath)
+      const rows = await parquetReadObjects({
+        compressors,
+        file,
+        metadata: await parquetMetadataAsync(file),
+      })
+      const displayFile = await asyncBufferFromFile(displayPrepared.filePath)
+      const displayRows = await parquetReadObjects({
+        compressors,
+        file: displayFile,
+        metadata: await parquetMetadataAsync(displayFile),
+      })
+      const densityGml = strFromU8(
+        readSafeZipArchive(densityArchive, {
+          select: name => name === 'Density_2024.gml',
+        }).entries['Density_2024.gml']!,
+      )
+      const densityByCode = new Map(
+        parseHkgovCenstatdDistrictGml(densityGml, 'Density_2024').map(feature => [
+          Number(feature.properties.DC),
+          feature.sourceGeometry,
+        ]),
+      )
+
+      expect(prepared).toMatchObject({ cohortKey: '2024', sourceVersion: '2024' })
+      expect(rows).toHaveLength(18)
+      expect(rows.map(row => row.census_year)).toEqual(Array(18).fill('2024'))
+      expect(displayRows[0]).toMatchObject({
+        derivation: { preservesPublisherGeometry: true },
+      })
+      for (const row of rows) {
+        expect(row.source_geometry).toEqual(
+          densityByCode.get(Number(row.district_code)),
+        )
+      }
+    } finally {
+      await rm(inputDir, { force: true, recursive: true })
+      await rm(outputDir, { force: true, recursive: true })
     }
   })
 
