@@ -1,12 +1,7 @@
 <script lang="ts">
-import type { Feature } from 'geojson'
-import type { LayerSpecification, Map as MapLibreMap } from 'maplibre-gl'
+import type { LayerSpecification, StyleSpecification } from 'maplibre-gl'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
-import {
-  getUrbanDensityLiveableDistricts,
-  type DistrictGeometry,
-} from './urbanDensityCensusDistricts.ts'
 import { nonLiveableLandUse } from './urbanDensityLandUse.ts'
 
 type Props = {
@@ -17,38 +12,22 @@ type Props = {
 
 let { label, styleUrl, tilejsonUrl }: Props = $props()
 
-const addLiveableDistricts = (map: MapLibreMap) => {
-  try {
-    const nonLiveableFeatures = map
-      .querySourceFeatures('basemap', {
-        sourceLayer: 'landuse',
-        filter: ['in', 'kind', ...nonLiveableLandUse],
-      })
-      .flatMap(feature =>
-        feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon'
-          ? [feature as unknown as Feature<DistrictGeometry>]
-          : [],
-      )
-    const liveableDistricts = getUrbanDensityLiveableDistricts(nonLiveableFeatures)
-    map.addSource('liveable-districts', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: liveableDistricts },
-    })
-    map.addLayer(
-      {
-        id: 'liveable-districts',
-        type: 'fill',
-        source: 'liveable-districts',
-        paint: { 'fill-color': '#36a269', 'fill-opacity': 0.48 },
-      },
-      'not-liveable',
-    )
-  } catch (cause) {
-    console.error('Liveable areas could not be calculated.', cause)
-  }
-}
+// The tutorial shows the calculation. The preview uses its cached result so it never
+// blocks page rendering with Turf's district-by-district intersections.
+const liveableDistrictsSource = {
+  'liveable-districts': {
+    type: 'geojson',
+    data: '/guides/urban-density-liveable-districts.geojson',
+  },
+} satisfies StyleSpecification['sources']
 
 const liveableLayers: LayerSpecification[] = [
+  {
+    id: 'liveable-districts',
+    type: 'fill',
+    source: 'liveable-districts',
+    paint: { 'fill-color': '#36a269', 'fill-opacity': 0.48 },
+  },
   {
     id: 'not-liveable',
     type: 'fill',
@@ -73,8 +52,8 @@ const liveableLayers: LayerSpecification[] = [
     <GuideMappingPreview
       ariaLabel={label}
       additionalLayers={liveableLayers}
+      additionalSources={liveableDistrictsSource}
       center={[114.165, 22.34]}
-      onMapReady={addLiveableDistricts}
       renderer="maplibre"
       {styleUrl}
       {tilejsonUrl}
