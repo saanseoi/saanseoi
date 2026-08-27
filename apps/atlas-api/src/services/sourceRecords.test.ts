@@ -291,6 +291,66 @@ describe('source records', () => {
     expect(result?.records.map(record => record.sourceRecordId)).toEqual(['division-1'])
   })
 
+  test('uses random ordering for publisher source identifiers outside Overture UUID space', async () => {
+    let query = ''
+    const randomSourceDatabase = {
+      prepare(value: string) {
+        query = value
+        return {
+          bind(...values: unknown[]) {
+            expect(values).toEqual(['2016', '2016', 2])
+            return {
+              all: async () => ({
+                results: [
+                  {
+                    rawProperties: JSON.stringify({ id: 'CENSTATD:T' }),
+                    sourceRecordId: 'CENSTATD:T',
+                    versionHash: 'version-1',
+                  },
+                  {
+                    rawProperties: JSON.stringify({ id: 'CENSTATD:K' }),
+                    sourceRecordId: 'CENSTATD:K',
+                    versionHash: 'version-2',
+                  },
+                ],
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    } as never
+    const censtatdRelease = 'dr-hk-hkgov-censtatd-division-area-district-2016'
+
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: randomSourceDatabase,
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: false,
+      limit: 2,
+      metaDb: metaDatabase({
+        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        resourceType: 'divisionArea',
+        sourceReleaseCode: censtatdRelease,
+        sourceVariant: 'hkgov-censtatd:2016',
+        sourceVersion: '2016',
+      }),
+      sample: 'random',
+      sourceReleaseCode: censtatdRelease,
+    })
+
+    expect(query).toContain('FROM hkgovCenstatdDivisionAreas')
+    expect(query).toContain('ORDER BY RANDOM()')
+    expect(query).not.toContain('sourceRecordId >= ?')
+    expect(result?.records.map(record => record.sourceRecordId)).toEqual([
+      'CENSTATD:T',
+      'CENSTATD:K',
+    ])
+  })
+
   test('rejects a cursor combined with a random source-record sample', async () => {
     await expect(
       listSourceRecords({
