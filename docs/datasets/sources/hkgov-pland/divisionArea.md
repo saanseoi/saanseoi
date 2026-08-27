@@ -147,11 +147,15 @@ the catalogue.
 ## Backfill commands
 
 The CLI owns the checked-in cohort list, mirrored native archive paths and catalogue
-provenance URLs. It prepares each local SHP ZIP artefact in a temporary directory,
-uploads the canonical division release first, then its exact-cohort area variant, and
-removes the temporary Parquet files afterwards. Snapshot cleanup is deferred for the
-interim division upload, so its canonical IDs remain materialised for the companion area
-validation; normal cleanup resumes when the area release is published.
+provenance URLs. It prepares each local SHP ZIP artefact as a verified local cache
+entry, uploads the canonical division release first, then its exact-cohort area variant.
+The cache is outside source and release state at `.local/dataops/prepared-artefacts`;
+its key includes the source ZIP SHA-256, source cohort, resource type and
+native-preparation contract. A sidecar manifest verifies the generated Parquet digest
+before it is reused, so retries do not repeat source geometry reconstruction. Snapshot
+cleanup is deferred for the interim division upload, so its canonical IDs remain
+materialised for the companion area validation; normal cleanup resumes when the area
+release is published.
 
 The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
