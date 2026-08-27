@@ -1043,7 +1043,7 @@ INSERT INTO datasetTransforms (
   ${nowSql},
   ${nowSql}
 )
-ON CONFLICT(datasetId, code) DO UPDATE SET
+ON CONFLICT(datasetId, code, sourceVersion) DO UPDATE SET
   resourceType = excluded.resourceType,
   sourceVersion = excluded.sourceVersion,
   outputVariant = excluded.outputVariant,
