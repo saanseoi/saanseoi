@@ -54,7 +54,7 @@ const CASES: Array<{
   },
   {
     archive:
-      'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/source.zip',
+      'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip',
     datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
     rowCount: 3,
     sourceVersion: '2023-H2',
@@ -90,6 +90,14 @@ const CASES: Array<{
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 144,
     sourceVersion: '2026-Q2',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 162,
+    sourceVersion: '2024',
   },
   {
     archive:

@@ -347,14 +347,17 @@ async function prepareAnnualDistrictGeographies(input: {
   )
 }
 
-function isCenstatdDistrictGeometryDataset(
+export function isCenstatdDistrictGeometryDataset(
   datasetCode: string,
 ): datasetCode is
   | 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
   | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' {
   return (
     datasetCode ===
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
     datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
   )
 }

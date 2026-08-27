@@ -1,8 +1,24 @@
 import { describe, expect, test } from 'bun:test'
 
-import { pendingCenstatdStatisticResourceTypes } from './hkgovCenstatdStatistics.ts'
+import {
+  isCenstatdDistrictGeometryDataset,
+  pendingCenstatdStatisticResourceTypes,
+} from './hkgovCenstatdStatistics.ts'
 
 describe('C&SD statistics ingestion idempotency', () => {
+  test('uses the district parser for both the census and renamed annual datasets', () => {
+    expect(
+      isCenstatdDistrictGeometryDataset(
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      ),
+    ).toBe(true)
+    expect(
+      isCenstatdDistrictGeometryDataset(
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      ),
+    ).toBe(true)
+  })
+
   test('skips only resource types already published for the requested source version', () => {
     expect(
       pendingCenstatdStatisticResourceTypes(
