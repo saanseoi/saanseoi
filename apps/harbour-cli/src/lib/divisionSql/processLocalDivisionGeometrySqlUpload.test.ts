@@ -191,6 +191,12 @@ describe('C&SD geometry materialisation identity', () => {
     expect(
       hasIdenticalGeometryMaterialisation(expected, [...expected].reverse()),
     ).toBeTrue()
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [
+        ...expected,
+        { hash: 'area', id: 'hong-kong-island' },
+      ]),
+    ).toBeTrue()
   })
 
   test('rejects a changed overlapping geometry or a partial contribution', () => {
