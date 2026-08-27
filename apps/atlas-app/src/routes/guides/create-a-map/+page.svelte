@@ -88,7 +88,9 @@ import {
   iframeCode,
   mapboxTokenCode,
   urbanDensityMapCode,
+  urbanDensityMapDisplayCode,
   urbanDensityCensusAreasCode,
+  urbanDensityCensusAreasDisplayCode,
   urbanDensityCalculationCode,
   urbanDensityCalculationDisplayCode,
   urbanDensityMetricsCode,
@@ -96,7 +98,9 @@ import {
   urbanDensityMetricsCss,
   urbanDensityMetricsCssDisplayCode,
   urbanDensityLiveableAreaCode,
+  urbanDensityLiveableAreaDisplayCode,
   urbanDensityLiveableMetricsCode,
+  urbanDensityLiveableMetricsDisplayCode,
   urbanDensityStatsCode,
   urbanDensityStatsDisplayCode,
   urbanDensityTurfInstallCode,
@@ -2725,7 +2729,9 @@ const styleChoices = $derived.by(() =>
             {terminalProjectPath}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
+            mapDisplayCode={urbanDensityMapDisplayCode}
             censusAreasCode={urbanDensityCensusAreasCode}
+            censusAreasDisplayCode={urbanDensityCensusAreasDisplayCode}
             calculationCode={urbanDensityCalculationCode}
             calculationDisplayCode={urbanDensityCalculationDisplayCode}
             metricsCode={urbanDensityMetricsCode}
@@ -2733,7 +2739,9 @@ const styleChoices = $derived.by(() =>
             metricsCss={urbanDensityMetricsCss}
             metricsCssDisplayCode={urbanDensityMetricsCssDisplayCode}
             liveableAreaCode={urbanDensityLiveableAreaCode}
+            liveableAreaDisplayCode={urbanDensityLiveableAreaDisplayCode}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
+            liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
