@@ -320,7 +320,8 @@ describe('source records', () => {
         }
       },
     } as never
-    const censtatdRelease = 'dr-hk-hkgov-censtatd-division-area-district-2016'
+    const censtatdRelease =
+      'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
 
     const result = await listSourceRecords({
       env: {
@@ -332,7 +333,8 @@ describe('source records', () => {
       includeGeometry: false,
       limit: 2,
       metaDb: metaDatabase({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         resourceType: 'divisionArea',
         sourceReleaseCode: censtatdRelease,
         sourceVariant: 'hkgov-censtatd:2016',
@@ -405,7 +407,8 @@ describe('source records', () => {
       ],
       type: 'Polygon',
     }
-    const censtatdRelease = 'dr-hk-hkgov-censtatd-division-area-district-2016'
+    const censtatdRelease =
+      'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
     const result = await listSourceRecords({
       env: {
         DB_SOURCE_HK_2025: sourceDatabase([]),
@@ -426,7 +429,8 @@ describe('source records', () => {
       family: 'divisions',
       includeGeometry: true,
       metaDb: metaDatabase({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         resourceType: 'divisionArea',
         sourceReleaseCode: censtatdRelease,
         sourceVersion: '2016',

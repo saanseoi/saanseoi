@@ -79,12 +79,22 @@ type Cursor = {
 }
 
 const DIVISION_SOURCE_RECORD_CATALOGUE = {
-  'ds-hk-hkgov-censtatd-division-area-district': {
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
     geometryColumn: 'sourceGeometry',
     geometryEncoding: 'brotli-json',
     tableName: 'hkgovCenstatdDivisionAreas',
   },
-  'ds-hk-hkgov-censtatd-division-area-district-annual': {
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+    geometryColumn: 'sourceGeometry',
+    geometryEncoding: 'brotli-json',
+    tableName: 'hkgovCenstatdDivisionAreas',
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
+    geometryColumn: 'sourceGeometry',
+    geometryEncoding: 'brotli-json',
+    tableName: 'hkgovCenstatdDivisionAreas',
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
     geometryColumn: 'sourceGeometry',
     geometryEncoding: 'brotli-json',
     tableName: 'hkgovCenstatdDivisionAreas',
