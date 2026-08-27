@@ -487,14 +487,23 @@ export const urbanDensityStatsDisplayCode = [
 ].join('\n')
 
 export const urbanDensityCalculationCode = [
-  '// Start a request for level-2 Divisions.',
+  '// Start a request for level-2 census Divisions and their land-clipped geometry.',
   "const divisionsEndpoint = '/divisions/v0'",
   'const divisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
   "divisionsUrl.searchParams.set('filter[level]', '2')",
-  "divisionsUrl.searchParams.set('include', 'hierarchy')",
+  "divisionsUrl.searchParams.set('include', 'hierarchy,areas:hkgov-censtatd-landclipped@2021&transform=simplified')",
   "const divisionsResponse = await fetch(divisionsUrl, { headers: { 'x-api-key': accessToken } })",
   `if (!divisionsResponse.ok) throw new Error(\`Divisions request failed: \${divisionsResponse.status}\`)`,
   'const response = await divisionsResponse.json()',
+  '',
+  '// Save the land-clipped district geometry now, ready for the map and later Turf calculation.',
+  'const censusGeometryByDivisionId = Object.fromEntries(',
+  '  (response.included ?? []).flatMap(item =>',
+  "    item.type === 'division-areas' && item.attributes.geometry && item.attributes.isLand",
+  '      ? [[item.attributes.divisionId, item.attributes.geometry]]',
+  '      : [],',
+  '  ),',
+  ')',
   '',
   '// Make a lookup: for each district code, save the Area it belongs to so we can add district statistics to its Area.',
   'const byDivisionCode = Object.fromEntries(',
@@ -534,7 +543,7 @@ export const urbanDensityCalculationCode = [
 ].join('\n')
 
 export const urbanDensityCalculationDisplayCode = [
-  '// { 45 LINES OMITTED: KEEP YOUR WORKING MAP SETUP AND STATISTICS REQUEST }',
+  '// { 54 LINES OMITTED: KEEP YOUR WORKING MAP SETUP AND STATISTICS REQUEST }',
   '',
   urbanDensityCalculationCode,
 ].join('\n')
@@ -574,26 +583,13 @@ export const urbanDensityMapDisplayCode = [
 ].join('\n')
 
 export const urbanDensityCensusAreasCode = [
-  'const censusDivisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
-  "censusDivisionsUrl.searchParams.set('filter[level]', '2')",
-  "censusDivisionsUrl.searchParams.set('include', 'hierarchy,areas:hkgov-censtatd:2021:simplified')",
-  "const censusDivisionsResponse = await fetch(censusDivisionsUrl, { headers: { 'x-api-key': accessToken } })",
-  `if (!censusDivisionsResponse.ok) throw new Error(\`Census divisions request failed: \${censusDivisionsResponse.status}\`)`,
-  'const censusDivisions = await censusDivisionsResponse.json()',
-  '',
-  'const censusAreaByDivisionId = Object.fromEntries(',
-  '  (censusDivisions.included ?? []).flatMap(item =>',
-  "    item.type === 'division-areas' && item.attributes.geometry && item.attributes.isLand",
-  '      ? [[item.attributes.divisionId, item.attributes.geometry]]',
-  '      : [],',
-  '  ),',
-  ')',
-  '',
-  'const censusDistricts = censusDivisions.data.flatMap(division => {',
-  "  const area = division.relationships.hierarchy.data.find(item => item.meta?.subType === 'area')",
-  '  const geometry = censusAreaByDivisionId[division.id]',
+  '// Reuse the geometry and Area lookup saved with the earlier Divisions request.',
+  'const censusDistricts = response.data.flatMap(division => {',
+  '  const code = division.attributes.divisionCode',
+  '  const area = code ? byDivisionCode[code] : undefined',
+  '  const geometry = censusGeometryByDivisionId[division.id]',
   '  return area && geometry',
-  "    ? [{ type: 'Feature', properties: { divisionCode: division.attributes.divisionCode, area: area.meta.name, areaId: area.id }, geometry }]",
+  "    ? [{ type: 'Feature', properties: { divisionCode: code, area: area.name, areaId: area.id }, geometry }]",
   '    : []',
   '})',
   '',
@@ -609,8 +605,8 @@ export const urbanDensityCensusAreasCode = [
 ].join('\n')
 
 export const urbanDensityCensusAreasDisplayCode = [
-  '// { 124 LINES OMITTED: KEEP YOUR WORKING MAP CODE }',
-  '// APPEND THIS CENSUS-DISTRICT REQUEST TO THE END OF src/main.ts',
+  '// { 133 LINES OMITTED: KEEP YOUR WORKING MAP CODE, STATISTICS, AND DIVISIONS REQUEST }',
+  '// APPEND THIS CENSUS-DISTRICT LAYER TO THE END OF src/main.ts',
   '',
   urbanDensityCensusAreasCode,
 ].join('\n')
