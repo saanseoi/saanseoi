@@ -73,7 +73,9 @@ const liveableLayers: LayerSpecification[] = [
 <div
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
-  <div class="guide-map-preview-canvas relative min-h-64 flex-1 overflow-hidden">
+  <div
+    class="relative min-h-64 flex-1 overflow-hidden [[data-guide-map-expanded=true]_&]:h-auto [[data-guide-map-expanded=true]_&]:flex-[1_1_auto]"
+  >
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
@@ -125,10 +127,3 @@ const liveableLayers: LayerSpecification[] = [
     </section>
   {/if}
 </div>
-
-<style>
-:global([data-guide-map-expanded="true"]) .guide-map-preview-canvas {
-  height: auto;
-  flex: 1 1 auto;
-}
-</style>
