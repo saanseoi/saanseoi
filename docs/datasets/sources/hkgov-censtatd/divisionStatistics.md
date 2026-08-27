@@ -10,7 +10,7 @@ publish the period are not required companions.
 | Dataset                                                          | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
 | Census Subdivided Units by District Council District             | `censtatd_rcd_1635932488538_10765` (2016); `censtatd_rcd_1635933617052_68946` (2021) | Two 18-district census cohorts; subdivided-unit population                  |
-| Permanent Living Quarters by Area and Type                       | `censtatd_rcd_1635933883228_46491`                                                   | Area-level housing stock                                                    |
+| Permanent Living Quarters                                        | `censtatd_rcd_1635933883228_46491`                                                   | Area-level housing stock                                                    |
 | Permanent Living Quarters by District Council District           | `censtatd_rcd_1635934103275_66203`                                                   | District-level housing stock                                                |
 | Population and Household Statistics by District Council District | `censtatd_rcd_1635934545173_69201`                                                   | Annual land-based, non-institutional population and socio-economic measures |
 | District Land Area, Population and Density                       | `censtatd_rcd_1635934215448_25451`                                                   | District land area, population and density                                  |
@@ -163,18 +163,18 @@ such as land area, population density and a single total count, retain `{}`. A v
 `all` is used only where the same field family has an explicit alternative category, for
 example the total population alongside male and female population fields.
 
-The importer never creates a parallel statistical-geography registry. Area/type maps its
-three C&SD source codes to the Overture Hong Kong Island, Kowloon, and New Territories
-identities, then publishes only its source-specific `divisionArea` geometry. HMA
-continues to fan out into its own `division` and `divisionArea` records for the C&SD
-Housing Market Area domain. Building Group points remain source history for a future
-buildings projection.
+The importer never creates a parallel statistical-geography registry. Permanent Living
+Quarters maps its three C&SD source codes to the Overture Hong Kong Island, Kowloon, and
+New Territories identities, then publishes only its source-specific `divisionArea`
+geometry. HMA continues to fan out into its own `division` and `divisionArea` records
+for the C&SD Housing Market Area domain. Building Group points remain source history for
+a future buildings projection.
 
 The statistical `division` output is therefore limited to the reviewed 2021 HMA variant
-(`hkgov-censtatd-hma`). Area/type is optional source-specific Geographic geometry
-selected at the latest compatible cohort and linked to the Overture identity snapshot.
-HMA is its domain's primary canonical division input, paired with the required native
-`hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
+(`hkgov-censtatd-hma`). Permanent Living Quarters is optional source-specific Geographic
+geometry selected at the latest compatible cohort and linked to the Overture identity
+snapshot. HMA is its domain's primary canonical division input, paired with the required
+native `hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
 Division level, so the generated Division record has no `level` value and an empty
 hierarchy.
 
@@ -198,20 +198,20 @@ dimension. District releases record the approved C&SD-to-canonical district brid
 automatic processing action with authority, cohort, domain and source-field evidence. A
 missing required district bridge member stops ingestion. Building-group and
 major-housing-estate geometries are candidate domains, not failed district links.
-Area/type and HMA use reviewed native source-code identities. The archived 2021 C&SD New
-Town codes resolve through the reviewed `new-town` identifier bridge to the
-corresponding 2021 Planning Division identities. The curation is an explicit source-code
-bridge, not a translated-name or spatial match.
+Permanent Living Quarters and HMA use reviewed native source-code identities. The
+archived 2021 C&SD New Town codes resolve through the reviewed `new-town` identifier
+bridge to the corresponding 2021 Planning Division identities. The curation is an
+explicit source-code bridge, not a translated-name or spatial match.
 
 If source geometry is suitable for delivery, it is reviewed and published through a
-Divisions-domain workflow. Area/type and HMA are the approved exception: their shared
-statistics importer executes that source-release fan-out explicitly. For HMA, it
-publishes the generated `division` snapshot before the companion `divisionArea`
+Divisions-domain workflow. Permanent Living Quarters and HMA are the approved exception:
+their shared statistics importer executes that source-release fan-out explicitly. For
+HMA, it publishes the generated `division` snapshot before the companion `divisionArea`
 snapshot, so the area records are validated against the immutable HMA identities from
-the same source release. Area/type creates no parallel C&SD division snapshot: its three
-geometry records validate against the closest published canonical Overture division
-cohort, preferring the latest cohort at or before the C&SD cohort and using the earliest
-later cohort only when no earlier one is available.
+the same source release. Permanent Living Quarters creates no parallel C&SD division
+snapshot: its three geometry records validate against the closest published canonical
+Overture division cohort, preferring the latest cohort at or before the C&SD cohort and
+using the earliest later cohort only when no earlier one is available.
 
 When a comparable earlier source release exists, structural churn is limited to measure
 and dimension-definition/coverage changes. It is a quality-control signal, not a claim
@@ -228,13 +228,13 @@ subdivided-units release, the 2021 bridge for the 2021 subdivided-units release,
 datasets. A missing member of one of those bridges stops ingestion; it is never replaced
 by a name or spatial-match guess.
 
-Area/type observations resolve through the reviewed mapping to deterministic Overture
-area identities; HMA observations use their deterministic C&SD source-code identities.
-The archived 2021 New Town observations resolve only through the reviewed thirteen-code
-identifier bridge to Planning's 2021 New Town Divisions. No name or spatial matching is
-used. Building-group and housing-estate observations remain without a `divisionId` until
-their respective geographies are reviewed and released as Divisions domains, not by
-assigning an arbitrary district parent.
+Permanent Living Quarters observations resolve through the reviewed mapping to
+deterministic Overture area identities; HMA observations use their deterministic C&SD
+source-code identities. The archived 2021 New Town observations resolve only through the
+reviewed thirteen-code identifier bridge to Planning's 2021 New Town Divisions. No name
+or spatial matching is used. Building-group and housing-estate observations remain
+without a `divisionId` until their respective geographies are reviewed and released as
+Divisions domains, not by assigning an arbitrary district parent.
 
 ## District land area, population and density ingestion
 

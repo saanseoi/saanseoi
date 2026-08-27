@@ -63,7 +63,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
+          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",

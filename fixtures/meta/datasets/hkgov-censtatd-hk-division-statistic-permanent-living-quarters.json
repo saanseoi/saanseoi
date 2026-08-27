@@ -1,18 +1,17 @@
 {
-  "versionHash": "sha256:6a2d49b74676ad8e47fea5ecbaaf82eb269640cee6a18bddfe3c91cf12884c94",
+  "versionHash": "sha256:1648f8ca1b773d91420fa2f787ef5873ec9980716105783ad44dd9b15d6f124c",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "half-yearly",
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-area",
+  "areaVariantByReferencePeriod": {
+    "*": "hkgov-censtatd-area"
+  },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic",
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491",
@@ -36,9 +35,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -71,7 +68,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Permanent Living Quarters by Area and Type",
+      "name": "Permanent Living Quarters",
       "description": "Planned C&SD source for area-level permanent living-quarters stock by type."
     }
   ]

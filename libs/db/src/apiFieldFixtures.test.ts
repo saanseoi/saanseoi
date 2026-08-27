@@ -8,7 +8,7 @@ const overtureSourceSchemas = {
   'ds-hk-overture-division-boundary': '1.17.0',
   'ds-hk-hkgov-had-division-area-district': '1.2',
   'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': '1.0',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
 }
 
 describe('api field fixtures', () => {
@@ -56,8 +56,7 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.13.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -81,8 +80,7 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.15.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -113,8 +111,7 @@ describe('api field fixtures', () => {
           'ds-hk-overture-division-boundary': cohort.version,
           'ds-hk-hkgov-had-division-area-district': '1.2',
           'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-            '1.0',
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
         },
       })
 
@@ -236,8 +233,7 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-boundary': '1.18.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 

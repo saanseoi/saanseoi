@@ -78,7 +78,7 @@ for year in 2016 2021
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
-# The Area/type C&SD source derives the required hkgov-censtatd-area geometry
+# The Permanent Living Quarters C&SD source derives the required hkgov-censtatd-area geometry
 # after the Overture canonical divisions are available. It must precede draft
 # release-set reconciliation so the first initialisation run can publish them.
 set -l censtatd_area_archive \
@@ -90,11 +90,11 @@ if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest
     # update pass below. The dataops replay mirrors the prepared archive to the
     # selected target before attempting to link its derived source releases.
     init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
         --download --force-download --no-upload --yes
 end
 if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
-    echo "C&SD Area/type input file not found: $censtatd_area_archive" >&2
+    echo "C&SD Permanent Living Quarters input file not found: $censtatd_area_archive" >&2
     exit 1
 end
 # A normal update maintains the source-statistics release. Its Geographic
@@ -103,16 +103,16 @@ end
 # skip convention as the preceding division uploads rather than entering the
 # update and dataops-specific status UIs.
 set -l censtatd_area_release_code \
-    dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2
+    dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
 if test "$saanseoi_init_continue" -eq 1; and init_is_completed_release "$censtatd_area_release_code"
     echo "Skipping completed release $censtatd_area_release_code."
 else
     init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
         --download --yes
     init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
         "$censtatd_area_archive" --target $saanseoi_init_target \
-        --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type \
+        --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
         --source-version 2023-H2 \
         --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
         --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/2023-Q4/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \

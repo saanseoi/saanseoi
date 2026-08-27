@@ -34,18 +34,18 @@ Overture does provide the division identity itself. Those reviewed identities re
 their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
 New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
 `17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
-C&SD Area/type geometry then references those Overture identities rather than creating
-parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's 173
-polygonal Housing Market Areas. Building Groups are not divisions: their source
-centroids remain source history for a future buildings projection.
+C&SD Permanent Living Quarters geometry then references those Overture identities rather
+than creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes
+C&SD's 173 polygonal Housing Market Areas. Building Groups are not divisions: their
+source centroids remain source history for a future buildings projection.
 
-The 2023-H2 C&SD Area/type statistics output maps its source codes to those stable
-Overture area identities. It is a required member of each publishable Geographic release
-set, while remaining an explicitly selected `divisionArea` response variant through
-`include=areas:hkgov-censtatd-area`; it never adds a second Geographic division
-collection. The 2021 HMA statistics output instead supplies the separate HMA domain's
-primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
-`hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
+The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
+those stable Overture area identities. It is a required member of each publishable
+Geographic release set, while remaining an explicitly selected `divisionArea` response
+variant through `include=areas:hkgov-censtatd-area`; it never adds a second Geographic
+division collection. The 2021 HMA statistics output instead supplies the separate HMA
+domain's primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its
+native `hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
 statistics, its statistics and its division geography have distinct snapshot lineages.
 
 Planning Department Planning Units and New Towns are independent API domains, not

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "fields": [
     {
       "aggregation": "total",

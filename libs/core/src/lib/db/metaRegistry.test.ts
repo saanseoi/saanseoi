@@ -1018,7 +1018,7 @@ function createPublishReleaseArtefactsDb() {
       ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
       ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district'),
-      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type');
+      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters');
   `)
 
   return {
