@@ -1,0 +1,95 @@
+{
+  "versionHash": "sha256:5e0cbf106f1a5942e56ece2fe5e67fcdf63282b7980beefe8e303b730b56bac9",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-area-district-annual",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "yearly",
+  "theme": "divisions",
+  "subType": "district",
+  "sourceVariant": "official-statistics",
+  "sourceCrs": "EPSG:2326",
+  "resourceTypes": ["divisionArea"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2024",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "verifiedIdenticalArchiveSlots": [
+        {
+          "releaseSlot": "2025-Q2",
+          "sourceObjectHash": "fb9ce26b82759e635777632fdaa560702e20f7ae4e3766f22bb473f0b8ca5ffc",
+          "contentHash": "bb9145810adabb52a32316b79b2c3a3fbc8a37e2f9438cd98242892a9f50797b"
+        }
+      ]
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2024",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Annual District Statistical Geography",
+      "description": "District Council district geometry published with C&SD's annual Population and Household Statistics by District Council District. Each release preserves its exact statistical-geography cohort."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "按年地區統計區議會分區地理資料",
+      "description": "政府統計處隨按區議會分區劃分的人口及住戶統計發布的區議會分區地理資料。每個版本保留其確切的統計地理分期。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "年度地区统计区议会分区地理资料",
+      "description": "政府统计处随按区议会分区划分的人口及住户统计发布的区议会分区地理资料。每个版本保留其确切的统计地理分期。"
+    }
+  ]
+}

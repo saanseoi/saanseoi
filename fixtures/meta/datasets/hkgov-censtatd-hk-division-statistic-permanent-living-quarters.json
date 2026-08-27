@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dfc7f456d6a2491a24ca1c1f76b1d2a66525488163fa636968ab3527d2f5540b",
+  "versionHash": "sha256:a72307752a39c7ca3a1ce3604a5e2868220fdf64ece25284b9b2ee476b9f5b19",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
@@ -10,6 +10,7 @@
   "areaCompanionByReferencePeriod": {
     "*": {
       "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
       "cohortKey": "{referencePeriodEndYear}"
     }
   },

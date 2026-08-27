@@ -17,7 +17,7 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censta
 
 ## Changelog
 
-- <orange>Upstream</orange> Add geometry for the C&SD {{cohortKey}} Census' District
+- <orange>Upstream</orange> Add geometry for the C&SD {{cohortKey}} By-census' District
   Council districts.
 
 ## Geometry
@@ -62,7 +62,7 @@ area is connected to its canonical division through the reviewed, cohort-specifi
   <black>included[].attributes.sourceKeys.hkgovCenstatd.class</black>.
 - `census_year` - The selected census cohort is
   <black>included[].attributes.variant</black>, whose value is
-  <black>hkgov-censtatd:{{cohortKey}}</black>.
+  <black>hkgov-censtatd-landclipped</black> at cohort <black>{{cohortKey}}</black>.
 
 ### Dropped Fields
 
@@ -113,8 +113,8 @@ area is connected to its canonical division through the reviewed, cohort-specifi
   <black>included[].attributes.sourceKeys.hkgovCenstatd.code</black> 和
   <black>included[].attributes.sourceKeys.hkgovCenstatd.class</black>。
 - `census_year` - 選取的人口普查分期為
-  <black>included[].attributes.variant</black>，值為
-  <black>hkgov-censtatd:{{cohortKey}}</black>。
+  <black>included[].attributes.variant</black>，值為cohort <black>{{cohortKey}}</black>
+  的 <black>hkgov-censtatd-landclipped</black>。
 
 ### 不公開欄位
 
@@ -165,8 +165,8 @@ area is connected to its canonical division through the reviewed, cohort-specifi
   <black>included[].attributes.sourceKeys.hkgovCenstatd.code</black> 和
   <black>included[].attributes.sourceKeys.hkgovCenstatd.class</black>。
 - `census_year` - 选取的人口普查分期为
-  <black>included[].attributes.variant</black>，值为
-  <black>hkgov-censtatd:{{cohortKey}}</black>。
+  <black>included[].attributes.variant</black>，值为cohort <black>{{cohortKey}}</black>
+  的 <black>hkgov-censtatd-landclipped</black>。
 
 ### 不公开字段
 

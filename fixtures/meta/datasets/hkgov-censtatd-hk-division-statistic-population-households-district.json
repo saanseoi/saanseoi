@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c1feaf12685239579f174ad0e99e92fef0ec5b4aba27bd25564c26c2a2a41ce5",
+  "versionHash": "sha256:6d9e5d2a8eb715c1826b3d74502892c7ae5128c85eae618f1ab41b207160859f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -10,6 +10,7 @@
   "areaCompanionByReferencePeriod": {
     "*": {
       "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
       "cohortKey": "{referencePeriodEndYear}"
     }
   },

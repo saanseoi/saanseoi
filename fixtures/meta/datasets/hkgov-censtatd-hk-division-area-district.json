@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c99e5d15662172387d61d239d875e3f83d09df1ecc24e3069558586b31aec689",
+  "versionHash": "sha256:00f6fc22eb83a7a2db34397bccbedc071667b142320c8472da0e28262f49a88e",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -8,9 +8,7 @@
   "theme": "divisions",
   "subType": "district",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -117,7 +113,7 @@
       "code": "simplified",
       "resourceType": "divisionArea",
       "sourceVersion": "2016",
-      "outputVariant": "hkgov-censtatd:2016:simplified",
+      "outputVariant": "hkgov-censtatd-landclipped:simplified",
       "derivation": {
         "method": "topology-preserving-simplification",
         "inputGeometryProjection": "EPSG:4326",
@@ -130,7 +126,7 @@
       "code": "simplified",
       "resourceType": "divisionArea",
       "sourceVersion": "2021",
-      "outputVariant": "hkgov-censtatd:2021:simplified",
+      "outputVariant": "hkgov-censtatd-landclipped:simplified",
       "derivation": {
         "method": "topology-preserving-simplification",
         "inputGeometryProjection": "EPSG:4326",
@@ -143,18 +139,18 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Census District Boundaries",
-      "description": "District Council district boundaries published with C&SD population census and by-census statistics. Each release preserves its exact statistical-geography cohort."
+      "name": "Census and By-census District Boundaries",
+      "description": "District Council district boundaries published with C&SD census and by-census subdivided-units statistics. Each release preserves its exact statistical-geography cohort."
     },
     {
       "locale": "zh-hant",
-      "name": "人口普查區議會分區界線",
-      "description": "政府統計處隨人口普查及中期人口統計數字發布的區議會分區界線。每個版本保留其確切的統計地理分期。"
+      "name": "人口普查及中期人口統計區議會分區界線",
+      "description": "政府統計處隨人口普查及中期人口統計的分間單位統計發布的區議會分區界線。每個版本保留其確切的統計地理分期。"
     },
     {
       "locale": "zh-hans",
-      "name": "人口普查区议会分区界线",
-      "description": "政府统计处随人口普查及中期人口统计数字发布的区议会分区界线。每个版本保留其确切的统计地理分期。"
+      "name": "人口普查及中期人口统计区议会分区界线",
+      "description": "政府统计处随人口普查及中期人口统计的分间单位统计发布的区议会分区界线。每个版本保留其确切的统计地理分期。"
     }
   ]
 }
