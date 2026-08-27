@@ -24,7 +24,7 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
+import { and, desc, eq, or, sql } from 'drizzle-orm'
 
 import {
   resolveLocalAddressDbContext,
@@ -1450,48 +1450,28 @@ async function logApiReleaseSetPublication(
   },
   target?: UploadTarget,
 ) {
-  if (result?.apiReleaseSetPublications?.length) {
-    for (const publication of result.apiReleaseSetPublications) {
-      log.success(
-        `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
-      )
-      await recordInitialisationSummaryEvent({
-        apiReleaseSetCode: publication.apiReleaseSetCode,
-        type: 'published-api-release-set',
-      })
-      if (publication.apiCatalogRevisionCode) {
-        log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
-      }
+  const publications = selectPublishedApiReleaseSetPublications(result)
+  for (const publication of publications) {
+    log.success(
+      `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
+    )
+    await recordInitialisationSummaryEvent({
+      apiReleaseSetCode: publication.apiReleaseSetCode,
+      type: 'published-api-release-set',
+    })
+    if (publication.apiCatalogRevisionCode) {
+      log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
     }
   }
 
   const releaseSetCode = result?.apiReleaseSetCode
-
-  if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
-    log.success(`Published API domain release ${rainbowWaveText(releaseSetCode)}.`)
-    await recordInitialisationSummaryEvent({
-      apiReleaseSetCode: releaseSetCode,
-      type: 'published-api-release-set',
-    })
-    if (result.apiCatalogRevisionCode) {
-      log.info(`Catalogue revision ${blueText(result.apiCatalogRevisionCode)}`)
-    }
-  } else if (releaseSetCode) {
+  if (releaseSetCode && result?.apiReleaseSetStatus !== 'current') {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
 
   if (!revisionDraft || !target) return
 
-  const releaseSetCodes = [
-    ...(result?.apiReleaseSetPublications?.map(
-      publication => publication.apiReleaseSetCode,
-    ) ?? []),
-    ...(releaseSetCode && result?.apiReleaseSetStatus === 'current'
-      ? [releaseSetCode]
-      : []),
-  ]
-
-  for (const apiReleaseSetCode of new Set(releaseSetCodes)) {
+  for (const { apiReleaseSetCode } of publications) {
     try {
       const draft =
         (await createApiReleaseSetInitialDraft(apiReleaseSetCode, target)) ??
@@ -1509,6 +1489,39 @@ async function logApiReleaseSetPublication(
   }
 }
 
+export function selectPublishedApiReleaseSetPublications(
+  result:
+    | {
+        apiCatalogRevisionCode?: string
+        apiReleaseSetCode?: string
+        apiReleaseSetPublications?: Array<{
+          apiCatalogRevisionCode?: string
+          apiReleaseSetCode: string
+        }>
+        apiReleaseSetStatus?: 'current' | 'draft'
+      }
+    | void
+    | null
+    | undefined,
+) {
+  const publications = new Map<
+    string,
+    { apiCatalogRevisionCode?: string; apiReleaseSetCode: string }
+  >()
+  for (const publication of result?.apiReleaseSetPublications ?? []) {
+    publications.set(publication.apiReleaseSetCode, publication)
+  }
+  if (result?.apiReleaseSetCode && result.apiReleaseSetStatus === 'current') {
+    const existing = publications.get(result.apiReleaseSetCode)
+    publications.set(result.apiReleaseSetCode, {
+      apiCatalogRevisionCode:
+        existing?.apiCatalogRevisionCode ?? result.apiCatalogRevisionCode,
+      apiReleaseSetCode: result.apiReleaseSetCode,
+    })
+  }
+  return [...publications.values()]
+}
+
 function resolveDivisionDomainCode(
   source: DivisionGeometryPlan['source'] | undefined,
   datasetCode?: string,
@@ -1519,17 +1532,11 @@ function resolveDivisionDomainCode(
   ) {
     return 'hkgov-censtatd-hma'
   }
-  return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
+  return source === 'hkgov-landsd' ||
+    source === 'hkgov-pland-pu' ||
+    source === 'hkgov-pland-new-town'
     ? source
     : 'geographic'
-}
-
-function resolveDivisionReleaseSetVariant(
-  source: DivisionGeometryPlan['source'] | undefined,
-  datasetCode?: string,
-) {
-  const domainCode = resolveDivisionDomainCode(source, datasetCode)
-  return domainCode === 'geographic' ? (source ?? 'overture') : domainCode
 }
 
 function matchesDivisionDomain(
