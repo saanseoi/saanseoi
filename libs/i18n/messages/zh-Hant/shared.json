@@ -1718,7 +1718,7 @@
   "openapi_divisions_effective_at_description": "選取在此時間點生效的領域發布版本。",
   "openapi_divisions_known_at_description": "解析在此時間點已知的最新目錄檢查點。",
   "openapi_divisions_release_set_description": "所選目錄中確切且不可變的領域發布版本。",
-  "openapi_divisions_include_description": "在頂層 included 陣列中加入標準上層分區資源。一定會傳回 relationships.hierarchy 識別碼。",
+  "openapi_divisions_include_description": "在頂層 included 陣列中加入標準上層分區資源及可選的幾何資料。一定會傳回 relationships.hierarchy 識別碼。使用 areas:<variant>@<cohort> 可保留所選 Divisions 發布集的識別碼，同時選取指定已發布面積幾何分期。",
   "openapi_divisions_transform_description": "選取具名幾何轉換。`simplified` 適用於香港特區政府發布的區劃面幾何，並傳回所選精確面積變體經 10 米拓撲保留簡化後的顯示幾何。",
   "openapi_divisions_included_description": "透過 include 要求時傳回的相關分區及幾何資源。",
   "openapi_divisions_list_response_description": "列出分區。",

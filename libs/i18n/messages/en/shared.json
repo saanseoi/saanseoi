@@ -1743,7 +1743,7 @@
   "openapi_divisions_effective_at_description": "Select the domain release effective at this instant.",
   "openapi_divisions_known_at_description": "Resolve the newest catalogue checkpoint known at this instant.",
   "openapi_divisions_release_set_description": "Exact immutable domain release within the chosen catalogue.",
-  "openapi_divisions_include_description": "Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.",
+  "openapi_divisions_include_description": "Include canonical ancestor division resources and optional geometry in the top-level included array. The relationships.hierarchy identifiers are always returned. Use areas:<variant>@<cohort> to retain the selected Divisions release set's identities while selecting an explicit published area-geometry cohort.",
   "openapi_divisions_transform_description": "Select a named geometry transformation. `simplified` is available for HKSAR Government area geometry and returns a 10-metre topology-preserving display derivative of the selected exact area variant.",
   "openapi_divisions_included_description": "Related division and geometry resources, returned when requested through include.",
   "openapi_divisions_list_response_description": "List divisions.",
