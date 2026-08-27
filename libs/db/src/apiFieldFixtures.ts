@@ -6,6 +6,12 @@ import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/
 import apiAddressesV01FixtureOfficialLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
+import { computeVersionHash } from './versioning'
+
+const populationHouseholdsDistrictDataset =
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+const permanentLivingQuartersDataset =
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
 
 export type ApiFieldFixtureField = {
   apiField: string
@@ -37,9 +43,50 @@ export type ApiFieldFixtureLineageAnchor = {
   sourceSchemas: Record<string, string>
 }
 
+/**
+ * Permanent Living Quarters supplies the same C&SD area variant as the annual
+ * district dataset, but Geographic Divisions can be initialised before that
+ * annual source is available. Keep its exact release signature distinct.
+ */
+function derivePermanentLivingQuartersFixture(
+  fixture: ApiFieldFixture,
+): ApiFieldFixture {
+  const derivedFixture = {
+    ...fixture,
+    lineageAnchors: fixture.lineageAnchors.flatMap(anchor => {
+      if (
+        anchor.sourceSchemas[permanentLivingQuartersDataset] !== '1.0' ||
+        anchor.sourceSchemas[populationHouseholdsDistrictDataset] !== '1.0'
+      ) {
+        return []
+      }
+
+      const { [populationHouseholdsDistrictDataset]: _omitted, ...sourceSchemas } =
+        anchor.sourceSchemas
+      return [{ ...anchor, sourceSchemas }]
+    }),
+    fields: fixture.fields.map(field =>
+      field.sourceDatasetCode === populationHouseholdsDistrictDataset
+        ? { ...field, sourceDatasetCode: permanentLivingQuartersDataset }
+        : field,
+    ),
+  }
+
+  return {
+    ...derivedFixture,
+    versionHash: computeVersionHash(derivedFixture),
+  }
+}
+
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
+  derivePermanentLivingQuartersFixture(
+    apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
+  ),
   apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
+  derivePermanentLivingQuartersFixture(
+    apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
+  ),
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,

@@ -16,7 +16,7 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(6)
+    expect(fixtures).toHaveLength(8)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -110,6 +110,33 @@ describe('api field fixtures', () => {
       expect.objectContaining({
         sourceDatasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      }),
+    )
+  })
+
+  test('selects the PLQ mapping before annual C&SD district geometry is available', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'geographic',
+      lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.12.0',
+        'ds-hk-overture-division-area': '1.12.0',
+        'ds-hk-overture-division-boundary': '1.12.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'divisionArea.attributes.variant',
+        sourceDatasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        variant: 'hkgov-censtatd',
       }),
     )
   })
