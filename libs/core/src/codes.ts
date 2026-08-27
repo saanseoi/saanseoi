@@ -168,6 +168,9 @@ export function datasetVariantForSource(
     return 'default'
   }
 
+  const withTransform = (variant: string) =>
+    options.transform ? `${variant}:${options.transform}` : variant
+
   const isCenstatdProductVariant =
     source === 'hkgov-censtatd' && options.sourceVariant?.startsWith('hkgov-censtatd-')
   if (
@@ -175,12 +178,11 @@ export function datasetVariantForSource(
     options.sourceVariant !== 'default' &&
     (source !== 'hkgov-censtatd' || isCenstatdProductVariant)
   ) {
-    return options.sourceVariant
+    return withTransform(options.sourceVariant)
   }
 
-  if (source === 'hkgov-censtatd' && options.cohortKey) {
-    const transform = options.transform
-    return [source, options.cohortKey, transform].filter(Boolean).join(':')
+  if (source === 'hkgov-censtatd') {
+    return withTransform('hkgov-censtatd')
   }
 
   // The Planning Department owns both planning datasets under one publisher
@@ -193,18 +195,18 @@ export function datasetVariantForSource(
         options.datasetCode ?? '',
       )
     ) {
-      return 'hkgov-pland-pu'
+      return withTransform('hkgov-pland-pu')
     }
     if (
       /^ds-[a-z0-9-]+-hkgov-pland-division(?:-area)?-new-town$/.test(
         options.datasetCode ?? '',
       )
     ) {
-      return 'hkgov-pland-new-town'
+      return withTransform('hkgov-pland-new-town')
     }
   }
 
-  return source ?? 'overture'
+  return withTransform(source ?? 'overture')
 }
 
 export function identityModeForSource(source: string) {
