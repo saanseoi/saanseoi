@@ -89,7 +89,7 @@ export function censtatdReleaseStatsProfileFor(
           kind: 'existing_domain_candidate',
         },
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters':
       return { geographyLink: { domain: 'area', kind: 'domain_candidate' } }
     case 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups':
       return {

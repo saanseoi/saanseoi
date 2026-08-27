@@ -17,6 +17,13 @@ Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
 `geography.code`; the publisher's numeric `DC` remains only in source provenance and the
 constructed `sourceFeatureRef`.
 
+When a reviewed statistic has an area companion, its dataset fixture declares
+`areaVariantByReferencePeriod`. Ingestion resolves that declaration for each observation
+and stores the selected companion in `geography.areaVariant`. Thus bare `include=areas`
+uses the geometry explicitly reviewed for the record's own reference period; the API
+does not infer it from a dataset name, delivery release, or the Geographic domain's
+Overture default. The response permalink qualifies the resolved variant.
+
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
 records the mirrored archive's managed key and SHA-256 in source provenance. Only GML
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
@@ -119,10 +126,11 @@ The source-release Stats tab then exposes the release's measure dictionary with 
 definition, unit, and observation count. Its structural cards at the end show the
 reviewed statistic kinds and aggregations; `valueKind` remains an ingestion detail.
 
-Area/type and HMA are approved source-release fan-outs. Area/type creates the three
-Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
-domain. Their observations carry the matching deterministic canonical `divisionId`.
-Building Group centroids remain source-only for a future buildings projection.
+Permanent Living Quarters and HMA are approved source-release fan-outs. Permanent Living
+Quarters creates the three Geographic-domain level-1 areas; HMA creates the separate
+C&SD Housing Market Area domain. Their observations carry the matching deterministic
+canonical `divisionId`. Building Group centroids remain source-only for a future
+buildings projection.
 
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).

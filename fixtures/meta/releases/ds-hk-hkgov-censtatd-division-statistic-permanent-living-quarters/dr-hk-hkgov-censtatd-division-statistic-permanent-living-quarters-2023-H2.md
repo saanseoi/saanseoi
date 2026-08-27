@@ -1,8 +1,8 @@
 ---
 createdAt: "2026-08-19T00:00:00.000Z"
 updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type"
-release: "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2"
+dataset: "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters"
+release: "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2"
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2023-H2"
@@ -10,8 +10,8 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censta
 releaseVersion: "2023-H2.0"
 type: "divisionStatistic"
 cohortKey: "2023-H2"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/permanent-living-quarters-area-type.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/permanent-living-quarters-area-type.json"
+hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/permanent-living-quarters.json"
+measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/permanent-living-quarters.json"
 ---
 
 # EN
@@ -20,7 +20,7 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/per
 
 - Initial 山水 | SaanSeoi release.
 - <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Permanent Living Quarters by Area and Type statistics.
+  {{ sourceVersion }} Permanent Living Quarters statistics.
 
 ## Versioning
 
@@ -61,7 +61,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年下半年按區域及類型劃分的永久性居住屋宇統計資料。
+  {{ sourceVersion }} 年下半年永久性居住屋宇統計資料。
 
 ## 版本控制
 
@@ -101,7 +101,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年下半年按区域及类型划分的永久性居住屋宇统计数据。
+  {{ sourceVersion }} 年下半年永久性居住屋宇统计数据。
 
 ## 版本控制
 

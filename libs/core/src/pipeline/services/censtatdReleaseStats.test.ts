@@ -154,7 +154,7 @@ describe('buildCenstatdReleaseStats', () => {
     ])
 
     for (const datasetCode of [
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
       'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
       'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
     ]) {
