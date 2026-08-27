@@ -131,11 +131,11 @@ const mapComments = [
 ]
 
 const metricsComments = [
-  { line: 1, text: m.guide_data_urban_density_metrics_comment_section() },
-  { line: 2, text: m.guide_data_urban_density_metrics_comment_identifier() },
-  { line: 3, text: m.guide_data_urban_density_metrics_comment_label() },
-  { line: 4, text: m.guide_data_urban_density_metrics_comment_cards() },
-  { line: 11, text: m.guide_data_urban_density_metrics_comment_append() },
+  { line: 4, text: m.guide_data_urban_density_metrics_comment_section() },
+  { line: 5, text: m.guide_data_urban_density_metrics_comment_identifier() },
+  { line: 6, text: m.guide_data_urban_density_metrics_comment_label() },
+  { line: 7, text: m.guide_data_urban_density_metrics_comment_cards() },
+  { line: 14, text: m.guide_data_urban_density_metrics_comment_append() },
 ]
 
 const censusAreasComments = [
@@ -365,6 +365,9 @@ const liveableMetricsComments = [
           </GuidePreviewCodeBlock>
         </GuideSubSectionBody>
         <div class="mt-8">
+          <GuideSubSectionHeader
+            title={m.guide_data_urban_density_census_areas_title()}
+          />
           <GuideSubSectionBody
             content={m.guide_data_urban_density_census_areas_description()}
           >
@@ -393,6 +396,7 @@ const liveableMetricsComments = [
           </GuideSubSectionBody>
         </div>
         <div class="mt-8">
+          <GuideSubSectionHeader title={m.guide_data_urban_density_install_title()} />
           <GuideSubSectionBody
             content={m.guide_data_urban_density_install_description()}
           >
@@ -409,6 +413,9 @@ const liveableMetricsComments = [
           </GuideSubSectionBody>
         </div>
         <div class="mt-8">
+          <GuideSubSectionHeader
+            title={m.guide_data_urban_density_liveable_area_title()}
+          />
           <GuideSubSectionBody
             content={m.guide_data_urban_density_liveable_area_description()}
           >
@@ -437,6 +444,9 @@ const liveableMetricsComments = [
           </GuideSubSectionBody>
         </div>
         <div class="mt-8">
+          <GuideSubSectionHeader
+            title={m.guide_data_urban_density_liveable_metrics_title()}
+          />
           <GuideSubSectionBody
             content={m.guide_data_urban_density_liveable_metrics_description()}
           >
