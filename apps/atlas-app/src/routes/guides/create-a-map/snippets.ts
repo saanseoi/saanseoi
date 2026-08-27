@@ -687,7 +687,10 @@ export const urbanDensityMetricsCss = [
   '#urban-density-metrics .secondary-stats { margin-top: .55rem; color: #52615d; font-size: .75rem; }',
   '#urban-density-metrics .secondary-stats strong { display: inline; margin: 0; font-size: inherit; }',
   '@media (max-width: 640px) {',
-  '  #urban-density-metrics { grid-template-columns: 1fr; inset: auto 1rem 1rem; }',
+  '  #urban-density-metrics { inset: auto .75rem .75rem; }',
+  '  #urban-density-metrics article { padding: .625rem .75rem; }',
+  '  #urban-density-metrics strong { display: inline; margin: 0; font-size: 1.35rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }',
+  '  #urban-density-metrics span { display: inline; margin-left: .2rem; font-size: .68rem; line-height: 1.2; }',
   '}',
 ].join('\n')
 
