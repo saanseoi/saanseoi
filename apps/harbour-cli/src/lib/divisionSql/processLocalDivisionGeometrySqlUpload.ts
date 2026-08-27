@@ -1856,40 +1856,30 @@ function formatDiagnosticRecord(record: unknown) {
  * area publisher. Exact publisher geometry remains in the source assertion and
  * in the exact snapshot; this pass only writes the named display snapshot.
  */
-function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
-  const exactGeometries = rows.map(row =>
-    requireAreaGeometry(row.canonical.geometry, row.canonical.id),
-  )
+export function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
   const reader = new GeoJSONReader(new GeometryFactory())
-  const parsed = reader.read({
-    type: 'GeometryCollection',
-    geometries: exactGeometries.map(toLocalMetreGeometry),
-  })
-  const simplified = TopologyPreservingSimplifier.simplify(
-    parsed,
-    HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
-  )
-  if (!new IsValidOp(simplified).isValid()) {
-    throw new Error(
-      'Hong Kong Government display simplification produced invalid geometry.',
+  const writer = new GeoJSONWriter()
+
+  return rows.map(row => {
+    const exactGeometry = requireAreaGeometry(row.canonical.geometry, row.canonical.id)
+    const simplified = TopologyPreservingSimplifier.simplify(
+      reader.read(toLocalMetreGeometry(exactGeometry)),
+      HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
     )
-  }
-  const written = new GeoJSONWriter().write(simplified) as unknown
-  if (
-    !isGeoJsonGeometryCollection(written) ||
-    written.geometries.length !== exactGeometries.length
-  ) {
-    throw new Error('Hong Kong Government display simplification changed the area set.')
-  }
-  return rows.map((row, index) => {
-    const simplifiedGeometry = written.geometries[index]
-    if (!simplifiedGeometry) {
+    const requiresTopologyRepair = !IsValidOp.isValid(simplified)
+    const displayGeometry = requiresTopologyRepair
+      ? BufferOp.bufferOp(simplified, 0)
+      : simplified
+
+    if (!IsValidOp.isValid(displayGeometry)) {
+      const error = new IsValidOp(displayGeometry).getValidationError()
       throw new Error(
-        `Display simplification did not produce an area for ${row.canonical.id}.`,
+        `Hong Kong Government display simplification produced invalid geometry for ${row.canonical.id}: ${error?.getMessage() ?? 'unknown validation error'}.`,
       )
     }
+
     const geometry = requireAreaGeometry(
-      fromLocalMetreGeometry(simplifiedGeometry),
+      fromLocalMetreGeometry(writer.write(displayGeometry) as GeoJsonGeometry),
       row.canonical.id,
     )
     return {
@@ -1906,6 +1896,9 @@ function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
           method: 'topology-preserving-simplification',
           toleranceMetres: HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
           workingProjection: 'local-equirectangular',
+          ...(requiresTopologyRepair
+            ? { validationRepair: 'zero-distance-buffer' }
+            : {}),
         },
       },
     }
@@ -1923,17 +1916,6 @@ function requireAreaGeometry(value: unknown, id: string): GeoJsonGeometry {
     throw new Error(`Display simplification did not produce an area for ${id}.`)
   }
   return value as GeoJsonGeometry
-}
-
-function isGeoJsonGeometryCollection(
-  value: unknown,
-): value is { type: 'GeometryCollection'; geometries: GeoJsonGeometry[] } {
-  return (
-    Boolean(value) &&
-    typeof value === 'object' &&
-    (value as { type?: unknown }).type === 'GeometryCollection' &&
-    Array.isArray((value as { geometries?: unknown }).geometries)
-  )
 }
 
 function toLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {

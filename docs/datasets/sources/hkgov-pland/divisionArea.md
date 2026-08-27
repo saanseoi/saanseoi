@@ -82,6 +82,11 @@ overlay cannot node that topology, so the adapter canonicalises every 2021 aggre
 geometry collection with `buffer(0)`. The transform is limited to canonical geometry—
 every publisher source cell remains unchanged in source evidence.
 
+The shared 10-metre display derivative simplifies each completed Planning area
+independently. If simplification introduces invalid topology, the derivative alone is
+repaired with `buffer(0)` and records `validationRepair: zero-distance-buffer` in its
+derivation metadata. This never alters exact canonical geometry or publisher evidence.
+
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through

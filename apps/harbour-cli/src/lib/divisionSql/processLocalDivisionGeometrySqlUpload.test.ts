@@ -15,6 +15,7 @@ import {
   selectOvertureHongKongAreasWithoutSourceGeometry,
   shouldCompressCanonicalGeometry,
   supportsDistrictGeometryStatistics,
+  simplifyHkgovDivisionAreas,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
@@ -118,6 +119,41 @@ describe('divisionReferenceVariant', () => {
         type: 'divisionArea',
       }),
     ).toBe('hkgov-pland-pu')
+  })
+})
+
+describe('Hong Kong Government display simplification', () => {
+  test('repairs an invalid display polygon without changing its input geometry', () => {
+    const sourceGeometry = {
+      type: 'Polygon' as const,
+      coordinates: [
+        [
+          [114, 22.35],
+          [114.0002, 22.3502],
+          [114, 22.3502],
+          [114.0002, 22.35],
+          [114, 22.35],
+        ],
+      ],
+    }
+    const row = normaliseDivisionAreaGeometryRow(
+      {
+        division_id: 'division-1',
+        geometry: sourceGeometry,
+        id: 'area-1',
+      },
+      'hkgov-pland-pu',
+    )
+
+    if (!row) throw new Error('Expected a normalised Planning area.')
+    const [simplified] = simplifyHkgovDivisionAreas([row])
+    if (!simplified) throw new Error('Expected a simplified Planning area.')
+
+    expect(simplified.canonical.geometry.type).toBe('Polygon')
+    expect(simplified.source.derivation).toMatchObject({
+      validationRepair: 'zero-distance-buffer',
+    })
+    expect(row.canonical.geometry).toEqual(sourceGeometry)
   })
 })
 
