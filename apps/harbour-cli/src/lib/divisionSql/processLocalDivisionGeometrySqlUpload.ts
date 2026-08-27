@@ -61,7 +61,6 @@ import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import type Geometry from 'jsts/org/locationtech/jts/geom/Geometry.js'
 import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
-import TopologyPreservingSimplifier from 'jsts/org/locationtech/jts/simplify/TopologyPreservingSimplifier.js'
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
@@ -98,6 +97,7 @@ import {
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
+import { simplifyPolygonCoverage } from '../geometry/simplifyPolygonCoverage.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -136,11 +136,6 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
 const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd-landclipped'
 const HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES = 10
-const HONG_KONG_REFERENCE_LONGITUDE = 114
-const HONG_KONG_REFERENCE_LATITUDE = 22.35
-const METRES_PER_DEGREE_LATITUDE = 110_574
-const METRES_PER_DEGREE_LONGITUDE =
-  111_320 * Math.cos((HONG_KONG_REFERENCE_LATITUDE * Math.PI) / 180)
 // D1 accepts statements no larger than 100 KB. Reserve a small margin for
 // platform-side import handling rather than producing statements at the limit.
 export const MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES = 96 * 1024
@@ -455,9 +450,9 @@ export async function processLocalDivisionGeometrySqlUpload(
       if (previewPlan.type !== 'divisionArea') {
         throw new Error('The simplified display transform is available only for areas.')
       }
-      normalised = simplifyHkgovDivisionAreas(
+      normalised = (await simplifyHkgovDivisionAreas(
         normalised as NormalisedDivisionArea[],
-      ) as Array<NonNullable<NormalisedGeometry>>
+      )) as Array<NonNullable<NormalisedGeometry>>
     }
 
     progress.complete(
@@ -1856,32 +1851,25 @@ function formatDiagnosticRecord(record: unknown) {
  * area publisher. Exact publisher geometry remains in the source assertion and
  * in the exact snapshot; this pass only writes the named display snapshot.
  */
-export function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
+export async function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
   const reader = new GeoJSONReader(new GeometryFactory())
-  const writer = new GeoJSONWriter()
+  const simplified = await simplifyPolygonCoverage(
+    rows.map(row => requireAreaGeometry(row.canonical.geometry, row.canonical.id)),
+    HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+  )
 
-  return rows.map(row => {
-    const exactGeometry = requireAreaGeometry(row.canonical.geometry, row.canonical.id)
-    const simplified = TopologyPreservingSimplifier.simplify(
-      reader.read(toLocalMetreGeometry(exactGeometry)),
-      HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
-    )
-    const requiresTopologyRepair = !IsValidOp.isValid(simplified)
-    const displayGeometry = requiresTopologyRepair
-      ? BufferOp.bufferOp(simplified, 0)
-      : simplified
-
-    if (!IsValidOp.isValid(displayGeometry)) {
-      const error = new IsValidOp(displayGeometry).getValidationError()
-      throw new Error(
-        `Hong Kong Government display simplification produced invalid geometry for ${row.canonical.id}: ${error?.getMessage() ?? 'unknown validation error'}.`,
-      )
-    }
-
+  return rows.map((row, index) => {
     const geometry = requireAreaGeometry(
-      fromLocalMetreGeometry(writer.write(displayGeometry) as GeoJsonGeometry),
+      simplified.geometries[index]!,
       row.canonical.id,
     )
+    const parsed = reader.read(geometry)
+    if (!IsValidOp.isValid(parsed)) {
+      const error = new IsValidOp(parsed).getValidationError()
+      throw new Error(
+        `Shapely coverage simplification produced invalid geometry for ${row.canonical.id}: ${error?.getMessage() ?? 'unknown validation error'}.`,
+      )
+    }
     return {
       ...row,
       canonical: {
@@ -1895,9 +1883,12 @@ export function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
           inputGeometryProjection: 'EPSG:4326',
           method: 'topology-preserving-simplification',
           toleranceMetres: HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
-          workingProjection: 'local-equirectangular',
-          ...(requiresTopologyRepair
-            ? { validationRepair: 'zero-distance-buffer' }
+          workingProjection: 'wgs84-interface-local-equirectangular',
+          sharedBoundaryPolicy: 'geos-coverage-simplification',
+          engine: simplified.engine,
+          engineVersion: simplified.engineVersion,
+          ...(simplified.inputValidationRepairIndexes.includes(index)
+            ? { inputValidationRepair: 'make-valid' }
             : {}),
         },
       },
@@ -1916,54 +1907,6 @@ function requireAreaGeometry(value: unknown, id: string): GeoJsonGeometry {
     throw new Error(`Display simplification did not produce an area for ${id}.`)
   }
   return value as GeoJsonGeometry
-}
-
-function toLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
-  return mapGeometryPositions(geometry, ([longitude, latitude, elevation]) =>
-    positionWithOptionalElevation(
-      (longitude - HONG_KONG_REFERENCE_LONGITUDE) * METRES_PER_DEGREE_LONGITUDE,
-      (latitude - HONG_KONG_REFERENCE_LATITUDE) * METRES_PER_DEGREE_LATITUDE,
-      elevation,
-    ),
-  )
-}
-
-function fromLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
-  return mapGeometryPositions(geometry, ([x, y, elevation]) =>
-    positionWithOptionalElevation(
-      x / METRES_PER_DEGREE_LONGITUDE + HONG_KONG_REFERENCE_LONGITUDE,
-      y / METRES_PER_DEGREE_LATITUDE + HONG_KONG_REFERENCE_LATITUDE,
-      elevation,
-    ),
-  )
-}
-
-function positionWithOptionalElevation(
-  first: number,
-  second: number,
-  elevation: number | undefined,
-): GeoJsonPosition {
-  return elevation === undefined ? [first, second] : [first, second, elevation]
-}
-
-function mapGeometryPositions(
-  geometry: GeoJsonGeometry,
-  transform: (position: GeoJsonPosition) => GeoJsonPosition,
-): GeoJsonGeometry {
-  if (geometry.type === 'GeometryCollection') {
-    return {
-      type: 'GeometryCollection',
-      geometries: geometry.geometries.map(child =>
-        mapGeometryPositions(child, transform),
-      ),
-    }
-  }
-  const mapValue = (value: unknown): unknown => {
-    if (!Array.isArray(value)) return value
-    if (typeof value[0] === 'number') return transform(value as GeoJsonPosition)
-    return value.map(mapValue)
-  }
-  return { ...geometry, coordinates: mapValue(geometry.coordinates) } as GeoJsonGeometry
 }
 
 async function writeGeometryRows(
