@@ -119,7 +119,7 @@ else
         --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
         --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
         --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
-        --geography-only
+        --geography-only --defer-api-release-set
     set -g saanseoi_init_docs_pending 1
 end
 

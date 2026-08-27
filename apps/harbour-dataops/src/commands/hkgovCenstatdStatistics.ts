@@ -54,6 +54,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     key = args.options['source-archive-key'],
     sha = args.options['source-archive-sha256']
   const geographyOnly = args.options['geography-only'] === true
+  const deferApiReleaseSet = args.options['defer-api-release-set'] === true
   const forceUpload = args.options['force-upload'] === true
   if (
     !input ||
@@ -289,6 +290,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           target,
           {
             allowReprocessPublished: true,
+            deferApiReleaseSet,
             dryRun: false,
             forceUpload: true,
             invocationCwd: resolve(import.meta.dir, '../../../..'),
