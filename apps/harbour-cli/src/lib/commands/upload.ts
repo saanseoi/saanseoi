@@ -1335,7 +1335,7 @@ export async function resolveDivisionApiReleaseSetReadiness(
     { cacheTableProfile: 'division' },
   )
   try {
-    return resolveReadiness(dbContext.metaDb as unknown as HarbourReadableDb)
+    return await resolveReadiness(dbContext.metaDb as unknown as HarbourReadableDb)
   } finally {
     dbContext.cleanup()
   }
