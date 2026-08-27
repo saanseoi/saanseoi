@@ -291,11 +291,6 @@ or API, schema, licence, update cadence, identifiers, publication date, referenc
 period, measure definition, and geography cohort. A derived rate must identify its
 numerator and denominator series and must not replace a publisher-supplied measure.
 
-For a clean local replay of this source family, first inspect
-`./bin/saanseoi stats:reset-censtatd --target local --dry-run`, then use the same
-command with `--yes`. The reset leaves the separately ingested C&SD district-area source
-releases unchanged; follow it with the normal local Stats update.
-
 ## Release-note measure mappings
 
 Each C&SD statistics release fixture declares its corresponding manifest under
