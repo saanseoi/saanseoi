@@ -123,7 +123,7 @@ describe('divisionReferenceVariant', () => {
 })
 
 describe('Hong Kong Government display simplification', () => {
-  test('repairs an invalid display polygon without changing its input geometry', () => {
+  test('repairs an invalid display polygon without changing its input geometry', async () => {
     const sourceGeometry = {
       type: 'Polygon' as const,
       coordinates: [
@@ -146,12 +146,12 @@ describe('Hong Kong Government display simplification', () => {
     )
 
     if (!row) throw new Error('Expected a normalised Planning area.')
-    const [simplified] = simplifyHkgovDivisionAreas([row])
+    const [simplified] = await simplifyHkgovDivisionAreas([row])
     if (!simplified) throw new Error('Expected a simplified Planning area.')
 
     expect(simplified.canonical.geometry.type).toBe('Polygon')
     expect(simplified.source.derivation).toMatchObject({
-      validationRepair: 'zero-distance-buffer',
+      inputValidationRepair: 'make-valid',
     })
     expect(row.canonical.geometry).toEqual(sourceGeometry)
   })
