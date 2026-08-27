@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a72307752a39c7ca3a1ce3604a5e2868220fdf64ece25284b9b2ee476b9f5b19",
+  "versionHash": "sha256:5500bac47d7c7a3860871a5ea33330ee4a3e1aabb0d8028e0c7bf5dd457c4353",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
@@ -67,6 +67,21 @@
     {
       "sourceVersion": "2023-H2",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491"
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2023-H2",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

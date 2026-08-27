@@ -1,12 +1,12 @@
 {
-  "versionHash": "sha256:8e94c14ddb322c9de1e4de18320d7e0ef3deff3287e078da7f4095c461ef2c24",
-  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district-annual",
+  "versionHash": "sha256:2a16907f7e2f68edd52a6bb932ee69df2de06791b1f4e7b14f86e7746a427982",
+  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "resourceType": "division",
-  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-area-district-annual-2024",
-  "cohortKey": "2024",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021",
+  "cohortKey": "2021",
   "domain": "administrative",
   "authority": "hkgov-censtatd",
-  "mappingMethod": "published-district-class-reviewed-against-dc-ghs",
+  "mappingMethod": "published-district-class-reviewed-against-had",
   "reviewStatus": "reviewed",
   "mappings": [
     {

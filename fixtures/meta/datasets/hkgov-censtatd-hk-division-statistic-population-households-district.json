@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6d9e5d2a8eb715c1826b3d74502892c7ae5128c85eae618f1ab41b207160859f",
+  "versionHash": "sha256:14be855fcd4e680b358992b8e38b72c5cdbf452c712e617cff9e7ae1e1ab069d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -15,7 +15,7 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic"],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
@@ -65,8 +65,47 @@
   ],
   "releases": [
     {
+      "sourceVersion": "2024",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "verifiedIdenticalArchiveSlots": [
+        {
+          "releaseSlot": "2025-Q2",
+          "sourceObjectHash": "fb9ce26b82759e635777632fdaa560702e20f7ae4e3766f22bb473f0b8ca5ffc",
+          "contentHash": "bb9145810adabb52a32316b79b2c3a3fbc8a37e2f9438cd98242892a9f50797b"
+        }
+      ]
+    },
+    {
       "sourceVersion": "2026-Q2",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2024",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2026-Q2",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

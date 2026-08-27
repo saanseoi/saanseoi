@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2276b4ce49b01c1c3e7afcba798b427435b2ef8a120677663112901095745bb1",
+  "versionHash": "sha256:f3a49ffd58de7e3e582f019713e7010d6bbfc8548095b086b0986dedaaa3ce6c",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -20,7 +20,7 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic"],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
@@ -105,6 +105,34 @@
           "sourceObjectHash": "8abab942b6fddf50cedc732b95f77132eb4ba805b4eed5ffa96d1cc1d2502b07"
         }
       ]
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2022",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2024",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

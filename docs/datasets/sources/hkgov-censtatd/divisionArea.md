@@ -7,11 +7,11 @@ polygons alongside census, by-census and annual statistics. These are statistica
 geographies: each geometry release is retained for its reference-year cohort and must
 not be represented as an evergreen administrative boundary.
 
-| Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                              |
-| ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ---------------------------------------------------- |
-| 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-division-area-district`        |
-| 2021   | 2021 Population Census subdivided units by District Council district    | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `ds-hk-hkgov-censtatd-division-area-district`        |
-| 2024   | Annual Population and Household Statistics by District Council district | `censtatd_rcd_1635934545173_69201` | `DC_GHS`      | `ds-hk-hkgov-censtatd-division-area-district-annual` |
+| Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                                                  |
+| ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
+| 2021   | 2021 Population Census subdivided units by District Council district    | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
+| 2024   | Annual Population and Household Statistics by District Council district | `censtatd_rcd_1635934545173_69201` | `DC_GHS`      | `ds-hk-hkgov-censtatd-division-statistic-population-households-district` |
 
 The 2016 and 2021 cohorts belong to the census/by-census subdivided-units series. The
 2024 cohort belongs to the distinct annual population-and-household series. They share
@@ -75,14 +75,14 @@ retained as an independent snapshot, even where its exact geometry is byte-ident
 an earlier cohort.
 
 ```text
-dataset  ds-hk-hkgov-censtatd-division-area-district
+dataset  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
 variant  hkgov-censtatd-landclipped  (2016 and 2021 census/by-census districts)
-releases dr-hk-hkgov-censtatd-division-area-district-2016
-         dr-hk-hkgov-censtatd-division-area-district-2021
+releases dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016
+         dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021
 
-dataset  ds-hk-hkgov-censtatd-division-area-district-annual
+dataset  ds-hk-hkgov-censtatd-division-statistic-population-households-district
 variant  hkgov-censtatd              (annual districts and Area/type polygons)
-release  dr-hk-hkgov-censtatd-division-area-district-annual-2024
+release  dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024
 ```
 
 The publisher's 2021 `CENSTATD:T` feature has a self-intersecting ring. The C&SD adapter
@@ -98,8 +98,8 @@ exposes a named geometry transformation for each companion snapshot, without cli
 unioning or otherwise changing its topology:
 
 ```text
-datasets  ds-hk-hkgov-censtatd-division-area-district
-          ds-hk-hkgov-censtatd-division-area-district-annual
+datasets  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+          ds-hk-hkgov-censtatd-division-statistic-population-households-district
 transform simplified
 applies   hkgov-censtatd-landclipped
           hkgov-censtatd
@@ -150,6 +150,14 @@ The companion snapshot preserves all its contributing C&SD source releases as
 provenance. Required publication membership does not make geometry part of the default
 response; clients still select it explicitly with `include`.
 
+Each C&SD source release is retained as a `snapshotSource`, including when its rows are
+carried into a companion snapshot that already has other C&SD geometry. There is no
+separate duplicate dataset or geometry flag: the immutable source releases, their
+archive hashes and their feature-level source records are the provenance, while the one
+`divisionArea` snapshot is the canonical materialisation. A differing overlapping
+geometry creates a different companion variant; the census/by-census land-clipped
+geometry is the current example.
+
 During ingestion, the three references are checked against the closest published
 canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
 used first; only an absent earlier cohort permits the earliest later Overture cohort.
@@ -193,7 +201,7 @@ Converted CSDI GeoJSON and a separately downloaded GML are not runtime inputs. U
 
 ```bash
 bun run dataops -- hkgov-censtatd:district-area ./data/.../source.zip \
-  --target preview --dataset-code ds-hk-hkgov-censtatd-division-area-district \
+  --target preview --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
   --source-version 2021 --release-notes-url URL \
   --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```

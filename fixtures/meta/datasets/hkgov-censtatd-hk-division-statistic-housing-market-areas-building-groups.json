@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6632ce5bcd43dbee40088e1850923e341552e88fa49ba9e5949f6eed958f274c",
+  "versionHash": "sha256:d010f4325c848f052c9baa65b08ee43bd1cdaac1ae11c8323c2efcfee004b725",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
@@ -78,6 +78,21 @@
           "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
         }
       ]
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-censtatd-hma:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

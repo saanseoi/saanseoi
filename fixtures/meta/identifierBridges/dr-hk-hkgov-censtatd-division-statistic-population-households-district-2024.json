@@ -1,12 +1,12 @@
 {
-  "versionHash": "sha256:d5a12d7675edcb38391ea7393c72c8b2353c557d1d5b03b190b875854fd0bb1c",
-  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+  "versionHash": "sha256:abba8ed57704462bbe4d5f759d9752adedf874d502b44e1f4e41a6905cce6137",
+  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "resourceType": "division",
-  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-area-district-2016",
-  "cohortKey": "2016",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
+  "cohortKey": "2024",
   "domain": "administrative",
   "authority": "hkgov-censtatd",
-  "mappingMethod": "published-district-class-reviewed-against-had",
+  "mappingMethod": "published-district-class-reviewed-against-dc-ghs",
   "reviewStatus": "reviewed",
   "mappings": [
     {
