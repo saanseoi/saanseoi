@@ -141,6 +141,8 @@ type PreparedDivision = {
   versionHash: string
 }
 
+type CompressedPlanningDivisionGeometry = ReadonlyMap<string, Uint8Array>
+
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE = 'primary'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
@@ -411,6 +413,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         )
       },
     )
+    const compressedGeometryByDivisionId = await runPlandProgressPhase(
+      progress,
+      'Materialise',
+      'Planning division geometry',
+      async reportProgress => compressPlanningDivisionGeometry(records, reportProgress),
+      { totalUnits: records.length },
+    )
     await runPlandProgressPhase(
       progress,
       'Materialise',
@@ -420,6 +429,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           context.currentDb as unknown as HarbourWritableDb,
           snapshot.id,
           records,
+          compressedGeometryByDivisionId,
           currentHistoryRows.map(row => row.id),
           now,
           reportProgress,
@@ -459,6 +469,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           releaseId,
           previewPlan.cohortKey,
           changedHistoryRecords,
+          compressedGeometryByDivisionId,
           now,
           reportProgress,
         )
@@ -877,6 +888,7 @@ async function replaceCurrentSnapshot(
   db: HarbourWritableDb,
   snapshotId: string,
   records: PreparedDivision[],
+  compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
   previousProviderIds: string[],
   now: string,
   reportProgress: (current: number) => void,
@@ -903,7 +915,10 @@ async function replaceCurrentSnapshot(
       .values(
         chunk.map(record => ({
           ...record.base,
-          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
+          geometry: requireCompressedPlanningDivisionGeometry(
+            compressedGeometryByDivisionId,
+            record.base.id,
+          ),
           snapshotId,
           createdAt: now,
           updatedAt: now,
@@ -913,6 +928,39 @@ async function replaceCurrentSnapshot(
     processedRecords += chunk.length
     reportProgress(processedRecords)
   }
+}
+
+/**
+ * Exact Planning geometry is retained in both current and history. Compress it
+ * once before either table is written: the decoded GeoJSON and version hash are
+ * unchanged, while maximum-quality Brotli is no longer repeated per table.
+ */
+function compressPlanningDivisionGeometry(
+  records: PreparedDivision[],
+  reportProgress: (current: number) => void,
+): CompressedPlanningDivisionGeometry {
+  const compressedByDivisionId = new Map<string, Uint8Array>()
+  for (const [index, record] of records.entries()) {
+    compressedByDivisionId.set(
+      record.base.id,
+      compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
+    )
+    if ((index + 1) % 32 === 0 || index + 1 === records.length) {
+      reportProgress(index + 1)
+    }
+  }
+  return compressedByDivisionId
+}
+
+function requireCompressedPlanningDivisionGeometry(
+  compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
+  divisionId: string,
+) {
+  const geometry = compressedGeometryByDivisionId.get(divisionId)
+  if (!geometry) {
+    throw new Error(`Missing compressed Planning geometry for ${divisionId}.`)
+  }
+  return geometry
 }
 
 async function replaceCurrentI18n(
@@ -966,6 +1014,7 @@ async function insertHistoryRows(
   releaseId: string,
   _cohortKey: string,
   records: PreparedDivision[],
+  compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
   now: string,
   reportProgress: (current: number) => void,
 ) {
@@ -976,7 +1025,10 @@ async function insertHistoryRows(
       .values(
         chunk.map(record => ({
           ...record.base,
-          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
+          geometry: requireCompressedPlanningDivisionGeometry(
+            compressedGeometryByDivisionId,
+            record.base.id,
+          ),
           versionHash: record.versionHash,
           sourceReleaseId: releaseId,
           snapshotId,
