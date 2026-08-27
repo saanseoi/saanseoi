@@ -242,7 +242,8 @@ describe('dataset update registry', () => {
   test('starts C&SD district-area intake from the prepared native archive', () => {
     expect(
       buildHkgovCenstatdDistrictArchiveIngestCommand({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         inputFile: '/tmp/prepared-districts.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
@@ -1597,7 +1598,7 @@ describe('dataset update registry', () => {
 
   test('records C&SD districts as initial-only cohorts with revision archive scans', async () => {
     const [dataset] = await loadDatasetFixtures(
-      new Set(['ds-hk-hkgov-censtatd-division-area-district']),
+      new Set(['ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district']),
     )
 
     expect(dataset?.releasePolicy).toEqual({

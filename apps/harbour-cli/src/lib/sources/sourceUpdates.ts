@@ -1510,8 +1510,10 @@ async function runCsdiArchiveIngestPlaceholder(
   }
 
   if (
-    (dataset.code === 'ds-hk-hkgov-censtatd-division-area-district' ||
-      dataset.code === 'ds-hk-hkgov-censtatd-division-area-district-annual') &&
+    (dataset.code ===
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+      dataset.code ===
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district') &&
     (release?.sourceVersion === '2016' ||
       release?.sourceVersion === '2021' ||
       release?.sourceVersion === '2024') &&
@@ -1750,8 +1752,8 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
 
 export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
   datasetCode:
-    | 'ds-hk-hkgov-censtatd-division-area-district'
-    | 'ds-hk-hkgov-censtatd-division-area-district-annual'
+    | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
