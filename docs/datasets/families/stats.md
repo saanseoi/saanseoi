@@ -127,20 +127,12 @@ Building Group centroids remain source-only for a future buildings projection.
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).
 
-## Local C&SD replay reset
+## Initial Statistics publication
 
-Use `./bin/saanseoi stats:reset-censtatd --target local --dry-run` to inspect the local
-C&SD statistic releases and rows that would be cleared. Re-run with `--yes` to remove
-only their source assertions, canonical statistic rows, ingestion metrics and processing
-actions, then mark those releases retryable. It does not remove the C&SD district-area
-source assertions or any non-C&SD statistics. Re-ingest with
-`./bin/saanseoi update --target local --scope stats --download --yes --check-now`.
-
-For a launch bootstrap, add `--defer-stats-release-set` to that update command. It
-publishes all source releases and materialises their snapshots without publishing an
-intermediate Statistics release set. Then run
-`./bin/saanseoi release-sets:bootstrap-stats --target local --region hk` to create one
-cohort-complete `r0` per reference period.
+`./bin/saanseoi init:stats:official --target local` ingests the official C&SD launch
+set, defers intermediate Statistics release-set publication, and bootstraps the
+completed cohorts once. Each reference period is therefore first published as one
+complete `r0`.
 
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
