@@ -17,5 +17,11 @@ set -l datasets \
 
 for dataset in $datasets
     init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-        --dataset $dataset --download --check-now --yes
+        --dataset $dataset --download --check-now --defer-stats-release-set --yes
 end
+
+# Source datasets frequently complete at different times for the same
+# Statistics cohort. Publish the composed cohort only after all of its sources
+# have been ingested, so an initial pre-release build has a single r0 release.
+init_run_step ./bin/saanseoi release-sets:bootstrap-stats \
+    --target $saanseoi_init_target --region hk
