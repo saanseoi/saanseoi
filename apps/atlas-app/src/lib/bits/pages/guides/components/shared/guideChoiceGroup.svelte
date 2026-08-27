@@ -84,7 +84,7 @@ function updateIllustratedCarouselFit() {
   if (!viewport || !firstCard || !lastCard) return
 
   const cardsWidth = lastCard.offsetLeft + lastCard.offsetWidth - firstCard.offsetLeft
-  illustratedCarouselFits = cardsWidth + 500 <= viewport.clientWidth
+  illustratedCarouselFits = cardsWidth <= viewport.clientWidth
 }
 
 onMount(() => {
@@ -316,13 +316,14 @@ onMount(() => {
     {:else}
       <CarouselRoot
         bind:this={illustratedChoiceCarousel}
+        scrollable={!illustratedCarouselFits}
         class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed ? 'relative -ml-(--illustrated-content-inset) w-screen' : alignment === 'center' ? 'relative left-1/2 w-screen -translate-x-1/2' : 'w-full'}`}
         onnavigationchange={navigation => (illustratedCarouselNavigation = navigation)}
       >
         <div
           bind:this={illustratedChoicesElement}
           class={illustratedCarouselFits
-            ? 'flex w-full min-w-0 justify-center gap-4 px-[250px]'
+            ? 'flex w-full min-w-0 justify-center gap-4'
             : `flex min-w-max snap-x snap-mandatory gap-4 ${illustratedFullBleed ? 'px-(--illustrated-content-inset)' : illustratedFitWhenPossible ? 'px-[250px]' : alignment === 'center' ? 'px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]' : ''}`}
         >
           {#each choices as choice}
