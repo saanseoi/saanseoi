@@ -480,11 +480,7 @@ export const urbanDensityStatsCode = [
 ].join('\n')
 
 export const urbanDensityStatsDisplayCode = [
-  "import { Map as MapLibreMap } from 'maplibre-gl'",
-  "import 'maplibre-gl/dist/maplibre-gl.css'",
-  "import './style.css'",
-  '',
-  '// { 20 LINES OMITTED: KEEP YOUR WORKING MAP SETUP }',
+  '// { 24 LINES OMITTED: KEEP YOUR WORKING MAP SETUP }',
   '// Next, append this request to give your map its first data.',
   '',
   urbanDensityStatsCode,

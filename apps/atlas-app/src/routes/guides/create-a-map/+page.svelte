@@ -2599,7 +2599,7 @@ const styleChoices = $derived.by(() =>
           </GuideCallout>
         {/if}
         {#if selectedStyle && renderer}
-          <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
+          <div class="mt-10 max-w-3xl pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
               title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
@@ -2710,6 +2710,7 @@ const styleChoices = $derived.by(() =>
         {:else if dataSource === 'api' && renderer === 'maplibre' && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}
+            hasNonHongKongBasemap={Boolean(region && region !== 'hk')}
             hongKongBasemapNote={region && region !== 'hk'
               ? m.guide_data_urban_density_hong_kong_note({
                   region: selectedRegion?.label ?? '',
