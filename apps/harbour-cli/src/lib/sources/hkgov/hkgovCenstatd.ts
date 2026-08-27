@@ -373,13 +373,19 @@ async function withDisplayGeometry(
           ? { preservesPublisherGeometry: true }
           : { preservesLandClip: true }),
       },
-      geometry,
+      geometry: normaliseSinglePolygon(geometry),
       // A display transform is another representation of the same C&SD
       // assertion, not a new source record. The snapshot variant selects it.
       id: row.id,
       sources: row.sources,
     }
   })
+}
+
+function normaliseSinglePolygon(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  return geometry.type === 'MultiPolygon' && geometry.coordinates.length === 1
+    ? { type: 'Polygon', coordinates: geometry.coordinates[0]! }
+    : geometry
 }
 
 function assertUniqueDistricts(rows: PreparedDistrictRow[], sourceVersion: string) {

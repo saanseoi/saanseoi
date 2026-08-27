@@ -247,7 +247,7 @@ describe('C&SD district GML preparation', () => {
       expect(displayRows[0]).toMatchObject({
         census_year: '2021',
         derivation: {
-          method: 'topology-preserving-simplification',
+          method: 'geos-coverage-simplification',
           preservesLandClip: true,
           toleranceMetres: 10,
         },
