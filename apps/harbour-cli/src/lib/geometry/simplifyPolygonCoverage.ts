@@ -1,4 +1,6 @@
-import { resolve } from 'node:path'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { createHash, randomUUID } from 'node:crypto'
+import { join, resolve } from 'node:path'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
@@ -9,11 +11,22 @@ const SIMPLIFIER_SCRIPT = resolve(
 )
 const DEFAULT_PYTHON = resolve(REPO_ROOT, 'apps/harbour-dataops/.venv/bin/python')
 
-type SimplifiedCoverage = {
+export type SimplifiedCoverage = {
   engine: string
   engineVersion: string
   geometries: GeoJsonGeometry[]
   inputValidationRepairIndexes: number[]
+}
+
+const SIMPLIFICATION_CACHE_CONTRACT_VERSION = '1'
+const DEFAULT_SIMPLIFICATION_CACHE_ROOT = resolve(
+  REPO_ROOT,
+  '.local/dataops/simplified-coverage',
+)
+
+type SimplificationCacheOptions = {
+  cacheRoot?: string
+  simplify?: typeof simplifyPolygonCoverage
 }
 
 /**
@@ -57,6 +70,63 @@ export async function simplifyPolygonCoverage(
     )
   }
   return output
+}
+
+/**
+ * Reuses a content-addressed display-geometry derivative. Its cache key binds
+ * the complete WGS84 input, the tolerance, and this simplification contract,
+ * so a source or algorithm change cannot reuse an older output.
+ */
+export async function simplifyPolygonCoverageCached(
+  geometries: GeoJsonGeometry[],
+  toleranceMetres: number,
+  options: SimplificationCacheOptions = {},
+): Promise<SimplifiedCoverage> {
+  const cacheRoot = options.cacheRoot ?? DEFAULT_SIMPLIFICATION_CACHE_ROOT
+  const cacheKey = createHash('sha256')
+    .update(
+      JSON.stringify({
+        contractVersion: SIMPLIFICATION_CACHE_CONTRACT_VERSION,
+        geometries,
+        toleranceMetres,
+      }),
+    )
+    .digest('hex')
+  const cacheDirectory = join(cacheRoot, `v${SIMPLIFICATION_CACHE_CONTRACT_VERSION}`)
+  const cacheFile = join(cacheDirectory, `${cacheKey}.geojson`)
+  const cached = await readCachedCoverage(cacheFile, geometries.length)
+  if (cached) return cached
+
+  const result = await (options.simplify ?? simplifyPolygonCoverage)(
+    geometries,
+    toleranceMetres,
+  )
+  await mkdir(cacheDirectory, { recursive: true })
+  const temporaryFile = join(cacheDirectory, `.${cacheKey}-${randomUUID()}.geojson`)
+  try {
+    await writeFile(temporaryFile, `${JSON.stringify(result)}\n`, { flag: 'wx' })
+    await rename(temporaryFile, cacheFile)
+  } catch (error) {
+    // A concurrent upload may have completed this exact cache entry first.
+    const concurrent = await readCachedCoverage(cacheFile, geometries.length)
+    if (!concurrent) throw error
+  } finally {
+    await rm(temporaryFile, { force: true })
+  }
+  return result
+}
+
+async function readCachedCoverage(filePath: string, geometryCount: number) {
+  let value: unknown
+  try {
+    value = JSON.parse(await readFile(filePath, 'utf8'))
+  } catch {
+    return null
+  }
+  if (!isSimplifiedCoverage(value) || value.geometries.length !== geometryCount) {
+    return null
+  }
+  return value
 }
 
 function isSimplifiedCoverage(value: unknown): value is SimplifiedCoverage {

@@ -97,7 +97,7 @@ import {
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
-import { simplifyPolygonCoverage } from '../geometry/simplifyPolygonCoverage.ts'
+import { simplifyPolygonCoverageCached } from '../geometry/simplifyPolygonCoverage.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -1853,7 +1853,7 @@ function formatDiagnosticRecord(record: unknown) {
  */
 export async function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
   const reader = new GeoJSONReader(new GeometryFactory())
-  const simplified = await simplifyPolygonCoverage(
+  const simplified = await simplifyPolygonCoverageCached(
     rows.map(row => requireAreaGeometry(row.canonical.geometry, row.canonical.id)),
     HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
   )
