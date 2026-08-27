@@ -58,8 +58,14 @@ and publication progress.
 
 ## Local pipeline initialisation
 
-Initialise one API family and composition domain at a time. Reset local databases before
-starting a fresh run, then use the focused command for the domain under review:
+Initialise one API family and composition domain at a time. For a clean local Divisions
+and Statistics rebuild, use `./bin/saanseoi init:local`. It resets local databases, runs
+every Divisions initialiser followed by the official Statistics initialiser, and prints
+one final initialisation summary. Address initialisation is not yet part of this
+command.
+
+To reset local databases before a focused run, then use the command for the domain under
+review:
 
 ```sh
 bun run db:reset:local

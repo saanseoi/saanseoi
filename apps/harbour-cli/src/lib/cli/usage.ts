@@ -6,6 +6,7 @@ export function printUsage() {
   saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry]
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--target local|preview|production] [--continue] [--cacheArtefacts]
+  saanseoi init:local [--cacheArtefacts]
   saanseoi init:divisions:geographic [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:stats:official [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:divisions:hkgov-pland-pu [--target local|preview|production] [--continue] [--cacheArtefacts]

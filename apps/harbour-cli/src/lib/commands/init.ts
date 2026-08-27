@@ -19,6 +19,11 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:local': {
+    script: 'scripts/init/local.fish',
+    supportsContinue: false,
+    supportsTarget: false,
+  },
   'init:addresses:official': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
