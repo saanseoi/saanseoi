@@ -18,6 +18,7 @@ set -l releases \
     2026-07-22.0 \
     2026-08-19.0
 set -l had_uploaded 0
+set -l defer_release_set_args --defer-api-release-set
 
 for release in $releases
     set -l dir "$root/$release/divisions/中国/Hong Kong SAR"
@@ -42,7 +43,7 @@ for release in $releases
 
         set -l type_slug (string replace -a -- '_' '-' $type)
         set -l release_code "dr-hk-overture-$type_slug-$release"
-        init_run_upload "$release_code" "$file" --yes --skip-cleanup
+        init_run_upload "$release_code" "$file" --yes --skip-cleanup $defer_release_set_args
         if test "$saanseoi_init_last_upload_processed" -eq 1
             set resource_type_processed 1
         end
@@ -50,7 +51,7 @@ for release in $releases
         if test "$had_uploaded" -eq 0; and test "$release" = "2025-09-24.0"; and test "$type" = division
             init_run_upload dr-hk-hkgov-had-division-area-district-2022 \
                 "$saanseoi_init_repo/data/hkgov/had/2022/hkgov-had-districts-20230609.geojson" \
-                --yes --skip-cleanup --cohort-key 2022
+                --yes --skip-cleanup --cohort-key 2022 $defer_release_set_args
             if test "$saanseoi_init_last_upload_processed" -eq 1
                 set resource_type_processed 1
             end
@@ -75,7 +76,7 @@ for year in 2016 2021
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
-        --yes
+        --yes $defer_release_set_args
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 

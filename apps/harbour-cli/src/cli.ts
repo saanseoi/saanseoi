@@ -45,6 +45,7 @@ async function main() {
   const invocationCwd =
     process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
+  const deferApiReleaseSet = Boolean(args.options['defer-api-release-set'])
   const forceUpload = Boolean(args.options.force)
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
@@ -121,6 +122,7 @@ async function main() {
     case 'upload':
       await runUploadCommand(args, target, {
         dryRun,
+        deferApiReleaseSet,
         forceUpload,
         invocationCwd,
         printUsage,

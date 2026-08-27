@@ -156,6 +156,8 @@ export async function processLocalDivisionGeometrySqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     deferPublish?: boolean
     inputFilePath?: string
     /**
@@ -744,6 +746,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       'source release',
       () =>
         client.publishDataset(releaseId, releaseCode, {
+          deferApiReleaseSet: options.deferApiReleaseSet,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
     )
