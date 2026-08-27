@@ -272,12 +272,20 @@ export async function handlePublishDataset(
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
-    const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
-      cohortKey: dataset.cohortKey,
-      datasetCode: dataset.datasetCode,
-      sourceVariant: dataset.sourceVariant,
-      sourceVersion: dataset.sourceVersion,
-    })
+    const materialisedSnapshots = await listSnapshotsForRelease(
+      db,
+      dataset.releaseId,
+      datasetType,
+    )
+    const datasetVariant =
+      materialisedSnapshots.find(snapshot => !snapshot.variant.endsWith(':simplified'))
+        ?.variant ??
+      datasetVariantForSource(datasetType, dataset.source, {
+        cohortKey: dataset.cohortKey,
+        datasetCode: dataset.datasetCode,
+        sourceVariant: dataset.sourceVariant,
+        sourceVersion: dataset.sourceVersion,
+      })
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
@@ -526,6 +534,7 @@ export async function handlePublishDataset(
         publishedAt,
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
+        snapshotVariant: datasetVariant,
         type: datasetType,
         // Each statistic reference period is independently publishable. Other
         // families may still wait for required companion snapshots.
