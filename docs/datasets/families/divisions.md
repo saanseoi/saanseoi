@@ -144,6 +144,14 @@ when its geometry bytes match an earlier cohort. `simplified` is a named 10-metr
 display transform of the selected companion snapshot, not an independent composition
 member.
 
+Several C&SD source releases can contribute to one companion cohort. The materialiser
+compares each incoming complete canonical row set before writing: when every row is
+already present with the same materialisation, it is retained as a `snapshotSource` with
+`verified_identical_geometry`, rather than duplicating canonical current/history rows.
+Non-overlapping rows are recorded as `contributed_geometry` and merged into the
+companion. This distinction is per complete materialisation, not a source-level
+duplicate label.
+
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when
 the other cohort is published. Geometry churn is calculated only against a snapshot's

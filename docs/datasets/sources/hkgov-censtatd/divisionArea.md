@@ -150,13 +150,18 @@ The companion snapshot preserves all its contributing C&SD source releases as
 provenance. Required publication membership does not make geometry part of the default
 response; clients still select it explicitly with `include`.
 
-Each C&SD source release is retained as a `snapshotSource`, including when its rows are
-carried into a companion snapshot that already has other C&SD geometry. There is no
-separate duplicate dataset or geometry flag: the immutable source releases, their
-archive hashes and their feature-level source records are the provenance, while the one
-`divisionArea` snapshot is the canonical materialisation. A differing overlapping
-geometry creates a different companion variant; the census/by-census land-clipped
-geometry is the current example.
+Each C&SD source release is retained as a `snapshotSource`. Before adding a second
+source for the same companion cohort, ingestion compares its complete materialisation:
+canonical record IDs, division references, land/territorial classification and exact
+geometry hashes. When every incoming row is already present with the same materialised
+geometry (the companion can also contain non-overlapping rows), the source attaches to
+the existing snapshot with `selectionMode: verified_identical_geometry`; its archive and
+raw source assertion are still retained, but the canonical geometry rows are not written
+again. A source that adds non-overlapping rows is marked `contributed_geometry`, and
+inherited rows are marked `carried_forward_companion`. This records where geometry was
+deliberately not republished because a second publisher release supplied the same
+geometry. A differing overlapping geometry requires a different companion variant; the
+census/by-census land-clipped geometry is the current example.
 
 During ingestion, the three references are checked against the closest published
 canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is

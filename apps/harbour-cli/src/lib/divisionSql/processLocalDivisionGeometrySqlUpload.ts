@@ -1465,7 +1465,6 @@ export function hasIdenticalGeometryMaterialisation(
   expected: readonly { hash: string; id: string }[],
   actual: readonly { hash: string; id: string }[],
 ) {
-  if (expected.length !== actual.length) return false
   const expectedHashes = new Map(expected.map(row => [row.id, row.hash]))
   if (expectedHashes.size !== expected.length) return false
   const actualHashes = new Map(actual.map(row => [row.id, row.hash]))
