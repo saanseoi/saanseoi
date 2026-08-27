@@ -219,6 +219,11 @@ const liveableMetricsComments = [
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_calculate_title()} />
       <GuideSubSectionBody content={m.guide_data_urban_density_calculate_description()}>
+        <p
+          class="font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+        >
+          {@html m.guide_data_urban_density_calculate_explore_statistics()}
+        </p>
         <GuidePreviewCodeBlock
           label={m.guide_data_urban_density_calculate_code()}
           code={`\n${statsCode}`}
