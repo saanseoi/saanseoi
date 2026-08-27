@@ -246,7 +246,7 @@ let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
 let basemapAccountContinueUrl = $derived.by(() => {
   const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
-  return `${url.pathname}${url.search}${url.hash}`
+  return `${url.pathname}${url.search}`
 })
 
 const completeEditorReadiness = () => {
@@ -676,7 +676,10 @@ onMount(() => {
   operatingSystem ??= detectOperatingSystem(navigator.userAgent)
   analyticsTrackingStarted = true
 
-  if (page.url.searchParams.get('basemap-account') === 'complete') {
+  if (
+    page.url.searchParams.get('basemap-account') === 'complete' &&
+    !window.location.hash
+  ) {
     void tick().then(() => {
       const basemap = document.getElementById('basemap')
       if (basemap) scrollToElementBelowHeader(basemap)
@@ -1268,6 +1271,40 @@ const selectedMapLibrary = $derived(
       : selectedRenderer,
 )
 const outline = $derived(guideOutline)
+const projectOutline = $derived([
+  {
+    id: 'project-pre-check',
+    label: m.guide_data_urban_density_toc_pre_check(),
+  },
+  {
+    id: 'project-fetch-stats',
+    label: m.guide_data_urban_density_toc_fetch_stats(),
+  },
+  {
+    id: 'project-calc-pop-density',
+    label: m.guide_data_urban_density_toc_calc_pop_density(),
+  },
+  {
+    id: 'project-add-stats-to-map',
+    label: m.guide_data_urban_density_toc_add_stats_to_map(),
+  },
+  {
+    id: 'project-highlight-excl',
+    label: m.guide_data_urban_density_toc_highlight_excl(),
+  },
+  {
+    id: 'project-show-districts',
+    label: m.guide_data_urban_density_toc_show_districts(),
+  },
+  {
+    id: 'project-calc-liveable-land',
+    label: m.guide_data_urban_density_toc_calc_liveable_land(),
+  },
+  {
+    id: 'project-finalise-map',
+    label: m.guide_data_urban_density_toc_finalise_map(),
+  },
+])
 const selectedPlatform = $derived(
   objective === 'local'
     ? m.guide_platform_local()
@@ -1746,6 +1783,8 @@ const styleChoices = $derived.by(() =>
   <div class="mt-7">
     <GuideRoot
       {outline}
+      {projectOutline}
+      projectOutlineAnchorId="saanseoi-project"
       decisions={guideDecisions}
       decisionsLabel={m.guide_decisions_title()}
       tocLabel={m.guide_toc()}
