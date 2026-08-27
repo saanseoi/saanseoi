@@ -288,11 +288,11 @@ onMount(() => {
   <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
     <div
       bind:this={terminalCardElement}
-      class="relative max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:mr-2 max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:inline-flex max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:size-[1.125rem] max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:items-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:justify-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:rounded-full max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:bg-secondary max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-mono max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-[0.6875rem] max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-bold max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:leading-none max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:align-text-bottom max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-on-secondary max-xl:[&_pre_code_>_span:nth-child(1)]:before:content-['5'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:first-child]:before:content-['6'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:nth-child(2)]:before:content-['7']"
+      class="relative max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:mr-2 max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:inline-flex max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:size-4.5 max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:items-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:justify-center max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:rounded-full max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:bg-secondary max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-mono max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-[0.6875rem] max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:font-bold max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:leading-none max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:align-text-bottom max-xl:[&_:is(pre_code_>_span:nth-child(1),pre_code_>_span:nth-child(2)_>_span:first-child,pre_code_>_span:nth-child(2)_>_span:nth-child(2))]:before:text-on-secondary max-xl:[&_pre_code_>_span:nth-child(1)]:before:content-['5'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:first-child]:before:content-['6'] max-xl:[&_pre_code_>_span:nth-child(2)_>_span:nth-child(2)]:before:content-['7']"
     >
       {#snippet dotsReference()}
         <span
-          class="ml-1 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+          class="ml-1 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
           aria-hidden="true"
           >1</span
         >
@@ -302,7 +302,7 @@ onMount(() => {
           <span data-terminal-path class="inline-flex"
             >{path}
             <sup
-              class="inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+              class="inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
               >2</sup
             ></span
           >
@@ -310,7 +310,7 @@ onMount(() => {
           <span data-terminal-title class="inline-flex"
             >{m.guide_setup_install_bun()}
             <sup
-              class="inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+              class="inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
               >3</sup
             ></span
           >
@@ -318,7 +318,7 @@ onMount(() => {
       {/snippet}
       {#snippet copyReference()}
         <span
-          class="ml-0.5 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+          class="ml-0.5 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
           aria-hidden="true"
           >4</span
         >
@@ -343,7 +343,7 @@ onMount(() => {
     class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >1</span
     >
@@ -354,7 +354,7 @@ onMount(() => {
     class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-4 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >2</span
     >
@@ -365,7 +365,7 @@ onMount(() => {
     class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >3</span
     >
@@ -376,7 +376,7 @@ onMount(() => {
     class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >4</span
     >
@@ -387,7 +387,7 @@ onMount(() => {
     class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >5</span
     >
@@ -398,7 +398,7 @@ onMount(() => {
     class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >6</span
     >
@@ -409,7 +409,7 @@ onMount(() => {
     class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
   >
     <span
-      class="mr-2 inline-flex size-[1.125rem] items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
+      class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
       aria-hidden="true"
       >7</span
     >
