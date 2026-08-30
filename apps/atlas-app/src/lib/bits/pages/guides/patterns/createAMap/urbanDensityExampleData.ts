@@ -128,10 +128,12 @@ export function calculateUrbanDensityMetrics(
     return totals
   }, new Map<string, { name: string; population: number; landAreaSqKm: number }>())
 
-  return [...totalsByArea.values()].map(total => ({
-    ...total,
-    peoplePerSqKm: total.population / total.landAreaSqKm,
-  }))
+  return [...totalsByArea.values()]
+    .map(total => ({
+      ...total,
+      peoplePerSqKm: total.population / total.landAreaSqKm,
+    }))
+    .sort((first, second) => first.name.localeCompare(second.name))
 }
 
 export const urbanDensityLiveableLandAreas = {
