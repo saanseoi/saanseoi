@@ -81,8 +81,11 @@ The `2026-Q2` Population and Household package also contains the corresponding
 publisher-labelled District Council geometry for those annual periods. Its source
 version is delivery provenance, not a geometry cohort: intake splits the `DC_GHS` layer
 by its `year` property before preparing each 18-area companion. The source-release
-fixture declares that reference-period field and companion behaviour; it never attempts
-to prepare a nonexistent `2026` district cohort.
+fixture declares that reference-period field, companion behaviour, and
+`geometryStatus: fallback`. Those materialisations remain available to the matching
+Statistics cohorts, but do not enter the Geographic Divisions release-set fan-out and
+cannot displace an authoritative C&SD geometry snapshot for the same variant/cohort. It
+never attempts to prepare a nonexistent `2026` district cohort.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a

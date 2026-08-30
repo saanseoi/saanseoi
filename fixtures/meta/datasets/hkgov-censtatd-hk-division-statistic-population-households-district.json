@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:14be855fcd4e680b358992b8e38b72c5cdbf452c712e617cff9e7ae1e1ab069d",
+  "versionHash": "sha256:bc58695797b6bb7bacbffac3ab67050d309cc0583deea6c640320fe83b764f6d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -79,6 +79,7 @@
       "sourceVersion": "2026-Q2",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
       "referencePeriods": {
+        "geometryStatus": "fallback",
         "sourceField": "year",
         "materialiseAreaCompanions": true
       }
