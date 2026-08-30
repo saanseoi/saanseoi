@@ -57,33 +57,43 @@ test('ships the simplified land-clipped census districts used by the previews', 
   })
 })
 
-test('uses district boundaries as the excluded complement when it is absent', () => {
-  const land = decodeLandAnalysis({
-    liveableDistrictLand: {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: { area: 'Kowloon', districtCode: 'KLC' },
-          geometry: {
-            type: 'Polygon',
-            coordinates: [
-              [
-                [114.18, 22.33],
-                [114.19, 22.33],
-                [114.19, 22.34],
-                [114.18, 22.33],
-              ],
+test('requires saved liveable and excluded District geometry', () => {
+  const liveableDistrictLand = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { area: 'Kowloon', districtCode: 'KLC' },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [114.18, 22.33],
+              [114.19, 22.33],
+              [114.19, 22.34],
+              [114.18, 22.33],
             ],
-          },
+          ],
         },
-      ],
-    },
+      },
+    ],
+  } as const
+
+  expect(() => decodeLandAnalysis({ liveableDistrictLand })).toThrow(
+    'Land-analysis JSON must include liveable and excluded District land.',
+  )
+
+  const land = decodeLandAnalysis({
+    liveableDistrictLand,
+    excludedDistrictLand: liveableDistrictLand,
   })
 
   expect(land.liveableDistrictLand[0]?.properties).toEqual({
     area: 'Kowloon',
     divisionCode: 'KLC',
   })
-  expect(land.excludedDistrictLand).toHaveLength(18)
+  expect(land.excludedDistrictLand[0]?.properties).toEqual({
+    area: 'Kowloon',
+    divisionCode: 'KLC',
+  })
 })

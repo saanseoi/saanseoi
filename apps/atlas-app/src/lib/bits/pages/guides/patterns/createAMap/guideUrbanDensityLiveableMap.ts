@@ -6,7 +6,6 @@ import type {
   DistrictLandProperties,
   DistrictGeometry,
 } from './urbanDensityCensusDistricts.ts'
-import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
 export const landAnalysisPath = '/guides/create-a-map/land-analysis.json'
 
@@ -22,7 +21,7 @@ type DownloadedDistrictLand = FeatureCollection<
 
 type LandAnalysis = {
   liveableDistrictLand: DownloadedDistrictLand
-  excludedDistrictLand?: DownloadedDistrictLand
+  excludedDistrictLand: DownloadedDistrictLand
 }
 
 let cachedDistrictLand: Promise<DistrictLand> | undefined
@@ -54,24 +53,18 @@ export function decodeLandAnalysis(value: unknown): DistrictLand {
   }
 
   const analysis = value as Partial<LandAnalysis>
-  if (!isDistrictLand(analysis.liveableDistrictLand)) {
-    throw new Error('Land-analysis JSON is missing liveable District land.')
+  if (
+    !isDistrictLand(analysis.liveableDistrictLand) ||
+    !isDistrictLand(analysis.excludedDistrictLand)
+  ) {
+    throw new Error(
+      'Land-analysis JSON must include liveable and excluded District land.',
+    )
   }
 
   return {
     liveableDistrictLand: normaliseDistrictLand(analysis.liveableDistrictLand),
-    // Newer results only persist liveable geometry. Rendering the District below
-    // it shows the complement without re-running costly polygon differences.
-    excludedDistrictLand: isDistrictLand(analysis.excludedDistrictLand)
-      ? normaliseDistrictLand(analysis.excludedDistrictLand)
-      : urbanDensityCensusDistricts.features.map(({ geometry, properties }) => ({
-          type: 'Feature',
-          geometry,
-          properties: {
-            area: properties.area,
-            divisionCode: properties.divisionCode,
-          },
-        })),
+    excludedDistrictLand: normaliseDistrictLand(analysis.excludedDistrictLand),
   }
 }
 
@@ -95,13 +88,12 @@ export const loadCachedDistrictLand = () => {
 
 export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
   try {
-    const { liveableDistrictLand } = await loadCachedDistrictLand()
+    const { excludedDistrictLand, liveableDistrictLand } =
+      await loadCachedDistrictLand()
 
-    // Keep this preview in lockstep with the final map snippet: the complete
-    // District fill is the red base, and cached liveable land is drawn above it.
-    map.addSource('districts', {
+    map.addSource('excluded-districts', {
       type: 'geojson',
-      data: urbanDensityCensusDistricts,
+      data: { type: 'FeatureCollection', features: excludedDistrictLand },
     })
     map.addSource('liveable-districts', {
       type: 'geojson',
@@ -112,9 +104,9 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
       .layers?.find(layer => layer.type === 'symbol')?.id
     map.addLayer(
       {
-        id: 'districts',
+        id: 'excluded-districts',
         type: 'fill',
-        source: 'districts',
+        source: 'excluded-districts',
         paint: {
           'fill-antialias': false,
           'fill-color': '#e76f51',
@@ -126,9 +118,9 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
     )
     map.addLayer(
       {
-        id: 'districts-outline',
+        id: 'excluded-districts-outline',
         type: 'line',
-        source: 'districts',
+        source: 'excluded-districts',
         paint: {
           'line-color': '#8c3427',
           'line-opacity': 0,
@@ -154,9 +146,9 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
     )
     // Let the map render the transparent result once, then reveal the completed analysis.
     requestAnimationFrame(() => {
-      map.setPaintProperty('districts', 'fill-opacity', 0.62)
+      map.setPaintProperty('excluded-districts', 'fill-opacity', 0.62)
       map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48)
-      map.setPaintProperty('districts-outline', 'line-opacity', 1)
+      map.setPaintProperty('excluded-districts-outline', 'line-opacity', 1)
     })
   } catch (cause) {
     console.error('Liveable district land could not be calculated.', cause)
