@@ -530,7 +530,7 @@ export const getSourceReleaseContentData = query(
     }),
 )
 
-const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
+const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd-landclipped:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
 const districtGeometryNamesSchema = z.object({
   districtIds: z.array(z.string().trim().min(1).max(200)).max(100),
