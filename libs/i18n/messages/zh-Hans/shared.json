@@ -1447,6 +1447,7 @@
   "guide_data_urban_density_calculate_preview_explanation": "第一张编辑器卡会获取已发布的人口和土地面积数值。下一张会请求各分区，并建立 <code>districts</code>：一列 GeoJSON Feature，在后续步骤中保留每个分区的代码、所属地区、数值及经陆地裁切的几何。",
   "guide_data_urban_density_calculate_code": "src/main.ts — 获取已发布的统计数据",
   "guide_data_urban_density_stats_comment_api_base_url": "所有 SaanSeoi API 请求的起始域名。",
+  "guide_data_urban_density_stats_comment_saved_result": "接下来会分几步做地理空间分析，然后保存结果，\n所以下次加载地图时，会直接看到结果，不必再逐一\n执行所有计算和处理。",
   "guide_data_urban_density_stats_comment_endpoint": "Geographies 会返回每个分区的一项统计字段，可直接用于地图。",
   "guide_data_urban_density_stats_comment_dataset": "将要请求数据的特定数据集。",
   "guide_data_urban_density_stats_comment_helper": "为这个数据集的所有分区创建一个请求。",

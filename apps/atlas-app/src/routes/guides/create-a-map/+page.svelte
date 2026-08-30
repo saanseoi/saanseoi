@@ -138,8 +138,18 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
   /\/+$/,
   '',
 )
-const urbanDensityStatsCode = createUrbanDensityStatsCode(apiBaseUrl)
-const urbanDensityStatsDisplayCode = createUrbanDensityStatsDisplayCode(apiBaseUrl)
+let urbanDensityStatsCode = $derived(
+  createUrbanDensityStatsCode(
+    apiBaseUrl,
+    m.guide_data_urban_density_stats_comment_saved_result(),
+  ),
+)
+let urbanDensityStatsDisplayCode = $derived(
+  createUrbanDensityStatsDisplayCode(
+    apiBaseUrl,
+    m.guide_data_urban_density_stats_comment_saved_result(),
+  ),
+)
 let isVpnRequired = $derived(page.data.isVpnRequired)
 let visitorRegionCode = $derived(page.data.visitorRegionCode)
 const vpnRegionLabels = {

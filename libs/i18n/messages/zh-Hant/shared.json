@@ -1447,6 +1447,7 @@
   "guide_data_urban_density_calculate_title": "2. 取得已發布的 2024 統計資料",
   "guide_data_urban_density_toc_fetch_stats": "取得統計資料",
   "guide_data_urban_density_stats_comment_api_base_url": "所有 SaanSeoi API 請求的起始網域。",
+  "guide_data_urban_density_stats_comment_saved_result": "接下來會分幾步做地理空間分析，然後儲存結果，\n所以下次載入地圖時，會直接看到結果，不必再逐一\n執行所有計算與處理。",
   "guide_data_urban_density_stats_comment_endpoint": "Geographies 會傳回每個分區的一項統計欄位，可直接用於地圖。",
   "guide_data_urban_density_stats_comment_dataset": "將要請求資料的特定資料集。",
   "guide_data_urban_density_metrics_code": "src/main.ts — 新增三個指標",
