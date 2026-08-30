@@ -1396,41 +1396,32 @@ async function writePlandSqlArtefacts(
     sourceKey: artefactKey('source', `${runId}-source.sql`),
   } satisfies PlandSqlArtefactManifest
 
-  const [sourceSql, historySql, currentSql, metaSql] = await Promise.all([
+  // Planning Unit source geometry is large. Build and persist one artefact at
+  // a time so the source, history and current SQL strings do not coexist in
+  // the heap while their text encodings are also being written.
+  await writePlandSqlArtefact(bucket, manifest.sourceKey, () =>
     buildPlandSourceSql(context, plan, state),
+  )
+  await writePlandSqlArtefact(bucket, manifest.historyKey, () =>
     buildPlandHistorySql(context, state),
+  )
+  await writePlandSqlArtefact(bucket, manifest.currentKey, () =>
     buildPlandCurrentSql(context, state),
+  )
+  await writePlandSqlArtefact(bucket, manifest.metaKey, () =>
     buildPlandMetaSql(context, state),
-  ])
-
-  await Promise.all([
-    writeTextArtefact(
-      bucket,
-      manifest.sourceKey,
-      sourceSql,
-      'application/sql; charset=utf-8',
-    ),
-    writeTextArtefact(
-      bucket,
-      manifest.historyKey,
-      historySql,
-      'application/sql; charset=utf-8',
-    ),
-    writeTextArtefact(
-      bucket,
-      manifest.currentKey,
-      currentSql,
-      'application/sql; charset=utf-8',
-    ),
-    writeTextArtefact(
-      bucket,
-      manifest.metaKey,
-      metaSql,
-      'application/sql; charset=utf-8',
-    ),
-  ])
+  )
 
   return manifest
+}
+
+async function writePlandSqlArtefact(
+  bucket: LocalPipelineBucket,
+  key: string,
+  build: () => Promise<string>,
+) {
+  const contents = await build()
+  await writeTextArtefact(bucket, key, contents, 'application/sql; charset=utf-8')
 }
 
 async function buildPlandSourceSql(
@@ -2139,7 +2130,7 @@ function buildLargeTextUpdates(table: string, updates: LargeTextUpdate[]) {
       .join(' AND ')
     const statements = [`UPDATE ${table} SET ${update.column} = '' WHERE ${where};`]
 
-    for (const chunk of splitSqlText(update.value)) {
+    for (const chunk of splitPlandSqlText(update.value)) {
       statements.push(
         `UPDATE ${table} SET ${update.column} = ${update.column} || ${sqlLiteral(chunk)} WHERE ${where};`,
       )
@@ -2149,24 +2140,38 @@ function buildLargeTextUpdates(table: string, updates: LargeTextUpdate[]) {
   })
 }
 
-function splitSqlText(value: string) {
-  const maxBytes = 16 * 1024
+export function splitPlandSqlText(value: string) {
+  // At most three UTF-8 bytes are emitted for each UTF-16 code unit. Keeping
+  // slices below 8 Ki code units therefore remains comfortably under D1's
+  // 96 KiB statement ceiling, including SQL escaping. Slicing is linear; the
+  // former character-by-character concatenation allocated quadratically for
+  // large Planning Unit source geometries.
+  const maxCodeUnits = 8 * 1024
   const chunks: string[] = []
-  let chunk = ''
-  let chunkBytes = 0
+  let start = 0
 
-  for (const character of value) {
-    const characterBytes = new TextEncoder().encode(character).byteLength
-    if (chunk && chunkBytes + characterBytes > maxBytes) {
-      chunks.push(chunk)
-      chunk = ''
-      chunkBytes = 0
+  while (start < value.length) {
+    let end = Math.min(start + maxCodeUnits, value.length)
+    if (
+      end < value.length &&
+      isHighSurrogate(value.charCodeAt(end - 1)) &&
+      isLowSurrogate(value.charCodeAt(end))
+    ) {
+      end -= 1
     }
-    chunk += character
-    chunkBytes += characterBytes
+    chunks.push(value.slice(start, end))
+    start = end
   }
-  if (chunk) chunks.push(chunk)
+
   return chunks
+}
+
+function isHighSurrogate(value: number) {
+  return value >= 0xd800 && value <= 0xdbff
+}
+
+function isLowSurrogate(value: number) {
+  return value >= 0xdc00 && value <= 0xdfff
 }
 
 function serialiseSqlText(value: unknown) {
