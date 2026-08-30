@@ -89,6 +89,10 @@ each output Polygon or MultiPolygon and records its engine version and any tempo
 `make_valid` input repair in derivation metadata. This never alters exact canonical
 geometry or publisher evidence.
 
+The completed WGS84 coverage is cached under `.local/dataops/simplified-coverage` by its
+content, tolerance and simplification-contract version, so re-uploading unchanged
+Planning geometry reuses the simplified GeoJSON rather than running GEOS again.
+
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through

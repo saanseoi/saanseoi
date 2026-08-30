@@ -66,6 +66,11 @@ apply that tolerance. It validates every derived Polygon or MultiPolygon and rec
 engine version and any temporary `make_valid` input repair in derivation metadata; it
 never changes the publisher geometry retained by the exact source snapshot.
 
+The simplified WGS84 coverage is stored in the content-addressed
+`.local/dataops/simplified-coverage` cache. Its key includes the exact geometry,
+tolerance and simplification-contract version, so an unchanged re-upload reuses the
+derived GeoJSON while a changed input creates a new derivative.
+
 The DCD layer also exposes `NAME_TC`, `NAME_EN`, `DATA_OWNER`, `BEGIN_LIFESPAN`,
 `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area`; these are intentionally not projected
 because they are redundant, publisher metadata, or calculated values. The source
