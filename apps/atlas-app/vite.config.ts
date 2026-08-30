@@ -32,10 +32,9 @@ export default defineConfig({
           // this path directly to Miniflare. Point at Wrangler's effective store.
           persist: { path: resolve(import.meta.dirname, '../../.local/d1/dev/v3') },
           envFiles: ['.dev.vars'],
-          // The guide's completed land analysis lives in R2, so local previews read
-          // the same remote asset as the deployed app. Other bindings remain local
-          // unless their Wrangler configuration explicitly marks them as remote.
-          remoteBindings: true,
+          // Local development shares persisted Miniflare/D1 state with the API.
+          // Opt in only when a flow needs a real remote binding (for example, email).
+          remoteBindings: process.env.ATLAS_REMOTE_BINDINGS === 'true',
         },
       }),
       experimental: {

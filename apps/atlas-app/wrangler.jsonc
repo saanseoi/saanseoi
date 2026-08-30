@@ -11,8 +11,7 @@
   "r2_buckets": [
     {
       "binding": "R2_GUIDE_ASSETS",
-      "bucket_name": "ss-assets-preview",
-      "remote": true
+      "bucket_name": "ss-assets-preview"
     }
   ],
   "vars": {
