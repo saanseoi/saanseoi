@@ -95,7 +95,7 @@ let {
       </li>
     </ul>
     <aside
-      class="mt-6 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] lg:absolute lg:top-0 lg:right-0 lg:left-[calc(48rem+1.5rem)] lg:mt-0"
+      class="mt-6 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] lg:absolute lg:top-0 lg:right-0 lg:left-198 lg:mt-0"
     >
       <GuideInstructionCallout
         label={tileZoomCalloutLabel}

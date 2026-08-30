@@ -422,7 +422,7 @@ const liveableAreaMapComments = [
               {/snippet}
             </GuidePreviewCodeBlock>
           </div>
-          <aside class="lg:pt-[20.375rem]">
+          <aside class="lg:pt-81.5">
             <GuideInstructionCallout
               label={m.guide_data_urban_density_statistics_callout_label()}
               title={m.guide_data_urban_density_statistics_callout_title()}
@@ -479,7 +479,7 @@ const liveableAreaMapComments = [
           {@html m.guide_data_urban_density_census_areas_map_description()}
         </p>
         <div
-          class="mt-5 h-[52rem] max-w-[80ch] overflow-hidden border border-[#596074] bg-[#10151a] shadow-card"
+          class="mt-5 h-208 max-w-[80ch] overflow-hidden border border-[#596074] bg-[#10151a] shadow-card"
         >
           <GuideUrbanDensityCensusAreasPreview
             label={mapPreviewLabel}
