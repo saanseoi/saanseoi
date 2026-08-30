@@ -3627,7 +3627,6 @@ export async function ensureDraftReleaseSetForRelease(
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
   options: {
     domainCode?: string
-    explicitInitialRevision?: boolean
     forceNew?: boolean
   } = {},
 ) {
@@ -3739,7 +3738,6 @@ export async function ensureDraftReleaseSetForRelease(
       apiVersion.familyType,
       release.cohortKey,
       nextRevision,
-      { explicitInitialRevision: options.explicitInitialRevision },
     ),
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
   ]
