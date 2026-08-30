@@ -105,19 +105,64 @@ onMount(() => {
   })
 })
 
+const savedResultCommentLineCount = m
+  .guide_data_urban_density_stats_comment_saved_result()
+  .split('\n').length
+
 const statsComments = [
-  { line: 12, text: m.guide_data_urban_density_stats_comment_api_base_url() },
-  { line: 13, text: m.guide_data_urban_density_stats_comment_endpoint() },
-  { line: 14, text: m.guide_data_urban_density_stats_comment_dataset() },
-  { line: 16, text: m.guide_data_urban_density_stats_comment_helper() },
-  { line: 17, text: m.guide_data_urban_density_stats_comment_url() },
-  { line: 18, text: m.guide_data_urban_density_stats_comment_cohort() },
-  { line: 19, text: m.guide_data_urban_density_stats_comment_dataset_filter() },
-  { line: 20, text: m.guide_data_urban_density_stats_comment_field() },
-  { line: 21, text: m.guide_data_urban_density_stats_comment_reference_period() },
-  { line: 23, text: m.guide_data_urban_density_stats_comment_request() },
-  { line: 24, text: m.guide_data_urban_density_stats_comment_values() },
-  { line: 27, text: m.guide_data_urban_density_stats_comment_fields() },
+  {
+    line: savedResultCommentLineCount + 5,
+    text: m.guide_data_urban_density_stats_comment_saved_result_path(),
+    html: true,
+  },
+  {
+    line: savedResultCommentLineCount + 11,
+    text: m.guide_data_urban_density_stats_comment_api_base_url(),
+  },
+  {
+    line: savedResultCommentLineCount + 12,
+    text: m.guide_data_urban_density_stats_comment_endpoint(),
+  },
+  {
+    line: savedResultCommentLineCount + 13,
+    text: m.guide_data_urban_density_stats_comment_dataset(),
+  },
+  {
+    line: savedResultCommentLineCount + 15,
+    text: m.guide_data_urban_density_stats_comment_helper(),
+  },
+  {
+    line: savedResultCommentLineCount + 16,
+    text: m.guide_data_urban_density_stats_comment_url(),
+  },
+  {
+    line: savedResultCommentLineCount + 17,
+    text: m.guide_data_urban_density_stats_comment_cohort(),
+  },
+  {
+    line: savedResultCommentLineCount + 18,
+    text: m.guide_data_urban_density_stats_comment_dataset_filter(),
+  },
+  {
+    line: savedResultCommentLineCount + 19,
+    text: m.guide_data_urban_density_stats_comment_field(),
+  },
+  {
+    line: savedResultCommentLineCount + 20,
+    text: m.guide_data_urban_density_stats_comment_reference_period(),
+  },
+  {
+    line: savedResultCommentLineCount + 22,
+    text: m.guide_data_urban_density_stats_comment_request(),
+  },
+  {
+    line: savedResultCommentLineCount + 23,
+    text: m.guide_data_urban_density_stats_comment_values(),
+  },
+  {
+    line: savedResultCommentLineCount + 26,
+    text: m.guide_data_urban_density_stats_comment_fields(),
+  },
 ]
 
 const mapComments = [
@@ -140,29 +185,29 @@ const metricsComments = [
 ]
 
 const calculationComments = [
-  { line: 3, text: m.guide_data_urban_density_calculation_comment_divisions() },
-  { line: 5, text: m.guide_data_urban_density_calculation_comment_level() },
+  { line: 4, text: m.guide_data_urban_density_calculation_comment_divisions() },
+  { line: 6, text: m.guide_data_urban_density_calculation_comment_level() },
   {
-    line: 6,
+    line: 7,
     text: m.guide_data_urban_density_calculation_comment_hierarchy_geometry(),
   },
-  { line: 8, text: m.guide_data_urban_density_calculation_comment_request() },
-  { line: 9, text: m.guide_data_urban_density_calculation_comment_error() },
-  { line: 14, text: m.guide_data_urban_density_calculation_comment_response() },
-  { line: 19, text: m.guide_data_urban_density_calculation_comment_index() },
-  { line: 19, text: m.guide_data_urban_density_calculation_comment_each_district() },
-  { line: 20, text: m.guide_data_urban_density_calculation_comment_district_code() },
-  { line: 21, text: m.guide_data_urban_density_calculation_comment_area() },
-  { line: 22, text: m.guide_data_urban_density_calculation_comment_geometry() },
-  { line: 32, text: m.guide_data_urban_density_calculation_comment_totals() },
-  { line: 34, text: m.guide_data_urban_density_calculation_comment_start_total() },
-  { line: 35, text: m.guide_data_urban_density_calculation_comment_population() },
-  { line: 36, text: m.guide_data_urban_density_calculation_comment_land_area() },
-  { line: 37, text: m.guide_data_urban_density_calculation_comment_save_total() },
-  { line: 39, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
-  { line: 41, text: m.guide_data_urban_density_calculation_comment_metrics() },
-  { line: 42, text: m.guide_data_urban_density_calculation_comment_details() },
-  { line: 43, text: m.guide_data_urban_density_calculation_comment_density() },
+  { line: 9, text: m.guide_data_urban_density_calculation_comment_request() },
+  { line: 10, text: m.guide_data_urban_density_calculation_comment_error() },
+  { line: 15, text: m.guide_data_urban_density_calculation_comment_response() },
+  { line: 20, text: m.guide_data_urban_density_calculation_comment_index() },
+  { line: 20, text: m.guide_data_urban_density_calculation_comment_each_district() },
+  { line: 21, text: m.guide_data_urban_density_calculation_comment_district_code() },
+  { line: 22, text: m.guide_data_urban_density_calculation_comment_area() },
+  { line: 23, text: m.guide_data_urban_density_calculation_comment_geometry() },
+  { line: 33, text: m.guide_data_urban_density_calculation_comment_totals() },
+  { line: 35, text: m.guide_data_urban_density_calculation_comment_start_total() },
+  { line: 36, text: m.guide_data_urban_density_calculation_comment_population() },
+  { line: 37, text: m.guide_data_urban_density_calculation_comment_land_area() },
+  { line: 38, text: m.guide_data_urban_density_calculation_comment_save_total() },
+  { line: 40, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
+  { line: 42, text: m.guide_data_urban_density_calculation_comment_metrics() },
+  { line: 43, text: m.guide_data_urban_density_calculation_comment_details() },
+  { line: 44, text: m.guide_data_urban_density_calculation_comment_density() },
 ]
 
 const collectNonLiveableLandComments = [

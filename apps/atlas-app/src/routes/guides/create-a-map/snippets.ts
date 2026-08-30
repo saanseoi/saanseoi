@@ -477,6 +477,7 @@ export const createUrbanDensityStatsCode = (
     '  savedResult = (await import(savedResultPath)).default',
     '} catch {}',
     '',
+    'if (!savedResult) {',
     `const apiBaseUrl = '${apiBaseUrl}'`,
     "const statsEndpoint = '/stats/v0.1/geographies'",
     "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
@@ -496,6 +497,7 @@ export const createUrbanDensityStatsCode = (
     "  getDistrictField('populationMidYear'),",
     "  getDistrictField('landArea'),",
     '])',
+    '}',
   ].join('\n')
 
 export const createUrbanDensityStatsDisplayCode = (
@@ -557,7 +559,8 @@ export const urbanDensityCalculationCode = [
 ].join('\n')
 
 export const urbanDensityCalculationDisplayCode = [
-  '// { 125 LINES OMITTED: KEEP YOUR WORKING MAP SETUP AND STATISTICS REQUEST }',
+  '// { 53 LINES OMITTED: KEEP YOUR WORKING MAP SETUP AND STATISTICS REQUEST }',
+  '// Append these calculations to get your population density metrics.',
   '',
   urbanDensityCalculationCode,
 ].join('\n')

@@ -293,7 +293,7 @@ onMount(() => {
           {comments}
           dimmedLines={[1, 2]}
           {editorIcon}
-          label="src/main.ts"
+          label={m.guide_editor_card_explainer_label()}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
