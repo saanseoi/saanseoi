@@ -44,20 +44,21 @@ onMount(async () => {
   >
     <dialog
       open
-      class="m-0 flex max-h-full w-full max-w-3xl flex-col overflow-hidden border border-white/20 bg-[#171c25] p-5 font-body text-white shadow-2xl sm:p-7"
+      class="m-0 flex max-h-full w-full max-w-[32.5rem] flex-col overflow-hidden border border-white/20 bg-[#171c25] p-5 font-body text-white shadow-2xl sm:p-7"
       aria-labelledby="liveable-result-preview-title"
     >
-      <p
+      <h2
+        id="liveable-result-preview-title"
         class="font-mono text-label-sm font-bold tracking-[0.08em] text-[#79e7d1] uppercase"
       >
         {m.guide_data_urban_density_liveable_result_preview_title()}
-      </p>
+      </h2>
       <p class="mt-2 text-body-sm leading-6 text-white/80">
         {m.guide_data_urban_density_liveable_result_preview_description()}
       </p>
       {#if resultReady && districtLand}
         <a
-          class="mt-5 inline-block border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 font-mono text-label-sm font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
+          class="mt-5 block w-full border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 text-center font-mono text-base font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
           download="land-analysis.json"
           href={landAnalysisPath}
         >
