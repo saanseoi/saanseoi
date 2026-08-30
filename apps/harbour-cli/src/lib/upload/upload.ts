@@ -164,6 +164,7 @@ async function registerUploadLocally(
       shardYear,
       source: previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
+      geometryStatus: previewResult.plan.geometryStatus,
       theme: previewResult.plan.theme,
       type: previewResult.plan.type,
     })
@@ -216,6 +217,7 @@ async function requestRemoteRegistration(
           shardYear,
           source: previewResult.plan.source,
           sourceVersion: previewResult.plan.sourceVersion,
+          geometryStatus: previewResult.plan.geometryStatus,
           theme: previewResult.plan.theme,
           type: previewResult.plan.type,
         },
