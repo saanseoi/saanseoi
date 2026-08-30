@@ -465,23 +465,6 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '})',
   ].join('\n')
 
-const withCodeHeader = (
-  code: string,
-  header: string,
-  commentStart = '//',
-  commentEnd = '',
-) =>
-  [
-    ...header.split('\n').map(line => `${commentStart} ${line}${commentEnd}`),
-    '',
-    code,
-  ].join('\n')
-
-export const createUrbanDensityMapReadyDisplayCode = (
-  styleUrl: string,
-  header: string,
-) => withCodeHeader(createUrbanDensityMapReadyCode(styleUrl), header)
-
 export const createUrbanDensityStatsCode = (
   apiBaseUrl: string,
   savedResultComment: string,
@@ -520,8 +503,7 @@ export const createUrbanDensityStatsCode = (
 export const createUrbanDensityStatsDisplayCode = (
   apiBaseUrl: string,
   savedResultComment: string,
-  header: string,
-) => withCodeHeader(createUrbanDensityStatsCode(apiBaseUrl, savedResultComment), header)
+) => createUrbanDensityStatsCode(apiBaseUrl, savedResultComment)
 
 export const urbanDensityCalculationCode = [
   "const divisionsEndpoint = '/divisions/v0'",
@@ -570,8 +552,7 @@ export const urbanDensityCalculationCode = [
   '  .sort((first, second) => first.name.localeCompare(second.name))',
 ].join('\n')
 
-export const createUrbanDensityCalculationDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityCalculationCode, header)
+export const urbanDensityCalculationDisplayCode = urbanDensityCalculationCode
 
 export const urbanDensityMapCode = [
   '// We are about to replace the district-land comparison, so hide its labels first.',
@@ -622,13 +603,9 @@ export const urbanDensityMapCode = [
   '}',
 ].join('\n')
 
-export const createUrbanDensityMapDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityMapCode, header)
+export const urbanDensityMapDisplayCode = urbanDensityMapCode
 
 export const urbanDensityTurfInstallCode = 'bun add @turf/turf @mapbox/vector-tile pbf'
-
-export const createUrbanDensityTurfInstallDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityTurfInstallCode, header, '#')
 
 export const urbanDensitySetupZ14TileFetcherCode = [
   "import { VectorTile } from '@mapbox/vector-tile'",
@@ -778,8 +755,8 @@ export const urbanDensitySetupZ14TileFetcherCode = [
   '}',
 ].join('\n')
 
-export const createUrbanDensitySetupZ14TileFetcherDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensitySetupZ14TileFetcherCode, header)
+export const urbanDensitySetupZ14TileFetcherDisplayCode =
+  urbanDensitySetupZ14TileFetcherCode
 
 export const urbanDensityCollectNonLiveableLandCode = [
   'const nonLiveableFeatures = []',
@@ -800,8 +777,8 @@ export const urbanDensityCollectNonLiveableLandCode = [
   '}',
 ].join('\n')
 
-export const createUrbanDensityCollectNonLiveableLandDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityCollectNonLiveableLandCode, header)
+export const urbanDensityCollectNonLiveableLandDisplayCode =
+  urbanDensityCollectNonLiveableLandCode
 
 export const urbanDensityLiveableAreaCode = [
   'if (!savedResult) {',
@@ -859,8 +836,7 @@ export const urbanDensityLiveableAreaCode = [
   '}',
 ].join('\n')
 
-export const createUrbanDensityLiveableAreaDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityLiveableAreaCode, header)
+export const urbanDensityLiveableAreaDisplayCode = urbanDensityLiveableAreaCode
 
 export const urbanDensityLiveableAreaMapCode = [
   '',
@@ -888,8 +864,7 @@ export const urbanDensityLiveableAreaMapCode = [
   "requestAnimationFrame(() => { map.setPaintProperty('districts', 'fill-opacity', 0.62); map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48); map.setPaintProperty('districts-outline', 'line-opacity', 1) })",
 ].join('\n')
 
-export const createUrbanDensityLiveableAreaMapDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityLiveableAreaMapCode, header)
+export const urbanDensityLiveableAreaMapDisplayCode = urbanDensityLiveableAreaMapCode
 
 export const urbanDensityLiveableMetricsCode = [
   'const liveableDistrictLand = savedResult.liveableDistrictLand.features',
@@ -930,8 +905,7 @@ export const urbanDensityLiveableMetricsCode = [
   'document.body.append(liveableMetricBar)',
 ].join('\n')
 
-export const createUrbanDensityLiveableMetricsDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityLiveableMetricsCode, header)
+export const urbanDensityLiveableMetricsDisplayCode = urbanDensityLiveableMetricsCode
 
 export const urbanDensityMetricsCode = [
   'if (!savedResult) {',
@@ -949,8 +923,7 @@ export const urbanDensityMetricsCode = [
   '}',
 ].join('\n')
 
-export const createUrbanDensityMetricsDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityMetricsCode, header)
+export const urbanDensityMetricsDisplayCode = urbanDensityMetricsCode
 
 export const urbanDensityMetricsCss = [
   '#urban-density-metrics {',
@@ -981,5 +954,4 @@ export const urbanDensityMetricsCss = [
   '}',
 ].join('\n')
 
-export const createUrbanDensityMetricsCssDisplayCode = (header: string) =>
-  withCodeHeader(urbanDensityMetricsCss, header, '/*', ' */')
+export const urbanDensityMetricsCssDisplayCode = urbanDensityMetricsCss
