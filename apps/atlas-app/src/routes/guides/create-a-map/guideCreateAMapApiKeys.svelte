@@ -18,6 +18,7 @@ type Props = {
   newFileShortcut?: string
   operatingSystem?: string
   onApiKeyCreated?: (key: string) => void
+  onApiKeyConfirmed?: () => void
   onApiKeyReadyChange?: (ready: boolean) => void
   showHeading?: boolean
   terminalProjectPath?: string
@@ -31,6 +32,7 @@ let {
   newFileShortcut,
   operatingSystem,
   onApiKeyCreated,
+  onApiKeyConfirmed,
   onApiKeyReadyChange,
   showHeading = true,
   terminalProjectPath,
@@ -147,6 +149,7 @@ const completeApiKeyConfirmation = () => {
   hasConfirmedApiKey = true
   apiKeyOptionsExpanded = false
   usingExistingKey = false
+  onApiKeyConfirmed?.()
 }
 
 $effect(() => {

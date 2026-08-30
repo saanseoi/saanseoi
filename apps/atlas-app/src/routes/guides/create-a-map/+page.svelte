@@ -351,6 +351,14 @@ const resetMapboxToken = () => {
   mapboxTokenConfigured = false
 }
 
+const scrollToBasemapApiKeyRequirement = async () => {
+  await tick()
+  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+  const requirement = document.getElementById('basemap-api-key-requirement')
+  if (requirement) scrollToElementBelowHeader(requirement)
+}
+
 const openZedSetup = async () => {
   zedSetupExpanded = true
   zedSetupContentExpanded = true
@@ -2453,7 +2461,7 @@ const styleChoices = $derived.by(() =>
           {/if}
         </div>
         {#if page.data.user}
-          <div class="mt-10 max-w-3xl">
+          <div id="basemap-api-key-requirement" class="mt-10 max-w-3xl scroll-mt-28">
             <GuideSubSectionHeader
               requirement={{
                 current: 2,
@@ -2492,6 +2500,7 @@ const styleChoices = $derived.by(() =>
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
               {terminalProjectPath}
+              onApiKeyConfirmed={scrollToBasemapApiKeyRequirement}
               onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
               showHeading={false}
               bind:usingExistingKey={usingExistingBasemapApiKey}
