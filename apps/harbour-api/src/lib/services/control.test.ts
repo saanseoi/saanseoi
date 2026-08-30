@@ -1910,7 +1910,6 @@ describe('control service', () => {
     const reconciledSet = sqlite
       .query('SELECT status FROM apiReleaseSets WHERE id = ?')
       .get(releaseSetId) as { status: string }
-    sqlite.close()
 
     expect(result.apiReleaseSetId).toBe(releaseSetId)
     expect(result.apiReleaseSetStatus).toBe('draft')
@@ -1954,6 +1953,28 @@ describe('control service', () => {
       ],
     })
     expect(reconciledSet.status).toBe('current')
+    const deferredAfterReconciliation = await handlePublishDataset(db, {
+      deferApiReleaseSet: true,
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    })
+    const revisionRowsAfterReconciliation = sqlite
+      .query(
+        'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      )
+      .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
+
+    expect(deferredAfterReconciliation).toMatchObject({
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+      snapshotId: areaTypeSnapshotId,
+      status: 'published',
+    })
+    expect(revisionRowsAfterReconciliation).toEqual([
+      {
+        code: `data-hk-divisions-${cohortKey}`,
+        revision: 0,
+        status: 'current',
+      },
+    ])
     expect(members).toEqual([
       {
         anchorCode: null,
@@ -1976,6 +1997,7 @@ describe('control service', () => {
         variant: 'overture',
       },
     ])
+    sqlite.close()
   })
 
   test('revokes the superseded dataset only for corrected same-release publishes', async () => {
