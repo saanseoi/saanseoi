@@ -559,13 +559,14 @@ export const urbanDensityCalculationCode = [
 export const urbanDensityCalculationDisplayCode = urbanDensityCalculationCode
 
 export const urbanDensityMapCode = [
+  "const nonLiveableLandUse = ['aerodrome', 'airfield', 'allotments', 'bare_rock', 'beach', 'cemetery', 'commercial', 'construction', 'dam', 'dog_park', 'farmland', 'forest', 'garden', 'golf_course', 'grass', 'grassland', 'industrial', 'meadow', 'military', 'nature_reserve', 'park', 'pedestrian', 'pier', 'pitch', 'platform', 'playground', 'railway', 'recreation_ground', 'runway', 'sand', 'scrub', 'wetland', 'wood', 'zoo']",
+  '',
+  'if (!savedResult) {',
   '// We are about to replace the district-land comparison, so hide its labels first.',
-  "if (!savedResult) document.querySelector('#urban-density-metrics').remove()",
+  "document.querySelector('#urban-density-metrics').remove()",
   '',
   "await new Promise<void>(resolve => (map.loaded() ? resolve() : map.once('load', resolve)))",
   '',
-  "const nonLiveableLandUse = ['aerodrome', 'airfield', 'allotments', 'bare_rock', 'beach', 'cemetery', 'commercial', 'construction', 'dam', 'dog_park', 'farmland', 'forest', 'garden', 'golf_course', 'grass', 'grassland', 'industrial', 'meadow', 'military', 'nature_reserve', 'park', 'pedestrian', 'pier', 'pitch', 'platform', 'playground', 'railway', 'recreation_ground', 'runway', 'sand', 'scrub', 'wetland', 'wood', 'zoo']",
-  'if (!savedResult) {',
   "const firstLabelLayerId = map.getStyle().layers.find(layer => layer.type === 'symbol')?.id",
   '',
   "map.addSource('completed-exclusions', {",
@@ -931,33 +932,44 @@ export const urbanDensityMetricsCode = [
 
 export const urbanDensityMetricsDisplayCode = urbanDensityMetricsCode
 
-export const urbanDensityMetricsCss = [
-  '#urban-density-metrics {',
-  '  position: fixed; inset: auto 2rem 3.25rem; z-index: 10;',
-  '  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;',
-  "  font-family: 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;",
-  '}',
-  '#urban-density-metrics article { padding: 1rem 1.5rem; border: 1px solid rgb(255 255 255 / 20%); background: rgb(16 21 26 / 92%); color: #fff; box-shadow: 0 12px 32px rgb(0 0 0 / 24%); animation: density-card-enter 360ms ease-out both; }',
-  '#urban-density-metrics article:nth-child(2) { animation-delay: 80ms; }',
-  '#urban-density-metrics article:nth-child(3) { animation-delay: 160ms; }',
-  '#urban-density-metrics p { margin: 0; font-size: .875rem; }',
-  '#urban-density-metrics article[data-area="Hong Kong Island"] > p { color: #5b8ff9; }',
-  '#urban-density-metrics article[data-area="Kowloon"] > p { color: #f6bd16; }',
-  '#urban-density-metrics article[data-area="New Territories"] > p { color: #5ad8a6; }',
-  '#urban-density-metrics article > strong { display: block; margin: .25rem 0; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }',
-  '#urban-density-metrics .density-detail { display: block; font-size: .75rem; line-height: 1.25; }',
-  '#urban-density-metrics .density-area-connector, #urban-density-metrics .secondary-stats { color: rgb(255 255 255 / 65%); }',
-  '#urban-density-metrics .density-detail strong, #urban-density-metrics .secondary-stats strong { font-weight: 700; color: #fff; }',
-  '#urban-density-metrics .secondary-stats { margin: .55rem 0 0; font-size: .75rem; }',
-  '@keyframes density-card-enter { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }',
-  '@media (prefers-reduced-motion: reduce) { #urban-density-metrics article { animation: none; } }',
-  '@media (max-width: 640px) {',
-  '  #urban-density-metrics { inset: auto .75rem 2.5rem; grid-template-columns: 1fr; gap: .5rem; }',
-  '  #urban-density-metrics article { padding: .75rem 1rem; }',
-  '  #urban-density-metrics p { font-size: .75rem; }',
-  '  #urban-density-metrics article > strong { margin: .2rem 0; font-size: 1.35rem; }',
-  '  #urban-density-metrics .density-detail { font-size: .68rem; line-height: 1.25; }',
-  '}',
-].join('\n')
+export const createUrbanDensityMetricsCss = (appearance: 'light' | 'dark') => {
+  const isDark = appearance === 'dark'
+  const cardBorder = isDark ? 'rgb(255 255 255 / 20%)' : '#bdc7cd'
+  const cardBackground = isDark ? 'rgb(16 21 26 / 92%)' : 'rgb(255 249 237 / 92%)'
+  const cardText = isDark ? '#fff' : '#10151a'
+  const mutedText = isDark ? 'rgb(255 255 255 / 65%)' : 'rgb(16 21 26 / 65%)'
+  const attributionIconColour = isDark ? '%23fff' : '%2310151a'
+  const areaTitle = (colour: string) => (isDark ? colour : cardText)
 
-export const urbanDensityMetricsCssDisplayCode = urbanDensityMetricsCss
+  return [
+    '#urban-density-metrics {',
+    '  position: fixed; inset: auto 2rem 3.25rem; z-index: 10;',
+    '  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;',
+    "  font-family: 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;",
+    '}',
+    `#urban-density-metrics article { padding: 1rem 1.5rem; border: 1px solid ${cardBorder}; background: ${cardBackground}; color: ${cardText}; box-shadow: 0 12px 32px rgb(0 0 0 / 24%); animation: density-card-enter 360ms ease-out both; }`,
+    '#urban-density-metrics article:nth-child(2) { animation-delay: 80ms; }',
+    '#urban-density-metrics article:nth-child(3) { animation-delay: 160ms; }',
+    '#urban-density-metrics p { margin: 0; font-size: .875rem; }',
+    `#urban-density-metrics article[data-area="Hong Kong Island"] > p { color: ${areaTitle('#5b8ff9')}; }`,
+    `#urban-density-metrics article[data-area="Kowloon"] > p { color: ${areaTitle('#f6bd16')}; }`,
+    `#urban-density-metrics article[data-area="New Territories"] > p { color: ${areaTitle('#5ad8a6')}; }`,
+    '#urban-density-metrics article > strong { display: block; margin: .25rem 0; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }',
+    '#urban-density-metrics .density-detail { display: block; font-size: .75rem; line-height: 1.25; }',
+    `#urban-density-metrics .density-area-connector, #urban-density-metrics .secondary-stats { color: ${mutedText}; }`,
+    `#urban-density-metrics .density-detail strong, #urban-density-metrics .secondary-stats strong { font-weight: 700; color: ${cardText}; }`,
+    '#urban-density-metrics .secondary-stats { margin: .55rem 0 0; font-size: .75rem; }',
+    `#map .maplibregl-ctrl-attrib, #map .maplibregl-ctrl-attrib-button { background-color: ${cardBackground}; color: ${cardText}; }`,
+    `#map .maplibregl-ctrl-attrib a { color: ${cardText}; }`,
+    `#map .maplibregl-ctrl-attrib-button { background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22${attributionIconColour}%22%20fill-rule%3D%22evenodd%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M4%2010a6%206%200%201%200%2012%200%206%206%200%201%200-12%200m5-3a1%201%200%201%200%202%200%201%201%200%201%200-2%200m0%203a1%201%200%201%201%202%200v3a1%201%200%201%201-2%200%22%2F%3E%3C%2Fsvg%3E"); }`,
+    '@keyframes density-card-enter { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }',
+    '@media (prefers-reduced-motion: reduce) { #urban-density-metrics article { animation: none; } }',
+    '@media (max-width: 640px) {',
+    '  #urban-density-metrics { inset: auto .75rem 2.5rem; grid-template-columns: 1fr; gap: .5rem; }',
+    '  #urban-density-metrics article { padding: .75rem 1rem; }',
+    '  #urban-density-metrics p { font-size: .75rem; }',
+    '  #urban-density-metrics article > strong { margin: .2rem 0; font-size: 1.35rem; }',
+    '  #urban-density-metrics .density-detail { font-size: .68rem; line-height: 1.25; }',
+    '}',
+  ].join('\n')
+}

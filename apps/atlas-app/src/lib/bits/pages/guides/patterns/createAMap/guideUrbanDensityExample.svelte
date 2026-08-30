@@ -192,14 +192,23 @@ const mapComments = [
     alwaysVisible: true,
     spacerAfter: true,
   },
-  { line: 4, text: m.guide_data_urban_density_map_comment_ready() },
-  { line: 6, text: m.guide_data_urban_density_map_comment_kinds() },
-  { line: 15, text: m.guide_data_urban_density_map_comment_layer() },
-  { line: 16, text: m.guide_data_urban_density_map_comment_id() },
-  { line: 18, text: m.guide_data_urban_density_map_comment_source() },
-  { line: 20, text: m.guide_data_urban_density_map_comment_filter() },
-  { line: 21, text: m.guide_data_urban_density_map_comment_paint() },
-  { line: 24, text: m.guide_data_urban_density_map_comment_outline() },
+  { line: 1, text: m.guide_data_urban_density_map_comment_kinds() },
+  { line: 3, text: m.guide_data_urban_density_map_comment_saved_result() },
+  { line: 7, text: m.guide_data_urban_density_map_comment_ready() },
+  { line: 9, text: m.guide_data_urban_density_map_comment_first_label() },
+  { line: 11, text: m.guide_data_urban_density_map_comment_completed_source() },
+  { line: 13, text: m.guide_data_urban_density_map_comment_completed_source_empty() },
+  { line: 16, text: m.guide_data_urban_density_map_comment_layer() },
+  { line: 17, text: m.guide_data_urban_density_map_comment_id() },
+  { line: 19, text: m.guide_data_urban_density_map_comment_source() },
+  { line: 21, text: m.guide_data_urban_density_map_comment_filter() },
+  { line: 22, text: m.guide_data_urban_density_map_comment_paint() },
+  { line: 25, text: m.guide_data_urban_density_map_comment_outline() },
+  { line: 34, text: m.guide_data_urban_density_map_comment_completed_exclusions() },
+  {
+    line: 41,
+    text: m.guide_data_urban_density_map_comment_completed_exclusions_outline(),
+  },
 ]
 
 const metricsComments = [
@@ -797,9 +806,6 @@ const liveableAreaMapComments = [
                 path: terminalProjectPath,
               })}
               code={turfInstallCode}
-              displayCode={`# ${m.guide_data_urban_density_code_header_turf_install()}
-
-${turfInstallCode}`}
               language="bash"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
