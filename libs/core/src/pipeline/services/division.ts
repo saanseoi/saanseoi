@@ -189,6 +189,8 @@ const DIVISION_LEVEL_TOKENS = new Map<string, number>([
   ['microhood', 6],
   ['hamlet', 6],
 ])
+const OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID =
+  '222b7818-970a-491d-98b6-b88d8c6f0161'
 const HONG_KONG_AREA_NAMES = new Set([
   'hong kong island',
   '香港島',
@@ -426,6 +428,7 @@ export async function processDivisionDataset(
   const statsAccumulator = createLocaleStatsAccumulator()
   const districtCounts = new Map<string, number>()
   const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
+  let overtureHongKongDivisionClassificationCorrectionCount = 0
   const processingActions: ReleaseProcessingAction[] = []
   const sourceBaselineSources =
     sourceDb && message.source === 'overture'
@@ -515,6 +518,9 @@ export async function processDivisionDataset(
 
     for (const row of batch) {
       const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      if (normalised.overtureHongKongDivisionClassificationCorrection) {
+        overtureHongKongDivisionClassificationCorrectionCount += 1
+      }
       if (normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
@@ -898,6 +904,9 @@ export async function processDivisionDataset(
     ]),
   )
   processingActions.push(
+    ...buildOvertureHongKongDivisionClassificationProcessingActions(
+      overtureHongKongDivisionClassificationCorrectionCount,
+    ),
     ...buildOvertureHongKongAreaHierarchyProcessingActions(
       hongKongAreaHierarchyAssignmentCounts,
     ),
@@ -1160,24 +1169,28 @@ export function normaliseDivisionRow(
   const parentDivisionId = asNonEmptyString(row.parent_division_id)
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
+  const overtureHongKongDivisionClassificationCorrection =
+    resolveOvertureHongKongDivisionClassificationCorrection(id)
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const sourceFeatureVersion = asOptionalFeatureVersion(row.version)
   const type = landsdPlaceName
     ? 'settlement'
-    : resolveDivisionType({
+    : (overtureHongKongDivisionClassificationCorrection?.type ??
+      resolveDivisionType({
         row,
         otClass,
         otSubtype,
         parentDivisionId,
-      })
+      }))
   const level = landsdPlaceName
     ? 5
-    : resolveDivisionLevel({
+    : (overtureHongKongDivisionClassificationCorrection?.level ??
+      resolveDivisionLevel({
         row,
         otClass,
         otSubtype,
         parentDivisionId,
-      })
+      }))
   const i18n = normaliseDivisionI18n(id, row.names)
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
@@ -1235,6 +1248,7 @@ export function normaliseDivisionRow(
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
+    overtureHongKongDivisionClassificationCorrection,
     overtureHongKongAreaHierarchyAssignment: hierarchyWithHongKongArea.assignment,
   }
 }
@@ -1338,6 +1352,29 @@ export function buildOvertureHongKongAreaHierarchyProcessingActions(
   })
 }
 
+export function buildOvertureHongKongDivisionClassificationProcessingActions(
+  affectedRecordCount: number,
+): ReleaseProcessingAction[] {
+  if (affectedRecordCount === 0) return []
+
+  return [
+    {
+      action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
+      affectedRecordCount,
+      evidence: {
+        canonical: { level: 4, type: 'macrohood' },
+        divisionId: OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID,
+        hierarchy:
+          'The canonical hierarchy lookup applies the same correction to descendants.',
+        source: { adminLevel: 2, class: null, subtype: 'region' },
+      },
+      mode: 'automatic',
+      summary:
+        'Reclassified Lok Ma Chau Loop from Overture’s level-2 region to a level-4 macrohood.',
+    },
+  ]
+}
+
 function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>) {
   const id = asNonEmptyString(row.id)
   const type = asNonEmptyString(row.canonical_type)
@@ -1371,6 +1408,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>
       wikidata: null,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n: normaliseDivisionI18n(id, names),
+    overtureHongKongDivisionClassificationCorrection: null,
     overtureHongKongAreaHierarchyAssignment: null,
   }
 }
@@ -2220,6 +2258,15 @@ function buildOvertureCompatibilitySourceKeys(level: number) {
   }
 
   return {}
+}
+
+function resolveOvertureHongKongDivisionClassificationCorrection(id: string) {
+  if (id !== OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID) return null
+
+  return {
+    level: 4,
+    type: 'macrohood' as const,
+  }
 }
 
 function sourceString(value: unknown) {
