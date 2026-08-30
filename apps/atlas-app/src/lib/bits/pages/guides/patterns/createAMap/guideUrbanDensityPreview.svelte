@@ -14,6 +14,11 @@ const metrics = calculateUrbanDensityMetrics(
   populationResponse.values,
   landAreaResponse.values,
 )
+const darkAreaTitleClasses: Record<string, string> = {
+  'Hong Kong Island': 'text-[#5b8ff9]',
+  Kowloon: 'text-[#f6bd16]',
+  'New Territories': 'text-[#5ad8a6]',
+}
 
 type Props = {
   appearance: 'light' | 'dark'
@@ -54,7 +59,7 @@ let { appearance, label, styleUrl, tilejsonUrl }: Props = $props()
         class={`p-3 shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:px-6 sm:py-4 ${appearance === 'dark' ? 'border border-white/20 bg-[#10151a]/92' : 'bg-[#fff9ed]'}`}
       >
         <p
-          class={`font-body text-xs sm:text-sm ${appearance === 'dark' ? 'text-white/75' : 'text-[#10151a]'}`}
+          class={`font-body text-xs sm:text-sm ${appearance === 'dark' ? darkAreaTitleClasses[metric.name] : 'text-[#10151a]'}`}
         >
           {metric.name}
         </p>
@@ -63,11 +68,23 @@ let { appearance, label, styleUrl, tilejsonUrl }: Props = $props()
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
         <span
-          class={`ml-0.75 inline font-body text-[0.68rem] leading-tight sm:ml-0 sm:block sm:text-xs ${appearance === 'dark' ? 'text-white/65' : 'text-[#10151a]'}`}
-          >{m.guide_data_urban_density_preview_density_for_area({
-            area: metric.landAreaSqKm.toFixed(1),
-          })}</span
+          class={`ml-0.75 inline font-body text-[0.68rem] leading-tight sm:ml-0 sm:block sm:text-xs ${appearance === 'dark' ? '' : 'text-[#10151a]'}`}
         >
+          {#if appearance === 'dark'}
+            <span class="text-white"
+              >{m.guide_data_urban_density_preview_density_unit()}</span
+            ><span class="text-white/65"
+              >{m.guide_data_urban_density_preview_density_area_connector()}</span
+            ><span class="text-white font-bold">{metric.landAreaSqKm.toFixed(1)}</span
+            ><span class="text-white"
+              >{m.guide_data_urban_density_preview_density_area_unit()}</span
+            >
+          {:else}
+            {m.guide_data_urban_density_preview_density_for_area({
+              area: metric.landAreaSqKm.toFixed(1),
+            })}
+          {/if}
+        </span>
       </article>
     {/each}
   </section>
