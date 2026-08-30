@@ -11,6 +11,8 @@ export type CreateAMapRendererReference = {
 }
 
 const stylesheetSnippet = [
+  "@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');",
+  '',
   'html,',
   'body,',
   '#app,',
@@ -18,6 +20,10 @@ const stylesheetSnippet = [
   '  width: 100%;',
   '  height: 100%;',
   '  margin: 0;',
+  '}',
+  '',
+  'body {',
+  "  font-family: 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;",
   '}',
 ].join('\n')
 
@@ -445,7 +451,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     'const map = new MapLibreMap({',
     "  container: 'map',",
     '  center: [114.16, 22.32],',
-    '  zoom: 10.75,',
+    '  zoom: 11.25,',
     '  style,',
     '})',
   ].join('\n')
@@ -516,10 +522,12 @@ export const urbanDensityCalculationCode = [
   '  return totals',
   '}, new Map<string, { name: string; population: number; landAreaSqKm: number }>())',
   '',
-  'const metrics = [...totalsByArea.values()].map(total => ({',
-  '  ...total,',
-  '  peoplePerSqKm: total.population / total.landAreaSqKm,',
-  '}))',
+  'const metrics = [...totalsByArea.values()]',
+  '  .map(total => ({',
+  '    ...total,',
+  '    peoplePerSqKm: total.population / total.landAreaSqKm,',
+  '  }))',
+  '  .sort((first, second) => first.name.localeCompare(second.name))',
 ].join('\n')
 
 export const urbanDensityCalculationDisplayCode = [
@@ -785,12 +793,14 @@ export const urbanDensityLiveableMetricsCode = [
   '  return totals',
   '}, new Map<string, { name: string; population: number; landAreaSqKm: number; excludedAreaSqKm: number }>())',
   '',
-  'const liveableMetrics = [...totalsByArea.values()].map(total => ({',
-  '  ...total,',
-  '  liveableLandAreaSqKm: total.landAreaSqKm - total.excludedAreaSqKm,',
-  '  peoplePerSqKm: total.population / (total.landAreaSqKm - total.excludedAreaSqKm),',
-  '  liveablePercentage: ((total.landAreaSqKm - total.excludedAreaSqKm) / total.landAreaSqKm) * 100,',
-  '}))',
+  'const liveableMetrics = [...totalsByArea.values()]',
+  '  .map(total => ({',
+  '    ...total,',
+  '    liveableLandAreaSqKm: total.landAreaSqKm - total.excludedAreaSqKm,',
+  '    peoplePerSqKm: total.population / (total.landAreaSqKm - total.excludedAreaSqKm),',
+  '    liveablePercentage: ((total.landAreaSqKm - total.excludedAreaSqKm) / total.landAreaSqKm) * 100,',
+  '  }))',
+  '  .sort((first, second) => first.name.localeCompare(second.name))',
   '',
   "const metricBar = document.createElement('section')",
   "metricBar.id = 'urban-density-metrics'",
@@ -834,20 +844,20 @@ export const urbanDensityMetricsDisplayCode = [
 
 export const urbanDensityMetricsCss = [
   '#urban-density-metrics {',
-  '  position: fixed; inset: auto 1.5rem 1.5rem; z-index: 10;',
-  '  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;',
-  '  background: #26433d; box-shadow: 0 12px 32px rgb(0 0 0 / 24%);',
+  '  position: fixed; inset: auto 2rem 3.25rem; z-index: 10;',
+  '  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;',
+  "  font-family: 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;",
   '}',
-  '#urban-density-metrics article { padding: 1rem 1.25rem; background: #fff9ed; }',
+  '#urban-density-metrics article { padding: 1rem 1.5rem; background: #fff9ed; box-shadow: 0 12px 32px rgb(0 0 0 / 24%); }',
   '#urban-density-metrics p, #urban-density-metrics span { margin: 0; display: block; }',
   '#urban-density-metrics strong { display: block; margin: .25rem 0; font-size: 2rem; }',
   '#urban-density-metrics .secondary-stats { margin-top: .55rem; color: #52615d; font-size: .75rem; }',
   '#urban-density-metrics .secondary-stats strong { display: inline; margin: 0; font-size: inherit; }',
   '@media (max-width: 640px) {',
-  '  #urban-density-metrics { inset: auto .75rem .75rem; }',
-  '  #urban-density-metrics article { padding: .625rem .75rem; }',
-  '  #urban-density-metrics strong { display: inline; margin: 0; font-size: 1.35rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }',
-  '  #urban-density-metrics span { display: inline; margin-left: .2rem; font-size: .68rem; line-height: 1.2; }',
+  '  #urban-density-metrics { inset: auto .75rem 2.5rem; grid-template-columns: 1fr; gap: .5rem; }',
+  '  #urban-density-metrics article { padding: .75rem 1rem; }',
+  '  #urban-density-metrics strong { display: block; margin: .2rem 0; font-size: 1.5rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }',
+  '  #urban-density-metrics span { display: block; font-size: .75rem; line-height: 1.35; }',
   '}',
 ].join('\n')
 

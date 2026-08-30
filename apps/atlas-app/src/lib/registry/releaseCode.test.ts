@@ -39,13 +39,13 @@ describe('getReleaseCodeParts', () => {
     expect(getReleaseVersionLabel("data-hk-stats-2023'H1-R2", 'stats')).toBe(
       "v2023'H1-r2",
     )
-    expect(getReleaseVersionLabel('data-hk-stats-2023-q3-r0', 'stats')).toBe("v2023'Q3")
+    expect(getReleaseVersionLabel('data-hk-stats-2023-q3', 'stats')).toBe("v2023'Q3")
   })
 
   test('labels a release set with its concise version', () => {
     expect(getReleaseVersionLabel('data-hk-divisions-2025-09-24.0', 'divisions')).toBe(
       'v2025-09-24.0',
     )
-    expect(getReleaseVersionLabel('data-hk-stats-2021-r0', 'stats')).toBe('v2021')
+    expect(getReleaseVersionLabel('data-hk-stats-2021', 'stats')).toBe('v2021')
   })
 })

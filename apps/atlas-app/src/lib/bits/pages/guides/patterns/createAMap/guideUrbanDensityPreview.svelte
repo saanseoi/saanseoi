@@ -35,7 +35,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
         renderer="maplibre"
         {styleUrl}
         {tilejsonUrl}
-        zoom={10.5}
+        zoom={11}
       />
     {/key}
     <p
@@ -45,11 +45,13 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     </p>
   </div>
   <section
-    class="grid grid-cols-3 gap-px bg-[#26433d] shadow-[0_12px_32px_rgb(0_0_0/24%)]"
+    class="grid grid-cols-1 gap-2 bg-transparent p-3 sm:grid-cols-3 sm:gap-3 sm:px-6 sm:pb-6"
     aria-label={m.guide_data_urban_density_preview_density_label()}
   >
     {#each metrics as metric}
-      <article class="bg-[#fff9ed] p-2.5 sm:px-5 sm:py-4">
+      <article
+        class="bg-[#fff9ed] p-3 shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:px-6 sm:py-4"
+      >
         <p class="font-body text-xs text-[#10151a] sm:text-sm">{metric.name}</p>
         <strong
           class="font-body text-[1.35rem] leading-none tracking-tight tabular-nums text-[#10151a] sm:my-1 sm:block sm:text-[2rem]"
