@@ -15,6 +15,7 @@ type Props = {
   displayCode?: string
   comments?: Array<{
     alwaysVisible?: boolean
+    html?: boolean
     line: number
     spacerAfter?: boolean
     text: string
@@ -165,6 +166,7 @@ const highlightSource = (
   dimmedLines: number[] = [],
   comments: Array<{
     alwaysVisible?: boolean
+    html?: boolean
     line: number
     spacerAfter?: boolean
     text: string
@@ -221,7 +223,7 @@ const highlightSource = (
             : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
           const commentLines = splitCodeComment(comment.text, maximumLength).map(
             text =>
-              `<span data-code-comment-for="${comment.line}" aria-hidden="${!isVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${visibility}">${indentation}// ${escapeHtml(text)}</span>`,
+              `<span data-code-comment-for="${comment.line}" aria-hidden="${!isVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${visibility}">${indentation}// ${comment.html ? text : escapeHtml(text)}</span>`,
           )
 
           if (comment.spacerAfter) {

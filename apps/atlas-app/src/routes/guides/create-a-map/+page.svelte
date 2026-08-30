@@ -1558,6 +1558,12 @@ const rendererTerminalReminder = $derived(
 )
 const rendererEditorPath = 'src/main.ts'
 const rendererStylesheetPath = 'src/style.css'
+const rendererEditorLabel = $derived(
+  `${rendererEditorPath} — ${m.guide_renderer_editor_card_start_map()}`,
+)
+const rendererStylesheetLabel = $derived(
+  `${rendererStylesheetPath} — ${m.guide_renderer_editor_card_reset_styles()}`,
+)
 const editorNewFileShortcut = $derived(operatingSystem === 'macos' ? '⌘N' : 'Ctrl+N')
 const mapboxTokenPasteInstruction = $derived(
   operatingSystem === 'windows'
@@ -2306,9 +2312,9 @@ const styleChoices = $derived.by(() =>
                       />
                     </div>
                   {/if}
-                  <div class="mt-4 max-w-2xl">
+                  <div class="mt-4 max-w-[80ch]">
                     <GuideCodeBlock
-                      label={rendererStylesheetPath}
+                      label={rendererStylesheetLabel}
                       code={rendererCssCode}
                       editorIcon={selectedCodeEditor?.icon}
                       language="css"
@@ -2333,7 +2339,7 @@ const styleChoices = $derived.by(() =>
                   {#if renderer === 'maplibre'}
                     <div class="mt-4 max-w-[80ch]">
                       <GuidePreviewCodeBlock
-                        label={rendererEditorPath}
+                        label={rendererEditorLabel}
                         code={rendererCode}
                         comments={rendererCodeComments}
                         editorIcon={selectedCodeEditor?.icon}
@@ -2353,9 +2359,9 @@ const styleChoices = $derived.by(() =>
                       </GuidePreviewCodeBlock>
                     </div>
                   {:else}
-                    <div class="mt-4 max-w-2xl">
+                    <div class="mt-4 max-w-[80ch]">
                       <GuideCodeBlock
-                        label={rendererEditorPath}
+                        label={rendererEditorLabel}
                         code={rendererCode}
                         editorIcon={selectedCodeEditor?.icon}
                         language="typescript"

@@ -42,6 +42,9 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('savedResultPath')
     expect(stats).toContain("const savedResultPath = './land-analysis.json'")
     expect(stats.indexOf('savedResultPath')).toBeLessThan(stats.indexOf('apiBaseUrl'))
+    expect(stats).toContain(
+      "if (!savedResult) {\nconst apiBaseUrl = 'https://api.example'",
+    )
   })
 
   test('renders the complete guide', () => {
