@@ -2214,7 +2214,9 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         ('snapshot-published-historical-cohort', 'division', 'published'),
         ('snapshot-published-retained-revision', 'division', 'published'),
         ('snapshot-published-draft-member', 'division', 'published'),
-        ('snapshot-published-candidate', 'division', 'published');
+        ('snapshot-published-candidate', 'division', 'published'),
+        ('snapshot-published-area-variant', 'divisionArea', 'published'),
+        ('snapshot-published-boundary-variant', 'divisionBoundary', 'published');
 
       INSERT INTO apiReleaseSets (id, code, status) VALUES
         ('release-set-default', 'ss-hk-division-2026-05-20.0', 'published'),
@@ -2261,6 +2263,18 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         resourceType: 'division',
       },
     ])
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        resourceType: 'divisionArea',
+      }),
+    ).resolves.toEqual([])
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        resourceType: 'divisionBoundary',
+      }),
+    ).resolves.toEqual([])
   })
 })
 

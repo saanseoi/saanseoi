@@ -5229,7 +5229,20 @@ export async function listCurrentSnapshotCleanupCandidates(
   }
   const protectedSnapshotIds = new Set(protectedRows.map(row => row.snapshotId))
 
-  return snapshots.filter(row => !protectedSnapshotIds.has(row.snapshotId))
+  return snapshots.filter(
+    row =>
+      !protectedSnapshotIds.has(row.snapshotId) &&
+      !isExplicitlyRequestableDivisionGeometry(row.resourceType),
+  )
+}
+
+/**
+ * Divisions can resolve a published geometry snapshot by its explicit variant
+ * and cohort, independently of the active release-set composition. Retain
+ * those materialisations in the current store while they remain published.
+ */
+function isExplicitlyRequestableDivisionGeometry(resourceType: ResourceType) {
+  return resourceType === 'divisionArea' || resourceType === 'divisionBoundary'
 }
 
 export async function resolveActiveSnapshotForType(
