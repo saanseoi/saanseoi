@@ -1267,17 +1267,17 @@ Reconcile the schema before uploading this dataset.`)
       finishedAt: '2026-06-02T00:01:00.000Z',
     })
 
-    await expect(
-      registerUpload(db, {
-        filePath: fixtureFile,
-        cohortKey: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-20.0',
-        inspection: fixtureInspection,
-        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-        resumeInterruptedProcessingRelease: true,
-      }),
-    ).resolves.toMatchObject({ releaseId })
+    const result = await registerUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2026-05',
+      source: 'overture',
+      sourceVersion: '2026-05-20.0',
+      inspection: fixtureInspection,
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+      resumeInterruptedProcessingRelease: true,
+    })
+    expect(result).toMatchObject({ releaseId })
 
     expect(
       sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
