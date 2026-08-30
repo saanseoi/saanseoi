@@ -24,6 +24,7 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
   const releaseNotesUrl = args.options['release-notes-url']
   const sourceArchiveKey = args.options['source-archive-key']
   const sourceArchiveSha256 = args.options['source-archive-sha256']
+  const deferApiReleaseSet = args.options['defer-api-release-set'] === true
   if (
     !sourceArchive ||
     args.positionals.length !== 1 ||
@@ -75,6 +76,7 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
       },
       target,
       {
+        deferApiReleaseSet,
         dryRun: false,
         forceUpload: true,
         invocationCwd: REPO_ROOT,
