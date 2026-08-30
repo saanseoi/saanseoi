@@ -6,6 +6,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
   addUrbanDensityLiveableLand,
+  landAnalysisPath,
   loadCachedDistrictLand,
 } from './guideUrbanDensityLiveableMap.ts'
 import type { DistrictLand } from './urbanDensityCensusDistricts.ts'
@@ -24,37 +25,6 @@ onMount(async () => {
   districtLand = await loadCachedDistrictLand()
   resultReady = true
 })
-
-function serialiseResult() {
-  if (!districtLand) return
-  return JSON.stringify(
-    {
-      liveableDistrictLand: {
-        type: 'FeatureCollection',
-        features: districtLand.liveableDistrictLand,
-      },
-      excludedDistrictLand: {
-        type: 'FeatureCollection',
-        features: districtLand.excludedDistrictLand,
-      },
-    },
-    null,
-    2,
-  )
-}
-
-function downloadResult() {
-  const resultJson = serialiseResult()
-  if (!resultJson) return
-  const download = document.createElement('a')
-  const downloadUrl = URL.createObjectURL(
-    new Blob([resultJson], { type: 'application/json' }),
-  )
-  download.href = downloadUrl
-  download.download = 'land-analysis.json'
-  download.click()
-  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)
-}
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a]">
@@ -86,13 +56,13 @@ function downloadResult() {
         {m.guide_data_urban_density_liveable_result_preview_description()}
       </p>
       {#if resultReady && districtLand}
-        <button
-          class="mt-5 border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 font-mono text-label-sm font-bold text-[#10151a] hover:bg-[#79e7d1]"
-          type="button"
-          onclick={downloadResult}
+        <a
+          class="mt-5 inline-block border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 font-mono text-label-sm font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
+          download="land-analysis.json"
+          href={landAnalysisPath}
         >
           {m.guide_data_urban_density_liveable_result_preview_download()}
-        </button>
+        </a>
       {:else}
         <p class="mt-5 text-body-sm text-white/80" role="status">
           {m.guide_data_urban_density_liveable_result_preview_loading()}
