@@ -584,7 +584,6 @@ export const urbanDensitySetupZ14TileFetcherCode = [
   'try {',
   "  savedResult = (await import('./land-analysis.json')).default",
   '} catch {}',
-  'if (!savedResult) {',
   '',
   'const analysisZoom = 14',
   'const longitudeToTile = (longitude: number) => ((longitude + 180) / 360) * 2 ** analysisZoom',
@@ -694,6 +693,8 @@ export const urbanDensitySetupZ14TileFetcherDisplayCode =
 
 export const urbanDensityCollectNonLiveableLandCode = [
   'const nonLiveableFeatures = []',
+  'let exclusions = []',
+  'if (!savedResult) {',
   'for (const [index, tile] of [...tilesByKey.values()].entries()) {',
   '  showTileOutline(tile)',
   '  showTileProgress(index)',
@@ -703,13 +704,15 @@ export const urbanDensityCollectNonLiveableLandCode = [
   '}',
   'clearTileOutline()',
   'progressLabel.textContent = `Ready to calculate ${nonLiveableFeatures.length.toLocaleString()} exclusion fragments.`',
-  'const exclusions = nonLiveableFeatures.map(feature => ({ feature, bounds: bbox(feature) }))',
+  'exclusions = nonLiveableFeatures.map(feature => ({ feature, bounds: bbox(feature) }))',
+  '}',
 ].join('\n')
 
 export const urbanDensityCollectNonLiveableLandDisplayCode =
   urbanDensityCollectNonLiveableLandCode
 
 export const urbanDensityLiveableAreaCode = [
+  'if (!savedResult) {',
   'showDistrictProgress(0)',
   'const districtLand = []',
   'for (const [index, district] of districts.entries()) {',
