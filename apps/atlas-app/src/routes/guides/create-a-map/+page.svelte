@@ -2764,6 +2764,7 @@ const styleChoices = $derived.by(() =>
             mapPreviewLabel={m.guide_data_urban_density_map_preview_label({
               style: selectedStyle.name,
             })}
+            mapAppearance={selectedStyle.appearance}
             {styleUrl}
             {terminalProjectPath}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"

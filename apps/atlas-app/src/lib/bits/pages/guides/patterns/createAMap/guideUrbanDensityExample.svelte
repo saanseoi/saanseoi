@@ -31,6 +31,7 @@ type Props = {
   hasNonHongKongBasemap?: boolean
   hongKongBasemapNote?: string
   mapReadyCode: string
+  mapAppearance: 'light' | 'dark'
   mapPreviewLabel: string
   styleUrl: string
   terminalProjectPath: string
@@ -65,6 +66,7 @@ let {
   hasNonHongKongBasemap = false,
   hongKongBasemapNote,
   mapReadyCode,
+  mapAppearance,
   mapPreviewLabel,
   styleUrl,
   terminalProjectPath,
@@ -532,6 +534,7 @@ const liveableAreaMapComments = [
             >
               {#snippet preview()}
                 <GuideUrbanDensityPreview
+                  appearance={mapAppearance}
                   label={mapPreviewLabel}
                   {styleUrl}
                   {tilejsonUrl}
