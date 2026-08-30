@@ -41,7 +41,7 @@ let { appearance, label, styleUrl, tilejsonUrl }: Props = $props()
         renderer="maplibre"
         {styleUrl}
         {tilejsonUrl}
-        zoom={11.25}
+        zoom={11.5}
       />
     {/key}
     <p
