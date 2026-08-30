@@ -537,6 +537,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         const inheritedSources = await metaDb
           .select({
             datasetId: metaSchema.metaSnapshotSources.datasetId,
+            role: metaSchema.metaSnapshotSources.role,
             sourceReleaseId: metaSchema.metaSnapshotSources.sourceReleaseId,
           })
           .from(metaSchema.metaSnapshotSources)
@@ -544,7 +545,7 @@ export async function processLocalDivisionGeometrySqlUpload(
             eq(metaSchema.metaSnapshotSources.snapshotId, snapshot.parentSnapshotId),
           )
           .all()
-        for (const source of inheritedSources) {
+        for (const source of selectCenstatdInheritedSnapshotSources(inheritedSources)) {
           await upsertSnapshotSource(
             metaDb,
             snapshot.id,
@@ -705,7 +706,6 @@ export async function processLocalDivisionGeometrySqlUpload(
         previewPlan,
         releaseId,
         snapshot.id,
-        writeResult.currentRows,
         reusesExistingGeometrySnapshot,
         (subject, operation) =>
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
@@ -802,7 +802,6 @@ async function replayGeometryIntoRemote(
   plan: GeometryUploadPlan,
   releaseId: string,
   snapshotId: string,
-  currentRows: Array<Record<string, unknown>>,
   skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
 ) {
@@ -830,6 +829,13 @@ async function replayGeometryIntoRemote(
     plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
   const historyTable = currentTable
   const sourceTable = resolveGeometrySourceTable(plan)
+  const currentRows = skipCanonicalMaterialisation
+    ? []
+    : readGeometryCacheRows(
+        context.state.dbCacheDir,
+        currentBindingName,
+        `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+      )
   const historyRows = skipCanonicalMaterialisation
     ? []
     : readGeometryCacheRows(
@@ -1364,6 +1370,18 @@ function geometryVariant(plan: GeometryUploadPlan) {
  */
 export function divisionReferenceVariant(plan: GeometryUploadPlan) {
   return geometryVariant({ ...plan, transform: undefined })
+}
+
+/**
+ * C&SD companion provenance accumulates its contributing source releases, but
+ * a lookup only records a division-reference dependency for one materialisation.
+ * Carrying that lookup forward turns it into an API input and can combine it
+ * with a later release of the same dataset.
+ */
+export function selectCenstatdInheritedSnapshotSources<
+  T extends { role: 'primary' | 'geometry' | 'enrichment' | 'fallback' | 'lookup' },
+>(sources: readonly T[]) {
+  return sources.filter(source => source.role !== 'lookup')
 }
 
 function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
@@ -2272,7 +2290,7 @@ async function writeGeometryRows(
     )
   }
 
-  return { churn, currentRows }
+  return { churn }
 }
 
 function requireGeometryHash(hashes: Map<string, string>, id: string) {
