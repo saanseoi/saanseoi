@@ -248,7 +248,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     }
 
     // Launch bootstrap prepares all Statistics snapshots before publishing a
-    // cohort-complete r0. HMA/area companion geometry belongs to the Divisions
+    // cohort-complete initial release set. HMA/area companion geometry belongs to the Divisions
     // family and may depend on Division inputs that are deliberately outside
     // that Stats-only batch. Do not let that optional fan-out invalidate the
     // successfully published Statistics source release.

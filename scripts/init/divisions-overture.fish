@@ -114,7 +114,7 @@ else
         --source-version 2023-H2 \
         --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
         --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \
-        --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe7d08cd31841070 \
+        --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
         --defer-stats-release-set --yes
     init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
         "$censtatd_area_archive" --target $saanseoi_init_target \

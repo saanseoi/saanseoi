@@ -993,7 +993,7 @@ function resolveDocsFixturePath(apiFamily: string, code: string) {
     API_RELEASE_SET_DOCS_ROOT,
     apiFamily,
     API_RELEASE_SET_NOTES_DIRECTORY,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+    `${code}.md`,
   )
 }
 
@@ -1002,16 +1002,12 @@ function resolveGuideFixturePath(apiFamily: string, code: string) {
     API_RELEASE_SET_DOCS_ROOT,
     apiFamily,
     API_RELEASE_SET_GUIDES_DIRECTORY,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+    `${code}.md`,
   )
 }
 
 function resolveLegacyDocsFixturePath(apiFamily: string, code: string) {
-  return resolve(
-    API_RELEASE_SET_DOCS_ROOT,
-    apiFamily,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
-  )
+  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}.md`)
 }
 
 async function resolvePublisherName(publisherCode: string) {
