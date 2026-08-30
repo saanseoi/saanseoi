@@ -25,9 +25,9 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
 </script>
 
 <div
-  class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
+  class="guide-map-preview relative h-full min-h-[16.9rem] overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
-  <div class="relative min-h-[16.9rem] flex-1 overflow-hidden">
+  <div class="size-full">
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
@@ -35,7 +35,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
         renderer="maplibre"
         {styleUrl}
         {tilejsonUrl}
-        zoom={11}
+        zoom={11.25}
       />
     {/key}
     <p
@@ -45,7 +45,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     </p>
   </div>
   <section
-    class="grid grid-cols-1 gap-2 bg-transparent p-3 sm:grid-cols-3 sm:gap-3 sm:px-6 sm:pb-6"
+    class="absolute inset-x-3 bottom-10 z-10 grid grid-cols-1 gap-2 sm:inset-x-8 sm:bottom-13 sm:grid-cols-3 sm:gap-3"
     aria-label={m.guide_data_urban_density_preview_density_label()}
   >
     {#each metrics as metric}
