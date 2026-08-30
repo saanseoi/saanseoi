@@ -9,7 +9,6 @@ import {
 
 import {
   buildHkgovAlsIngestCommand,
-  buildHkgovCenstatdDistrictArchiveIngestCommand,
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovCenstatdStatisticsArchiveIngestCommand,
   buildHkgovHadDistrictArchiveIngestCommand,
@@ -239,28 +238,32 @@ describe('dataset update registry', () => {
     )
   })
 
-  test('starts C&SD district-area intake from the prepared native archive', () => {
+  test('starts C&SD subdivided-units statistics intake from the prepared native archive', () => {
     expect(
-      buildHkgovCenstatdDistrictArchiveIngestCommand({
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-        deferApiReleaseSet: true,
+        deferStatsReleaseSet: true,
         inputFile: '/tmp/prepared-districts.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
         sourceArchiveSha256: 'd'.repeat(64),
         sourceVersion: '2021',
         target: { environment: 'production', remote: true },
+        yes: true,
       }),
     ).toEqual(
       expect.arrayContaining([
-        'hkgov-censtatd:district-area',
+        'hkgov-censtatd:statistics',
         '/tmp/prepared-districts.zip',
         '--target',
         'production',
+        '--dataset-code',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         '--source-archive-key',
         'by-source/hk/hkgov-csdi/districts/source.zip',
-        '--defer-api-release-set',
+        '--defer-stats-release-set',
+        '--yes',
       ]),
     )
   })

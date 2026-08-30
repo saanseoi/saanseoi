@@ -1,13 +1,12 @@
 ---
-createdAt: "2026-08-21T00:00:00.000Z"
-updatedAt: "2026-08-21T00:00:00.000Z"
+createdAt: "2026-08-26T15:01:20.690Z"
+updatedAt: "2026-08-26T15:01:20.690Z"
 apiFamily: "stats"
 apiVersion: "api-stats-v0.1"
-apiReleaseSet: "data-hk-stats-2016-r0"
+apiReleaseSet: "data-hk-stats-2025"
 revision: "0"
 regionCode: "hk"
-cohortKey: "2016"
-domainCode: "official"
+cohortKey: "2025"
 ---
 
 # EN

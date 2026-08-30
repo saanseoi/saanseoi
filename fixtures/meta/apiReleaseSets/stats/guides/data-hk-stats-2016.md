@@ -1,12 +1,13 @@
 ---
-createdAt: "2026-08-26T15:01:17.594Z"
-updatedAt: "2026-08-26T15:01:17.594Z"
+createdAt: "2026-08-21T00:00:00.000Z"
+updatedAt: "2026-08-21T00:00:00.000Z"
 apiFamily: "stats"
 apiVersion: "api-stats-v0.1"
-apiReleaseSet: "data-hk-stats-2019-r0"
+apiReleaseSet: "data-hk-stats-2016"
 revision: "0"
 regionCode: "hk"
-cohortKey: "2019"
+cohortKey: "2016"
+domainCode: "official"
 ---
 
 # EN
@@ -46,22 +47,20 @@ The official Statistics view is therefore:
 
 It returns the latest available observation for each separate series, using the newest
 revision of the release set for that observation’s period. It is not a complete history.
-For example, if a monthly series has an observation for {{ cohortYear }}-08, a latest
-request does not also return its observations for {{ cohortYear }}-01 through
-{{ cohortYear }}-07.
+For example, if a monthly series has an observation for 2026-08, a latest request does
+not also return its observations for 2026-01 through 2026-07.
 
 Use an exact reference-period filter when you need a particular period:
 
 ```url
 /stats/v0?
-          filter[referencePeriod]={{ cohortKey }}
+          filter[referencePeriod]=2016
 ```
 
 This returns records with the exact reference-period code in the selected release set.
 The list endpoint accepts an exact period only; it does not accept date ranges. For
-example, <black>{{ cohortYear }}</black> and <black>{{ cohortYear }}-Q1</black> are
-separate codes: requesting <black>{{ cohortYear }}</black> does not also return the
-first quarter of {{ cohortYear }}.
+example, <black>2026</black> and <black>2026-Q1</black> are separate codes: requesting
+<black>2026</black> does not also return the first quarter of 2026.
 
 To retrieve the complete available history for one field, use the multi-period series
 endpoint. It returns one geography-value map per reference period in
@@ -69,8 +68,8 @@ endpoint. It returns one geography-value map per reference period in
 
 ```url
 /stats/v0/series?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[field]=domesticHouseholds&
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
           filter[geographyKind]=division&
           filter[geographyLevel]=2
 ```
@@ -88,9 +87,9 @@ endpoint. It returns the selected period's values keyed by the geography code in
 
 ```url
 /stats/v0/geographies?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[field]=domesticHouseholds&
-          filter[referencePeriod]={{ cohortKey }}&
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016&
           filter[geographyKind]=division&
           filter[geographyLevel]=2
 ```
@@ -100,11 +99,11 @@ Unlike <black>/series</black>, <black>/geographies</black> requires
 geography filters have the same disambiguation role, and its
 <black>meta.geography</black> describes the codes used as keys. For comparison:
 
-| Family                                            | What a request returns by default               |
-| ------------------------------------------------- | ----------------------------------------------- |
-| Divisions                                         | The latest cohort in the selected domain        |
-| Statistics                                        | The latest observation for each separate series |
-| Statistics with `referencePeriod={{ cohortKey }}` | Records for exactly that reference period       |
+| Family                                 | What a request returns by default               |
+| -------------------------------------- | ----------------------------------------------- |
+| Divisions                              | The latest cohort in the selected domain        |
+| Statistics                             | The latest observation for each separate series |
+| Statistics with `referencePeriod=2016` | Records for exactly that reference period       |
 
 Without selectors, the endpoint uses the latest effective release in the current
 [catalogue](saanseoi:en:definition/catalogue/v1). To request this exact release, specify
@@ -194,31 +193,31 @@ or field name or description:
 
 ```url
 /stats/v0/registry/search?
-          q=household
+          q=subdivided
 ```
 
-A **measure** is the broad concept, such as domestic households. A **field** is the
-exact value you can request; it may carry a particular aggregation, unit, or breakdown.
-To browse the measures in this release's dataset:
+A **measure** is the broad concept, such as households in subdivided units. A **field**
+is the exact value you can request; it may carry a particular aggregation, unit, or
+breakdown. To browse the measures in this release's dataset:
 
 ```url
 /stats/v0/registry/measures?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
 ```
 
 Then browse its fields, or narrow them to one measure:
 
 ```url
 /stats/v0/registry/fields?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[measure]=domesticHouseholds
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[measure]=householdsInSubdividedUnits
 ```
 
 After choosing a field, inspect where it is available. This shows its reference periods
 and geography coverage, and provides a ready-made geography request for each period:
 
 ```url
-/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-population-households-district/domesticHouseholds/availability
+/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/householdsInSubdividedUnits/availability
 ```
 
 Use the returned <black>datasetCode</black> and <black>fieldName</black> to request
@@ -226,9 +225,9 @@ statistics. For example:
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[field]=domesticHouseholds&
-          filter[referencePeriod]={{ cohortKey }}
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016
 ```
 
 Use <black>cohort</black>, <black>releaseSet</black>, or another catalogue selector on a
@@ -247,9 +246,9 @@ for every available language, or provide a supported comma-separated list of lan
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[field]=domesticHouseholds&
-          filter[referencePeriod]={{ cohortKey }}&
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[referencePeriod]=2016&
           include=fields&
           locales=en,zh-hant
 ```
@@ -263,15 +262,15 @@ one exact field, <black>filter[division]</black> for one canonical division ID, 
 uses <black>field</black>, not the broader <black>measure</black> code returned by the
 Registry.
 
-For example, this requests one field for one division in the {{ cohortKey }} release:
+For example, this requests one field for one division in the 2016 release:
 
 ```url
 /stats/v0?
           domain={{ domainCode }}&
           cohort={{ cohortKey }}&
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-population-households-district&
-          filter[field]=domesticHouseholds&
-          filter[division]=106de92f-8a6d-44ba-b2c6-488d181a0deb
+          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[field]=householdsInSubdividedUnits&
+          filter[division]=division-hk-18
 ```
 
 Use <black>page[limit]</black> and <black>page[offset]</black> to work through the
