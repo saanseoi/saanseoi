@@ -249,6 +249,7 @@ export const RegisterUploadRequestSchema = z
       shardYear: z.string().optional(),
       source: z.string().optional(),
       sourceVersion: z.string().optional(),
+      geometryStatus: z.enum(['authoritative', 'fallback']).optional(),
       theme: z.string().optional(),
       type: z.string().optional(),
     }),
