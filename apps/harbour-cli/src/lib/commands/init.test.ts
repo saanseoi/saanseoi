@@ -157,4 +157,23 @@ describe('initialisation commands', () => {
       ].join('\n'),
     )
   })
+
+  test('includes Statistics release sets published during bootstrap', () => {
+    const events = parseInitialisationSummaryEvents(
+      JSON.stringify({
+        apiReleaseSetCode: 'data-hk-stats-2023-q3-r0',
+        type: 'published-api-release-set',
+      }),
+    )
+
+    expect(formatInitialisationSummary(undefined, undefined, events)).toBe(
+      [
+        'Published API release sets',
+        '  data-hk-stats-2023-q3-r0',
+        '',
+        'Initialisation errors',
+        '  -',
+      ].join('\n'),
+    )
+  })
 })
