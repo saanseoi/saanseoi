@@ -244,6 +244,7 @@ describe('dataset update registry', () => {
       buildHkgovCenstatdDistrictArchiveIngestCommand({
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        deferApiReleaseSet: true,
         inputFile: '/tmp/prepared-districts.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
@@ -259,6 +260,7 @@ describe('dataset update registry', () => {
         'production',
         '--source-archive-key',
         'by-source/hk/hkgov-csdi/districts/source.zip',
+        '--defer-api-release-set',
       ]),
     )
   })

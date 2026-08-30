@@ -1522,6 +1522,7 @@ async function runCsdiArchiveIngestPlaceholder(
     const child = Bun.spawn(
       buildHkgovCenstatdDistrictArchiveIngestCommand({
         datasetCode: dataset.code,
+        deferApiReleaseSet: options.deferStatsReleaseSet,
         inputFile: prepared.sourcePath,
         releaseNotesUrl: release.sourceUrl,
         sourceArchiveKey: prepared.manifest.archive.objectKey,
@@ -1754,6 +1755,7 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
   datasetCode:
     | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
     | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  deferApiReleaseSet?: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
@@ -1781,6 +1783,7 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.deferApiReleaseSet ? ['--defer-api-release-set'] : []),
   ]
 }
 
