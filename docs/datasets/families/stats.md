@@ -144,7 +144,9 @@ The current candidate inventory is maintained in
 `./bin/saanseoi init:stats:official --target local` ingests the official C&SD launch
 set, defers intermediate Statistics release-set publication, and bootstraps the
 completed cohorts once. Each reference period is therefore first published as one
-complete `r0`.
+complete `r0`. Bootstrap considers every published Stats-family source and selects its
+linked `divisionStatistic` snapshots, so a source whose primary artefact is C&SD
+geometry contributes both its geometry and its Statistics periods.
 
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
