@@ -42,8 +42,14 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('savedResultPath')
     expect(stats).toContain("const savedResultPath = './land-analysis.json'")
     expect(stats.indexOf('savedResultPath')).toBeLessThan(stats.indexOf('apiBaseUrl'))
+    expect(stats).toContain("const apiBaseUrl = 'https://api.example'")
+    expect(stats).toContain('let populationByDistrict: Record<string, string> = {}')
+    expect(stats).toContain('let landAreaByDistrict: Record<string, string> = {}')
     expect(stats).toContain(
-      "if (!savedResult) {\nconst apiBaseUrl = 'https://api.example'",
+      '[populationByDistrict, landAreaByDistrict] = await Promise.all([',
+    )
+    expect(stats).toContain(
+      "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
     )
   })
 
