@@ -37,7 +37,7 @@ describe('getReleaseCodeParts', () => {
     expect(getReleaseVersionLabel('data-hk-stats-2023-q3', 'stats')).toBe("v2023'Q3")
     expect(getReleaseVersionLabel("data-hk-stats-2023'Q3", 'stats')).toBe("v2023'Q3")
     expect(getReleaseVersionLabel("data-hk-stats-2023'H1-R2", 'stats')).toBe(
-      "v2023'H1-R2",
+      "v2023'H1-r2",
     )
     expect(getReleaseVersionLabel('data-hk-stats-2023-q3-r0', 'stats')).toBe("v2023'Q3")
   })
