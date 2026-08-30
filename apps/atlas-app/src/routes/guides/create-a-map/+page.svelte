@@ -89,8 +89,6 @@ import {
   mapboxTokenCode,
   urbanDensityMapCode,
   urbanDensityMapDisplayCode,
-  urbanDensityCensusAreasCode,
-  urbanDensityCensusAreasDisplayCode,
   urbanDensityCalculationCode,
   urbanDensityCalculationDisplayCode,
   urbanDensityMetricsCode,
@@ -99,6 +97,12 @@ import {
   urbanDensityMetricsCssDisplayCode,
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaDisplayCode,
+  urbanDensityLiveableAreaMapCode,
+  urbanDensityLiveableAreaMapDisplayCode,
+  urbanDensityCollectNonLiveableLandCode,
+  urbanDensityCollectNonLiveableLandDisplayCode,
+  urbanDensitySetupZ14TileFetcherCode,
+  urbanDensitySetupZ14TileFetcherDisplayCode,
   urbanDensityLiveableMetricsCode,
   urbanDensityLiveableMetricsDisplayCode,
   urbanDensityStatsCode,
@@ -1291,10 +1295,6 @@ const projectOutline = $derived([
   {
     id: 'project-highlight-excl',
     label: m.guide_data_urban_density_toc_highlight_excl(),
-  },
-  {
-    id: 'project-show-districts',
-    label: m.guide_data_urban_density_toc_show_districts(),
   },
   {
     id: 'project-calc-liveable-land',
@@ -2769,8 +2769,6 @@ const styleChoices = $derived.by(() =>
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
             mapDisplayCode={urbanDensityMapDisplayCode}
-            censusAreasCode={urbanDensityCensusAreasCode}
-            censusAreasDisplayCode={urbanDensityCensusAreasDisplayCode}
             calculationCode={urbanDensityCalculationCode}
             calculationDisplayCode={urbanDensityCalculationDisplayCode}
             metricsCode={urbanDensityMetricsCode}
@@ -2779,6 +2777,12 @@ const styleChoices = $derived.by(() =>
             metricsCssDisplayCode={urbanDensityMetricsCssDisplayCode}
             liveableAreaCode={urbanDensityLiveableAreaCode}
             liveableAreaDisplayCode={urbanDensityLiveableAreaDisplayCode}
+            liveableAreaMapCode={urbanDensityLiveableAreaMapCode}
+            liveableAreaMapDisplayCode={urbanDensityLiveableAreaMapDisplayCode}
+            collectNonLiveableLandCode={urbanDensityCollectNonLiveableLandCode}
+            collectNonLiveableLandDisplayCode={urbanDensityCollectNonLiveableLandDisplayCode}
+            setupZ14TileFetcherCode={urbanDensitySetupZ14TileFetcherCode}
+            setupZ14TileFetcherDisplayCode={urbanDensitySetupZ14TileFetcherDisplayCode}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
             liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
             statsCode={urbanDensityStatsCode}
