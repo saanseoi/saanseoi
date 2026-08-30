@@ -17,6 +17,10 @@ record is the root. Hong Kong divisions use these six levels:
 - Level 6, <black>microhood</black> or <black>hamlet</black>: the smallest neighbourhood
   and settlement divisions.
 
+Lok Ma Chau Loop is a level-4 <black>macrohood</black>. It is not one of the 18
+administrative districts, and its Overture microhood descendant therefore inherits a
+macrohood rather than a district ancestor.
+
 ### ZH-HANT
 
 在 geographic domain 中，level 0 的 <black>country</black> 或 <black>sar</black>
@@ -31,6 +35,10 @@ record is the root. Hong Kong divisions use these six levels:
 - Level 6，<black>microhood</black> 或
   <black>hamlet</black>：最小的 neighbourhood 及聚落區劃。
 
+落馬洲河套地區是 level 4 的
+<black>macrohood</black>。它不是 18 個行政區之一，因此其 Overture
+microhood 後代會繼承 macrohood 而非 district 祖先。
+
 ### ZH-HANS
 
 在 geographic domain 中，level 0 的 <black>country</black> 或 <black>sar</black>
@@ -44,3 +52,7 @@ record is the root. Hong Kong divisions use these six levels:
   <black>village</black>：neighbourhood 及乡村。
 - Level 6，<black>microhood</black> 或
   <black>hamlet</black>：最小的 neighbourhood 及聚落区划。
+
+落马洲河套地区是 level 4 的
+<black>macrohood</black>。它不是 18 个行政区之一，因此其 Overture
+microhood 后代会继承 macrohood 而非 district 祖先。

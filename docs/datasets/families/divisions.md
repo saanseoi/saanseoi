@@ -33,11 +33,15 @@ derived Overture `divisionArea` union when Overture omits its own area geometry,
 Overture does provide the division identity itself. Those reviewed identities retain
 their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
 New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
-`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
-C&SD Permanent Living Quarters geometry then references those Overture identities rather
-than creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes
-C&SD's 173 polygonal Housing Market Areas. Building Groups are not divisions: their
-source centroids remain source history for a future buildings projection.
+`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement. Lok
+Ma Chau Loop (`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a
+district: the correction keeps level 2 to the 18 statutory districts, retains raw
+Overture taxonomy as provenance, and is recorded in each affected source release's
+processing actions. C&SD Permanent Living Quarters geometry then references those
+Overture identities rather than creating parallel divisions. The separate
+`hkgov-censtatd-hma` domain publishes C&SD's 173 polygonal Housing Market Areas.
+Building Groups are not divisions: their source centroids remain source history for a
+future buildings projection.
 
 The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
 those stable Overture area identities. Its Area/type polygons join the same
@@ -145,6 +149,12 @@ never defaults. The census land-clipped district releases use
 when its geometry bytes match an earlier cohort. `simplified` is a named 10-metre
 display transform of the selected companion snapshot, not an independent composition
 member.
+
+The processing cache retains each simplified WGS84 GeoJSON coverage under
+`.local/dataops/simplified-coverage`, keyed by the complete input geometry, the 10-metre
+tolerance and the versioned simplification contract. Re-uploading unchanged source
+geometry therefore reuses the verified display derivative; a changed source, tolerance
+or contract produces a new one.
 
 Several C&SD source releases can contribute to one companion cohort. The materialiser
 compares each incoming complete canonical row set before writing: when every row is

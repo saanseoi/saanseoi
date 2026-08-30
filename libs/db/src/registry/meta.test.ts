@@ -371,6 +371,11 @@ describe('fixture version hashes', () => {
                 operationCode: 'overture_division_locale_inferred',
                 type: 'record',
               }),
+              expect.objectContaining({
+                operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
+                sourceFieldPath: 'id, subtype, class, admin_level',
+                type: 'record',
+              }),
             ]),
           }),
         ],

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildCanonicalDivisionApiI18n,
+  buildOvertureHongKongDivisionClassificationProcessingActions,
   buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
   collectOvertureHongKongDivisionSourceAssumptionViolations,
@@ -454,6 +455,72 @@ describe('normaliseDivisionRow i18n', () => {
 })
 
 describe('normaliseDivisionRow hierarchy', () => {
+  test('reclassifies Lok Ma Chau Loop without rewriting its Overture provenance', () => {
+    const normalised = normaliseDivisionRow({
+      admin_level: 2,
+      id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+      names: { common: { en: 'Lok Ma Chau Loop', 'zh-hant': '落馬洲河套地區' } },
+      parent_division_id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
+      subtype: 'region',
+    })
+
+    expect(normalised.base).toMatchObject({
+      id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+      level: 4,
+      sourceKeys: { overture: { class: '', subtype: 'region' } },
+      type: 'macrohood',
+    })
+    expect(normalised.overtureHongKongDivisionClassificationCorrection).toEqual({
+      level: 4,
+      type: 'macrohood',
+    })
+  })
+
+  test('uses the corrected Lok Ma Chau Loop classification in a descendant hierarchy', () => {
+    const normalised = normaliseDivisionRow(
+      {
+        id: 'c8488b42-3b2e-425b-8930-cce3fded69e2',
+        names: { primary: 'Lok Ma Chau Loop' },
+        parent_division_id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        subtype: 'microhood',
+        hierarchies: [
+          {
+            division_id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+            name: 'Lok Ma Chau Loop',
+            subtype: 'region',
+          },
+        ],
+      },
+      {
+        hierarchyLookup: new Map([
+          [
+            '222b7818-970a-491d-98b6-b88d8c6f0161',
+            {
+              i18n: {
+                en: { name: 'Lok Ma Chau Loop' },
+                'zh-hant': { name: '落馬洲河套地區' },
+              },
+              level: 4,
+              type: 'macrohood',
+            },
+          ],
+        ]),
+      },
+    )
+
+    expect(normalised.base.hierarchy).toEqual([
+      {
+        division_id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+        i18n: {
+          en: { name: 'Lok Ma Chau Loop' },
+          'zh-hant': { name: '落馬洲河套地區' },
+        },
+        level: 4,
+        type: 'macrohood',
+      },
+    ])
+  })
+
   test('retains a valid Overture FeatureVersion as a compatibility key', () => {
     const normalised = normaliseDivisionRow({
       id: 'division-with-feature-version',
@@ -706,6 +773,24 @@ describe('normaliseDivisionRow hierarchy', () => {
         { hierarchyLookup },
       ),
     ).toThrow('Cannot normalise hierarchy locality entry division-locality')
+  })
+})
+
+describe('buildOvertureHongKongDivisionClassificationProcessingActions', () => {
+  test('records the Lok Ma Chau Loop correction in the release audit trail', () => {
+    expect(buildOvertureHongKongDivisionClassificationProcessingActions(1)).toEqual([
+      expect.objectContaining({
+        action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
+        affectedRecordCount: 1,
+        evidence: expect.objectContaining({
+          canonical: { level: 4, type: 'macrohood' },
+          divisionId: '222b7818-970a-491d-98b6-b88d8c6f0161',
+          source: { adminLevel: 2, class: null, subtype: 'region' },
+        }),
+        mode: 'automatic',
+      }),
+    ])
+    expect(buildOvertureHongKongDivisionClassificationProcessingActions(0)).toEqual([])
   })
 })
 
