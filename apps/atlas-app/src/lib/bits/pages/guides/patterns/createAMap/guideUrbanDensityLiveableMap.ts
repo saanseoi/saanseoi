@@ -95,29 +95,45 @@ export const loadCachedDistrictLand = () => {
 
 export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
   try {
-    const { excludedDistrictLand, liveableDistrictLand } =
-      await loadCachedDistrictLand()
+    const { liveableDistrictLand } = await loadCachedDistrictLand()
 
+    // Keep this preview in lockstep with the final map snippet: the complete
+    // District fill is the red base, and cached liveable land is drawn above it.
+    map.addSource('districts', {
+      type: 'geojson',
+      data: urbanDensityCensusDistricts,
+    })
     map.addSource('liveable-districts', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: liveableDistrictLand },
-    })
-    map.addSource('excluded-districts', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: excludedDistrictLand },
     })
     const firstLabelLayerId = map
       .getStyle()
       .layers?.find(layer => layer.type === 'symbol')?.id
     map.addLayer(
       {
-        id: 'excluded-districts',
+        id: 'districts',
         type: 'fill',
-        source: 'excluded-districts',
+        source: 'districts',
         paint: {
           'fill-antialias': false,
           'fill-color': '#e76f51',
-          'fill-opacity': 0.62,
+          'fill-opacity': 0,
+          'fill-opacity-transition': { duration: 700 },
+        },
+      },
+      firstLabelLayerId,
+    )
+    map.addLayer(
+      {
+        id: 'districts-outline',
+        type: 'line',
+        source: 'districts',
+        paint: {
+          'line-color': '#8c3427',
+          'line-opacity': 0,
+          'line-opacity-transition': { duration: 700 },
+          'line-width': 1,
         },
       },
       firstLabelLayerId,
@@ -130,20 +146,18 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
         paint: {
           'fill-antialias': false,
           'fill-color': '#36a269',
-          'fill-opacity': 0.48,
+          'fill-opacity': 0,
+          'fill-opacity-transition': { duration: 700 },
         },
       },
       firstLabelLayerId,
     )
-    map.addLayer(
-      {
-        id: 'excluded-districts-outline',
-        type: 'line',
-        source: 'excluded-districts',
-        paint: { 'line-color': '#8c3427', 'line-width': 1 },
-      },
-      firstLabelLayerId,
-    )
+    // Let the map render the transparent result once, then reveal the completed analysis.
+    requestAnimationFrame(() => {
+      map.setPaintProperty('districts', 'fill-opacity', 0.62)
+      map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48)
+      map.setPaintProperty('districts-outline', 'line-opacity', 1)
+    })
   } catch (cause) {
     console.error('Liveable district land could not be calculated.', cause)
   }

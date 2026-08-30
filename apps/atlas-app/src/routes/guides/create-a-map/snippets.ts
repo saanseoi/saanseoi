@@ -856,17 +856,20 @@ export const urbanDensityLiveableAreaMapCode = [
   '',
   "map.addSource('districts', { type: 'geojson', data: { type: 'FeatureCollection', features: districts } })",
   "map.addLayer({ id: 'districts', type: 'fill', source: 'districts',",
-  "  paint: { 'fill-antialias': false, 'fill-color': '#e76f51', 'fill-opacity': 0.62 },",
+  "  paint: { 'fill-antialias': false, 'fill-color': '#e76f51', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 700 } },",
   '}, liveableFirstLabelLayerId)',
   "map.addLayer({ id: 'districts-outline', type: 'line', source: 'districts',",
-  "  paint: { 'line-color': '#8c3427', 'line-width': 1 },",
+  "  paint: { 'line-color': '#8c3427', 'line-opacity': 0, 'line-opacity-transition': { duration: 700 }, 'line-width': 1 },",
   '}, liveableFirstLabelLayerId)',
   '',
   "map.addSource('liveable-districts', { type: 'geojson', data: { type: 'FeatureCollection', features: liveableDistrictLand } })",
   'map.addLayer({',
   "  id: 'liveable-districts', type: 'fill', source: 'liveable-districts',",
-  "  paint: { 'fill-antialias': false, 'fill-color': '#36a269', 'fill-opacity': 0.48 },",
+  "  paint: { 'fill-antialias': false, 'fill-color': '#36a269', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 700 } },",
   '}, liveableFirstLabelLayerId)',
+  '',
+  '// Let the map render the transparent result once, then reveal the completed analysis.',
+  "requestAnimationFrame(() => { map.setPaintProperty('districts', 'fill-opacity', 0.62); map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48); map.setPaintProperty('districts-outline', 'line-opacity', 1) })",
 ].join('\n')
 
 export const urbanDensityLiveableAreaMapDisplayCode = [
