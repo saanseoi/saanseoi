@@ -256,6 +256,28 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   expect(
     sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
   ).toEqual({ status: 'published' })
+  // A C&SD source can materialise both geometry and Statistics snapshots. Its
+  // source release is classified by the geometry it publishes, but bootstrap
+  // must still discover its linked divisionStatistic snapshot.
+  const geometrySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
+    cohortKey: '2021',
+    datasetCode: datasetCodes[0],
+    datasetId: 'dataset-0',
+    regionCode: 'hk',
+    sourceReleaseId: firstReleaseId,
+    variant: 'hkgov-censtatd',
+  })
+  await upsertSnapshotSource(
+    db,
+    geometrySnapshot.id,
+    'dataset-0',
+    firstReleaseId,
+    'primary',
+  )
+  sqlite.exec(`
+    UPDATE snapshots SET status = 'published' WHERE id = '${geometrySnapshot.id}';
+    UPDATE releases SET resourceType = 'divisionArea' WHERE id = '${firstReleaseId}';
+  `)
   expect(
     sqlite
       .query(

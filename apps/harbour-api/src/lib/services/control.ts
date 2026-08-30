@@ -735,6 +735,10 @@ export async function handleBootstrapStatsReleaseSets(
       await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
     ).filter(member => member.domainCode === 'official')
     const memberVariants = new Set(members.map(member => member.variant))
+    // A Statistics source may publish DivisionArea artefacts as its primary
+    // resource while also materialising a linked divisionStatistic snapshot.
+    // Select the source family here; the snapshot lookup below remains the
+    // resource-type gate for the Statistics API release set.
     const sourceReleases = await db
       .select({ id: metaReleases.id })
       .from(metaReleases)
@@ -743,7 +747,6 @@ export async function handleBootstrapStatsReleaseSets(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
-          eq(metaReleases.resourceType, 'divisionStatistic'),
           eq(metaReleases.status, 'published'),
         ),
       )

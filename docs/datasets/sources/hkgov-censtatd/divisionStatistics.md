@@ -187,7 +187,10 @@ hierarchy.
 The Statistics launch-bootstrap mode (`update --defer-stats-release-set`) publishes only
 the Statistics source assertions and snapshots. It deliberately leaves this optional
 Divisions-family geometry fan-out to the Divisions workflow, whose district geometry
-prerequisites are separate from Statistics cohort assembly.
+prerequisites are separate from Statistics cohort assembly. Where one C&SD source also
+publishes `divisionArea` artefacts, its primary source release remains
+geometry-classified while its linked `divisionStatistic` snapshots are independently
+selected for Statistics cohort bootstrap.
 
 ## Source-release statistics and geography audit
 
