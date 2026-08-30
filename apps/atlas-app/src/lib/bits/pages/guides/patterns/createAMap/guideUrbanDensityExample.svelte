@@ -797,7 +797,9 @@ const liveableAreaMapComments = [
       <div
         class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
       >
-        <p>{@html m.guide_data_urban_density_conclusion_community()}</p>
+        <p>{@html m.guide_data_urban_density_conclusion_community_phewee()}</p>
+        <p>{@html m.guide_data_urban_density_conclusion_community_complexity()}</p>
+        <p>{@html m.guide_data_urban_density_conclusion_community_continue()}</p>
         <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
         <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
           {#each shareLinks as link}
