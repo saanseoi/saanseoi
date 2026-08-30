@@ -98,12 +98,14 @@ import {
   urbanDensityMetricsDisplayCode,
   createUrbanDensityMetricsCss,
   urbanDensityLiveableAreaCode,
+  urbanDensityLiveableAreaCss,
   urbanDensityLiveableAreaDisplayCode,
   urbanDensityLiveableAreaMapCode,
   urbanDensityLiveableAreaMapDisplayCode,
   urbanDensityCollectNonLiveableLandCode,
   urbanDensityCollectNonLiveableLandDisplayCode,
   urbanDensitySetupZ14TileFetcherCode,
+  urbanDensitySetupZ14TileFetcherCss,
   urbanDensitySetupZ14TileFetcherDisplayCode,
   urbanDensityLiveableMetricsCode,
   urbanDensityLiveableMetricsDisplayCode,
@@ -2808,12 +2810,14 @@ const styleChoices = $derived.by(() =>
             metricsCss={createUrbanDensityMetricsCss(selectedStyle.appearance)}
             metricsCssDisplayCode={createUrbanDensityMetricsCss(selectedStyle.appearance)}
             liveableAreaCode={urbanDensityLiveableAreaCode}
+            liveableAreaCss={urbanDensityLiveableAreaCss}
             liveableAreaDisplayCode={urbanDensityLiveableAreaDisplayCode}
             liveableAreaMapCode={urbanDensityLiveableAreaMapCode}
             liveableAreaMapDisplayCode={urbanDensityLiveableAreaMapDisplayCode}
             collectNonLiveableLandCode={urbanDensityCollectNonLiveableLandCode}
             collectNonLiveableLandDisplayCode={urbanDensityCollectNonLiveableLandDisplayCode}
             setupZ14TileFetcherCode={urbanDensitySetupZ14TileFetcherCode}
+            setupZ14TileFetcherCss={urbanDensitySetupZ14TileFetcherCss}
             setupZ14TileFetcherDisplayCode={urbanDensitySetupZ14TileFetcherDisplayCode}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
             liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
