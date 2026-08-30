@@ -521,7 +521,6 @@ export const urbanDensityCalculationCode = [
   '',
   "const districtNameByCode: Record<string, string> = { CW: 'Central and Western', WC: 'Wan Chai', EST: 'Eastern', STH: 'Southern', YTM: 'Yau Tsim Mong', SSP: 'Sham Shui Po', KLC: 'Kowloon City', WTS: 'Wong Tai Sin', KT: 'Kwun Tong', KC: 'Kwai Tsing', KTS: 'Kwai Tsing', TW: 'Tsuen Wan', TM: 'Tuen Mun', YL: 'Yuen Long', NTH: 'North', TP: 'Tai Po', ST: 'Sha Tin', SK: 'Sai Kung', ILD: 'Islands' }",
   '',
-  '// A Feature keeps one geometry together with the facts that describe it.',
   'const districts = response.data.flatMap(division => {',
   '  const code = division.attributes.divisionCode',
   "  const area = division.relationships.hierarchy.data.find(item => item.meta?.subType === 'area')",
