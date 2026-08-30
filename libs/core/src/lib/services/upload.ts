@@ -746,6 +746,7 @@ function resolveUploadPlan(
     type,
     source,
     sourceVersion: resolvedSourceVersion,
+    geometryStatus: options.geometryStatus,
     filePath: options.filePath,
     fileName,
     originalFileName,
