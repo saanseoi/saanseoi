@@ -63,7 +63,7 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
       'new Map({',
       "  container: 'map',",
       '  center: [114.1694, 22.3193],',
-      '  zoom: 10.5,',
+      '  zoom: 11.5,',
       '  style: {',
       '    version: 8,',
       '    sources: {},',
@@ -98,7 +98,7 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
       "  container: 'map',",
       "  style: 'mapbox://styles/mapbox/standard',",
       '  center: [114.1694, 22.3193],',
-      '  zoom: 10.5,',
+      '  zoom: 11.5,',
       '})',
     ].join('\n'),
     stylesheetCode: stylesheetSnippet,
@@ -173,7 +173,7 @@ export const createAMapRendererBasemapCode = (
         `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
-        '  zoom: 10.5,',
+        '  zoom: 11.5,',
         '  style: {',
         '    version: 8,',
         '    sources: {',
@@ -238,7 +238,7 @@ export const createAMapRendererStyleCode = (
         `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
-        '  zoom: 10.5,',
+        '  zoom: 11.5,',
         '  style,',
         ...(renderer === 'maplibre'
           ? ['  attributionControl: { compact: true },']
@@ -402,13 +402,13 @@ export const createNotebookCode = (notebookLibrary?: string) =>
     ? [
         'from maplibre import Map, MapOptions',
         '',
-        'map_view = Map(MapOptions(center=(114.1694, 22.3193), zoom=11))',
+        'map_view = Map(MapOptions(center=(114.1694, 22.3193), zoom=11.5))',
         "map_view.save('map.html', preview=True)",
       ].join('\n')
     : [
         'import folium',
         '',
-        'map_view = folium.Map(location=[22.3193, 114.1694], zoom_start=11)',
+        'map_view = folium.Map(location=[22.3193, 114.1694], zoom_start=11.5)',
         'map_view',
       ].join('\n')
 
@@ -459,7 +459,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     'const map = new MapLibreMap({',
     "  container: 'map',",
     '  center: [114.16, 22.32],',
-    '  zoom: 11.25,',
+    '  zoom: 11.5,',
     '  style,',
     '  attributionControl: { compact: true },',
     '})',
