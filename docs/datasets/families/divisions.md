@@ -7,6 +7,11 @@ the latest published HAD and C&SD district-area snapshots at or before the set c
 The boundary requirement remains exact-cohort Overture. This keeps the two authoritative
 district-area sources in every Overture release without selecting future data.
 
+When Divisions release-set publication is deferred, every nested source upload retains
+that deferral. It may publish its source release and snapshot, but it cannot create an
+API revision for an already current cohort; only explicit reconciliation publishes a
+draft release set.
+
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
 `divisionBoundary` as `division-boundary`. A dataset describes one publisher product and

@@ -385,20 +385,40 @@ export async function handlePublishDataset(
       }
     }
 
+    const ensureDeferredDraftReleaseSet = async (cohortKey: string) => {
+      if (request.deferApiReleaseSet) {
+        const publishedReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
+          db,
+          datasetType,
+          domainCode,
+          dataset.regionCode as RegionCode,
+          cohortKey,
+        )
+
+        // A deferred source upload may complete after its cohort's API set is
+        // already current (for example, a Statistics companion replayed after
+        // geographic initialisation). Source publication must not open an
+        // enrichment revision in that case.
+        if (publishedReleaseSet) return null
+      }
+
+      return ensureDraftReleaseSetForRelease(
+        db,
+        datasetType,
+        { cohortKey, regionCode: dataset.regionCode },
+        { domainCode },
+      )
+    }
     const releaseSets = isCenstatdGeographicGeometry
       ? await (async () => {
-          const releaseSets = []
+          const releaseSets: Array<
+            NonNullable<Awaited<ReturnType<typeof ensureDraftReleaseSetForRelease>>>
+          > = []
           // Create each revision in the same chronological order in which it
           // is published, so the registry's publication ordering is stable.
           for (const cohortKey of censtatdReleaseSetCohorts) {
-            releaseSets.push(
-              await ensureDraftReleaseSetForRelease(
-                db,
-                'division',
-                { cohortKey, regionCode: dataset.regionCode },
-                { domainCode },
-              ),
-            )
+            const releaseSet = await ensureDeferredDraftReleaseSet(cohortKey)
+            if (releaseSet) releaseSets.push(releaseSet)
           }
           return releaseSets
         })()
@@ -423,12 +443,30 @@ export async function handlePublishDataset(
           })()
         : draftReleaseSets.length > 0
           ? draftReleaseSets
-          : [
-              existingReleaseSet ??
-                (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
-                  domainCode,
-                })),
-            ]
+          : await (async () => {
+              if (existingReleaseSet) {
+                if (
+                  request.deferApiReleaseSet &&
+                  existingReleaseSet.status !== 'draft'
+                ) {
+                  return []
+                }
+                return [existingReleaseSet]
+              }
+              const releaseSet = await ensureDeferredDraftReleaseSet(dataset.cohortKey)
+              return releaseSet ? [releaseSet] : []
+            })()
+    if (releaseSets.length === 0) {
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        phase: null,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: 'published',
+      }
+    }
     const publicationTargets = releaseSets.map(releaseSet => {
       if (datasetType !== 'divisionStatistic') {
         return { releaseSet, snapshot: firstSnapshot }
