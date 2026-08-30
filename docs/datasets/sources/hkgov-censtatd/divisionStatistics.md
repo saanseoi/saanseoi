@@ -77,6 +77,13 @@ Population and Household compilation can therefore carry annual observations for
 stay in the delivery-year source shard, while canonical history uses each row's period
 end year; periods before 2025 use `DB_HISTORY_HK_BEFORE`.
 
+The `2026-Q2` Population and Household package also contains the corresponding
+publisher-labelled District Council geometry for those annual periods. Its source
+version is delivery provenance, not a geometry cohort: intake splits the `DC_GHS` layer
+by its `year` property before preparing each 18-area companion. The source-release
+fixture declares that reference-period field and companion behaviour; it never attempts
+to prepare a nonexistent `2026` district cohort.
+
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a
 stable canonical `fieldName`, a reviewed `statisticKind`, and a separate reviewed
