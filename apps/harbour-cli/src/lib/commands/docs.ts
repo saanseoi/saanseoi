@@ -121,7 +121,7 @@ export async function createApiReleaseSetRevisionDraft(
 
   const previousCode = input.apiReleaseSetCode.replace(
     /-r\d+(?=--|$)/,
-    `-r${parsedCode.sequence - 1}`,
+    parsedCode.sequence === 1 ? '' : `-r${parsedCode.sequence - 1}`,
   )
   const previousFixture = await readFixtureIfExists(parsedCode.apiFamily, previousCode)
   if (!previousFixture) {
@@ -185,7 +185,7 @@ export async function createApiReleaseSetRevisionDraft(
   return { path: targetPath, guidePath, status: 'created' as const }
 }
 
-/** Creates editable Notes and Guide drafts for a newly published r0 release. */
+/** Creates editable Notes and Guide drafts for a newly published initial release. */
 export async function createApiReleaseSetInitialDraft(
   apiReleaseSetCode: string,
   target: UploadTarget,
@@ -825,6 +825,7 @@ async function findEffectiveReleaseFixture(
 async function readFixtureIfExists(apiFamily: string, code: string) {
   const paths = [
     resolveDocsFixturePath(apiFamily, code),
+    resolveInitialRevisionDocsFixturePath(apiFamily, code),
     resolveLegacyDocsFixturePath(apiFamily, code),
   ]
 
@@ -841,14 +842,21 @@ async function readFixtureIfExists(apiFamily: string, code: string) {
 }
 
 async function readGuideFixtureIfExists(apiFamily: string, code: string) {
-  const path = resolveGuideFixturePath(apiFamily, code)
+  const paths = [
+    resolveGuideFixturePath(apiFamily, code),
+    resolveInitialRevisionGuideFixturePath(apiFamily, code),
+  ]
 
-  if (!existsSync(path)) return null
+  for (const path of paths) {
+    if (!existsSync(path)) continue
 
-  return {
-    ...parseMarkdownFixture(await readFile(path, 'utf8')),
-    path,
+    return {
+      ...parseMarkdownFixture(await readFile(path, 'utf8')),
+      path,
+    }
   }
+
+  return null
 }
 
 async function readReleaseFixtureIfExists(datasetCode: string, code: string) {
@@ -1003,6 +1011,24 @@ function resolveGuideFixturePath(apiFamily: string, code: string) {
     apiFamily,
     API_RELEASE_SET_GUIDES_DIRECTORY,
     `${code}.md`,
+  )
+}
+
+function resolveInitialRevisionDocsFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    API_RELEASE_SET_NOTES_DIRECTORY,
+    `${code}-r0.md`,
+  )
+}
+
+function resolveInitialRevisionGuideFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    API_RELEASE_SET_GUIDES_DIRECTORY,
+    `${code}-r0.md`,
   )
 }
 

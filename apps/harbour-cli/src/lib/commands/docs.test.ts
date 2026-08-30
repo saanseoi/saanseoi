@@ -103,6 +103,44 @@ describe('docs markdown fixtures', () => {
     }
   })
 
+  test('uses the canonical unadorned Statistics fixture for the first revision', async () => {
+    const apiReleaseSetCode = 'data-hk-stats-2021-r1'
+    const path = resolve(
+      import.meta.dir,
+      '../../../../../fixtures/meta/apiReleaseSets/stats',
+      'notes',
+      `${apiReleaseSetCode}.md`,
+    )
+    const guidePath = resolve(
+      import.meta.dir,
+      '../../../../../fixtures/meta/apiReleaseSets/stats',
+      'guides',
+      `${apiReleaseSetCode}.md`,
+    )
+
+    await rm(path, { force: true })
+    await rm(guidePath, { force: true })
+    try {
+      const draft = await createApiReleaseSetRevisionDraft(
+        {
+          apiReleaseSetCode,
+          datasetName: 'Statistics',
+          publisherCode: 'hkgov-censtatd',
+          sourceVersion: '2021',
+        },
+        { prompt: false },
+      )
+
+      expect(draft?.status).toBe('created')
+      expect(await readFile(path, 'utf8')).toContain(
+        'apiReleaseSet: "data-hk-stats-2021-r1"',
+      )
+    } finally {
+      await rm(path, { force: true })
+      await rm(guidePath, { force: true })
+    }
+  })
+
   test('normalises source versions for the release-version frontmatter', () => {
     expect(releaseVersionFromSourceVersion('2022')).toBe('2022.0')
     expect(releaseVersionFromSourceVersion('2025-09-24.0')).toBe('2025-09-24.0')
