@@ -1828,6 +1828,20 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   )
 }
 
+export async function listIngestRunStatesForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+) {
+  return db
+    .select({
+      phase: metaSchema.ingestRuns.phase,
+      status: metaSchema.ingestRuns.status,
+    })
+    .from(metaSchema.ingestRuns)
+    .where(eq(metaSchema.ingestRuns.releaseId, releaseId))
+    .all()
+}
+
 export async function getDatasetRecordByReleaseId(
   db: HarbourReadableDb,
   releaseId: string,
