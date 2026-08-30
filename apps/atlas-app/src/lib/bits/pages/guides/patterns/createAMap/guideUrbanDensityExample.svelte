@@ -106,18 +106,18 @@ onMount(() => {
 })
 
 const statsComments = [
-  { line: 4, text: m.guide_data_urban_density_stats_comment_api_base_url() },
-  { line: 5, text: m.guide_data_urban_density_stats_comment_endpoint() },
-  { line: 6, text: m.guide_data_urban_density_stats_comment_dataset() },
-  { line: 8, text: m.guide_data_urban_density_stats_comment_helper() },
-  { line: 9, text: m.guide_data_urban_density_stats_comment_url() },
-  { line: 10, text: m.guide_data_urban_density_stats_comment_cohort() },
-  { line: 11, text: m.guide_data_urban_density_stats_comment_dataset_filter() },
-  { line: 12, text: m.guide_data_urban_density_stats_comment_field() },
-  { line: 13, text: m.guide_data_urban_density_stats_comment_reference_period() },
-  { line: 15, text: m.guide_data_urban_density_stats_comment_request() },
-  { line: 16, text: m.guide_data_urban_density_stats_comment_values() },
-  { line: 19, text: m.guide_data_urban_density_stats_comment_fields() },
+  { line: 12, text: m.guide_data_urban_density_stats_comment_api_base_url() },
+  { line: 13, text: m.guide_data_urban_density_stats_comment_endpoint() },
+  { line: 14, text: m.guide_data_urban_density_stats_comment_dataset() },
+  { line: 16, text: m.guide_data_urban_density_stats_comment_helper() },
+  { line: 17, text: m.guide_data_urban_density_stats_comment_url() },
+  { line: 18, text: m.guide_data_urban_density_stats_comment_cohort() },
+  { line: 19, text: m.guide_data_urban_density_stats_comment_dataset_filter() },
+  { line: 20, text: m.guide_data_urban_density_stats_comment_field() },
+  { line: 21, text: m.guide_data_urban_density_stats_comment_reference_period() },
+  { line: 23, text: m.guide_data_urban_density_stats_comment_request() },
+  { line: 24, text: m.guide_data_urban_density_stats_comment_values() },
+  { line: 27, text: m.guide_data_urban_density_stats_comment_fields() },
 ]
 
 const mapComments = [
@@ -169,12 +169,10 @@ const collectNonLiveableLandComments = [
   {
     line: 1,
     text: '{ 255 LINES OMITTED: KEEP YOUR WORKING CODE }',
-    alwaysVisible: true,
   },
   {
     line: 1,
     text: 'APPEND THIS Z14 LAND-USE COLLECTION TO THE END OF src/main.ts',
-    alwaysVisible: true,
     spacerAfter: true,
   },
   { line: 1, text: m.guide_data_urban_density_collect_comment_feature_list() },
@@ -191,12 +189,10 @@ const setupZ14TileFetcherComments = [
   {
     line: 1,
     text: '{ 125 LINES OMITTED: KEEP YOUR WORKING MAP, STATISTICS, AND DIVISIONS REQUEST }',
-    alwaysVisible: true,
   },
   {
     line: 1,
     text: 'APPEND THIS Z14 TILE FETCHER SETUP TO THE END OF src/main.ts',
-    alwaysVisible: true,
     spacerAfter: true,
   },
   { line: 1, text: m.guide_data_urban_density_collect_comment_vector_tile() },
@@ -236,12 +232,10 @@ const liveableAreaComments = [
   {
     line: 1,
     text: '{ 166 LINES OMITTED: KEEP YOUR WORKING MAP, STATISTICS, DIVISIONS REQUEST, AND Z14 LAND-USE COLLECTION }',
-    alwaysVisible: true,
   },
   {
     line: 1,
     text: 'APPEND THIS CALCULATION AND JSON DOWNLOAD TO THE END OF src/main.ts',
-    alwaysVisible: true,
     spacerAfter: true,
   },
   { line: 2, text: m.guide_data_urban_density_collect_comment_yield() },

@@ -463,7 +463,10 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '  style,',
     '  attributionControl: { compact: true },',
     '})',
-    '',
+  ].join('\n')
+
+export const createUrbanDensityStatsCode = (apiBaseUrl: string) =>
+  [
     '// Reuse a completed analysis on later loads. The temporary density cards and',
     '// land-use analysis below exist only to create this file, so we skip them when it is present.',
     'let savedResult',
@@ -471,10 +474,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     'try {',
     '  savedResult = (await import(savedResultPath)).default',
     '} catch {}',
-  ].join('\n')
-
-export const createUrbanDensityStatsCode = (apiBaseUrl: string) =>
-  [
+    '',
     `const apiBaseUrl = '${apiBaseUrl}'`,
     "const statsEndpoint = '/stats/v0.1/geographies'",
     "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
