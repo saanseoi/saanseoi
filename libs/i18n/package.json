@@ -16,6 +16,6 @@
     "dev": "paraglide-js compile --project ./project.inlang --output-structure locale-modules"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "2.24.1"
+    "@inlang/paraglide-js": "2.25.0"
   }
 }
