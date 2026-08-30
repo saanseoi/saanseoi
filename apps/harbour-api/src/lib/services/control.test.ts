@@ -432,7 +432,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022'`,
       )
       .get(),
-  ).toEqual({ count: 0 })
+  ).toEqual({ count: 1 })
   sqlite.close()
 })
 

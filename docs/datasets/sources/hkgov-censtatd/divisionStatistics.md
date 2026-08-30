@@ -23,6 +23,11 @@ logical dataset with two one-off reference-year releases. They also publish the 
 District Council boundaries. Their geometry profiles remain documented separately in
 [`divisionArea.md`](./divisionArea.md): they are authoritative statistical-geography
 variants for their respective census cohorts, not an evergreen administrative default.
+Their native archives are nevertheless ingested through the Statistics path first, so
+their `divisionStatistic` snapshots are materialised alongside the separate Divisions
+geometry companion. The same applies to the 2024 Population and Household district
+archive. Permanent Living Quarters likewise materialises its Statistics snapshot before
+the Divisions workflow creates its geometry-only companion.
 
 The fixture records every observed archive slot whose native publisher package is
 byte-identical to the 2016 or 2021 cohort. The updater suppresses only those exact no-op

@@ -56,8 +56,8 @@ distinct exact reference period. Statistics release sets use that period code as
 cohort and composition members match it with `exact_ref`. Dataset-code members are
 optional because not every dataset publishes every period; a later dataset or corrected
 compilation creates a new immutable revision only for the affected period. The first
-compilation is always an explicit `-r0` release set; later source contributions use
-`-r1`, `-r2`, and so on.
+compilation is an unadorned initial release set; later source contributions use `-r1`,
+`-r2`, and so on.
 
 Each packed measure value stores exact decimal text (not floats), its original source
 literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
@@ -144,9 +144,9 @@ The current candidate inventory is maintained in
 `./bin/saanseoi init:stats:official --target local` ingests the official C&SD launch
 set, defers intermediate Statistics release-set publication, and bootstraps the
 completed cohorts once. Each reference period is therefore first published as one
-complete `r0`. Bootstrap considers every published Stats-family source and selects its
-linked `divisionStatistic` snapshots, so a source whose primary artefact is C&SD
-geometry contributes both its geometry and its Statistics periods.
+complete unadorned initial release set. Bootstrap considers every published Stats-family
+source and selects its linked `divisionStatistic` snapshots, so a source whose primary
+artefact is C&SD geometry contributes both its geometry and its Statistics periods.
 
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
