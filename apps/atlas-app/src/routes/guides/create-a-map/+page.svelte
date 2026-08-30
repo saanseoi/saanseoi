@@ -1587,7 +1587,7 @@ const basemapCode = $derived(
     : '',
 )
 const basemapCodeDimmedLines = $derived(
-  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 24] : [],
+  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 25] : [],
 )
 const basemapCodeComments = $derived(
   renderer === 'maplibre'

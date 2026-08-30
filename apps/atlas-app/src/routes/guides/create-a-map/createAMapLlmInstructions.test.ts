@@ -9,9 +9,28 @@ import {
   createAMapAgenticSectionPrompt,
   createAMapChatSectionPrompt,
 } from './createAMapLlmPrompt'
-import { createAMapRendererBasemapCode } from './snippets'
+import {
+  createAMapRendererBasemapCode,
+  createAMapRendererStyleCode,
+  createUrbanDensityMapReadyCode,
+  getCreateAMapRendererReference,
+} from './snippets'
 
 describe('Create a Map LLM instructions', () => {
+  test('starts MapLibre attribution controls in compact mode', () => {
+    const styleUrl = 'https://styles.saanseoi.hk/midnight.json'
+    const tilejsonUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'
+
+    for (const code of [
+      getCreateAMapRendererReference('maplibre').code,
+      createAMapRendererBasemapCode('maplibre', styleUrl, tilejsonUrl),
+      createAMapRendererStyleCode('maplibre', styleUrl, tilejsonUrl),
+      createUrbanDensityMapReadyCode(styleUrl),
+    ]) {
+      expect(code).toContain('attributionControl: { compact: true }')
+    }
+  })
+
   test('renders the complete guide', () => {
     const instructions = createAMapLlmInstructions()
 
