@@ -432,10 +432,7 @@ export async function handlePublishDataset(
                   db,
                   datasetType,
                   { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
-                  // Statistics cohorts use an explicit `-r0` for their first
-                  // immutable compilation. That keeps launch bootstraps and
-                  // ordinary source ingestion on the same release-note path.
-                  { domainCode, explicitInitialRevision: true },
+                  { domainCode },
                 ),
               )
             }
@@ -846,7 +843,7 @@ export async function handleBootstrapStatsReleaseSets(
         db,
         'divisionStatistic',
         { cohortKey, regionCode },
-        { domainCode: 'official', explicitInitialRevision: true },
+        { domainCode: 'official' },
       )
       const orderedCandidates = candidates
         .slice()

@@ -1520,20 +1520,23 @@ async function runCsdiArchiveIngestPlaceholder(
     release.sourceUrl
   ) {
     const child = Bun.spawn(
-      buildHkgovCenstatdDistrictArchiveIngestCommand({
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
         datasetCode: dataset.code,
-        deferApiReleaseSet: options.deferStatsReleaseSet,
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
         inputFile: prepared.sourcePath,
         releaseNotesUrl: release.sourceUrl,
         sourceArchiveKey: prepared.manifest.archive.objectKey,
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
     if ((await child.exited) !== 0) {
-      throw new Error(`C&SD district-area ingest failed for ${release.sourceVersion}.`)
+      throw new Error(
+        `C&SD district statistic ingest failed for ${release.sourceVersion}.`,
+      )
     }
     return 'ingested'
   }

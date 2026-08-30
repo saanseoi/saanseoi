@@ -154,7 +154,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
     .get(releaseId) as { status: string }
 
   expect(result).toMatchObject({
-    apiReleaseSetCode: 'data-hk-stats-2024-25-r0',
+    apiReleaseSetCode: 'data-hk-stats-2024-25',
     apiReleaseSetStatus: 'current',
     releaseId,
     snapshotId: snapshot.id,
@@ -170,7 +170,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
   sqlite.close()
 })
 
-test('bootstraps one cohort-complete Statistics r0 release set', async () => {
+test('bootstraps one cohort-complete initial Statistics release set', async () => {
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistics-bootstrap.sqlite'))
   const db = createLocalHarbourDb(sqlite)
@@ -289,14 +289,14 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   const result = await handleBootstrapStatsReleaseSets(db)
 
   expect(result).toEqual({
-    createdReleaseSetCodes: ['data-hk-stats-2021-r0'],
+    createdReleaseSetCodes: ['data-hk-stats-2021'],
     inspectedSnapshots: 2,
     skippedCohortKeys: [],
   })
   expect(
     sqlite
       .query(
-        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'`,
+        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'`,
       )
       .get(),
   ).toEqual({ revision: 0, status: 'current' })
@@ -304,7 +304,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
     sqlite
       .query(
         `SELECT count(*) AS count FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = (
-          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'
+          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'
         )`,
       )
       .get(),
@@ -405,7 +405,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
       .query(
         `SELECT count(*) AS count
          FROM apiReleaseSets
-         WHERE code IN ('data-hk-stats-2022-r0', 'data-hk-stats-2023-r0')`,
+         WHERE code IN ('data-hk-stats-2022', 'data-hk-stats-2023')`,
       )
       .get(),
   ).toEqual({ count: 0 })
@@ -429,7 +429,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   expect(
     sqlite
       .query(
-        `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022-r0'`,
+        `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022'`,
       )
       .get(),
   ).toEqual({ count: 0 })
