@@ -8,6 +8,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = {
   actions?: Snippet
+  class?: string
   code: string
   copyLabelSuffix?: Snippet
   copyCode?: string
@@ -62,6 +63,29 @@ const sourceTokenClass: Record<Exclude<SourceTokenKind, 'plain'>, string> = {
   string: 'text-[#a5d6ff]',
 }
 
+const codeCommentColumns = 83
+
+const splitCodeComment = (text: string, maximumLength: number) => {
+  const lines: string[] = []
+  let line = ''
+
+  for (const word of text.trim().split(/\s+/)) {
+    if (word.length > maximumLength) {
+      if (line) lines.push(line)
+      lines.push(...(word.match(new RegExp(`.{1,${maximumLength}}`, 'g')) ?? []))
+      line = ''
+    } else if (!line || line.length + word.length + 1 <= maximumLength) {
+      line = line ? `${line} ${word}` : word
+    } else {
+      lines.push(line)
+      line = word
+    }
+  }
+
+  if (line) lines.push(line)
+  return lines.length > 0 ? lines : ['']
+}
+
 const highlightBash = (source: string, prompt = '$') => {
   let multilineTerminator: string | undefined
   let continuesFromPreviousLine = false
@@ -83,11 +107,12 @@ const highlightBash = (source: string, prompt = '$') => {
       if (comment) {
         const indentation = comment[1] ?? ''
         const content = comment[2] ?? ''
-        if (indentation) {
-          return `<span class="block"><span class="text-[#7e938e]">${escapeHtml(`${indentation}# ${content}`)}</span></span>`
-        }
-
-        return `<span class="block"><span class="mr-[0.6rem] select-none text-[#7e938e]" aria-hidden="true">#</span><span class="text-[#7e938e]">${escapeHtml(content)}</span></span>`
+        return splitCodeComment(content, codeCommentColumns - indentation.length - 2)
+          .map(
+            text =>
+              `<span class="block"><span class="text-[#7e938e]">${escapeHtml(`${indentation}# ${text}`)}</span></span>`,
+          )
+          .join('')
       }
 
       let commandSeen = false
@@ -149,6 +174,7 @@ const highlightSource = (
   source
     .split('\n')
     .map((line, index) => {
+      const isSourceComment = /^\s*(?:\/\/|\/\*)/.test(line)
       const tokens =
         line.match(
           /\/\/[^\n]*|\/\*[\s\S]*?\*\/|'[^']*'|"[^"]*"|`[^`]*`|#[\w-]+|\.[\w-]+|\b\d+(?:\.\d+)?\b|\b(?:import|from|new|const|let|return|type|interface|export|default|class|function|async|await|if|else|true|false|html|body|width|height|margin|padding|display|background|color)\b|\s+|[^\s]+/g,
@@ -187,18 +213,58 @@ const highlightSource = (
       )
       const indentation = escapeHtml(line.match(/^\s*/)?.[0] ?? '')
       const renderedComments = matchingComments
-        .map(
-          comment =>
-            `<span data-code-comment-for="${comment.line}" aria-hidden="${!commentsVisible && !comment.alwaysVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible || comment.alwaysVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">${indentation}// ${escapeHtml(comment.text)}</span>${comment.spacerAfter ? `<span aria-hidden="${!commentsVisible && !comment.alwaysVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible || comment.alwaysVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}">&nbsp;</span>` : ''}`,
-        )
+        .flatMap(comment => {
+          const maximumLength = codeCommentColumns - indentation.length - 3
+          const isVisible = commentsVisible || comment.alwaysVisible
+          const visibility = isVisible
+            ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+            : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
+          const commentLines = splitCodeComment(comment.text, maximumLength).map(
+            text =>
+              `<span data-code-comment-for="${comment.line}" aria-hidden="${!isVisible}" class="block overflow-hidden text-[#7e938e] transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${visibility}">${indentation}// ${escapeHtml(text)}</span>`,
+          )
+
+          if (comment.spacerAfter) {
+            commentLines.push(
+              `<span aria-hidden="${!isVisible}" class="block overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${visibility}">&nbsp;</span>`,
+            )
+          }
+
+          return commentLines
+        })
         .join('')
 
-      return `${renderedComments}<span data-code-line="${index + 1}" class="block${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
+      const sourceComment = line.match(/^(\s*\/\/\s?)(.*)$/)
+      if (sourceComment) {
+        const prefix = sourceComment[1] ?? '// '
+        const maximumLength = codeCommentColumns - prefix.length
+        const visibility = commentsVisible
+          ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+          : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
+        const sourceCommentLines = splitCodeComment(
+          sourceComment[2] ?? '',
+          maximumLength,
+        )
+          .map(
+            text =>
+              `<span data-code-line="${index + 1}" class="block overflow-hidden ${visibility}"><span class="${sourceTokenClass.comment}">${escapeHtml(`${prefix}${text}`)}</span></span>`,
+          )
+          .join('')
+
+        return `${renderedComments}${sourceCommentLines}`
+      }
+
+      const sourceCommentVisibility = isSourceComment
+        ? ` overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}`
+        : ''
+
+      return `${renderedComments}<span data-code-line="${index + 1}" class="block${sourceCommentVisibility}${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
     })
     .join('')
 
 let {
   actions,
+  class: className = '',
   code,
   copyLabelSuffix,
   copyCode,
@@ -237,6 +303,12 @@ const highlightedCode = $derived(
           )
         : escapeHtml(displayCode ?? code),
 )
+const hasSourceComments = $derived(
+  variant === 'editor' &&
+    (language === 'typescript' || language === 'css') &&
+    /(?:^|\n)\s*(?:\/\/|\/\*)/.test(displayCode ?? code),
+)
+const hasCommentsToggle = $derived(comments.length > 0 || hasSourceComments)
 
 const copyWithFallback = (text: string) => {
   const textarea = document.createElement('textarea')
@@ -282,7 +354,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`w-full min-w-0 max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`${className} w-full min-w-0 max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
@@ -340,10 +412,10 @@ const selectManualCopyText = () => {
         {/if}</span
       >
     </div>
-    {#if copyable || actions || comments.length > 0}
+    {#if copyable || actions || hasCommentsToggle}
       <div data-guide-code-actions class="flex shrink-0 items-center gap-4">
         {@render leadingActions?.()}
-        {#if comments.length > 0}
+        {#if hasCommentsToggle}
           <button
             data-guide-code-comments-toggle
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"

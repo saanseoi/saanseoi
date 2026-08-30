@@ -14,6 +14,7 @@ type Props = {
     spacerAfter?: boolean
     text: string
   }>
+  copyable?: boolean
   copiedLabel: string
   copyLabel: string
   dimmedLines?: number[]
@@ -22,6 +23,7 @@ type Props = {
   expandLabel?: string
   label: string
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
+  minHeight?: string
   preview: Snippet
   previewLabel: string
   closeLabel?: string
@@ -33,6 +35,7 @@ let {
   code,
   displayCode,
   comments = [],
+  copyable = true,
   copiedLabel,
   copyLabel,
   dimmedLines,
@@ -41,6 +44,7 @@ let {
   expandLabel,
   label,
   language = 'text',
+  minHeight,
   preview,
   previewLabel,
   closeLabel,
@@ -54,9 +58,17 @@ let viewTransitionName = $state<string>()
 let previewInViewport = $state(false)
 let previewCard: HTMLElement
 let previewPanel: HTMLElement
+const previewTitle = $derived(
+  label
+    .replace(/^.*?—\s*/u, '')
+    .replace(/^./u, character => character.toLocaleUpperCase()),
+)
 
-function showPreview() {
+async function showPreview() {
   view = 'preview'
+
+  await tick()
+  previewCard.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 onMount(() => {
@@ -101,20 +113,25 @@ function closePreview() {
 
 <div
   bind:this={previewCard}
-  class={`grid w-full min-w-0 max-w-[80ch] font-mono ${expanded ? '' : 'perspective-distant'}`}
+  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 max-w-[80ch] scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
+  style:min-height={view === 'preview' ? '0' : minHeight}
+  style:height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
+  style:max-height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
 >
   <div
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
-    class={`col-start-1 row-start-1 w-full min-w-0 transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+    class={`col-start-1 row-start-1 h-full min-h-0 w-full min-w-0 transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'code'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
     }`}
   >
     <GuideCodeBlock
+      class="h-full"
       code={displayCode ?? code}
       copyCode={code}
+      {copyable}
       {comments}
       bind:commentsVisible
       {copiedLabel}
@@ -151,7 +168,7 @@ function closePreview() {
     class={`${
       expanded
         ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
-        : 'col-start-1 row-start-1 h-full w-full'
+        : 'col-start-1 row-start-1 h-full min-h-0 w-full'
     } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
       view === 'preview'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
@@ -183,7 +200,7 @@ function closePreview() {
             <Icon icon="proicons:map" class="size-4" />
           </span>
           <span class="truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
-            >{previewLabel}</span
+            >{previewTitle}</span
           >
         </div>
         <div class="flex shrink-0 items-center gap-4">
@@ -213,7 +230,7 @@ function closePreview() {
         </div>
       </header>
     {/if}
-    <div class={`min-h-0 flex-1 bg-[#131722] ${expanded ? '' : 'p-4'}`}>
+    <div class={`min-h-0 flex-1 overflow-hidden bg-[#131722] ${expanded ? '' : 'p-4'}`}>
       {#if previewInViewport}
         {@render preview()}
       {/if}
