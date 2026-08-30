@@ -237,7 +237,7 @@ export const RegisterUploadRequestSchema = z
       .optional()
       .openapi({
         description:
-          'Allow retrying an already staged release without permitting a published release repair.',
+          'Allow retrying a staged release, or an interrupted processing release with no active ingest phase, without permitting a published release repair.',
         examples: [true],
       }),
     inspection: UploadInspectionSchema,
