@@ -169,9 +169,11 @@ export async function prepareHkgovCenstatdDistrictUpload(
       ? await withDisplayGeometry(exactRows, sourceVersion, datasetCode)
       : exactRows
   const outputSourceVersion = sourceVersion
+  const outputVersion =
+    cohortKey === sourceVersion ? sourceVersion : `${sourceVersion}-${cohortKey}`
   const filePath = join(
     resolve(outputDir),
-    `${HKGOV_CENSTATD_SOURCE}-hk-${sourceVersion}${
+    `${HKGOV_CENSTATD_SOURCE}-hk-${outputVersion}${
       options.transform ? '-simplified' : ''
     }-division-area.parquet`,
   )
