@@ -1714,6 +1714,22 @@ describe('dataset update registry', () => {
     ).toBe(true)
   })
 
+  test('declares reference periods carried by the historic Population and Household delivery', async () => {
+    const [dataset] = await loadDatasetFixtures(
+      new Set([
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      ]),
+    )
+
+    expect(
+      dataset?.releases?.find(release => release.sourceVersion === '2026-Q2')
+        ?.referencePeriods,
+    ).toEqual({
+      materialiseAreaCompanions: true,
+      sourceField: 'year',
+    })
+  })
+
   test('records HAD districts as a revisable irregular rolling series', async () => {
     const [dataset] = await loadDatasetFixtures(
       new Set(['ds-hk-hkgov-had-division-area-district']),

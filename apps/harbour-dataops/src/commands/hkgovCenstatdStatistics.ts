@@ -18,6 +18,7 @@ import {
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
 import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdGml.ts'
 import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
+import { loadDatasetFixtures } from '../../../harbour-cli/src/lib/sources/sourceUpdates.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import {
   fetchReleaseReport,
@@ -87,6 +88,10 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       ([name, content]) => [name, new TextDecoder().decode(content)],
     ),
   )
+  const [datasetFixture] = await loadDatasetFixtures(new Set([datasetCode]))
+  const referencePeriods = datasetFixture?.releases?.find(
+    release => release.sourceVersion === sourceVersion,
+  )?.referencePeriods
   const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-statistics-'))
   try {
     const inputFiles = Object.fromEntries(
@@ -108,64 +113,79 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     const districtDataset = isCenstatdDistrictGeometryDataset(datasetCode)
       ? datasetCode
       : null
-    const geography = districtDataset
-      ? await prepareHkgovCenstatdDistrictUpload(
-          inputFiles[
-            `${hkgovCenstatdDistrictLayerName(
-              districtDataset,
-              sourceVersion as Parameters<typeof hkgovCenstatdDistrictLayerName>[1],
-            )}.gml`
-          ] ??
-            (() => {
-              throw new Error(`CSDI archive has no district geometry layer.`)
-            })(),
-          workDir,
-          sourceVersion as Parameters<typeof prepareHkgovCenstatdDistrictUpload>[2],
-          {
-            cohortKey: sourceVersion.slice(0, 4),
-            datasetCode: districtDataset,
-            sourceArchive: { key, sha256: sha },
-          },
-        ).then(prepared => ({
-          areaCount: 18,
-          areaOutputFile: prepared.filePath,
-          cohortKey: prepared.cohortKey,
-          divisionCount: 0,
-          divisionOutputFile: null,
-          sourceFeatureCount: 18,
-        }))
-      : await prepareHkgovCenstatdStatisticGeographyUploads({
-          areaOutputFile: geographyAreaPath,
-          datasetCode: datasetCode as CenstatdStatisticDatasetCode,
-          divisionOutputFile: geographyDivisionPath,
-          inputGml,
-          sourceArchiveKey: key,
-          sourceArchiveSha256: sha,
-          sourceVersion,
-        }).then(prepared => ({
-          ...prepared,
-          cohortKey: sourceVersion,
-          areaOutputFile: geographyAreaPath,
-          divisionOutputFile: geographyDivisionPath,
-        }))
     const geographies =
-      datasetCode ===
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district' &&
-      sourceVersion === '2026-Q2'
+      districtDataset && referencePeriods?.materialiseAreaCompanions
         ? await prepareAnnualDistrictGeographies({
-            datasetCode,
+            datasetCode: districtDataset,
             gmlPath:
               inputFiles[
-                `${hkgovCenstatdDistrictLayerName(datasetCode, sourceVersion)}.gml`
+                `${hkgovCenstatdDistrictLayerName(
+                  districtDataset,
+                  sourceVersion as Parameters<typeof hkgovCenstatdDistrictLayerName>[1],
+                )}.gml`
               ] ??
               (() => {
-                throw new Error('CSDI archive has no DC_GHS.gml.')
+                throw new Error(
+                  'CSDI archive has no configured district geometry layer.',
+                )
               })(),
+            layerName: hkgovCenstatdDistrictLayerName(
+              districtDataset,
+              sourceVersion as Parameters<typeof hkgovCenstatdDistrictLayerName>[1],
+            ),
+            referencePeriodField: referencePeriods.sourceField,
             sourceArchive: { key, sha256: sha },
-            sourceVersion,
+            sourceVersion: sourceVersion as Parameters<
+              typeof prepareHkgovCenstatdDistrictUpload
+            >[2],
             workDir,
           })
-        : [geography]
+        : [
+            districtDataset
+              ? await prepareHkgovCenstatdDistrictUpload(
+                  inputFiles[
+                    `${hkgovCenstatdDistrictLayerName(
+                      districtDataset,
+                      sourceVersion as Parameters<
+                        typeof hkgovCenstatdDistrictLayerName
+                      >[1],
+                    )}.gml`
+                  ] ??
+                    (() => {
+                      throw new Error(`CSDI archive has no district geometry layer.`)
+                    })(),
+                  workDir,
+                  sourceVersion as Parameters<
+                    typeof prepareHkgovCenstatdDistrictUpload
+                  >[2],
+                  {
+                    cohortKey: sourceVersion.slice(0, 4),
+                    datasetCode: districtDataset,
+                    sourceArchive: { key, sha256: sha },
+                  },
+                ).then(prepared => ({
+                  areaCount: 18,
+                  areaOutputFile: prepared.filePath,
+                  cohortKey: prepared.cohortKey,
+                  divisionCount: 0,
+                  divisionOutputFile: null,
+                  sourceFeatureCount: 18,
+                }))
+              : await prepareHkgovCenstatdStatisticGeographyUploads({
+                  areaOutputFile: geographyAreaPath,
+                  datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+                  divisionOutputFile: geographyDivisionPath,
+                  inputGml,
+                  sourceArchiveKey: key,
+                  sourceArchiveSha256: sha,
+                  sourceVersion,
+                }).then(prepared => ({
+                  ...prepared,
+                  cohortKey: sourceVersion,
+                  areaOutputFile: geographyAreaPath,
+                  divisionOutputFile: geographyDivisionPath,
+                })),
+          ]
     const requestedTypes: StatisticResourceType[] = [
       ...(!geographyOnly ? (['divisionStatistic'] as const) : []),
       ...(!geographyOnly && args.options['defer-stats-release-set'] === true
@@ -310,21 +330,29 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
 }
 
 async function prepareAnnualDistrictGeographies(input: {
-  datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  datasetCode: Parameters<typeof hkgovCenstatdDistrictLayerName>[0]
   gmlPath: string
+  layerName: string
+  referencePeriodField: string
   sourceArchive: { key: string; sha256: string }
-  sourceVersion: '2026-Q2'
+  sourceVersion: Parameters<typeof prepareHkgovCenstatdDistrictUpload>[2]
   workDir: string
 }) {
   const gml = await readFile(input.gmlPath, 'utf8')
   const years = [
     ...new Set(
-      parseHkgovCenstatdDistrictGml(gml, 'DC_GHS')
-        .map(feature => String(feature.properties.year ?? '').trim())
+      parseHkgovCenstatdDistrictGml(gml, input.layerName)
+        .map(feature =>
+          String(feature.properties[input.referencePeriodField] ?? '').trim(),
+        )
         .filter(year => /^20\d{2}$/.test(year)),
     ),
   ].sort()
-  if (years.length === 0) throw new Error('DC_GHS.gml has no publisher-labelled years.')
+  if (years.length === 0) {
+    throw new Error(
+      `${input.layerName}.gml has no publisher-labelled ${input.referencePeriodField} values.`,
+    )
+  }
   return Promise.all(
     years.map(async cohortKey => {
       const prepared = await prepareHkgovCenstatdDistrictUpload(

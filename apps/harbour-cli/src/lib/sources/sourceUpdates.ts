@@ -155,6 +155,14 @@ export type DatasetRelease = {
   }>
   sourceVersion?: string
   sourceUrl?: string
+  /**
+   * Publisher fields that identify the reference periods carried by one
+   * delivery. A source version may therefore contain historical records.
+   */
+  referencePeriods?: {
+    materialiseAreaCompanions?: boolean
+    sourceField: string
+  }
   referenceYear?: string
   referenceDate?: string
   releaseDate?: string
