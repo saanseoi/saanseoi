@@ -32,6 +32,8 @@ the Divisions workflow creates its geometry-only companion.
 The fixture records every observed archive slot whose native publisher package is
 byte-identical to the 2016 or 2021 cohort. The updater suppresses only those exact no-op
 object hashes while continuing to check the CSDI archive catalogue for a changed object.
+When a configured current source version is itself a CSDI archive slot, that exact slot
+selects its own release before releases that share the catalogue URL.
 
 For the two permanent-living-quarters datasets, the reviewed C&SD source release is
 `2023-H2`. The native GML is the primary provenance for layer and statistical-period
