@@ -309,6 +309,11 @@ const hasSourceComments = $derived(
     /(?:^|\n)\s*(?:\/\/|\/\*)/.test(displayCode ?? code),
 )
 const hasCommentsToggle = $derived(comments.length > 0 || hasSourceComments)
+const codeToCopy = $derived(
+  variant === 'editor'
+    ? `\n${(copyCode ?? code).replace(/^\n+/, '')}`
+    : (copyCode ?? code),
+)
 
 const copyWithFallback = (text: string) => {
   const textarea = document.createElement('textarea')
@@ -324,8 +329,6 @@ const copyWithFallback = (text: string) => {
 }
 
 async function copy() {
-  const codeToCopy = copyCode ?? code
-
   if (variant === 'prompt') {
     manualCopyOpen = true
     onCopy?.('success')
@@ -476,7 +479,7 @@ const selectManualCopyText = () => {
         bind:this={manualCopyText}
         class="mt-6 min-h-64 w-full resize-y border border-border-card bg-[#0c1111] p-4 font-mono text-sm leading-6 text-[#d6e4df] outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
         readonly
-        value={copyCode ?? code}
+        value={codeToCopy}
         aria-label={m.guide_code_block_manual_copy_text_label()}
         onclick={selectManualCopyText}
       ></textarea>

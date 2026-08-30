@@ -13,6 +13,7 @@ import {
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
   createUrbanDensityMapReadyCode,
+  createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
 } from './snippets'
 
@@ -29,6 +30,15 @@ describe('Create a Map LLM instructions', () => {
     ]) {
       expect(code).toContain('attributionControl: { compact: true }')
     }
+  })
+
+  test('loads a completed land analysis with the statistics step', () => {
+    const mapSetup = createUrbanDensityMapReadyCode('https://styles.example/light.json')
+    const stats = createUrbanDensityStatsCode('https://api.example')
+
+    expect(mapSetup).not.toContain('savedResultPath')
+    expect(stats).toContain("const savedResultPath = './land-analysis.json'")
+    expect(stats.indexOf('savedResultPath')).toBeLessThan(stats.indexOf('apiBaseUrl'))
   })
 
   test('renders the complete guide', () => {
