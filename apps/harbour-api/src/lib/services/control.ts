@@ -308,7 +308,13 @@ export async function handlePublishDataset(
     const isCenstatdGeographicGeometry =
       datasetType === 'divisionArea' &&
       dataset.source === 'hkgov-censtatd' &&
-      domainCode === 'geographic'
+      domainCode === 'geographic' &&
+      dataset.geometryStatus === 'authoritative'
+    const isFallbackCenstatdGeographicGeometry =
+      datasetType === 'divisionArea' &&
+      dataset.source === 'hkgov-censtatd' &&
+      domainCode === 'geographic' &&
+      dataset.geometryStatus === 'fallback'
     const censtatdReleaseSetCohorts = isCenstatdGeographicGeometry
       ? await listOvertureReleaseSetCohortsAtOrAfterCohortKey(
           db,
@@ -374,6 +380,21 @@ export async function handlePublishDataset(
           'Only Statistics source releases can defer API release-set publication.',
         )
       }
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        phase: null,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: 'published',
+      }
+    }
+
+    // Fallback geometry remains a selectable Statistics companion, but must
+    // never become a Divisions release-set member or fan out across Overture
+    // cohorts. A later authoritative C&SD release owns that publication.
+    if (isFallbackCenstatdGeographicGeometry) {
       await updateDatasetStatus(db, dataset.releaseId, 'published')
       return {
         datasetId: dataset.releaseCode,
