@@ -32,6 +32,7 @@ export async function handleRegisterUploadRequest(
       : request.resumeStagedRelease
         ? ['staged']
         : undefined,
+    resumeInterruptedProcessingRelease: request.resumeStagedRelease,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
     filePath: request.fileName,

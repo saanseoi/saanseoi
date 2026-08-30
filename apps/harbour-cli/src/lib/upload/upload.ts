@@ -159,6 +159,7 @@ async function registerUploadLocally(
       originalFileName: previewResult.plan.originalFileName,
       regionCode: previewResult.plan.regionCode,
       releaseNotesUrl: previewResult.plan.releaseNotesUrl,
+      resumeInterruptedProcessingRelease: options.resumeStagedRelease,
       resolveSchemaFingerprint: createLocalSchemaFingerprintResolver(metaDb),
       shardYear,
       source: previewResult.plan.source,

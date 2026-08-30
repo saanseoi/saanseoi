@@ -1238,6 +1238,104 @@ Reconcile the schema before uploading this dataset.`)
     sqlite.close()
   })
 
+  test('continues a completed processing release only when explicitly requested', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-05',
+      theme: 'divisions',
+      type: 'division',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'processing',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+    insertFixtureIngestRun(sqlite, {
+      runId: 'completed-processing-run',
+      releaseId,
+      phase: 'processDataset',
+      status: 'completed',
+      startedAt: '2026-06-02T00:00:00.000Z',
+      finishedAt: '2026-06-02T00:01:00.000Z',
+    })
+
+    await expect(
+      registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        resumeInterruptedProcessingRelease: true,
+      }),
+    ).resolves.toMatchObject({ releaseId })
+
+    expect(
+      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+    ).toEqual({ status: 'staged' })
+    sqlite.close()
+  })
+
+  test('does not continue a processing release with an active ingest phase', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-05',
+      theme: 'divisions',
+      type: 'division',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'processing',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+    insertFixtureIngestRun(sqlite, {
+      runId: 'completed-processing-run',
+      releaseId,
+      phase: 'processDataset',
+      status: 'completed',
+      startedAt: '2026-06-02T00:00:00.000Z',
+      finishedAt: '2026-06-02T00:01:00.000Z',
+    })
+    insertFixtureIngestRun(sqlite, {
+      runId: 'active-import-run',
+      releaseId,
+      phase: 'importPlandSqlSource',
+      status: 'running',
+      startedAt: '2026-06-02T00:01:00.000Z',
+    })
+
+    await expect(
+      registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        resumeInterruptedProcessingRelease: true,
+      }),
+    ).rejects.toThrow('phase importPlandSqlSource is still running')
+
+    sqlite.close()
+  })
+
   test('keeps chronology checks scoped to the source', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
