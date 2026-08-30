@@ -439,6 +439,7 @@ function createSnapshotLookupDb() {
       id TEXT PRIMARY KEY,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
@@ -478,6 +479,7 @@ function createDraftSnapshotDb() {
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       revision INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL,
       publishedAt TEXT,
@@ -647,6 +649,7 @@ function createRegionalSnapshotLookupDb() {
       snapshotLineageId TEXT,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
@@ -702,6 +705,7 @@ function createLatestDatasetLookupDb() {
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
       cohortKey TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       rawObjectKey TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
       releaseNotesUrl TEXT,
@@ -724,6 +728,7 @@ function createLatestDatasetLookupDb() {
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
       cohortKey TEXT,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       rawObjectKey TEXT,
       originalFileName TEXT,
       releaseNotesUrl TEXT,
@@ -2465,6 +2470,41 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       resourceType: 'division',
       status: 'published',
     })
+
+    sqlite.close()
+  })
+
+  test('prefers authoritative geometry over a later fallback for the same variant and cohort', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE datasets ADD COLUMN code TEXT;
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
+      INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
+        ('dataset-censtatd', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk');
+      INSERT INTO snapshotLineages (id, variant) VALUES
+        ('lineage-censtatd', 'hkgov-censtatd');
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, geometryStatus, status, publishedAt, createdAt
+      ) VALUES
+        ('censtatd-authoritative-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.0', '2024', 'authoritative', 'published', 1735689600000, 1735689600000),
+        ('censtatd-fallback-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.1', '2024', 'fallback', 'published', 1767225600000, 1767225600000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('censtatd-authoritative-2024', 'dataset-censtatd', 'release-censtatd-2024', 'primary'),
+        ('censtatd-fallback-2024', 'dataset-censtatd', 'release-censtatd-2026-q2', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2024',
+        { variant: 'hkgov-censtatd' },
+      ),
+    ).resolves.toMatchObject({ id: 'censtatd-authoritative-2024' })
 
     sqlite.close()
   })

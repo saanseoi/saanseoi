@@ -28,7 +28,13 @@ import {
   resourceTypeCodeSlug,
 } from '../../codes'
 
-import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
+import type {
+  DatasetRecord,
+  GeometryStatus,
+  RegionCode,
+  ResourceType,
+  UploadPlan,
+} from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type {
   ApiFamilyType,
@@ -1628,6 +1634,7 @@ const releaseRecordSelection = {
   releaseCode: metaReleases.code,
   regionCode: metaDatasets.regionCode,
   cohortKey: metaReleases.cohortKey,
+  geometryStatus: metaReleases.geometryStatus,
   theme: metaDatasets.theme,
   type: metaReleases.resourceType,
   sourceVariant: metaDatasets.sourceVariant,
@@ -2004,6 +2011,7 @@ export async function insertDataset(
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2033,6 +2041,7 @@ export async function insertDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2139,6 +2148,7 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2159,6 +2169,7 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2629,7 +2640,13 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             eq(metaSnapshotSources.role, 'primary'),
           ),
         )
-        .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+        .orderBy(
+          asc(
+            sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+          ),
+          desc(metaSnapshots.publishedAt),
+          desc(metaSnapshots.createdAt),
+        )
         .limit(1)
         .get()) ?? null
     )
@@ -2665,7 +2682,13 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             : undefined,
         ),
       )
-      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .orderBy(
+        asc(
+          sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+        ),
+        desc(metaSnapshots.publishedAt),
+        desc(metaSnapshots.createdAt),
+      )
       .limit(1)
       .get()) ?? null
   )
@@ -2784,6 +2807,9 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBef
         ),
       )
       .orderBy(
+        asc(
+          sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+        ),
         desc(metaSnapshots.cohortKey),
         desc(metaSnapshots.publishedAt),
         desc(metaSnapshots.createdAt),
@@ -2839,6 +2865,9 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
       ),
     )
     .orderBy(
+      asc(
+        sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+      ),
       desc(metaSnapshots.cohortKey),
       desc(metaSnapshots.publishedAt),
       desc(metaSnapshots.createdAt),
@@ -2864,6 +2893,7 @@ export async function ensureDraftSnapshotForRelease(
     cohortKey: string
     datasetCode: string
     datasetId: string
+    geometryStatus?: GeometryStatus
     identityMode?: 'persistent' | 'cohort_scoped'
     /**
      * C&SD statistical companions can combine several source releases (for
@@ -2881,6 +2911,15 @@ export async function ensureDraftSnapshotForRelease(
   },
 ) {
   const variant = args.variant ?? 'default'
+  const geometryStatus = args.geometryStatus ?? 'authoritative'
+  const preserveOrPromoteGeometryStatus = async (snapshotId: string) => {
+    if (geometryStatus !== 'authoritative') return
+    await db
+      .update(metaSnapshots)
+      .set({ geometryStatus: 'authoritative', updatedAt: toIsoTimestamp() })
+      .where(eq(metaSnapshots.id, snapshotId))
+      .run()
+  }
   const snapshotForSourceRelease = await db
     .select({
       id: metaSnapshots.id,
@@ -2910,6 +2949,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (snapshotForSourceRelease) {
+    await preserveOrPromoteGeometryStatus(snapshotForSourceRelease.id)
     return snapshotForSourceRelease
   }
 
@@ -2941,7 +2981,10 @@ export async function ensureDraftSnapshotForRelease(
       .orderBy(desc(metaSnapshots.revision), desc(metaSnapshots.createdAt))
       .limit(1)
       .get()
-    if (sharedDraft) return sharedDraft
+    if (sharedDraft) {
+      await preserveOrPromoteGeometryStatus(sharedDraft.id)
+      return sharedDraft
+    }
   }
 
   const reusableLineage = args.reuseSnapshotLineageForVariant
@@ -3058,6 +3101,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (latestForCohort?.status === 'draft') {
+    await preserveOrPromoteGeometryStatus(latestForCohort.id)
     return latestForCohort
   }
 
@@ -3110,6 +3154,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (existing) {
+    await preserveOrPromoteGeometryStatus(existing.id)
     return existing
   }
 
@@ -3124,6 +3169,7 @@ export async function ensureDraftSnapshotForRelease(
       resourceType,
       code: snapshotCode,
       cohortKey: args.cohortKey,
+      geometryStatus,
       revision,
       status: 'draft',
       publishedAt: null,
