@@ -143,6 +143,11 @@ export const metaSourceReleases = sqliteTable(
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
+    geometryStatus: text('geometryStatus', {
+      enum: ['authoritative', 'fallback'],
+    })
+      .notNull()
+      .default('authoritative'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),
@@ -198,6 +203,11 @@ export const metaReleases = sqliteTable(
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
+    geometryStatus: text('geometryStatus', {
+      enum: ['authoritative', 'fallback'],
+    })
+      .notNull()
+      .default('authoritative'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),
