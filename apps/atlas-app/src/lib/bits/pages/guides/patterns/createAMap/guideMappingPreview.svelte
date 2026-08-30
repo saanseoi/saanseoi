@@ -152,7 +152,7 @@ const loadStyle = async (): Promise<StyleSpecification> => {
   if (additionalLayers.length > 0) {
     const beforeIndex = beforeLayerId
       ? style.layers.findIndex(layer => layer.id === beforeLayerId)
-      : -1
+      : style.layers.findIndex(layer => layer.type === 'symbol')
     style.layers.splice(
       beforeIndex === -1 ? style.layers.length : beforeIndex,
       0,

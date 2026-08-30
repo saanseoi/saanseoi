@@ -1,4 +1,4 @@
-import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson'
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 
 import cachedCensusDistricts from './urbanDensityCensusDistricts.json'
 
@@ -22,3 +22,8 @@ export type CensusDistrictCollection = FeatureCollection<
  */
 export const urbanDensityCensusDistricts =
   cachedCensusDistricts as CensusDistrictCollection
+
+export type DistrictLand = {
+  excludedDistrictLand: Array<Feature<DistrictGeometry, CensusDistrictProperties>>
+  liveableDistrictLand: Array<Feature<DistrictGeometry, CensusDistrictProperties>>
+}

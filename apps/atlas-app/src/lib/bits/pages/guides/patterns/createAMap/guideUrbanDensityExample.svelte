@@ -7,12 +7,14 @@ import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
+import GuideInstructionCallout from '../../components/createAMap/guideInstructionCallout.svelte'
 
 import GuideUrbanDensityDivisionsPreview from './guideUrbanDensityDivisionsPreview.svelte'
 import GuideUrbanDensityCensusAreasPreview from './guideUrbanDensityCensusAreasPreview.svelte'
-import GuideUrbanDensityLiveableAreaPreview from './guideUrbanDensityLiveableAreaPreview.svelte'
 import GuideUrbanDensityLiveableDensityPreview from './guideUrbanDensityLiveableDensityPreview.svelte'
 import GuideUrbanDensityLiveableLandInputs from './guideUrbanDensityLiveableLandInputs.svelte'
+import GuideUrbanDensityLiveableResultPreview from './guideUrbanDensityLiveableResultPreview.svelte'
+import GuideUrbanDensityLiveableAnalysisPreview from './guideUrbanDensityLiveableAnalysisPreview.svelte'
 import GuideUrbanDensityPreview from './guideUrbanDensityPreview.svelte'
 import GuideUrbanDensityMapPreview from './guideUrbanDensityMapPreview.svelte'
 import GuideUrbanDensityStatsPreview from './guideUrbanDensityStatsPreview.svelte'
@@ -37,10 +39,14 @@ type Props = {
   mapDisplayCode: string
   calculationCode: string
   calculationDisplayCode: string
-  censusAreasCode: string
-  censusAreasDisplayCode: string
+  setupZ14TileFetcherCode: string
+  setupZ14TileFetcherDisplayCode: string
+  collectNonLiveableLandCode: string
+  collectNonLiveableLandDisplayCode: string
   liveableAreaCode: string
   liveableAreaDisplayCode: string
+  liveableAreaMapCode: string
+  liveableAreaMapDisplayCode: string
   liveableMetricsCode: string
   liveableMetricsDisplayCode: string
   metricsCode: string
@@ -67,10 +73,14 @@ let {
   mapDisplayCode,
   calculationCode,
   calculationDisplayCode,
-  censusAreasCode,
-  censusAreasDisplayCode,
+  setupZ14TileFetcherCode,
+  setupZ14TileFetcherDisplayCode,
+  collectNonLiveableLandCode,
+  collectNonLiveableLandDisplayCode,
   liveableAreaCode,
   liveableAreaDisplayCode,
+  liveableAreaMapCode,
+  liveableAreaMapDisplayCode,
   liveableMetricsCode,
   liveableMetricsDisplayCode,
   metricsCode,
@@ -95,45 +105,19 @@ const statsComments = [
   { line: 12, text: m.guide_data_urban_density_stats_comment_field() },
   { line: 13, text: m.guide_data_urban_density_stats_comment_reference_period() },
   { line: 15, text: m.guide_data_urban_density_stats_comment_request() },
-  { line: 17, text: m.guide_data_urban_density_stats_comment_error() },
-  { line: 22, text: m.guide_data_urban_density_stats_comment_values() },
-  { line: 25, text: m.guide_data_urban_density_stats_comment_fields() },
-]
-
-const calculationComments = [
-  { line: 3, text: m.guide_data_urban_density_calculation_comment_divisions() },
-  { line: 5, text: m.guide_data_urban_density_calculation_comment_level() },
-  { line: 6, text: m.guide_data_urban_density_calculation_comment_hierarchy() },
-  { line: 8, text: m.guide_data_urban_density_calculation_comment_request() },
-  { line: 9, text: m.guide_data_urban_density_calculation_comment_error() },
-  { line: 10, text: m.guide_data_urban_density_calculation_comment_response() },
-  { line: 12, text: m.guide_data_urban_density_calculation_comment_geometry() },
-  { line: 20, text: m.guide_data_urban_density_calculation_comment_index() },
-  { line: 21, text: m.guide_data_urban_density_calculation_comment_each_district() },
-  { line: 22, text: m.guide_data_urban_density_calculation_comment_district_code() },
-  { line: 23, text: m.guide_data_urban_density_calculation_comment_area() },
-  { line: 28, text: m.guide_data_urban_density_calculation_comment_available() },
-  { line: 33, text: m.guide_data_urban_density_calculation_comment_totals() },
-  { line: 35, text: m.guide_data_urban_density_calculation_comment_lookup() },
-  { line: 36, text: m.guide_data_urban_density_calculation_comment_missing_area() },
-  { line: 38, text: m.guide_data_urban_density_calculation_comment_start_total() },
-  { line: 41, text: m.guide_data_urban_density_calculation_comment_population() },
-  { line: 42, text: m.guide_data_urban_density_calculation_comment_land_area() },
-  { line: 43, text: m.guide_data_urban_density_calculation_comment_save_total() },
-  { line: 46, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
-  { line: 49, text: m.guide_data_urban_density_calculation_comment_metrics() },
-  { line: 51, text: m.guide_data_urban_density_calculation_comment_density() },
+  { line: 16, text: m.guide_data_urban_density_stats_comment_values() },
+  { line: 19, text: m.guide_data_urban_density_stats_comment_fields() },
 ]
 
 const mapComments = [
   { line: 7, text: m.guide_data_urban_density_map_comment_ready() },
   { line: 9, text: m.guide_data_urban_density_map_comment_kinds() },
-  { line: 11, text: m.guide_data_urban_density_map_comment_layer() },
-  { line: 12, text: m.guide_data_urban_density_map_comment_id() },
-  { line: 14, text: m.guide_data_urban_density_map_comment_source() },
-  { line: 16, text: m.guide_data_urban_density_map_comment_filter() },
-  { line: 17, text: m.guide_data_urban_density_map_comment_paint() },
-  { line: 20, text: m.guide_data_urban_density_map_comment_outline() },
+  { line: 12, text: m.guide_data_urban_density_map_comment_layer() },
+  { line: 13, text: m.guide_data_urban_density_map_comment_id() },
+  { line: 15, text: m.guide_data_urban_density_map_comment_source() },
+  { line: 17, text: m.guide_data_urban_density_map_comment_filter() },
+  { line: 18, text: m.guide_data_urban_density_map_comment_paint() },
+  { line: 21, text: m.guide_data_urban_density_map_comment_outline() },
 ]
 
 const metricsComments = [
@@ -144,27 +128,195 @@ const metricsComments = [
   { line: 14, text: m.guide_data_urban_density_metrics_comment_append() },
 ]
 
-const censusAreasComments = [
-  { line: 3, text: m.guide_data_urban_density_census_comment_request() },
-  { line: 4, text: m.guide_data_urban_density_census_comment_index() },
-  { line: 5, text: m.guide_data_urban_density_census_comment_districts() },
-  { line: 6, text: m.guide_data_urban_density_census_comment_geometry() },
-  { line: 12, text: m.guide_data_urban_density_census_comment_map() },
+const calculationComments = [
+  { line: 3, text: m.guide_data_urban_density_calculation_comment_divisions() },
+  { line: 5, text: m.guide_data_urban_density_calculation_comment_level() },
+  {
+    line: 6,
+    text: m.guide_data_urban_density_calculation_comment_hierarchy_geometry(),
+  },
+  { line: 8, text: m.guide_data_urban_density_calculation_comment_request() },
+  { line: 9, text: m.guide_data_urban_density_calculation_comment_error() },
+  { line: 14, text: m.guide_data_urban_density_calculation_comment_response() },
+  { line: 17, text: m.guide_data_urban_density_calculation_comment_index() },
+  { line: 17, text: m.guide_data_urban_density_calculation_comment_each_district() },
+  { line: 18, text: m.guide_data_urban_density_calculation_comment_district_code() },
+  { line: 19, text: m.guide_data_urban_density_calculation_comment_area() },
+  { line: 20, text: m.guide_data_urban_density_calculation_comment_geometry() },
+  { line: 30, text: m.guide_data_urban_density_calculation_comment_totals() },
+  { line: 32, text: m.guide_data_urban_density_calculation_comment_start_total() },
+  { line: 33, text: m.guide_data_urban_density_calculation_comment_population() },
+  { line: 34, text: m.guide_data_urban_density_calculation_comment_land_area() },
+  { line: 35, text: m.guide_data_urban_density_calculation_comment_save_total() },
+  { line: 37, text: m.guide_data_urban_density_calculation_comment_empty_totals() },
+  { line: 39, text: m.guide_data_urban_density_calculation_comment_metrics() },
+  { line: 40, text: m.guide_data_urban_density_calculation_comment_details() },
+  { line: 41, text: m.guide_data_urban_density_calculation_comment_density() },
+]
+
+const collectNonLiveableLandComments = [
+  {
+    line: 1,
+    text: '{ 155 LINES OMITTED: KEEP YOUR WORKING CODE }',
+    alwaysVisible: true,
+  },
+  {
+    line: 1,
+    text: 'APPEND THIS Z14 LAND-USE COLLECTION TO THE END OF src/main.ts',
+    alwaysVisible: true,
+    spacerAfter: true,
+  },
+  { line: 1, text: m.guide_data_urban_density_collect_comment_feature_list() },
+  { line: 2, text: m.guide_data_urban_density_collect_comment_request() },
+  { line: 3, text: m.guide_data_urban_density_collect_comment_tile_outline() },
+  { line: 5, text: m.guide_data_urban_density_collect_comment_add_features() },
+  { line: 7, text: m.guide_data_urban_density_collect_comment_yield() },
+  { line: 9, text: m.guide_data_urban_density_collect_comment_clear_tile_outline() },
+  { line: 10, text: m.guide_data_urban_density_collect_comment_ready() },
+  { line: 11, text: m.guide_data_urban_density_collect_comment_bounds() },
+]
+
+const setupZ14TileFetcherComments = [
+  {
+    line: 1,
+    text: '{ 45 LINES OMITTED: KEEP YOUR WORKING MAP, STATISTICS, AND DIVISIONS REQUEST }',
+    alwaysVisible: true,
+  },
+  {
+    line: 1,
+    text: 'APPEND THIS Z14 TILE FETCHER SETUP TO THE END OF src/main.ts',
+    alwaysVisible: true,
+    spacerAfter: true,
+  },
+  { line: 1, text: m.guide_data_urban_density_collect_comment_vector_tile() },
+  { line: 2, text: m.guide_data_urban_density_collect_comment_pbf() },
+  { line: 3, text: m.guide_data_urban_density_liveable_area_comment_import() },
+  { line: 5, text: m.guide_data_urban_density_saved_result_import() },
+  { line: 6, text: m.guide_data_urban_density_saved_result_import_missing() },
+  { line: 9, text: m.guide_data_urban_density_saved_result_missing() },
+  { line: 11, text: m.guide_data_urban_density_collect_comment_zoom() },
+  { line: 12, text: m.guide_data_urban_density_collect_comment_longitude() },
+  { line: 13, text: m.guide_data_urban_density_collect_comment_latitude() },
+  { line: 17, text: m.guide_data_urban_density_setup_comment_tile_edges() },
+  { line: 22, text: m.guide_data_urban_density_setup_comment_tile_rectangle() },
+  { line: 26, text: m.guide_data_urban_density_collect_comment_overlap() },
+  { line: 29, text: m.guide_data_urban_density_collect_comment_envelope() },
+  { line: 41, text: m.guide_data_urban_density_setup_comment_tile_outline_feedback() },
+  { line: 45, text: m.guide_data_urban_density_setup_comment_tile_outline() },
+  { line: 49, text: m.guide_data_urban_density_setup_comment_tile_outline_source() },
+  { line: 50, text: m.guide_data_urban_density_setup_comment_show_tile_outline() },
+  { line: 54, text: m.guide_data_urban_density_setup_comment_non_liveable_kinds() },
+  { line: 55, text: m.guide_data_urban_density_collect_comment_tile_url() },
+  { line: 57, text: m.guide_data_urban_density_collect_comment_tile_url_for() },
+  { line: 62, text: m.guide_data_urban_density_setup_comment_cache() },
+  { line: 63, text: m.guide_data_urban_density_setup_comment_tile_decoder() },
+  { line: 71, text: m.guide_data_urban_density_collect_comment_decode() },
+  { line: 72, text: m.guide_data_urban_density_setup_comment_features() },
+  { line: 75, text: m.guide_data_urban_density_collect_comment_filter() },
+  { line: 77, text: m.guide_data_urban_density_setup_comment_geojson() },
+  { line: 78, text: m.guide_data_urban_density_setup_comment_areas() },
+  { line: 89, text: m.guide_data_urban_density_collect_comment_district_tiles() },
+  { line: 94, text: m.guide_data_urban_density_collect_comment_progress() },
+  { line: 100, text: m.guide_data_urban_density_setup_comment_progress() },
+  { line: 108, text: m.guide_data_urban_density_collect_comment_progress_wrapper() },
+  { line: 110, text: m.guide_data_urban_density_setup_comment_district_progress() },
 ]
 
 const liveableAreaComments = [
-  { line: 4, text: m.guide_data_urban_density_liveable_area_comment_import() },
-  { line: 8, text: m.guide_data_urban_density_liveable_area_comment_query() },
-  { line: 42, text: m.guide_data_urban_density_liveable_area_comment_union() },
-  { line: 43, text: m.guide_data_urban_density_liveable_area_comment_subtract() },
-  { line: 65, text: m.guide_data_urban_density_liveable_area_comment_layer() },
+  {
+    line: 1,
+    text: '{ 166 LINES OMITTED: KEEP YOUR WORKING MAP, STATISTICS, DIVISIONS REQUEST, AND Z14 LAND-USE COLLECTION }',
+    alwaysVisible: true,
+  },
+  {
+    line: 1,
+    text: 'APPEND THIS CALCULATION AND JSON DOWNLOAD TO THE END OF src/main.ts',
+    alwaysVisible: true,
+    spacerAfter: true,
+  },
+  { line: 1, text: m.guide_data_urban_density_setup_comment_district_progress() },
+  { line: 2, text: m.guide_data_urban_density_liveable_area_comment_district_land() },
+  { line: 3, text: m.guide_data_urban_density_liveable_area_comment_each_district() },
+  { line: 4, text: m.guide_data_urban_density_liveable_area_comment_district_parts() },
+  {
+    line: 5,
+    text: m.guide_data_urban_density_liveable_area_comment_clipped_exclusions(),
+  },
+  { line: 6, text: m.guide_data_urban_density_liveable_area_comment_each_part() },
+  { line: 7, text: m.guide_data_urban_density_collect_comment_overlap() },
+  { line: 8, text: m.guide_data_urban_density_liveable_area_comment_clip() },
+  { line: 9, text: m.guide_data_urban_density_liveable_area_comment_keep_clipped() },
+  { line: 12, text: m.guide_data_urban_density_liveable_area_comment_excluded() },
+  { line: 13, text: m.guide_data_urban_density_liveable_area_comment_subtract() },
+  { line: 14, text: m.guide_data_urban_density_liveable_area_comment_record() },
+  { line: 15, text: m.guide_data_urban_density_setup_comment_district_progress() },
+  { line: 16, text: m.guide_data_urban_density_collect_comment_yield() },
+  {
+    line: 19,
+    text: m.guide_data_urban_density_liveable_area_comment_analysis_result(),
+  },
+  {
+    line: 20,
+    text: m.guide_data_urban_density_liveable_area_comment_liveable_districts(),
+  },
+  {
+    line: 21,
+    text: m.guide_data_urban_density_liveable_area_comment_excluded_districts(),
+  },
+  { line: 23, text: m.guide_data_urban_density_liveable_area_comment_json() },
+  { line: 24, text: m.guide_data_urban_density_liveable_area_comment_dialog() },
+  { line: 25, text: m.guide_data_urban_density_liveable_area_comment_result_code() },
+  { line: 26, text: m.guide_data_urban_density_liveable_area_comment_result_content() },
+  { line: 27, text: m.guide_data_urban_density_liveable_area_comment_download() },
+  { line: 28, text: m.guide_data_urban_density_liveable_area_comment_download_label() },
+  { line: 29, text: m.guide_data_urban_density_liveable_area_comment_download_url() },
+  { line: 30, text: m.guide_data_urban_density_liveable_area_comment_download_name() },
+  {
+    line: 31,
+    text: m.guide_data_urban_density_liveable_area_comment_dialog_contents(),
+  },
+  { line: 32, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
+  { line: 33, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
+  { line: 34, text: m.guide_data_urban_density_saved_result_keep() },
 ]
 
 const liveableMetricsComments = [
-  { line: 4, text: m.guide_data_urban_density_liveable_metrics_comment_totals() },
-  { line: 9, text: m.guide_data_urban_density_liveable_metrics_comment_start() },
-  { line: 17, text: m.guide_data_urban_density_liveable_metrics_comment_density() },
-  { line: 23, text: m.guide_data_urban_density_liveable_metrics_comment_display() },
+  { line: 4, text: m.guide_data_urban_density_liveable_metrics_comment_result() },
+  { line: 5, text: m.guide_data_urban_density_liveable_metrics_comment_exclusions() },
+  { line: 7, text: m.guide_data_urban_density_liveable_metrics_comment_measure() },
+  { line: 10, text: m.guide_data_urban_density_liveable_metrics_comment_totals() },
+  {
+    line: 11,
+    text: m.guide_data_urban_density_liveable_metrics_comment_district_details(),
+  },
+  {
+    line: 12,
+    text: m.guide_data_urban_density_liveable_metrics_comment_excluded_lookup(),
+  },
+  { line: 13, text: m.guide_data_urban_density_liveable_metrics_comment_start() },
+  { line: 14, text: m.guide_data_urban_density_liveable_metrics_comment_population() },
+  { line: 15, text: m.guide_data_urban_density_liveable_metrics_comment_land_area() },
+  {
+    line: 16,
+    text: m.guide_data_urban_density_liveable_metrics_comment_excluded_area(),
+  },
+  { line: 17, text: m.guide_data_urban_density_liveable_metrics_comment_save() },
+  { line: 23, text: m.guide_data_urban_density_liveable_metrics_comment_remaining() },
+  { line: 24, text: m.guide_data_urban_density_liveable_metrics_comment_density() },
+  { line: 25, text: m.guide_data_urban_density_liveable_metrics_comment_percentage() },
+  { line: 28, text: m.guide_data_urban_density_liveable_metrics_comment_display() },
+  { line: 37, text: m.guide_data_urban_density_liveable_metrics_comment_append() },
+]
+
+const liveableAreaMapComments = [
+  { line: 5, text: m.guide_data_urban_density_liveable_map_comment_hide() },
+  { line: 7, text: m.guide_data_urban_density_liveable_map_comment_order() },
+  { line: 9, text: m.guide_data_urban_density_liveable_map_comment_liveable_source() },
+  { line: 10, text: m.guide_data_urban_density_liveable_area_comment_layer() },
+  { line: 12, text: m.guide_data_urban_density_liveable_map_comment_liveable_fill() },
+  { line: 15, text: m.guide_data_urban_density_liveable_map_comment_excluded_source() },
+  { line: 16, text: m.guide_data_urban_density_liveable_map_comment_excluded_fill() },
+  { line: 19, text: m.guide_data_urban_density_liveable_map_comment_outline() },
 ]
 </script>
 
@@ -236,36 +388,48 @@ const liveableMetricsComments = [
         id="project-fetch-stats"
         title={m.guide_data_urban_density_calculate_title()}
       />
-      <GuideSubSectionBody content={m.guide_data_urban_density_calculate_description()}>
-        <p
-          class="font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+      <GuideSubSectionBody
+        content={m.guide_data_urban_density_calculate_description()}
+        contentClass="[&_code.guide-urban-density-level]:text-foreground"
+      >
+        <div
+          class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
         >
-          {@html m.guide_data_urban_density_calculate_explore_statistics()}
-        </p>
-        <p
-          class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
-        >
-          {@html m.guide_data_urban_density_calculate_preview_explanation()}
-        </p>
-        <GuidePreviewCodeBlock
-          label={m.guide_data_urban_density_calculate_code()}
-          code={`\n${statsCode}`}
-          displayCode={statsDisplayCode}
-          comments={statsComments}
-          {editorIcon}
-          language="typescript"
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-          previewLabel={m.guide_code_block_preview()}
-          showCodeLabel={m.guide_code_block_code()}
-          expandable
-          expandLabel={m.guide_code_block_expand()}
-          closeLabel={m.common_close()}
-        >
-          {#snippet preview()}
-            <GuideUrbanDensityStatsPreview />
-          {/snippet}
-        </GuidePreviewCodeBlock>
+          <div class="space-y-5">
+            <p
+              class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
+            >
+              {@html m.guide_data_urban_density_calculate_preview_explanation()}
+            </p>
+            <GuidePreviewCodeBlock
+              label={m.guide_data_urban_density_calculate_code()}
+              code={`\n${statsCode}`}
+              displayCode={statsDisplayCode}
+              comments={statsComments}
+              {editorIcon}
+              language="typescript"
+              variant="editor"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+              previewLabel={m.guide_code_block_preview()}
+              showCodeLabel={m.guide_code_block_code()}
+              expandable
+              expandLabel={m.guide_code_block_expand()}
+              closeLabel={m.common_close()}
+            >
+              {#snippet preview()}
+                <GuideUrbanDensityStatsPreview />
+              {/snippet}
+            </GuidePreviewCodeBlock>
+          </div>
+          <aside class="lg:pt-[20.375rem]">
+            <GuideInstructionCallout
+              label={m.guide_data_urban_density_statistics_callout_label()}
+              title={m.guide_data_urban_density_statistics_callout_title()}
+              description={m.guide_data_urban_density_calculate_explore_statistics()}
+            />
+          </aside>
+        </div>
         <div class="mt-8">
           <GuideSubSectionHeader
             id="project-calc-pop-density"
@@ -279,26 +443,49 @@ const liveableMetricsComments = [
             >
               {@html m.guide_data_urban_density_results_instruction()}
             </p>
-            <GuidePreviewCodeBlock
-              label={m.guide_data_urban_density_results_code()}
-              code={calculationCode}
-              displayCode={calculationDisplayCode}
-              comments={calculationComments}
-              {editorIcon}
-              language="typescript"
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-              previewLabel={m.guide_code_block_preview()}
-              showCodeLabel={m.guide_code_block_code()}
-              expandable
-              expandLabel={m.guide_code_block_expand()}
-              closeLabel={m.common_close()}
+            <div
+              class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
             >
-              {#snippet preview()}
-                <GuideUrbanDensityDivisionsPreview />
-              {/snippet}
-            </GuidePreviewCodeBlock>
+              <GuidePreviewCodeBlock
+                label={m.guide_data_urban_density_results_code()}
+                code={calculationCode}
+                displayCode={calculationDisplayCode}
+                comments={calculationComments}
+                {editorIcon}
+                language="typescript"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+                previewLabel={m.guide_code_block_preview()}
+                showCodeLabel={m.guide_code_block_code()}
+                expandable
+                expandLabel={m.guide_code_block_expand()}
+                closeLabel={m.common_close()}
+              >
+                {#snippet preview()}
+                  <GuideUrbanDensityDivisionsPreview />
+                {/snippet}
+              </GuidePreviewCodeBlock>
+              <aside class="lg:pt-52">
+                <GuideInstructionCallout
+                  label={m.guide_data_urban_density_calculation_level_callout_label()}
+                  title={m.guide_data_urban_density_calculation_level_callout_title()}
+                  description={m.guide_data_urban_density_calculation_comment_level_explainer()}
+                />
+              </aside>
+            </div>
           </GuideSubSectionBody>
+        </div>
+        <p class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+          {@html m.guide_data_urban_density_census_areas_map_description()}
+        </p>
+        <div
+          class="mt-5 h-[52rem] max-w-[80ch] overflow-hidden border border-[#596074] bg-[#10151a] shadow-card"
+        >
+          <GuideUrbanDensityCensusAreasPreview
+            label={mapPreviewLabel}
+            {styleUrl}
+            {tilejsonUrl}
+          />
         </div>
         <div class="mt-8">
           <GuideSubSectionHeader
@@ -328,6 +515,7 @@ const liveableMetricsComments = [
             content={m.guide_data_urban_density_markup_description()}
           >
             <GuidePreviewCodeBlock
+              minHeight="44rem"
               label={m.guide_data_urban_density_results_map_code()}
               code={metricsCode}
               displayCode={metricsDisplayCode}
@@ -353,6 +541,9 @@ const liveableMetricsComments = [
           </GuideSubSectionBody>
         </div>
       </GuideSubSectionBody>
+      <p class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+        {@html m.guide_data_urban_density_density_reflection()}
+      </p>
     </section>
     <section>
       <GuideSubSectionHeader
@@ -386,40 +577,10 @@ const liveableMetricsComments = [
               />
             {/snippet}
           </GuidePreviewCodeBlock>
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_data_urban_density_exclusion_detail_description()}
+          </p>
         </GuideSubSectionBody>
-        <div class="mt-8">
-          <GuideSubSectionHeader
-            id="project-show-districts"
-            title={m.guide_data_urban_density_census_areas_title()}
-          />
-          <GuideSubSectionBody
-            content={m.guide_data_urban_density_census_areas_description()}
-          >
-            <GuidePreviewCodeBlock
-              label={m.guide_data_urban_density_census_areas_code()}
-              code={censusAreasCode}
-              displayCode={censusAreasDisplayCode}
-              comments={censusAreasComments}
-              {editorIcon}
-              language="typescript"
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-              previewLabel={m.guide_code_block_preview()}
-              showCodeLabel={m.guide_code_block_code()}
-              expandable
-              expandLabel={m.guide_code_block_expand()}
-              closeLabel={m.common_close()}
-            >
-              {#snippet preview()}
-                <GuideUrbanDensityCensusAreasPreview
-                  label={mapPreviewLabel}
-                  {styleUrl}
-                  {tilejsonUrl}
-                />
-              {/snippet}
-            </GuidePreviewCodeBlock>
-          </GuideSubSectionBody>
-        </div>
         <div class="mt-8">
           <GuideSubSectionHeader
             id="project-calc-liveable-land"
@@ -427,10 +588,27 @@ const liveableMetricsComments = [
           />
           <GuideSubSectionBody>
             <GuideUrbanDensityLiveableLandInputs
+              introduction={m.guide_data_urban_density_liveable_area_introduction()}
               description={m.guide_data_urban_density_install_description()}
               nonLiveableLand={m.guide_data_urban_density_install_non_liveable_land()}
               landClippedGeometry={m.guide_data_urban_density_install_land_clipped_geometry()}
               explanation={m.guide_data_urban_density_install_explanation()}
+              resourceDownloadJsonResult={m.guide_data_urban_density_resource_download_json_result()}
+              resourceExplanation={m.guide_data_urban_density_resource_explanation()}
+              resourceSkipSection={m.guide_data_urban_density_resource_skip_section()}
+              resourceTitle={m.guide_data_urban_density_resource_title()}
+              tileZoomCalloutLabel={m.guide_data_urban_density_tile_zoom_callout_label()}
+              tileZoomCalloutTitle={m.guide_data_urban_density_tile_zoom_callout_title()}
+              tileZoomCalloutDescription={m.guide_data_urban_density_tile_zoom_callout_description()}
+              turfExplanation={m.guide_data_urban_density_turf_explanation()}
+              approachSteps={[
+                m.guide_data_urban_density_liveable_approach_features(),
+                m.guide_data_urban_density_liveable_approach_download(),
+                m.guide_data_urban_density_liveable_approach_intersect(),
+                m.guide_data_urban_density_liveable_approach_measure(),
+                m.guide_data_urban_density_liveable_approach_sum(),
+                m.guide_data_urban_density_liveable_approach_display(),
+              ]}
             />
             <GuideCodeBlock
               label={m.guide_setup_terminal_label({
@@ -444,31 +622,102 @@ const liveableMetricsComments = [
             />
           </GuideSubSectionBody>
           <GuideSubSectionBody
+            content={m.guide_data_urban_density_setup_z14_tile_fetcher_description()}
+          >
+            <div
+              class="grid gap-6 lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] lg:items-start"
+            >
+              <GuideCodeBlock
+                label={m.guide_data_urban_density_setup_z14_tile_fetcher_code()}
+                code={setupZ14TileFetcherCode}
+                displayCode={setupZ14TileFetcherDisplayCode}
+                comments={setupZ14TileFetcherComments}
+                {editorIcon}
+                language="typescript"
+                variant="editor"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+              <aside class="lg:pt-96">
+                <GuideInstructionCallout
+                  label={m.guide_data_urban_density_web_mercator_callout_label()}
+                  title={m.guide_data_urban_density_web_mercator_callout_title()}
+                  description={m.guide_data_urban_density_web_mercator_callout_description()}
+                />
+                <div class="mt-6 lg:mt-[106rem]">
+                  <GuideInstructionCallout
+                    label={m.guide_data_urban_density_tile_decoding_callout_label()}
+                    title={m.guide_data_urban_density_tile_decoding_callout_title()}
+                    description={m.guide_data_urban_density_tile_decoding_callout_description()}
+                  />
+                </div>
+              </aside>
+            </div>
+          </GuideSubSectionBody>
+          <GuideSubSectionBody
+            content={m.guide_data_urban_density_collect_non_liveable_land_description()}
+          >
+            <div
+              class="grid gap-6 lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] lg:items-start"
+            >
+              <GuidePreviewCodeBlock
+                label={m.guide_data_urban_density_collect_non_liveable_land_code()}
+                code={collectNonLiveableLandCode}
+                displayCode={collectNonLiveableLandDisplayCode}
+                comments={collectNonLiveableLandComments}
+                {editorIcon}
+                language="typescript"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+                previewLabel={m.guide_code_block_preview()}
+                showCodeLabel={m.guide_code_block_code()}
+                expandable
+                expandLabel={m.guide_code_block_expand()}
+                closeLabel={m.common_close()}
+              >
+                {#snippet preview()}
+                  <GuideUrbanDensityLiveableAnalysisPreview
+                    label={mapPreviewLabel}
+                    {styleUrl}
+                    {tilejsonUrl}
+                  />
+                {/snippet}
+              </GuidePreviewCodeBlock>
+            </div>
+          </GuideSubSectionBody>
+          <GuideSubSectionBody
             content={m.guide_data_urban_density_liveable_area_description()}
           >
-            <GuidePreviewCodeBlock
-              label={m.guide_data_urban_density_liveable_area_code()}
-              code={liveableAreaCode}
-              displayCode={liveableAreaDisplayCode}
-              comments={liveableAreaComments}
-              {editorIcon}
-              language="typescript"
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-              previewLabel={m.guide_code_block_preview()}
-              showCodeLabel={m.guide_code_block_code()}
-              expandable
-              expandLabel={m.guide_code_block_expand()}
-              closeLabel={m.common_close()}
+            <div id="project-liveable-land-result" class="scroll-mt-24">
+              <GuidePreviewCodeBlock
+                label={m.guide_data_urban_density_liveable_area_code()}
+                code={liveableAreaCode}
+                displayCode={liveableAreaDisplayCode}
+                comments={liveableAreaComments}
+                {editorIcon}
+                language="typescript"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+                previewLabel={m.guide_code_block_preview()}
+                showCodeLabel={m.guide_code_block_code()}
+                expandable
+                expandLabel={m.guide_code_block_expand()}
+                closeLabel={m.common_close()}
+              >
+                {#snippet preview()}
+                  <GuideUrbanDensityLiveableResultPreview
+                    label={mapPreviewLabel}
+                    {styleUrl}
+                    {tilejsonUrl}
+                  />
+                {/snippet}
+              </GuidePreviewCodeBlock>
+            </div>
+            <p
+              class="mt-8 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
             >
-              {#snippet preview()}
-                <GuideUrbanDensityLiveableAreaPreview
-                  label={mapPreviewLabel}
-                  {styleUrl}
-                  {tilejsonUrl}
-                />
-              {/snippet}
-            </GuidePreviewCodeBlock>
+              {@html m.guide_data_urban_density_liveable_result_description()}
+            </p>
           </GuideSubSectionBody>
         </div>
         <div class="mt-8">
@@ -479,11 +728,25 @@ const liveableMetricsComments = [
           <GuideSubSectionBody
             content={m.guide_data_urban_density_liveable_metrics_description()}
           >
-            <GuidePreviewCodeBlock
+            <GuideCodeBlock
               label={m.guide_data_urban_density_liveable_metrics_code()}
               code={liveableMetricsCode}
               displayCode={liveableMetricsDisplayCode}
               comments={liveableMetricsComments}
+              {editorIcon}
+              language="typescript"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+              variant="editor"
+            />
+            <p class="mt-8 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_data_urban_density_liveable_area_map_description()}
+            </p>
+            <GuidePreviewCodeBlock
+              label={m.guide_data_urban_density_liveable_area_map_code()}
+              code={liveableAreaMapCode}
+              displayCode={liveableAreaMapDisplayCode}
+              comments={liveableAreaMapComments}
               {editorIcon}
               language="typescript"
               copyLabel={m.common_copy()}
