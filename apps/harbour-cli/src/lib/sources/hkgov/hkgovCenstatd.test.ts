@@ -166,6 +166,63 @@ describe('C&SD district GML preparation', () => {
     }
   })
 
+  test('keeps publisher-labelled annual cohorts in separate Parquet files', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../')
+    const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
+    const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-output-'))
+    try {
+      const archive = await readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2026-Q2/source.zip',
+        ),
+      )
+      const gml = readHkgovCenstatdDistrictGmlArchive(
+        archive,
+        '2026-Q2',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      )
+      const cohortKeys = [
+        ...new Set(
+          parseHkgovCenstatdDistrictGml(gml, 'DC_GHS')
+            .map(feature => String(feature.properties.year ?? '').trim())
+            .filter(year => /^20\d{2}$/.test(year)),
+        ),
+      ].sort()
+      expect(cohortKeys.length).toBeGreaterThan(1)
+
+      const inputFile = join(inputDir, 'DC_GHS.gml')
+      await writeFile(inputFile, gml, 'utf8')
+      const prepared = await Promise.all(
+        cohortKeys.map(cohortKey =>
+          prepareHkgovCenstatdDistrictUpload(inputFile, outputDir, '2026-Q2', {
+            cohortKey,
+            datasetCode:
+              'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          }),
+        ),
+      )
+
+      expect(new Set(prepared.map(result => result.filePath)).size).toBe(
+        cohortKeys.length,
+      )
+      for (const result of prepared) {
+        const file = await asyncBufferFromFile(result.filePath)
+        const rows = await parquetReadObjects({
+          compressors,
+          file,
+          metadata: await parquetMetadataAsync(file),
+        })
+        expect(rows.map(row => row.census_year)).toEqual(
+          Array(18).fill(result.cohortKey),
+        )
+      }
+    } finally {
+      await rm(inputDir, { force: true, recursive: true })
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  }, 15_000)
+
   test('retains exact source geometry and produces display derivatives for both census cohorts', async () => {
     const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
     const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-test-'))
