@@ -34,7 +34,10 @@ describe('Create a Map LLM instructions', () => {
 
   test('loads a completed land analysis with the statistics step', () => {
     const mapSetup = createUrbanDensityMapReadyCode('https://styles.example/light.json')
-    const stats = createUrbanDensityStatsCode('https://api.example')
+    const stats = createUrbanDensityStatsCode(
+      'https://api.example',
+      'Analyse the map in several steps, then save the result.\nLoad it directly next time.\nSkip the calculation.',
+    )
 
     expect(mapSetup).not.toContain('savedResultPath')
     expect(stats).toContain("const savedResultPath = './land-analysis.json'")

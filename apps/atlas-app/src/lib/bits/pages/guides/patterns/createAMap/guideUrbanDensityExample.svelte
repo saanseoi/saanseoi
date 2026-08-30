@@ -433,7 +433,7 @@ const liveableAreaMapComments = [
               {/snippet}
             </GuidePreviewCodeBlock>
           </div>
-          <aside class="lg:pt-81.5">
+          <aside class="lg:pt-136.5">
             <GuideInstructionCallout
               label={m.guide_data_urban_density_statistics_callout_label()}
               title={m.guide_data_urban_density_statistics_callout_title()}

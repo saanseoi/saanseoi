@@ -465,10 +465,12 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '})',
   ].join('\n')
 
-export const createUrbanDensityStatsCode = (apiBaseUrl: string) =>
+export const createUrbanDensityStatsCode = (
+  apiBaseUrl: string,
+  savedResultComment: string,
+) =>
   [
-    '// Reuse a completed analysis on later loads. The temporary density cards and',
-    '// land-use analysis below exist only to create this file, so we skip them when it is present.',
+    ...savedResultComment.split('\n').map(line => `// ${line}`),
     'let savedResult',
     "const savedResultPath = './land-analysis.json'",
     'try {',
@@ -496,12 +498,15 @@ export const createUrbanDensityStatsCode = (apiBaseUrl: string) =>
     '])',
   ].join('\n')
 
-export const createUrbanDensityStatsDisplayCode = (apiBaseUrl: string) =>
+export const createUrbanDensityStatsDisplayCode = (
+  apiBaseUrl: string,
+  savedResultComment: string,
+) =>
   [
     '// { 24 LINES OMITTED: KEEP YOUR WORKING MAP SETUP }',
     '// Next, append this request to give your map its first data.',
     '',
-    createUrbanDensityStatsCode(apiBaseUrl),
+    createUrbanDensityStatsCode(apiBaseUrl, savedResultComment),
   ].join('\n')
 
 export const urbanDensityCalculationCode = [
