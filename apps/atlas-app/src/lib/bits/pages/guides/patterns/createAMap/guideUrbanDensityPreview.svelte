@@ -16,12 +16,13 @@ const metrics = calculateUrbanDensityMetrics(
 )
 
 type Props = {
+  appearance: 'light' | 'dark'
   label: string
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { appearance, label, styleUrl, tilejsonUrl }: Props = $props()
 </script>
 
 <div
@@ -50,15 +51,19 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
   >
     {#each metrics as metric}
       <article
-        class="bg-[#fff9ed] p-3 shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:px-6 sm:py-4"
+        class={`p-3 shadow-[0_12px_32px_rgb(0_0_0/24%)] sm:px-6 sm:py-4 ${appearance === 'dark' ? 'border border-white/20 bg-[#10151a]/92' : 'bg-[#fff9ed]'}`}
       >
-        <p class="font-body text-xs text-[#10151a] sm:text-sm">{metric.name}</p>
+        <p
+          class={`font-body text-xs sm:text-sm ${appearance === 'dark' ? 'text-white/75' : 'text-[#10151a]'}`}
+        >
+          {metric.name}
+        </p>
         <strong
-          class="font-body text-[1.35rem] leading-none tracking-tight tabular-nums text-[#10151a] sm:my-1 sm:block sm:text-[2rem]"
+          class={`font-body text-[1.35rem] leading-none tracking-tight tabular-nums sm:my-1 sm:block sm:text-[2rem] ${appearance === 'dark' ? 'text-white' : 'text-[#10151a]'}`}
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
         <span
-          class="ml-0.75 inline font-body text-[0.68rem] leading-tight text-[#10151a] sm:ml-0 sm:block sm:text-xs"
+          class={`ml-0.75 inline font-body text-[0.68rem] leading-tight sm:ml-0 sm:block sm:text-xs ${appearance === 'dark' ? 'text-white/65' : 'text-[#10151a]'}`}
           >{m.guide_data_urban_density_preview_density_for_area({
             area: metric.landAreaSqKm.toFixed(1),
           })}</span
