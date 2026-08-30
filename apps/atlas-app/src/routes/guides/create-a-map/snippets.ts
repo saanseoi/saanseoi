@@ -456,34 +456,36 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '})',
   ].join('\n')
 
-export const urbanDensityStatsCode = [
-  "const apiBaseUrl = 'https://api.saanseoi.hk'",
-  "const statsEndpoint = '/stats/v0.1/geographies'",
-  "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
-  '',
-  'async function getDistrictField(field: string) {',
-  '  const url = new URL(statsEndpoint, apiBaseUrl)',
-  "  url.searchParams.set('cohort', '2024')",
-  "  url.searchParams.set('filter[dataset]', densityDatasetCode)",
-  "  url.searchParams.set('filter[field]', field)",
-  "  url.searchParams.set('filter[referencePeriod]', '2024')",
-  '',
-  "  const response = await fetch(url, { headers: { 'x-api-key': accessToken } })",
-  '  return (await response.json()).values as Record<string, string>',
-  '}',
-  '',
-  'const [populationByDistrict, landAreaByDistrict] = await Promise.all([',
-  "  getDistrictField('populationMidYear'),",
-  "  getDistrictField('landArea'),",
-  '])',
-].join('\n')
+export const createUrbanDensityStatsCode = (apiBaseUrl: string) =>
+  [
+    `const apiBaseUrl = '${apiBaseUrl}'`,
+    "const statsEndpoint = '/stats/v0.1/geographies'",
+    "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
+    '',
+    'async function getDistrictField(field: string) {',
+    '  const url = new URL(statsEndpoint, apiBaseUrl)',
+    "  url.searchParams.set('cohort', '2024')",
+    "  url.searchParams.set('filter[dataset]', densityDatasetCode)",
+    "  url.searchParams.set('filter[field]', field)",
+    "  url.searchParams.set('filter[referencePeriod]', '2024')",
+    '',
+    "  const response = await fetch(url, { headers: { 'x-api-key': accessToken } })",
+    '  return (await response.json()).values as Record<string, string>',
+    '}',
+    '',
+    'const [populationByDistrict, landAreaByDistrict] = await Promise.all([',
+    "  getDistrictField('populationMidYear'),",
+    "  getDistrictField('landArea'),",
+    '])',
+  ].join('\n')
 
-export const urbanDensityStatsDisplayCode = [
-  '// { 24 LINES OMITTED: KEEP YOUR WORKING MAP SETUP }',
-  '// Next, append this request to give your map its first data.',
-  '',
-  urbanDensityStatsCode,
-].join('\n')
+export const createUrbanDensityStatsDisplayCode = (apiBaseUrl: string) =>
+  [
+    '// { 24 LINES OMITTED: KEEP YOUR WORKING MAP SETUP }',
+    '// Next, append this request to give your map its first data.',
+    '',
+    createUrbanDensityStatsCode(apiBaseUrl),
+  ].join('\n')
 
 export const urbanDensityCalculationCode = [
   "const divisionsEndpoint = '/divisions/v0'",

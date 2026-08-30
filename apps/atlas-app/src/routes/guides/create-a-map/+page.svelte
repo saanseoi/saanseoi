@@ -1,4 +1,5 @@
 <script lang="ts">
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { page } from '$app/state'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
@@ -78,6 +79,8 @@ import {
   createNotebookSetupCode,
   createProjectSetupCode,
   createRestartProjectCode,
+  createUrbanDensityStatsCode,
+  createUrbanDensityStatsDisplayCode,
   createUrbanDensityMapReadyCode,
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
@@ -105,8 +108,6 @@ import {
   urbanDensitySetupZ14TileFetcherDisplayCode,
   urbanDensityLiveableMetricsCode,
   urbanDensityLiveableMetricsDisplayCode,
-  urbanDensityStatsCode,
-  urbanDensityStatsDisplayCode,
   urbanDensityTurfInstallCode,
   viteReadyOutput,
 } from './snippets'
@@ -133,6 +134,12 @@ type VpnAccess = CreateAMapSelectionValue<'vpnAccess'>
 type WebsitePlatform = CreateAMapSelectionValue<'websitePlatform'>
 
 let locale = $derived(getCurrentLocale())
+const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
+  /\/+$/,
+  '',
+)
+const urbanDensityStatsCode = createUrbanDensityStatsCode(apiBaseUrl)
+const urbanDensityStatsDisplayCode = createUrbanDensityStatsDisplayCode(apiBaseUrl)
 let isVpnRequired = $derived(page.data.isVpnRequired)
 let visitorRegionCode = $derived(page.data.visitorRegionCode)
 const vpnRegionLabels = {
