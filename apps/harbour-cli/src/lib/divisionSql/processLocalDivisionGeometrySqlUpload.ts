@@ -1,4 +1,8 @@
-import { datasetVariantForSource, type RegionCode } from '@repo/core'
+import {
+  datasetVariantForSource,
+  type GeometryStatus,
+  type RegionCode,
+} from '@repo/core'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -120,6 +124,7 @@ type GeometryUploadPlan = {
     | 'hkgov-pland-pu'
     | 'hkgov-pland-new-town'
   sourceVersion: string
+  geometryStatus?: GeometryStatus
   transform?: 'simplified'
   theme: 'divisions'
   type: 'divisionArea' | 'divisionBoundary'
@@ -513,6 +518,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         datasetId: dataset.datasetId,
         regionCode: previewPlan.regionCode,
         sourceReleaseId: dataset.releaseId,
+        geometryStatus: previewPlan.geometryStatus,
         variant: geometryVariant(previewPlan),
         reuseDraftSnapshotForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
         reuseSnapshotLineageForVariant: isCenstatdGeometryCompanionPlan(previewPlan),

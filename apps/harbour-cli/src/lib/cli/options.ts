@@ -92,6 +92,11 @@ export function buildRegisterOptions(
       typeof args.options['source-version'] === 'string'
         ? args.options['source-version']
         : undefined,
+    geometryStatus:
+      args.options['geometry-status'] === 'authoritative' ||
+      args.options['geometry-status'] === 'fallback'
+        ? args.options['geometry-status']
+        : undefined,
     releaseNotesUrl:
       typeof args.options['release-notes-url'] === 'string'
         ? args.options['release-notes-url']

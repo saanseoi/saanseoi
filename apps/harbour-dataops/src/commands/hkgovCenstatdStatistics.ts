@@ -244,6 +244,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
             'source-archive-key': key,
             'source-archive-sha256': sha,
             'source-version': sourceVersion,
+            'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
             theme: 'stats',
             type: 'divisionStatistic',
             // Preserve the caller's explicit automation choice. New publisher
@@ -302,6 +303,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
               'source-archive-key': key,
               'source-archive-sha256': sha,
               'source-version': sourceVersion,
+              'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
               theme: 'divisions',
               type,
               yes: true,

@@ -1725,6 +1725,7 @@ describe('dataset update registry', () => {
       dataset?.releases?.find(release => release.sourceVersion === '2026-Q2')
         ?.referencePeriods,
     ).toEqual({
+      geometryStatus: 'fallback',
       materialiseAreaCompanions: true,
       sourceField: 'year',
     })

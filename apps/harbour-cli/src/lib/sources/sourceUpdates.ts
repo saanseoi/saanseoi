@@ -160,6 +160,11 @@ export type DatasetRelease = {
    * delivery. A source version may therefore contain historical records.
    */
   referencePeriods?: {
+    /**
+     * Whether geometry materialised from this delivery is publisher-authoritative
+     * for its labelled reference periods, or is a temporary fallback.
+     */
+    geometryStatus?: 'authoritative' | 'fallback'
     materialiseAreaCompanions?: boolean
     sourceField: string
   }
