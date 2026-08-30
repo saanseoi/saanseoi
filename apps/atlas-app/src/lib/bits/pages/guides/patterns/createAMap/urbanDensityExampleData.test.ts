@@ -1,8 +1,5 @@
 import { expect, test } from 'bun:test'
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
-import { bbox, booleanValid } from '@turf/turf'
-import type { Feature } from 'geojson'
+import { booleanValid } from '@turf/turf'
 
 import {
   calculateUrbanDensityMetrics,
@@ -11,6 +8,7 @@ import {
   urbanDensityStatsResponses,
 } from './urbanDensityExampleData.ts'
 import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
+import { decodeLandAnalysis } from './guideUrbanDensityLiveableMap.ts'
 
 test('groups Kwai Tsing with the New Territories', () => {
   const kwaiTsing = urbanDensityDivisionsResponse.data.find(
@@ -59,21 +57,33 @@ test('ships the simplified land-clipped census districts used by the previews', 
   })
 })
 
-test('includes the excluded western Lantau geometry', async () => {
-  const cache = JSON.parse(
-    await readFile(
-      resolve(
-        import.meta.dir,
-        '../../../../../../../static/guides/urban-density-excluded-districts.geojson',
-      ),
-      'utf8',
-    ),
-  ) as { features: Array<Feature> }
-  const islands = cache.features.find(
-    feature => feature.properties?.divisionCode === 'ILD',
-  )
+test('uses district boundaries as the excluded complement when it is absent', () => {
+  const land = decodeLandAnalysis({
+    liveableDistrictLand: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { area: 'Kowloon', districtCode: 'KLC' },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [114.18, 22.33],
+                [114.19, 22.33],
+                [114.19, 22.34],
+                [114.18, 22.33],
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  })
 
-  expect(islands).toBeDefined()
-  if (!islands) throw new Error('Missing Islands District exclusion geometry')
-  expect(bbox(islands)[0]).toBeLessThan(113.84)
+  expect(land.liveableDistrictLand[0]?.properties).toEqual({
+    area: 'Kowloon',
+    divisionCode: 'KLC',
+  })
+  expect(land.excludedDistrictLand).toHaveLength(18)
 })

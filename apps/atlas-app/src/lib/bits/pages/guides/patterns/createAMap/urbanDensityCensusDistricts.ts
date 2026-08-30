@@ -8,6 +8,33 @@ type CensusDistrictProperties = {
   divisionCode: string
 }
 
+export type DistrictLandProperties = Pick<
+  CensusDistrictProperties,
+  'area' | 'divisionCode'
+>
+
+export const districtNameByCode: Record<string, string> = {
+  CW: 'Central and Western',
+  WC: 'Wan Chai',
+  EST: 'Eastern',
+  STH: 'Southern',
+  YTM: 'Yau Tsim Mong',
+  SSP: 'Sham Shui Po',
+  KLC: 'Kowloon City',
+  WTS: 'Wong Tai Sin',
+  KT: 'Kwun Tong',
+  KC: 'Kwai Tsing',
+  KTS: 'Kwai Tsing',
+  TW: 'Tsuen Wan',
+  TM: 'Tuen Mun',
+  YL: 'Yuen Long',
+  NTH: 'North',
+  TP: 'Tai Po',
+  ST: 'Sha Tin',
+  SK: 'Sai Kung',
+  ILD: 'Islands',
+}
+
 export type DistrictGeometry = MultiPolygon | Polygon
 
 export type CensusDistrictCollection = FeatureCollection<
@@ -24,6 +51,6 @@ export const urbanDensityCensusDistricts =
   cachedCensusDistricts as CensusDistrictCollection
 
 export type DistrictLand = {
-  excludedDistrictLand: Array<Feature<DistrictGeometry, CensusDistrictProperties>>
-  liveableDistrictLand: Array<Feature<DistrictGeometry, CensusDistrictProperties>>
+  excludedDistrictLand: Array<Feature<DistrictGeometry, DistrictLandProperties>>
+  liveableDistrictLand: Array<Feature<DistrictGeometry, DistrictLandProperties>>
 }
