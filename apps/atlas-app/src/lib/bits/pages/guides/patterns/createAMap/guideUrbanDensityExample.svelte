@@ -123,20 +123,20 @@ const statsComments = [
 const mapComments = [
   { line: 4, text: m.guide_data_urban_density_map_comment_ready() },
   { line: 6, text: m.guide_data_urban_density_map_comment_kinds() },
-  { line: 14, text: m.guide_data_urban_density_map_comment_layer() },
-  { line: 15, text: m.guide_data_urban_density_map_comment_id() },
-  { line: 17, text: m.guide_data_urban_density_map_comment_source() },
-  { line: 19, text: m.guide_data_urban_density_map_comment_filter() },
-  { line: 20, text: m.guide_data_urban_density_map_comment_paint() },
-  { line: 23, text: m.guide_data_urban_density_map_comment_outline() },
+  { line: 15, text: m.guide_data_urban_density_map_comment_layer() },
+  { line: 16, text: m.guide_data_urban_density_map_comment_id() },
+  { line: 18, text: m.guide_data_urban_density_map_comment_source() },
+  { line: 20, text: m.guide_data_urban_density_map_comment_filter() },
+  { line: 21, text: m.guide_data_urban_density_map_comment_paint() },
+  { line: 24, text: m.guide_data_urban_density_map_comment_outline() },
 ]
 
 const metricsComments = [
-  { line: 4, text: m.guide_data_urban_density_metrics_comment_section() },
-  { line: 5, text: m.guide_data_urban_density_metrics_comment_identifier() },
-  { line: 6, text: m.guide_data_urban_density_metrics_comment_label() },
-  { line: 7, text: m.guide_data_urban_density_metrics_comment_cards() },
-  { line: 14, text: m.guide_data_urban_density_metrics_comment_append() },
+  { line: 5, text: m.guide_data_urban_density_metrics_comment_section() },
+  { line: 6, text: m.guide_data_urban_density_metrics_comment_identifier() },
+  { line: 7, text: m.guide_data_urban_density_metrics_comment_label() },
+  { line: 8, text: m.guide_data_urban_density_metrics_comment_cards() },
+  { line: 15, text: m.guide_data_urban_density_metrics_comment_append() },
 ]
 
 const calculationComments = [
@@ -202,8 +202,6 @@ const setupZ14TileFetcherComments = [
   { line: 1, text: m.guide_data_urban_density_collect_comment_vector_tile() },
   { line: 2, text: m.guide_data_urban_density_collect_comment_pbf() },
   { line: 3, text: m.guide_data_urban_density_liveable_area_comment_import() },
-  { line: 5, text: m.guide_data_urban_density_saved_result_import() },
-  { line: 9, text: m.guide_data_urban_density_saved_result_import_missing() },
   { line: 11, text: m.guide_data_urban_density_collect_comment_zoom() },
   { line: 12, text: m.guide_data_urban_density_collect_comment_longitude() },
   { line: 13, text: m.guide_data_urban_density_collect_comment_latitude() },
@@ -226,12 +224,12 @@ const setupZ14TileFetcherComments = [
   { line: 84, text: m.guide_data_urban_density_collect_comment_filter() },
   { line: 85, text: m.guide_data_urban_density_setup_comment_geojson() },
   { line: 86, text: m.guide_data_urban_density_setup_comment_areas() },
-  { line: 97, text: m.guide_data_urban_density_collect_comment_district_tiles() },
-  { line: 105, text: m.guide_data_urban_density_collect_comment_progress() },
-  { line: 107, text: m.guide_data_urban_density_setup_comment_progress_panel() },
-  { line: 118, text: m.guide_data_urban_density_setup_comment_progress() },
-  { line: 129, text: m.guide_data_urban_density_collect_comment_progress_wrapper() },
-  { line: 131, text: m.guide_data_urban_density_setup_comment_district_progress() },
+  { line: 98, text: m.guide_data_urban_density_collect_comment_district_tiles() },
+  { line: 107, text: m.guide_data_urban_density_collect_comment_progress() },
+  { line: 109, text: m.guide_data_urban_density_setup_comment_progress_panel() },
+  { line: 120, text: m.guide_data_urban_density_setup_comment_progress() },
+  { line: 131, text: m.guide_data_urban_density_collect_comment_progress_wrapper() },
+  { line: 133, text: m.guide_data_urban_density_setup_comment_district_progress() },
 ]
 
 const liveableAreaComments = [
@@ -274,17 +272,26 @@ const liveableAreaComments = [
   },
   { line: 38, text: m.guide_data_urban_density_liveable_area_comment_json() },
   { line: 39, text: m.guide_data_urban_density_liveable_area_comment_dialog() },
-  { line: 41, text: m.guide_data_urban_density_liveable_area_comment_download() },
-  { line: 42, text: m.guide_data_urban_density_liveable_area_comment_download_label() },
-  { line: 44, text: m.guide_data_urban_density_liveable_area_comment_download_url() },
-  { line: 45, text: m.guide_data_urban_density_liveable_area_comment_download_name() },
+  { line: 41, text: m.guide_data_urban_density_liveable_area_comment_result_title() },
   {
-    line: 46,
+    line: 42,
+    text: m.guide_data_urban_density_liveable_area_comment_result_title_content(),
+  },
+  {
+    line: 43,
+    text: m.guide_data_urban_density_liveable_area_comment_result_title_style(),
+  },
+  { line: 44, text: m.guide_data_urban_density_liveable_area_comment_download() },
+  { line: 45, text: m.guide_data_urban_density_liveable_area_comment_download_label() },
+  { line: 47, text: m.guide_data_urban_density_liveable_area_comment_download_url() },
+  { line: 48, text: m.guide_data_urban_density_liveable_area_comment_download_name() },
+  {
+    line: 49,
     text: m.guide_data_urban_density_liveable_area_comment_dialog_contents(),
   },
-  { line: 47, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
-  { line: 48, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
-  { line: 49, text: m.guide_data_urban_density_saved_result_keep() },
+  { line: 50, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
+  { line: 51, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
+  { line: 52, text: m.guide_data_urban_density_saved_result_keep() },
 ]
 
 const liveableMetricsComments = [
@@ -319,14 +326,14 @@ const liveableMetricsComments = [
 ]
 
 const liveableAreaMapComments = [
-  { line: 5, text: m.guide_data_urban_density_liveable_map_comment_hide() },
-  { line: 7, text: m.guide_data_urban_density_liveable_map_comment_order() },
-  { line: 9, text: m.guide_data_urban_density_liveable_map_comment_excluded_source() },
-  { line: 11, text: m.guide_data_urban_density_liveable_map_comment_excluded_fill() },
-  { line: 13, text: m.guide_data_urban_density_liveable_map_comment_outline() },
-  { line: 17, text: m.guide_data_urban_density_liveable_map_comment_liveable_source() },
-  { line: 18, text: m.guide_data_urban_density_liveable_area_comment_layer() },
-  { line: 20, text: m.guide_data_urban_density_liveable_map_comment_liveable_fill() },
+  { line: 7, text: m.guide_data_urban_density_liveable_map_comment_hide() },
+  { line: 9, text: m.guide_data_urban_density_liveable_map_comment_order() },
+  { line: 11, text: m.guide_data_urban_density_liveable_map_comment_excluded_source() },
+  { line: 13, text: m.guide_data_urban_density_liveable_map_comment_excluded_fill() },
+  { line: 15, text: m.guide_data_urban_density_liveable_map_comment_outline() },
+  { line: 19, text: m.guide_data_urban_density_liveable_map_comment_liveable_source() },
+  { line: 20, text: m.guide_data_urban_density_liveable_area_comment_layer() },
+  { line: 22, text: m.guide_data_urban_density_liveable_map_comment_liveable_fill() },
 ]
 </script>
 

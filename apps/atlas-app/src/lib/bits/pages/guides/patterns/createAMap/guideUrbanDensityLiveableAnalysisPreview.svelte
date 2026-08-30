@@ -179,11 +179,6 @@ const progressCompleted = $derived(
   phase === 'tiles' ? completedTiles : completedDistricts,
 )
 const progressTotal = $derived(phase === 'tiles' ? totalTiles : totalDistricts)
-const progressCount = $derived(
-  phase === 'districts'
-    ? `${completedDistrictParts.toLocaleString()} / ${activeDistrictPartTotal.toLocaleString()} parts for ${completedDistricts.toLocaleString()} / ${totalDistricts.toLocaleString()} districts`
-    : `${progressCompleted.toLocaleString()} / ${progressTotal.toLocaleString()}`,
-)
 const progressPhase = $derived(
   phase === 'tiles'
     ? '[DOWNLOAD TILES & EXTRACT FEATURES]'
@@ -314,23 +309,51 @@ onMount(() => {
     />
   {/key}
   <section
-    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),32rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 p-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
+    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),24rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 px-5 py-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
     aria-live="polite"
   >
     <p class="font-mono text-[0.68rem] font-bold tracking-[0.12em] text-white/70">
       {progressPhase}
     </p>
     {#if activeDistrict}
-      <h2 class="mt-1 font-mono text-2xl font-bold tracking-tight text-[#79e7d1]">
+      <h2
+        class="mt-1.5 font-mono text-3xl font-bold leading-none tracking-tight text-[#79e7d1]"
+      >
         {districtNameByCode[activeDistrict.properties.divisionCode] ?? activeDistrict.properties.divisionCode}
       </h2>
     {/if}
-    <p class="mt-1 font-mono text-base font-semibold tabular-nums text-white/85">
-      {progressCompleted}
-      / {progressTotal}
-    </p>
+    {#if phase === 'districts'}
+      <dl
+        class="mt-3 grid grid-cols-[1fr_auto_1fr] items-end gap-x-3 font-mono tabular-nums"
+      >
+        <div>
+          <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">
+            PARTS
+          </dt>
+          <dd class="mt-0.5 text-base font-semibold text-white/85">
+            {completedDistrictParts}
+            / {activeDistrictPartTotal}
+          </dd>
+        </div>
+        <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">for</div>
+        <div>
+          <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">
+            DISTRICTS
+          </dt>
+          <dd class="mt-0.5 text-base font-semibold text-white/85">
+            {completedDistricts}
+            / {totalDistricts}
+          </dd>
+        </div>
+      </dl>
+    {:else}
+      <p class="mt-3 font-mono text-base font-semibold tabular-nums text-white/85">
+        {progressCompleted}
+        / {progressTotal}
+      </p>
+    {/if}
     <progress
-      class="mt-3 h-2 w-full accent-[#43c6ad]"
+      class="mt-4 h-2 w-full accent-[#43c6ad]"
       max={progressTotal}
       value={progressCompleted}
     ></progress>
