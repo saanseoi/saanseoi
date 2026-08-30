@@ -120,6 +120,15 @@ than a separate dataset, source record or API-composition member. The 2016 and 2
 derivatives declare `preservesLandClip: true`; the 2024 derivative declares
 `preservesPublisherGeometry: true`.
 
+The completed simplified coverage is retained as content-addressed WGS84 GeoJSON in
+`.local/dataops/simplified-coverage`. Its key binds the input geometry, tolerance and
+simplification-contract version, so a re-upload with identical source geometry reuses
+the derivative rather than repeating the GEOS simplification.
+
+Every published companion variant remains materialised in current storage for cohort-
+and variant-qualified Divisions API reads, whether or not it is an API-composition
+member.
+
 Use `include=areas:hkgov-censtatd-landclipped:simplified` or
 `include=areas:hkgov-censtatd:simplified` for low-detail display maps; omit the
 transformation for source precision, reference-year accuracy and geometry auditability.
@@ -203,10 +212,11 @@ HMAs have no hierarchy. Their authoritative classification remains the C&SD
 
 The updater passes the locally prepared native CSDI ZIP to the district importer. It
 requires the cohort-specific `DC_16BC_SDU.gml`, `DC_21C_SDU.gml`, or `DC_GHS.gml`
-member; the last is filtered to its 2024 records. It verifies the ZIP SHA-256 against
-its prepared manifest and keeps the managed archive key and hash in source provenance.
-Converted CSDI GeoJSON and a separately downloaded GML are not runtime inputs. Use
-`saanseoi update`, or invoke the importer with the prepared archive:
+member. The `2026-Q2` `DC_GHS.gml` archive contains multiple publisher-labelled annual
+cohorts; the importer filters and materialises each one independently. It verifies the
+ZIP SHA-256 against its prepared manifest and keeps the managed archive key and hash in
+source provenance. Converted CSDI GeoJSON and a separately downloaded GML are not
+runtime inputs. Use `saanseoi update`, or invoke the importer with the prepared archive:
 
 ```bash
 bun run dataops -- hkgov-censtatd:district-area ./data/.../source.zip \
