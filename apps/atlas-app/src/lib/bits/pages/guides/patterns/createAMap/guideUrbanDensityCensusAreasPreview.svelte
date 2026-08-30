@@ -13,6 +13,17 @@ type Props = {
 
 let { label, styleUrl, tilejsonUrl }: Props = $props()
 const censusDistricts = urbanDensityCensusDistricts
+const censusAreaLegend = [
+  {
+    colour: '#5b8ff9',
+    label: m.guide_data_urban_density_census_legend_hong_kong_island(),
+  },
+  { colour: '#f6bd16', label: m.guide_data_urban_density_census_legend_kowloon() },
+  {
+    colour: '#5ad8a6',
+    label: m.guide_data_urban_density_census_legend_new_territories(),
+  },
+]
 
 const censusDistrictsSource = $derived<StyleSpecification['sources']>(
   censusDistricts
@@ -65,4 +76,20 @@ const censusDistrictLayers: LayerSpecification[] = [
   >
     {m.guide_data_urban_density_census_preview_title()}
   </p>
+  <ul
+    class="pointer-events-none absolute right-3 bottom-3 flex flex-wrap justify-end gap-1.5 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/85 uppercase"
+  >
+    {#each censusAreaLegend as area}
+      <li
+        class="flex items-center gap-1.5 rounded-sm bg-[#10151a]/90 px-2 py-1 shadow-sm"
+      >
+        <span
+          class="size-2 shrink-0"
+          style={`background-color: ${area.colour}`}
+          aria-hidden="true"
+        ></span>
+        {area.label}
+      </li>
+    {/each}
+  </ul>
 </div>

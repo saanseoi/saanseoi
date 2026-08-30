@@ -27,7 +27,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
 <div
   class="guide-map-preview flex h-full min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
-  <div class="relative min-h-52 flex-1 overflow-hidden">
+  <div class="relative min-h-[16.9rem] flex-1 overflow-hidden">
     {#key `${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
@@ -42,11 +42,6 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
       class="absolute top-3 left-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/80 uppercase shadow-sm"
     >
       {m.guide_data_urban_density_preview_density_title()}
-    </p>
-    <p
-      class="absolute right-3 bottom-3 rounded-sm bg-[#10151a]/90 px-2 py-1 font-mono text-[0.68rem] text-white/80 shadow-sm"
-    >
-      SaanSeoi Basemap
     </p>
   </div>
   <section
