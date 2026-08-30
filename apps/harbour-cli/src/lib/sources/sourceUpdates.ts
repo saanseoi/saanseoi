@@ -2014,6 +2014,16 @@ function findCsdiDatasetRelease(
   )
   if (archiveMatch) return archiveMatch
 
+  // A configured current CSDI source version can use its archive slot as its
+  // release identity. Prefer that exact match before falling back to another
+  // release that happens to share the same catalogue URL. Without it, a new
+  // slot such as 2026-Q2 is incorrectly ingested as the first historical
+  // release (for example, 2024).
+  const slotMatch = matchingReleases.find(
+    release => release.sourceVersion === releaseSlot,
+  )
+  if (slotMatch) return slotMatch
+
   return (
     matchingReleases.find(release => release.sourceUrl === archiveSourceUrl) ??
     (matchingReleases.length === 1 ? matchingReleases[0] : undefined)

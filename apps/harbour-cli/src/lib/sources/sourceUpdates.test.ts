@@ -999,6 +999,67 @@ describe('dataset update registry', () => {
     }
   })
 
+  test('maps an unpinned current CSDI slot to its matching configured source version', async () => {
+    const originalFetch = globalThis.fetch
+    const sourceObjectHash = 'c'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const sourceUrl =
+        'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934545173_69201'
+      const [update] = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          sourceUrl,
+          theme: 'stats',
+          resourceTypes: ['divisionStatistic'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+          releases: [
+            { sourceVersion: '2024', sourceUrl },
+            { sourceVersion: '2026-Q2', sourceUrl },
+          ],
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(update).toEqual(
+        expect.objectContaining({
+          sourceKey: 'archive:censtatd_rcd_1635934545173_69201:2026-Q2',
+          status: 'new',
+          targetSourceKey: '2026-Q2',
+          version: '2026-Q2',
+        }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('does not treat a CSDI archive slot as an unversioned dataset release', async () => {
     const originalFetch = globalThis.fetch
     globalThis.fetch = Object.assign(
