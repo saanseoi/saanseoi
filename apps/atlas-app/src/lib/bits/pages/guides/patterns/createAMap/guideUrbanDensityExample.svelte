@@ -786,6 +786,11 @@ const liveableAreaMapComments = [
           </GuideSubSectionBody>
         </div>
       </GuideSubSectionBody>
+      <p
+        class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+      >
+        {@html m.guide_data_urban_density_conclusion_summary()}
+      </p>
     </section>
     <section>
       <GuideSubSectionHeader title={m.guide_data_urban_density_conclusion_title()} />

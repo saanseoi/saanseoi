@@ -40,9 +40,13 @@ test('restores key creation instructions after resetting a confirmed key', async
 })
 
 test('asks the user to confirm their existing key is in .env', async () => {
+  let confirmed = false
   const screen = await render(GuideCreateAMapApiKeys, {
     editorLabel: 'Zed',
     newFileShortcut: 'Ctrl+N',
+    onApiKeyConfirmed: () => {
+      confirmed = true
+    },
   })
 
   await screen.getByRole('button', { name: 'Use Existing' }).click()
@@ -56,6 +60,9 @@ test('asks the user to confirm their existing key is in .env', async () => {
   await expect
     .element(screen.getByRole('button', { name: 'I have added my API key to .env' }))
     .toBeVisible()
+  await screen.getByRole('button', { name: 'I have added my API key to .env' }).click()
+
+  expect(confirmed).toBe(true)
 })
 
 test('uses PowerShell to inspect the project folder on Windows', async () => {
