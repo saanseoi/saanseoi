@@ -8,6 +8,7 @@ import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
   applyPublishMetadataDeltaToRemoteCache,
+  resolveCachePruneOperation,
   resolveShardBindingName,
 } from './localDbCache.ts'
 
@@ -28,6 +29,16 @@ test('uses the annual D1 shard for a dated release version', () => {
   expect(resolveShardBindingName('source', 'HK', '2024-12-31.0')).toBe(
     'DB_SOURCE_HK_BEFORE',
   )
+})
+
+test('mirrors only rows retained by annual shard cache pruning', () => {
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisions')).toEqual({
+    retainedRowsWhereSql: '"isCurrent" = 1',
+    tableName: 'divisions',
+    whereSql: '"isCurrent" <> 1',
+  })
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'divisions')).toBeNull()
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
 })
 
 afterEach(() => {

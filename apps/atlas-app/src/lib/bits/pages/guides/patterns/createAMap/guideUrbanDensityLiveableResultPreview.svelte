@@ -7,9 +7,9 @@ import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
   addUrbanDensityLiveableLand,
   landAnalysisPath,
-  loadCachedDistrictLand,
+  loadCachedDistrictExclusions,
 } from './guideUrbanDensityLiveableMap.ts'
-import type { DistrictLand } from './urbanDensityCensusDistricts.ts'
+import type { DistrictExclusions } from './urbanDensityCensusDistricts.ts'
 
 type Props = {
   label: string
@@ -18,11 +18,11 @@ type Props = {
 }
 
 let { label, styleUrl, tilejsonUrl }: Props = $props()
-let districtLand = $state.raw<DistrictLand | undefined>(undefined)
+let exclusions = $state.raw<DistrictExclusions | undefined>(undefined)
 let resultReady = $state(false)
 
 onMount(async () => {
-  districtLand = await loadCachedDistrictLand()
+  exclusions = await loadCachedDistrictExclusions()
   resultReady = true
 })
 </script>
@@ -56,7 +56,7 @@ onMount(async () => {
       <p class="mt-2 text-body-sm leading-6 text-white/80">
         {m.guide_data_urban_density_liveable_result_preview_description()}
       </p>
-      {#if resultReady && districtLand}
+      {#if resultReady && exclusions}
         <a
           class="mt-5 block w-full border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 text-center font-mono text-base font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
           download="land-analysis.json"

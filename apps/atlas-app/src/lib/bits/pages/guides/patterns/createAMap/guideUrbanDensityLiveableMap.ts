@@ -1,115 +1,74 @@
-import type { Feature, FeatureCollection } from 'geojson'
+import type { FeatureCollection } from 'geojson'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 
 import type {
-  DistrictLand,
-  DistrictLandProperties,
+  DistrictExclusions,
   DistrictGeometry,
 } from './urbanDensityCensusDistricts.ts'
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
 export const landAnalysisPath = '/guides/create-a-map/land-analysis.json'
 
-type DownloadedDistrictLandProperties = {
+type DownloadedDistrictExclusionProperties = {
   area: string
   districtCode: string
 }
 
-type DownloadedDistrictLand = FeatureCollection<
+type DownloadedDistrictExclusions = FeatureCollection<
   DistrictGeometry,
-  DownloadedDistrictLandProperties
+  DownloadedDistrictExclusionProperties
 >
 
 type LandAnalysis = {
-  liveableDistrictLand: DownloadedDistrictLand
-  excludedDistrictLand: DownloadedDistrictLand
+  excludedDistrictLand: DownloadedDistrictExclusions
 }
 
-let cachedDistrictLand: Promise<DistrictLand> | undefined
-let geosReady:
-  | Promise<{
-      geos: Awaited<ReturnType<typeof import('geos-wasm')['default']>>
-      geojsonToGeosGeom: (geometry: DistrictGeometry, geos: unknown) => number
-    }>
-  | undefined
+let cachedDistrictExclusions: Promise<DistrictExclusions> | undefined
 
-const loadGeos = () =>
-  (geosReady ??= Promise.all([import('geos-wasm'), import('geos-wasm/helpers')]).then(
-    async ([{ default: initGeosJs }, helpers]) => ({
-      geos: await initGeosJs(),
-      geojsonToGeosGeom: helpers.geojsonToGeosGeom,
-    }),
-  ))
-
-function isDistrictLand(value: unknown): value is DownloadedDistrictLand {
+function isDistrictExclusions(value: unknown): value is DownloadedDistrictExclusions {
   if (!value || typeof value !== 'object') return false
-  const collection = value as Partial<DownloadedDistrictLand>
+  const collection = value as Partial<DownloadedDistrictExclusions>
   return collection.type === 'FeatureCollection' && Array.isArray(collection.features)
 }
 
-async function hasValidDistrictGeometry(
-  feature: Feature<DistrictGeometry, DownloadedDistrictLandProperties>,
-) {
-  if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon') {
-    return false
-  }
-
-  const { geos, geojsonToGeosGeom } = await loadGeos()
-  const geometry = geojsonToGeosGeom(feature.geometry, geos)
-  try {
-    return geos.GEOSisValid(geometry) === 1
-  } finally {
-    geos.GEOSGeom_destroy(geometry)
-  }
-}
-
-async function normaliseDistrictLand(
-  collection: DownloadedDistrictLand,
-): Promise<Array<Feature<DistrictGeometry, DistrictLandProperties>>> {
-  const normalised: Array<Feature<DistrictGeometry, DistrictLandProperties>> = []
-  for (const feature of collection.features) {
+function normaliseDistrictExclusions(
+  collection: DownloadedDistrictExclusions,
+): DistrictExclusions {
+  return collection.features.map(feature => {
     const { area, districtCode } = feature.properties
     if (typeof area !== 'string' || typeof districtCode !== 'string') {
       throw new Error('Land-analysis feature is missing its District identity.')
     }
-    // Saved results must already be valid; previews never alter source geometry.
-    if (!(await hasValidDistrictGeometry(feature))) {
-      throw new Error(
-        `Land-analysis contains invalid ${districtCode} geometry. Regenerate land-analysis.json.`,
-      )
+    if (
+      feature.geometry.type !== 'Polygon' &&
+      feature.geometry.type !== 'MultiPolygon'
+    ) {
+      throw new Error(`Land-analysis contains non-polygonal ${districtCode} geometry.`)
     }
-    normalised.push({
+    return {
       ...feature,
       properties: { area, divisionCode: districtCode },
-    })
-  }
-  return normalised
+    }
+  })
 }
 
-export async function decodeLandAnalysis(value: unknown): Promise<DistrictLand> {
+export function decodeLandAnalysis(value: unknown): DistrictExclusions {
   if (!value || typeof value !== 'object') {
     throw new Error('Land-analysis JSON is not an object.')
   }
 
   const analysis = value as Partial<LandAnalysis>
-  if (
-    !isDistrictLand(analysis.liveableDistrictLand) ||
-    !isDistrictLand(analysis.excludedDistrictLand)
-  ) {
-    throw new Error(
-      'Land-analysis JSON must include liveable and excluded District land.',
-    )
+  if (!isDistrictExclusions(analysis.excludedDistrictLand)) {
+    throw new Error('Land-analysis JSON must include excluded District land.')
   }
 
-  return {
-    liveableDistrictLand: await normaliseDistrictLand(analysis.liveableDistrictLand),
-    excludedDistrictLand: await normaliseDistrictLand(analysis.excludedDistrictLand),
-  }
+  return normaliseDistrictExclusions(analysis.excludedDistrictLand)
 }
 
-export const loadCachedDistrictLand = () => {
-  if (cachedDistrictLand) return cachedDistrictLand
+export const loadCachedDistrictExclusions = () => {
+  if (cachedDistrictExclusions) return cachedDistrictExclusions
 
-  cachedDistrictLand = fetch(landAnalysisPath, { cache: 'no-cache' })
+  cachedDistrictExclusions = fetch(landAnalysisPath, { cache: 'no-cache' })
     .then(async response => {
       if (!response.ok) {
         throw new Error(`Land-analysis download failed: ${response.status}`)
@@ -117,29 +76,42 @@ export const loadCachedDistrictLand = () => {
       return decodeLandAnalysis(await response.json())
     })
     .catch(cause => {
-      cachedDistrictLand = undefined
+      cachedDistrictExclusions = undefined
       throw cause
     })
 
-  return cachedDistrictLand
+  return cachedDistrictExclusions
 }
 
 export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
   try {
-    const { excludedDistrictLand, liveableDistrictLand } =
-      await loadCachedDistrictLand()
+    const excludedDistrictLand = await loadCachedDistrictExclusions()
 
+    map.addSource('liveable-districts', {
+      type: 'geojson',
+      data: urbanDensityCensusDistricts,
+    })
     map.addSource('excluded-districts', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: excludedDistrictLand },
     })
-    map.addSource('liveable-districts', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: liveableDistrictLand },
-    })
     const firstLabelLayerId = map
       .getStyle()
       .layers?.find(layer => layer.type === 'symbol')?.id
+    map.addLayer(
+      {
+        id: 'liveable-districts',
+        type: 'fill',
+        source: 'liveable-districts',
+        paint: {
+          'fill-antialias': false,
+          'fill-color': '#36a269',
+          'fill-opacity': 0,
+          'fill-opacity-transition': { duration: 700 },
+        },
+      },
+      firstLabelLayerId,
+    )
     map.addLayer(
       {
         id: 'excluded-districts',
@@ -164,20 +136,6 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
           'line-opacity': 0,
           'line-opacity-transition': { duration: 700 },
           'line-width': 1,
-        },
-      },
-      firstLabelLayerId,
-    )
-    map.addLayer(
-      {
-        id: 'liveable-districts',
-        type: 'fill',
-        source: 'liveable-districts',
-        paint: {
-          'fill-antialias': false,
-          'fill-color': '#36a269',
-          'fill-opacity': 0,
-          'fill-opacity-transition': { duration: 700 },
         },
       },
       firstLabelLayerId,
