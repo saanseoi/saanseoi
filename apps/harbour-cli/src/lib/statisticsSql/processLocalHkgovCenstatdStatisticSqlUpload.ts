@@ -17,6 +17,7 @@ import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 
 import {
   invalidateRemoteDbCache,
+  applyPublishMetadataDeltaToRemoteCache,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
@@ -391,10 +392,17 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           deferStatsReleaseSet: options.deferStatsReleaseSet,
         })
         if (target.remote) {
-          await refreshRemoteMetaCache(
-            target.environment === 'production' ? 'production' : 'preview',
-            context.state.dbCacheDir,
-          )
+          const targetName =
+            target.environment === 'production' ? 'production' : 'preview'
+          if (options.deferStatsReleaseSet && published) {
+            await applyPublishMetadataDeltaToRemoteCache(
+              targetName,
+              context.state.dbCacheDir,
+              published,
+            )
+          } else {
+            await refreshRemoteMetaCache(targetName, context.state.dbCacheDir)
+          }
         }
         return published
       },
