@@ -57,7 +57,7 @@ test('ships the simplified land-clipped census districts used by the previews', 
   })
 })
 
-test('requires saved liveable and excluded District geometry', () => {
+test('requires saved liveable and excluded District geometry', async () => {
   const liveableDistrictLand = {
     type: 'FeatureCollection',
     features: [
@@ -79,11 +79,11 @@ test('requires saved liveable and excluded District geometry', () => {
     ],
   } as const
 
-  expect(() => decodeLandAnalysis({ liveableDistrictLand })).toThrow(
+  await expect(decodeLandAnalysis({ liveableDistrictLand })).rejects.toThrow(
     'Land-analysis JSON must include liveable and excluded District land.',
   )
 
-  const land = decodeLandAnalysis({
+  const land = await decodeLandAnalysis({
     liveableDistrictLand,
     excludedDistrictLand: liveableDistrictLand,
   })
@@ -98,7 +98,7 @@ test('requires saved liveable and excluded District geometry', () => {
   })
 })
 
-test('rejects a saved overlay with invalid polygonal geometry', () => {
+test('rejects a saved overlay with invalid polygonal geometry', async () => {
   const invalidDistrictLand = {
     type: 'FeatureCollection',
     features: [
@@ -121,12 +121,12 @@ test('rejects a saved overlay with invalid polygonal geometry', () => {
     ],
   } as const
 
-  expect(() =>
+  await expect(
     decodeLandAnalysis({
       liveableDistrictLand: invalidDistrictLand,
       excludedDistrictLand: invalidDistrictLand,
     }),
-  ).toThrow(
+  ).rejects.toThrow(
     'Land-analysis contains invalid KLC geometry. Regenerate land-analysis.json.',
   )
 })

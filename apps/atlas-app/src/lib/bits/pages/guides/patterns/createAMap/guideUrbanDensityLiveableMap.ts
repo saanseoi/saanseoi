@@ -1,7 +1,4 @@
 import type { Feature, FeatureCollection } from 'geojson'
-import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
-import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
-import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 
 import type {
@@ -28,7 +25,20 @@ type LandAnalysis = {
 }
 
 let cachedDistrictLand: Promise<DistrictLand> | undefined
-const geometryReader = new GeoJSONReader(new GeometryFactory())
+let geosReady:
+  | Promise<{
+      geos: Awaited<ReturnType<typeof import('geos-wasm')['default']>>
+      geojsonToGeosGeom: (geometry: DistrictGeometry, geos: unknown) => number
+    }>
+  | undefined
+
+const loadGeos = () =>
+  (geosReady ??= Promise.all([import('geos-wasm'), import('geos-wasm/helpers')]).then(
+    async ([{ default: initGeosJs }, helpers]) => ({
+      geos: await initGeosJs(),
+      geojsonToGeosGeom: helpers.geojsonToGeosGeom,
+    }),
+  ))
 
 function isDistrictLand(value: unknown): value is DownloadedDistrictLand {
   if (!value || typeof value !== 'object') return false
@@ -36,37 +46,46 @@ function isDistrictLand(value: unknown): value is DownloadedDistrictLand {
   return collection.type === 'FeatureCollection' && Array.isArray(collection.features)
 }
 
-function hasValidDistrictGeometry(
+async function hasValidDistrictGeometry(
   feature: Feature<DistrictGeometry, DownloadedDistrictLandProperties>,
 ) {
-  return (
-    (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') &&
-    IsValidOp.isValid(geometryReader.read(feature.geometry))
-  )
+  if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon') {
+    return false
+  }
+
+  const { geos, geojsonToGeosGeom } = await loadGeos()
+  const geometry = geojsonToGeosGeom(feature.geometry, geos)
+  try {
+    return geos.GEOSisValid(geometry) === 1
+  } finally {
+    geos.GEOSGeom_destroy(geometry)
+  }
 }
 
-function normaliseDistrictLand(
+async function normaliseDistrictLand(
   collection: DownloadedDistrictLand,
-): Array<Feature<DistrictGeometry, DistrictLandProperties>> {
-  return collection.features.map(feature => {
+): Promise<Array<Feature<DistrictGeometry, DistrictLandProperties>>> {
+  const normalised: Array<Feature<DistrictGeometry, DistrictLandProperties>> = []
+  for (const feature of collection.features) {
     const { area, districtCode } = feature.properties
     if (typeof area !== 'string' || typeof districtCode !== 'string') {
       throw new Error('Land-analysis feature is missing its District identity.')
     }
     // Saved results must already be valid; previews never alter source geometry.
-    if (!hasValidDistrictGeometry(feature)) {
+    if (!(await hasValidDistrictGeometry(feature))) {
       throw new Error(
         `Land-analysis contains invalid ${districtCode} geometry. Regenerate land-analysis.json.`,
       )
     }
-    return {
+    normalised.push({
       ...feature,
       properties: { area, divisionCode: districtCode },
-    }
-  })
+    })
+  }
+  return normalised
 }
 
-export function decodeLandAnalysis(value: unknown): DistrictLand {
+export async function decodeLandAnalysis(value: unknown): Promise<DistrictLand> {
   if (!value || typeof value !== 'object') {
     throw new Error('Land-analysis JSON is not an object.')
   }
@@ -82,8 +101,8 @@ export function decodeLandAnalysis(value: unknown): DistrictLand {
   }
 
   return {
-    liveableDistrictLand: normaliseDistrictLand(analysis.liveableDistrictLand),
-    excludedDistrictLand: normaliseDistrictLand(analysis.excludedDistrictLand),
+    liveableDistrictLand: await normaliseDistrictLand(analysis.liveableDistrictLand),
+    excludedDistrictLand: await normaliseDistrictLand(analysis.excludedDistrictLand),
   }
 }
 
