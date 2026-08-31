@@ -1054,6 +1054,7 @@
   "guide_step_style": "選擇風格",
   "guide_llm_paste_prompt_local": "您的提示已被複製。將其貼到已安裝的 AI 代理程式中以繼續。",
   "guide_step_publish": "發布",
+  "guide_step_embed": "嵌入地圖",
   "guide_prerequisites_eyebrow": "告訴我們…",
   "guide_prerequisites_requirement_label": "要求",
   "guide_llm_modal_title": "選擇法學碩士來設定你的地圖",

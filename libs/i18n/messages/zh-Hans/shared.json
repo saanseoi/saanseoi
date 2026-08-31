@@ -1064,6 +1064,7 @@
   "guide_step_style": "选择风格",
   "guide_step_data": "添加您的数据",
   "guide_step_publish": "发布",
+  "guide_step_embed": "嵌入地图",
   "guide_prerequisites_requirement_label": "要求",
   "guide_objective_label": "我希望我的地图可用",
   "guide_prerequisites_title": "你的地图最终会到达哪里？",
