@@ -130,7 +130,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   plan: Plan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { deferStatsReleaseSet?: boolean; promptForCuration: boolean },
+  options: {
+    deferStatsReleaseSet?: boolean
+    deferSourcePublish?: boolean
+    promptForCuration: boolean
+    reuseExistingRelease?: boolean
+  },
 ) {
   const [dataset] = await loadDatasetFixtures(new Set([plan.datasetCode]))
   if (!dataset) throw new Error(`Missing dataset fixture: ${plan.datasetCode}.`)
@@ -179,6 +184,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       releaseId,
     },
     plan,
+    { reuseExistingRelease: options.reuseExistingRelease },
   )
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
@@ -421,11 +427,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       async () => {
         const published = await client.publishDataset(releaseId, releaseCode, {
           deferStatsReleaseSet: options.deferStatsReleaseSet,
+          deferSourcePublish: options.deferSourcePublish,
         })
         if (target.remote) {
           const targetName =
             target.environment === 'production' ? 'production' : 'preview'
-          if (options.deferStatsReleaseSet && published) {
+          if (
+            (options.deferStatsReleaseSet || options.deferSourcePublish) &&
+            published
+          ) {
             await applyPublishMetadataDeltaToRemoteCache(
               targetName,
               context.state.dbCacheDir,
