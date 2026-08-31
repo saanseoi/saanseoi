@@ -1302,10 +1302,37 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     ? `release-${release.supersededByReleaseCode}`
     : null
 
+  const sourceReleaseId = `source-${releaseId}`
+  db.query(
+    `INSERT OR IGNORE INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey, rawObjectKey,
+      originalFileName, status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      ?1,
+      (SELECT d.id FROM datasets d JOIN publishers p ON p.id = d.publisherId
+       WHERE p.code = ?2 AND d.code = ?3),
+      ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12
+    )`,
+  ).run(
+    sourceReleaseId,
+    publisherCode,
+    datasetCode,
+    `sr-${releaseCode}`,
+    release.sourceVersion,
+    release.cohortKey,
+    release.rawObjectKey,
+    release.originalFileName,
+    release.status,
+    release.ingestedAt,
+    release.createdAt,
+    release.updatedAt,
+  )
+
   db.query(
     `
       INSERT INTO releases (
         id,
+        sourceReleaseId,
         datasetId,
         resourceType,
         code,
@@ -1322,6 +1349,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         updatedAt
       ) VALUES (
         ?1,
+        ?17,
         (
           SELECT d.id
           FROM datasets d
@@ -1360,6 +1388,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     release.ingestedAt,
     release.createdAt,
     release.updatedAt,
+    sourceReleaseId,
   )
 
   return {

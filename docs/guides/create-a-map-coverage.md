@@ -25,11 +25,11 @@ solely because it compiles or an LLM generated the wording.
 
 ## Data coverage
 
-| Data choice                    | Current guide support                                                                                                                                                   | Release condition                                                                                                                                               |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Existing data                  | Privacy-aware discovery prompt for an LLM or community helper                                                                                                           | Review after the first supported import path is published                                                                                                       |
-| SaanSeoi urban-density example | Tutorial-sized Turf calculation for Hong Kong, Kowloon and the New Territories; sourced from district geometry, unclipped basemap land use and C&amp;SD population data | Verify the published Statistics collection, its download/API contract, land-use export contract and the region/district grouping before marking fully available |
-| Planned sushi Places example   | Use Places search in pages of no more than 100 results and keep each search query within 200 characters                                                                 | Verify the published Places snapshot, category vocabulary, pagination design and public-key flow before adding it to the tutorial                               |
+| Data choice                    | Current guide support                                                                                                                                                                               | Release condition                                                                                                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Existing data                  | Privacy-aware discovery prompt for an LLM or community helper                                                                                                                                       | Review after the first supported import path is published                                                                                                               |
+| SaanSeoi urban-density example | Tutorial-sized browser calculation for Hong Kong, Kowloon and the New Territories; sourced from District geometry, precision-snapped z14 basemap MVT land-use coverage and C&amp;SD population data | Verify the published Statistics collection, its download/API contract, the documented MVT approximation and the region/District grouping before marking fully available |
+| Planned sushi Places example   | Use Places search in pages of no more than 100 results and keep each search query within 200 characters                                                                                             | Verify the published Places snapshot, category vocabulary, pagination design and public-key flow before adding it to the tutorial                                       |
 
 ## Review checklist
 
@@ -43,9 +43,11 @@ solely because it compiles or an LLM generated the wording.
   credentials are never exposed.
 - Confirm each region's TileJSON and every shown style URL exist in the target
   environment.
-- Recalculate the urban-density example from pinned releases, check that its land-use
-  classes match the stated definition, and verify that tile-clipped geometries are never
-  used for its area totals.
+- Recalculate the urban-density example from pinned releases and check that its land-use
+  classes match the stated definition. Verify that decoded features share one global z14
+  precision grid, tile overlaps are dissolved before strict-core clipping, and the
+  District-clipped coverage is dissolved once before measuring. Keep the deliberate
+  boundary-snap trade-off explicit.
 - Before replacing the temporary C&amp;SD population input, verify the published
   Statistics collection's endpoint, schema, reference-year semantics and download
   pagination.
