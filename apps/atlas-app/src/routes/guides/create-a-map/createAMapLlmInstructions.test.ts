@@ -55,6 +55,8 @@ describe('Create a Map LLM instructions', () => {
     expect(stats).toContain(
       '[populationByDistrict, landAreaByDistrict] = await Promise.all([',
     )
+    expect(stats).toContain('if (!response.ok || !result.values)')
+    expect(stats).toContain('Statistics request failed:')
     expect(urbanDensitySetupZ14TileFetcherCode).toContain(
       "if (typeof kind !== 'string' || !nonLiveableKinds.has(kind)) return []",
     )

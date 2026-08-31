@@ -172,7 +172,7 @@ const statsComments = [
     text: m.guide_data_urban_density_stats_comment_values(),
   },
   {
-    line: 32,
+    line: 35,
     text: m.guide_data_urban_density_stats_comment_fields(),
   },
 ]
