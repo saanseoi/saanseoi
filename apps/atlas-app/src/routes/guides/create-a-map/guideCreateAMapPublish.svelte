@@ -1,5 +1,9 @@
 <script lang="ts">
-import { GuideCodeBlock, GuideScreenshot } from '#lib/bits/pages/guides/index.js'
+import {
+  GuideCodeBlock,
+  GuideCodeInstructionStep,
+  GuideScreenshot,
+} from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import cloudflareAccountDark from '#lib/assets/guides/publish-cloudflare-account-dark.webp'
@@ -355,6 +359,9 @@ const visitUrl = $derived(
     ? 'https://your-github-user-name.github.io/saanseoi-project/'
     : undefined,
 )
+const staticFilesCode = ['index.html', 'styles.css', 'map.js', 'map-data.json'].join(
+  '\n',
+)
 const llmHelp = $derived(
   llmMode === 'manual'
     ? m.guide_publish_assistance_manual()
@@ -383,6 +390,19 @@ const resetRequirement = (requirement: number) => {
   <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html m.guide_publish_intro({ host })}
   </p>
+  <GuideCodeInstructionStep
+    code={staticFilesCode}
+    codeLabel={m.guide_publish_static_files_code_label()}
+    copyable={false}
+    copyLabel={m.common_copy()}
+    copiedLabel={m.common_copied()}
+    instruction={{
+      description: m.guide_publish_static_files_description(),
+      label: m.guide_publish_static_files_label(),
+      title: m.guide_publish_static_files_title(),
+    }}
+    language="text"
+  />
 
   <section aria-labelledby="publish-account-title">
     <p

@@ -1,5 +1,11 @@
 <script lang="ts">
-import { bbox, bboxPolygon, booleanIntersects, flatten } from '@turf/turf'
+import {
+  bbox,
+  bboxPolygon,
+  booleanIntersects,
+  featureCollection,
+  flatten,
+} from '@turf/turf'
 import { onMount } from 'svelte'
 import type {
   GeoJSONSource,
@@ -46,12 +52,58 @@ let excludedByDistrictCode = new Map<
 >()
 
 const emptyTileCollection = { type: 'FeatureCollection' as const, features: [] }
-const processingTileSources: StyleSpecification['sources'] = {
-  'processing-tile': { type: 'geojson', data: emptyTileCollection },
-  'raw-exclusions': { type: 'geojson', data: emptyTileCollection },
-  'completed-exclusions': { type: 'geojson', data: emptyTileCollection },
-}
 const processingTileLayers: LayerSpecification[] = [
+  {
+    id: 'analysis-tiles',
+    type: 'fill',
+    source: 'analysis-tiles',
+    paint: {
+      'fill-color': [
+        'match',
+        ['feature-state', 'status'],
+        'active',
+        '#f4a261',
+        'complete',
+        '#43c6ad',
+        '#ffffff',
+      ],
+      'fill-opacity': [
+        'match',
+        ['feature-state', 'status'],
+        'active',
+        0.34,
+        'complete',
+        0.14,
+        0.025,
+      ],
+    },
+  },
+  {
+    id: 'analysis-tiles-outline',
+    type: 'line',
+    source: 'analysis-tiles',
+    paint: {
+      'line-color': [
+        'match',
+        ['feature-state', 'status'],
+        'active',
+        '#f4a261',
+        'complete',
+        '#43c6ad',
+        '#ffffff',
+      ],
+      'line-opacity': [
+        'match',
+        ['feature-state', 'status'],
+        'active',
+        1,
+        'complete',
+        0.45,
+        0.12,
+      ],
+      'line-width': ['match', ['feature-state', 'status'], 'active', 2, 1],
+    },
+  },
   {
     id: 'raw-exclusions',
     type: 'fill',
@@ -108,6 +160,16 @@ const processingTileLayers: LayerSpecification[] = [
     source: 'processing-tile',
     paint: { 'line-color': '#f4a261', 'line-width': 3 },
   },
+  {
+    id: 'processing-district',
+    type: 'line',
+    source: 'processing-district',
+    paint: {
+      'line-color': '#79e7d1',
+      'line-width': 4,
+      'line-dasharray': [2, 1],
+    },
+  },
 ]
 
 const longitudeToTile = (longitude: number) =>
@@ -156,6 +218,22 @@ const processingTiles = (() => {
 })()
 const totalTiles = processingTiles.length
 const totalDistricts = urbanDensityCensusDistricts.features.length
+const processingTileSources: StyleSpecification['sources'] = {
+  'analysis-tiles': {
+    type: 'geojson',
+    data: featureCollection(
+      processingTiles.map(tile => ({
+        ...bboxPolygon(tileBounds(tile)),
+        id: `${tile.x}/${tile.y}`,
+        properties: { tileKey: `${tile.x}/${tile.y}` },
+      })),
+    ),
+  },
+  'processing-tile': { type: 'geojson', data: emptyTileCollection },
+  'processing-district': { type: 'geojson', data: emptyTileCollection },
+  'raw-exclusions': { type: 'geojson', data: emptyTileCollection },
+  'completed-exclusions': { type: 'geojson', data: emptyTileCollection },
+}
 const activeTile = $derived(processingTiles[Math.min(completedTiles, totalTiles - 1)])
 const districtByCode = new Map(
   urbanDensityCensusDistricts.features.map(district => [
@@ -181,8 +259,8 @@ const progressCompleted = $derived(
 const progressTotal = $derived(phase === 'tiles' ? totalTiles : totalDistricts)
 const progressPhase = $derived(
   phase === 'tiles'
-    ? '[DOWNLOAD TILES & EXTRACT FEATURES]'
-    : '[CALCULATE EXCLUDED AREA]',
+    ? '[DOWNLOAD, SNAP & MERGE TILE]'
+    : '[INTERSECT & DISSOLVE DISTRICT]',
 )
 let focusedDistrictCode = $state<string>()
 const updateExclusionSources = () => {
@@ -199,7 +277,14 @@ const updateExclusionSources = () => {
 const focusDistrict = (
   district: (typeof urbanDensityCensusDistricts.features)[number] | undefined,
 ) => {
-  if (!district || focusedDistrictCode === district.properties.divisionCode) return
+  if (!district) return
+  if (phase === 'districts') {
+    const source = previewMap?.getSource('processing-district') as
+      | GeoJSONSource
+      | undefined
+    source?.setData(district)
+  }
+  if (focusedDistrictCode === district.properties.divisionCode) return
 
   focusedDistrictCode = district.properties.divisionCode
   const [west, south, east, north] = bbox(district)
@@ -215,6 +300,12 @@ const showTileOutline = (tile?: ProcessingTile) => {
     tile === undefined ? emptyTileCollection : bboxPolygon(tileBounds(tile)),
   )
   if (tile) focusDistrict(districtByCode.get(tile.districtCode))
+}
+const setTileStatus = (tile: ProcessingTile, status: 'active' | 'complete') => {
+  previewMap?.setFeatureState(
+    { source: 'analysis-tiles', id: `${tile.x}/${tile.y}` },
+    { status },
+  )
 }
 onMount(() => {
   let cancelled = false
@@ -273,7 +364,14 @@ onMount(() => {
     )
     updateExclusionSources()
     tileTimer = window.setInterval(() => {
-      completedTiles = Math.min(totalTiles, completedTiles + 12)
+      const nextCompletedTiles = Math.min(totalTiles, completedTiles + 12)
+      for (let index = completedTiles; index < nextCompletedTiles; index += 1) {
+        const completedTile = processingTiles[index]
+        if (completedTile) setTileStatus(completedTile, 'complete')
+      }
+      completedTiles = nextCompletedTiles
+      const nextTile = processingTiles[completedTiles]
+      if (nextTile) setTileStatus(nextTile, 'active')
       showTileOutline(processingTiles[completedTiles])
       if (completedTiles === totalTiles && tileTimer) {
         window.clearInterval(tileTimer)
@@ -300,6 +398,7 @@ onMount(() => {
       onMapReady={map => {
         previewMap = map
         updateExclusionSources()
+        if (activeTile) setTileStatus(activeTile, 'active')
         showTileOutline(activeTile)
       }}
       renderer="maplibre"
