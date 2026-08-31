@@ -651,22 +651,22 @@ const resetRequirement = (requirement: number) => {
       id="publish-configuration-title"
       class="mt-1 font-display text-headline-sm font-bold text-primary"
     >
-      {m.guide_publish_configuration_title({ host })}
+      {m.guide_publish_configuration_title({ platform: host })}
     </h3>
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html hosting === 'cloudflare'
         ? m.guide_publish_cloudflare_configuration_description()
         : hosting === 'github-pages'
           ? m.guide_publish_github_configuration_description()
-          : m.guide_publish_configuration_description({ host })}
+          : m.guide_publish_configuration_description({ platform: host })}
     </p>
     <GuidePublishRequirement
       id="publish-configuration-readiness"
       titleId="publish-configuration-readiness-title"
       complete={completedRequirements.includes(configurationRequirement)}
       completeAction={m.guide_publish_configuration_complete_action()}
-      eyebrow={m.guide_publish_configuration_ready({ host })}
-      description={m.guide_publish_configuration_ready_description({ host })}
+      eyebrow={m.guide_publish_configuration_ready({ platform: host })}
+      description={m.guide_publish_configuration_ready_description({ platform: host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
       onComplete={() => completeRequirement(configurationRequirement)}
@@ -674,7 +674,7 @@ const resetRequirement = (requirement: number) => {
     >
       {#if hosting === 'cloudflare'}
         <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ host }), path: terminalProjectPath })}
+          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
           description={m.guide_publish_cloudflare_configuration_command_description()}
           code={configurationCode}
           language={terminalLanguage}
@@ -707,7 +707,7 @@ const resetRequirement = (requirement: number) => {
         />
       {:else}
         <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ host }), path: terminalProjectPath })}
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
           code={configurationCode}
           language={terminalLanguage}
           copyLabel={m.common_copy()}
@@ -737,8 +737,8 @@ const resetRequirement = (requirement: number) => {
       titleId="publish-deployment-readiness-title"
       complete={completedRequirements.includes(deploymentRequirement)}
       completeAction={m.guide_publish_deployment_complete_action()}
-      eyebrow={m.guide_publish_deployment_ready()}
-      description={m.guide_publish_deployment_ready_description()}
+      eyebrow={m.guide_publish_deployment_ready({ platform: host })}
+      description={m.guide_publish_deployment_ready_description({ platform: host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
       onComplete={() => completeRequirement(deploymentRequirement)}
@@ -757,6 +757,9 @@ const resetRequirement = (requirement: number) => {
         />
         <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
           {@html m.guide_publish_cloudflare_build_warning()}
+        </p>
+        <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_publish_static_api_key()}
         </p>
         <div class="mt-6">
           <GuidePublishTerminalCommand
@@ -803,6 +806,9 @@ const resetRequirement = (requirement: number) => {
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
+        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_publish_static_api_key()}
+        </p>
       {/if}
     </GuidePublishRequirement>
   </section>
