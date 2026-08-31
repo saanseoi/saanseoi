@@ -1839,7 +1839,7 @@
   "guide_data_urban_density_liveable_map_comment_hide": "Hide the basemap-derived exclusion layer once the district-clipped geometry is ready.",
   "guide_data_urban_density_liveable_map_comment_order": "Find the first label layer so the calculated land remains beneath map labels.",
   "guide_data_urban_density_liveable_map_comment_liveable_source": "Give MapLibre a GeoJSON source containing the calculated liveable District shapes.",
-  "guide_data_urban_density_liveable_map_comment_liveable_fill": "Paint the calculated liveable land green.",
+  "guide_data_urban_density_liveable_map_comment_liveable_fill": "Paint the calculated liveable land green; the coral layer above will cover the excluded areas.",
   "guide_data_urban_density_liveable_map_comment_excluded_source": "Give MapLibre the matching district-clipped exclusions as their own GeoJSON source.",
   "guide_data_urban_density_liveable_map_comment_excluded_fill": "Paint the excluded land coral.",
   "guide_data_urban_density_liveable_map_comment_outline": "Outline the coral exclusions so their edges remain clear.",
