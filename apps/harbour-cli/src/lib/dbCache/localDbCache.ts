@@ -43,6 +43,7 @@ import {
 } from '@repo/db'
 
 import type { UploadTarget } from '../cli/options.ts'
+import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,
@@ -1333,6 +1334,49 @@ export async function refreshRemoteMetaCache(
     await assertCachedDatabaseHasExpectedTables(destinationPath, 'DB_META')
   } finally {
     await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
+  }
+}
+
+/** Applies the publish response to the local mirror without another D1 export. */
+export async function applyPublishMetadataDeltaToRemoteCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  publishResult: PublishDatasetResult,
+) {
+  const delta = publishResult.metadataDelta
+  if (!delta) {
+    throw new Error('Publish response did not include a metadata delta.')
+  }
+
+  const metaPath = resolve(cacheDir, 'DB_META.sqlite')
+  assertRemoteCacheDirectory(target, cacheDir)
+  const sqlite = new SQLiteDatabase(metaPath)
+  try {
+    sqlite.transaction(() => {
+      const updateRelease = sqlite.prepare(
+        'UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?',
+      )
+      const updateReleaseSet = sqlite.prepare(
+        'UPDATE apiReleaseSets SET status = ?, updatedAt = ? WHERE id = ?',
+      )
+      const updatedAt = new Date().toISOString()
+      for (const release of delta.releases) {
+        const result = updateRelease.run(release.status, updatedAt, release.id)
+        if (result.changes !== 1) {
+          throw new Error(`Local meta cache is missing release ${release.id}.`)
+        }
+      }
+      for (const releaseSet of delta.apiReleaseSets ?? []) {
+        const result = updateReleaseSet.run(releaseSet.status, updatedAt, releaseSet.id)
+        if (result.changes !== 1) {
+          throw new Error(
+            `Local meta cache is missing API release set ${releaseSet.id}.`,
+          )
+        }
+      }
+    })()
+  } finally {
+    sqlite.close()
   }
 }
 
