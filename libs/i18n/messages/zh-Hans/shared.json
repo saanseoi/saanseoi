@@ -1198,7 +1198,6 @@
   "guide_setup_publish_title": "发布地图",
   "guide_setup_continue_explanation": "这个命令将移动到您的项目目录并启动开发服务器。",
   "guide_publish_intro": "你的地图已可供公众使用。我们会把代码发送到 {host}，让人们可以在浏览器中打开。这个项目只有静态文件，不需要后端服务器：托管服务只需提供文件，浏览器便会运行地图。这种轻量设置让 {host} 等免费托管平台成为可能。",
-  "guide_publish_static_files_code_label": "发送到浏览器的文件",
   "guide_publish_static_files_label": "在浏览器中运行",
   "guide_publish_static_files_title": "静态文件",
   "guide_publish_static_files_description": "“静态”是指托管服务直接提供这些文件：浏览器载入 HTML、JavaScript、样式和地图数据，然后运行地图。另一种方式是服务器渲染的网站，每次有人访问时都在托管服务上运行应用程序，再把结果传回浏览器。这个项目采用较轻量的静态方式，因此不需要后端服务器。",

@@ -1193,7 +1193,6 @@
   "guide_setup_continue_explanation": "This single command moves into your project directory and starts the development server.",
   "guide_setup_publish_title": "Publish the map",
   "guide_publish_intro": "Your map is ready for public use. We will send its code to {host}, where people can open it in a browser. Because this project contains static files, it doesn't need a back-end server: the host simply serves the files and the browser runs the map. This lightweight setup makes free hosting platforms such as {host} possible.",
-  "guide_publish_static_files_code_label": "Files sent to the browser",
   "guide_publish_static_files_label": "RUNNING IN THE BROWSER",
   "guide_publish_static_files_title": "Static files",
   "guide_publish_static_files_description": "Static means the host simply serves the files. The browser loads the HTML, JavaScript, styles and map data, then runs the map. The alternative is a server-rendered site, where application code runs on the host for each visit before it sends a page back. This project uses the lighter static approach, so it does not need a back-end server.",
