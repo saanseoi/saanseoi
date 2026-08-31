@@ -30,11 +30,15 @@ import {
   type RegionCode,
   type ResourceType,
 } from '@repo/core'
-import type { ApiReleaseSetMetadataDelta } from '@repo/core/pipeline/harbourClient'
+import type {
+  ApiReleaseSetMetadataDelta,
+  SnapshotMetadataDelta,
+} from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
+  inArray,
   metaApiComposition,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
@@ -45,6 +49,7 @@ import {
   metaReleases,
   metaSchema,
   metaSnapshotSources,
+  metaSnapshots,
   or,
   type ApiFamilyType,
 } from '@repo/db'
@@ -96,6 +101,7 @@ type ControlResult = {
   metadataDelta?: {
     apiReleaseSets?: ApiReleaseSetMetadataDelta[]
     releases: Array<{ id: string; status: 'published' }>
+    snapshots?: SnapshotMetadataDelta[]
   }
   releaseCode: string
   releaseId: string
@@ -686,7 +692,14 @@ export async function handlePublishDataset(
       apiReleaseSetAnnouncements,
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
-      metadataDelta: publishMetadataDelta(dataset.releaseId, apiReleaseSetMetadata),
+      metadataDelta: publishMetadataDelta(
+        dataset.releaseId,
+        apiReleaseSetMetadata,
+        await resolvePublishedSnapshotMetadataDeltas(
+          db,
+          snapshots.map(snapshot => snapshot.id),
+        ),
+      ),
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
@@ -699,6 +712,7 @@ export async function handlePublishDataset(
 function publishMetadataDelta(
   releaseId: string,
   apiReleaseSet?: ApiReleaseSetMetadataDelta,
+  snapshots?: SnapshotMetadataDelta[],
 ) {
   return {
     ...(apiReleaseSet
@@ -707,7 +721,52 @@ function publishMetadataDelta(
         }
       : {}),
     releases: [{ id: releaseId, status: 'published' as const }],
+    ...(snapshots && snapshots.length > 0 ? { snapshots } : {}),
   }
+}
+
+async function resolvePublishedSnapshotMetadataDeltas(
+  db: HarbourReadableDb,
+  snapshotIds: string[],
+): Promise<SnapshotMetadataDelta[]> {
+  if (snapshotIds.length === 0) return []
+
+  const snapshots = await db
+    .select({
+      id: metaSnapshots.id,
+      publishedAt: metaSnapshots.publishedAt,
+      status: metaSnapshots.status,
+      validFrom: metaSnapshots.validFrom,
+      validTo: metaSnapshots.validTo,
+    })
+    .from(metaSnapshots)
+    .where(inArray(metaSnapshots.id, snapshotIds))
+    .all()
+
+  if (snapshots.length !== snapshotIds.length) {
+    throw new ControlRequestError('Published snapshot metadata is incomplete.')
+  }
+
+  return snapshots.map(snapshot => {
+    if (
+      snapshot.status !== 'published' ||
+      !snapshot.publishedAt ||
+      !snapshot.validFrom ||
+      snapshot.validTo !== null
+    ) {
+      throw new ControlRequestError(
+        `Snapshot ${snapshot.id} was not published with a complete validity interval.`,
+      )
+    }
+
+    return {
+      id: snapshot.id,
+      status: 'published',
+      publishedAt: snapshot.publishedAt,
+      validFrom: snapshot.validFrom,
+      validTo: null,
+    }
+  })
 }
 
 async function resolveApiReleaseSetMetadataDelta(
