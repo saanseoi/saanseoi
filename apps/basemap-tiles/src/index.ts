@@ -9,7 +9,7 @@ import {
   render_request,
   tile_path,
 } from '@repo/basemap'
-import { getAllowedOrigin } from './lib/access'
+import { applyAccessHeaders, getAllowedOrigin } from './lib/access'
 import { authenticatePublicKeyRequest } from './lib/public-key-access'
 import { ResponseCache, DYNAMIC_CACHE_CONTROL, tileBodyCacheKey } from './lib/cache'
 import { getRegionsIndex } from './lib/catalogue'
@@ -56,10 +56,20 @@ export const isLatestRequest = (
   archiveVersion: string | null,
 ): boolean => (name.endsWith('-latest') && !archiveVersion) || renderLatest
 
+const accessResponse = (
+  body: BodyInit | null,
+  status: number,
+  allowedOrigin: string,
+): Response =>
+  new Response(body, {
+    headers: applyAccessHeaders(new Headers(), allowedOrigin),
+    status,
+  })
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
     if (request.method.toUpperCase() === 'OPTIONS') {
-      const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
       const headers = new Headers({
         'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-API-Key',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -70,7 +80,7 @@ export default {
       return new Response(undefined, { headers, status: 204 })
     }
     if (request.method.toUpperCase() === 'POST') {
-      return new Response(undefined, { status: 405 })
+      return accessResponse(null, 405, allowedOrigin)
     }
 
     const url = new URL(request.url)
@@ -80,7 +90,7 @@ export default {
     const renderRequest = render_request(url.pathname)
     const boundaryName = boundary_name(url.pathname)
     if (!ok && !metadataKey && !manifestRequest && !renderRequest && !boundaryName) {
-      return new Response('Invalid URL', { status: 404 })
+      return accessResponse('Invalid URL', 404, allowedOrigin)
     }
 
     let access: Awaited<ReturnType<typeof authenticatePublicKeyRequest>>
@@ -88,30 +98,33 @@ export default {
       access = await authenticatePublicKeyRequest(request, env)
     } catch (error) {
       if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
-      return new Response(
+      return accessResponse(
         'Public API key validation is temporarily unavailable. Please retry.',
-        {
-          status: 503,
-        },
+        503,
+        allowedOrigin,
       )
     }
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
     // intentionally readable without a browser Origin or public key.
     if (!access && !manifestRequest && !renderRequest) {
-      return new Response('A valid SaanSeoi public API key is required.', {
-        status: 401,
-      })
+      return accessResponse(
+        'A valid SaanSeoi public API key is required.',
+        401,
+        allowedOrigin,
+      )
     }
     if (access && !access.unmetered && !access.originAllowed) {
-      return new Response('This public API key is not allowed from this origin.', {
-        status: 403,
-      })
+      return accessResponse(
+        'This public API key is not allowed from this origin.',
+        403,
+        allowedOrigin,
+      )
     }
     if (access && !access.unmetered) {
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
-        return new Response('Tile rate limit exceeded.', { status: 429 })
+        return accessResponse('Tile rate limit exceeded.', 429, allowedOrigin)
       env.TILE_USAGE.writeDataPoint({
         indexes: [access.lease.keyId],
         blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],
@@ -131,7 +144,7 @@ export default {
       cacheKey: tile ? tileBodyCacheKey(request) : undefined,
       env,
       ctx,
-      allowedOrigin: getAllowedOrigin(request.headers.get('Origin'), env),
+      allowedOrigin,
       latestRequest,
     })
     const cached = await responseCache.match()
