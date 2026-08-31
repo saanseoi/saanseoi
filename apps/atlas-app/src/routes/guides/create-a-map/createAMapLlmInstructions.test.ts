@@ -15,6 +15,7 @@ import {
   createUrbanDensityMapReadyCode,
   createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
+  urbanDensitySetupZ14TileFetcherCode,
 } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
@@ -39,14 +40,21 @@ describe('Create a Map LLM instructions', () => {
       'Analyse the map in several steps, then save the result.\nLoad it directly next time.\nSkip the calculation.',
     )
 
-    expect(mapSetup).not.toContain('savedResultPath')
-    expect(stats).toContain("const savedResultPath = './land-analysis.json'")
-    expect(stats.indexOf('savedResultPath')).toBeLessThan(stats.indexOf('apiBaseUrl'))
+    expect(mapSetup).not.toContain('savedResultUrl')
+    expect(stats).toContain(
+      "const savedResultUrl = new URL('./land-analysis.json', import.meta.url)",
+    )
+    expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
+    expect(stats).not.toContain('await import(savedResultPath)')
+    expect(stats.indexOf('savedResultUrl')).toBeLessThan(stats.indexOf('apiBaseUrl'))
     expect(stats).toContain("const apiBaseUrl = 'https://api.example'")
     expect(stats).toContain('let populationByDistrict: Record<string, string> = {}')
     expect(stats).toContain('let landAreaByDistrict: Record<string, string> = {}')
     expect(stats).toContain(
       '[populationByDistrict, landAreaByDistrict] = await Promise.all([',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'if (!nonLiveableKinds.has(feature.properties.kind)) return []',
     )
     expect(stats).toContain(
       "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
