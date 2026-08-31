@@ -2,12 +2,20 @@
 import { GuideCodeBlock, GuideScreenshot } from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import cloudflareAccountLight from '#lib/assets/guides/publish-cloudflare-account-light.webp'
+import cloudflareAuthenticationDark from '#lib/assets/guides/publish-cloudflare-auth-dark.webp'
+import cloudflareAuthenticationLight from '#lib/assets/guides/publish-cloudflare-auth-light.webp'
 import githubAccountDark from '#lib/assets/guides/publish-github-account-dark.webp'
 import githubAccountLight from '#lib/assets/guides/publish-github-account-light.webp'
+import githubAuthenticationDark from '#lib/assets/guides/publish-github-auth-dark.webp'
+import githubAuthenticationLight from '#lib/assets/guides/publish-github-auth-light.webp'
 import netlifyAccountDark from '#lib/assets/guides/publish-netlify-account-dark.webp'
 import netlifyAccountLight from '#lib/assets/guides/publish-netlify-account-light.webp'
+import netlifyAuthenticationDark from '#lib/assets/guides/publish-netlify-auth-dark.webp'
+import netlifyAuthenticationLight from '#lib/assets/guides/publish-netlify-auth-light.webp'
 import vercelAccountDark from '#lib/assets/guides/publish-vercel-account-dark.webp'
 import vercelAccountLight from '#lib/assets/guides/publish-vercel-account-light.webp'
+import vercelAuthenticationDark from '#lib/assets/guides/publish-vercel-auth-dark.webp'
+import vercelAuthenticationLight from '#lib/assets/guides/publish-vercel-auth-light.webp'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
@@ -85,6 +93,28 @@ const accountScreenshotDark = $derived(
       : hosting === 'netlify'
         ? netlifyAccountDark
         : undefined,
+)
+const authenticationScreenshot = $derived(
+  hosting === 'cloudflare'
+    ? cloudflareAuthenticationLight
+    : hosting === 'github-pages'
+      ? githubAuthenticationLight
+      : hosting === 'vercel'
+        ? vercelAuthenticationLight
+        : hosting === 'netlify'
+          ? netlifyAuthenticationLight
+          : undefined,
+)
+const authenticationScreenshotDark = $derived(
+  hosting === 'cloudflare'
+    ? cloudflareAuthenticationDark
+    : hosting === 'github-pages'
+      ? githubAuthenticationDark
+      : hosting === 'vercel'
+        ? vercelAuthenticationDark
+        : hosting === 'netlify'
+          ? netlifyAuthenticationDark
+          : undefined,
 )
 const clientUrl = $derived(
   hosting === 'cloudflare'
@@ -381,6 +411,13 @@ const resetRequirement = (requirement: number) => {
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
       />
+      {#if authenticationScreenshot}
+        <GuideScreenshot
+          src={authenticationScreenshot}
+          srcDark={authenticationScreenshotDark}
+          alt={m.guide_publish_authentication_screenshot_alt({ host })}
+        />
+      {/if}
     </GuidePublishRequirement>
   </section>
 
