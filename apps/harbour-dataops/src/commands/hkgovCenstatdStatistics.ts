@@ -55,6 +55,10 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     key = args.options['source-archive-key'],
     sha = args.options['source-archive-sha256']
   const geographyOnly = args.options['geography-only'] === true
+  const includeGeography =
+    geographyOnly ||
+    args.options['defer-stats-release-set'] !== true ||
+    args.options['include-geography'] === true
   const deferApiReleaseSet = args.options['defer-api-release-set'] === true
   const forceUpload = args.options['force-upload'] === true
   if (
@@ -188,12 +192,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           ]
     const requestedTypes: StatisticResourceType[] = [
       ...(!geographyOnly ? (['divisionStatistic'] as const) : []),
-      ...(!geographyOnly && args.options['defer-stats-release-set'] === true
+      ...(!includeGeography
         ? []
         : geographies.some(geography => geography.divisionCount > 0)
           ? (['division'] as const)
           : []),
-      ...(!geographyOnly && args.options['defer-stats-release-set'] === true
+      ...(!includeGeography
         ? []
         : geographies.some(geography => geography.areaCount > 0)
           ? (['divisionArea'] as const)
@@ -273,7 +277,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     // family and may depend on Division inputs that are deliberately outside
     // that Stats-only batch. Do not let that optional fan-out invalidate the
     // successfully published Statistics source release.
-    if (!geographyOnly && args.options['defer-stats-release-set'] === true) return
+    if (!includeGeography) return
 
     for (const geography of geographies) {
       for (const [filePath, type] of [
