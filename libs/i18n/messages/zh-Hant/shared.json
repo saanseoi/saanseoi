@@ -1307,7 +1307,7 @@
   "guide_publish_github_deploy_description": "GitHub Pages 會在 <code>/saanseoi-project/</code> 下提供這個專案，而非放在網域根目錄。第一個指令會使用這個確切基礎路徑建立網站；第二個指令把 <code>dist</code> 的內容傳送到獨立的 <code>gh-pages</code> 分支。",
   "guide_publish_github_deploy_wait": "終端顯示 <code>Published</code>，代表 GitHub 已收到檔案並開始 Pages 建立程序。首次通常需要一兩分鐘。如頁面仍未出現，開啟儲存庫的 <strong>Actions</strong> 分頁，等待 <strong>pages build and deployment</strong> 變成綠色。",
   "guide_publish_vercel_deploy_description": "把專案傳送到 Vercel 的正式環境。Vercel 會上載原始碼，在自己的建立機器再次執行偵測到的建立程序，然後分配固定的專案網址。",
-  "guide_publish_netlify_deploy_description": "把 <code>dist</code> 內已建立的檔案上載到 Netlify 正式網站。CLI 會與上次部署比較，只傳送網站需要的檔案。",
+  "guide_publish_netlify_deploy_description": "把 <code>dist</code> 內已建立的檔案上載到 Netlify 正式網站。<code>--no-build</code> 可避免 Netlify 再次建立同一批檔案；CLI 會與上次部署比較，只傳送網站需要的檔案。",
   "guide_publish_vercel_deploy_complete": "分享連結時，請使用最後的 <code>Aliased</code> 網址。較長的 Production 網址只屬於這次部署；短網址會一直指向最新版本。",
   "guide_publish_netlify_deploy_complete": "分享連結時，請使用 <code>Production URL</code>。Unique deploy URL 是這次上載的永久快照。",
   "guide_publish_netlify_visibility_title": "確認網站真的公開",
