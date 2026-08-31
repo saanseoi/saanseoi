@@ -280,7 +280,7 @@ onMount(() => {
     />
   {/key}
   <section
-    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),24rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 px-5 py-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
+    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),32rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 px-5 py-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
     aria-live="polite"
   >
     <p class="font-mono text-[0.68rem] font-bold tracking-[0.12em] text-white/70">
@@ -293,40 +293,39 @@ onMount(() => {
         {districtNameByCode[activeDistrict.properties.divisionCode] ?? activeDistrict.properties.divisionCode}
       </h2>
     {/if}
-    {#if phase === 'tiles'}
-      <p class="mt-3 font-mono text-base font-semibold tabular-nums text-white/85">
-        {completedTiles}
-        / {totalTiles}
-      </p>
-    {:else}
-      <dl
-        class="mt-3 grid grid-cols-[1fr_auto_1fr] items-end gap-x-3 font-mono tabular-nums"
-      >
-        <div>
-          <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">
-            PARTS
-          </dt>
-          <dd class="mt-0.5 text-base font-semibold text-white/85">
-            {completedDistrictParts}
-            / {totalTiles}
-          </dd>
-        </div>
-        <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">for</div>
-        <div>
-          <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">
-            DISTRICTS
-          </dt>
-          <dd class="mt-0.5 text-base font-semibold text-white/85">
-            {completedDistricts}
-            / {totalDistricts}
-          </dd>
-        </div>
-      </dl>
-    {/if}
+    <dl
+      class="mt-3 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end gap-x-3 font-mono tabular-nums"
+    >
+      <div>
+        <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">TILES</dt>
+        <dd class="mt-0.5 text-base font-semibold text-white/85">
+          {completedTiles}
+          / {totalTiles}
+        </dd>
+      </div>
+      <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">and</div>
+      <div>
+        <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">PARTS</dt>
+        <dd class="mt-0.5 text-base font-semibold text-white/85">
+          {completedDistrictParts}
+          / {phase === 'tiles' ? '–' : totalTiles}
+        </dd>
+      </div>
+      <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">for</div>
+      <div>
+        <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">
+          DISTRICTS
+        </dt>
+        <dd class="mt-0.5 text-base font-semibold text-white/85">
+          {completedDistricts}
+          / {totalDistricts}
+        </dd>
+      </div>
+    </dl>
     <progress
       class="mt-4 h-2 w-full accent-[#43c6ad]"
-      max={phase === 'tiles' ? totalTiles : totalDistricts}
-      value={phase === 'tiles' ? completedTiles : completedDistricts}
+      max={totalTiles}
+      value={phase === 'tiles' ? completedTiles : completedDistrictParts}
     ></progress>
   </section>
 </div>
