@@ -110,10 +110,18 @@ describe('reporting service', () => {
 
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
+        INSERT INTO sourceReleases
+          (id, datasetId, code, sourceVersion, cohortKey, status)
+        VALUES
+          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'published'),
+          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'published'),
+          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'published'),
+          ('release-4', 'hkgov-dpo-hk-address', 'sr-release-4', '2026-06-23.0', '2026-06', 'published');
         INSERT INTO releases (
-          id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
+            'release-1',
             'release-1',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-26.0',
@@ -134,6 +142,7 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
+            'release-2',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-25.0',
             'address',
@@ -153,6 +162,7 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
+            'release-3',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-24.0',
             'address',
@@ -171,6 +181,7 @@ describe('reporting service', () => {
             1761264000000
           ),
           (
+            'release-4',
             'release-4',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-23.0',
@@ -260,10 +271,17 @@ describe('reporting service', () => {
 
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
+        INSERT INTO sourceReleases
+          (id, datasetId, code, sourceVersion, cohortKey, status)
+        VALUES
+          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'published'),
+          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'published'),
+          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'published');
         INSERT INTO releases (
-          id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
+            'release-1',
             'release-1',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-26.0',
@@ -284,6 +302,7 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
+            'release-2',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-25.0',
             'address',
@@ -302,6 +321,7 @@ describe('reporting service', () => {
             1761350400000
           ),
           (
+            'release-3',
             'release-3',
             'hkgov-dpo-hk-address',
             'dr-hk-hkgov-dpo-address-2026-06-24.0',
@@ -538,9 +558,18 @@ function seedRelease(
   timestamp = 1761264000000,
 ) {
   sqlite.exec(`
-    INSERT INTO releases (
-      id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+    INSERT INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey, status,
+      ingestedAt, createdAt, updatedAt
     ) VALUES (
+      '${releaseId}', 'hkgov-dpo-hk-address', 'sr-${releaseCode}',
+      '${sourceVersion}', '2026-06', 'published',
+      ${timestamp}, ${timestamp}, ${timestamp}
+    );
+    INSERT INTO releases (
+      id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      '${releaseId}',
       '${releaseId}',
       'hkgov-dpo-hk-address',
       '${releaseCode}',
