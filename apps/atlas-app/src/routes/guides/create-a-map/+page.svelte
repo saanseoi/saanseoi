@@ -72,7 +72,6 @@ import {
 import { createCreateAMapGuidePresentation } from './createAMapGuidePresentation'
 import {
   createAgentProjectCommand,
-  createDeploymentCode,
   editorCardExplainerCode,
   editorCardExplainerDisplayCode,
   createNotebookCode,
@@ -86,7 +85,6 @@ import {
   createAMapRendererStyleCode,
   getBunInstallCode,
   getCreateAMapRendererReference,
-  getHostingInstallCode,
   getRendererTerminalCommand,
   iframeCode,
   mapboxTokenCode,
@@ -114,6 +112,7 @@ import {
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
+import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import {
@@ -241,6 +240,8 @@ let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 let usingExistingBasemapApiKey = $state(false)
+let isMapPublished = $state(false)
+let publishedHosting = $state<string | undefined>()
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
 let dataReadinessKey = $derived(dataSource ?? '')
@@ -692,10 +693,12 @@ const handleObjectiveChange = (value: string) => {
   mobilePlatform = undefined
   notebookLibrary = undefined
   notebookRuntime = undefined
+  isMapPublished = false
 }
 const handleWebsitePlatformChange = (value: string) => {
   websitePlatform = value as WebsitePlatform
   hosting = value === 'other' ? undefined : 'cloudflare'
+  isMapPublished = false
 }
 const handleRendererChange = (value: string) => {
   renderer = value as CreateAMapSelectionValue<'renderer'>
@@ -1126,6 +1129,10 @@ const notebookRuntimeChoices = $derived.by(() => {
 const selectedHosting = $derived(
   hostingChoices.find(choice => choice.value === hosting),
 )
+$effect(() => {
+  if (publishedHosting && publishedHosting !== hosting) isMapPublished = false
+  publishedHosting = hosting
+})
 const selectedWebsitePlatform = $derived(
   websitePlatformChoices.find(choice => choice.value === websitePlatform),
 )
@@ -1464,18 +1471,12 @@ const guideDecisions = $derived.by(() => {
   ]
 })
 
-const hostingInstallCode = $derived(getHostingInstallCode(hosting))
 const setupCode = $derived(createProjectSetupCode(operatingSystem, renderer))
-const hostingInstallExplanation = $derived(
-  m.guide_setup_install_hosting_tool_explanation({
-    host: selectedHosting?.label ?? '',
-  }),
-)
 const bunInstallExplanation = $derived(
   `${m.guide_setup_install_bun_explanation()}${terminalExperience === 'basic' ? ` ${m.guide_setup_install_bun_alternative_toolchain()}` : ''}`,
 )
-const setupStartStepNumber = $derived(hostingInstallCode ? 4 : 3)
-const setupContinueStepNumber = $derived(hostingInstallCode ? 5 : 4)
+const setupStartStepNumber = 3
+const setupContinueStepNumber = 4
 const restartProjectCode = $derived(createRestartProjectCode(operatingSystem))
 const agentProjectCommand = $derived(createAgentProjectCommand(agentTool))
 const stopServerModifier = $derived(operatingSystem === 'macos' ? 'Control' : 'Ctrl')
@@ -1494,18 +1495,6 @@ const projectSetupIntro = $derived.by(() => {
 const bunInstallCode = $derived(getBunInstallCode(operatingSystem))
 const notebookSetupCode = $derived(
   createNotebookSetupCode(operatingSystem, notebookLibrary),
-)
-const deploymentCode = $derived(createDeploymentCode(hosting))
-const hostingDocsUrl = $derived(
-  hosting === 'cloudflare'
-    ? 'https://developers.cloudflare.com/workers/static-assets/get-started/'
-    : hosting === 'github-pages'
-      ? 'https://docs.github.com/pages/getting-started-with-github-pages/creating-a-github-pages-site'
-      : hosting === 'vercel'
-        ? 'https://vercel.com/docs/deployments'
-        : hosting === 'netlify'
-          ? 'https://docs.netlify.com/welcome/add-new-site/'
-          : undefined,
 )
 const mobileDocsUrl = $derived(
   mobilePlatform === 'android'
@@ -2064,8 +2053,6 @@ const styleChoices = $derived.by(() =>
               {bunInstallCode}
               {bunInstallExplanation}
               {codeEditor}
-              {hostingInstallCode}
-              {hostingInstallExplanation}
               {locale}
               {notebookCode}
               {notebookLibrary}
@@ -2825,8 +2812,6 @@ const styleChoices = $derived.by(() =>
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
-            {shareLinks}
-            onShareExternalLink={shareExternalLink}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">
@@ -2948,24 +2933,16 @@ const styleChoices = $derived.by(() =>
               </GuideCallout>
             {/if}
           {:else}
-            <GuideCodeBlock
-              label={m.guide_setup_terminal_label({
-                action: m.guide_setup_publish_code(),
-                path: terminalProjectPath,
-              })}
-              code={deploymentCode}
-              language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
-            {#if hostingDocsUrl}
-              <a
-                class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-                href={hostingDocsUrl}
-                target="_blank"
-                rel="noreferrer"
-                >{@html m.guide_setup_hosting_docs()}</a
-              >
+            {#if hosting === 'cloudflare' || hosting === 'github-pages' || hosting === 'vercel' || hosting === 'netlify'}
+              <GuideCreateAMapPublish
+                {aiAccess}
+                {hosting}
+                {llmMode}
+                {operatingSystem}
+                {terminalExperience}
+                {terminalProjectPath}
+                onPublished={() => (isMapPublished = true)}
+              />
             {/if}
             {#if objective === 'web-embed' && websitePlatform !== 'other'}
               <div class="mt-8">
@@ -2988,6 +2965,50 @@ const styleChoices = $derived.by(() =>
               </div>
             {/if}
           {/if}
+        </GuideSection>
+      {/if}
+
+      {#if showPublishStep && dataSource}
+        <GuideSection
+          id="keep-exploring"
+          showBorder={false}
+          title={m.guide_data_urban_density_conclusion_title()}
+        >
+          <div
+            class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+          >
+            <p>
+              {@html dataSource === 'api'
+                ? isMapPublished
+                  ? m.guide_data_urban_density_conclusion_community_phewee_published()
+                  : m.guide_data_urban_density_conclusion_community_phewee()
+                : isMapPublished
+                  ? m.guide_data_urban_density_conclusion_community_own_data_published()
+                  : m.guide_data_urban_density_conclusion_community_own_data()}
+            </p>
+            {#if dataSource === 'api'}
+              <p>
+                {@html m.guide_data_urban_density_conclusion_community_complexity()}
+              </p>
+            {/if}
+            <p>{@html m.guide_data_urban_density_conclusion_community_continue()}</p>
+            <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
+            <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
+              {#each shareLinks as link}
+                <a
+                  class="inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary no-underline transition-colors hover:bg-secondary-container"
+                  href={link.href}
+                  onclick={() => shareExternalLink(link.icon)}
+                  target={link.newWindow === false ? undefined : '_blank'}
+                  rel={link.newWindow === false ? undefined : 'noreferrer'}
+                  aria-label={link.label}
+                  title={link.label}
+                >
+                  <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
+                </a>
+              {/each}
+            </nav>
+          </div>
         </GuideSection>
       {/if}
     </GuideRoot>

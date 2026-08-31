@@ -182,7 +182,7 @@ const progressTotal = $derived(phase === 'tiles' ? totalTiles : totalDistricts)
 const progressPhase = $derived(
   phase === 'tiles'
     ? '[DOWNLOAD TILES & EXTRACT FEATURES]'
-    : '[CALCULATE DISTRICT INTERSECTION]',
+    : '[CALCULATE EXCLUDED AREA]',
 )
 let focusedDistrictCode = $state<string>()
 const updateExclusionSources = () => {
