@@ -256,9 +256,9 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   expect(
     sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
   ).toEqual({ status: 'published' })
-  // A C&SD source can materialise both geometry and Statistics snapshots. Its
-  // source release is classified by the geometry it publishes, but bootstrap
-  // must still discover its linked divisionStatistic snapshot.
+  // A C&SD source can materialise both geometry and Statistics snapshots. Once
+  // the source release is classified as geometry, neither it nor the companion
+  // geometry snapshot may bootstrap a Statistics release set.
   const geometrySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
     cohortKey: '2021',
     datasetCode: datasetCodes[0],
@@ -290,7 +290,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(result).toEqual({
     createdReleaseSetCodes: ['data-hk-stats-2021'],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 1,
     skippedCohortKeys: [],
   })
   expect(
@@ -308,7 +308,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         )`,
       )
       .get(),
-  ).toEqual({ count: 2 })
+  ).toEqual({ count: 1 })
   expect(
     sqlite
       .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
@@ -317,7 +317,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 1,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -385,7 +385,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 1,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -423,7 +423,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 3,
+    inspectedSnapshots: 2,
     skippedCohortKeys: ['2021', '2022'],
   })
   expect(
