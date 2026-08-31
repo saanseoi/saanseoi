@@ -78,6 +78,7 @@ import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
+  applyPublishMetadataDeltaToRemoteCache,
   resolveLocalAddressDbContext,
   resolveShardBindingName,
   type LocalDbCacheProgressEvent,
@@ -166,6 +167,8 @@ export async function processLocalDivisionGeometrySqlUpload(
      * until this pass publishes it.
      */
     reuseRunningRelease?: boolean
+    /** Reuse ID-independent exact rows when materialising a derived variant. */
+    normalisedInput?: readonly NonNullable<NormalisedGeometry>[]
     skipRawSeed?: boolean
     skipSnapshotCleanup?: boolean
     validateGeometry?: boolean
@@ -342,10 +345,9 @@ export async function processLocalDivisionGeometrySqlUpload(
       { current: 0, max: previewPlan.rowCount },
     )
 
-    const file = options.inputFilePath
-      ? await asyncBufferFromFile(options.inputFilePath)
-      : await createAsyncBufferFromR2(bucket, rawObjectKey)
-    let normalised: Array<NonNullable<NormalisedGeometry>> = []
+    let normalised: Array<NonNullable<NormalisedGeometry>> = options.normalisedInput
+      ? [...options.normalisedInput]
+      : []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -354,8 +356,9 @@ export async function processLocalDivisionGeometrySqlUpload(
     let rejectedRows = 0
     let processedRows = 0
     const providerBridgeConfig = resolveProviderBridgeConfig(previewPlan)
-    const providerBridge =
-      providerBridgeConfig !== null
+    const providerBridge = options.normalisedInput
+      ? null
+      : providerBridgeConfig !== null
         ? new Map(
             (
               await metaDb
@@ -386,52 +389,60 @@ export async function processLocalDivisionGeometrySqlUpload(
             ]),
           )
         : null
-    for await (const batch of readParquetObjectsInBatches(file, 8192)) {
-      for (const row of batch) {
-        try {
-          const sourceRow =
-            previewPlan.source === 'hkgov-had'
-              ? normaliseHkgovHadInputRow(row, providerBridge)
-              : previewPlan.source === 'hkgov-censtatd'
-                ? normaliseHkgovCenstatdInputRow(row, providerBridge)
-                : previewPlan.source === 'hkgov-pland-new-town'
-                  ? normaliseHkgovPlandNewTownInputRow(row)
-                  : row
-          if (previewPlan.source === 'overture' && row.region === 'CN-GD') {
-            cnGdExcludedRecords.push({
-              divisionId: asOptionalString(row.division_id),
-              divisionIds: Array.isArray(row.division_ids)
-                ? row.division_ids.map(asOptionalString).filter(isString)
-                : null,
-              id: asOptionalString(row.id),
-            })
-            continue
+    if (!options.normalisedInput) {
+      const file = options.inputFilePath
+        ? await asyncBufferFromFile(options.inputFilePath)
+        : await createAsyncBufferFromR2(bucket, rawObjectKey)
+      for await (const batch of readParquetObjectsInBatches(file, 8192)) {
+        for (const row of batch) {
+          try {
+            const sourceRow =
+              previewPlan.source === 'hkgov-had'
+                ? normaliseHkgovHadInputRow(row, providerBridge)
+                : previewPlan.source === 'hkgov-censtatd'
+                  ? normaliseHkgovCenstatdInputRow(row, providerBridge)
+                  : previewPlan.source === 'hkgov-pland-new-town'
+                    ? normaliseHkgovPlandNewTownInputRow(row)
+                    : row
+            if (previewPlan.source === 'overture' && row.region === 'CN-GD') {
+              cnGdExcludedRecords.push({
+                divisionId: asOptionalString(row.division_id),
+                divisionIds: Array.isArray(row.division_ids)
+                  ? row.division_ids.map(asOptionalString).filter(isString)
+                  : null,
+                id: asOptionalString(row.id),
+              })
+              continue
+            }
+            const value =
+              previewPlan.type === 'divisionArea'
+                ? normaliseDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
+                    validateGeometry: options.validateGeometry,
+                    variant: geometryVariant(previewPlan),
+                  })
+                : normaliseDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
+                    validateGeometry: options.validateGeometry,
+                    variant: geometryVariant(previewPlan),
+                  })
+            if (value) normalised.push(value as NonNullable<NormalisedGeometry>)
+          } catch (error) {
+            rejectedRows += 1
+            throw error
           }
-          const value =
-            previewPlan.type === 'divisionArea'
-              ? normaliseDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
-                  validateGeometry: options.validateGeometry,
-                  variant: geometryVariant(previewPlan),
-                })
-              : normaliseDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
-                  validateGeometry: options.validateGeometry,
-                  variant: geometryVariant(previewPlan),
-                })
-          if (value) normalised.push(value as NonNullable<NormalisedGeometry>)
-        } catch (error) {
-          rejectedRows += 1
-          throw error
         }
+        processedRows += batch.length
+        progress.update(processedRows, {
+          label: formatGeometryProgressLabel(
+            'Normalise source',
+            previewPlan.type,
+            processedRows,
+            previewPlan.rowCount,
+          ),
+        })
       }
-      processedRows += batch.length
-      progress.update(processedRows, {
-        label: formatGeometryProgressLabel(
-          'Normalise source',
-          previewPlan.type,
-          processedRows,
-          previewPlan.rowCount,
-        ),
-      })
+    } else {
+      processedRows = previewPlan.rowCount
+      progress.update(processedRows)
     }
 
     const syntheticAreas = await resolveSyntheticOvertureHongKongAreas(
@@ -721,6 +732,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       return {
         snapshotId: snapshot.id,
         importedRows: normalised.length,
+        normalisedRows: normalised,
         publishResult: undefined,
       }
     }
@@ -754,16 +766,24 @@ export async function processLocalDivisionGeometrySqlUpload(
     remotePublished = target.remote
     if (target.remote) {
       try {
-        await runGeometryProgressPhase(
-          progress,
-          'Sync down',
-          formatTargetSubject('metadata', target),
-          () =>
-            refreshRemoteMetaCache(
-              target.environment === 'production' ? 'production' : 'preview',
-              dbContext.state.dbCacheDir,
-            ),
-        )
+        if (options.deferApiReleaseSet && publishResult) {
+          await applyPublishMetadataDeltaToRemoteCache(
+            target.environment === 'production' ? 'production' : 'preview',
+            dbContext.state.dbCacheDir,
+            publishResult,
+          )
+        } else {
+          await runGeometryProgressPhase(
+            progress,
+            'Sync down',
+            formatTargetSubject('metadata', target),
+            () =>
+              refreshRemoteMetaCache(
+                target.environment === 'production' ? 'production' : 'preview',
+                dbContext.state.dbCacheDir,
+              ),
+          )
+        }
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
         await invalidateRemoteDbCache(
@@ -779,6 +799,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     return {
       snapshotId: snapshot.id,
       importedRows: normalised.length,
+      normalisedRows: normalised,
       publishResult,
     }
   } catch (error) {
@@ -923,27 +944,48 @@ async function replayGeometryIntoRemote(
       context.state.dbCacheDir,
       releaseId,
       async () => {
-        for (const tableImport of tableImports) {
-          if (!tableImport.sql.trim()) continue
-          await runProgressPhase(
-            describeRemoteGeometryImport(tableImport.name, plan, target),
-            () =>
-              executeSqlText(
-                {
-                  databaseId: tableImport.databaseId ?? null,
-                  name: tableImport.name,
-                },
-                tableImport.sql,
-                options,
-              ),
-          )
-        }
+        await mapGeometryImportsWithConcurrency(
+          tableImports.filter(tableImport => tableImport.sql.trim()),
+          3,
+          tableImport =>
+            runProgressPhase(
+              describeRemoteGeometryImport(tableImport.name, plan, target),
+              () =>
+                executeSqlText(
+                  {
+                    databaseId: tableImport.databaseId ?? null,
+                    name: tableImport.name,
+                  },
+                  tableImport.sql,
+                  options,
+                ),
+            ),
+        )
       },
     )
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     throw new Error(`Remote geometry replay failed. ${reason}`)
   }
+}
+
+async function mapGeometryImportsWithConcurrency<T>(
+  values: readonly T[],
+  concurrency: number,
+  operation: (value: T) => Promise<unknown>,
+) {
+  let nextIndex = 0
+  const workers = Array.from(
+    { length: Math.min(Math.max(1, concurrency), values.length) },
+    async () => {
+      while (nextIndex < values.length) {
+        const value = values[nextIndex]
+        nextIndex += 1
+        if (value !== undefined) await operation(value)
+      }
+    },
+  )
+  await Promise.all(workers)
 }
 
 function readGeometryReplayMetadata(
