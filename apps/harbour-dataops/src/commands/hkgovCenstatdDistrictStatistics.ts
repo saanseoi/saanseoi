@@ -151,6 +151,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
+        reuseExistingRelease: true,
         skipConfirm: true,
         skipSnapshotCleanup: false,
         validateGeometry: false,
