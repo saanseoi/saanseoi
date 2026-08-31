@@ -67,6 +67,7 @@ type StageRequest = {
 type PublishRequest = {
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
+  deferSourcePublish?: boolean
   releaseCode?: string
   releaseId?: string
   skipSnapshotCleanup?: boolean
@@ -165,7 +166,10 @@ export async function handleStageRunning(
       await updateDatasetStatus(db, dataset.releaseId, 'processing')
     }
 
-    if (isAddressSqlGenerationProgressPhase(request.phase)) {
+    if (
+      request.phase === 'processDataset' ||
+      isAddressSqlGenerationProgressPhase(request.phase)
+    ) {
       await upsertIngestRunStatus(
         db,
         dataset.releaseId,
@@ -403,15 +407,19 @@ export async function handlePublishDataset(
           'Only Statistics source releases can defer API release-set publication.',
         )
       }
-      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      if (!request.deferSourcePublish) {
+        await updateDatasetStatus(db, dataset.releaseId, 'published')
+      }
       return {
         datasetId: dataset.releaseCode,
-        metadataDelta: publishMetadataDelta(dataset.releaseId),
+        metadataDelta: publishMetadataDelta(
+          request.deferSourcePublish ? null : dataset.releaseId,
+        ),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
         snapshotId: firstSnapshot.id,
-        status: 'published',
+        status: request.deferSourcePublish ? 'processing' : 'published',
       }
     }
 
@@ -419,15 +427,19 @@ export async function handlePublishDataset(
     // never become a Divisions release-set member or fan out across Overture
     // cohorts. A later authoritative C&SD release owns that publication.
     if (isFallbackCenstatdGeographicGeometry) {
-      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      if (!request.deferSourcePublish) {
+        await updateDatasetStatus(db, dataset.releaseId, 'published')
+      }
       return {
         datasetId: dataset.releaseCode,
-        metadataDelta: publishMetadataDelta(dataset.releaseId),
+        metadataDelta: publishMetadataDelta(
+          request.deferSourcePublish ? null : dataset.releaseId,
+        ),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
         snapshotId: firstSnapshot.id,
-        status: 'published',
+        status: request.deferSourcePublish ? 'processing' : 'published',
       }
     }
 
@@ -500,15 +512,19 @@ export async function handlePublishDataset(
               return releaseSet ? [releaseSet] : []
             })()
     if (releaseSets.length === 0) {
-      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      if (!request.deferSourcePublish) {
+        await updateDatasetStatus(db, dataset.releaseId, 'published')
+      }
       return {
         datasetId: dataset.releaseCode,
-        metadataDelta: publishMetadataDelta(dataset.releaseId),
+        metadataDelta: publishMetadataDelta(
+          request.deferSourcePublish ? null : dataset.releaseId,
+        ),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
         snapshotId: firstSnapshot.id,
-        status: 'published',
+        status: request.deferSourcePublish ? 'processing' : 'published',
       }
     }
     const publicationTargets = releaseSets.map(releaseSet => {
@@ -624,7 +640,10 @@ export async function handlePublishDataset(
         // families may still wait for required companion snapshots.
         deferApiReleaseSet: !shouldPublishReleaseSet,
         publishApiCatalogRevision: shouldPublishReleaseSet,
-        updateDatasetRelease: !options.reconcileDraftReleaseSet && isNewestReleaseSet,
+        updateDatasetRelease:
+          !request.deferSourcePublish &&
+          !options.reconcileDraftReleaseSet &&
+          isNewestReleaseSet,
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
@@ -664,7 +683,7 @@ export async function handlePublishDataset(
       }
     }
 
-    if (!request.skipSnapshotCleanup && cleanupQueue) {
+    if (!request.deferSourcePublish && !request.skipSnapshotCleanup && cleanupQueue) {
       try {
         await scheduleCurrentSnapshotCleanup(db, cleanupQueue, {
           delaySeconds: DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS,
@@ -693,7 +712,7 @@ export async function handlePublishDataset(
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       metadataDelta: publishMetadataDelta(
-        dataset.releaseId,
+        request.deferSourcePublish ? null : dataset.releaseId,
         apiReleaseSetMetadata,
         await resolvePublishedSnapshotMetadataDeltas(
           db,
@@ -704,13 +723,13 @@ export async function handlePublishDataset(
       releaseId: dataset.releaseId,
       phase: null,
       snapshotId: publicationTargets.at(-1)?.snapshot.id,
-      status: 'current',
+      status: request.deferSourcePublish ? 'processing' : 'current',
     }
   })
 }
 
 function publishMetadataDelta(
-  releaseId: string,
+  releaseId: string | null,
   apiReleaseSet?: ApiReleaseSetMetadataDelta,
   snapshots?: SnapshotMetadataDelta[],
 ) {
@@ -720,7 +739,7 @@ function publishMetadataDelta(
           apiReleaseSets: [apiReleaseSet],
         }
       : {}),
-    releases: [{ id: releaseId, status: 'published' as const }],
+    releases: releaseId ? [{ id: releaseId, status: 'published' as const }] : [],
     ...(snapshots && snapshots.length > 0 ? { snapshots } : {}),
   }
 }

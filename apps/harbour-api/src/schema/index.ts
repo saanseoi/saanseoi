@@ -240,6 +240,14 @@ export const RegisterUploadRequestSchema = z
           'Allow retrying a staged release, or an interrupted processing release with no active ingest phase, without permitting a published release repair.',
         examples: [true],
       }),
+    reuseExistingRelease: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Allow a subsequent resource from the same intake to reuse its processing source release.',
+        examples: [true],
+      }),
     inspection: UploadInspectionSchema,
     plan: z.object({
       cohortKey: z.string().optional(),
@@ -334,6 +342,7 @@ export const PublishDatasetRequestSchema = z
   .object({
     deferApiReleaseSet: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
+    deferSourcePublish: z.boolean().optional(),
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
     skipSnapshotCleanup: z.boolean().optional(),
