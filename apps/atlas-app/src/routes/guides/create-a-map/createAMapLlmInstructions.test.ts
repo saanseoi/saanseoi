@@ -132,6 +132,9 @@ describe('Create a Map LLM instructions', () => {
     expect(
       urbanDensityLiveableAreaMapCode.indexOf("id: 'liveable-districts'"),
     ).toBeLessThan(urbanDensityLiveableAreaMapCode.indexOf("id: 'excluded-districts'"))
+    expect(urbanDensityLiveableAreaMapCode).toContain(
+      "landUseLegend.id = 'land-use-legend'",
+    )
   })
 
   test('renders the complete guide', () => {

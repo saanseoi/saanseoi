@@ -88,10 +88,10 @@ const completeAndScroll = async () => {
     details={completeDetails}
   />
 {:else}
-  <div class="mt-5 max-w-3xl">
+  <div class="mt-5">
     {@render children?.()}
   </div>
-  <div class="mt-6 flex max-w-3xl justify-end">
+  <div class="mt-6 flex justify-end">
     <Button
       class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
       size="compact"

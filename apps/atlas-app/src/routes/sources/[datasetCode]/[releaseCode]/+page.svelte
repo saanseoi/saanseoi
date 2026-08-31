@@ -1,5 +1,5 @@
 <script lang="ts">
-import { goto } from '$app/navigation'
+import { afterNavigate, goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { prefersReducedMotion } from 'svelte/motion'
@@ -371,20 +371,21 @@ let tabs = $derived<ReleaseNavTab[]>([
 let releaseQueryError = $derived(contentResource.error)
 const refreshRelease = () => contentResource.query.refresh()
 
+afterNavigate(({ to }) => {
+  if (!to) return
+  activeTab = getSourceReleaseTabFromUrl(to.url)
+})
+
 $effect(() => {
-  const tab = getSourceReleaseTabFromUrl(page.url)
-  activeTab =
-    ((tab === 'schema' || tab === 'samples') && !sourceRecordFamily) ||
-    (tab === 'audit' &&
-      !(
-        isContentLoading ||
-        Boolean(
-          (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
-            0 || bulkActions.length,
-        )
-      ))
-      ? 'notes'
-      : tab
+  const unavailable =
+    ((activeTab === 'schema' || activeTab === 'samples') && !sourceRecordFamily) ||
+    (activeTab === 'audit' &&
+      !isContentLoading &&
+      (version?.processingActionCount ?? version?.processingActions?.length ?? 0) ===
+        0 &&
+      bulkActions.length === 0)
+
+  if (unavailable) activeTab = 'notes'
 })
 
 let actions = $derived<ReleaseNavAction[]>(
