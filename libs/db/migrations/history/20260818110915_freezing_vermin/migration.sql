@@ -1,1 +1,0 @@
-ALTER TABLE `statsMeasures` ADD `sourceNullOption` text;

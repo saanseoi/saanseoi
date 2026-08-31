@@ -1,1 +1,0 @@
-ALTER TABLE `publisherI18n` ADD `nameShort` text;

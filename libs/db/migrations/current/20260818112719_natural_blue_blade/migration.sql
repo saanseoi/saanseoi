@@ -1,1 +1,0 @@
-ALTER TABLE `statsMeasuresI18n` ADD `isTranslationVerified` integer DEFAULT true NOT NULL;
