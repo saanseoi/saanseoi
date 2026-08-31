@@ -4,6 +4,7 @@ import { Button } from '#lib/bits/primitives/button/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import cloudflareAccountDark from '#lib/assets/guides/publish-cloudflare-account-dark.webp'
 import cloudflareAccountLight from '#lib/assets/guides/publish-cloudflare-account-light.webp'
+import cloudflareAuthenticationAuthorizeDark from '#lib/assets/guides/publish-cloudflare-auth-authorize-dark.webp'
 import cloudflareAuthenticationAuthorizeLight from '#lib/assets/guides/publish-cloudflare-auth-authorize-light.webp'
 import cloudflareAuthenticationSuccessDark from '#lib/assets/guides/publish-cloudflare-auth-success-dark.webp'
 import cloudflareAuthenticationSuccessLight from '#lib/assets/guides/publish-cloudflare-auth-success-light.webp'
@@ -543,12 +544,16 @@ const resetRequirement = (requirement: number) => {
         copiedLabel={m.common_copied()}
       />
       {#if hosting === 'cloudflare'}
+        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+          {m.guide_publish_cloudflare_authentication_url_note()}
+        </p>
         <div class="mt-6 space-y-3">
           <p class="font-body text-body-md leading-7 text-foreground-alt">
             {m.guide_publish_cloudflare_authorize_description()}
           </p>
           <GuideScreenshot
             src={cloudflareAuthenticationAuthorizeLight}
+            srcDark={cloudflareAuthenticationAuthorizeDark}
             alt={m.guide_publish_cloudflare_authorize_screenshot_alt()}
           />
         </div>

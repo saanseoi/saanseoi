@@ -1241,6 +1241,7 @@
   "guide_publish_authentication_command": "使用 CLI 登录",
   "guide_publish_authentication_screenshot_alt": "{host} 登录页面",
   "guide_publish_cloudflare_authorize_description": "1. 在 Wrangler 打开的浏览器标签页中，核对帐户和权限，然后选择“Authorize”。",
+  "guide_publish_cloudflare_authentication_url_note": "Wrangler 会在此行之后打印完整的一次性网址，通常会在浏览器中打开它。如未打开，请从终端复制完整网址并粘贴到浏览器。",
   "guide_publish_cloudflare_authorize_screenshot_alt": "显示 Authorize 按钮的 Wrangler 授权页面",
   "guide_publish_cloudflare_authorization_success_description": "2. 当页面显示“Authorization granted to Wrangler”时，关闭浏览器窗口并回到终端。",
   "guide_publish_cloudflare_authorization_success_screenshot_alt": "显示可关闭浏览器窗口的 Wrangler 授权成功页面",

@@ -1232,6 +1232,7 @@
   "guide_publish_authentication_command": "使用 CLI 登入",
   "guide_publish_authentication_screenshot_alt": "{host} 登入頁面",
   "guide_publish_cloudflare_authorize_description": "1. 在 Wrangler 開啟的瀏覽器分頁中，核對帳戶和權限，然後選取「Authorize」。",
+  "guide_publish_cloudflare_authentication_url_note": "Wrangler 會在此行之後印出完整的一次性網址，通常會在瀏覽器開啟它。如未有開啟，請從終端機複製完整網址並貼到瀏覽器。",
   "guide_publish_cloudflare_authorize_screenshot_alt": "顯示 Authorize 按鈕的 Wrangler 授權頁面",
   "guide_publish_cloudflare_authorization_success_description": "2. 當頁面顯示「Authorization granted to Wrangler」時，關閉瀏覽器視窗並回到終端機。",
   "guide_publish_cloudflare_authorization_success_screenshot_alt": "顯示可關閉瀏覽器視窗的 Wrangler 授權成功頁面",
