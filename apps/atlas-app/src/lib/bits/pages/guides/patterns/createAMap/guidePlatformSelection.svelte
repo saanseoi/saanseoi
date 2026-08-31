@@ -83,7 +83,8 @@ let {
           >{@html m.guide_join_community()}</a
         >.
       </p>
-    {:else if websitePlatform}
+    {/if}
+    {#if websitePlatform}
       <GuideChoiceGroup
         alignment="left"
         label={m.guide_host_label()}
