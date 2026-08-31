@@ -117,6 +117,7 @@ import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
+  applyPublishMetadataDeltaToRemoteCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../dbCache/localDbCache.ts'
@@ -868,21 +869,31 @@ export async function processLocalDivisionSqlUpload(
           importOptions,
           releaseCode,
         )
+        if (options.deferApiReleaseSet && publishResult) {
+          await applyPublishMetadataDeltaToRemoteCache(
+            target.environment === 'production' ? 'production' : 'preview',
+            dbContext.state.dbCacheDir,
+            publishResult,
+          )
+          shouldRefreshRemoteMetaCache = false
+        }
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }
     }
-    await calculateAndStoreApiReleaseSetStats({
-      currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
-      family: 'division',
-      harbourClient,
-      importOptions,
-      metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      progress,
-      releaseCode,
-      releaseId,
-      target: resolveApiReleaseSetStatsTarget(publishResult),
-    })
+    if (!options.deferApiReleaseSet) {
+      await calculateAndStoreApiReleaseSetStats({
+        currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+        family: 'division',
+        harbourClient,
+        importOptions,
+        metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        progress,
+        releaseCode,
+        releaseId,
+        target: resolveApiReleaseSetStatsTarget(publishResult),
+      })
+    }
     await harbourClient.stageCompleted(
       releaseId,
       'processDataset',
