@@ -353,7 +353,6 @@
   "source_audit_record_action": "記錄操作",
   "source_audit_expand_records": "顯示記錄",
   "source_audit_collapse_records": "收合記錄",
-  "source_audit_load_more_records": "再載入 50 筆記錄",
   "source_audit_loading_records": "正在載入記錄…",
   "source_audit_load_records_error": "無法載入這些記錄，請再試一次。",
   "source_audit_mode_automatic": "自動",

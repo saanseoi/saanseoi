@@ -1706,7 +1706,7 @@
   "guide_data_urban_density_install_land_clipped_geometry": "Each district’s land-clipped geometry",
   "guide_data_urban_density_install_explanation": "To calculate the land-area per Area that's non-liveable, we need to step through the following:",
   "guide_data_urban_density_resource_title": "Optional Step",
-  "guide_data_urban_density_resource_explanation": "The next step is computation-intensive. It downloads hundreds of map tiles, decodes their polygons, then performs many spatial intersections and unions—all in the browser. While this <i>is</i> amazing, it is also optional, as it may take too long for you to run (10 minutes on a speedy desktop; up to an hour on slower hardware). Instead, you can opt to download the results your map would have produced for you, and then skip to the next section to use them.",
+  "guide_data_urban_density_resource_explanation": "The next step is computation-intensive. It downloads hundreds of map tiles, decodes their polygons, then performs thousands of spatial intersections and unions—alls in the browser. While this <i>is</i> amazing, it is also optional, as it may take too long for you to run (2 minutes on a speedy desktop; up to 10 minutes on slower hardware). Instead, you can opt to download the results your map would have produced for you, and then skip to the next section to use them.",
   "guide_data_urban_density_resource_download_json_result": "Download JSON result",
   "guide_data_urban_density_resource_download_instructions_title": "Use the downloaded result",
   "guide_data_urban_density_resource_download_instructions": "Place <code>land-analysis.json</code> at <code>{path}</code>. The next reload will use the file instead of running the land analysis.",

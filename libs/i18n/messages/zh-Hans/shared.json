@@ -353,7 +353,6 @@
   "source_audit_record_action": "记录操作",
   "source_audit_expand_records": "显示记录",
   "source_audit_collapse_records": "收起记录",
-  "source_audit_load_more_records": "再加载 50 条记录",
   "source_audit_loading_records": "正在加载记录…",
   "source_audit_load_records_error": "无法加载这些记录，请重试。",
   "source_audit_mode_automatic": "自动",

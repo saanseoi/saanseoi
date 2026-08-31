@@ -5,6 +5,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'
 import ReleaseAuditCardHeader from './releaseAuditCardHeader.svelte'
+import ReleaseAuditLoadMoreSentinel from './releaseAuditLoadMoreSentinel.svelte'
 import type {
   AuditEvidenceCopyHandler,
   AuditRowPresentation,
@@ -140,30 +141,11 @@ const toggleSection = (section: AuditSection) => {
               />
             {/each}
             {#if section.hasMore}
-              <div class="flex flex-col items-center gap-2 px-4 py-4">
-                <button
-                  class="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-default border border-data-outline-variant bg-data-surface-container-low px-4 py-2 font-body text-label-sm font-semibold text-data-primary transition hover:border-data-primary hover:bg-data-surface-container disabled:cursor-wait disabled:opacity-60"
-                  type="button"
-                  disabled={loadingSectionActions.has(section.action)}
-                  onclick={() => void onLoadMore(section)}
-                >
-                  {#if loadingSectionActions.has(section.action)}
-                    <Icon
-                      icon="ion:sync-outline"
-                      class="size-4 motion-safe:animate-spin"
-                      aria-hidden="true"
-                    />
-                    {m.source_audit_loading_records()}
-                  {:else}
-                    {m.source_audit_load_more_records()}
-                  {/if}
-                </button>
-                {#if failedSectionActions.has(section.action)}
-                  <p class="font-body text-label-sm text-data-danger" role="alert">
-                    {m.source_audit_load_records_error()}
-                  </p>
-                {/if}
-              </div>
+              <ReleaseAuditLoadMoreSentinel
+                failed={failedSectionActions.has(section.action)}
+                loading={loadingSectionActions.has(section.action)}
+                onLoad={() => onLoadMore(section)}
+              />
             {/if}
           </div>
         {/if}

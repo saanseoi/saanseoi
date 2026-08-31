@@ -19,6 +19,10 @@ import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
+const AUDIT_PAGE_SIZE = 50
+const COMPLETE_SEARCH_MIN_LENGTH = 3
+const COMPLETE_SEARCH_CONCURRENCY = 3
+
 type Props = {
   actions?: AuditAction[]
   actionSections?: Array<Omit<AuditSection, 'id'>>
@@ -54,8 +58,13 @@ let additionalRowsByAction = $state<Record<string, AuditAction[]>>({})
 let paginationByAction = $state<
   Record<string, Pick<AuditActionPage, 'hasMore' | 'nextOffset'>>
 >({})
+let visibleRowCountByAction = $state<Record<string, number>>({})
 let loadingSectionActions = $state<Set<string>>(new Set())
 let failedSectionActions = $state<Set<string>>(new Set())
+let loadingCompleteSearch = $state(false)
+let completeSearchLoadFailed = $state(false)
+let lastCompleteSearchAttempt = $state('')
+const pageRequests = new Map<string, Promise<AuditActionPage | null>>()
 
 const formatNumber = (value: number) => new Intl.NumberFormat().format(value)
 
@@ -153,6 +162,7 @@ let visibleActions = $derived(
 let filteredActions = $derived(
   visibleActions.filter(action => matchesFuzzyQuery(searchableText(action), query)),
 )
+let isCompleteSearch = $derived(query.trim().length >= COMPLETE_SEARCH_MIN_LENGTH)
 let visibleBulkSections = $derived(
   showBulkActions ? filterBulkProcessingSections(bulkActions, query) : [],
 )
@@ -183,16 +193,24 @@ let sections = $derived.by(() => {
 
   return actionSections.flatMap(section => {
     const pagination = paginationByAction[section.action]
-    const rows = [
+    const cachedRows = [
       ...section.rows,
       ...(additionalRowsByAction[section.action] ?? []),
-    ].filter(action => matchesFuzzyQuery(searchableText(action), query))
+    ]
+    const visibleRowCount =
+      visibleRowCountByAction[section.action] ?? section.rows.length
+    const rows = (
+      isCompleteSearch ? cachedRows : cachedRows.slice(0, visibleRowCount)
+    ).filter(action => matchesFuzzyQuery(searchableText(action), query))
     if (query && rows.length === 0) return []
 
     return [
       {
         ...section,
-        hasMore: pagination?.hasMore ?? section.hasMore,
+        hasMore:
+          !isCompleteSearch &&
+          (visibleRowCount < cachedRows.length ||
+            (pagination?.hasMore ?? section.hasMore)),
         id: auditHeadingId('record', section.action),
         nextOffset: pagination?.nextOffset ?? section.nextOffset,
         rows,
@@ -204,6 +222,16 @@ let totalActionCount = $derived(
   actionSections
     ? actionSections.reduce((total, section) => total + section.totalCount, 0)
     : visibleActions.length,
+)
+let filteredActionCount = $derived(
+  actionSections
+    ? sections.reduce((total, section) => total + section.rows.length, 0)
+    : filteredActions.length,
+)
+let hasUnfetchedActionRows = $derived(
+  actionSections?.some(
+    section => paginationByAction[section.action]?.hasMore ?? section.hasMore,
+  ) ?? false,
 )
 let sectionHeadings = $derived([
   ...visibleBulkSections.map(rule => ({
@@ -612,52 +640,157 @@ async function copyEvidence(id: string, evidence: unknown) {
   }
 }
 
+const getActionSection = (action: string) =>
+  actionSections?.find(section => section.action === action)
+
+const getCachedActionRows = (action: string) => {
+  const section = getActionSection(action)
+  return section ? [...section.rows, ...(additionalRowsByAction[action] ?? [])] : []
+}
+
+const actionHasUnfetchedRows = (action: string) => {
+  const section = getActionSection(action)
+  return section
+    ? (paginationByAction[action]?.hasMore ?? section.hasMore ?? false)
+    : false
+}
+
+async function fetchNextSectionPage(action: string): Promise<AuditActionPage | null> {
+  const section = getActionSection(action)
+  if (!section || !onLoadMoreSection || !actionHasUnfetchedRows(action)) return null
+
+  const activeRequest = pageRequests.get(action)
+  if (activeRequest) return activeRequest
+
+  const request = (async () => {
+    loadingSectionActions = new Set(loadingSectionActions).add(action)
+    const nextFailures = new Set(failedSectionActions)
+    nextFailures.delete(action)
+    failedSectionActions = nextFailures
+
+    try {
+      const page = await onLoadMoreSection(
+        action,
+        paginationByAction[action]?.nextOffset ??
+          section.nextOffset ??
+          section.rows.length,
+      )
+      const knownIds = new Set(getCachedActionRows(action).map(row => row.id))
+      additionalRowsByAction = {
+        ...additionalRowsByAction,
+        [action]: [
+          ...(additionalRowsByAction[action] ?? []),
+          ...page.rows.filter(row => !knownIds.has(row.id)),
+        ],
+      }
+      paginationByAction = {
+        ...paginationByAction,
+        [action]: {
+          hasMore: page.hasMore,
+          nextOffset: page.nextOffset,
+        },
+      }
+      return page
+    } catch {
+      failedSectionActions = new Set(failedSectionActions).add(action)
+      return null
+    } finally {
+      const nextLoading = new Set(loadingSectionActions)
+      nextLoading.delete(action)
+      loadingSectionActions = nextLoading
+    }
+  })()
+
+  pageRequests.set(action, request)
+  try {
+    return await request
+  } finally {
+    pageRequests.delete(action)
+  }
+}
+
 async function loadMoreSection(section: AuditSection) {
+  if (!section.hasMore || loadingSectionActions.has(section.action)) return
+
+  const visibleRowCount =
+    visibleRowCountByAction[section.action] ??
+    getActionSection(section.action)?.rows.length ??
+    section.rows.length
+  let cachedRowCount = getCachedActionRows(section.action).length
+
+  if (visibleRowCount >= cachedRowCount) {
+    const page = await fetchNextSectionPage(section.action)
+    if (!page) return
+    cachedRowCount = getCachedActionRows(section.action).length
+  }
+
+  visibleRowCountByAction = {
+    ...visibleRowCountByAction,
+    [section.action]: Math.min(visibleRowCount + AUDIT_PAGE_SIZE, cachedRowCount),
+  }
+}
+
+async function loadAllActionRows() {
+  if (!actionSections || loadingCompleteSearch || !hasUnfetchedActionRows) return
+
+  loadingCompleteSearch = true
+  completeSearchLoadFailed = false
+  const pendingActions = actionSections
+    .filter(section => actionHasUnfetchedRows(section.action))
+    .map(section => section.action)
+  let nextActionIndex = 0
+  let failed = false
+
+  const loadAction = async () => {
+    while (nextActionIndex < pendingActions.length) {
+      const action = pendingActions[nextActionIndex]
+      nextActionIndex += 1
+      if (!action) return
+
+      while (actionHasUnfetchedRows(action)) {
+        const page = await fetchNextSectionPage(action)
+        if (!page) {
+          failed = true
+          break
+        }
+      }
+    }
+  }
+
+  try {
+    await Promise.all(
+      Array.from(
+        {
+          length: Math.min(COMPLETE_SEARCH_CONCURRENCY, pendingActions.length),
+        },
+        loadAction,
+      ),
+    )
+  } finally {
+    completeSearchLoadFailed = failed
+    loadingCompleteSearch = false
+  }
+}
+
+function retryCompleteSearch() {
+  completeSearchLoadFailed = false
+  lastCompleteSearchAttempt = ''
+}
+
+$effect(() => {
+  const search = query.trim()
   if (
-    !onLoadMoreSection ||
-    !section.hasMore ||
-    loadingSectionActions.has(section.action)
+    search.length < COMPLETE_SEARCH_MIN_LENGTH ||
+    !hasUnfetchedActionRows ||
+    loadingCompleteSearch ||
+    (completeSearchLoadFailed && lastCompleteSearchAttempt === search)
   ) {
     return
   }
 
-  loadingSectionActions = new Set(loadingSectionActions).add(section.action)
-  const nextFailures = new Set(failedSectionActions)
-  nextFailures.delete(section.action)
-  failedSectionActions = nextFailures
-
-  try {
-    const page = await onLoadMoreSection(
-      section.action,
-      section.nextOffset ?? section.rows.length,
-    )
-    const knownIds = new Set(
-      [...section.rows, ...(additionalRowsByAction[section.action] ?? [])].map(
-        row => row.id,
-      ),
-    )
-    additionalRowsByAction = {
-      ...additionalRowsByAction,
-      [section.action]: [
-        ...(additionalRowsByAction[section.action] ?? []),
-        ...page.rows.filter(row => !knownIds.has(row.id)),
-      ],
-    }
-    paginationByAction = {
-      ...paginationByAction,
-      [section.action]: {
-        hasMore: page.hasMore,
-        nextOffset: page.nextOffset,
-      },
-    }
-  } catch {
-    failedSectionActions = new Set(failedSectionActions).add(section.action)
-  } finally {
-    const nextLoading = new Set(loadingSectionActions)
-    nextLoading.delete(section.action)
-    loadingSectionActions = nextLoading
-  }
-}
+  lastCompleteSearchAttempt = search
+  void loadAllActionRows()
+})
 
 $effect(() => {
   headings = sectionHeadings
@@ -716,9 +849,12 @@ $effect(() => {
 <Tooltip.Provider delayDuration={200}>
   <ReleaseAuditPanel bind:element={auditPanel}>
     <ReleaseAuditControls
-      filteredCount={formatNumber(filteredActions.length)}
+      filteredCount={formatNumber(filteredActionCount)}
       infoDescription={m.source_audit_info_description()}
       infoLabel={m.source_audit_info()}
+      loadError={completeSearchLoadFailed}
+      loading={loadingCompleteSearch}
+      onRetry={retryCompleteSearch}
       totalCount={formatNumber(totalActionCount)}
       bind:query
     />
