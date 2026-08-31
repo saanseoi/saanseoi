@@ -602,11 +602,18 @@ export const urbanDensityMapCode = [
 
 export const urbanDensityMapDisplayCode = urbanDensityMapCode
 
-export const urbanDensityTurfInstallCode = 'bun add @turf/turf @mapbox/vector-tile pbf'
+export const urbanDensityTurfInstallCode =
+  'bun add @turf/turf @mapbox/vector-tile pbf jsts'
 
 export const urbanDensitySetupZ14TileFetcherCode = [
   "import { VectorTile } from '@mapbox/vector-tile'",
   "import { PbfReader } from 'pbf'",
+  "import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'",
+  "import PrecisionModel from 'jsts/org/locationtech/jts/geom/PrecisionModel.js'",
+  "import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'",
+  "import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'",
+  "import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'",
+  "import GeometryPrecisionReducer from 'jsts/org/locationtech/jts/precision/GeometryPrecisionReducer.js'",
   "import { area, bbox, bboxPolygon, booleanIntersects, booleanValid, cleanCoords, difference, featureCollection, flatten, intersect, union, unkinkPolygon } from '@turf/turf'",
   "import type { Feature, MultiPolygon, Polygon } from 'geojson'",
   '',
@@ -666,6 +673,20 @@ export const urbanDensitySetupZ14TileFetcherCode = [
   '  flatten(cleanCoords(feature)).features.flatMap(polygon =>',
   '    booleanValid(polygon) ? [polygon] : unkinkPolygon(polygon).features,',
   '  )',
+  '',
+  '// MVT fragments are snapped independently; repair final overlays on a 0.1 m grid.',
+  'const geometryReader = new GeoJSONReader(new GeometryFactory())',
+  'const geometryWriter = new GeoJSONWriter()',
+  'const overlayPrecision = new PrecisionModel(1_000_000)',
+  'const repairOverlay = (feature: Feature<Polygon | MultiPolygon>) => {',
+  '  const geometry = geometryWriter.write(GeometryPrecisionReducer.reduce(',
+  '    geometryReader.read(feature.geometry), overlayPrecision,',
+  '  ))',
+  "  if ((geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') || !IsValidOp.isValid(geometryReader.read(geometry))) {",
+  "    throw new Error('Overlay repair did not produce valid polygonal geometry.')",
+  '  }',
+  '  return { ...feature, geometry: geometry as Polygon | MultiPolygon }',
+  '}',
   "const tileTemplate = basemapUrl.replace('.json?', '/{z}/{x}/{y}.mvt?')",
   `const tileKey = ({ x, y }: { x: number; y: number }) => \`\${x}/\${y}\``,
   'const tileUrlFor = ({ x, y }: { x: number; y: number }) =>',
@@ -868,8 +889,10 @@ export const urbanDensityLiveableAreaCode = [
   '    showDistrictProgress(index + 1, district, partIndex + 1, districtPolygonParts.length)',
   '    await pauseForAir()',
   '  }',
-  '  const excluded = union(featureCollection(clippedExclusions))',
-  '  const liveable = difference(featureCollection([district, excluded]))',
+  '  // Remove collapsed tile-edge rings before displaying or saving the exclusion.',
+  '  const excluded = repairOverlay(union(featureCollection(clippedExclusions)))',
+  '  // Apply the same fixed-precision repair after subtracting the exclusion.',
+  '  const liveable = repairOverlay(difference(featureCollection([district, excluded])))',
   '  districtLand.push({ district, excluded, liveable })',
   '  completedExclusions.push({ ...excluded, properties: { area: district.properties.area } })',
   '  completedExclusionSource.setData(featureCollection(completedExclusions))',

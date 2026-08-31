@@ -1,9 +1,16 @@
 <script lang="ts">
-import Icon from '#lib/bits/primitives/icon/icon.svelte'
+import { GuideCodeBlock, GuideScreenshot } from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
-import { Button } from '#lib/bits/primitives/button/index.js'
-import { GuideCodeBlock, GuideReadinessPanel } from '#lib/bits/pages/guides/index.js'
+import cloudflareAccountLight from '#lib/assets/guides/publish-cloudflare-account-light.webp'
+import githubAccountDark from '#lib/assets/guides/publish-github-account-dark.webp'
+import githubAccountLight from '#lib/assets/guides/publish-github-account-light.webp'
+import netlifyAccountDark from '#lib/assets/guides/publish-netlify-account-dark.webp'
+import netlifyAccountLight from '#lib/assets/guides/publish-netlify-account-light.webp'
+import vercelAccountDark from '#lib/assets/guides/publish-vercel-account-dark.webp'
+import vercelAccountLight from '#lib/assets/guides/publish-vercel-account-light.webp'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
+
+import GuidePublishRequirement from './guidePublishRequirement.svelte'
 
 type Hosting = Extract<
   CreateAMapSelectionQuery['hosting'],
@@ -14,8 +21,8 @@ type Props = {
   aiAccess?: CreateAMapSelectionQuery['aiAccess']
   hosting: Hosting
   llmMode?: CreateAMapSelectionQuery['llmMode']
+  onPublishedChange?: (published: boolean) => void
   operatingSystem?: CreateAMapSelectionQuery['operatingSystem']
-  onPublished?: () => void
   terminalExperience?: CreateAMapSelectionQuery['terminalExperience']
   terminalProjectPath: string
 }
@@ -24,13 +31,13 @@ let {
   aiAccess,
   hosting,
   llmMode,
+  onPublishedChange,
   operatingSystem,
-  onPublished,
   terminalExperience,
   terminalProjectPath,
 }: Props = $props()
 
-let completedRequirement = $state(0)
+let completedRequirements = $state<number[]>([])
 let previousSelection = $state('')
 
 const terminalLanguage = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
@@ -54,12 +61,30 @@ const client = $derived(
 )
 const accountUrl = $derived(
   hosting === 'cloudflare'
-    ? 'https://dash.cloudflare.com/sign-up'
+    ? 'https://dash.cloudflare.com/sign-up/workers-and-pages'
     : hosting === 'github-pages'
       ? 'https://github.com/signup'
       : hosting === 'vercel'
         ? 'https://vercel.com/signup'
         : 'https://app.netlify.com/signup',
+)
+const accountScreenshot = $derived(
+  hosting === 'cloudflare'
+    ? cloudflareAccountLight
+    : hosting === 'github-pages'
+      ? githubAccountLight
+      : hosting === 'vercel'
+        ? vercelAccountLight
+        : netlifyAccountLight,
+)
+const accountScreenshotDark = $derived(
+  hosting === 'github-pages'
+    ? githubAccountDark
+    : hosting === 'vercel'
+      ? vercelAccountDark
+      : hosting === 'netlify'
+        ? netlifyAccountDark
+        : undefined,
 )
 const clientUrl = $derived(
   hosting === 'cloudflare'
@@ -96,7 +121,7 @@ const authenticationCode = $derived(
 )
 const configurationCode = $derived(
   hosting === 'cloudflare'
-    ? 'bunx wrangler pages project create saanseoi-map'
+    ? 'bunx wrangler setup'
     : hosting === 'github-pages'
       ? [
           'git config --global user.name "Your name"',
@@ -104,21 +129,18 @@ const configurationCode = $derived(
           'git init -b main',
           'git add .',
           'git commit -m "Publish my map"',
-          'gh repo create saanseoi-map --public --source=. --push',
+          'gh repo create saanseoi-project --public --source=. --push',
         ].join('\n')
       : hosting === 'vercel'
         ? 'bunx vercel link'
-        : 'bunx netlify sites:create --name saanseoi-map',
+        : 'bunx netlify sites:create --name saanseoi-project',
 )
 const deploymentCode = $derived(
   hosting === 'cloudflare'
-    ? [
-        'bun run build',
-        'bunx wrangler pages deploy dist --project-name saanseoi-map',
-      ].join('\n')
+    ? ['bun run build', 'bunx wrangler deploy'].join('\n')
     : hosting === 'github-pages'
       ? [
-          'bunx vite build --base=/saanseoi-map/',
+          'bunx vite build --base=/saanseoi-project/',
           'bunx gh-pages -d dist',
           'gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=gh-pages" -f "source[path]=/"',
         ].join('\n')
@@ -128,7 +150,7 @@ const deploymentCode = $derived(
 )
 const visitUrl = $derived(
   hosting === 'github-pages'
-    ? 'https://your-github-user-name.github.io/saanseoi-map/'
+    ? 'https://your-github-user-name.github.io/saanseoi-project/'
     : undefined,
 )
 const llmHelp = $derived(
@@ -138,23 +160,26 @@ const llmHelp = $derived(
       ? m.guide_publish_assistance_agentic()
       : m.guide_publish_assistance_chat(),
 )
-const terminalHelp = $derived(
-  terminalExperience === 'none'
-    ? m.guide_publish_terminal_none()
-    : terminalExperience === 'advanced'
-      ? m.guide_publish_terminal_advanced()
-      : m.guide_publish_terminal_basic(),
-)
 
 $effect(() => {
   const selection = `${hosting}:${operatingSystem ?? ''}:${terminalExperience ?? ''}:${llmMode ?? ''}:${aiAccess ?? ''}`
-  if (previousSelection && previousSelection !== selection) completedRequirement = 0
+  if (previousSelection && previousSelection !== selection) {
+    completedRequirements = []
+    onPublishedChange?.(false)
+  }
   previousSelection = selection
 })
 
 const completeRequirement = (requirement: number) => {
-  completedRequirement = Math.max(completedRequirement, requirement)
-  if (requirement === 5) onPublished?.()
+  if (!completedRequirements.includes(requirement)) {
+    completedRequirements = [...completedRequirements, requirement]
+  }
+  if (requirement === 5) onPublishedChange?.(true)
+}
+
+const resetRequirement = (requirement: number) => {
+  completedRequirements = completedRequirements.filter(value => value !== requirement)
+  if (requirement === 5) onPublishedChange?.(false)
 }
 </script>
 
@@ -167,7 +192,7 @@ const completeRequirement = (requirement: number) => {
     <p
       class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {m.guide_publish_requirement({ current: 1, total: 2 })}
+      {m.guide_publish_requirement({ current: 1, total: 5 })}
     </p>
     <h3
       id="publish-account-title"
@@ -178,55 +203,38 @@ const completeRequirement = (requirement: number) => {
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_account_description({ host })}
     </p>
-    <GuideReadinessPanel
+    <GuidePublishRequirement
       id="publish-account-readiness"
-      complete={completedRequirement >= 1}
       titleId="publish-account-readiness-title"
+      complete={completedRequirements.includes(1)}
+      completeAction={m.guide_publish_account_complete_action()}
+      eyebrow={m.guide_publish_account_ready()}
+      description={m.guide_publish_account_ready_description({ host })}
+      resetDescription={m.guide_publish_reset_description()}
+      resetLabel={m.guide_readiness_reset()}
+      onComplete={() => completeRequirement(1)}
+      onReset={() => resetRequirement(1)}
     >
-      <div class="flex items-start gap-3">
-        <Icon
-          icon={completedRequirement >= 1 ? 'material-symbols-light:check-circle-rounded' : 'material-symbols-light:warning-rounded'}
-          class={`mt-0.5 size-5 shrink-0 ${completedRequirement >= 1 ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
-          aria-hidden="true"
-        />
-        <div class="min-w-0 flex-1">
-          <p
-            id="publish-account-readiness-title"
-            class={`font-body text-label-sm font-semibold tracking-[0.12em] uppercase ${completedRequirement >= 1 ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
-          >
-            {completedRequirement >= 1 ? m.guide_publish_account_ready() : m.guide_publish_account_needed()}
-          </p>
-          <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <a
-              class="font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-              href={accountUrl}
-              target="_blank"
-              rel="noreferrer"
-              >{m.guide_publish_account_action({ host })}</a
-            >
-            <Button
-              class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-              size="compact"
-              onclick={() => completeRequirement(1)}
-            >
-              <Icon
-                icon="material-symbols-light:check-rounded"
-                class="size-5"
-                aria-hidden="true"
-              />
-              {m.guide_publish_ready_check()}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </GuideReadinessPanel>
+      <GuideScreenshot
+        src={accountScreenshot}
+        srcDark={accountScreenshotDark}
+        alt={m.guide_publish_account_screenshot_alt({ host })}
+      />
+      <a
+        class="mt-5 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
+        href={accountUrl}
+        target="_blank"
+        rel="noreferrer"
+        >{m.guide_publish_account_action({ host })}</a
+      >
+    </GuidePublishRequirement>
   </section>
 
   <section aria-labelledby="publish-client-title">
     <p
       class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {m.guide_publish_requirement({ current: 2, total: 2 })}
+      {m.guide_publish_requirement({ current: 2, total: 5 })}
     </p>
     <h3
       id="publish-client-title"
@@ -237,134 +245,113 @@ const completeRequirement = (requirement: number) => {
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_client_description({ client, host })}
     </p>
-    {#if hosting === 'github-pages'}
-      <p class="mt-4 font-body text-body-lg leading-8 text-foreground-alt">
-        {@html m.guide_publish_github_git_description()}
-      </p>
-      {#if operatingSystem === 'linux'}
+    <GuidePublishRequirement
+      id="publish-client-readiness"
+      titleId="publish-client-readiness-title"
+      complete={completedRequirements.includes(2)}
+      completeAction={m.guide_publish_client_complete_action({ client })}
+      eyebrow={m.guide_publish_client_ready({ client })}
+      description={m.guide_publish_client_ready_description({ client })}
+      resetDescription={m.guide_publish_reset_description()}
+      resetLabel={m.guide_readiness_reset()}
+      onComplete={() => completeRequirement(2)}
+      onReset={() => resetRequirement(2)}
+    >
+      {#if hosting === 'github-pages'}
+        <p class="font-body text-body-lg leading-8 text-foreground-alt">
+          {@html m.guide_publish_github_git_description()}
+        </p>
+        {#if operatingSystem === 'linux'}
+          <GuideCodeBlock
+            class="mt-5"
+            label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_fedora(), path: terminalProjectPath })}
+            code="sudo dnf install git gh"
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuideCodeBlock
+            class="mt-4"
+            label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_debian(), path: terminalProjectPath })}
+            code="sudo apt install git gh"
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+        {:else}
+          <GuideCodeBlock
+            class="mt-5"
+            label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools(), path: terminalProjectPath })}
+            code={githubToolsInstallCode}
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+        {/if}
         <GuideCodeBlock
-          class="mt-5"
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_fedora(), path: terminalProjectPath })}
-          code="sudo dnf install git gh"
+          class="mt-4"
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_pages_helper(), path: terminalProjectPath })}
+          code="bun add -d gh-pages"
           language={terminalLanguage}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
         <GuideCodeBlock
-          class="mt-4"
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_debian(), path: terminalProjectPath })}
-          code="sudo apt install git gh"
+          class="mt-5"
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_check_git(), path: terminalProjectPath })}
+          code="git --version"
+          language={terminalLanguage}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <div class="mt-4 flex flex-wrap gap-4">
+          <a
+            class="font-body text-label-md font-semibold text-secondary underline underline-offset-4"
+            href={gitUrl}
+            target="_blank"
+            rel="noreferrer"
+            >{m.guide_publish_install_git()}</a
+          >
+          <a
+            class="font-body text-label-md font-semibold text-secondary underline underline-offset-4"
+            href={clientUrl}
+            target="_blank"
+            rel="noreferrer"
+            >{m.guide_publish_install_client({ client })}</a
+          >
+        </div>
+        <GuideCodeBlock
+          class="mt-5"
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_check_client({ client }), path: terminalProjectPath })}
+          code="gh --version"
           language={terminalLanguage}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
       {:else}
         <GuideCodeBlock
-          class="mt-5"
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools(), path: terminalProjectPath })}
-          code={githubToolsInstallCode}
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_install_client({ client }), path: terminalProjectPath })}
+          code={installCode}
           language={terminalLanguage}
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
         />
-      {/if}
-      <GuideCodeBlock
-        class="mt-4"
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_pages_helper(), path: terminalProjectPath })}
-        code="bun add -d gh-pages"
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
-      <GuideCodeBlock
-        class="mt-5"
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_check_git(), path: terminalProjectPath })}
-        code="git --version"
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
-      <div class="mt-4 flex flex-wrap gap-4">
         <a
-          class="font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-          href={gitUrl}
-          target="_blank"
-          rel="noreferrer"
-          >{m.guide_publish_install_git()}</a
-        >
-        <a
-          class="font-body text-label-md font-semibold text-secondary underline underline-offset-4"
+          class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
           href={clientUrl}
           target="_blank"
           rel="noreferrer"
-          >{m.guide_publish_install_client({ client })}</a
+          >{m.guide_publish_client_docs({ client })}</a
         >
-      </div>
-      <GuideCodeBlock
-        class="mt-5"
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_check_client({ client }), path: terminalProjectPath })}
-        code="gh --version"
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
-    {:else}
-      <GuideCodeBlock
-        class="mt-5"
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_install_client({ client }), path: terminalProjectPath })}
-        code={installCode}
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
-      <a
-        class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-        href={clientUrl}
-        target="_blank"
-        rel="noreferrer"
-        >{m.guide_publish_client_docs({ client })}</a
-      >
-    {/if}
-    <GuideReadinessPanel
-      id="publish-client-readiness"
-      complete={completedRequirement >= 2}
-      titleId="publish-client-readiness-title"
-    >
-      <div class="flex items-start gap-3">
-        <Icon
-          icon={completedRequirement >= 2 ? 'material-symbols-light:check-circle-rounded' : 'material-symbols-light:warning-rounded'}
-          class={`mt-0.5 size-5 shrink-0 ${completedRequirement >= 2 ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
-          aria-hidden="true"
-        />
-        <div class="min-w-0 flex-1">
-          <p
-            id="publish-client-readiness-title"
-            class={`font-body text-label-sm font-semibold tracking-[0.12em] uppercase ${completedRequirement >= 2 ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
-          >
-            {completedRequirement >= 2 ? m.guide_publish_client_ready({ client }) : m.guide_publish_client_needed({ client })}
-          </p>
-          <div class="mt-5 flex justify-end">
-            <Button
-              class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-              size="compact"
-              onclick={() => completeRequirement(2)}
-              ><Icon
-                icon="material-symbols-light:check-rounded"
-                class="size-5"
-                aria-hidden="true"
-              />{m.guide_publish_ready_check()}</Button
-            >
-          </div>
-        </div>
-      </div>
-    </GuideReadinessPanel>
+      {/if}
+    </GuidePublishRequirement>
   </section>
 
   <section aria-labelledby="publish-authentication-title">
     <p
       class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {m.guide_publish_requirement({ current: 3, total: 3 })}
+      {m.guide_publish_requirement({ current: 3, total: 5 })}
     </p>
     <h3
       id="publish-authentication-title"
@@ -375,54 +362,33 @@ const completeRequirement = (requirement: number) => {
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_authentication_description({ host })}
     </p>
-    <GuideCodeBlock
-      class="mt-5"
-      label={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
-      code={authenticationCode}
-      language={terminalLanguage}
-      copyLabel={m.common_copy()}
-      copiedLabel={m.common_copied()}
-    />
-    <GuideReadinessPanel
+    <GuidePublishRequirement
       id="publish-authentication-readiness"
-      complete={completedRequirement >= 3}
       titleId="publish-authentication-readiness-title"
+      complete={completedRequirements.includes(3)}
+      completeAction={m.guide_publish_authentication_complete_action()}
+      eyebrow={m.guide_publish_authenticated()}
+      description={m.guide_publish_authenticated_description({ host })}
+      resetDescription={m.guide_publish_reset_description()}
+      resetLabel={m.guide_readiness_reset()}
+      onComplete={() => completeRequirement(3)}
+      onReset={() => resetRequirement(3)}
     >
-      <div class="flex items-start gap-3">
-        <Icon
-          icon={completedRequirement >= 3 ? 'material-symbols-light:check-circle-rounded' : 'material-symbols-light:warning-rounded'}
-          class={`mt-0.5 size-5 shrink-0 ${completedRequirement >= 3 ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
-          aria-hidden="true"
-        />
-        <div class="min-w-0 flex-1">
-          <p
-            id="publish-authentication-readiness-title"
-            class={`font-body text-label-sm font-semibold tracking-[0.12em] uppercase ${completedRequirement >= 3 ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
-          >
-            {completedRequirement >= 3 ? m.guide_publish_authenticated() : m.guide_publish_authentication_needed()}
-          </p>
-          <div class="mt-5 flex justify-end">
-            <Button
-              class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-              size="compact"
-              onclick={() => completeRequirement(3)}
-              ><Icon
-                icon="material-symbols-light:check-rounded"
-                class="size-5"
-                aria-hidden="true"
-              />{m.guide_publish_ready_check()}</Button
-            >
-          </div>
-        </div>
-      </div>
-    </GuideReadinessPanel>
+      <GuideCodeBlock
+        label={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
+        code={authenticationCode}
+        language={terminalLanguage}
+        copyLabel={m.common_copy()}
+        copiedLabel={m.common_copied()}
+      />
+    </GuidePublishRequirement>
   </section>
 
   <section aria-labelledby="publish-configuration-title">
     <p
       class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {m.guide_publish_requirement({ current: 4, total: 4 })}
+      {m.guide_publish_requirement({ current: 4, total: 5 })}
     </p>
     <h3
       id="publish-configuration-title"
@@ -431,49 +397,32 @@ const completeRequirement = (requirement: number) => {
       {m.guide_publish_configuration_title({ host })}
     </h3>
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html hosting === 'github-pages' ? m.guide_publish_github_configuration_description() : m.guide_publish_configuration_description({ host })}
+      {@html hosting === 'cloudflare'
+        ? m.guide_publish_cloudflare_configuration_description()
+        : hosting === 'github-pages'
+          ? m.guide_publish_github_configuration_description()
+          : m.guide_publish_configuration_description({ host })}
     </p>
-    <GuideCodeBlock
-      class="mt-5"
-      label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
-      code={configurationCode}
-      language={terminalLanguage}
-      copyLabel={m.common_copy()}
-      copiedLabel={m.common_copied()}
-    />
-    <GuideReadinessPanel
+    <GuidePublishRequirement
       id="publish-configuration-readiness"
-      complete={completedRequirement >= 4}
       titleId="publish-configuration-readiness-title"
+      complete={completedRequirements.includes(4)}
+      completeAction={m.guide_publish_configuration_complete_action()}
+      eyebrow={m.guide_publish_configuration_ready()}
+      description={m.guide_publish_configuration_ready_description()}
+      resetDescription={m.guide_publish_reset_description()}
+      resetLabel={m.guide_readiness_reset()}
+      onComplete={() => completeRequirement(4)}
+      onReset={() => resetRequirement(4)}
     >
-      <div class="flex items-start gap-3">
-        <Icon
-          icon={completedRequirement >= 4 ? 'material-symbols-light:check-circle-rounded' : 'material-symbols-light:warning-rounded'}
-          class={`mt-0.5 size-5 shrink-0 ${completedRequirement >= 4 ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
-          aria-hidden="true"
-        />
-        <div class="min-w-0 flex-1">
-          <p
-            id="publish-configuration-readiness-title"
-            class={`font-body text-label-sm font-semibold tracking-[0.12em] uppercase ${completedRequirement >= 4 ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
-          >
-            {completedRequirement >= 4 ? m.guide_publish_configuration_ready() : m.guide_publish_configuration_needed()}
-          </p>
-          <div class="mt-5 flex justify-end">
-            <Button
-              class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-              size="compact"
-              onclick={() => completeRequirement(4)}
-              ><Icon
-                icon="material-symbols-light:check-rounded"
-                class="size-5"
-                aria-hidden="true"
-              />{m.guide_publish_ready_check()}</Button
-            >
-          </div>
-        </div>
-      </div>
-    </GuideReadinessPanel>
+      <GuideCodeBlock
+        label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
+        code={configurationCode}
+        language={terminalLanguage}
+        copyLabel={m.common_copy()}
+        copiedLabel={m.common_copied()}
+      />
+    </GuidePublishRequirement>
   </section>
 
   <section aria-labelledby="publish-deployment-title">
@@ -491,47 +440,26 @@ const completeRequirement = (requirement: number) => {
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_deployment_description({ host })}
     </p>
-    <GuideCodeBlock
-      class="mt-5"
-      label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
-      code={deploymentCode}
-      language={terminalLanguage}
-      copyLabel={m.common_copy()}
-      copiedLabel={m.common_copied()}
-    />
-    <GuideReadinessPanel
+    <GuidePublishRequirement
       id="publish-deployment-readiness"
-      complete={completedRequirement >= 5}
       titleId="publish-deployment-readiness-title"
+      complete={completedRequirements.includes(5)}
+      completeAction={m.guide_publish_deployment_complete_action()}
+      eyebrow={m.guide_publish_deployment_ready()}
+      description={m.guide_publish_deployment_ready_description()}
+      resetDescription={m.guide_publish_reset_description()}
+      resetLabel={m.guide_readiness_reset()}
+      onComplete={() => completeRequirement(5)}
+      onReset={() => resetRequirement(5)}
     >
-      <div class="flex items-start gap-3">
-        <Icon
-          icon={completedRequirement >= 5 ? 'material-symbols-light:check-circle-rounded' : 'material-symbols-light:warning-rounded'}
-          class={`mt-0.5 size-5 shrink-0 ${completedRequirement >= 5 ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
-          aria-hidden="true"
-        />
-        <div class="min-w-0 flex-1">
-          <p
-            id="publish-deployment-readiness-title"
-            class={`font-body text-label-sm font-semibold tracking-[0.12em] uppercase ${completedRequirement >= 5 ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
-          >
-            {completedRequirement >= 5 ? m.guide_publish_deployment_ready() : m.guide_publish_deployment_needed()}
-          </p>
-          <div class="mt-5 flex justify-end">
-            <Button
-              class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-              size="compact"
-              onclick={() => completeRequirement(5)}
-              ><Icon
-                icon="material-symbols-light:check-rounded"
-                class="size-5"
-                aria-hidden="true"
-              />{m.guide_publish_ready_check()}</Button
-            >
-          </div>
-        </div>
-      </div>
-    </GuideReadinessPanel>
+      <GuideCodeBlock
+        label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+        code={deploymentCode}
+        language={terminalLanguage}
+        copyLabel={m.common_copy()}
+        copiedLabel={m.common_copied()}
+      />
+    </GuidePublishRequirement>
   </section>
 
   <section aria-labelledby="publish-next-title">
@@ -551,7 +479,7 @@ const completeRequirement = (requirement: number) => {
       {@html m.guide_publish_share()}
     </p>
     <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-      {@html terminalHelp} {@html llmHelp}
+      {@html llmHelp}
     </p>
   </section>
 </div>

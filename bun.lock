@@ -82,6 +82,7 @@
         "bits-ui": "^2.19.0",
         "diff": "^9.0.0",
         "github-slugger": "^2.0.0",
+        "jsts": "2.12.1",
         "leader-line": "1.0.8",
         "leaflet": "1.9.4",
         "mapbox-gl": "3.29.0",
