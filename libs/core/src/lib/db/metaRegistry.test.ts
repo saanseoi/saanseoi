@@ -13,6 +13,8 @@ import {
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
+  listRegistryApiReleaseProcessingActions,
+  listRegistryApiReleaseProcessingActionSections,
   listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey,
   markDatasetCurrent,
   listRegistryReleases,
@@ -379,6 +381,53 @@ describe('listRegistryReleases', () => {
         expect.objectContaining({ sourceCode: 'overture-divisions' }),
       ]),
     )
+
+    const [lightweightRelease] = await listRegistryReleases(
+      db as never,
+      undefined,
+      0,
+      undefined,
+      undefined,
+      { includeProcessingActions: false },
+    )
+    expect(lightweightRelease?.processingActions).toBeUndefined()
+    expect(lightweightRelease?.processingActionCount).toBe(2)
+
+    const actionSections = await listRegistryApiReleaseProcessingActionSections(
+      db as never,
+      {
+        familyType: 'addresses',
+        releaseCode: 'data-hk-addresses-2026-07-15.0',
+      },
+    )
+    expect(actionSections).toEqual([
+      {
+        action: 'address_normalised',
+        affectedRecordCount: 8,
+        mode: 'automatic',
+        totalCount: 2,
+      },
+    ])
+
+    const firstActionPage = await listRegistryApiReleaseProcessingActions(db as never, {
+      action: 'address_normalised',
+      familyType: 'addresses',
+      limit: 1,
+      offset: 0,
+      releaseCode: 'data-hk-addresses-2026-07-15.0',
+    })
+    const secondActionPage = await listRegistryApiReleaseProcessingActions(
+      db as never,
+      {
+        action: 'address_normalised',
+        familyType: 'addresses',
+        limit: 1,
+        offset: 1,
+        releaseCode: 'data-hk-addresses-2026-07-15.0',
+      },
+    )
+    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
+    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
     sqlite.close()
   })
 })

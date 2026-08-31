@@ -20,7 +20,6 @@ import {
 } from '@repo/db'
 import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 import { metaSchema } from '@repo/db'
-import { exists } from 'drizzle-orm'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import {
   buildDatasetCode,
@@ -802,14 +801,14 @@ async function resolveRegistryApiReleaseSetId(
 }
 
 const processingActionBelongsToApiRelease = (apiReleaseSetId: string) =>
-  exists(
-    sql`select 1
+  sql`exists (
+      select 1
       from ${metaSnapshotSources}
       inner join ${metaApiReleaseSetSnapshots}
         on ${metaApiReleaseSetSnapshots.snapshotId} = ${metaSnapshotSources.snapshotId}
       where ${metaApiReleaseSetSnapshots.apiReleaseSetId} = ${apiReleaseSetId}
-        and ${metaSnapshotSources.sourceReleaseId} = ${releaseProcessingActions.releaseId}`,
-  )
+        and ${metaSnapshotSources.sourceReleaseId} = ${releaseProcessingActions.releaseId}
+    )`
 
 export async function listRegistryApiReleaseProcessingActionSections(
   db: MetaDatabase,

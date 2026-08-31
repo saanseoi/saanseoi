@@ -18,10 +18,12 @@ type Props = {
   analyticsSurface: ReleaseAnalyticsSurface
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
+  failedSectionActions: Set<string>
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
   onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
+  onLoadMore: (section: AuditSection) => Promise<void>
   onToggle: (id: string) => void
   presentRow: (
     action: string,
@@ -29,6 +31,7 @@ type Props = {
     summary: string,
   ) => AuditRowPresentation
   sections: AuditSection[]
+  loadingSectionActions: Set<string>
 }
 
 let {
@@ -36,13 +39,16 @@ let {
   analyticsSurface,
   evidenceTransitionName,
   expandedEvidenceId,
+  failedSectionActions,
   formatAction,
   formatNumber,
   onCopy,
   onFullscreen,
+  onLoadMore,
   onToggle,
   presentRow,
   sections,
+  loadingSectionActions,
 }: Props = $props()
 
 let expandedSections = $state<Map<string, boolean>>(new Map())
@@ -133,6 +139,32 @@ const toggleSection = (section: AuditSection) => {
                 transitionName={evidenceTransitionName(row.id)}
               />
             {/each}
+            {#if section.hasMore}
+              <div class="flex flex-col items-center gap-2 px-4 py-4">
+                <button
+                  class="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-default border border-data-outline-variant bg-data-surface-container-low px-4 py-2 font-body text-label-sm font-semibold text-data-primary transition hover:border-data-primary hover:bg-data-surface-container disabled:cursor-wait disabled:opacity-60"
+                  type="button"
+                  disabled={loadingSectionActions.has(section.action)}
+                  onclick={() => void onLoadMore(section)}
+                >
+                  {#if loadingSectionActions.has(section.action)}
+                    <Icon
+                      icon="ion:sync-outline"
+                      class="size-4 motion-safe:animate-spin"
+                      aria-hidden="true"
+                    />
+                    {m.source_audit_loading_records()}
+                  {:else}
+                    {m.source_audit_load_more_records()}
+                  {/if}
+                </button>
+                {#if failedSectionActions.has(section.action)}
+                  <p class="font-body text-label-sm text-data-danger" role="alert">
+                    {m.source_audit_load_records_error()}
+                  </p>
+                {/if}
+              </div>
+            {/if}
           </div>
         {/if}
       </ReleaseAuditCard>
