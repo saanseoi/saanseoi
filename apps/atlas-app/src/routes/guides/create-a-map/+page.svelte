@@ -734,7 +734,7 @@ const scrollPrimerToTop = async (id: string) => {
   scrollToElementBelowHeader(primer)
 }
 
-const handleLlmModeChange = (value: string) => {
+const handleLlmModeChange = (value?: string) => {
   if (value === 'handover') {
     llmDialogOpen = true
     trackClientProductUsage({
@@ -746,14 +746,14 @@ const handleLlmModeChange = (value: string) => {
   }
   if (value === 'assisted') void scrollPrimerToTop('agentic-ai-primer')
 }
-const handleTerminalExperienceChange = (value: string) => {
+const handleTerminalExperienceChange = (value?: string) => {
   if (value === 'none') void scrollPrimerToTop('terminal-introduction')
 }
-const handleAgentToolChange = (value: string) => {
+const handleAgentToolChange = (value?: string) => {
   if (value === 'zed') void openZedSetup()
 }
-const handleObjectiveChange = (value: string) => {
-  objective = value as Objective
+const handleObjectiveChange = (value?: string) => {
+  objective = value as Objective | undefined
   hosting = objective === 'web' ? 'cloudflare' : undefined
   websitePlatform = undefined
   mobileLibrary = objective === 'mobile-embed' ? 'maplibre-native' : undefined
@@ -762,13 +762,13 @@ const handleObjectiveChange = (value: string) => {
   notebookRuntime = undefined
   isMapPublished = false
 }
-const handleWebsitePlatformChange = (value: string) => {
-  websitePlatform = value as WebsitePlatform
-  hosting = 'cloudflare'
+const handleWebsitePlatformChange = (value?: string) => {
+  websitePlatform = value as WebsitePlatform | undefined
+  hosting = value ? 'cloudflare' : undefined
   isMapPublished = false
 }
-const handleRendererChange = (value: string) => {
-  renderer = value as CreateAMapSelectionValue<'renderer'>
+const handleRendererChange = (value?: string) => {
+  renderer = value as CreateAMapSelectionValue<'renderer'> | undefined
   resetMapboxToken()
 }
 
