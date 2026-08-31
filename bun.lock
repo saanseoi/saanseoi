@@ -81,8 +81,8 @@
         "better-auth": "1.7.2",
         "bits-ui": "^2.19.0",
         "diff": "^9.0.0",
+        "geos-wasm": "3.1.1",
         "github-slugger": "^2.0.0",
-        "jsts": "2.12.1",
         "leader-line": "1.0.8",
         "leaflet": "1.9.4",
         "mapbox-gl": "3.29.0",
@@ -1593,6 +1593,8 @@
     "geojson-equality-ts": ["geojson-equality-ts@1.0.2", "", { "dependencies": { "@types/geojson": "^7946.0.14" } }, "sha512-h3Ryq+0mCSN/7yLs0eDgrZhvc9af23o/QuC4aTiuuzP/MRCtd6mf5rLsLRY44jX0RPUfM8c4GqERQmlUxPGPoQ=="],
 
     "geojson-polygon-self-intersections": ["geojson-polygon-self-intersections@1.2.2", "", { "dependencies": { "rbush": "^2.0.1" } }, "sha512-6XRNF4CsRHYmR9z5YuIk5f/aOototnDf0dgMqYGcS7y1l57ttt6MAIAxl3rXyas6lq1HEbTuLMh4PgvO+OV42w=="],
+
+    "geos-wasm": ["geos-wasm@3.1.1", "", {}, "sha512-igWIBE9Ua2f2dw+MjaF3ogwUB45tLSTVdCYBpsHa9fenmtgyfaspjDhWTBhEaftZxATdEPaSwS707ELFYVvm9w=="],
 
     "get-caller-file": ["get-caller-file@2.0.5", "", {}, "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg=="],
 
