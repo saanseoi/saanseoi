@@ -137,9 +137,9 @@ export function calculateUrbanDensityMetrics(
 }
 
 export const urbanDensityLiveableLandAreas = {
-  'Hong Kong Island': 24.65694588051415,
-  Kowloon: 28.94632692899873,
-  'New Territories': 216.27366289973745,
+  'Hong Kong Island': 23.785863281767654,
+  Kowloon: 28.984783689490598,
+  'New Territories': 195.20912462313322,
 } as const
 
 export const calculateUrbanDensityLiveableMetrics = () => {

@@ -503,7 +503,10 @@ const liveableMetricsComments = [
     alwaysVisible: true,
     spacerAfter: true,
   },
-  { line: 1, text: m.guide_data_urban_density_liveable_metrics_comment_result() },
+  {
+    line: 1,
+    text: m.guide_data_urban_density_liveable_metrics_comment_exclusions(),
+  },
   { line: 2, text: m.guide_data_urban_density_liveable_metrics_comment_totals() },
   {
     line: 3,
@@ -512,16 +515,19 @@ const liveableMetricsComments = [
   { line: 4, text: m.guide_data_urban_density_liveable_metrics_comment_start() },
   { line: 5, text: m.guide_data_urban_density_liveable_metrics_comment_population() },
   { line: 6, text: m.guide_data_urban_density_liveable_metrics_comment_land_area() },
-  { line: 7, text: m.guide_data_urban_density_liveable_metrics_comment_measure() },
+  {
+    line: 7,
+    text: m.guide_data_urban_density_liveable_metrics_comment_excluded_area(),
+  },
   {
     line: 10,
     text: m.guide_data_urban_density_liveable_metrics_comment_save(),
   },
-  { line: 12, text: m.guide_data_urban_density_liveable_metrics_comment_remaining() },
-  { line: 15, text: m.guide_data_urban_density_liveable_metrics_comment_density() },
-  { line: 16, text: m.guide_data_urban_density_liveable_metrics_comment_percentage() },
-  { line: 20, text: m.guide_data_urban_density_liveable_metrics_comment_display() },
-  { line: 29, text: m.guide_data_urban_density_liveable_metrics_comment_append() },
+  { line: 14, text: m.guide_data_urban_density_liveable_metrics_comment_remaining() },
+  { line: 18, text: m.guide_data_urban_density_liveable_metrics_comment_density() },
+  { line: 19, text: m.guide_data_urban_density_liveable_metrics_comment_percentage() },
+  { line: 24, text: m.guide_data_urban_density_liveable_metrics_comment_display() },
+  { line: 33, text: m.guide_data_urban_density_liveable_metrics_comment_append() },
 ]
 
 const liveableAreaMapComments = [
