@@ -25,7 +25,7 @@ let {
 </script>
 
 {#if description}
-  <p class="font-body text-body-md leading-7 text-foreground-alt">
+  <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html description}
   </p>
 {/if}
