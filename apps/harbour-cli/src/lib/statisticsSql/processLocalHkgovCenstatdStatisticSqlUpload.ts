@@ -24,6 +24,7 @@ import {
 import type { UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
@@ -63,11 +64,21 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
   plan: {
     cohortKey: string
+    datasetCode: string
+    regionCode: 'hk'
     releaseCode: string
     rowCount: number
+    source: 'hkgov-censtatd'
     sourceVersion: string
+    theme: 'stats'
+    type: 'divisionStatistic'
   },
-  upload: { releaseCode?: string; releaseId?: string },
+  upload: {
+    datasetCode?: string
+    rawObjectKey?: string
+    releaseCode?: string
+    releaseId?: string
+  },
   prepared: PreparedUploadFile,
   options: { deferStatsReleaseSet?: boolean; promptForCuration: boolean },
 ) {
@@ -101,6 +112,22 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     })
   }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const datasetCode = required(upload.datasetCode, 'datasetCode')
+  if (datasetCode !== plan.datasetCode) {
+    throw new Error(
+      `Registered dataset ${datasetCode} does not match upload plan ${plan.datasetCode}.`,
+    )
+  }
+  await syncStagedReleaseIntoLocalMetaCache(
+    context.metaDb,
+    {
+      datasetCode,
+      rawObjectKey: required(upload.rawObjectKey, 'rawObjectKey'),
+      releaseCode,
+      releaseId,
+    },
+    plan,
+  )
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
     : createLocalControlClient(metaDb, {
@@ -118,7 +145,12 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       throw new Error(
         `Expected ${plan.rowCount} C&SD statistic rows; found ${rows.length}.`,
       )
-    const datasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
+    const importedDatasetCode = requiredString(rows[0]?.datasetCode, 'datasetCode')
+    if (importedDatasetCode !== datasetCode) {
+      throw new Error(
+        `Imported dataset ${importedDatasetCode} does not match registered dataset ${datasetCode}.`,
+      )
+    }
     const [dataset] = await loadDatasetFixtures(new Set([datasetCode]))
     if (!dataset) throw new Error(`Missing dataset fixture: ${datasetCode}.`)
     const sourceFeatures = rows.map(row => ({
