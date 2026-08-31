@@ -55,13 +55,16 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
     label: 'MapLibre',
     installCommand: 'bun add maplibre-gl',
     code: [
-      "import { Map } from 'maplibre-gl'",
+      "import * as maplibregl from 'maplibre-gl'",
+      "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
       "import 'maplibre-gl/dist/maplibre-gl.css'",
       "import './style.css'",
       '',
+      'maplibregl.setWorkerUrl(workerUrl)',
+      '',
       "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
       '',
-      'new Map({',
+      'new maplibregl.Map({',
       "  container: 'map',",
       '  center: [114.1694, 22.3193],',
       '  zoom: 11.5,',
@@ -137,9 +140,13 @@ export const createAMapRendererBasemapCode = (
   renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
+        "import * as maplibregl from 'maplibre-gl'",
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
         "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
         "import 'maplibre-gl/dist/maplibre-gl.css'",
         "import './style.css'",
+        '',
+        'maplibregl.setWorkerUrl(workerUrl)',
         '',
         'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
         'const urlSafeApiKey = encodeURIComponent(accessToken)',
@@ -160,10 +167,16 @@ export const createAMapRendererBasemapCode = (
         '}).addTo(map)',
       ].join('\n')
     : [
-        `import ${renderer === 'mapbox' ? "mapboxgl from 'mapbox-gl'" : "{ Map } from 'maplibre-gl'"}`,
+        ...(renderer === 'mapbox'
+          ? ["import mapboxgl from 'mapbox-gl'"]
+          : [
+              "import * as maplibregl from 'maplibre-gl'",
+              "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+            ]),
         `import '${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}/dist/${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}.css'`,
         "import './style.css'",
         '',
+        ...(renderer === 'maplibre' ? ['maplibregl.setWorkerUrl(workerUrl)', ''] : []),
         'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
         'const urlSafeApiKey = encodeURIComponent(accessToken)',
         `const basemapBaseUrl = '${tilejsonUrl}'`,
@@ -171,7 +184,7 @@ export const createAMapRendererBasemapCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'Map'}({`,
+        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
         '  zoom: 11.5,',
@@ -196,9 +209,13 @@ export const createAMapRendererStyleCode = (
   renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
+        "import * as maplibregl from 'maplibre-gl'",
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
         "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
         "import 'maplibre-gl/dist/maplibre-gl.css'",
         "import './style.css'",
+        '',
+        'maplibregl.setWorkerUrl(workerUrl)',
         '',
         'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
         'const urlSafeApiKey = encodeURIComponent(accessToken)',
@@ -219,10 +236,16 @@ export const createAMapRendererStyleCode = (
         '}).addTo(map)',
       ].join('\n')
     : [
-        `import ${renderer === 'mapbox' ? "mapboxgl from 'mapbox-gl'" : "{ Map } from 'maplibre-gl'"}`,
+        ...(renderer === 'mapbox'
+          ? ["import mapboxgl from 'mapbox-gl'"]
+          : [
+              "import * as maplibregl from 'maplibre-gl'",
+              "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+            ]),
         `import '${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}/dist/${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}.css'`,
         "import './style.css'",
         '',
+        ...(renderer === 'maplibre' ? ['maplibregl.setWorkerUrl(workerUrl)', ''] : []),
         'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
         'const urlSafeApiKey = encodeURIComponent(accessToken)',
         `const basemapBaseUrl = '${tilejsonUrl}'`,
@@ -236,7 +259,7 @@ export const createAMapRendererStyleCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'Map'}({`,
+        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
         '  zoom: 11.5,',
@@ -435,9 +458,13 @@ export const createAgentProjectCommand = (
 
 export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
   [
-    "import { Map as MapLibreMap, type GeoJSONSource } from 'maplibre-gl'",
+    "import * as maplibregl from 'maplibre-gl'",
+    "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+    "import type { GeoJSONSource } from 'maplibre-gl'",
     "import 'maplibre-gl/dist/maplibre-gl.css'",
     "import './style.css'",
+    '',
+    'maplibregl.setWorkerUrl(workerUrl)',
     '',
     'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
     'const urlSafeApiKey = encodeURIComponent(accessToken)',
@@ -452,7 +479,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '',
     "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
     '',
-    'const map = new MapLibreMap({',
+    'const map = new maplibregl.Map({',
     "  container: 'map',",
     '  center: [114.16, 22.32],',
     '  zoom: 11.5,',

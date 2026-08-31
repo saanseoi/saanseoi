@@ -36,6 +36,30 @@ describe('Create a Map LLM instructions', () => {
       createUrbanDensityMapReadyCode(styleUrl),
     ]) {
       expect(code).toContain('attributionControl: { compact: true }')
+      expect(code).toContain(
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+      )
+      expect(code).toContain('maplibregl.setWorkerUrl(workerUrl)')
+    }
+  })
+
+  test('emits the MapLibre production worker for Leaflet bridge snippets', () => {
+    for (const code of [
+      createAMapRendererBasemapCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/hongkong.json',
+      ),
+      createAMapRendererStyleCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/hongkong.json',
+      ),
+    ]) {
+      expect(code).toContain(
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+      )
+      expect(code).toContain('maplibregl.setWorkerUrl(workerUrl)')
     }
   })
 
