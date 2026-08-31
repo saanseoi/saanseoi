@@ -70,6 +70,7 @@ export type ApiRelease = {
     sourceCode?: string
     sourceReleaseCode?: string
   }>
+  processingActionCount?: number
   bulkActions?: Array<{
     id: string
     operationCode: string
