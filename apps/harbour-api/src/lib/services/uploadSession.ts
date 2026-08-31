@@ -8,6 +8,7 @@ export type RegisterUploadRequest = {
   fileName: string
   force?: boolean
   resumeStagedRelease?: boolean
+  reuseExistingRelease?: boolean
   inspection: UploadInspection
   plan: {
     cohortKey?: string
@@ -29,10 +30,14 @@ export async function handleRegisterUploadRequest(
 ) {
   const registered = await registerUpload(db, {
     allowExistingDatasetStatuses: request.force
-      ? ['staged', 'published']
+      ? request.reuseExistingRelease
+        ? ['staged', 'processing', 'published']
+        : ['staged', 'published']
       : request.resumeStagedRelease
         ? ['staged']
-        : undefined,
+        : request.reuseExistingRelease
+          ? ['processing']
+          : undefined,
     resumeInterruptedProcessingRelease: request.resumeStagedRelease,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
