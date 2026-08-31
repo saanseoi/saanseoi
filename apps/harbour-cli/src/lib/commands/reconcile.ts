@@ -4,6 +4,12 @@ import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { reconcileDraftReleaseSets } from '../upload/upload.ts'
 import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
+import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
 export async function runReconcileDraftReleaseSetsCommand(
   args: ParsedArgs,
@@ -28,6 +34,46 @@ export async function runReconcileDraftReleaseSetsCommand(
   }
 
   const result = await reconcileDraftReleaseSets(target, { apiFamily, regionCode })
+  if (result.publishedReleaseSetStatsTargets.length > 0) {
+    const firstTarget = result.publishedReleaseSetStatsTargets[0]
+    if (!firstTarget) throw new Error('Missing reconciled stats target.')
+    const dbContext = await resolveLocalAddressDbContext(
+      target,
+      regionCode ?? 'hk',
+      firstTarget.cohortKey.slice(0, 4),
+      {
+        cacheTableProfile: undefined,
+        includePreviousShardYears: true,
+        requireExistingRemoteCache: target.remote,
+      },
+    )
+    try {
+      for (const statsTarget of result.publishedReleaseSetStatsTargets) {
+        await calculateAndStoreApiReleaseSetStats({
+          currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+          family: statsTarget.family,
+          harbourClient: createHarbourControlClient(target) as HarbourClient,
+          importOptions: {
+            accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+            apiToken: process.env.CLOUDFLARE_D1_TOKEN,
+            isLocal: !target.remote,
+            metaBinding: dbContext.metaBinding,
+            metaDatabaseId: dbContext.state.bindings.DB_META?.databaseId ?? null,
+          },
+          metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+          progress: new LocalUploadProgress(),
+          releaseCode: statsTarget.releaseCode,
+          releaseId: statsTarget.releaseId,
+          target: {
+            apiReleaseSetId: statsTarget.apiReleaseSetId,
+            snapshotId: statsTarget.snapshotId,
+          },
+        })
+      }
+    } finally {
+      dbContext.cleanup()
+    }
+  }
   for (const apiReleaseSetCode of result.publishedReleaseSetCodes) {
     await recordInitialisationSummaryEvent({
       apiReleaseSetCode,
