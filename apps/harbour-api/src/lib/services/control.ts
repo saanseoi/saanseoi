@@ -88,6 +88,10 @@ type ControlResult = {
   apiReleaseSetAnnouncements?: ReleaseSetPublication[]
   apiReleaseSetPublications?: ReleaseSetPublication[]
   datasetId: string
+  metadataDelta?: {
+    apiReleaseSets?: Array<{ id: string; status: 'current' | 'draft' }>
+    releases: Array<{ id: string; status: 'published' }>
+  }
   releaseCode: string
   releaseId: string
   phase: string | null
@@ -383,6 +387,7 @@ export async function handlePublishDataset(
       await updateDatasetStatus(db, dataset.releaseId, 'published')
       return {
         datasetId: dataset.releaseCode,
+        metadataDelta: publishMetadataDelta(dataset.releaseId),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
@@ -398,6 +403,7 @@ export async function handlePublishDataset(
       await updateDatasetStatus(db, dataset.releaseId, 'published')
       return {
         datasetId: dataset.releaseCode,
+        metadataDelta: publishMetadataDelta(dataset.releaseId),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
@@ -478,6 +484,7 @@ export async function handlePublishDataset(
       await updateDatasetStatus(db, dataset.releaseId, 'published')
       return {
         datasetId: dataset.releaseCode,
+        metadataDelta: publishMetadataDelta(dataset.releaseId),
         phase: null,
         releaseCode: dataset.releaseCode,
         releaseId: dataset.releaseId,
@@ -662,6 +669,11 @@ export async function handlePublishDataset(
       apiReleaseSetAnnouncements,
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
+      metadataDelta: publishMetadataDelta(
+        dataset.releaseId,
+        releaseSets.at(-1)?.id,
+        selectedReleaseSetStatus,
+      ),
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
@@ -669,6 +681,21 @@ export async function handlePublishDataset(
       status: 'current',
     }
   })
+}
+
+function publishMetadataDelta(
+  releaseId: string,
+  apiReleaseSetId?: string,
+  apiReleaseSetStatus?: 'current' | 'draft',
+) {
+  return {
+    ...(apiReleaseSetId && apiReleaseSetStatus
+      ? {
+          apiReleaseSets: [{ id: apiReleaseSetId, status: apiReleaseSetStatus }],
+        }
+      : {}),
+    releases: [{ id: releaseId, status: 'published' as const }],
+  }
 }
 
 /**
