@@ -26,11 +26,11 @@ import {
 import {
   datasetVariantForSource,
   publisherCodeForSource,
-  type ApiReleaseSetMetadataDelta,
   type HarbourJobMessage,
   type RegionCode,
   type ResourceType,
 } from '@repo/core'
+import type { ApiReleaseSetMetadataDelta } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
