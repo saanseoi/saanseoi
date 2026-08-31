@@ -25,7 +25,7 @@ type Props = {
         label: string
         total: number
       }
-  onchange?: (value: string) => void
+  onchange?: (value?: string) => void
   step?: string
   tileLayout?: 'fixed' | 'flow' | 'six-across'
   value?: string
@@ -85,6 +85,33 @@ function updateIllustratedCarouselFit() {
 
   const cardsWidth = lastCard.offsetLeft + lastCard.offsetWidth - firstCard.offsetLeft
   illustratedCarouselFits = cardsWidth <= viewport.clientWidth
+}
+
+function clearChoice(choiceValue: string) {
+  requestAnimationFrame(() => {
+    value = undefined
+    inspectedChoiceValue = choiceValue
+    onchange?.(undefined)
+  })
+}
+
+function handleChoiceClick(event: MouseEvent, choiceValue: string) {
+  if (value !== choiceValue) return
+
+  event.preventDefault()
+  clearChoice(choiceValue)
+}
+
+function handleChoiceKeydown(event: KeyboardEvent, choiceValue: string) {
+  if (event.key !== ' ' || value !== choiceValue) return
+
+  event.preventDefault()
+  clearChoice(choiceValue)
+}
+
+function handleChoiceChange(choiceValue: string) {
+  inspectedChoiceValue = choiceValue
+  onchange?.(choiceValue)
 }
 
 onMount(() => {
@@ -229,7 +256,9 @@ onMount(() => {
               name={label}
               value={choice.value}
               bind:group={value}
-              onchange={() => onchange?.(choice.value)}
+              onclick={event => handleChoiceClick(event, choice.value)}
+              onkeydown={event => handleChoiceKeydown(event, choice.value)}
+              onchange={() => handleChoiceChange(choice.value)}
               disabled={choice.disabled}
             >
             {#if choice.image || choice.imageSlices || choice.darkImageSlices || illustratedLayout === 'grid'}
@@ -339,7 +368,9 @@ onMount(() => {
                 name={label}
                 value={choice.value}
                 bind:group={value}
-                onchange={() => onchange?.(choice.value)}
+                onclick={event => handleChoiceClick(event, choice.value)}
+                onkeydown={event => handleChoiceKeydown(event, choice.value)}
+                onchange={() => handleChoiceChange(choice.value)}
                 disabled={choice.disabled}
               >
               {#if choice.image || choice.imageSlices || choice.darkImageSlices}
@@ -454,10 +485,9 @@ onMount(() => {
             name={label}
             value={choice.value}
             bind:group={value}
-            onchange={() => {
-              inspectedChoiceValue = choice.value
-              onchange?.(choice.value)
-            }}
+            onclick={event => handleChoiceClick(event, choice.value)}
+            onkeydown={event => handleChoiceKeydown(event, choice.value)}
+            onchange={() => handleChoiceChange(choice.value)}
             disabled={choice.disabled}
           >
           {#if choice.badge}
