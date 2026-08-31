@@ -62,7 +62,7 @@ function initDb(dbPath: string) {
   return db
 }
 
-test('publishes a dataset snapshot as an exact reference-period Statistics release', async () => {
+test('publishes a dataset snapshot without finalising a shared source release', async () => {
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistic.sqlite'))
   const db = createLocalHarbourDb(sqlite)
@@ -156,7 +156,10 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
   })
   await upsertSnapshotSource(db, snapshot.id, dataset.id, releaseId, 'primary')
 
-  const result = await handlePublishDataset(db, { releaseId })
+  const result = await handlePublishDataset(db, {
+    deferSourcePublish: true,
+    releaseId,
+  })
   const release = sqlite
     .query('SELECT status FROM releases WHERE id = ?')
     .get(releaseId) as { status: string }
@@ -166,7 +169,16 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
     apiReleaseSetStatus: 'current',
     releaseId,
     snapshotId: snapshot.id,
-    status: 'current',
+    metadataDelta: {
+      releases: [],
+      snapshots: [
+        {
+          id: snapshot.id,
+          status: 'published',
+        },
+      ],
+    },
+    status: 'processing',
   })
   if (!result.apiReleaseSetId) throw new Error('Expected an API release-set ID.')
   expect(
@@ -174,7 +186,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
       .query('SELECT cohortKey FROM apiReleaseSets WHERE id = ?')
       .get(result.apiReleaseSetId),
   ).toEqual({ cohortKey: '2024/25' })
-  expect(release.status).toBe('published')
+  expect(release.status).toBe('processing')
   sqlite.close()
 })
 
@@ -256,6 +268,21 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     })
     await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
   }
+
+  const sharedReleaseId = releaseIds[0]
+  if (!sharedReleaseId) throw new Error('Expected a shared Statistics release.')
+  const deferredSharedRelease = await handlePublishDataset(db, {
+    deferSourcePublish: true,
+    deferStatsReleaseSet: true,
+    releaseId: sharedReleaseId,
+  })
+  expect(deferredSharedRelease).toMatchObject({
+    metadataDelta: { releases: [] },
+    status: 'processing',
+  })
+  expect(
+    sqlite.query('SELECT status FROM releases WHERE id = ?').get(sharedReleaseId),
+  ).toEqual({ status: 'processing' })
 
   for (const releaseId of releaseIds) {
     await handlePublishDataset(db, { deferStatsReleaseSet: true, releaseId })
@@ -895,6 +922,63 @@ describe('control service', () => {
       stats: '{"processedRows":2048,"sqlArtefactCount":3}',
       status: 'running',
     })
+  })
+
+  test('reopens a completed processing phase for the next shared resource', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-shared-resource.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-09',
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'processing',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    sqlite.exec(`
+      INSERT INTO ingestRuns (
+        runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      ) VALUES (
+        'run-process-shared-resource',
+        '${releaseId}',
+        'processDataset',
+        'completed',
+        '{"resourceType":"divisionStatistic"}',
+        null,
+        '2026-06-27T00:00:00.000Z',
+        '2026-06-27T00:01:00.000Z',
+        1760000000000,
+        1760000060000
+      );
+    `)
+
+    await handleStageRunning(db, {
+      releaseId,
+      phase: 'processDataset',
+      stats: { resourceType: 'divisionArea' },
+    })
+
+    expect(
+      sqlite
+        .query(
+          'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+        )
+        .get(releaseId, 'processDataset'),
+    ).toEqual({
+      finishedAt: null,
+      startedAt: '2026-06-27T00:00:00.000Z',
+      stats: '{"resourceType":"divisionArea"}',
+      status: 'running',
+    })
+    sqlite.close()
   })
 
   test('preserves the original startedAt when a running phase completes', async () => {
