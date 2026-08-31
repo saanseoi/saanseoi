@@ -102,6 +102,7 @@ import {
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
+import { openNormalisedArtefactCache } from '../localPipeline/normalisedArtefactCache.ts'
 import { simplifyPolygonCoverageCached } from '../geometry/simplifyPolygonCoverage.ts'
 
 type UploadResult = {
@@ -169,6 +170,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     reuseRunningRelease?: boolean
     /** Reuse ID-independent exact rows when materialising a derived variant. */
     normalisedInput?: readonly NonNullable<NormalisedGeometry>[]
+    cacheArtefacts?: boolean
     skipRawSeed?: boolean
     skipSnapshotCleanup?: boolean
     validateGeometry?: boolean
@@ -356,6 +358,26 @@ export async function processLocalDivisionGeometrySqlUpload(
     let rejectedRows = 0
     let processedRows = 0
     const providerBridgeConfig = resolveProviderBridgeConfig(previewPlan)
+    const normalisedCache =
+      options.cacheArtefacts &&
+      !options.normalisedInput &&
+      previewPlan.source !== 'overture' &&
+      previewPlan.transform === undefined
+        ? await openNormalisedArtefactCache({
+            filePath: preparedUpload.filePath,
+            processingContract: [
+              'division-geometry-normalisation-v1',
+              previewPlan.source,
+              previewPlan.type,
+              previewPlan.cohortKey,
+              options.validateGeometry ? 'validate' : 'standard',
+            ].join(':'),
+          })
+        : null
+    const cachedNormalised = normalisedCache
+      ? await normalisedCache.read<Array<NonNullable<NormalisedGeometry>>>()
+      : null
+    if (cachedNormalised) normalised = cachedNormalised
     const providerBridge = options.normalisedInput
       ? null
       : providerBridgeConfig !== null
@@ -389,7 +411,7 @@ export async function processLocalDivisionGeometrySqlUpload(
             ]),
           )
         : null
-    if (!options.normalisedInput) {
+    if (!options.normalisedInput && !cachedNormalised) {
       const file = options.inputFilePath
         ? await asyncBufferFromFile(options.inputFilePath)
         : await createAsyncBufferFromR2(bucket, rawObjectKey)
@@ -443,6 +465,9 @@ export async function processLocalDivisionGeometrySqlUpload(
     } else {
       processedRows = previewPlan.rowCount
       progress.update(processedRows)
+    }
+    if (normalisedCache && !cachedNormalised) {
+      await normalisedCache.write(normalised)
     }
 
     const syntheticAreas = await resolveSyntheticOvertureHongKongAreas(

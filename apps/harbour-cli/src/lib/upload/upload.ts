@@ -34,6 +34,14 @@ export type ReconcileDraftReleaseSetsResponse = {
   inspected: number
   pendingReleaseSetCodes: string[]
   publishedReleaseSetCodes: string[]
+  publishedReleaseSetStatsTargets: Array<{
+    apiReleaseSetId: string
+    cohortKey: string
+    family: 'address' | 'division'
+    releaseCode: string
+    releaseId: string
+    snapshotId: string
+  }>
 }
 
 export type BootstrapStatsReleaseSetsResponse = {
