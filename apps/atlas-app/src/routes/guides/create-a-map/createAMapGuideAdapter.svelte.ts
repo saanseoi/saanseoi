@@ -14,7 +14,9 @@ type CreateAMapGuideUrlState = CreateAMapSelectionQuery & {
   completedEditorReadinessKey?: string
   completedLlmReadinessKey?: string
   completedPaymentKey?: string
+  completedPublishRequirements: number[]
   mapboxTokenConfigured: boolean
+  publishReadinessKey: string
   terminalIntroductionExpanded: boolean
   zedSetupContentExpanded: boolean
   zedSetupExpanded: boolean
@@ -68,6 +70,9 @@ export function createCreateAMapGuideAdapter({
       'editor-ready': state.completedEditorReadinessKey,
       'llm-ready': state.completedLlmReadinessKey,
       'payment-ready': state.completedPaymentKey,
+      'publish-ready': state.completedPublishRequirements.length
+        ? `${state.publishReadinessKey}|${state.completedPublishRequirements.join(',')}`
+        : undefined,
       'mapbox-token-ready': state.mapboxTokenConfigured ? 'true' : undefined,
       'ai-primer': state.agenticAiPrimerExpanded ? undefined : 'collapsed',
       'terminal-101': state.terminalIntroductionExpanded ? undefined : 'collapsed',

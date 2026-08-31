@@ -50,6 +50,7 @@ import {
   createAMapTileset,
   detectOperatingSystem,
   getCreateAMapQueryChoice,
+  type CreateAMapSelectionQuery,
   type CreateAMapSelectionValue,
 } from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
@@ -132,6 +133,34 @@ type HandoverChatLlm = Extract<
 >
 type VpnAccess = CreateAMapSelectionValue<'vpnAccess'>
 type WebsitePlatform = CreateAMapSelectionValue<'websitePlatform'>
+
+const getPublishReadinessKey = ({
+  aiAccess,
+  hosting,
+  llmMode,
+  operatingSystem,
+  terminalExperience,
+}: Pick<
+  CreateAMapSelectionQuery,
+  'aiAccess' | 'hosting' | 'llmMode' | 'operatingSystem' | 'terminalExperience'
+>) => [hosting, operatingSystem, terminalExperience, llmMode, aiAccess].join(':')
+
+const getCompletedPublishRequirements = (value: string | null, key: string) => {
+  const [storedKey, serializedRequirements] = value?.split('|', 2) ?? []
+  if (storedKey !== key || !serializedRequirements) return []
+
+  return [
+    ...new Set(
+      serializedRequirements
+        .split(',')
+        .map(Number)
+        .filter(
+          requirement =>
+            Number.isInteger(requirement) && requirement >= 1 && requirement <= 6,
+        ),
+    ),
+  ].sort((left, right) => left - right)
+}
 
 let locale = $derived(getCurrentLocale())
 const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
@@ -242,6 +271,40 @@ let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') ===
 let usingExistingBasemapApiKey = $state(false)
 let isMapPublished = $state(false)
 let publishedHosting = $state<string | undefined>()
+const initialPublishReadinessKey = getPublishReadinessKey({
+  aiAccess: getCreateAMapQueryChoice(page.url.searchParams, 'aiAccess'),
+  hosting: getCreateAMapQueryChoice(page.url.searchParams, 'hosting'),
+  llmMode: getCreateAMapQueryChoice(page.url.searchParams, 'llmMode'),
+  operatingSystem: getCreateAMapQueryChoice(page.url.searchParams, 'operatingSystem'),
+  terminalExperience: getCreateAMapQueryChoice(
+    page.url.searchParams,
+    'terminalExperience',
+  ),
+})
+let publishReadinessKey = $derived(
+  getPublishReadinessKey({
+    aiAccess,
+    hosting,
+    llmMode,
+    operatingSystem,
+    terminalExperience,
+  }),
+)
+let completedPublishRequirements = $state(
+  getCompletedPublishRequirements(
+    page.url.searchParams.get('publish-ready'),
+    initialPublishReadinessKey,
+  ),
+)
+let previousPublishReadinessKey = $state(initialPublishReadinessKey)
+
+$effect(() => {
+  if (previousPublishReadinessKey !== publishReadinessKey) {
+    completedPublishRequirements = []
+    isMapPublished = false
+  }
+  previousPublishReadinessKey = publishReadinessKey
+})
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
 let dataReadinessKey = $derived(dataSource ?? '')
@@ -421,7 +484,9 @@ createCreateAMapGuideAdapter({
     completedEditorReadinessKey,
     completedLlmReadinessKey,
     completedPaymentKey,
+    completedPublishRequirements,
     mapboxTokenConfigured,
+    publishReadinessKey,
     agenticAiPrimerExpanded,
     terminalIntroductionExpanded,
     zedSetupExpanded,
@@ -2897,8 +2962,7 @@ const styleChoices = $derived.by(() =>
           id="publish"
           number={7}
           showBorder={false}
-          eyebrow={m.guide_publish_eyebrow()}
-          title={m.guide_setup_publish_title()}
+          eyebrow={m.guide_setup_publish_title()}
           description={objective === 'mobile-embed'
               ? m.guide_publish_mobile_description()
               : undefined}
@@ -2936,11 +3000,13 @@ const styleChoices = $derived.by(() =>
             {#if hosting === 'cloudflare' || hosting === 'github-pages' || hosting === 'vercel' || hosting === 'netlify'}
               <GuideCreateAMapPublish
                 {aiAccess}
+                completedRequirements={completedPublishRequirements}
                 {hosting}
                 {llmMode}
                 {operatingSystem}
-                {terminalExperience}
                 {terminalProjectPath}
+                onCompletedRequirementsChange={requirements =>
+                  (completedPublishRequirements = requirements)}
                 onPublishedChange={published => (isMapPublished = published)}
               />
             {/if}
