@@ -54,7 +54,7 @@ describe('Create a Map LLM instructions', () => {
       '[populationByDistrict, landAreaByDistrict] = await Promise.all([',
     )
     expect(urbanDensitySetupZ14TileFetcherCode).toContain(
-      'if (!nonLiveableKinds.has(feature.properties.kind)) return []',
+      "if (typeof kind !== 'string' || !nonLiveableKinds.has(kind)) return []",
     )
     expect(stats).toContain(
       "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
