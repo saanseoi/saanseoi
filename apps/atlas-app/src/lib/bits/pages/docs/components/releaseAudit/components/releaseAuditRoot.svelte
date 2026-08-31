@@ -199,18 +199,18 @@ let sections = $derived.by(() => {
     ]
     const visibleRowCount =
       visibleRowCountByAction[section.action] ?? section.rows.length
-    const rows = (
-      isCompleteSearch ? cachedRows : cachedRows.slice(0, visibleRowCount)
-    ).filter(action => matchesFuzzyQuery(searchableText(action), query))
-    if (query && rows.length === 0) return []
+    const matchingRows = cachedRows.filter(action =>
+      matchesFuzzyQuery(searchableText(action), query),
+    )
+    const rows = matchingRows.slice(0, visibleRowCount)
+    if (query && matchingRows.length === 0) return []
 
     return [
       {
         ...section,
         hasMore:
-          !isCompleteSearch &&
-          (visibleRowCount < cachedRows.length ||
-            (pagination?.hasMore ?? section.hasMore)),
+          visibleRowCount < matchingRows.length ||
+          (!isCompleteSearch && (pagination?.hasMore ?? section.hasMore)),
         id: auditHeadingId('record', section.action),
         nextOffset: pagination?.nextOffset ?? section.nextOffset,
         rows,
@@ -225,7 +225,9 @@ let totalActionCount = $derived(
 )
 let filteredActionCount = $derived(
   actionSections
-    ? sections.reduce((total, section) => total + section.rows.length, 0)
+    ? query
+      ? filteredActions.length
+      : sections.reduce((total, section) => total + section.rows.length, 0)
     : filteredActions.length,
 )
 let hasUnfetchedActionRows = $derived(
@@ -648,6 +650,11 @@ const getCachedActionRows = (action: string) => {
   return section ? [...section.rows, ...(additionalRowsByAction[action] ?? [])] : []
 }
 
+const getMatchingActionRows = (action: string) =>
+  getCachedActionRows(action).filter(row =>
+    matchesFuzzyQuery(searchableText(row), query),
+  )
+
 const actionHasUnfetchedRows = (action: string) => {
   const section = getActionSection(action)
   return section
@@ -716,17 +723,17 @@ async function loadMoreSection(section: AuditSection) {
     visibleRowCountByAction[section.action] ??
     getActionSection(section.action)?.rows.length ??
     section.rows.length
-  let cachedRowCount = getCachedActionRows(section.action).length
+  let matchingRowCount = getMatchingActionRows(section.action).length
 
-  if (visibleRowCount >= cachedRowCount) {
+  if (visibleRowCount >= matchingRowCount) {
     const page = await fetchNextSectionPage(section.action)
     if (!page) return
-    cachedRowCount = getCachedActionRows(section.action).length
+    matchingRowCount = getMatchingActionRows(section.action).length
   }
 
   visibleRowCountByAction = {
     ...visibleRowCountByAction,
-    [section.action]: Math.min(visibleRowCount + AUDIT_PAGE_SIZE, cachedRowCount),
+    [section.action]: Math.min(visibleRowCount + AUDIT_PAGE_SIZE, matchingRowCount),
   }
 }
 
