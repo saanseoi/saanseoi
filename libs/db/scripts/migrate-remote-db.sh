@@ -26,12 +26,21 @@ run_migration() {
 }
 
 running=0
+failed=0
 for i in "${!database_names[@]}"; do
   run_migration "$i" &
   running=$((running + 1))
   if (( running >= migration_concurrency )); then
-    wait -n
+    if ! wait -n; then
+      failed=1
+    fi
     running=$((running - 1))
   fi
 done
-wait
+while (( running > 0 )); do
+  if ! wait -n; then
+    failed=1
+  fi
+  running=$((running - 1))
+done
+exit "$failed"
