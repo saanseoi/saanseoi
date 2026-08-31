@@ -105,6 +105,8 @@ export async function runUploadCommand(
     deferApiReleaseSet?: boolean
     /** Leave Statistics API release-set publication to a cohort bootstrap. */
     deferStatsReleaseSet?: boolean
+    /** Keep a multi-resource source release open until its final resource. */
+    deferSourcePublish?: boolean
     processingActions?: ReleaseProcessingAction[]
     quiet?: boolean
     /** Interactive command to offer when a non-interactive run lacks release notes. */
@@ -378,6 +380,7 @@ ${mutedBar}  `)
           resumeStagedRelease,
           allowReprocessPublished:
             options.forceUpload || options.allowReprocessPublished,
+          reuseExistingRelease: options.reuseExistingRelease,
         },
       )
 
@@ -540,6 +543,8 @@ ${mutedBar}  `)
           preparedUploadFile,
           {
             deferApiReleaseSet: options.deferApiReleaseSet,
+            deferSourcePublish: options.deferSourcePublish,
+            reuseExistingRelease: options.reuseExistingRelease,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )
@@ -701,8 +706,9 @@ ${mutedBar}  `)
           {
             cacheArtefacts,
             deferApiReleaseSet: options.deferApiReleaseSet,
+            deferSourcePublish: options.deferSourcePublish,
             deferPublish: shouldDeriveHkgovSimplifiedGeometry,
-            reuseRunningRelease: options.reuseExistingRelease,
+            reuseExistingRelease: options.reuseExistingRelease,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
           },
@@ -735,6 +741,7 @@ ${mutedBar}  `)
             {
               cacheArtefacts,
               deferApiReleaseSet: options.deferApiReleaseSet,
+              deferSourcePublish: options.deferSourcePublish,
               inputFilePath: preparedUploadFile.filePath,
               normalisedInput: processingResult.normalisedRows,
               reuseRunningRelease: true,
@@ -808,7 +815,9 @@ ${mutedBar}  `)
             preparedUploadFile,
             {
               deferStatsReleaseSet: options.deferStatsReleaseSet,
+              deferSourcePublish: options.deferSourcePublish,
               promptForCuration: !options.skipConfirm,
+              reuseExistingRelease: options.reuseExistingRelease,
             },
           )
         await logApiReleaseSetPublication(processingResult, revisionDraft(), target)
@@ -841,7 +850,9 @@ ${mutedBar}  `)
           preparedUploadFile,
           {
             deferStatsReleaseSet: options.deferStatsReleaseSet,
+            deferSourcePublish: options.deferSourcePublish,
             promptForCuration: !options.skipConfirm,
+            reuseExistingRelease: options.reuseExistingRelease,
           },
         )
         await logApiReleaseSetPublication(processingResult, revisionDraft(), target)

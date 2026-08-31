@@ -221,6 +221,18 @@ type ExtraSqlImportOperation = {
   target: SqlImportTargetContext
 }
 
+export async function runDivisionSqlImportOperations(
+  operations: ReadonlyArray<() => Promise<unknown>>,
+  serial: boolean,
+) {
+  if (serial) {
+    for (const operation of operations) await operation()
+    return
+  }
+
+  await Promise.all(operations.map(operation => operation()))
+}
+
 export async function processLocalDivisionSqlUpload(
   target: UploadTarget,
   previewPlan: UploadPlan,
@@ -229,6 +241,8 @@ export async function processLocalDivisionSqlUpload(
   options: {
     /** Publish source data and snapshots, but leave the API release set draft. */
     deferApiReleaseSet?: boolean
+    deferSourcePublish?: boolean
+    reuseExistingRelease?: boolean
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
@@ -320,6 +334,7 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
     },
     previewPlan,
+    { reuseExistingRelease: options.reuseExistingRelease },
   )
   if (!target.remote) {
     progress.update(4, {
@@ -724,97 +739,99 @@ export async function processLocalDivisionSqlUpload(
       ),
     )
 
-    await Promise.all([
-      runReportedSqlImportPhase(
-        importProgressClient,
-        releaseId,
-        releaseCode,
-        'importDivisionSqlSource',
-        progressReporter =>
-          importSqlArtefactKeys(
-            bucket,
-            importTargets.source,
-            [manifest.sourceKey],
-            importOptions,
-            progressReporter,
-          ),
-      ).then(async result => {
-        for (const operation of extraSourceSqlOperations) {
-          await executeSqlText(operation.target, operation.sql, importOptions)
-        }
-
-        return result
-      }),
-      runReportedSqlImportPhase(
-        importProgressClient,
-        releaseId,
-        releaseCode,
-        'importDivisionSqlHistory',
-        progressReporter =>
-          importSqlArtefactKeys(
-            bucket,
-            importTargets.history,
-            [manifest.historyKey],
-            importOptions,
-            progressReporter,
-          ),
-      ).then(async result => {
-        for (const operation of extraHistorySqlOperations) {
-          await executeSqlText(operation.target, operation.sql, importOptions)
-        }
-
-        return result
-      }),
-      (async () => {
-        const currentInitKey = manifest.currentInitKey
-
-        if (currentInitKey) {
+    await runDivisionSqlImportOperations(
+      [
+        async () => {
           await runReportedSqlImportPhase(
             importProgressClient,
             releaseId,
             releaseCode,
-            'importDivisionSqlCurrentInit',
+            'importDivisionSqlSource',
             progressReporter =>
               importSqlArtefactKeys(
                 bucket,
-                importTargets.current,
-                [currentInitKey],
+                importTargets.source,
+                [manifest.sourceKey],
                 importOptions,
                 progressReporter,
               ),
           )
-        }
+          for (const operation of extraSourceSqlOperations) {
+            await executeSqlText(operation.target, operation.sql, importOptions)
+          }
+        },
+        async () => {
+          await runReportedSqlImportPhase(
+            importProgressClient,
+            releaseId,
+            releaseCode,
+            'importDivisionSqlHistory',
+            progressReporter =>
+              importSqlArtefactKeys(
+                bucket,
+                importTargets.history,
+                [manifest.historyKey],
+                importOptions,
+                progressReporter,
+              ),
+          )
+          for (const operation of extraHistorySqlOperations) {
+            await executeSqlText(operation.target, operation.sql, importOptions)
+          }
+        },
+        async () => {
+          const currentInitKey = manifest.currentInitKey
 
-        await runReportedSqlImportPhase(
-          importProgressClient,
-          releaseId,
-          releaseCode,
-          'importDivisionSqlCurrent',
-          progressReporter =>
-            importSqlArtefactKeys(
-              bucket,
-              importTargets.current,
-              [manifest.currentKey],
-              importOptions,
-              progressReporter,
-            ),
-        )
-      })(),
-      runReportedSqlImportPhase(
-        importProgressClient,
-        releaseId,
-        releaseCode,
-        'importDivisionSqlStats',
-        progressReporter =>
-          importSqlArtefactKeys(
-            bucket,
-            importTargets.meta,
-            [manifest.metaKey],
-            importOptions,
-            progressReporter,
+          if (currentInitKey) {
+            await runReportedSqlImportPhase(
+              importProgressClient,
+              releaseId,
+              releaseCode,
+              'importDivisionSqlCurrentInit',
+              progressReporter =>
+                importSqlArtefactKeys(
+                  bucket,
+                  importTargets.current,
+                  [currentInitKey],
+                  importOptions,
+                  progressReporter,
+                ),
+            )
+          }
+
+          await runReportedSqlImportPhase(
+            importProgressClient,
+            releaseId,
+            releaseCode,
+            'importDivisionSqlCurrent',
+            progressReporter =>
+              importSqlArtefactKeys(
+                bucket,
+                importTargets.current,
+                [manifest.currentKey],
+                importOptions,
+                progressReporter,
+              ),
+          )
+        },
+        () =>
+          runReportedSqlImportPhase(
+            importProgressClient,
+            releaseId,
+            releaseCode,
+            'importDivisionSqlStats',
+            progressReporter =>
+              importSqlArtefactKeys(
+                bucket,
+                importTargets.meta,
+                [manifest.metaKey],
+                importOptions,
+                progressReporter,
+              ),
           ),
-      ),
-    ])
+      ],
+      target.remote,
+    )
 
     await harbourClient.stageCompleted(
       releaseId,
@@ -847,6 +864,7 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
           {
             deferApiReleaseSet: options.deferApiReleaseSet,
+            deferSourcePublish: options.deferSourcePublish,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )
@@ -869,7 +887,10 @@ export async function processLocalDivisionSqlUpload(
           importOptions,
           releaseCode,
         )
-        if (options.deferApiReleaseSet && publishResult) {
+        if (
+          (options.deferApiReleaseSet || options.deferSourcePublish) &&
+          publishResult
+        ) {
           await applyPublishMetadataDeltaToRemoteCache(
             target.environment === 'production' ? 'production' : 'preview',
             dbContext.state.dbCacheDir,

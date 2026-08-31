@@ -38,6 +38,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     releaseId: string
   },
   plan: StagedReleaseSyncPlan,
+  options: { reuseExistingRelease?: boolean } = {},
 ) {
   const dataset =
     ((await metaDb
@@ -71,7 +72,12 @@ export async function syncStagedReleaseIntoLocalMetaCache(
   if (
     existingRelease &&
     existingRelease.status !== 'staged' &&
-    existingRelease.status !== 'failed'
+    existingRelease.status !== 'failed' &&
+    !(
+      options.reuseExistingRelease &&
+      (existingRelease.status === 'processing' ||
+        existingRelease.status === 'published')
+    )
   ) {
     throw new Error(
       `Cannot replace source release ${release.releaseCode}: ${existingRelease.status} releases are immutable.`,
@@ -115,7 +121,35 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           createdAt: now,
           updatedAt: now,
         })
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+          target: metaSourceReleases.code,
+          set: {
+            datasetId: dataset.id,
+            sourceVersion: plan.sourceVersion,
+            sourceSchemaVersion,
+            publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+            cohortKey: plan.cohortKey,
+            rawObjectKey: release.rawObjectKey,
+            originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
+            processingRules,
+            status: 'staged',
+            revokedAt: null,
+            revocationReason: null,
+            supersededBySourceReleaseId: null,
+            ingestedAt: now,
+            updatedAt: now,
+          },
+          where: or(
+            eq(metaSourceReleases.status, 'staged'),
+            eq(metaSourceReleases.status, 'failed'),
+            ...(options.reuseExistingRelease
+              ? [
+                  eq(metaSourceReleases.status, 'processing'),
+                  eq(metaSourceReleases.status, 'published'),
+                ]
+              : []),
+          ),
+        })
         .run()
 
       return tx
@@ -147,6 +181,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           set: {
             sourceReleaseId,
             datasetId: dataset.id,
+            resourceType: plan.type,
             sourceVersion: plan.sourceVersion,
             sourceSchemaVersion,
             processingRules,
@@ -164,6 +199,12 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           where: or(
             eq(metaReleases.status, 'staged'),
             eq(metaReleases.status, 'failed'),
+            ...(options.reuseExistingRelease
+              ? [
+                  eq(metaReleases.status, 'processing'),
+                  eq(metaReleases.status, 'published'),
+                ]
+              : []),
           ),
         })
         .run()

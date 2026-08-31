@@ -160,6 +160,7 @@ export async function processLocalDivisionGeometrySqlUpload(
   options: {
     /** Publish source data and snapshots, but leave the API release set draft. */
     deferApiReleaseSet?: boolean
+    deferSourcePublish?: boolean
     deferPublish?: boolean
     inputFilePath?: string
     /**
@@ -168,6 +169,8 @@ export async function processLocalDivisionGeometrySqlUpload(
      * until this pass publishes it.
      */
     reuseRunningRelease?: boolean
+    /** Add a resource prepared by an earlier command to the same source release. */
+    reuseExistingRelease?: boolean
     /** Reuse ID-independent exact rows when materialising a derived variant. */
     normalisedInput?: readonly NonNullable<NormalisedGeometry>[]
     cacheArtefacts?: boolean
@@ -256,6 +259,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         dbContext.metaDb,
         { datasetCode, rawObjectKey, releaseCode, releaseId },
         previewPlan,
+        { reuseExistingRelease: options.reuseExistingRelease },
       )
     }
 
@@ -785,13 +789,17 @@ export async function processLocalDivisionGeometrySqlUpload(
       () =>
         client.publishDataset(releaseId, releaseCode, {
           deferApiReleaseSet: options.deferApiReleaseSet,
+          deferSourcePublish: options.deferSourcePublish,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
     )
-    remotePublished = target.remote
+    remotePublished = target.remote && !options.deferSourcePublish
     if (target.remote) {
       try {
-        if (options.deferApiReleaseSet && publishResult) {
+        if (
+          (options.deferApiReleaseSet || options.deferSourcePublish) &&
+          publishResult
+        ) {
           await applyPublishMetadataDeltaToRemoteCache(
             target.environment === 'production' ? 'production' : 'preview',
             dbContext.state.dbCacheDir,
