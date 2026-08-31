@@ -19,6 +19,11 @@ describe('initialisation commands', () => {
       supportsContinue: false,
       supportsTarget: false,
     })
+    expect(resolveInitialisationCommand('init:production')).toEqual({
+      script: 'scripts/init/production.fish',
+      supportsContinue: false,
+      supportsTarget: false,
+    })
     expect(resolveInitialisationCommand('init:divisions:geographic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
