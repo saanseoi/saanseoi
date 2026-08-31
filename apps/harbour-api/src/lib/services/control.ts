@@ -26,6 +26,7 @@ import {
 import {
   datasetVariantForSource,
   publisherCodeForSource,
+  type ApiReleaseSetMetadataDelta,
   type HarbourJobMessage,
   type RegionCode,
   type ResourceType,
@@ -89,7 +90,7 @@ type ControlResult = {
   apiReleaseSetPublications?: ReleaseSetPublication[]
   datasetId: string
   metadataDelta?: {
-    apiReleaseSets?: Array<{ id: string; status: 'current' | 'draft' }>
+    apiReleaseSets?: ApiReleaseSetMetadataDelta[]
     releases: Array<{ id: string; status: 'published' }>
   }
   releaseCode: string
@@ -679,8 +680,14 @@ export async function handlePublishDataset(
       datasetId: dataset.releaseCode,
       metadataDelta: publishMetadataDelta(
         dataset.releaseId,
-        releaseSets.at(-1)?.id,
-        selectedReleaseSetStatus,
+        releaseSets.at(-1)
+          ? await db
+              .select()
+              .from(metaApiReleaseSets)
+              .where(eq(metaApiReleaseSets.id, releaseSets.at(-1)?.id ?? ''))
+              .limit(1)
+              .get()
+          : undefined,
       ),
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
@@ -693,13 +700,12 @@ export async function handlePublishDataset(
 
 function publishMetadataDelta(
   releaseId: string,
-  apiReleaseSetId?: string,
-  apiReleaseSetStatus?: 'current' | 'draft',
+  apiReleaseSet?: ApiReleaseSetMetadataDelta,
 ) {
   return {
-    ...(apiReleaseSetId && apiReleaseSetStatus
+    ...(apiReleaseSet
       ? {
-          apiReleaseSets: [{ id: apiReleaseSetId, status: apiReleaseSetStatus }],
+          apiReleaseSets: [apiReleaseSet],
         }
       : {}),
     releases: [{ id: releaseId, status: 'published' as const }],
