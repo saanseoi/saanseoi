@@ -2,6 +2,7 @@ import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   readRemoteCachedCompletedReleaseCodes,
   rebuildRemoteDbCache,
+  seedRemoteDbCacheAfterReset,
   updateDbCacheProgress,
   type CacheTableProfile,
 } from '../dbCache/localDbCache.ts'
@@ -68,6 +69,31 @@ export async function runCacheRebuildCommand(
         [formatDurationMs(Date.now() - startedAt)],
       ),
     )
+  }
+}
+
+export async function runCacheSeedResetCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  printUsage: () => void,
+) {
+  if (
+    args.positionals.length > 0 ||
+    Object.keys(args.options).some(key => key !== 'target') ||
+    !target.remote
+  ) {
+    printUsage()
+    throw new Error('`cache:seed-reset` accepts only `--target preview|production`.')
+  }
+
+  const progress = new LocalUploadProgress()
+  try {
+    await seedRemoteDbCacheAfterReset(target, event =>
+      updateDbCacheProgress(progress, event, { operation: 'seed reset' }),
+    )
+  } catch (error) {
+    progress.fail()
+    throw error
   }
 }
 
