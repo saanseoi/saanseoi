@@ -12,6 +12,14 @@ that deferral. It may publish its source release and snapshot, but it cannot cre
 API revision for an already current cohort; only explicit reconciliation publishes a
 draft release set.
 
+C&SD statistics archives use a combined intake path. The `hkgov-censtatd:statistics`
+command includes available `division` and `divisionArea` companions by default,
+alongside `divisionStatistic`. `--defer-stats-release-set` selects Statistics-only
+intake unless `--include-geography` is also supplied; `--geography-only` processes the
+geography companions without Statistics. This Statistics-resource choice is independent
+of Divisions release-set publication, which is controlled by `--defer-api-release-set`
+and may be reconciled separately.
+
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
 `divisionBoundary` as `division-boundary`. A dataset describes one publisher product and
