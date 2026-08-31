@@ -25,6 +25,11 @@ const initialisationCommands = {
     supportsContinue: false,
     supportsTarget: false,
   },
+  'init:production': {
+    script: 'scripts/init/production.fish',
+    supportsContinue: false,
+    supportsTarget: false,
+  },
   'init:addresses:official': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,

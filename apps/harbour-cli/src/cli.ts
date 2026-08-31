@@ -134,6 +134,7 @@ async function main() {
     case 'init:addresses:official':
     case 'init':
     case 'init:local':
+    case 'init:production':
     case 'init:stats:official':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':
