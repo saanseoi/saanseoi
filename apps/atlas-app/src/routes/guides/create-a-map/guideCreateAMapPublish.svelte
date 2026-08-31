@@ -5,6 +5,7 @@ import {
   GuideScreenshot,
 } from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import cloudflareAccountDark from '#lib/assets/guides/publish-cloudflare-account-dark.webp'
 import cloudflareAccountLight from '#lib/assets/guides/publish-cloudflare-account-light.webp'
@@ -135,6 +136,32 @@ const clientUrl = $derived(
 )
 const gitUrl = 'https://git-scm.com/downloads'
 const githubCliUrl = 'https://cli.github.com/'
+type LinuxDistribution = 'debian' | 'fedora' | 'arch'
+let linuxDistribution = $state<LinuxDistribution>('fedora')
+const linuxDistributionTabs = $derived([
+  {
+    icons: ['simple-icons:fedora', 'simple-icons:redhat'],
+    label: m.guide_publish_linux_distribution_fedora(),
+    value: 'fedora' as const,
+  },
+  {
+    icons: ['simple-icons:archlinux', 'simple-icons:cachyos'],
+    label: m.guide_publish_linux_distribution_arch(),
+    value: 'arch' as const,
+  },
+  {
+    icons: ['simple-icons:debian', 'simple-icons:ubuntu', 'simple-icons:linuxmint'],
+    label: m.guide_publish_linux_distribution_debian(),
+    value: 'debian' as const,
+  },
+])
+const linuxInstallCode = $derived(
+  linuxDistribution === 'debian'
+    ? 'sudo apt install git gh'
+    : linuxDistribution === 'fedora'
+      ? 'sudo dnf install git gh'
+      : 'sudo pacman -S git github-cli',
+)
 const hasGitDependencies = $derived(hosting === 'github-pages')
 const requirementTotal = $derived(hasGitDependencies ? 6 : 5)
 const gitDependenciesRequirement = 2
@@ -308,8 +335,6 @@ const configurationCode = $derived(
     : hosting === 'github-pages'
       ? [
           'git init -b main',
-          'git config user.name "Your name"',
-          'git config user.email "you@example.com"',
           'git add .',
           'git commit -m "Publish my map"',
           'gh repo create saanseoi-project --public --source=. --push',
@@ -318,6 +343,10 @@ const configurationCode = $derived(
         ? 'bunx vercel link --yes --project saanseoi-project'
         : 'bunx netlify sites:create --name saanseoi-project',
 )
+const githubIdentityCode = [
+  'git config --global user.name "Your name"',
+  'git config --global user.email "you@example.com"',
+].join('\n')
 const githubConfigurationOutput = [
   'Initialized empty Git repository in /home/YOUR_NAME/saanseoi-project/.git/',
   '[main (root-commit) a1b2c3d] Publish my map',
@@ -596,23 +625,48 @@ const resetRequirement = (requirement: number) => {
         onReset={() => resetRequirement(gitDependenciesRequirement)}
       >
         {#if operatingSystem === 'linux'}
-          <div class="space-y-6">
-            <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_fedora(), path: terminalProjectPath })}
-              description={m.guide_publish_install_github_tools_fedora_description()}
-              code="sudo dnf install git gh"
-              language={terminalLanguage}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
-            <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_debian(), path: terminalProjectPath })}
-              description={m.guide_publish_install_github_tools_debian_description()}
-              code="sudo apt install git gh"
-              language={terminalLanguage}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
+          <div class="max-w-[80ch] font-mono">
+            <div
+              class="flex min-w-0 overflow-x-auto border-b border-border-card"
+              role="tablist"
+              aria-label={m.guide_publish_linux_distribution_label()}
+            >
+              {#each linuxDistributionTabs as distribution (distribution.value)}
+                <button
+                  id={`publish-linux-${distribution.value}-tab`}
+                  class={`relative -mb-px flex min-h-13 min-w-max flex-1 cursor-pointer items-center justify-center gap-2 border px-4 font-body text-label-md font-semibold transition-colors ${linuxDistribution === distribution.value ? 'z-10 border-secondary border-b-[#182021] bg-[#182021] text-white/75' : 'border-[#47605b]/45 text-foreground-alt hover:border-[#47605b] hover:bg-surface-container-low hover:text-primary'}`}
+                  type="button"
+                  role="tab"
+                  aria-controls="publish-linux-install-panel"
+                  aria-selected={linuxDistribution === distribution.value}
+                  onclick={() => (linuxDistribution = distribution.value)}
+                >
+                  <span class="flex items-center gap-1" aria-hidden="true">
+                    {#each distribution.icons as icon (icon)}
+                      <Icon
+                        {icon}
+                        class={`size-5 ${linuxDistribution === distribution.value ? 'text-[#6fdec9]' : 'text-secondary'}`}
+                      />
+                    {/each}
+                  </span>
+                  {distribution.label}
+                </button>
+              {/each}
+            </div>
+            <div
+              id="publish-linux-install-panel"
+              role="tabpanel"
+              aria-labelledby={`publish-linux-${linuxDistribution}-tab`}
+            >
+              <GuidePublishTerminalCommand
+                class="mt-0"
+                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_git_dependencies_title(), path: terminalProjectPath })}
+                code={linuxInstallCode}
+                language={terminalLanguage}
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+            </div>
           </div>
         {:else}
           <div class="border border-secondary/45 bg-secondary/10 p-5">
@@ -867,13 +921,37 @@ const resetRequirement = (requirement: number) => {
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
+        {:else if hosting === 'github-pages'}
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_github_identity_command(), path: terminalProjectPath })}
+            description={m.guide_publish_github_identity_description()}
+            code={githubIdentityCode}
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <div class="mt-6">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_configuration_command_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+              code={configurationCode}
+              language={terminalLanguage}
+              output={configurationOutput}
+              outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+          </div>
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_github_configuration_complete()}
+          </p>
         {:else}
           <p class="font-body text-body-lg leading-8 text-foreground-alt">
-            {@html hosting === 'github-pages'
-              ? m.guide_publish_github_configuration_command_description()
-              : hosting === 'vercel'
-                ? m.guide_publish_vercel_configuration_command_description()
-                : m.guide_publish_netlify_configuration_command_description()}
+            {@html hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_command_description()
+              : m.guide_publish_netlify_configuration_command_description()}
           </p>
           <GuidePublishTerminalCommand
             commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
@@ -885,11 +963,9 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
           <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-            {@html hosting === 'github-pages'
-              ? m.guide_publish_github_configuration_complete()
-              : hosting === 'vercel'
-                ? m.guide_publish_vercel_configuration_complete()
-                : m.guide_publish_netlify_configuration_complete()}
+            {@html hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_complete()
+              : m.guide_publish_netlify_configuration_complete()}
           </p>
         {/if}
       </GuidePublishRequirement>
