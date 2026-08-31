@@ -944,7 +944,7 @@ export const urbanDensitySetupZ14TileFetcherCss = [
   '  #land-analysis-progress .land-analysis-progress-fill::after { animation: none; }',
   '}',
   '@media (max-width: 640px) {',
-  '  #land-analysis-progress { box-sizing: border-box; left: 0; z-index: 11; width: 100%; padding: .75rem 1rem; transform: none; }',
+  '  #land-analysis-progress { box-sizing: border-box; bottom: 0; left: 0; z-index: 11; width: 100%; padding: .75rem 1rem; transform: none; }',
   '  #land-analysis-progress .land-analysis-progress-phase { font-size: .58rem; letter-spacing: .08em; overflow-wrap: anywhere; }',
   '  #land-analysis-progress .land-analysis-progress-district { font-size: clamp(1.5rem, 8vw, 1.875rem); overflow-wrap: anywhere; }',
   '  #land-analysis-progress .land-analysis-progress-count, #land-analysis-progress .land-analysis-district-counts { margin-top: .625rem; }',
