@@ -803,15 +803,19 @@ const resetRequirement = (requirement: number) => {
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_build_warning()}
-          </p>
-          <div class="mt-4">
-            <GuideInstructionCallout
-              description={m.guide_publish_static_api_key()}
-              label={m.guide_publish_static_api_key_label()}
-              title={m.guide_publish_static_api_key_title()}
-            />
+          <div class="relative mt-5">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_build_warning()}
+            </p>
+            <aside
+              class="mt-4 md:absolute md:top-0 md:left-[calc(100%+1.5rem)] md:mt-0 md:w-48 lg:w-64"
+            >
+              <GuideInstructionCallout
+                description={m.guide_publish_static_api_key()}
+                label={m.guide_publish_static_api_key_label()}
+                title={m.guide_publish_static_api_key_title()}
+              />
+            </aside>
           </div>
           <div class="mt-6">
             <p class="font-body text-body-lg leading-8 text-foreground-alt">
@@ -860,13 +864,6 @@ const resetRequirement = (requirement: number) => {
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <div class="mt-5">
-            <GuideInstructionCallout
-              description={m.guide_publish_static_api_key()}
-              label={m.guide_publish_static_api_key_label()}
-              title={m.guide_publish_static_api_key_title()}
-            />
-          </div>
         {/if}
       </GuidePublishRequirement>
     </section>
@@ -877,6 +874,15 @@ const resetRequirement = (requirement: number) => {
         label={m.guide_publish_building_label()}
         title={m.guide_publish_building_title()}
       />
+      {#if hosting !== 'cloudflare'}
+        <div class="mt-10">
+          <GuideInstructionCallout
+            description={m.guide_publish_static_api_key()}
+            label={m.guide_publish_static_api_key_label()}
+            title={m.guide_publish_static_api_key_title()}
+          />
+        </div>
+      {/if}
     </aside>
   </div>
 

@@ -280,21 +280,21 @@ onMount(() => {
     />
   {/key}
   <section
-    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),32rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 px-5 py-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
+    class="absolute bottom-4 left-1/2 w-[min(calc(100%-2rem),29rem)] -translate-x-1/2 border border-white/20 bg-[#10151a]/95 px-5 py-4 text-center font-body text-white shadow-lg backdrop-blur-sm"
     aria-live="polite"
   >
     <p class="font-mono text-[0.68rem] font-bold tracking-[0.12em] text-white/70">
-      {phase === 'tiles' ? '[DOWNLOAD, SNAP & MERGE TILE]' : phase === 'district' ? '[INTERSECT & DISSOLVE DISTRICT]' : '[DISTRICT COMPLETE]'}
+      {phase === 'tiles' ? 'DOWNLOAD, SNAP & MERGE TILE' : phase === 'district' ? 'INTERSECT & DISSOLVE DISTRICT' : 'DISTRICT COMPLETE'}
     </p>
     {#if activeDistrict}
       <h2
-        class="mt-1.5 font-mono text-3xl font-bold leading-none tracking-tight text-[#79e7d1]"
+        class="mt-1.5 pt-0.5 font-mono text-[2rem] font-bold leading-none tracking-tight text-[#79e7d1]"
       >
         {districtNameByCode[activeDistrict.properties.divisionCode] ?? activeDistrict.properties.divisionCode}
       </h2>
     {/if}
     <dl
-      class="mt-3 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end gap-x-3 font-mono tabular-nums"
+      class="mt-3 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end font-mono tabular-nums"
     >
       <div>
         <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">TILES</dt>

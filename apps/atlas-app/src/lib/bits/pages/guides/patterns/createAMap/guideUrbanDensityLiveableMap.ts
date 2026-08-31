@@ -119,7 +119,7 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
         source: 'excluded-districts',
         paint: {
           'fill-antialias': false,
-          'fill-color': '#e76f51',
+          'fill-color': '#ff503d',
           'fill-opacity': 0,
           'fill-opacity-transition': { duration: 700 },
         },
