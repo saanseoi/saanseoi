@@ -1,5 +1,7 @@
 import {
   getRegistryApi,
+  listRegistryApiReleaseProcessingActions,
+  listRegistryApiReleaseProcessingActionSections,
   getRegistrySourceRelease,
   getRegistrySourceReleaseShell,
   getRegistrySource,
@@ -64,7 +66,16 @@ const sourceReleaseContentSchema = sourceReleaseShellSchema.extend({
 const releasePageSchema = z.object({
   offset: z.number().int().min(0).max(10_000),
 })
+const apiReleaseAuditSchema = z.object({
+  familyType: registryCodeSchema,
+  releaseCode: registryCodeSchema,
+})
+const apiReleaseAuditPageSchema = apiReleaseAuditSchema.extend({
+  action: registryCodeSchema,
+  offset: z.number().int().min(0).max(100_000),
+})
 const DATA_RELEASES_PAGE_SIZE = 12
+const API_RELEASE_AUDIT_PAGE_SIZE = 50
 const BASEMAP_TILE_ORIGIN = 'https://tiles.saanseoi.hk'
 const BASEMAP_VIEWER_ORIGIN = 'https://viewer.saanseoi.hk'
 const BASEMAP_REGIONS = {
@@ -1195,7 +1206,7 @@ export const getDataReleasesPageData = query(releasePageSchema, async ({ offset 
 
 export const getApiFamilyPageData = query(registryCodeSchema, async familyType => {
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
+    getRegistryApi(getMetaDb(), familyType, { includeProcessingActions: false }),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
@@ -1213,7 +1224,7 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
 export const getApiReleaseShellData = query(registryCodeSchema, async familyType => {
   const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(db, familyType),
+    getRegistryApi(db, familyType, { includeProcessingActions: false }),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
@@ -1231,7 +1242,7 @@ export const getApiReleaseShellData = query(registryCodeSchema, async familyType
 export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
   const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(db, familyType),
+    getRegistryApi(db, familyType, { includeProcessingActions: false }),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
@@ -1337,3 +1348,55 @@ export const getApiReleasePageData = query(registryCodeSchema, async familyType 
   recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
   return { ...result, releases: releasesWithMetrics }
 })
+
+const processingActionPage = async (input: {
+  action: string
+  familyType: string
+  offset: number
+  releaseCode: string
+}) => {
+  const rows = await runWithD1ReadRetry(() =>
+    listRegistryApiReleaseProcessingActions(getMetaDb(), {
+      ...input,
+      limit: API_RELEASE_AUDIT_PAGE_SIZE + 1,
+    }),
+  )
+  if (!rows) error(404, 'API release not found.')
+
+  const pageRows = rows.slice(0, API_RELEASE_AUDIT_PAGE_SIZE)
+  return {
+    rows: pageRows,
+    hasMore: rows.length > API_RELEASE_AUDIT_PAGE_SIZE,
+    nextOffset: input.offset + pageRows.length,
+  }
+}
+
+export const getApiReleaseAuditData = query(apiReleaseAuditSchema, async input => {
+  const sections = await runWithD1ReadRetry(() =>
+    listRegistryApiReleaseProcessingActionSections(getMetaDb(), input),
+  )
+  if (!sections) error(404, 'API release not found.')
+
+  return {
+    sections: await Promise.all(
+      sections
+        .filter(
+          section =>
+            section.action !== 'als_number_range_singleton_variant_consolidated',
+        )
+        .map(async section => ({
+          ...section,
+          ...(await processingActionPage({
+            ...input,
+            action: section.action,
+            offset: 0,
+          })),
+        })),
+    ),
+  }
+})
+
+export const getApiReleaseAuditActionPage = query(
+  apiReleaseAuditPageSchema,
+  processingActionPage,
+)

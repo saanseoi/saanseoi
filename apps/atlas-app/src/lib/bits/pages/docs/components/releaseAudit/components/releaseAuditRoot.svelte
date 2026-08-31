@@ -14,29 +14,33 @@ import {
   filterBulkProcessingSections,
   type AuditBulkRule,
 } from './releaseAuditBulkSections'
-import type { AuditAction } from './releaseAudit.types'
+import type { AuditAction, AuditActionPage, AuditSection } from './releaseAudit.types'
 import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
 type Props = {
   actions?: AuditAction[]
+  actionSections?: Array<Omit<AuditSection, 'id'>>
   analyticsSurface: ReleaseAnalyticsSurface
   bulkActions?: AuditBulkRule[]
   locale: string
   showBulkActions?: boolean
   headings?: MarkdownHeading[]
   activeHeadingId?: string | null
+  onLoadMoreSection?: (action: string, offset: number) => Promise<AuditActionPage>
 }
 
 let {
   actions = [],
+  actionSections,
   analyticsSurface,
   bulkActions = [],
   locale,
   showBulkActions = false,
   headings = $bindable<MarkdownHeading[]>([]),
   activeHeadingId = $bindable<string | null>(null),
+  onLoadMoreSection,
 }: Props = $props()
 let query = $state('')
 let auditPanel = $state<HTMLElement>()
@@ -46,6 +50,12 @@ let selectedEvidence = $state<unknown>()
 let selectedEvidenceId = $state<string | null>(null)
 let copiedEvidenceId = $state<string | null>(null)
 let copiedEvidenceTimeout: ReturnType<typeof setTimeout> | undefined
+let additionalRowsByAction = $state<Record<string, AuditAction[]>>({})
+let paginationByAction = $state<
+  Record<string, Pick<AuditActionPage, 'hasMore' | 'nextOffset'>>
+>({})
+let loadingSectionActions = $state<Set<string>>(new Set())
+let failedSectionActions = $state<Set<string>>(new Set())
 
 const formatNumber = (value: number) => new Intl.NumberFormat().format(value)
 
@@ -127,8 +137,16 @@ const searchableText = (action: AuditAction) =>
     .normalize('NFKD')
     .toLocaleLowerCase()
 
+let loadedActions = $derived(
+  actionSections
+    ? actionSections.flatMap(section => [
+        ...section.rows,
+        ...(additionalRowsByAction[section.action] ?? []),
+      ])
+    : actions,
+)
 let visibleActions = $derived(
-  actions.filter(
+  loadedActions.filter(
     action => action.action !== 'als_number_range_singleton_variant_consolidated',
   ),
 )
@@ -138,7 +156,7 @@ let filteredActions = $derived(
 let visibleBulkSections = $derived(
   showBulkActions ? filterBulkProcessingSections(bulkActions, query) : [],
 )
-let sections = $derived.by(() => {
+let groupedSections = $derived.by(() => {
   const groups = new Map<string, AuditAction[]>()
   for (const action of filteredActions) {
     groups.set(action.action, [...(groups.get(action.action) ?? []), action])
@@ -153,11 +171,40 @@ let sections = $derived.by(() => {
         0,
       ),
       totalCount: visibleActions.filter(item => item.action === action).length,
-      mode: rows.every(row => row.mode === 'automatic') ? 'automatic' : 'manual',
+      mode: rows.every(row => row.mode === 'automatic')
+        ? ('automatic' as const)
+        : ('manual' as const),
       rows,
     }))
     .sort((left, right) => left.action.localeCompare(right.action))
 })
+let sections = $derived.by(() => {
+  if (!actionSections) return groupedSections
+
+  return actionSections.flatMap(section => {
+    const pagination = paginationByAction[section.action]
+    const rows = [
+      ...section.rows,
+      ...(additionalRowsByAction[section.action] ?? []),
+    ].filter(action => matchesFuzzyQuery(searchableText(action), query))
+    if (query && rows.length === 0) return []
+
+    return [
+      {
+        ...section,
+        hasMore: pagination?.hasMore ?? section.hasMore,
+        id: auditHeadingId('record', section.action),
+        nextOffset: pagination?.nextOffset ?? section.nextOffset,
+        rows,
+      },
+    ]
+  })
+})
+let totalActionCount = $derived(
+  actionSections
+    ? actionSections.reduce((total, section) => total + section.totalCount, 0)
+    : visibleActions.length,
+)
 let sectionHeadings = $derived([
   ...visibleBulkSections.map(rule => ({
     id: bulkSectionHeadingId(rule),
@@ -565,6 +612,53 @@ async function copyEvidence(id: string, evidence: unknown) {
   }
 }
 
+async function loadMoreSection(section: AuditSection) {
+  if (
+    !onLoadMoreSection ||
+    !section.hasMore ||
+    loadingSectionActions.has(section.action)
+  ) {
+    return
+  }
+
+  loadingSectionActions = new Set(loadingSectionActions).add(section.action)
+  const nextFailures = new Set(failedSectionActions)
+  nextFailures.delete(section.action)
+  failedSectionActions = nextFailures
+
+  try {
+    const page = await onLoadMoreSection(
+      section.action,
+      section.nextOffset ?? section.rows.length,
+    )
+    const knownIds = new Set(
+      [...section.rows, ...(additionalRowsByAction[section.action] ?? [])].map(
+        row => row.id,
+      ),
+    )
+    additionalRowsByAction = {
+      ...additionalRowsByAction,
+      [section.action]: [
+        ...(additionalRowsByAction[section.action] ?? []),
+        ...page.rows.filter(row => !knownIds.has(row.id)),
+      ],
+    }
+    paginationByAction = {
+      ...paginationByAction,
+      [section.action]: {
+        hasMore: page.hasMore,
+        nextOffset: page.nextOffset,
+      },
+    }
+  } catch {
+    failedSectionActions = new Set(failedSectionActions).add(section.action)
+  } finally {
+    const nextLoading = new Set(loadingSectionActions)
+    nextLoading.delete(section.action)
+    loadingSectionActions = nextLoading
+  }
+}
+
 $effect(() => {
   headings = sectionHeadings
 })
@@ -625,7 +719,7 @@ $effect(() => {
       filteredCount={formatNumber(filteredActions.length)}
       infoDescription={m.source_audit_info_description()}
       infoLabel={m.source_audit_info()}
-      totalCount={formatNumber(visibleActions.length)}
+      totalCount={formatNumber(totalActionCount)}
       bind:query
     />
     <ReleaseAuditResults
@@ -642,6 +736,9 @@ $effect(() => {
       onToggle={toggleEvidence}
       presentRow={rowPresentation}
       {sections}
+      {failedSectionActions}
+      {loadingSectionActions}
+      onLoadMore={loadMoreSection}
       {showBulkActions}
       visibleActionCount={visibleActions.length}
       {visibleBulkSections}
