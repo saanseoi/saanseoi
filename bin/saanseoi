@@ -37,16 +37,22 @@ if [[ "${SAANSEOI_LOG_ACTIVE:-}" != 1 ]]; then
   } > "$log_file"
   printf 'SaanSeoi log: %s\n' "${log_file#"$repo_root/"}" >&2
 
-  # Clack otherwise animates spinners even when stdout is redirected. CI mode
-  # gives the transcript one stable line per progress item; the sed branches
-  # remove the remaining cursor/style controls from the persisted copy only.
+  # Clack otherwise animates spinners even when stdout is redirected. Keep the
+  # live terminal view animated when the command was started from a TTY, while
+  # retaining one stable line per progress item for non-interactive captures.
+  # This check must happen before the descriptors below are redirected.
   export SAANSEOI_LOG_ACTIVE=1
   export SAANSEOI_LOG_PATH="$log_file"
-  export CI=true
+  if [[ -t 1 ]]; then
+    export CI=false
+  else
+    export CI=true
+  fi
   exec > >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file"))
   exec 2> >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file") >&2)
 else
-  export CI=true
+  # Child invocations inherit the mode selected by the top-level wrapper.
+  :
 fi
 
 exec "${SAANSEOI_BUN_PATH:-bun}" \
