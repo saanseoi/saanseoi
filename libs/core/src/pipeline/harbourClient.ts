@@ -3,6 +3,31 @@ export type ApiReleaseSetPublication = {
   apiReleaseSetCode: string
 }
 
+export type ApiReleaseSetMetadataDelta = {
+  id: string
+  apiVersionId: string
+  apiCompositionId: string | null
+  code: string
+  regionCode: string | null
+  domainCode: string
+  cohortKey: string | null
+  revision: number
+  effectiveFrom: string | null
+  effectiveTo: string | null
+  supersedesApiReleaseSetId: string | null
+  schemaVersion: string
+  rulesetVersion: string
+  status: 'current' | 'draft'
+  publishedAt: string | null
+  validFrom: string | null
+  validTo: string | null
+  notes: string | null
+  guide: string | null
+  versionHash: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type PublishDatasetResult = {
   apiCatalogRevisionCode?: string
   apiCatalogRevisionId?: string
@@ -12,7 +37,7 @@ export type PublishDatasetResult = {
   apiReleaseSetPublications?: ApiReleaseSetPublication[]
   datasetId?: string
   metadataDelta?: {
-    apiReleaseSets?: Array<{ id: string; status: 'current' | 'draft' }>
+    apiReleaseSets?: ApiReleaseSetMetadataDelta[]
     releases: Array<{ id: string; status: 'published' }>
   }
   phase: string | null
