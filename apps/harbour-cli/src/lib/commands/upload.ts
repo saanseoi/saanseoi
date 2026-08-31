@@ -83,6 +83,8 @@ import {
   shouldCacheArtefacts,
 } from '../localPipeline/releaseArtefacts.ts'
 
+const API_DOMAIN_RELEASE_WIDTH = 120
+
 export async function runUploadCommand(
   args: ParsedArgs,
   target: UploadTarget,
@@ -1369,9 +1371,16 @@ export function formatDivisionApiReleaseSetReadiness(
 }
 
 function wideApiDomainReleaseNote(message: string) {
+  const output = Object.create(process.stdout) as NodeJS.WriteStream
+  Object.defineProperty(output, 'columns', {
+    configurable: true,
+    value: API_DOMAIN_RELEASE_WIDTH,
+  })
+
   box(message, 'API DOMAIN RELEASE', {
     contentPadding: 0,
     formatBorder: mutedText,
+    output,
     width: 1,
   })
 }
