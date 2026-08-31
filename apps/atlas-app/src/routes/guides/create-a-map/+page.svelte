@@ -109,6 +109,7 @@ import {
   urbanDensityLiveableMetricsCode,
   urbanDensityLiveableMetricsDisplayCode,
   urbanDensityTurfInstallCode,
+  urbanDensityTurfInstallOutput,
   viteReadyOutput,
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
@@ -2877,6 +2878,7 @@ const styleChoices = $derived.by(() =>
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
+            turfInstallOutput={urbanDensityTurfInstallOutput}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">

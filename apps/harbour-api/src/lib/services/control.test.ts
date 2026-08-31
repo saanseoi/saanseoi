@@ -2043,6 +2043,17 @@ describe('control service', () => {
     expect(deferredPublication).toMatchObject({
       apiReleaseSetCode: `data-hk-divisions-${cohortKey}`,
       apiReleaseSetStatus: 'draft',
+      metadataDelta: {
+        snapshots: [
+          {
+            id: areaTypeSnapshotId,
+            status: 'published',
+            publishedAt: expect.any(String),
+            validFrom: expect.any(String),
+            validTo: null,
+          },
+        ],
+      },
     })
     expect(revisionRowsBeforeReconciliation).toEqual([
       {

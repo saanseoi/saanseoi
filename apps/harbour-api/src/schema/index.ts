@@ -461,6 +461,17 @@ export const ControlResponseSchema = z
         releases: z.array(
           z.object({ id: z.string().uuid(), status: z.literal('published') }),
         ),
+        snapshots: z
+          .array(
+            z.object({
+              id: z.string().uuid(),
+              status: z.literal('published'),
+              publishedAt: z.string(),
+              validFrom: z.string(),
+              validTo: z.null(),
+            }),
+          )
+          .optional(),
       })
       .optional(),
     releaseCode: ReleaseCodeSchema,

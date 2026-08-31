@@ -93,6 +93,8 @@ export async function runUploadCommand(
     forceUpload: boolean
     /** Allows a source-specific local repair to reprocess a published release. */
     allowReprocessPublished?: boolean
+    /** Add another materialisation to an already registered source release. */
+    reuseExistingRelease?: boolean
     /** Allows a native importer to register an independent older cohort. */
     allowHistoricalCohort?: boolean
     invocationCwd: string
@@ -700,6 +702,7 @@ ${mutedBar}  `)
             cacheArtefacts,
             deferApiReleaseSet: options.deferApiReleaseSet,
             deferPublish: shouldDeriveHkgovSimplifiedGeometry,
+            reuseRunningRelease: options.reuseExistingRelease,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
           },

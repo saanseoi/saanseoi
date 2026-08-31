@@ -95,3 +95,50 @@ test('inserts an API release set that was created during deferred publication', 
   })
   verify.close()
 })
+
+test('marks a deferred source snapshot published in the local metadata cache', async () => {
+  mkdirSync(cacheRoot, { recursive: true })
+  const cacheDir = mkdtempSync(resolve(cacheRoot, 'snapshot-metadata-delta-test-'))
+  tempCacheDirs.push(cacheDir)
+  const sqlite = new Database(resolve(cacheDir, 'DB_META.sqlite'))
+  sqlite.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  sqlite.exec(`
+    INSERT INTO snapshots (id, resourceType, code, cohortKey, status, createdAt, updatedAt)
+    VALUES ('snapshot-draft', 'division', 'ss-hk-division-2026-08-31.0', '2026-08-31.0', 'draft', '2026-08-31T00:00:00.000Z', '2026-08-31T00:00:00.000Z');
+  `)
+  sqlite.close()
+
+  await applyPublishMetadataDeltaToRemoteCache('preview', cacheDir, {
+    metadataDelta: {
+      releases: [],
+      snapshots: [
+        {
+          id: 'snapshot-draft',
+          status: 'published',
+          publishedAt: '2026-08-31T12:00:00.000Z',
+          validFrom: '2026-08-31T12:00:00.000Z',
+          validTo: null,
+        },
+      ],
+    },
+    phase: null,
+    releaseCode: 'dr-hk-example-2026-08-31.0',
+    releaseId: 'release-example',
+    status: 'published',
+  })
+
+  const verify = new Database(resolve(cacheDir, 'DB_META.sqlite'), { readonly: true })
+  expect(
+    verify
+      .query(
+        'SELECT status, publishedAt, validFrom, validTo FROM snapshots WHERE id = ?',
+      )
+      .get('snapshot-draft'),
+  ).toEqual({
+    status: 'published',
+    publishedAt: '2026-08-31T12:00:00.000Z',
+    validFrom: '2026-08-31T12:00:00.000Z',
+    validTo: null,
+  })
+  verify.close()
+})
