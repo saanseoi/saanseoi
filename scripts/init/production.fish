@@ -7,7 +7,7 @@ init_run_step bun run db:reset:production
 # A reset replaces every remote release ID. Re-export the planning cache before
 # an upload compares C&SD release statistics, otherwise it can resolve an ID
 # retained from the database that was just erased.
-init_run_step ./bin/saanseoi cache:rebuild --target production
+init_run_step ./bin/saanseoi cache:seed-reset --target production
 
 set -l cache_artefact_args
 if test "$saanseoi_init_cache_artefacts" -eq 1
