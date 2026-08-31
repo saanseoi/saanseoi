@@ -28,6 +28,14 @@ export type ApiReleaseSetMetadataDelta = {
   updatedAt: string
 }
 
+export type SnapshotMetadataDelta = {
+  id: string
+  status: 'published'
+  publishedAt: string
+  validFrom: string
+  validTo: null
+}
+
 export type PublishDatasetResult = {
   apiCatalogRevisionCode?: string
   apiCatalogRevisionId?: string
@@ -39,6 +47,7 @@ export type PublishDatasetResult = {
   metadataDelta?: {
     apiReleaseSets?: ApiReleaseSetMetadataDelta[]
     releases: Array<{ id: string; status: 'published' }>
+    snapshots?: SnapshotMetadataDelta[]
   }
   phase: string | null
   releaseCode: string
