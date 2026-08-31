@@ -416,13 +416,12 @@ const resetRequirement = (requirement: number) => {
     >
       {m.guide_publish_account_title({ host })}
     </h3>
-    <p
-      class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 font-body text-body-lg leading-8 text-foreground-alt"
-    >
+    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+      {m.guide_publish_account_create_before()}{' '}
       <Button href={accountUrl} rel="noreferrer" size="compact" variant="secondary">
         {m.guide_publish_account_create_action()}
       </Button>
-      <span>{m.guide_publish_account_description()}</span>
+      {' '}{m.guide_publish_account_description()}
     </p>
     <GuidePublishRequirement
       id="publish-account-readiness"
@@ -580,7 +579,6 @@ const resetRequirement = (requirement: number) => {
     >
       <GuidePublishTerminalCommand
         commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_client({ client }), path: terminalProjectPath })}
-        description={m.guide_publish_install_client_description({ client })}
         code={installCode}
         language={terminalLanguage}
         output={clientInstallOutput}

@@ -6,7 +6,7 @@ type Props = {
   commandLabel: string
   copyLabel: string
   copiedLabel: string
-  description: string
+  description?: string
   language: 'bash' | 'powershell'
   output?: string
   outputLabel?: string
@@ -24,9 +24,11 @@ let {
 }: Props = $props()
 </script>
 
-<p class="font-body text-body-md leading-7 text-foreground-alt">
-  {@html description}
-</p>
+{#if description}
+  <p class="font-body text-body-md leading-7 text-foreground-alt">
+    {@html description}
+  </p>
+{/if}
 <GuideCodeBlock
   class="mt-3"
   label={commandLabel}

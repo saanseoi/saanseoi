@@ -54,6 +54,11 @@ let excludedByDistrictCode = new Map<
 const emptyTileCollection = { type: 'FeatureCollection' as const, features: [] }
 const processingTileLayers: LayerSpecification[] = [
   {
+    id: 'analysis-background',
+    type: 'background',
+    paint: { 'background-color': '#10151a' },
+  },
+  {
     id: 'analysis-tiles',
     type: 'fill',
     source: 'analysis-tiles',
@@ -353,32 +358,37 @@ onMount(() => {
     districtTimer = window.setInterval(advanceDistrictPart, 120)
   }
 
-  void loadCachedDistrictLand().then(land => {
-    if (cancelled) return
-    excludedDistrictLand = land.excludedDistrictLand
-    excludedByDistrictCode = new Map(
-      land.excludedDistrictLand.map(feature => [
-        feature.properties.divisionCode,
-        feature,
-      ]),
-    )
-    updateExclusionSources()
-    tileTimer = window.setInterval(() => {
-      const nextCompletedTiles = Math.min(totalTiles, completedTiles + 12)
-      for (let index = completedTiles; index < nextCompletedTiles; index += 1) {
-        const completedTile = processingTiles[index]
-        if (completedTile) setTileStatus(completedTile, 'complete')
-      }
-      completedTiles = nextCompletedTiles
-      const nextTile = processingTiles[completedTiles]
-      if (nextTile) setTileStatus(nextTile, 'active')
-      showTileOutline(processingTiles[completedTiles])
-      if (completedTiles === totalTiles && tileTimer) {
-        window.clearInterval(tileTimer)
-        startDistrictProgress()
-      }
-    }, 160)
-  })
+  void loadCachedDistrictLand()
+    .then(land => {
+      if (cancelled) return
+      excludedDistrictLand = land.excludedDistrictLand
+      excludedByDistrictCode = new Map(
+        land.excludedDistrictLand.map(feature => [
+          feature.properties.divisionCode,
+          feature,
+        ]),
+      )
+      updateExclusionSources()
+    })
+    .catch(() => {
+      // The progress preview remains useful while a cached result is unavailable.
+    })
+
+  tileTimer = window.setInterval(() => {
+    const nextCompletedTiles = Math.min(totalTiles, completedTiles + 12)
+    for (let index = completedTiles; index < nextCompletedTiles; index += 1) {
+      const completedTile = processingTiles[index]
+      if (completedTile) setTileStatus(completedTile, 'complete')
+    }
+    completedTiles = nextCompletedTiles
+    const nextTile = processingTiles[completedTiles]
+    if (nextTile) setTileStatus(nextTile, 'active')
+    showTileOutline(processingTiles[completedTiles])
+    if (completedTiles === totalTiles && tileTimer) {
+      window.clearInterval(tileTimer)
+      startDistrictProgress()
+    }
+  }, 160)
 
   return () => {
     cancelled = true
@@ -398,12 +408,17 @@ onMount(() => {
       onMapReady={map => {
         previewMap = map
         updateExclusionSources()
+        for (let index = 0; index < completedTiles; index += 1) {
+          const completedTile = processingTiles[index]
+          if (completedTile) setTileStatus(completedTile, 'complete')
+        }
         if (activeTile) setTileStatus(activeTile, 'active')
         showTileOutline(activeTile)
       }}
       renderer="maplibre"
       {styleUrl}
       {tilejsonUrl}
+      unstyled
       zoom={10.75}
     />
   {/key}
