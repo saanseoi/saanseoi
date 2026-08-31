@@ -1838,11 +1838,22 @@ describe('control service', () => {
     for (const year of ['2016', '2021']) {
       const releaseId = `release-dr-hk-hkgov-censtatd-division-area-district-${year}`
       sqlite.exec(`
+        INSERT INTO sourceReleases (
+          id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,
+          ingestedAt, createdAt, updatedAt
+        ) VALUES (
+          '${releaseId}', 'hkgov-censtatd-hk-district',
+          'sr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
+          'published', '2026-06-05T00:01:00.000Z',
+          '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
+        );
+
         INSERT INTO releases (
-          id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+          id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
+          sourceSchemaVersion, cohortKey,
           rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
         ) VALUES (
-          '${releaseId}', 'hkgov-censtatd-hk-district', 'divisionArea',
+          '${releaseId}', '${releaseId}', 'hkgov-censtatd-hk-district', 'divisionArea',
           'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
           'hk/hkgov-censtatd/${year}/division-area.gml', 'division-area.gml', 'published',
           '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
@@ -1869,10 +1880,23 @@ describe('control service', () => {
     }
 
     sqlite.exec(`
+      INSERT INTO sourceReleases (
+        id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,
+        ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        'hkgov-censtatd-hk-district-annual',
+        'sr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        '2024', '1.0', '2024', 'published', '2026-06-05T00:01:00.000Z',
+        '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
+      );
+
       INSERT INTO releases (
-        id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
+        sourceSchemaVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
         'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
         'hkgov-censtatd-hk-district-annual', 'divisionArea',
         'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', '1.0', '2024',
@@ -1925,10 +1949,23 @@ describe('control service', () => {
       INSERT INTO datasetResourceTypes (datasetId, resourceType)
       VALUES ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
 
+      INSERT INTO sourceReleases (
+        id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,
+        ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        'hkgov-censtatd-hk-permanent-living-quarters',
+        'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        '2023-H2', '1.0', '2023-H2', 'published', '2026-06-05T00:02:00.000Z',
+        '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
+      );
+
       INSERT INTO releases (
-        id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
+        sourceSchemaVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
+        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
         'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
         'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
