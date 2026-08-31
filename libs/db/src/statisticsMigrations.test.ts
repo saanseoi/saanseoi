@@ -1,82 +1,38 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-test('source migration recovers exact periods from populated publisher rows', () => {
-  const sqlite = new Database(':memory:')
-  sqlite.exec(`
-    CREATE TABLE hkgovCenstatdDistrictLandAreaPopulationDensities (
-      referenceYear TEXT NOT NULL
-    );
-    CREATE TABLE hkgovCenstatdStatistics (
-      referenceYear TEXT NOT NULL,
-      rawProperties TEXT
-    );
-    INSERT INTO hkgovCenstatdDistrictLandAreaPopulationDensities
-      (referenceYear) VALUES ('2024/25');
-    INSERT INTO hkgovCenstatdStatistics (referenceYear, rawProperties) VALUES
-      ('2023-H2', '{"PERIOD":"2023"}'),
-      ('2023-H2', '{"YEAR":"2023","QUARTER":3}'),
-      ('2026', '{"year":"2016"}');
-  `)
+test('source baseline contains exact Statistics reference-period columns', () => {
+  const migrationsRoot = resolve(import.meta.dir, '../migrations/source')
+  const baselineDirectory = readdirSync(migrationsRoot, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name)
+    .sort()
+    .at(-1)
+
+  expect(baselineDirectory).toBeDefined()
   const migration = readFileSync(
-    resolve(
-      import.meta.dir,
-      '../migrations/source/20260820064217_large_bill_hollister/migration.sql',
-    ),
+    resolve(migrationsRoot, baselineDirectory!, 'migration.sql'),
     'utf8',
   ).replaceAll('--> statement-breakpoint', '')
-
+  const sqlite = new Database(':memory:')
   sqlite.exec(migration)
 
-  expect(
-    sqlite
-      .query(
-        `SELECT referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-                referencePeriodGranularity, referencePeriodEndYear
-         FROM hkgovCenstatdDistrictLandAreaPopulationDensities`,
-      )
-      .get(),
-  ).toEqual({
-    referencePeriodCode: '2024/25',
-    referencePeriodEnd: null,
-    referencePeriodEndYear: '2025',
-    referencePeriodGranularity: 'multi-year',
-    referencePeriodStart: null,
-  })
-  expect(
-    sqlite
-      .query(
-        `SELECT referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-                referencePeriodGranularity, referencePeriodEndYear
-         FROM hkgovCenstatdStatistics
-         ORDER BY referencePeriodCode`,
-      )
-      .all(),
-  ).toEqual([
-    {
-      referencePeriodCode: '2016',
-      referencePeriodEnd: '2016-12-31',
-      referencePeriodEndYear: '2016',
-      referencePeriodGranularity: 'year',
-      referencePeriodStart: '2016-01-01',
-    },
-    {
-      referencePeriodCode: '2023',
-      referencePeriodEnd: '2023-12-31',
-      referencePeriodEndYear: '2023',
-      referencePeriodGranularity: 'year',
-      referencePeriodStart: '2023-01-01',
-    },
-    {
-      referencePeriodCode: '2023-Q3',
-      referencePeriodEnd: '2023-09-30',
-      referencePeriodEndYear: '2023',
-      referencePeriodGranularity: 'quarter',
-      referencePeriodStart: '2023-07-01',
-    },
-  ])
+  for (const tableName of [
+    'hkgovCenstatdDistrictLandAreaPopulationDensities',
+    'hkgovCenstatdStatistics',
+  ]) {
+    const columns = sqlite
+      .query(`PRAGMA table_info("${tableName}")`)
+      .all()
+      .map(column => (column as { name: string }).name)
+    expect(columns).toContain('referencePeriodCode')
+    expect(columns).toContain('referencePeriodStart')
+    expect(columns).toContain('referencePeriodEnd')
+    expect(columns).toContain('referencePeriodGranularity')
+    expect(columns).toContain('referencePeriodEndYear')
+  }
 
   sqlite.close()
 })

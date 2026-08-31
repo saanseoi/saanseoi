@@ -1,5 +1,13 @@
 import { createHmac, createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile, copyFile, stat, rm } from 'node:fs/promises'
+import {
+  mkdir,
+  readFile,
+  writeFile,
+  copyFile,
+  readdir,
+  stat,
+  rm,
+} from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 
@@ -589,6 +597,137 @@ export async function rebuildRemoteDbCache(
   )
 
   dbContext.cleanup()
+}
+
+/**
+ * Seeds the post-reset mirror without exporting empty data databases. DB_META
+ * is the sole remote export because fixture synchronisation creates new IDs;
+ * every other binding is built locally from the checked-in schema baseline.
+ */
+export async function seedRemoteDbCacheAfterReset(
+  target: UploadTarget,
+  onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void,
+) {
+  if (!target.remote) {
+    throw new Error('A post-reset cache seed requires preview or production.')
+  }
+
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const targets = await resolveD1Targets(targetName)
+  const cacheDir = resolveRemoteCacheDir(targetName)
+  const workDir = resolve(CACHE_ROOT, `.seed-reset-${targetName}`)
+  const files: Record<string, string> = {}
+  let completed = 0
+
+  await rm(cacheDir, { force: true, recursive: true })
+  await rm(workDir, { force: true, recursive: true })
+  await mkdir(cacheDir, { recursive: true })
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    await mapWithConcurrency(
+      targets,
+      REMOTE_CACHE_BINDING_CONCURRENCY,
+      async targetRecord => {
+        const destinationPath = resolve(cacheDir, `${targetRecord.bindingName}.sqlite`)
+        await onProgress?.({
+          action: 'export-binding',
+          bindingName: targetRecord.bindingName,
+          current: completed,
+          target: targetName,
+          total: targets.length,
+        })
+
+        if (targetRecord.bindingName === 'DB_META') {
+          const dumpPath = resolve(workDir, 'DB_META.sql')
+          await retryRemoteCacheExport(() =>
+            exportRemoteDatabase(targetRecord, targetName, dumpPath),
+          )
+          await importDatabaseDumpsToSqlite([dumpPath], destinationPath)
+        } else {
+          await createEmptyCacheDatabaseFromMigrations(
+            targetRecord.bindingName,
+            destinationPath,
+          )
+        }
+
+        await assertCachedDatabaseHasExpectedTables(
+          destinationPath,
+          targetRecord.bindingName,
+        )
+        files[targetRecord.bindingName] = destinationPath
+        completed += 1
+        await onProgress?.({
+          action: 'validate-binding',
+          bindingName: targetRecord.bindingName,
+          current: completed,
+          target: targetName,
+          total: targets.length,
+        })
+      },
+    )
+
+    await writeFile(
+      resolve(cacheDir, 'manifest.json'),
+      JSON.stringify(
+        {
+          cacheVersion: DB_CACHE_MANIFEST_VERSION,
+          files,
+          preparedAt: new Date().toISOString(),
+          target: targetName,
+        } satisfies DbCacheManifest,
+        null,
+        2,
+      ),
+    )
+  } finally {
+    await rm(workDir, { force: true, recursive: true })
+  }
+}
+
+async function createEmptyCacheDatabaseFromMigrations(
+  bindingName: string,
+  destinationPath: string,
+) {
+  const family =
+    bindingName === 'DB_CURRENT'
+      ? 'current'
+      : bindingName.startsWith('DB_HISTORY_')
+        ? 'history'
+        : bindingName.startsWith('DB_SOURCE_')
+          ? 'source'
+          : null
+  if (!family) throw new Error(`Cannot resolve migration family for ${bindingName}.`)
+
+  const migrationRoot = resolve(REPO_ROOT, 'libs/db/migrations', family)
+  const migrationPaths = await listMigrationSqlPaths(migrationRoot)
+  if (migrationPaths.length === 0) {
+    throw new Error(`No ${family} migration baseline exists at ${migrationRoot}.`)
+  }
+
+  await rm(destinationPath, { force: true })
+  await mkdir(dirname(destinationPath), { recursive: true })
+  const sqlite = new SQLiteDatabase(destinationPath, { create: true })
+  try {
+    for (const migrationPath of migrationPaths) {
+      sqlite.exec(await readFile(migrationPath, 'utf8'))
+    }
+  } finally {
+    sqlite.close()
+  }
+}
+
+async function listMigrationSqlPaths(root: string): Promise<string[]> {
+  const paths: string[] = []
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const entryPath = resolve(root, entry.name)
+    if (entry.isDirectory()) {
+      paths.push(...(await listMigrationSqlPaths(entryPath)))
+    } else if (entry.isFile() && entry.name === 'migration.sql') {
+      paths.push(entryPath)
+    }
+  }
+  return paths.sort((left, right) => left.localeCompare(right))
 }
 
 export async function readRemoteCachedCompletedReleaseCodes(
@@ -1446,7 +1585,10 @@ async function ensureRemoteCachePaths(
     existingManifest.cacheVersion === DB_CACHE_MANIFEST_VERSION &&
     existingManifest.target === target &&
     existingManifest.cacheScopeKey === options.remoteCacheScopeKey &&
-    existingManifest.cacheTableProfile === options.cacheTableProfile &&
+    isCacheTableProfileCompatible(
+      existingManifest.cacheTableProfile,
+      options.cacheTableProfile,
+    ) &&
     (await doCachedFilesExist(
       existingManifest.files,
       targets,
@@ -1595,7 +1737,7 @@ async function resolveReusableCachedFiles(
       partial &&
       partial.cacheVersion === DB_CACHE_MANIFEST_VERSION &&
       partial.target === targetEnvironment &&
-      partial.cacheTableProfile === cacheTableProfile &&
+      isCacheTableProfileCompatible(partial.cacheTableProfile, cacheTableProfile) &&
       partial.cacheScopeKey === cacheScopeKey
     const candidatePaths = [
       files[targetRecord.bindingName],
@@ -1664,6 +1806,14 @@ async function removeRemoteCachePartialCheckpoint(
 
 function isNonEmptyString(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+/** An unprofiled mirror is the reusable superset; named profiles are subsets. */
+function isCacheTableProfileCompatible(
+  cachedProfile: CacheTableProfile | undefined,
+  requestedProfile: CacheTableProfile | undefined,
+) {
+  return cachedProfile === undefined || cachedProfile === requestedProfile
 }
 
 async function refreshRemoteCacheTables(
@@ -2191,6 +2341,12 @@ function resolveMirrorTablesForBinding(
       'address2dI18n',
       'divisionAreas',
       'divisionBoundaries',
+      'statsRecords',
+      'statsFields',
+      'statsFieldsI18n',
+      'statsMeasures',
+      'statsMeasuresI18n',
+      'statsValuesI18n',
     ]
   }
 
@@ -2248,6 +2404,13 @@ function resolveMirrorTablesForBinding(
       'address2dI18n',
       'divisionAreas',
       'divisionBoundaries',
+      'divisionStatistics',
+      'statsRecords',
+      'statsFields',
+      'statsFieldsI18n',
+      'statsMeasures',
+      'statsMeasuresI18n',
+      'statsValuesI18n',
       'snapshotVersionChanges',
     ]
   }
@@ -2312,6 +2475,14 @@ function resolveMirrorTablesForBinding(
       'hkgovPlandPlanningCells',
       'hkgovPlandNewTowns',
       'hkgovAlsAddresses2d',
+      'hkgovHydStreetNamePlates',
+      'hkgovHydSensitiveStreets',
+      'hkgovHydStrategicStreets',
+      'hkgovTdPedestrianStreets',
+      'hkgovCenstatdDistrictLandAreaPopulationDensities',
+      'hkgovCenstatdStatistics',
+      'hkgovLandsdPlaceNames',
+      'hkgovLandsdRoadCentrelines',
     ]
   }
 
