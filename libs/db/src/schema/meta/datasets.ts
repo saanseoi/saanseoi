@@ -119,8 +119,9 @@ export const metaDatasetTransforms = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.datasetId, table.code] }),
-    uniqueIndex('datasetTransforms_outputVariant_unique_idx').on(table.outputVariant),
+    // Source versions are retained independently, while public variants are
+    // selected in the context of a dataset and cohort.
+    primaryKey({ columns: [table.datasetId, table.code, table.sourceVersion] }),
     index('datasetTransforms_resourceType_idx').on(table.resourceType),
   ],
 )
@@ -142,6 +143,11 @@ export const metaSourceReleases = sqliteTable(
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
+    geometryStatus: text('geometryStatus', {
+      enum: ['authoritative', 'fallback'],
+    })
+      .notNull()
+      .default('authoritative'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),
@@ -197,6 +203,11 @@ export const metaReleases = sqliteTable(
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
+    geometryStatus: text('geometryStatus', {
+      enum: ['authoritative', 'fallback'],
+    })
+      .notNull()
+      .default('authoritative'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),

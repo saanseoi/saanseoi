@@ -17,6 +17,7 @@ export type RegisterUploadRequest = {
     shardYear?: string
     source?: string
     sourceVersion?: string
+    geometryStatus?: 'authoritative' | 'fallback'
     theme?: string
     type?: string
   }
@@ -32,6 +33,7 @@ export async function handleRegisterUploadRequest(
       : request.resumeStagedRelease
         ? ['staged']
         : undefined,
+    resumeInterruptedProcessingRelease: request.resumeStagedRelease,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
     filePath: request.fileName,
@@ -42,6 +44,7 @@ export async function handleRegisterUploadRequest(
     shardYear: request.plan.shardYear,
     source: request.plan.source,
     sourceVersion: request.plan.sourceVersion,
+    geometryStatus: request.plan.geometryStatus,
     theme: request.plan.theme,
     type: request.plan.type,
   })

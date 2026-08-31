@@ -6,12 +6,14 @@ import { describe, expect, test } from 'bun:test'
 import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+import { strFromU8 } from 'fflate'
 
 import {
   prepareHkgovCenstatdDistrictUpload,
   readHkgovCenstatdDistrictGmlArchive,
 } from './hkgovCenstatd.ts'
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
+import { readSafeZipArchive } from '../zipArchive.ts'
 
 const districtClasses = [
   'A',
@@ -74,6 +76,152 @@ describe('C&SD district GML preparation', () => {
       )
     }
   })
+
+  test('extracts the 2024 DC_GHS district cohort that is identical to Density_2024', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../')
+    const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
+    const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-output-'))
+    try {
+      const [districtArchive, densityArchive] = await Promise.all([
+        readFile(
+          join(
+            repoRoot,
+            'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+          ),
+        ),
+        readFile(
+          join(
+            repoRoot,
+            'data/hkgov/csdi/archive/censtatd_rcd_1635934215448_25451/2025-Q3/source.zip',
+          ),
+        ),
+      ])
+      const inputFile = join(inputDir, 'district-council-districts-2024.gml')
+      await writeFile(
+        inputFile,
+        readHkgovCenstatdDistrictGmlArchive(
+          districtArchive,
+          '2024',
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        ),
+        'utf8',
+      )
+      const prepared = await prepareHkgovCenstatdDistrictUpload(
+        inputFile,
+        outputDir,
+        '2024',
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        },
+      )
+      const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
+        inputFile,
+        outputDir,
+        '2024',
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          transform: 'simplified',
+        },
+      )
+      const file = await asyncBufferFromFile(prepared.filePath)
+      const rows = await parquetReadObjects({
+        compressors,
+        file,
+        metadata: await parquetMetadataAsync(file),
+      })
+      const displayFile = await asyncBufferFromFile(displayPrepared.filePath)
+      const displayRows = await parquetReadObjects({
+        compressors,
+        file: displayFile,
+        metadata: await parquetMetadataAsync(displayFile),
+      })
+      const densityGml = strFromU8(
+        readSafeZipArchive(densityArchive, {
+          select: name => name === 'Density_2024.gml',
+        }).entries['Density_2024.gml']!,
+      )
+      const densityByCode = new Map(
+        parseHkgovCenstatdDistrictGml(densityGml, 'Density_2024').map(feature => [
+          Number(feature.properties.DC),
+          feature.sourceGeometry,
+        ]),
+      )
+
+      expect(prepared).toMatchObject({ cohortKey: '2024', sourceVersion: '2024' })
+      expect(rows).toHaveLength(18)
+      expect(rows.map(row => row.census_year)).toEqual(Array(18).fill('2024'))
+      expect(displayRows[0]).toMatchObject({
+        derivation: { preservesPublisherGeometry: true },
+      })
+      for (const row of rows) {
+        expect(row.source_geometry).toEqual(
+          densityByCode.get(Number(row.district_code)),
+        )
+      }
+    } finally {
+      await rm(inputDir, { force: true, recursive: true })
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  })
+
+  test('keeps publisher-labelled annual cohorts in separate Parquet files', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../')
+    const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
+    const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-output-'))
+    try {
+      const archive = await readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2026-Q2/source.zip',
+        ),
+      )
+      const gml = readHkgovCenstatdDistrictGmlArchive(
+        archive,
+        '2026-Q2',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      )
+      const cohortKeys = [
+        ...new Set(
+          parseHkgovCenstatdDistrictGml(gml, 'DC_GHS')
+            .map(feature => String(feature.properties.year ?? '').trim())
+            .filter(year => /^20\d{2}$/.test(year)),
+        ),
+      ].sort()
+      expect(cohortKeys.length).toBeGreaterThan(1)
+
+      const inputFile = join(inputDir, 'DC_GHS.gml')
+      await writeFile(inputFile, gml, 'utf8')
+      const prepared = await Promise.all(
+        cohortKeys.map(cohortKey =>
+          prepareHkgovCenstatdDistrictUpload(inputFile, outputDir, '2026-Q2', {
+            cohortKey,
+            datasetCode:
+              'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          }),
+        ),
+      )
+
+      expect(new Set(prepared.map(result => result.filePath)).size).toBe(
+        cohortKeys.length,
+      )
+      for (const result of prepared) {
+        const file = await asyncBufferFromFile(result.filePath)
+        const rows = await parquetReadObjects({
+          compressors,
+          file,
+          metadata: await parquetMetadataAsync(file),
+        })
+        expect(rows.map(row => row.census_year)).toEqual(
+          Array(18).fill(result.cohortKey),
+        )
+      }
+    } finally {
+      await rm(inputDir, { force: true, recursive: true })
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  }, 15_000)
 
   test('retains exact source geometry and produces display derivatives for both census cohorts', async () => {
     const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
@@ -156,7 +304,7 @@ describe('C&SD district GML preparation', () => {
       expect(displayRows[0]).toMatchObject({
         census_year: '2021',
         derivation: {
-          method: 'topology-preserving-simplification',
+          method: 'geos-coverage-simplification',
           preservesLandClip: true,
           toleranceMetres: 10,
         },

@@ -7,6 +7,11 @@ the latest published HAD and C&SD district-area snapshots at or before the set c
 The boundary requirement remains exact-cohort Overture. This keeps the two authoritative
 district-area sources in every Overture release without selecting future data.
 
+When Divisions release-set publication is deferred, every nested source upload retains
+that deferral. It may publish its source release and snapshot, but it cannot create an
+API revision for an already current cohort; only explicit reconciliation publishes a
+draft release set.
+
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
 `divisionBoundary` as `division-boundary`. A dataset describes one publisher product and
@@ -33,20 +38,24 @@ derived Overture `divisionArea` union when Overture omits its own area geometry,
 Overture does provide the division identity itself. Those reviewed identities retain
 their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
 New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
-`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement.
-C&SD Area/type geometry then references those Overture identities rather than creating
-parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's 173
-polygonal Housing Market Areas. Building Groups are not divisions: their source
-centroids remain source history for a future buildings projection.
+`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement. Lok
+Ma Chau Loop (`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a
+district: the correction keeps level 2 to the 18 statutory districts, retains raw
+Overture taxonomy as provenance, and is recorded in each affected source release's
+processing actions. C&SD Permanent Living Quarters geometry then references those
+Overture identities rather than creating parallel divisions. The separate
+`hkgov-censtatd-hma` domain publishes C&SD's 173 polygonal Housing Market Areas.
+Building Groups are not divisions: their source centroids remain source history for a
+future buildings projection.
 
-The 2023-H2 C&SD Area/type statistics output maps its source codes to those stable
-Overture area identities. It is a required member of each publishable Geographic release
-set, while remaining an explicitly selected `divisionArea` response variant through
-`include=areas:hkgov-censtatd-area`; it never adds a second Geographic division
-collection. The 2021 HMA statistics output instead supplies the separate HMA domain's
-primary canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
-`hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
-statistics, its statistics and its division geography have distinct snapshot lineages.
+The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
+those stable Overture area identities. Its Area/type polygons join the same
+cohort-qualified `hkgov-censtatd` companion as C&SD's annual district polygons; it does
+not add a second Geographic division collection. The 2021 HMA statistics output instead
+supplies the separate HMA domain's primary canonical division snapshot
+(`hkgov-censtatd:2021`), paired with its native `hkgov-censtatd-hma` geometry. Although
+the HMA source dataset also publishes statistics, its statistics and its division
+geography have distinct snapshot lineages.
 
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset
@@ -56,7 +65,9 @@ canonical rows therefore never need an Overture cohort in order to be published,
 2006 planning cohort can be backfilled even when no 2006 Overture divisions exist. New
 Town identities are cohort-scoped; Planning Unit and Overture lineages use persistent
 identity. Updater-driven Planning Department intake verifies the mirrored archive's
-managed key and SHA-256 before parsing it.
+managed key and SHA-256 before parsing it. Historical Planning backfills retain verified
+derived Parquet locally by archive digest and preparation contract, allowing a retry to
+reuse source reconstruction without reusing mutable release materialisation state.
 
 Published domain releases are immutable. Adding another eligible secondary snapshot to
 an already published cohort creates the next trailing composition revision (`...-0` to
@@ -136,14 +147,35 @@ indicates geometric complexity rather than positional accuracy; an exact C&SD re
 and its `simplified` display derivative therefore never share or replace these
 measurements.
 
-Historical C&SD district areas are required, cohort-qualified statistical-geometry
-variants, never defaults. Each census cohort has an exact source variant
-(`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named
-display transform on that source variant, requested as
-`areas:hkgov-censtatd:<cohort>&transform=simplified`; it is not an independent
-composition member. Both source cohorts are required inputs to each Overture release, so
-their source-schema versions are always present in API-field provenance and only one
-mapping is needed for each Overture schema range.
+Historical C&SD district areas are cohort-qualified statistical-geometry companions,
+never defaults. The census land-clipped district releases use
+`hkgov-censtatd-landclipped`; annual district polygons and C&SD Area/type polygons use
+`hkgov-censtatd`. Both keep an explicit snapshot for each source-authorised cohort, even
+when its geometry bytes match an earlier cohort. `simplified` is a named 10-metre
+display transform of the selected companion snapshot, not an independent composition
+member.
+
+The processing cache retains each simplified WGS84 GeoJSON coverage under
+`.local/dataops/simplified-coverage`, keyed by the complete input geometry, the 10-metre
+tolerance and the versioned simplification contract. Re-uploading unchanged source
+geometry therefore reuses the verified display derivative; a changed source, tolerance
+or contract produces a new one.
+
+Several C&SD source releases can contribute to one companion cohort. The materialiser
+compares each incoming complete canonical row set before writing: when every row is
+already present with the same materialisation, it is retained as a `snapshotSource` with
+`verified_identical_geometry`, rather than duplicating canonical current/history rows.
+Non-overlapping rows are recorded as `contributed_geometry` and merged into the
+companion. This distinction is per complete materialisation, not a source-level
+duplicate.
+
+For API-field provenance, Population and Household Statistics is the canonical C&SD
+district relationship whenever it is available. Permanent Living Quarters may still
+contribute geometry to that companion. District Land Area, Population and Density
+remains a retained source and can seed an earlier companion, but becomes redundant for
+the API-field signature once either canonical C&SD source is present. The redundant
+source is reported with the release-set lookup rather than becoming a competing field
+mapping.
 
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when

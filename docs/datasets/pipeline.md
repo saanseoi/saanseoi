@@ -58,8 +58,14 @@ and publication progress.
 
 ## Local pipeline initialisation
 
-Initialise one API family and composition domain at a time. Reset local databases before
-starting a fresh run, then use the focused command for the domain under review:
+Initialise one API family and composition domain at a time. For a clean local Divisions
+and Statistics rebuild, use `./bin/saanseoi init:local`. It resets local databases, runs
+every Divisions initialiser followed by the official Statistics initialiser, and prints
+one final initialisation summary. Address initialisation is not yet part of this
+command.
+
+To reset local databases before a focused run, then use the command for the domain under
+review:
 
 ```sh
 bun run db:reset:local
@@ -82,10 +88,10 @@ environment:
 ./bin/saanseoi init:divisions:hkgov-landsd --target preview
 ```
 
-`init:divisions:geographic` also replays the retained 2023-H2 C&SD Area/type archive as
-the required `divisionArea` `hkgov-censtatd-area` companion. This remains part of
-Geographic Divisions initialisation even when the corresponding Statistics release is
-already current.
+`init:divisions:geographic` also replays the retained 2023-H2 C&SD Permanent Living
+Quarters archive as the required `divisionArea` `hkgov-censtatd-area` companion. This
+remains part of Geographic Divisions initialisation even when the corresponding
+Statistics release is already current.
 
 Use `--target production` for the production database after authenticating Wrangler and
 Harbour. Remote initialisers are safe to rerun after a failed cache refresh: they allow
@@ -95,14 +101,14 @@ include local-only preparation workflows.
 
 The Overture division initialiser includes its HAD and C&SD geometry dependencies,
 including both the `2016` and `2021` C&SD district variants and the Permanent Living
-Quarters Area/type geometry. It processes the Area/type source after the Overture
-canonical divisions and before draft release-set reconciliation. Re-run an interrupted
-Overture or Planning Department backfill with `--continue`; it ignores release codes
-already marked `published` or `superseded`, then passes every other release to
-`upload --continue`. That retry accepts an existing staged release and ordinary
-failed-release retries, but never repairs a published release; unsupported states fail
-rather than being silently ignored. `saanseoi init [--continue]` runs all the focused
-initialisers in the same order.
+Quarters geometry. It processes that source after the Overture canonical divisions and
+before draft release-set reconciliation. Re-run an interrupted Overture or Planning
+Department backfill with `--continue`; it ignores release codes already marked
+`published` or `superseded`, then passes every other release to `upload --continue`.
+That retry accepts an existing staged release and ordinary failed-release retries, but
+never repairs a published release; unsupported states fail rather than being silently
+ignored. `saanseoi init [--continue]` runs all the focused initialisers in the same
+order.
 
 Initialisers defer `docs:publish --scope all` until all their uploads have succeeded.
 This avoids rescanning and publishing the same release documentation after every cohort

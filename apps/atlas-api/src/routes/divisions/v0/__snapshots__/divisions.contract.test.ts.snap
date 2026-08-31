@@ -1464,7 +1464,7 @@ exports[`Divisions API responses through the Worker route invalid request throug
     "details": [
       {
         "code": "invalid_format",
-        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/",
+        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/",
         "path": "include",
       },
     ],

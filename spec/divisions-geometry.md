@@ -13,8 +13,16 @@ definitions, identifiers, vintages, scale, CRS, or generalisation must remain au
 
 Each API release set has a configured default variant for each relationship. A bare
 `areas` or `boundaries` include resolves that default; a qualified include selects a
-registered provider (`areas:<provider>` or `boundaries:<provider>`). Unknown,
-unavailable, or incompatible variants are client errors and must not silently fall back.
+registered provider (`areas:<provider>` or `boundaries:<provider>`). An area include may
+also scope just the geometry companion to an explicit cohort:
+`areas:<provider>@<cohort>`. This retains the selected Divisions release set's canonical
+identities and hierarchy, while reading the requested provider geometry from that
+published cohort. For example,
+`include=areas:hkgov-censtatd-landclipped@2021&transform=simplified` returns current
+canonical division identities with the 2021 simplified C&SD geometry. The selector does
+not alter the top-level release set, and a missing exact companion is a `409` rather
+than a fallback. Unknown, unavailable, or incompatible variants are client errors and
+must not silently fall back.
 
 ## Source contract
 

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:53f65df898e8a28480e26b3ac962d90948c1c04f54d5a5f791bb31d888577a4b",
+  "versionHash": "sha256:bc58695797b6bb7bacbffac3ab67050d309cc0583deea6c640320fe83b764f6d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -7,10 +7,15 @@
   "releaseFrequency": "yearly",
   "theme": "stats",
   "sourceVariant": "official-statistics",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
@@ -33,9 +38,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -62,8 +65,52 @@
   ],
   "releases": [
     {
-      "sourceVersion": "2021",
-      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+      "sourceVersion": "2024",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "verifiedIdenticalArchiveSlots": [
+        {
+          "releaseSlot": "2025-Q2",
+          "sourceObjectHash": "fb9ce26b82759e635777632fdaa560702e20f7ae4e3766f22bb473f0b8ca5ffc",
+          "contentHash": "bb9145810adabb52a32316b79b2c3a3fbc8a37e2f9438cd98242892a9f50797b"
+        }
+      ]
+    },
+    {
+      "sourceVersion": "2026-Q2",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "referencePeriods": {
+        "geometryStatus": "fallback",
+        "sourceField": "year",
+        "materialiseAreaCompanions": true
+      }
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2024",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2026-Q2",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

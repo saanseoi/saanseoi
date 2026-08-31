@@ -47,7 +47,7 @@ const indent = (depth: number) => `${0.5 + Math.max(0, depth - 2) * 0.5}rem`
     >
       {#if depth >= 3}
         <span
-          class={`pointer-events-none absolute top-0 left-0 border-l border-outline-variant ${isLast ? mobile ? 'h-[18px]' : 'h-4' : 'bottom-0'}`}
+          class={`pointer-events-none absolute top-0 left-0 border-l border-outline-variant ${isLast ? mobile ? 'h-[18px]' : 'h-1/2' : 'bottom-0'}`}
           aria-hidden="true"
         ></span>
       {/if}

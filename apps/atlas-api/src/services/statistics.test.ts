@@ -18,7 +18,16 @@ const statistic = {
   referencePeriodEnd: null,
   referencePeriodEndYear: '2021',
   referencePeriodGranularity: 'year',
-  geography: { kind: 'district', code: '11', class: 'A' },
+  geography: {
+    kind: 'district',
+    code: '11',
+    class: 'A',
+    areaCompanion: {
+      variant: 'hkgov-censtatd',
+      domainCode: 'geographic',
+      cohortKey: '2021',
+    },
+  },
   dimensions: { sex: 'all' },
   values: {
     totalPopulation: '235953',
@@ -45,7 +54,15 @@ const newTownStatistic = {
   sourceFeatureRef:
     'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-new-towns/2021/NewTown:1',
   divisionId: 'division-new-town-shatin',
-  geography: { kind: 'new-town', code: 'NT-1' },
+  geography: {
+    kind: 'new-town',
+    code: 'NT-1',
+    areaCompanion: {
+      variant: 'hkgov-pland-new-town',
+      domainCode: 'hkgov-pland-new-town',
+      cohortKey: '2021',
+    },
+  },
   dimensions: { 'new-town': 'NT-1', sex: 'all' },
 } as const
 
@@ -123,6 +140,20 @@ function dependencies() {
         sourceReleaseId: statistic.sourceReleaseId,
       },
     ],
+    resolvePublishedSnapshotForResourceTypeRegionCohortKey: async (
+      _db: unknown,
+      _resourceType: string,
+      _regionCode: string,
+      cohortKey: string,
+      options?: { variant?: string },
+    ) => ({
+      id:
+        cohortKey === '2024'
+          ? 'snapshot-areas-censtatd-2024'
+          : options?.variant === 'hkgov-pland-new-town'
+            ? 'snapshot-areas-new-town'
+            : 'snapshot-areas-censtatd-2021',
+    }),
     listStatisticRecords: async () => [statistic],
     listStatisticRecordsForGeography: async () => [statistic],
     countStatisticRecords: async () => 1,
@@ -246,8 +277,119 @@ describe('Statistics service', () => {
       'division-areas',
     ])
     expect(result.body.links.permalink).toContain(
-      'include=areas%3Ahkgov-censtatd%3A2021%2Cdivisions',
+      'include=areas%3Ahkgov-censtatd%2Cdivisions',
     )
+  })
+
+  test('selects the matching C&SD 2024 district-area variant for 2024 statistics', async () => {
+    const densityStatistic = {
+      ...statistic,
+      id: 'statistic-density-2024',
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      referencePeriodCode: '2024',
+      referencePeriodEndYear: '2024',
+      sourceFeatureRef:
+        'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district/2024/Density:11',
+      geography: {
+        kind: 'district',
+        code: '11',
+        class: 'A',
+        areaCompanion: {
+          variant: 'hkgov-censtatd',
+          domainCode: 'geographic',
+          cohortKey: '2024',
+        },
+      },
+    } as const
+    const mocks = {
+      ...dependencies(),
+      resolveApiReleaseSetSnapshotsForRequest: async (
+        _db: unknown,
+        type: string,
+        options?: { domainCode?: string },
+      ) => {
+        if (type === 'divisionStatistic') return releaseSelection(type)
+        const selection = releaseSelection(type, options?.domainCode)
+        return {
+          ...selection,
+          snapshots: [
+            selection.snapshots[0],
+            {
+              snapshotResourceType: 'divisionArea',
+              snapshotId: 'snapshot-areas-censtatd-2024',
+              role: 'geometry',
+              variant: 'hkgov-censtatd',
+            },
+          ],
+        }
+      },
+      listStatisticRecords: async () => [densityStatistic],
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey: async () => ({
+        id: 'snapshot-areas-censtatd-2024',
+      }),
+      listDivisionAreasCurrentByDivisionIds: async () => [
+        {
+          id: 'area-central-western-2024',
+          variant: 'hkgov-censtatd',
+          divisionId: densityStatistic.divisionId,
+          bbox: [114.12, 22.26, 114.17, 22.3],
+          geometry: { type: 'Polygon', coordinates: [] },
+          sourceKeys: null,
+          sources: null,
+          type: 'district',
+          isLand: true,
+          isTerritorial: false,
+        },
+      ],
+    }
+
+    const result = await listStatistics({
+      currentDb: {} as never,
+      historyDbs: [],
+      metaDb: {} as never,
+      requestUrl: 'https://api.saanseoi.hk/stats/v0.1?include=areas',
+      requestedVersionPath: 'stats/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      query: { include: 'areas' },
+      dependencies: mocks as never,
+    })
+
+    expect(result.status).toBe(200)
+    if (result.status !== 200) throw new Error('Expected Statistics response.')
+    expect(result.body.included).toMatchObject([
+      { type: 'division-areas', attributes: { variant: 'hkgov-censtatd' } },
+    ])
+    expect(result.body.links.permalink).toContain('include=areas%3Ahkgov-censtatd')
+  })
+
+  test('does not substitute another cohort when an area variant is unavailable', async () => {
+    const result = await listStatistics({
+      currentDb: {} as never,
+      historyDbs: [],
+      metaDb: {} as never,
+      requestUrl:
+        'https://api.saanseoi.hk/stats/v0.1?include=areas:hkgov-censtatd-landclipped',
+      requestedVersionPath: 'stats/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      query: { include: 'areas:hkgov-censtatd-landclipped' },
+      dependencies: {
+        ...dependencies(),
+        resolvePublishedSnapshotForResourceTypeRegionCohortKey: async () => null,
+      } as never,
+    })
+
+    expect(result).toEqual({
+      status: 409,
+      body: {
+        httpStatus: 409,
+        error: 'variant_cohort_unavailable',
+        message:
+          'The areas:hkgov-censtatd-landclipped variant is not available for geometry cohort 2021.',
+      },
+    })
   })
 
   test('includes only field definitions used by the returned packed records', async () => {

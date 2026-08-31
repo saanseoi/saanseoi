@@ -9,6 +9,7 @@ import {
   initialApiVersions,
   initialDatasets,
   initialDatasetResourceTypes,
+  initialDatasetTransforms,
   initialDataShards,
   initialDivisionCodes,
   initialIdentifierBridges,
@@ -207,7 +208,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
     expect(
       censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
-    ).toHaveLength(3)
+    ).toHaveLength(2)
     expect(
       censtatdStats
         .filter(dataset => dataset.sourceVariant === 'census')
@@ -255,7 +256,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('pairs C&SD HMA geometry with its canonical division and maps Area/type to Overture areas', () => {
+  test('pairs C&SD HMA geometry with its canonical division and maps Permanent Living Quarters to Overture areas', () => {
     const divisionsComposition = initialApiCompositions.find(
       composition => composition.code === 'comp-divisions-v1',
     )
@@ -287,7 +288,7 @@ describe('fixture version hashes', () => {
       member =>
         member.apiCompositionCode === 'comp-divisions-v1' &&
         member.domainCode === 'geographic' &&
-        member.variant === 'hkgov-censtatd-area',
+        member.variant === 'hkgov-censtatd',
     )
     expect(areaTypeMembers).toEqual([
       expect.objectContaining({
@@ -368,6 +369,11 @@ describe('fixture version hashes', () => {
               }),
               expect.objectContaining({
                 operationCode: 'overture_division_locale_inferred',
+                type: 'record',
+              }),
+              expect.objectContaining({
+                operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
+                sourceFieldPath: 'id, subtype, class, admin_level',
                 type: 'record',
               }),
             ]),
@@ -452,6 +458,25 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('allows source-versioned transforms to share a public output variant', () => {
+    const sharedVariantTransforms = initialDatasetTransforms.filter(
+      transform => transform.outputVariant === 'hkgov-censtatd:simplified',
+    )
+    const statements = buildMetaRegistrySyncStatements('preview')
+
+    expect(sharedVariantTransforms.length).toBeGreaterThan(1)
+    expect(
+      new Set(
+        sharedVariantTransforms.map(transform =>
+          [transform.datasetCode, transform.code, transform.sourceVersion].join(':'),
+        ),
+      ).size,
+    ).toBe(sharedVariantTransforms.length)
+    expect(statements).toContainEqual(
+      expect.stringContaining('ON CONFLICT(datasetId, code, sourceVersion) DO UPDATE'),
+    )
+  })
+
   test('orders parent publishers before their children', () => {
     const parentIndex = initialPublishers.findIndex(
       publisher => publisher.code === 'hkgov',

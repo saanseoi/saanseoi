@@ -3,14 +3,9 @@ import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteBuffer } from 'hyparquet-writer'
 import { strFromU8 } from 'fflate'
-import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
-import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
-import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
-import TopologyPreservingSimplifier from 'jsts/org/locationtech/jts/simplify/TopologyPreservingSimplifier.js'
-import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
-
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 import { readSafeZipArchive } from '../zipArchive.ts'
+import { simplifyPolygonCoverage } from '../../geometry/simplifyPolygonCoverage.ts'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
@@ -18,15 +13,69 @@ const HKGOV_CENSTATD_SOURCE = 'hkgov-censtatd'
 const HKGOV_CENSTATD_SCHEMA_VERSION = '1.0'
 export const HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM = 'simplified'
 const DISPLAY_SIMPLIFICATION_TOLERANCE_METRES = 10
-const HONG_KONG_REFERENCE_LONGITUDE = 114
-const HONG_KONG_REFERENCE_LATITUDE = 22.35
-const METRES_PER_DEGREE_LATITUDE = 110_574
-const METRES_PER_DEGREE_LONGITUDE =
-  111_320 * Math.cos((HONG_KONG_REFERENCE_LATITUDE * Math.PI) / 180)
 
-const SOURCE_PROFILE: Record<string, { layerName: string }> = {
-  '2016': { layerName: 'DC_16BC_SDU' },
-  '2021': { layerName: 'DC_21C_SDU' },
+type CenstatdDistrictSourceVersion =
+  | '2016'
+  | '2021'
+  | '2022'
+  | '2023-H2'
+  | '2024'
+  | '2026-Q2'
+
+type CenstatdDistrictDatasetCode =
+  | 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+
+const DEFAULT_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+
+const SOURCE_PROFILES: Record<
+  CenstatdDistrictDatasetCode,
+  Partial<
+    Record<
+      CenstatdDistrictSourceVersion,
+      { layerName: string; referencePeriodField?: string }
+    >
+  >
+> = {
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
+    '2022': { layerName: 'Density_2022' },
+    '2024': { layerName: 'Density_2024' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
+    '2023-H2': { layerName: 'DCD_LQ_Q32023' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+    // The annual release is filtered to its publisher-labelled year below.
+    '2024': { layerName: 'DC_GHS', referencePeriodField: 'year' },
+    '2026-Q2': { layerName: 'DC_GHS', referencePeriodField: 'year' },
+  },
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
+    '2016': { layerName: 'DC_16BC_SDU' },
+    '2021': { layerName: 'DC_21C_SDU' },
+  },
+}
+
+function sourceProfile(
+  datasetCode: CenstatdDistrictDatasetCode,
+  sourceVersion: CenstatdDistrictSourceVersion,
+) {
+  const profile = SOURCE_PROFILES[datasetCode][sourceVersion]
+  if (!profile) {
+    throw new Error(
+      `No C&SD district parser profile exists for ${datasetCode} ${sourceVersion}.`,
+    )
+  }
+  return profile
+}
+
+export function hkgovCenstatdDistrictLayerName(
+  datasetCode: CenstatdDistrictDatasetCode,
+  sourceVersion: CenstatdDistrictSourceVersion,
+) {
+  return sourceProfile(datasetCode, sourceVersion).layerName
 }
 
 export type PreparedHkgovCenstatdDistrictUpload = {
@@ -52,6 +101,8 @@ type CsdIFeature = {
 }
 
 type CsdIProperties = {
+  DC?: unknown
+  DC_CLASS?: unknown
   dc?: unknown
   dc_chi?: unknown
   dc_class?: unknown
@@ -74,31 +125,35 @@ type PreparedDistrictRow = {
 
 /**
  * Converts either Census dataset's GML 3.2 WFS delivery into the normalised
- * division-area Parquet contract. The source delivery already contains the
- * detailed land-clipped census district boundaries; its geometry and complete
- * GML feature member are retained for the C&SD provider variant.
+ * division-area Parquet contract. The source delivery's district geometry and
+ * complete GML feature member are retained for the C&SD provider variant.
  */
 export async function prepareHkgovCenstatdDistrictUpload(
   inputFile: string,
   outputDir: string,
-  sourceVersion: '2016' | '2021',
+  sourceVersion: CenstatdDistrictSourceVersion,
   options: {
+    datasetCode?: CenstatdDistrictDatasetCode
+    cohortKey?: string
     sourceArchive?: { key: string; sha256: string }
     transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
   } = {},
 ): Promise<PreparedHkgovCenstatdDistrictUpload> {
-  const profile = SOURCE_PROFILE[sourceVersion]
-  if (!profile) {
-    throw new Error(
-      `No registered ${HKGOV_CENSTATD_SOURCE} parser profile exists for source version ${sourceVersion}.`,
-    )
-  }
+  const datasetCode = options.datasetCode ?? DEFAULT_DISTRICT_DATASET
+  const profile = sourceProfile(datasetCode, sourceVersion)
   const resolvedInputFile = resolve(inputFile)
   const input = await readFile(resolvedInputFile, 'utf8')
   if (!input.trimStart().startsWith('<')) {
     throw new Error('C&SD district input must be a GML 3.2 WFS FeatureCollection.')
   }
-  const features = parseHkgovCenstatdDistrictGml(input, profile.layerName)
+  const cohortKey = options.cohortKey ?? sourceVersion
+  const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName)
+  const referencePeriodField = profile.referencePeriodField
+  const features = referencePeriodField
+    ? sourceFeatures.filter(
+        feature => String(feature.properties[referencePeriodField]) === cohortKey,
+      )
+    : sourceFeatures
   if (features.length !== 18) {
     throw new Error(
       `C&SD ${sourceVersion} district input must contain 18 district areas; found ${features.length}.`,
@@ -106,17 +161,19 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 
   const exactRows = features.map((feature, index) =>
-    normaliseCsdIDistrictFeature(feature, index, sourceVersion, options.sourceArchive),
+    normaliseCsdIDistrictFeature(feature, index, cohortKey, options.sourceArchive),
   )
   assertUniqueDistricts(exactRows, sourceVersion)
   const rows =
     options.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
-      ? withDisplayGeometry(exactRows, sourceVersion)
+      ? await withDisplayGeometry(exactRows, sourceVersion, datasetCode)
       : exactRows
   const outputSourceVersion = sourceVersion
+  const outputVersion =
+    cohortKey === sourceVersion ? sourceVersion : `${sourceVersion}-${cohortKey}`
   const filePath = join(
     resolve(outputDir),
-    `${HKGOV_CENSTATD_SOURCE}-hk-${sourceVersion}${
+    `${HKGOV_CENSTATD_SOURCE}-hk-${outputVersion}${
       options.transform ? '-simplified' : ''
     }-division-area.parquet`,
   )
@@ -187,7 +244,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   await writeFile(filePath, new Uint8Array(parquet))
 
   return {
-    cohortKey: sourceVersion,
+    cohortKey,
     cleanup: async () => undefined,
     filePath,
     originalFileName: basename(resolvedInputFile),
@@ -207,10 +264,10 @@ export async function prepareHkgovCenstatdDistrictUpload(
  */
 export function readHkgovCenstatdDistrictGmlArchive(
   archiveBytes: Uint8Array,
-  sourceVersion: '2016' | '2021',
+  sourceVersion: CenstatdDistrictSourceVersion,
+  datasetCode: CenstatdDistrictDatasetCode = DEFAULT_DISTRICT_DATASET,
 ) {
-  const profile = SOURCE_PROFILE[sourceVersion]
-  if (!profile) throw new Error(`No C&SD district profile exists for ${sourceVersion}.`)
+  const profile = sourceProfile(datasetCode, sourceVersion)
   const expectedMember = `${profile.layerName}.gml`
   const { entries: archive, files } = readSafeZipArchive(archiveBytes, {
     select: member => member.toLowerCase().endsWith('.gml'),
@@ -255,22 +312,22 @@ function normaliseCsdIDistrictFeature(
   if (!properties) {
     throw new Error(`C&SD district feature ${index + 1} has no properties.`)
   }
-  const districtClass = requireString(properties.dc_class, 'dc_class', index)
-  const districtCode = requireInteger(properties.dc, 'dc', index)
+  const districtClass = optionalString(properties.dc_class ?? properties.DC_CLASS)
+  const districtCode = requireInteger(properties.dc ?? properties.DC, 'DC', index)
 
   return {
     census_year: sourceVersion,
     derivation: null,
-    district_class: districtClass,
+    district_class: districtClass ?? '',
     district_code: districtCode,
     geometry,
-    id: `CENSTATD:${districtClass}`,
+    id: `CENSTATD:${districtClass || districtCode}`,
     source_geometry: sourceGeometry,
     source_properties: properties as Record<string, unknown>,
     sources: [
       {
         dataset: HKGOV_CENSTATD_SOURCE,
-        districtClass,
+        ...(districtClass ? { districtClass } : {}),
         districtCode,
         ...(sourceArchive
           ? {
@@ -285,26 +342,40 @@ function normaliseCsdIDistrictFeature(
   }
 }
 
-function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string) {
-  const simplifiedGeometries = simplifyTogether(rows.map(row => row.geometry))
+async function withDisplayGeometry(
+  rows: PreparedDistrictRow[],
+  sourceVersion: string,
+  datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+) {
+  const simplified = await simplifyPolygonCoverage(
+    rows.map(row => row.geometry),
+    DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+  )
   return rows.map((row, index) => {
-    const geometry = simplifiedGeometries[index]
+    const geometry = simplified.geometries[index]
     if (!geometry) {
       throw new Error(`C&SD display geometry ${row.district_class} was not produced.`)
     }
     return {
       ...row,
       derivation: {
-        inputDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        inputDatasetCode: datasetCode,
         inputSource: HKGOV_CENSTATD_SOURCE,
         inputSourceVersion: sourceVersion,
         inputGeometryProjection: 'EPSG:4326',
-        method: 'topology-preserving-simplification',
+        method: 'geos-coverage-simplification',
         toleranceMetres: DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
-        coordinateSpace: 'local-equirectangular-metre-plane',
-        preservesLandClip: true,
+        coordinateSpace: 'wgs84-interface-local-equirectangular-metre-plane',
+        engine: simplified.engine,
+        engineVersion: simplified.engineVersion,
+        ...(simplified.inputValidationRepairIndexes.includes(index)
+          ? { inputValidationRepair: 'make-valid' }
+          : {}),
+        ...(sourceVersion === '2024'
+          ? { preservesPublisherGeometry: true }
+          : { preservesLandClip: true }),
       },
-      geometry,
+      geometry: normaliseSinglePolygon(geometry),
       // A display transform is another representation of the same C&SD
       // assertion, not a new source record. The snapshot variant selects it.
       id: row.id,
@@ -313,102 +384,19 @@ function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string)
   })
 }
 
-/**
- * Simplify all 18 districts in one geometry collection. This keeps shared
- * district edges topology-consistent and preserves the publisher's land clip.
- * A 10 m tolerance reduces the current 25 MB delivery to roughly 0.8 MB while
- * remaining appropriate for a Hong Kong-wide preview map.
- */
-function simplifyTogether(geometries: GeoJsonGeometry[]) {
-  const input = {
-    type: 'GeometryCollection' as const,
-    geometries: geometries.map(toLocalMetreGeometry),
-  }
-  const reader = new GeoJSONReader(new GeometryFactory())
-  const parsed = reader.read(input)
-  const simplified = TopologyPreservingSimplifier.simplify(
-    parsed,
-    DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
-  )
-  if (!new IsValidOp(simplified).isValid()) {
-    throw new Error('C&SD display simplification produced invalid geometry.')
-  }
-  const written = new GeoJSONWriter().write(simplified) as unknown
-  if (
-    !isGeometryCollection(written) ||
-    written.geometries.length !== geometries.length
-  ) {
-    throw new Error(
-      'C&SD display simplification changed the district geometry collection.',
-    )
-  }
-  return written.geometries.map((geometry, index) =>
-    requireDistrictGeometry(fromLocalMetreGeometry(geometry), index),
-  )
-}
-
-function toLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
-  return mapGeometryPositions(geometry, ([longitude, latitude, elevation]) =>
-    positionWithOptionalElevation(
-      (longitude - HONG_KONG_REFERENCE_LONGITUDE) * METRES_PER_DEGREE_LONGITUDE,
-      (latitude - HONG_KONG_REFERENCE_LATITUDE) * METRES_PER_DEGREE_LATITUDE,
-      elevation,
-    ),
-  )
-}
-
-function fromLocalMetreGeometry(geometry: GeoJsonGeometry): GeoJsonGeometry {
-  return mapGeometryPositions(geometry, ([x, y, elevation]) =>
-    positionWithOptionalElevation(
-      x / METRES_PER_DEGREE_LONGITUDE + HONG_KONG_REFERENCE_LONGITUDE,
-      y / METRES_PER_DEGREE_LATITUDE + HONG_KONG_REFERENCE_LATITUDE,
-      elevation,
-    ),
-  )
-}
-
-function positionWithOptionalElevation(
-  first: number,
-  second: number,
-  elevation: number | undefined,
-): GeoJsonPosition {
-  return elevation === undefined ? [first, second] : [first, second, elevation]
-}
-
-function mapGeometryPositions(
-  geometry: GeoJsonGeometry,
-  transform: (position: GeoJsonPosition) => GeoJsonPosition,
-): GeoJsonGeometry {
-  if (geometry.type === 'GeometryCollection') {
-    return {
-      type: 'GeometryCollection',
-      geometries: geometry.geometries.map(child =>
-        mapGeometryPositions(child, transform),
-      ),
-    }
-  }
-  return mapCoordinates(geometry, transform)
-}
-
-function mapCoordinates(
-  geometry: Exclude<GeoJsonGeometry, { type: 'GeometryCollection' }>,
-  transform: (position: GeoJsonPosition) => GeoJsonPosition,
-): Exclude<GeoJsonGeometry, { type: 'GeometryCollection' }> {
-  const mapValue = (value: unknown): unknown => {
-    if (!Array.isArray(value)) return value
-    if (typeof value[0] === 'number') return transform(value as GeoJsonPosition)
-    return value.map(mapValue)
-  }
-  return { ...geometry, coordinates: mapValue(geometry.coordinates) } as Exclude<
-    GeoJsonGeometry,
-    { type: 'GeometryCollection' }
-  >
+function normaliseSinglePolygon(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  return geometry.type === 'MultiPolygon' && geometry.coordinates.length === 1
+    ? { type: 'Polygon', coordinates: geometry.coordinates[0]! }
+    : geometry
 }
 
 function assertUniqueDistricts(rows: PreparedDistrictRow[], sourceVersion: string) {
   const classes = new Set(rows.map(row => row.district_class))
   const codes = new Set(rows.map(row => row.district_code))
-  if (classes.size !== rows.length || codes.size !== rows.length) {
+  if (
+    (rows.every(row => row.district_class) && classes.size !== rows.length) ||
+    codes.size !== rows.length
+  ) {
     throw new Error(
       `C&SD ${sourceVersion} district input has duplicate district identifiers.`,
     )
@@ -456,23 +444,16 @@ function requireString(value: unknown, field: string, index: number) {
   return value.trim()
 }
 
+function optionalString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
 function requireInteger(value: unknown, field: string, index: number) {
   if (typeof value === 'number' && Number.isSafeInteger(value)) return value
   if (typeof value === 'string' && /^\d+(?:\.0+)?$/.test(value)) {
     return Number.parseInt(value, 10)
   }
   throw new Error(`C&SD district feature ${index + 1} requires integer ${field}.`)
-}
-
-function isGeometryCollection(value: unknown): value is {
-  type: 'GeometryCollection'
-  geometries: GeoJsonGeometry[]
-} {
-  return (
-    isRecord(value) &&
-    value.type === 'GeometryCollection' &&
-    Array.isArray(value.geometries)
-  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

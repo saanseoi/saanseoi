@@ -1,4 +1,6 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
+
 import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
 </script>
 
@@ -18,7 +20,7 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
   >
     <section class="flex min-h-0 flex-col p-4">
       <p class="text-xs font-semibold tracking-[0.08em] text-[#a5d6ff] uppercase">
-        Request
+        {m.guide_data_urban_density_preview_request()}
       </p>
       <dl class="mt-3 space-y-2 text-xs leading-5 text-white/70">
         <div class="flex gap-3">
@@ -45,7 +47,7 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
 
     <section class="flex min-h-0 flex-col p-4">
       <p class="text-xs font-semibold tracking-[0.08em] text-[#a5d6ff] uppercase">
-        Response
+        {m.guide_data_urban_density_preview_response()}
       </p>
       <div class="mt-3 flex min-h-0 flex-1 flex-col gap-3">
         {#each urbanDensityStatsResponses as response}
@@ -67,6 +69,6 @@ import { urbanDensityStatsResponses } from './urbanDensityExampleData.ts'
   <p
     class="border-t border-[#596074] bg-[#131722] px-4 py-3 text-xs leading-5 text-white/60"
   >
-    Each response is keyed by the SaanSeoi district code used in the next step.
+    {m.guide_data_urban_density_stats_preview_description()}
   </p>
 </div>

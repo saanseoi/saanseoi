@@ -16,7 +16,7 @@ domainCode: "geographic"
 - First 山水 | SaanSeoi Divisions API release for {{regionName:en}}.
 - Brings together seven source snapshots, each fixed at a specific version: Overture
   divisions with area and boundary companions; Home Affairs Department district areas;
-  C&SD 2016 and 2021 census district areas; and the C&SD Area/type
+  C&SD 2016 and 2021 census district areas; and the C&SD Permanent Living Quarters
   [companion resources](saanseoi:en:definition/companion-resource/v1).
 - Standardises Overture names and hierarchies into SaanSeoi’s common division model
   while retaining their source and compatibility information.
@@ -53,8 +53,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - {{regionName:zh-Hant}}山水 | SaanSeoi Divisions API 的首次發布。
-- 匯集七個固定版本的來源 snapshot：附帶面及邊界配套的 Overture 區劃、民政事務總署地區面、政府統計處 2016 年及 2021 年人口普查地區面，以及政府統計處 Area/type
-  [配套資源](saanseoi:zh-hant:definition/companion-resource/v1)。
+- 匯集七個固定版本的來源 snapshot：附帶面及邊界配套的 Overture 區劃、民政事務總署地區面、政府統計處 2016 年及 2021 年人口普查地區面，以及政府統計處 Permanent
+  Living Quarters [配套資源](saanseoi:zh-hant:definition/companion-resource/v1)。
 - 將 Overture 名稱及階層整理為山水 | SaanSeoi 的標準區劃模型，同時保留來源及相容性資料。
 
 ## 修訂紀錄
@@ -86,8 +86,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - {{regionName:zh-Hans}}山水 | SaanSeoi Divisions API 的首次发布。
-- 汇集七个固定版本的来源 snapshot：附带面及边界配套的 Overture 区划、民政事务总署地区面、政府统计处 2016 年及 2021 年人口普查地区面，以及政府统计处 Area/type
-  [配套资源](saanseoi:zh-hans:definition/companion-resource/v1)。
+- 汇集七个固定版本的来源 snapshot：附带面及边界配套的 Overture 区划、民政事务总署地区面、政府统计处 2016 年及 2021 年人口普查地区面，以及政府统计处 Permanent
+  Living Quarters [配套资源](saanseoi:zh-hans:definition/companion-resource/v1)。
 - 将 Overture 名称及层级整理为山水 | SaanSeoi 的标准区划模型，同时保留来源及兼容性数据。
 
 ## 修订记录

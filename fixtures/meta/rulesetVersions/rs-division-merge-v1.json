@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:d9b9c2c153230e174e3689fcccc1dfcf6e853472b6c8675ca0b0ca866183de23",
+  "versionHash": "sha256:e3f988f9222e64e48980408937d2f49ebb66c927c577f808254765d14b92d24b",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Includes the reviewed Hong Kong area-geometry derivation in the division merge policy.",
+  "notes": "Includes the reviewed Hong Kong area-geometry derivation and Lok Ma Chau Loop classification correction in the division merge policy.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",
@@ -184,6 +184,33 @@
         {
           "locale": "zh-hans",
           "description": "在层级中香港特别行政区之后加入标准香港地区，并按每个指派地区记录一项审计计数。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_hong_kong_lok_ma_chau_loop_reclassified",
+      "type": "record",
+      "sourceFieldPath": "id, subtype, class, admin_level",
+      "targetFieldPath": "level, type, hierarchy",
+      "condition": "The Overture division ID is 222b7818-970a-491d-98b6-b88d8c6f0161 (Lok Ma Chau Loop), which Overture labels as a level-2 region but is not one of Hong Kong's 18 statutory districts.",
+      "mappings": [
+        {
+          "from": "id = 222b7818-970a-491d-98b6-b88d8c6f0161; subtype = region; admin_level = 2",
+          "to": "level = 4; type = macrohood"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Reclassifies Lok Ma Chau Loop as a macrohood and applies that canonical classification to hierarchy descendants while retaining the raw Overture taxonomy in provenance."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將落馬洲河套地區重新分類為 macrohood，並將該標準分類套用於層級後代，同時在沿革中保留原始 Overture 分類法。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将落马洲河套地区重新分类为 macrohood，并将该标准分类应用于层级后代，同时在沿革中保留原始 Overture 分类法。"
         }
       ]
     },

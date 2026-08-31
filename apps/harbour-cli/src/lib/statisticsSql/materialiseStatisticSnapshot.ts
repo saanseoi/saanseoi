@@ -30,6 +30,12 @@ export async function materialiseStatisticSnapshots(args: {
     )
   }
 
+  assertReferencePeriodsDoNotPostdateRelease(
+    args.referencePeriods,
+    dataset.cohortKey,
+    dataset.releaseCode,
+  )
+
   const environment =
     args.target.environment === 'production' ? 'production' : 'preview'
   const sourceShard = await resolveShardForTypeRegionYear(
@@ -96,4 +102,22 @@ export async function materialiseStatisticSnapshots(args: {
   }
 
   return snapshots
+}
+
+function assertReferencePeriodsDoNotPostdateRelease(
+  referencePeriods: Array<{ code: string; endYear: string }>,
+  releaseCohortKey: string | null,
+  releaseCode: string,
+) {
+  const releaseYear = releaseCohortKey?.match(/^\d{4}/)?.[0]
+  if (!releaseYear) return
+
+  const postdated = referencePeriods.find(
+    referencePeriod => referencePeriod.endYear > releaseYear,
+  )
+  if (!postdated) return
+
+  throw new Error(
+    `Statistic reference period ${postdated.code} postdates source release ${releaseCode} (${releaseCohortKey}).`,
+  )
 }

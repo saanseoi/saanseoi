@@ -14,24 +14,24 @@ import { join, resolve } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
+  listCurrentApiCompositionMembersForType,
   resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
 } from '@repo/core/db/metaRegistry'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { resolveSourceSchemaVersion } from '@repo/core'
+import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
+import { and, eq, or, sql } from 'drizzle-orm'
 
 import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
   withRemoteCachedMetaDb,
 } from '../dbCache/localDbCache.ts'
-import {
-  HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
-  prepareHkgovCenstatdDistrictUpload,
-} from '../sources/hkgov/hkgovCenstatd.ts'
+import { prepareHkgovCenstatdDistrictUpload } from '../sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../sources/hkgov/hkgovHad.ts'
 import { prepareLandsdPlaceNameDivisionUpload } from '../sources/landsd/landsdPlaceName.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
@@ -96,6 +96,8 @@ export async function runUploadCommand(
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
     divisionCohortKey?: string
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     /** Leave Statistics API release-set publication to a cohort bootstrap. */
     deferStatsReleaseSet?: boolean
     processingActions?: ReleaseProcessingAction[]
@@ -174,6 +176,7 @@ ${mutedBar}  `)
     }
     const hkgovCenstatdPreparation = await prepareHkgovCenstatdGmlUpload(
       registerOptions.filePath,
+      registerOptions.datasetCode,
       registerOptions.source,
       registerOptions.sourceVersion,
       typeof args.options.transform === 'string' ? args.options.transform : undefined,
@@ -191,16 +194,7 @@ ${mutedBar}  `)
         theme: registerOptions.theme ?? hkgovCenstatdPreparation.theme,
         type: registerOptions.type ?? hkgovCenstatdPreparation.type,
       })
-      log.message(
-        hkgovCenstatdPreparation.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
-          ? 'Prepared simplified, land-clipped C&SD display geometry.'
-          : 'Prepared Census and Statistics Department District Council GML.',
-      )
-      if (!hkgovCenstatdPreparation.transform) {
-        log.message(
-          'This upload will also publish the derived simplified C&SD display geometry.',
-        )
-      }
+      log.message('Prepared Census and Statistics Department District Council GML.')
     }
     const landsdPlaceNamePreparation = await prepareLandsdPlaceNameGeoJsonUpload(
       registerOptions.filePath,
@@ -241,6 +235,10 @@ ${mutedBar}  `)
       publisherCode: datasetFixture?.publisherCode ?? previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
     })
+
+    if (options.deferApiReleaseSet && previewResult.plan.theme !== 'divisions') {
+      throw new Error('--defer-api-release-set requires a Divisions upload.')
+    }
 
     note(
       formatSummary(previewResult, target, {
@@ -673,6 +671,13 @@ ${mutedBar}  `)
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
 
+        const shouldDeriveHkgovSimplifiedGeometry =
+          previewResult.plan.type === 'divisionArea' &&
+          (previewResult.plan.source === 'hkgov-had' ||
+            previewResult.plan.source === 'hkgov-censtatd' ||
+            previewResult.plan.source === 'hkgov-pland-pu' ||
+            previewResult.plan.source === 'hkgov-pland-new-town')
+
         const processingResult = await processLocalDivisionGeometrySqlUpload(
           target,
           {
@@ -683,6 +688,7 @@ ${mutedBar}  `)
             rowCount: previewResult.plan.rowCount,
             source: previewResult.plan.source,
             sourceVersion: previewResult.plan.sourceVersion,
+            geometryStatus: previewResult.plan.geometryStatus,
             transform: divisionGeometryTransform,
             theme: 'divisions',
             type: previewResult.plan.type,
@@ -690,7 +696,8 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
-            deferPublish: Boolean(hkgovCenstatdPreparation?.displayFilePath),
+            deferApiReleaseSet: options.deferApiReleaseSet,
+            deferPublish: shouldDeriveHkgovSimplifiedGeometry,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
           },
@@ -698,9 +705,9 @@ ${mutedBar}  `)
         let companionProcessingResult:
           | Awaited<ReturnType<typeof processLocalDivisionGeometrySqlUpload>>
           | undefined
-        if (hkgovCenstatdPreparation?.displayFilePath) {
+        if (shouldDeriveHkgovSimplifiedGeometry) {
           note(
-            'Building the derived simplified C&SD display geometry.',
+            'Building the derived simplified Hong Kong Government display geometry.',
             'SIMPLIFYING GEOMETRY PASS',
           )
           companionProcessingResult = await processLocalDivisionGeometrySqlUpload(
@@ -711,16 +718,18 @@ ${mutedBar}  `)
               regionCode: previewResult.plan.regionCode,
               releaseCode: previewResult.plan.releaseCode,
               rowCount: previewResult.plan.rowCount,
-              source: 'hkgov-censtatd',
+              source: previewResult.plan.source,
               sourceVersion: previewResult.plan.sourceVersion,
-              transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+              geometryStatus: previewResult.plan.geometryStatus,
+              transform: 'simplified',
               theme: 'divisions',
               type: 'divisionArea',
             },
             uploadResult,
             preparedUploadFile,
             {
-              inputFilePath: hkgovCenstatdPreparation.displayFilePath,
+              deferApiReleaseSet: options.deferApiReleaseSet,
+              inputFilePath: preparedUploadFile.filePath,
               reuseRunningRelease: true,
               skipRawSeed: true,
               skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -890,6 +899,7 @@ async function prepareHkgovHadGeoJsonUpload(
 
 async function prepareHkgovCenstatdGmlUpload(
   filePath: string,
+  datasetCode: string | undefined,
   source: string | undefined,
   sourceVersion: string | undefined,
   transform: string | undefined,
@@ -898,8 +908,14 @@ async function prepareHkgovCenstatdGmlUpload(
   if (!isHkgovCenstatdDistrictFile(filePath, source)) return null
 
   const inputSourceVersion = sourceVersion ?? inferCenstatdSourceVersion(filePath)
-  if (inputSourceVersion !== '2016' && inputSourceVersion !== '2021') {
-    throw new Error('C&SD District Council GML requires --source-version 2016 or 2021.')
+  if (
+    inputSourceVersion !== '2016' &&
+    inputSourceVersion !== '2021' &&
+    inputSourceVersion !== '2024'
+  ) {
+    throw new Error(
+      'C&SD District Council GML requires --source-version 2016, 2021, or 2024.',
+    )
   }
   if (transform) {
     throw new Error(
@@ -912,20 +928,15 @@ async function prepareHkgovCenstatdGmlUpload(
       filePath,
       tempDir,
       inputSourceVersion,
-      { sourceArchive },
-    )
-    const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
-      filePath,
-      tempDir,
-      inputSourceVersion,
-      { sourceArchive, transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM },
+      {
+        datasetCode: censtatdDistrictDatasetCode(datasetCode),
+        sourceArchive,
+      },
     )
     return {
       ...prepared,
-      displayFilePath: displayPrepared?.filePath,
       cleanup: async () => {
         await prepared.cleanup()
-        await displayPrepared?.cleanup()
         await rm(tempDir, { force: true, recursive: true })
       },
     }
@@ -933,6 +944,26 @@ async function prepareHkgovCenstatdGmlUpload(
     await rm(tempDir, { force: true, recursive: true })
     throw error
   }
+}
+
+export function censtatdDistrictDatasetCode(datasetCode: string | undefined) {
+  if (
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
+    datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+  ) {
+    return datasetCode
+  }
+  if (datasetCode) {
+    throw new Error(
+      `C&SD District Council GML does not support dataset ${datasetCode}.`,
+    )
+  }
+  return undefined
 }
 
 function sourceArchiveReference(args: ParsedArgs) {
@@ -1005,7 +1036,7 @@ function isLandsdPlaceNameGeoJson(filePath: string, source: string | undefined) 
 }
 
 function inferCenstatdSourceVersion(filePath: string) {
-  return filePath.match(/(?:^|[^0-9])(2016|2021)(?:[^0-9]|$)/)?.[1]
+  return filePath.match(/(?:^|[^0-9])(2016|2021|2024)(?:[^0-9]|$)/)?.[1]
 }
 
 function resolveUploadProcessingStrategy(
@@ -1216,61 +1247,20 @@ type AddressReleaseSetReadiness = {
   divisionCohortKey: string | null
 }
 
-type CohortIndependentReleaseDefinition = {
-  cohortKey?: string
-  datasetCode: string
-  domainCode: string
-  optional: boolean
-  resourceType: string
-}
-
-const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentReleaseDefinition[] =
-  [
-    {
-      datasetCode: 'ds-hk-hkgov-had-division-area-district',
-      domainCode: 'hkgov-had',
-      optional: false,
-      resourceType: 'divisionArea',
-    },
-    {
-      cohortKey: '2016',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-      domainCode: 'hkgov-censtatd',
-      optional: false,
-      resourceType: 'divisionArea',
-    },
-    {
-      cohortKey: '2021',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-      domainCode: 'hkgov-censtatd',
-      optional: false,
-      resourceType: 'divisionArea',
-    },
-    {
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
-      domainCode: 'hkgov-censtatd-area',
-      optional: false,
-      resourceType: 'divisionArea',
-    },
-  ]
-
 const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 
-type CohortIndependentReleaseReadiness = {
-  cohortKey: string | null
-  datasetCode: string
-  domainCode: string
-  optional: boolean
+type DivisionReleaseSetMemberReadiness = {
+  cohortKeys: string[]
+  cohortMatchingMode: string
+  isRequired: boolean
   releaseCode: string | null
   resourceType: string
+  variant: string
 }
 
 type DivisionReleaseSetReadiness = {
-  areaAvailable: boolean
-  boundaryAvailable: boolean
-  cohortIndependentReleases: CohortIndependentReleaseReadiness[]
-  divisionAvailable: boolean
+  domainCode: string
+  members: DivisionReleaseSetMemberReadiness[]
   ready: boolean
 }
 
@@ -1295,7 +1285,15 @@ export async function assertDivisionGeometryUploadPrerequisites(
   if (
     plan.source === 'hkgov-had' ||
     (plan.source === 'hkgov-censtatd' &&
-      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+      (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'))
   ) {
     return
   }
@@ -1322,36 +1320,26 @@ export async function resolveDivisionApiReleaseSetReadiness(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ): Promise<DivisionReleaseSetReadiness> {
-  const snapshots = target.remote
-    ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
-    : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
   const domainCode = resolveDivisionDomainCode(plan.source, plan.datasetCode)
-  const cohortIndependentReleases =
-    domainCode === 'geographic'
-      ? target.remote
-        ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
-        : await resolveLocalCohortIndependentDivisionReleases(target, plan)
-      : []
-  const divisionAvailable = snapshots.division
-  const areaAvailable = snapshots.divisionArea
-  const cohortIndependentRequirementsAvailable = cohortIndependentReleases.every(
-    release => release.optional || release.releaseCode !== null,
-  )
-  const boundaryAvailable = snapshots.divisionBoundary
-  const ready =
-    domainCode === 'geographic'
-      ? divisionAvailable &&
-        areaAvailable &&
-        cohortIndependentRequirementsAvailable &&
-        boundaryAvailable
-      : divisionAvailable && areaAvailable
+  const resolveReadiness = (db: HarbourReadableDb) =>
+    resolveDivisionCompositionReadiness(db, plan, domainCode)
 
-  return {
-    areaAvailable,
-    boundaryAvailable,
-    cohortIndependentReleases,
-    divisionAvailable,
-    ready,
+  if (target.remote) {
+    return withRemoteCachedMetaDb(target, db =>
+      resolveReadiness(db as unknown as HarbourReadableDb),
+    )
+  }
+
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    resolveShardYear(plan.cohortKey, plan.sourceVersion),
+    { cacheTableProfile: 'division' },
+  )
+  try {
+    return await resolveReadiness(dbContext.metaDb as unknown as HarbourReadableDb)
+  } finally {
+    dbContext.cleanup()
   }
 }
 
@@ -1360,34 +1348,17 @@ export function formatDivisionApiReleaseSetReadiness(
     Partial<Pick<DivisionGeometryPlan, 'datasetCode' | 'source'>>,
   readiness: DivisionReleaseSetReadiness,
 ) {
-  const rows = [
-    ['division', readiness.divisionAvailable],
-    ['divisionArea', readiness.areaAvailable],
-    ...(resolveDivisionDomainCode(plan.source, plan.datasetCode) === 'geographic'
-      ? ([['divisionBoundary', readiness.boundaryAvailable]] as const)
-      : []),
-  ] as const
-  const width = Math.max(...rows.map(([dataset]) => dataset.length))
+  const width = Math.max(...readiness.members.map(member => member.resourceType.length))
 
   return [
-    '# EXACT REF',
-    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source, plan.datasetCode)} / ${plan.cohortKey}`,
-    ...rows.map(
-      ([dataset, available]) =>
-        `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
-    ),
-    ...(readiness.cohortIndependentReleases.length > 0
-      ? [
-          '',
-          '# AT OR BEFORE',
-          ...readiness.cohortIndependentReleases.flatMap(release => [
-            [plan.regionCode.toUpperCase(), release.domainCode, release.cohortKey]
-              .filter((segment): segment is string => segment !== null)
-              .join(' / '),
-            `  ${release.releaseCode === null ? (release.optional ? yellowText('○') : redText('○')) : greenText('✓')} ${formatResourceType(release.resourceType)}  ${release.releaseCode === null ? (release.optional ? yellowText('[optional]') : redText('unavailable')) : greenText('available')}`,
-          ]),
-        ]
-      : []),
+    '# REQUIRED MEMBERS',
+    `${plan.regionCode.toUpperCase()} / ${readiness.domainCode} / ${plan.cohortKey}`,
+    ...readiness.members.map(member => {
+      const available = member.releaseCode !== null
+      const cohort = member.cohortKeys.join(', ')
+      const mode = member.cohortMatchingMode.replaceAll('_', ' ')
+      return `  ${available ? greenText('✓') : member.isRequired ? redText('○') : yellowText('○')} ${formatResourceType(member.resourceType.padEnd(width))}  ${mutedText(`(${member.variant}; ${mode}${cohort ? `: ${cohort}` : ''})`)}  ${available ? greenText('available') : member.isRequired ? redText('unavailable') : yellowText('[optional]')}`
+    }),
   ].join('\n')
 }
 
@@ -1483,46 +1454,28 @@ async function logApiReleaseSetPublication(
   },
   target?: UploadTarget,
 ) {
-  if (result?.apiReleaseSetPublications?.length) {
-    for (const publication of result.apiReleaseSetPublications) {
-      log.success(
-        `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
-      )
-      await recordInitialisationSummaryEvent({
-        apiReleaseSetCode: publication.apiReleaseSetCode,
-        type: 'published-api-release-set',
-      })
-      if (publication.apiCatalogRevisionCode) {
-        log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
-      }
+  const publications = selectPublishedApiReleaseSetPublications(result)
+  for (const publication of publications) {
+    log.success(
+      `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
+    )
+    await recordInitialisationSummaryEvent({
+      apiReleaseSetCode: publication.apiReleaseSetCode,
+      type: 'published-api-release-set',
+    })
+    if (publication.apiCatalogRevisionCode) {
+      log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
     }
   }
 
   const releaseSetCode = result?.apiReleaseSetCode
-
-  if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
-    log.success(`Published API domain release ${rainbowWaveText(releaseSetCode)}.`)
-    await recordInitialisationSummaryEvent({
-      apiReleaseSetCode: releaseSetCode,
-      type: 'published-api-release-set',
-    })
-    if (result.apiCatalogRevisionCode) {
-      log.info(`Catalogue revision ${blueText(result.apiCatalogRevisionCode)}`)
-    }
-  } else if (releaseSetCode) {
+  if (releaseSetCode && result?.apiReleaseSetStatus !== 'current') {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
 
   if (!revisionDraft || !target) return
 
-  const releaseSetCodes = [
-    ...(result?.apiReleaseSetPublications?.map(
-      publication => publication.apiReleaseSetCode,
-    ) ?? []),
-    ...(releaseSetCode ? [releaseSetCode] : []),
-  ]
-
-  for (const apiReleaseSetCode of new Set(releaseSetCodes)) {
+  for (const { apiReleaseSetCode } of publications) {
     try {
       const draft =
         (await createApiReleaseSetInitialDraft(apiReleaseSetCode, target)) ??
@@ -1540,7 +1493,40 @@ async function logApiReleaseSetPublication(
   }
 }
 
-function resolveDivisionDomainCode(
+export function selectPublishedApiReleaseSetPublications(
+  result:
+    | {
+        apiCatalogRevisionCode?: string
+        apiReleaseSetCode?: string
+        apiReleaseSetPublications?: Array<{
+          apiCatalogRevisionCode?: string
+          apiReleaseSetCode: string
+        }>
+        apiReleaseSetStatus?: 'current' | 'draft'
+      }
+    | void
+    | null
+    | undefined,
+) {
+  const publications = new Map<
+    string,
+    { apiCatalogRevisionCode?: string; apiReleaseSetCode: string }
+  >()
+  for (const publication of result?.apiReleaseSetPublications ?? []) {
+    publications.set(publication.apiReleaseSetCode, publication)
+  }
+  if (result?.apiReleaseSetCode && result.apiReleaseSetStatus === 'current') {
+    const existing = publications.get(result.apiReleaseSetCode)
+    publications.set(result.apiReleaseSetCode, {
+      apiCatalogRevisionCode:
+        existing?.apiCatalogRevisionCode ?? result.apiCatalogRevisionCode,
+      apiReleaseSetCode: result.apiReleaseSetCode,
+    })
+  }
+  return [...publications.values()]
+}
+
+export function resolveDivisionDomainCode(
   source: DivisionGeometryPlan['source'] | undefined,
   datasetCode?: string,
 ) {
@@ -1550,7 +1536,9 @@ function resolveDivisionDomainCode(
   ) {
     return 'hkgov-censtatd-hma'
   }
-  return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
+  return source === 'hkgov-landsd' ||
+    source === 'hkgov-pland-pu' ||
+    source === 'hkgov-pland-new-town'
     ? source
     : 'geographic'
 }
@@ -1613,8 +1601,8 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   )
   try {
     const db = dbContext.metaDb
-    if (isCenstatdAreaTypePlan(plan)) {
-      return await resolveCenstatdAreaTypeDivisionSnapshot(
+    if (isCenstatdPermanentLivingQuartersPlan(plan)) {
+      return await resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
         db as unknown as HarbourReadableDb,
         plan,
       )
@@ -1664,8 +1652,8 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   plan: DivisionGeometryPlan,
 ) {
   return withRemoteCachedMetaDb(target, async db => {
-    if (isCenstatdAreaTypePlan(plan)) {
-      return resolveCenstatdAreaTypeDivisionSnapshot(
+    if (isCenstatdPermanentLivingQuartersPlan(plan)) {
+      return resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
         db as unknown as HarbourReadableDb,
         plan,
       )
@@ -1708,7 +1696,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   })
 }
 
-async function resolveCenstatdAreaTypeDivisionSnapshot(
+async function resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
   db: HarbourReadableDb,
   plan: DivisionGeometryPlan,
 ) {
@@ -1730,264 +1718,104 @@ async function resolveCenstatdAreaTypeDivisionSnapshot(
   )
 }
 
-function isCenstatdAreaTypePlan(plan: DivisionGeometryPlan) {
+function isCenstatdPermanentLivingQuartersPlan(plan: DivisionGeometryPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   )
 }
 
-async function resolveLocalDivisionReleaseSetSnapshots(
-  target: UploadTarget,
+async function resolveDivisionCompositionReadiness(
+  db: HarbourReadableDb,
   plan: DivisionGeometryPlan,
-) {
-  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    shardYear,
-    { cacheTableProfile: 'division' },
-  )
-  try {
-    const db = dbContext.metaDb
-    const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-    const entries = await Promise.all(
-      resourceTypes.map(
-        async resourceType =>
-          [
-            resourceType,
-            Boolean(
-              await db
-                .select({ id: metaSchema.metaSnapshots.id })
-                .from(metaSchema.metaSnapshots)
-                .leftJoin(
-                  metaSchema.metaSnapshotLineages,
-                  eq(
-                    metaSchema.metaSnapshots.snapshotLineageId,
-                    metaSchema.metaSnapshotLineages.id,
-                  ),
-                )
-                .innerJoin(
-                  metaSchema.metaSnapshotSources,
-                  eq(
-                    metaSchema.metaSnapshots.id,
-                    metaSchema.metaSnapshotSources.snapshotId,
-                  ),
-                )
-                .innerJoin(
-                  metaSchema.metaDatasets,
-                  eq(
-                    metaSchema.metaSnapshotSources.datasetId,
-                    metaSchema.metaDatasets.id,
-                  ),
-                )
-                .where(
-                  and(
-                    eq(metaSchema.metaSnapshots.resourceType, resourceType),
-                    eq(metaSchema.metaSnapshots.status, 'published'),
-                    eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
-                    eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-                    matchesDivisionDomain(plan.source, plan.datasetCode),
-                    eq(metaSchema.metaSnapshotSources.role, 'primary'),
-                  ),
-                )
-                .limit(1)
-                .get(),
-            ),
-          ] as const,
-      ),
+  domainCode: string,
+): Promise<DivisionReleaseSetReadiness> {
+  const members = (await listCurrentApiCompositionMembersForType(db, 'division'))
+    .filter(member => member.domainCode === domainCode)
+    .filter(member => member.resourceType.startsWith('division'))
+
+  if (members.length === 0) {
+    throw new Error(
+      `No current Divisions API composition members were found for domain ${domainCode}.`,
     )
-    return Object.fromEntries(entries) as Record<
-      (typeof resourceTypes)[number],
-      boolean
-    >
-  } finally {
-    dbContext.cleanup()
+  }
+
+  const readinessMembers = await Promise.all(
+    members.map(async member => {
+      const snapshots = await resolveCompositionMemberSnapshots(db, member, plan)
+      return {
+        cohortKeys: snapshots.map(snapshot => snapshot.cohortKey),
+        cohortMatchingMode: member.cohortMatchingMode,
+        isRequired: member.isRequired,
+        releaseCode: snapshots[0]?.code ?? null,
+        resourceType: member.resourceType,
+        variant: member.variant,
+      }
+    }),
+  )
+
+  return {
+    domainCode,
+    members: readinessMembers,
+    ready: readinessMembers.every(member => !member.isRequired || member.releaseCode),
   }
 }
 
-async function resolveRemoteDivisionReleaseSetSnapshots(
-  target: UploadTarget,
+async function resolveCompositionMemberSnapshots(
+  db: HarbourReadableDb,
+  member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
   plan: DivisionGeometryPlan,
-) {
-  const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-  const rows = await withRemoteCachedMetaDb(target, db =>
-    db
-      .select({
-        resourceType: metaSchema.metaSnapshots.resourceType,
-        snapshotId: metaSchema.metaSnapshots.id,
-      })
-      .from(metaSchema.metaSnapshots)
-      .leftJoin(
-        metaSchema.metaSnapshotLineages,
-        eq(
-          metaSchema.metaSnapshots.snapshotLineageId,
-          metaSchema.metaSnapshotLineages.id,
-        ),
-      )
-      .innerJoin(
-        metaSchema.metaSnapshotSources,
-        eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
-      )
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          inArray(metaSchema.metaSnapshots.resourceType, resourceTypes),
-          eq(metaSchema.metaSnapshots.status, 'published'),
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          matchesDivisionDomain(plan.source, plan.datasetCode),
-          eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
-          eq(metaSchema.metaSnapshotSources.role, 'primary'),
-        ),
-      )
-      .all(),
-  )
-  const present = new Set(rows.map(row => row.resourceType))
-  return Object.fromEntries(
-    resourceTypes.map(resourceType => [resourceType, present.has(resourceType)]),
-  ) as Record<(typeof resourceTypes)[number], boolean>
-}
-
-async function resolveLocalCohortIndependentDivisionReleases(
-  target: UploadTarget,
-  plan: DivisionGeometryPlan,
-): Promise<CohortIndependentReleaseReadiness[]> {
-  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    shardYear,
-    { cacheTableProfile: 'division' },
-  )
-
-  try {
-    const rows = await (dbContext.metaDb as unknown as HarbourReadableDb)
-      .select({
-        cohortKey: metaSchema.metaReleases.cohortKey,
-        datasetCode: metaSchema.metaDatasets.code,
-        releaseCode: metaSchema.metaReleases.code,
-      })
-      .from(metaSchema.metaReleases)
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          inArray(
-            metaSchema.metaDatasets.code,
-            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
-              dataset => dataset.datasetCode,
-            ),
-          ),
-          eq(metaSchema.metaReleases.status, 'published'),
-          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
-        ),
-      )
-      .orderBy(
-        desc(metaSchema.metaReleases.cohortKey),
-        desc(metaSchema.metaReleases.ingestedAt),
-        desc(metaSchema.metaReleases.createdAt),
-      )
-      .all()
-
-    return resolveCohortIndependentReleaseReadiness(rows)
-  } finally {
-    dbContext.cleanup()
+): Promise<Array<{ code: string; cohortKey: string }>> {
+  if (member.variant === 'default') {
+    const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      db,
+      member.resourceType,
+      plan.regionCode,
+      plan.cohortKey,
+    )
+    return snapshot ? [{ code: snapshot.code, cohortKey: plan.cohortKey }] : []
   }
-}
 
-async function resolveRemoteCohortIndependentDivisionReleases(
-  target: UploadTarget,
-  plan: DivisionGeometryPlan,
-): Promise<CohortIndependentReleaseReadiness[]> {
-  const rows = await withRemoteCachedMetaDb(target, db =>
-    db
-      .select({
-        cohortKey: metaSchema.metaReleases.cohortKey,
-        datasetCode: metaSchema.metaDatasets.code,
-        releaseCode: metaSchema.metaReleases.code,
-      })
-      .from(metaSchema.metaReleases)
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-      )
-      .where(
-        and(
-          inArray(
-            metaSchema.metaDatasets.code,
-            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
-              dataset => dataset.datasetCode,
-            ),
-          ),
-          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-          eq(metaSchema.metaReleases.status, 'published'),
-          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
-        ),
-      )
-      .orderBy(
-        desc(metaSchema.metaReleases.cohortKey),
-        desc(metaSchema.metaReleases.ingestedAt),
-        desc(metaSchema.metaReleases.createdAt),
-      )
-      .all(),
-  )
+  const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
+  const source = member.variant.split(':')[0] ?? member.variant
+  const publisherCode = datasetCode ? undefined : publisherCodeForSource(source)
+  const snapshots =
+    await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+      db,
+      member.resourceType,
+      plan.regionCode,
+      plan.cohortKey,
+      { datasetCode, publisherCode, variant: member.variant },
+    )
 
-  return resolveCohortIndependentReleaseReadiness(
-    rows.flatMap(row =>
-      row.cohortKey === null
-        ? []
-        : [
-            {
-              cohortKey: row.cohortKey,
-              datasetCode: row.datasetCode,
-              releaseCode: row.releaseCode,
-            },
-          ],
-    ),
-  )
-}
-
-function resolveCohortIndependentReleaseReadiness(
-  releases: Array<{
-    cohortKey: string
-    datasetCode: string
-    releaseCode: string
-  }>,
-): CohortIndependentReleaseReadiness[] {
-  const latestReleaseByDatasetCohort = new Map<string, (typeof releases)[number]>()
-  for (const release of releases) {
-    const key = `${release.datasetCode}:${release.cohortKey}`
-    if (!latestReleaseByDatasetCohort.has(key)) {
-      latestReleaseByDatasetCohort.set(key, release)
+  if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
+    return snapshots.map(snapshot => ({
+      code: snapshot.code,
+      cohortKey: snapshot.cohortKey,
+    }))
+  }
+  if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
+    if (snapshots.length > 0) {
+      return snapshots.map(snapshot => ({
+        code: snapshot.code,
+        cohortKey: snapshot.cohortKey,
+      }))
     }
-  }
-
-  const readiness: CohortIndependentReleaseReadiness[] = []
-  for (const dataset of COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS) {
-    const matchingReleases = [...latestReleaseByDatasetCohort.values()]
-      .filter(
-        release =>
-          release.datasetCode === dataset.datasetCode &&
-          (!dataset.cohortKey || release.cohortKey === dataset.cohortKey),
+    const snapshot =
+      await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+        db,
+        member.resourceType,
+        plan.regionCode,
+        plan.cohortKey,
+        { datasetCode, publisherCode },
       )
-      .sort((left, right) => left.cohortKey.localeCompare(right.cohortKey))
-
-    const matchingRelease = matchingReleases.at(-1)
-    readiness.push(
-      matchingRelease
-        ? { ...dataset, ...matchingRelease }
-        : { ...dataset, cohortKey: dataset.cohortKey ?? null, releaseCode: null },
-    )
+    return snapshot ? [{ code: snapshot.code, cohortKey: snapshot.cohortKey }] : []
   }
 
-  return readiness
+  return snapshots
+    .filter(snapshot => snapshot.cohortKey === plan.cohortKey)
+    .map(snapshot => ({ code: snapshot.code, cohortKey: snapshot.cohortKey }))
 }
 
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(

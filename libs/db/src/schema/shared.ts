@@ -205,6 +205,19 @@ export const canonicalDivisionStatistic = {
 }
 
 export type CanonicalStatsGeography = {
+  /**
+   * Reviewed geometry companion for `include=areas` and `include=divisions`.
+   *
+   * The cohort is deliberately explicit: a statistics record must never
+   * silently acquire a newer (or unrelated) geometry merely because it is the
+   * latest Geographic release.
+   */
+  areaCompanion?: {
+    cohortKey: string
+    /** Divisions domain whose canonical identities own this companion. */
+    domainCode: string
+    variant: string
+  }
   kind: string
   code: string
   class?: string

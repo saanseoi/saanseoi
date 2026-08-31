@@ -17,6 +17,9 @@ type Props = {
   decisionsLabel?: string
   locked?: boolean
   outline: GuideOutlineItem[]
+  projectOutline?: GuideOutlineItem[]
+  projectOutlineAnchorId?: string
+  projectOutlineEndAnchorId?: string
   reminderId?: string
   tocLabel: string
 }
@@ -28,18 +31,27 @@ let {
   decisionsLabel,
   locked = false,
   outline,
+  projectOutline = [],
+  projectOutlineAnchorId,
+  projectOutlineEndAnchorId,
   reminderId,
   tocLabel,
 }: Props = $props()
 let observedOutlineId = $state<string | null>(null)
 let guideOpen = $state(false)
 let projectChoicesOpen = $state(true)
+let projectChoicesAutoCollapsed = $state(false)
+let projectOutlineActive = $state(false)
 let navigationElement = $state<HTMLElement>()
 let navigationContentsElement = $state<HTMLElement>()
 let compactNavigation = $state(false)
 let compactNavigationOpen = $state(false)
 let expandedNavigationHeight = $state(0)
 let navigationWasFixed = false
+let displayedOutline = $derived(
+  projectOutlineActive && projectOutline.length > 0 ? projectOutline : outline,
+)
+let displayedOutlineKey = $derived(projectOutlineActive ? 'project' : 'guide')
 let currentOutlineId = $derived(activeOutlineId ?? observedOutlineId)
 
 const fixedNavigationBreakpoint = '(min-width: 64rem)'
@@ -47,17 +59,17 @@ const expandedNavigationBreakpoint = '(min-width: 1280px)'
 const defaultHeaderHeight = 72
 
 $effect(() => {
-  const outlineKey = outline.map(item => `${item.id}:${item.hidden}`).join('|')
+  const outlineKey = displayedOutline.map(item => `${item.id}:${item.hidden}`).join('|')
   void outlineKey
   observedOutlineId = null
-  return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
+  return observeReleaseNavOutline(displayedOutline, id => (observedOutlineId = id))
 })
 
 function navigate(event: MouseEvent, id: string) {
   scrollToReleaseNavAnchor({
     event,
     id,
-    items: outline,
+    items: displayedOutline,
   })
 }
 
@@ -101,7 +113,52 @@ function navigationOverlapsContent() {
   })
 }
 
+function updateProjectOutline() {
+  const wasActive = projectOutlineActive
+
+  if (projectOutlineAnchorId && projectOutline.length > 0) {
+    const project = document.getElementById(projectOutlineAnchorId)
+    const projectEnd = projectOutlineEndAnchorId
+      ? document.getElementById(projectOutlineEndAnchorId)
+      : undefined
+    const focusLine = window.innerHeight / 2
+    projectOutlineActive = Boolean(
+      project &&
+        project.getBoundingClientRect().top <= focusLine &&
+        (projectEnd
+          ? projectEnd.getBoundingClientRect().top > focusLine
+          : project.getBoundingClientRect().bottom > focusLine),
+    )
+  } else {
+    projectOutlineActive = false
+  }
+
+  return projectOutlineActive !== wasActive
+}
+
+function updateProjectChoicesPresentation(availableHeight: number) {
+  const navigationContents = navigationContentsElement
+  if (!navigationContents) return false
+
+  const needsAutoCollapse =
+    projectOutlineActive && navigationContents.scrollHeight > availableHeight
+
+  if (needsAutoCollapse && projectChoicesOpen) {
+    projectChoicesOpen = false
+    projectChoicesAutoCollapsed = true
+    return true
+  } else if (!needsAutoCollapse && projectChoicesAutoCollapsed) {
+    projectChoicesOpen = true
+    projectChoicesAutoCollapsed = false
+    return true
+  }
+
+  return false
+}
+
 function updateNavigationPresentation() {
+  updateProjectOutline()
+
   if (!window.matchMedia(fixedNavigationBreakpoint).matches) {
     compactNavigation = false
     compactNavigationOpen = false
@@ -125,6 +182,10 @@ function updateNavigationPresentation() {
   const headerHeight =
     document.querySelector('header')?.getBoundingClientRect().height ??
     defaultHeaderHeight
+  if (updateProjectChoicesPresentation(window.innerHeight - headerHeight)) {
+    requestAnimationFrame(updateNavigationPresentation)
+    return
+  }
   const navigationHeight = compactNavigation
     ? expandedNavigationHeight
     : (navigationElement?.scrollHeight ?? 0)
@@ -143,11 +204,19 @@ function toggleGuide() {
 
 function toggleProjectChoices() {
   projectChoicesOpen = !projectChoicesOpen
+  projectChoicesAutoCollapsed = false
   requestAnimationFrame(updateNavigationPresentation)
 }
 
 function openCompactNavigation() {
-  if (compactNavigation) compactNavigationOpen = true
+  if (!compactNavigation) return
+  compactNavigationOpen = true
+  requestAnimationFrame(updateNavigationPresentation)
+}
+
+function toggleCompactNavigation() {
+  compactNavigationOpen = !compactNavigationOpen
+  if (compactNavigationOpen) requestAnimationFrame(updateNavigationPresentation)
 }
 
 function closeCompactNavigation() {
@@ -165,6 +234,7 @@ onMount(() => {
     })
   }
   const updateAfterScroll = () => {
+    if (updateProjectOutline()) updateOnNextFrame()
     if (scrollEndTimeout) clearTimeout(scrollEndTimeout)
     scrollEndTimeout = window.setTimeout(() => {
       scrollEndTimeout = undefined
@@ -200,7 +270,7 @@ onMount(() => {
           class="absolute right-0 top-0 z-20 inline-flex h-11 w-20 items-center justify-center gap-2 border border-border-card bg-background px-3 font-body text-label-sm font-semibold transition-colors duration-200 hover:border-secondary"
           type="button"
           aria-label="Open table of contents and project choices"
-          onclick={() => (compactNavigationOpen = !compactNavigationOpen)}
+          onclick={toggleCompactNavigation}
         >
           <span
             class="size-2.5 rounded-full bg-secondary shadow-[0_0_0_4px_color-mix(in_srgb,var(--secondary)_18%,transparent)]"
@@ -235,20 +305,25 @@ onMount(() => {
                 </button>
               </div>
               <div id="guide-contents" class={guideOpen ? 'block' : 'hidden'}>
-                <ol class="mt-3 space-y-1 lg:mt-0 lg:space-y-2">
-                  {#each outline as item, index}
-                    {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
-                    <li class:hidden={item.hidden}>
-                      <a
-                        class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
-                        href={`#${targetId}`}
-                        aria-current={currentOutlineId === item.id ? 'location' : undefined}
-                        onclick={event => navigate(event, targetId)}
-                        >{index + 1}. {@html item.label}</a
-                      >
-                    </li>
-                  {/each}
-                </ol>
+                {#key displayedOutlineKey}
+                  <ol
+                    in:fly={{ x: 20, duration: 180, opacity: 0 }}
+                    class="mt-3 space-y-1 lg:mt-0 lg:space-y-2"
+                  >
+                    {#each displayedOutline as item, index}
+                      {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
+                      <li class:hidden={item.hidden}>
+                        <a
+                          class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
+                          href={`#${targetId}`}
+                          aria-current={currentOutlineId === item.id ? 'location' : undefined}
+                          onclick={event => navigate(event, targetId)}
+                          >{index + 1}. {@html item.label}</a
+                        >
+                      </li>
+                    {/each}
+                  </ol>
+                {/key}
               </div>
               {#if decisions.length > 0 && decisionsLabel}
                 <div id="guide-project-choices" class="mt-3">
@@ -340,20 +415,25 @@ onMount(() => {
           {/if}
         </div>
         <div id="guide-contents" class={guideOpen ? 'block' : 'hidden'}>
-          <ol class="mt-3 space-y-1 lg:mt-0 lg:space-y-2">
-            {#each outline as item, index}
-              {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
-              <li class:hidden={item.hidden}>
-                <a
-                  class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
-                  href={`#${targetId}`}
-                  aria-current={currentOutlineId === item.id ? 'location' : undefined}
-                  onclick={event => navigate(event, targetId)}
-                  >{index + 1}. {@html item.label}</a
-                >
-              </li>
-            {/each}
-          </ol>
+          {#key displayedOutlineKey}
+            <ol
+              in:fly={{ x: 20, duration: 180, opacity: 0 }}
+              class="mt-3 space-y-1 lg:mt-0 lg:space-y-2"
+            >
+              {#each displayedOutline as item, index}
+                {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
+                <li class:hidden={item.hidden}>
+                  <a
+                    class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
+                    href={`#${targetId}`}
+                    aria-current={currentOutlineId === item.id ? 'location' : undefined}
+                    onclick={event => navigate(event, targetId)}
+                    >{index + 1}. {@html item.label}</a
+                  >
+                </li>
+              {/each}
+            </ol>
+          {/key}
         </div>
         {#if decisions.length > 0 && decisionsLabel}
           <div id="guide-project-choices" class="mt-3">

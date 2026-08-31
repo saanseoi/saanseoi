@@ -16,8 +16,6 @@ type Props = {
   bunInstallCode: string
   bunInstallExplanation: string
   codeEditor?: 'vscode' | 'zed' | 'cursor' | 'sublime-text' | 'other'
-  hostingInstallCode?: string
-  hostingInstallExplanation: string
   locale: string
   notebookCode: string
   notebookLibrary?: string
@@ -38,8 +36,6 @@ let {
   bunInstallCode,
   bunInstallExplanation,
   codeEditor,
-  hostingInstallCode,
-  hostingInstallExplanation,
   locale,
   notebookCode,
   notebookLibrary,
@@ -153,19 +149,6 @@ const terminalLabel = (path: string, action: string) =>
       <GuideParagraph>
         {@html m.guide_setup_project_directory_note({ path: terminalProjectPath })}
       </GuideParagraph>
-      {#if hostingInstallCode}
-        <GuideCodeInstructionStep
-          codeLabel={terminalLabel(
-            terminalProjectPath,
-            m.guide_setup_install_hosting_tool(),
-          )}
-          code={hostingInstallCode}
-          language={terminalLanguage}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-          instruction={showGuidance ? { description: hostingInstallExplanation, stepLabel: m.guide_setup_install_step_label(), stepNumber: 3, title: m.guide_setup_install_hosting_tool() } : undefined}
-        />
-      {/if}
       <GuideCodeInstructionStep
         codeLabel={terminalLabel(terminalProjectPath, m.guide_setup_start_server())}
         code="bun dev"

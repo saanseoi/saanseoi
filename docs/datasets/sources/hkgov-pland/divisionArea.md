@@ -82,6 +82,17 @@ overlay cannot node that topology, so the adapter canonicalises every 2021 aggre
 geometry collection with `buffer(0)`. The transform is limited to canonical geometry—
 every publisher source cell remains unchanged in source evidence.
 
+The shared 10-metre display derivative uses Shapely 2.1's GEOS-backed coverage
+simplifier across the completed Planning areas. Its helper accepts and emits WGS84
+GeoJSON, using a temporary local metre plane only to apply the tolerance. It validates
+each output Polygon or MultiPolygon and records its engine version and any temporary
+`make_valid` input repair in derivation metadata. This never alters exact canonical
+geometry or publisher evidence.
+
+The completed WGS84 coverage is cached under `.local/dataops/simplified-coverage` by its
+content, tolerance and simplification-contract version, so re-uploading unchanged
+Planning geometry reuses the simplified GeoJSON rather than running GEOS again.
+
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through
@@ -147,15 +158,22 @@ the catalogue.
 ## Backfill commands
 
 The CLI owns the checked-in cohort list, mirrored native archive paths and catalogue
-provenance URLs. It prepares each local SHP ZIP artefact in a temporary directory,
-uploads the canonical division release first, then its exact-cohort area variant, and
-removes the temporary Parquet files afterwards. Snapshot cleanup is deferred for the
-interim division upload, so its canonical IDs remain materialised for the companion area
-validation; normal cleanup resumes when the area release is published.
+provenance URLs. It prepares each local SHP ZIP artefact as a verified local cache
+entry, uploads the canonical division release first, then its exact-cohort area variant.
+The cache is outside source and release state at `.local/dataops/prepared-artefacts`;
+its key includes the source ZIP SHA-256, source cohort, resource type and
+native-preparation contract. A sidecar manifest verifies the generated Parquet digest
+before it is reused, so retries do not repeat source geometry reconstruction. Snapshot
+cleanup is deferred for the interim division upload, so its canonical IDs remain
+materialised for the companion area validation; normal cleanup resumes when the area
+release is published.
 
 The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
 metadata emitted by the current writer; this does not alter the geometry or records.
+Exact canonical Planning geometry is Brotli-materialised once and reused by the current
+and immutable history writes. This preserves the same decoded geometry and version hash
+while avoiding a second maximum-quality compression pass.
 
 ```sh
 bun run dataops -- hkgov-pland:backfill --kind pu --target preview

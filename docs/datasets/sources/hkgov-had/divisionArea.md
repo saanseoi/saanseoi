@@ -59,6 +59,18 @@ Preflight rejects null or empty geometry, invalid rings, and self-intersections.
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
 resolution, and source validity fields are recorded as ingestion statistics.
 
+The named `simplified` display derivative is produced separately from the exact source
+snapshot using Shapely 2.1's GEOS-backed coverage simplifier at a 10-metre tolerance.
+The helper accepts and emits WGS84 GeoJSON, using a temporary local metre plane only to
+apply that tolerance. It validates every derived Polygon or MultiPolygon and records the
+engine version and any temporary `make_valid` input repair in derivation metadata; it
+never changes the publisher geometry retained by the exact source snapshot.
+
+The simplified WGS84 coverage is stored in the content-addressed
+`.local/dataops/simplified-coverage` cache. Its key includes the exact geometry,
+tolerance and simplification-contract version, so an unchanged re-upload reuses the
+derived GeoJSON while a changed input creates a new derivative.
+
 The DCD layer also exposes `NAME_TC`, `NAME_EN`, `DATA_OWNER`, `BEGIN_LIFESPAN`,
 `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area`; these are intentionally not projected
 because they are redundant, publisher metadata, or calculated values. The source

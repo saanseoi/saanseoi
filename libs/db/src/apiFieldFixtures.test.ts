@@ -7,15 +7,16 @@ const overtureSourceSchemas = {
   'ds-hk-overture-division-area': '1.17.0',
   'ds-hk-overture-division-boundary': '1.17.0',
   'ds-hk-hkgov-had-division-area-district': '1.2',
-  'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type': '1.0',
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
 }
 
 describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(6)
+    expect(fixtures).toHaveLength(10)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -40,6 +41,77 @@ describe('api field fixtures', () => {
     ).toBeNull()
   })
 
+  test('selects the density mapping for its distinct C&SD release signature', () => {
+    const cohorts = [
+      { snapshotVersion: 'ss-hk-division-2025-09-24.0', version: '1.12.0' },
+      { snapshotVersion: 'ss-hk-division-2025-10-22.0', version: '1.13.0' },
+      { snapshotVersion: 'ss-hk-division-2025-11-19.0', version: '1.14.0' },
+      { snapshotVersion: 'ss-hk-division-2025-12-17.0', version: '1.15.0' },
+      { snapshotVersion: 'ss-hk-division-2026-01-21.0', version: '1.15.0' },
+      { snapshotVersion: 'ss-hk-division-2026-02-18.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-division-2026-03-18.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-division-2026-04-15.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-division-2026-05-20.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-division-2026-06-17.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-division-2026-06-24.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-division-2026-07-22.0', version: '1.18.0' },
+    ]
+
+    for (const cohort of cohorts) {
+      const sourceSchemas = {
+        'ds-hk-overture-division': cohort.version,
+        'ds-hk-overture-division-area': cohort.version,
+        'ds-hk-overture-division-boundary': cohort.version,
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
+          '1.0',
+      }
+      const fixture = resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: 'geographic',
+        lineageSnapshotVersions: [cohort.snapshotVersion],
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-merge-v1',
+        sourceSchemas,
+      })
+
+      expect(fixture?.lineageAnchors).toContainEqual(
+        expect.objectContaining({
+          snapshotVersion: cohort.snapshotVersion,
+          sourceSchemas,
+        }),
+      )
+    }
+  })
+
+  test('selects the Population and Household mapping without Permanent Living Quarters', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'geographic',
+      lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.12.0',
+        'ds-hk-overture-division-area': '1.12.0',
+        'ds-hk-overture-division-boundary': '1.12.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'divisionArea.attributes.variant',
+        sourceDatasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        variant: 'hkgov-censtatd',
+      }),
+    )
+  })
+
   test('selects the mapping for a complete required release set', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
@@ -55,15 +127,43 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-area': '1.13.0',
         'ds-hk-overture-division-boundary': '1.13.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
-        sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        sourceDatasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      }),
+    )
+  })
+
+  test('selects the PLQ mapping before annual C&SD district geometry is available', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'geographic',
+      lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.12.0',
+        'ds-hk-overture-division-area': '1.12.0',
+        'ds-hk-overture-division-boundary': '1.12.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'divisionArea.attributes.variant',
+        sourceDatasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        variant: 'hkgov-censtatd',
       }),
     )
   })
@@ -80,9 +180,9 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-area': '1.15.0',
         'ds-hk-overture-division-boundary': '1.15.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -112,9 +212,10 @@ describe('api field fixtures', () => {
           'ds-hk-overture-division-area': cohort.version,
           'ds-hk-overture-division-boundary': cohort.version,
           'ds-hk-hkgov-had-division-area-district': '1.2',
-          'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
             '1.0',
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
         },
       })
 
@@ -235,9 +336,9 @@ describe('api field fixtures', () => {
         'ds-hk-overture-division-area': '1.18.0',
         'ds-hk-overture-division-boundary': '1.18.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
-          '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 

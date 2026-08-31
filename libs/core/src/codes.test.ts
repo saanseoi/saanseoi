@@ -85,27 +85,34 @@ describe('registry code construction', () => {
         cohortKey: '2016',
         sourceVersion: '2016',
       }),
-    ).toBe('hkgov-censtatd:2016')
+    ).toBe('hkgov-censtatd')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2016',
         sourceVersion: '2016',
         transform: 'simplified',
       }),
-    ).toBe('hkgov-censtatd:2016:simplified')
+    ).toBe('hkgov-censtatd:simplified')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2021',
         sourceVersion: '2021',
         transform: 'simplified',
       }),
-    ).toBe('hkgov-censtatd:2021:simplified')
+    ).toBe('hkgov-censtatd:simplified')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2024',
+        sourceVersion: '2024',
+        transform: 'simplified',
+      }),
+    ).toBe('hkgov-censtatd:simplified')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2021',
         sourceVariant: 'census',
       }),
-    ).toBe('hkgov-censtatd:2021')
+    ).toBe('hkgov-censtatd')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2021',

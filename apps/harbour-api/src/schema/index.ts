@@ -237,7 +237,7 @@ export const RegisterUploadRequestSchema = z
       .optional()
       .openapi({
         description:
-          'Allow retrying an already staged release without permitting a published release repair.',
+          'Allow retrying a staged release, or an interrupted processing release with no active ingest phase, without permitting a published release repair.',
         examples: [true],
       }),
     inspection: UploadInspectionSchema,
@@ -249,6 +249,7 @@ export const RegisterUploadRequestSchema = z
       shardYear: z.string().optional(),
       source: z.string().optional(),
       sourceVersion: z.string().optional(),
+      geometryStatus: z.enum(['authoritative', 'fallback']).optional(),
       theme: z.string().optional(),
       type: z.string().optional(),
     }),
@@ -316,6 +317,7 @@ export const ControlStageRequestSchema = z
 
 export const PublishDatasetRequestSchema = z
   .object({
+    deferApiReleaseSet: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),

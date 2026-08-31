@@ -55,6 +55,7 @@ type StageRequest = {
 }
 
 type PublishRequest = {
+  deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   releaseCode?: string
   releaseId?: string
@@ -272,12 +273,20 @@ export async function handlePublishDataset(
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
-    const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
-      cohortKey: dataset.cohortKey,
-      datasetCode: dataset.datasetCode,
-      sourceVariant: dataset.sourceVariant,
-      sourceVersion: dataset.sourceVersion,
-    })
+    const materialisedSnapshots = await listSnapshotsForRelease(
+      db,
+      dataset.releaseId,
+      datasetType,
+    )
+    const datasetVariant =
+      materialisedSnapshots.find(snapshot => !snapshot.variant.endsWith(':simplified'))
+        ?.variant ??
+      datasetVariantForSource(datasetType, dataset.source, {
+        cohortKey: dataset.cohortKey,
+        datasetCode: dataset.datasetCode,
+        sourceVariant: dataset.sourceVariant,
+        sourceVersion: dataset.sourceVersion,
+      })
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
@@ -299,7 +308,13 @@ export async function handlePublishDataset(
     const isCenstatdGeographicGeometry =
       datasetType === 'divisionArea' &&
       dataset.source === 'hkgov-censtatd' &&
-      domainCode === 'geographic'
+      domainCode === 'geographic' &&
+      dataset.geometryStatus === 'authoritative'
+    const isFallbackCenstatdGeographicGeometry =
+      datasetType === 'divisionArea' &&
+      dataset.source === 'hkgov-censtatd' &&
+      domainCode === 'geographic' &&
+      dataset.geometryStatus === 'fallback'
     const censtatdReleaseSetCohorts = isCenstatdGeographicGeometry
       ? await listOvertureReleaseSetCohortsAtOrAfterCohortKey(
           db,
@@ -376,20 +391,55 @@ export async function handlePublishDataset(
       }
     }
 
+    // Fallback geometry remains a selectable Statistics companion, but must
+    // never become a Divisions release-set member or fan out across Overture
+    // cohorts. A later authoritative C&SD release owns that publication.
+    if (isFallbackCenstatdGeographicGeometry) {
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        phase: null,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: 'published',
+      }
+    }
+
+    const ensureDeferredDraftReleaseSet = async (cohortKey: string) => {
+      if (request.deferApiReleaseSet) {
+        const publishedReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
+          db,
+          datasetType,
+          domainCode,
+          dataset.regionCode as RegionCode,
+          cohortKey,
+        )
+
+        // A deferred source upload may complete after its cohort's API set is
+        // already current (for example, a Statistics companion replayed after
+        // geographic initialisation). Source publication must not open an
+        // enrichment revision in that case.
+        if (publishedReleaseSet) return null
+      }
+
+      return ensureDraftReleaseSetForRelease(
+        db,
+        datasetType,
+        { cohortKey, regionCode: dataset.regionCode },
+        { domainCode },
+      )
+    }
     const releaseSets = isCenstatdGeographicGeometry
       ? await (async () => {
-          const releaseSets = []
+          const releaseSets: Array<
+            NonNullable<Awaited<ReturnType<typeof ensureDraftReleaseSetForRelease>>>
+          > = []
           // Create each revision in the same chronological order in which it
           // is published, so the registry's publication ordering is stable.
           for (const cohortKey of censtatdReleaseSetCohorts) {
-            releaseSets.push(
-              await ensureDraftReleaseSetForRelease(
-                db,
-                'division',
-                { cohortKey, regionCode: dataset.regionCode },
-                { domainCode },
-              ),
-            )
+            const releaseSet = await ensureDeferredDraftReleaseSet(cohortKey)
+            if (releaseSet) releaseSets.push(releaseSet)
           }
           return releaseSets
         })()
@@ -403,10 +453,7 @@ export async function handlePublishDataset(
                   db,
                   datasetType,
                   { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
-                  // Statistics cohorts use an explicit `-r0` for their first
-                  // immutable compilation. That keeps launch bootstraps and
-                  // ordinary source ingestion on the same release-note path.
-                  { domainCode, explicitInitialRevision: true },
+                  { domainCode },
                 ),
               )
             }
@@ -414,12 +461,30 @@ export async function handlePublishDataset(
           })()
         : draftReleaseSets.length > 0
           ? draftReleaseSets
-          : [
-              existingReleaseSet ??
-                (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
-                  domainCode,
-                })),
-            ]
+          : await (async () => {
+              if (existingReleaseSet) {
+                if (
+                  request.deferApiReleaseSet &&
+                  existingReleaseSet.status !== 'draft'
+                ) {
+                  return []
+                }
+                return [existingReleaseSet]
+              }
+              const releaseSet = await ensureDeferredDraftReleaseSet(dataset.cohortKey)
+              return releaseSet ? [releaseSet] : []
+            })()
+    if (releaseSets.length === 0) {
+      await updateDatasetStatus(db, dataset.releaseId, 'published')
+      return {
+        datasetId: dataset.releaseCode,
+        phase: null,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: 'published',
+      }
+    }
     const publicationTargets = releaseSets.map(releaseSet => {
       if (datasetType !== 'divisionStatistic') {
         return { releaseSet, snapshot: firstSnapshot }
@@ -506,6 +571,7 @@ export async function handlePublishDataset(
       )
       const isNewestReleaseSet = index === newestReleaseSetIndex
       const shouldPublishReleaseSet =
+        !request.deferApiReleaseSet &&
         releaseSetIsComplete &&
         (isCenstatdGeographicGeometry ||
           datasetType === 'divisionStatistic' ||
@@ -526,6 +592,7 @@ export async function handlePublishDataset(
         publishedAt,
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
+        snapshotVariant: datasetVariant,
         type: datasetType,
         // Each statistic reference period is independently publishable. Other
         // families may still wait for required companion snapshots.
@@ -686,6 +753,10 @@ export async function handleBootstrapStatsReleaseSets(
       await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
     ).filter(member => member.domainCode === 'official')
     const memberVariants = new Set(members.map(member => member.variant))
+    // A Statistics source may publish DivisionArea artefacts as its primary
+    // resource while also materialising a linked divisionStatistic snapshot.
+    // Select the source family here; the snapshot lookup below remains the
+    // resource-type gate for the Statistics API release set.
     const sourceReleases = await db
       .select({ id: metaReleases.id })
       .from(metaReleases)
@@ -794,7 +865,7 @@ export async function handleBootstrapStatsReleaseSets(
         db,
         'divisionStatistic',
         { cohortKey, regionCode },
-        { domainCode: 'official', explicitInitialRevision: true },
+        { domainCode: 'official' },
       )
       const orderedCandidates = candidates
         .slice()

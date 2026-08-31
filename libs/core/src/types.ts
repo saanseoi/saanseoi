@@ -29,6 +29,7 @@ export type DatasetRecord = {
   releaseCode: string
   regionCode: string
   cohortKey: string
+  geometryStatus: GeometryStatus
   theme: string
   type: string
   subType: string | null
@@ -84,6 +85,11 @@ export type UploadPlan = {
   type: ResourceType
   source: string
   sourceVersion: string
+  /**
+   * The authority of a geometry materialisation. Omitted for non-geometry
+   * resources and for ordinary authoritative geometry.
+   */
+  geometryStatus?: GeometryStatus
   filePath: string
   fileName: string
   originalFileName: string
@@ -112,6 +118,7 @@ export type RegisterUploadOptions = {
   type?: string
   source?: string
   sourceVersion?: string
+  geometryStatus?: GeometryStatus
   releaseNotesUrl?: string
   shardYear?: string
   dryRun?: boolean
@@ -119,9 +126,14 @@ export type RegisterUploadOptions = {
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
   allowExistingDatasetStatuses?: ReleaseStatus[]
+  /** Allows an explicit retry after processing was interrupted with no active phase. */
+  resumeInterruptedProcessingRelease?: boolean
   /** Allows an independent historical cohort to be registered after a newer cohort. */
   allowHistoricalCohort?: boolean
 }
+
+export const geometryStatuses = ['authoritative', 'fallback'] as const
+export type GeometryStatus = (typeof geometryStatuses)[number]
 
 export type PreparedUploadResult = {
   plan: UploadPlan

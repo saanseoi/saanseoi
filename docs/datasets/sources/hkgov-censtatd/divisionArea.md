@@ -3,26 +3,23 @@
 ## Source releases
 
 The Census and Statistics Department (C&SD) publishes 18 District Council district
-polygons alongside census/by-census subdivided-unit statistics. These are statistical
-geographies: each geometry release is retained for its census cohort and must not be
-represented as an evergreen administrative boundary.
+polygons alongside census, by-census and annual statistics. These are statistical
+geographies: each geometry release is retained for its reference-year cohort and must
+not be represented as an evergreen administrative boundary.
 
-| Cohort | CSDI dataset                       | Native layer  |
-| ------ | ---------------------------------- | ------------- |
-| 2016   | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` |
-| 2021   | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  |
+| Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                                                  |
+| ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
+| 2021   | 2021 Population Census subdivided units by District Council district    | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
+| 2024   | Annual Population and Household Statistics by District Council district | `censtatd_rcd_1635934545173_69201` | `DC_GHS`      | `ds-hk-hkgov-censtatd-division-statistic-population-households-district` |
 
-The updater treats the C&SD dataset as a census-year release: the 2021 cohort is
-`2021.0`, with `.1`, `.2`, and so on reserved for later corrections to that cohort. The
-fixture maps `versionPolicy.releaseField` to the configured release metadata's
+The 2016 and 2021 cohorts belong to the census/by-census subdivided-units series. The
+2024 cohort belongs to the distinct annual population-and-household series. They share
+the C&SD publisher and canonical district identities, but not an upstream dataset. Each
+source fixture maps `versionPolicy.releaseField` to the configured release metadata's
 `sourceVersion`; the CSDI catalogue `modified` date is a publisher revision signal, not
-the census-year release version. The updater mirrors every Archived Dataset slot's
+the reference-year release version. The updater mirrors every Archived Dataset slot's
 native package and manifest; it does not use WFS or CSDI-converted GeoJSON as input.
-
-The logical dataset is marked five-yearly in SaanSeoi, while CSDI's per-record
-`updateFrequency` is recorded as one-off. Each release stores its own CSDI catalogue URL
-and is checked independently; the fixture's monthly update policy limits routine network
-checks without disabling correction detection.
 
 The archive manifest records the exact native format for each slot, and the source CRS
 is stored once in the dataset metadata record. Source processing retains the complete
@@ -40,21 +37,20 @@ exact WGS84 variant is likewise compressed in the current and history shards, th
 decompressed by the divisions API. The named `simplified` derivative remains ordinary
 JSON for map reads.
 
-The fixture records the observed CSDI archive slots and publisher-object hashes that are
-byte-identical within the 2016 and 2021 cohorts. The updater suppresses only those exact
-no-op objects; it continues to inspect the archive catalogue, so a changed slot or
-object key remains eligible for review.
+Each fixture records the observed CSDI archive slots and publisher-object hashes that
+are byte-identical within its own cohorts. The updater suppresses only those exact no-op
+objects; it continues to inspect the archive catalogue, so a changed slot or object key
+remains eligible for review.
 
-The 2016 and 2021 cohorts use separate source releases and cohort-specific native ZIP
-members. Each mirrored ZIP is shared only by that cohort's exact and simplified
-materialisations, and is linked to those processed resource releases through their
+The 2016, 2021 and 2024 cohorts use separate source releases and cohort-specific native
+ZIP members. Each mirrored ZIP is shared only by that cohort's exact and simplified
+materialisations, and is linked to those processed resource releases through its own
 canonical source-release lineage.
 
-During a target bootstrap, the release report is evaluated separately for the `2016` and
-`2021` source cohorts. An absent cohort is rebuilt from its native CSDI archive group,
+During a target bootstrap, the release report is evaluated separately for each source
+fixture and cohort. An absent cohort is rebuilt from its native CSDI archive group,
 while a cohort already reported by the target remains current even if the operator's
-local source checks differ. Consequently, rerunning an interrupted bootstrap does not
-attempt to create a duplicate release for the completed census cohort.
+local source checks differ.
 
 ## Source contract
 
@@ -69,17 +65,24 @@ All publisher properties, including the subdivided-unit measures, remain in
 Division Statistics family. The source assertion also projects the publisher-native
 `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it does not create
 locale-normalised source child rows. `dc_class` is bridged through a reviewed
-`hkgov-censtatd` identifier bridge for each census cohort; canonical `sourceKeys` expose
-the provider's `class` and numeric `code`.
+`hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
+`sourceKeys` expose the provider's `class` and numeric `code`.
 
-The exact source variants are:
+The source materialises into two C&SD companion families. The provider's census
+subdivided-unit district geometry is land-clipped; annual district geometry and the
+Permanent Living Quarters Area/type polygons are not. Every source-authorised cohort is
+retained as an independent snapshot, even where its exact geometry is byte-identical to
+an earlier cohort.
 
 ```text
-dataset  ds-hk-hkgov-censtatd-division-area-district
-variants hkgov-censtatd:2016
-         hkgov-censtatd:2021
-releases dr-hk-hkgov-censtatd-division-area-district-2016
-         dr-hk-hkgov-censtatd-division-area-district-2021
+dataset  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+variant  hkgov-censtatd-landclipped  (2016 and 2021 census/by-census districts)
+releases dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016
+         dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021
+
+dataset  ds-hk-hkgov-censtatd-division-statistic-population-households-district
+variant  hkgov-censtatd              (annual districts and Area/type polygons)
+release  dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024
 ```
 
 The publisher's 2021 `CENSTATD:T` feature has a self-intersecting ring. The C&SD adapter
@@ -88,57 +91,97 @@ is therefore not enabled for this provider profile. Structural validation, featu
 checks and source-archive SHA-256 verification still apply. The same policy applies to
 direct archive intake and `saanseoi update`.
 
-## Land-clipped display transformation
+## Display transformation
 
-Both detailed source geometries are land-clipped already. For Hong Kong-wide preview
-maps, Saanseoi exposes a named geometry transformation for each census cohort, without
-clipping, unioning or otherwise changing its coastline:
+Each source geometry is retained as published. For Hong Kong-wide preview maps, Saanseoi
+exposes a named geometry transformation for each companion snapshot, without clipping,
+unioning or otherwise changing its topology:
 
 ```text
-dataset   ds-hk-hkgov-censtatd-division-area-district
+datasets  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+          ds-hk-hkgov-censtatd-division-statistic-population-households-district
 transform simplified
-applies   hkgov-censtatd:2016
-          hkgov-censtatd:2021
+applies   hkgov-censtatd-landclipped
+          hkgov-censtatd
 ```
 
-The derivation runs a topology-preserving simplification across all 18 canonical
-EPSG:4326 polygons at a 10-metre tolerance in a local Hong Kong metre plane. Processing
-all districts together keeps shared boundaries consistent. The exact source row retains
-the untouched C&SD geometry and no derivation metadata; its derivative records the input
-dataset/release, method, tolerance and `preservesLandClip: true`. The derived geometry
-is materialised internally for fast map reads in a derivative row keyed to the exact
-source record and its version hash; it remains a transform of the same source release
-rather than a separate dataset, source record or API-composition member.
+The derivation uses Shapely 2.1's GEOS-backed coverage simplifier at a 10-metre
+tolerance. Its interface consumes and emits WGS84 GeoJSON; a temporary local metre plane
+is used only to apply that tolerance. It simplifies shared coverage edges as one
+operation, validates every resulting Polygon or MultiPolygon, and records the engine
+version in derivation metadata. The exact source row retains the untouched C&SD geometry
+and no derivation metadata; its derivative records the input dataset/release, method,
+tolerance and `preservesLandClip: true`. The known invalid `CENSTATD:T` input is
+repaired only in the helper's temporary display-processing copy with GEOS `make_valid`;
+that derivative records `inputValidationRepair: make-valid`. The derived geometry is
+materialised internally for fast map reads in a derivative row keyed to the exact source
+record and its version hash; it remains a transform of the same source release rather
+than a separate dataset, source record or API-composition member. The 2016 and 2021
+derivatives declare `preservesLandClip: true`; the 2024 derivative declares
+`preservesPublisherGeometry: true`.
 
-Use `include=areas:hkgov-censtatd:2016&transform=simplified` or
-`include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display maps;
-omit the transformation for source precision, census-cohort accuracy and geometry
-auditability. The transformation belongs to the C&SD dataset and does not introduce a
-new publisher or dataset.
+The completed simplified coverage is retained as content-addressed WGS84 GeoJSON in
+`.local/dataops/simplified-coverage`. Its key binds the input geometry, tolerance and
+simplification-contract version, so a re-upload with identical source geometry reuses
+the derivative rather than repeating the GEOS simplification.
 
-The Atlas source-release Stats choropleth uses only the 2021 simplified variant
-(`hkgov-censtatd:2021:simplified`) from this dataset. It intentionally does not fall
-back to Home Affairs Department boundaries or the unsimplified C&SD source geometry.
+Every published companion variant remains materialised in current storage for cohort-
+and variant-qualified Divisions API reads, whether or not it is an API-composition
+member.
+
+Use `include=areas:hkgov-censtatd-landclipped:simplified` or
+`include=areas:hkgov-censtatd:simplified` for low-detail display maps; omit the
+transformation for source precision, reference-year accuracy and geometry auditability.
+When querying the Divisions API, append `@<cohort>` to retain the selected release set's
+canonical identities while choosing a particular C&SD geometry companion, for example
+`include=areas:hkgov-censtatd-landclipped@2021&transform=simplified`. The cohort applies
+only to the included area geometry; it does not change the top-level division snapshot.
+The transformation belongs to its exact C&SD source dataset and does not introduce a new
+publisher or snapshot family. For C&SD district statistics, unqualified `include=areas`
+selects the exact reviewed C&SD companion automatically: 2024 district statistics select
+the `hkgov-censtatd` snapshot for cohort `2024`, not the Geographic domain's Overture
+default. The response permalink records the resolved variant. The choice is declared by
+each Statistics dataset's `areaCompanionByReferencePeriod` fixture as a domain, variant
+and cohort, and is materialised into the canonical statistic record during ingestion,
+rather than inferred from its source-release string at read time.
+
+The Atlas source-release Stats choropleth uses the 2021 land-clipped simplified variant
+(`hkgov-censtatd-landclipped:simplified`) from this dataset. It intentionally does not
+fall back to Home Affairs Department boundaries or the unsimplified C&SD source
+geometry.
 
 ## Statistical area companions
 
-The C&SD Permanent Living Quarters by Area and Type release supplies three Area/type
-polygons (`HK`, `KLN`, and `NT`). They are a selectable Geographic area variant,
-`hkgov-censtatd-area`, rather than a second division collection: each polygon is linked
-to the corresponding canonical Overture division ID, including the deterministic
-synthetic Hong Kong, Kowloon, and New Territories IDs where Overture has no row. Request
-them with `include=areas:hkgov-censtatd-area`.
+The C&SD Permanent Living Quarters release supplies three regional polygons (`HK`,
+`KLN`, and `NT`). They join the cohort-matched `hkgov-censtatd` companion rather than a
+second division collection: each polygon is linked to the corresponding canonical
+Overture division ID, including the deterministic synthetic Hong Kong, Kowloon, and New
+Territories IDs where Overture has no row. Request them with
+`include=areas:hkgov-censtatd`.
 
-This area variant is a required composition member: Harbour does not publish a
-Geographic Divisions release set until the Area/type snapshot and every other configured
-member are available. Required publication membership does not make the geometry part of
-the default response; clients still select it explicitly with `include`.
+The companion snapshot preserves all its contributing C&SD source releases as
+provenance. Required publication membership does not make geometry part of the default
+response; clients still select it explicitly with `include`.
+
+Each C&SD source release is retained as a `snapshotSource`. Before adding a second
+source for the same companion cohort, ingestion compares its complete materialisation:
+canonical record IDs, division references, land/territorial classification and exact
+geometry hashes. When every incoming row is already present with the same materialised
+geometry (the companion can also contain non-overlapping rows), the source attaches to
+the existing snapshot with `selectionMode: verified_identical_geometry`; its archive and
+raw source assertion are still retained, but the canonical geometry rows are not written
+again. A source that adds non-overlapping rows is marked `contributed_geometry`, and
+inherited rows are marked `carried_forward_companion`. This records where geometry was
+deliberately not republished because a second publisher release supplied the same
+geometry. A differing overlapping geometry requires a different companion variant; the
+census/by-census land-clipped geometry is the current example.
 
 During ingestion, the three references are checked against the closest published
 canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
 used first; only an absent earlier cohort permits the earliest later Overture cohort.
-The selection is retained as a snapshot lookup dependency. Area/type must not create a
-second C&SD division snapshot merely to satisfy its geometry validation.
+The selection is retained as a snapshot lookup dependency. Permanent Living Quarters
+must not create a second C&SD division snapshot merely to satisfy its geometry
+validation.
 
 The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
 Market Area polygons have their own deterministic canonical division IDs and therefore
@@ -168,14 +211,17 @@ HMAs have no hierarchy. Their authoritative classification remains the C&SD
 ## Ingestion
 
 The updater passes the locally prepared native CSDI ZIP to the district importer. It
-requires the cohort-specific `DC_16BC_SDU.gml` or `DC_21C_SDU.gml` member, verifies the
-ZIP SHA-256 against its prepared manifest, and keeps the managed archive key and hash in
-the source provenance. Converted CSDI GeoJSON and a separately downloaded GML are not
+requires the cohort-specific `DC_16BC_SDU.gml`, `DC_21C_SDU.gml`, or `DC_GHS.gml`
+member. The `2026-Q2` `DC_GHS.gml` archive contains multiple publisher-labelled annual
+cohorts; the importer filters and materialises each one independently. It verifies the
+ZIP SHA-256 against its prepared manifest and keeps the managed archive key and hash in
+source provenance. Converted CSDI GeoJSON and a separately downloaded GML are not
 runtime inputs. Use `saanseoi update`, or invoke the importer with the prepared archive:
 
 ```bash
 bun run dataops -- hkgov-censtatd:district-area ./data/.../source.zip \
-  --target preview --source-version 2021 --release-notes-url URL \
+  --target preview --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
+  --source-version 2021 --release-notes-url URL \
   --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```
 
@@ -190,10 +236,10 @@ boundary length, and non-zero boundary-segment count for every district. Segment
 describes the source geometry's complexity, not its accuracy, and is never recalculated
 from or overwritten by the `simplified` display derivative.
 
-Both C&SD census cohorts are required Overture division-release inputs. The selected
-source snapshots are carried forward at or before the Overture cohort, so their stable
-source schema is always included in the release's API-field provenance. They are
+Each C&SD reference-year cohort is a required Overture division-release input. The
+selected source snapshots are carried forward at or before the Overture cohort, so their
+stable source schema is always included in the release's API-field provenance. They are
 independently selectable source variants with separate snapshot lineages; publishing the
-2021 cohort never supersedes the 2016 release or snapshot. Release churn is measured
-only against the declared parent snapshot, so each initial census cohort has an empty
-baseline: its 18 district areas are additions, not removals from the other cohort.
+2024 cohort never supersedes the 2016 or 2021 release or snapshot. Release churn is
+measured only against the declared parent snapshot, so each initial cohort has an empty
+baseline: its 18 district areas are additions, not removals from another cohort.

@@ -8,6 +8,12 @@
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
   },
+  "r2_buckets": [
+    {
+      "binding": "R2_GUIDE_ASSETS",
+      "bucket_name": "ss-assets-preview"
+    }
+  ],
   "vars": {
     "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
   },
@@ -146,6 +152,12 @@
           "allowed_sender_addresses": ["noreply@saanseoi.hk"]
         }
       ],
+      "r2_buckets": [
+        {
+          "binding": "R2_GUIDE_ASSETS",
+          "bucket_name": "ss-assets-preview"
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB_META",
@@ -250,6 +262,12 @@
         {
           "name": "EMAIL",
           "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_GUIDE_ASSETS",
+          "bucket_name": "ss-assets-prod"
         }
       ],
       "d1_databases": [

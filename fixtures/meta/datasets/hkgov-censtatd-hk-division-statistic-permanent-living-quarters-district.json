@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3c37e182f6ad138293b4d5139242c297e37acd57c1f545aa674cbd9251ce4954",
+  "versionHash": "sha256:7c48ffbb5f3ec539fc788615d698e699a4f4275ee7d98d01234c4691c661d762",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
@@ -7,10 +7,15 @@
   "releaseFrequency": "half-yearly",
   "theme": "stats",
   "sourceVariant": "official-statistics",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203",
@@ -34,9 +39,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -65,6 +68,21 @@
     {
       "sourceVersion": "2023-H2",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2023-H2",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

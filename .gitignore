@@ -32,6 +32,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .local/
 *.tsbuildinfo
 tmp/*
+__pycache__/
 
 # IntelliJ based IDEs
 .idea

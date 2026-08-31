@@ -96,12 +96,8 @@ describe('API release-set identifiers', () => {
     )
   })
 
-  test('can make the initial revision explicit for bootstrap release sets', () => {
-    expect(
-      buildDataReleaseSetCode('hk', 'stats', '2021', 0, {
-        explicitInitialRevision: true,
-      }),
-    ).toBe('data-hk-stats-2021-r0')
+  test('omits the initial revision for Statistics release sets', () => {
+    expect(buildDataReleaseSetCode('hk', 'stats', '2021')).toBe('data-hk-stats-2021')
   })
 
   test('normalises an exact spanning period only in the generated code', () => {

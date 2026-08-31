@@ -9,7 +9,6 @@ import {
 
 import {
   buildHkgovAlsIngestCommand,
-  buildHkgovCenstatdDistrictArchiveIngestCommand,
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovCenstatdStatisticsArchiveIngestCommand,
   buildHkgovHadDistrictArchiveIngestCommand,
@@ -239,24 +238,32 @@ describe('dataset update registry', () => {
     )
   })
 
-  test('starts C&SD district-area intake from the prepared native archive', () => {
+  test('starts C&SD subdivided-units statistics intake from the prepared native archive', () => {
     expect(
-      buildHkgovCenstatdDistrictArchiveIngestCommand({
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        deferStatsReleaseSet: true,
         inputFile: '/tmp/prepared-districts.zip',
         releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
         sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
         sourceArchiveSha256: 'd'.repeat(64),
         sourceVersion: '2021',
         target: { environment: 'production', remote: true },
+        yes: true,
       }),
     ).toEqual(
       expect.arrayContaining([
-        'hkgov-censtatd:district-area',
+        'hkgov-censtatd:statistics',
         '/tmp/prepared-districts.zip',
         '--target',
         'production',
+        '--dataset-code',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         '--source-archive-key',
         'by-source/hk/hkgov-csdi/districts/source.zip',
+        '--defer-stats-release-set',
+        '--yes',
       ]),
     )
   })
@@ -992,6 +999,67 @@ describe('dataset update registry', () => {
     }
   })
 
+  test('maps an unpinned current CSDI slot to its matching configured source version', async () => {
+    const originalFetch = globalThis.fetch
+    const sourceObjectHash = 'c'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const sourceUrl =
+        'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934545173_69201'
+      const [update] = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          sourceUrl,
+          theme: 'stats',
+          resourceTypes: ['divisionStatistic'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+          releases: [
+            { sourceVersion: '2024', sourceUrl },
+            { sourceVersion: '2026-Q2', sourceUrl },
+          ],
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(update).toEqual(
+        expect.objectContaining({
+          sourceKey: 'archive:censtatd_rcd_1635934545173_69201:2026-Q2',
+          status: 'new',
+          targetSourceKey: '2026-Q2',
+          version: '2026-Q2',
+        }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('does not treat a CSDI archive slot as an unversioned dataset release', async () => {
     const originalFetch = globalThis.fetch
     globalThis.fetch = Object.assign(
@@ -1596,7 +1664,7 @@ describe('dataset update registry', () => {
 
   test('records C&SD districts as initial-only cohorts with revision archive scans', async () => {
     const [dataset] = await loadDatasetFixtures(
-      new Set(['ds-hk-hkgov-censtatd-division-area-district']),
+      new Set(['ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district']),
     )
 
     expect(dataset?.releasePolicy).toEqual({
@@ -1644,6 +1712,23 @@ describe('dataset update registry', () => {
           dataset.releasePolicy.archives.operation === 'csdi-archived-dataset',
       ),
     ).toBe(true)
+  })
+
+  test('declares reference periods carried by the historic Population and Household delivery', async () => {
+    const [dataset] = await loadDatasetFixtures(
+      new Set([
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      ]),
+    )
+
+    expect(
+      dataset?.releases?.find(release => release.sourceVersion === '2026-Q2')
+        ?.referencePeriods,
+    ).toEqual({
+      geometryStatus: 'fallback',
+      materialiseAreaCompanions: true,
+      sourceField: 'year',
+    })
   })
 
   test('records HAD districts as a revisable irregular rolling series', async () => {
