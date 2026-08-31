@@ -52,6 +52,13 @@ fixture and cohort. An absent cohort is rebuilt from its native CSDI archive gro
 while a cohort already reported by the target remains current even if the operator's
 local source checks differ.
 
+These C&SD geometry companions may be materialised by the shared
+`hkgov-censtatd:statistics` intake. That command includes available geography by
+default; `--defer-stats-release-set` makes it Statistics-only unless
+`--include-geography` is supplied, while `--geography-only` requests the geography
+companions without the Statistics resource. Divisions release-set publication is a
+separate concern and is deferred with `--defer-api-release-set`.
+
 ## Source contract
 
 Each release contains exactly 18 Polygon/MultiPolygon features. Required properties are:
@@ -61,11 +68,12 @@ Each release contains exactly 18 Polygon/MultiPolygon features. Required propert
 - `dc_eng` and `dc_chi`: English and Traditional Chinese district names.
 
 All publisher properties, including the subdivided-unit measures, remain in
-`rawProperties`; this geometry ingest does not yet publish them through the proposed
-Division Statistics family. The source assertion also projects the publisher-native
-`dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it does not create
-locale-normalised source child rows. `dc_class` is bridged through a reviewed
-`hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
+`rawProperties`; the geometry resource path does not publish them through the Division
+Statistics family. The shared C&SD statistics intake can publish the corresponding
+statistical records from the same archive. The source assertion also projects the
+publisher-native `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it
+does not create locale-normalised source child rows. `dc_class` is bridged through a
+reviewed `hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
 `sourceKeys` expose the provider's `class` and numeric `code`.
 
 The source materialises into two C&SD companion families. The provider's census
