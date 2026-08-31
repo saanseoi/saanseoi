@@ -114,6 +114,14 @@ export type ReconcileDraftReleaseSetsResult = {
   publishedReleaseSetAnnouncements: ReleaseSetPublication[]
   publishedReleaseSetPublications: ReleaseSetPublication[]
   publishedReleaseSetCodes: string[]
+  publishedReleaseSetStatsTargets: Array<{
+    apiReleaseSetId: string
+    cohortKey: string
+    family: 'address' | 'division'
+    releaseCode: string
+    releaseId: string
+    snapshotId: string
+  }>
 }
 
 export type BootstrapStatsReleaseSetsResult = {
@@ -719,6 +727,8 @@ export async function handleReconcileDraftReleaseSets(
     const publishedReleaseSetAnnouncements: ReleaseSetPublication[] = []
     const publishedReleaseSetPublications: ReleaseSetPublication[] = []
     const pendingReleaseSetCodes: string[] = []
+    const publishedReleaseSetStatsTargets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] =
+      []
 
     for (const releaseSet of draftReleaseSets) {
       const primaryRelease = primaryReleaseByReleaseSetId.get(releaseSet.id)
@@ -739,6 +749,21 @@ export async function handleReconcileDraftReleaseSets(
         )
       ) {
         publishedReleaseSetCodes.push(releaseSet.code)
+        if (
+          result.apiReleaseSetId &&
+          result.snapshotId &&
+          releaseSet.cohortKey &&
+          (request.apiFamily === 'divisions' || request.apiFamily === 'addresses')
+        ) {
+          publishedReleaseSetStatsTargets.push({
+            apiReleaseSetId: result.apiReleaseSetId,
+            cohortKey: releaseSet.cohortKey,
+            family: request.apiFamily === 'addresses' ? 'address' : 'division',
+            releaseCode: result.releaseCode,
+            releaseId: result.releaseId,
+            snapshotId: result.snapshotId,
+          })
+        }
         publishedReleaseSetAnnouncements.push(
           ...(result.apiReleaseSetAnnouncements ?? []).filter(
             publication => publication.apiReleaseSetCode === releaseSet.code,
@@ -760,6 +785,7 @@ export async function handleReconcileDraftReleaseSets(
       publishedReleaseSetAnnouncements,
       publishedReleaseSetPublications,
       publishedReleaseSetCodes,
+      publishedReleaseSetStatsTargets,
     }
   })
 }

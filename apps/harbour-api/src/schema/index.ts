@@ -380,6 +380,16 @@ export const ReconcileDraftReleaseSetsResponseSchema = z
     pendingReleaseSetCodes: z.array(z.string()),
     publishedReleaseSetPublications: z.array(ReleaseSetPublicationSchema),
     publishedReleaseSetCodes: z.array(z.string()),
+    publishedReleaseSetStatsTargets: z.array(
+      z.object({
+        apiReleaseSetId: z.string().uuid(),
+        cohortKey: z.string(),
+        family: z.enum(['address', 'division']),
+        releaseCode: ReleaseCodeSchema,
+        releaseId: ReleaseIdSchema,
+        snapshotId: z.string().uuid(),
+      }),
+    ),
   })
   .openapi('HarbourReconcileDraftReleaseSetsResponse')
 
