@@ -150,11 +150,30 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey, status,
+      ingestedAt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      RELEASE_ID,
+      'dataset-statistics',
+      'sr-hk-hkgov-censtatd-population-households-district-2021',
+      '2021',
+      '2021',
+      'published',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO releases (
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      RELEASE_ID,
       RELEASE_ID,
       'dataset-statistics',
       'divisionStatistic',
@@ -273,11 +292,30 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey, status,
+      ingestedAt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      HISTORICAL_RELEASE_ID,
+      'dataset-statistics-historical',
+      'sr-hk-hkgov-censtatd-households-district-2020',
+      '2020',
+      '2020',
+      'published',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO releases (
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      HISTORICAL_RELEASE_ID,
       HISTORICAL_RELEASE_ID,
       'dataset-statistics-historical',
       'divisionStatistic',
