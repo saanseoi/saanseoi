@@ -572,7 +572,7 @@ describe('Create a Map LLM instructions', () => {
 
   test('includes renderer-specific style code in agent and chat hand-offs', () => {
     const renderers = [
-      ['maplibre', 'MapLibre', "import { Map } from 'maplibre-gl'"],
+      ['maplibre', 'MapLibre', "import * as maplibregl from 'maplibre-gl'"],
       ['mapbox', 'Mapbox GL JS', "import mapboxgl from 'mapbox-gl'"],
       ['leaflet', 'Leaflet', "import L from 'leaflet'"],
     ] as const
