@@ -127,6 +127,7 @@ const loadStyle = async (): Promise<StyleSpecification> => {
           type: 'background',
           paint: { 'background-color': '#fff9ed' },
         },
+        ...additionalLayers,
       ],
     }
   }
