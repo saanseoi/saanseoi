@@ -54,6 +54,15 @@ used for API-field selection.
 
 ## Remaining native statistics ingestion
 
+The shared `hkgov-censtatd:statistics` importer has a combined default: it materialises
+the `divisionStatistic` snapshot together with any `division` and `divisionArea`
+geography companions prepared from the same archive. `--defer-stats-release-set`
+switches the run to Statistics-only unless `--include-geography` explicitly restores the
+geography fan-out. `--geography-only` omits the Statistics upload and processes the
+available geography companions instead. `--defer-api-release-set` is independent and
+defers only Divisions release-set publication; it does not by itself suppress geography
+preparation.
+
 The updater invokes one shared native CSDI statistics importer for the seven remaining
 datasets. It accepts only its locally prepared publisher ZIP, verifies the updater
 manifest SHA-256, expands only GML members within explicit entry-count and uncompressed-
@@ -201,13 +210,15 @@ native `hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assi
 Division level, so the generated Division record has no `level` value and an empty
 hierarchy.
 
-The Statistics launch-bootstrap mode (`update --defer-stats-release-set`) publishes only
-the Statistics source assertions and snapshots. It deliberately leaves this optional
-Divisions-family geometry fan-out to the Divisions workflow, whose district geometry
-prerequisites are separate from Statistics cohort assembly. Where one C&SD source also
-publishes `divisionArea` artefacts, its primary source release remains
-geometry-classified while its linked `divisionStatistic` snapshots are independently
-selected for Statistics cohort bootstrap.
+The Statistics launch-bootstrap mode passes `--defer-stats-release-set`, so it uses the
+Statistics-only branch unless the operator also passes `--include-geography`. This keeps
+the initial Statistics cohort assembly independent of the optional Divisions fan-out.
+When geography is requested, its resource releases still use the same prepared archive
+and source provenance; `--defer-api-release-set` controls whether their Divisions
+release set is published during that run. Where one C&SD source also publishes
+`divisionArea` artefacts, its primary source release remains geometry-classified while
+its linked `divisionStatistic` snapshots are independently selected for Statistics
+cohort bootstrap.
 
 ## Source-release statistics and geography audit
 
