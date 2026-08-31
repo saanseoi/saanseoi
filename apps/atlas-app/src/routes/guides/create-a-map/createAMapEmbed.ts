@@ -38,7 +38,7 @@ export function createMapIframeCode({
     '<iframe',
     `  src="${escapeAttribute(source)}"`,
     `  title="${escapeAttribute(accessibleTitle)}"`,
-    '  width="100%"' + heightAttribute,
+    `  width="100%"${heightAttribute}`,
     `  style="border: 0;${heightStyle}"`,
     '  loading="lazy"',
     '  referrerpolicy="strict-origin-when-cross-origin"',
