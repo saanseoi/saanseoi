@@ -1359,6 +1359,9 @@ export async function applyPublishMetadataDeltaToRemoteCache(
       const updateReleaseSet = sqlite.prepare(
         'UPDATE apiReleaseSets SET status = ?, updatedAt = ? WHERE id = ?',
       )
+      const updateSnapshot = sqlite.prepare(
+        'UPDATE snapshots SET status = ?, publishedAt = ?, validFrom = ?, validTo = ?, updatedAt = ? WHERE id = ?',
+      )
       const insertReleaseSet = sqlite.prepare(`
         INSERT INTO apiReleaseSets (
           id, apiVersionId, apiCompositionId, code, regionCode, domainCode, cohortKey,
@@ -1372,6 +1375,19 @@ export async function applyPublishMetadataDeltaToRemoteCache(
         const result = updateRelease.run(release.status, updatedAt, release.id)
         if (result.changes !== 1) {
           throw new Error(`Local meta cache is missing release ${release.id}.`)
+        }
+      }
+      for (const snapshot of delta.snapshots ?? []) {
+        const result = updateSnapshot.run(
+          snapshot.status,
+          snapshot.publishedAt,
+          snapshot.validFrom,
+          snapshot.validTo,
+          updatedAt,
+          snapshot.id,
+        )
+        if (result.changes !== 1) {
+          throw new Error(`Local meta cache is missing snapshot ${snapshot.id}.`)
         }
       }
       for (const releaseSet of delta.apiReleaseSets ?? []) {

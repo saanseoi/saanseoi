@@ -392,7 +392,7 @@ const resetRequirement = (requirement: number) => {
     </p>
 
     <section
-      class="order-3 mt-4 md:col-start-1 md:row-start-2 md:order-none"
+      class="order-3 mt-4 md:col-start-1 md:row-start-2 md:order-0"
       aria-labelledby="publish-account-title"
     >
       <p
@@ -433,9 +433,7 @@ const resetRequirement = (requirement: number) => {
       </GuidePublishRequirement>
     </section>
 
-    <aside
-      class="order-2 md:absolute md:top-0 md:right-0 md:order-none md:w-48 lg:w-64"
-    >
+    <aside class="order-2 md:absolute md:top-0 md:right-0 md:order-0 md:w-48 lg:w-64">
       <GuideInstructionCallout
         description={m.guide_publish_static_files_description()}
         label={m.guide_publish_static_files_label()}
