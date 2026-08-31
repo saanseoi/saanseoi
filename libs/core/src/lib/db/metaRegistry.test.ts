@@ -15,6 +15,8 @@ import {
   insertDataset,
   listRegistryApiReleaseProcessingActions,
   listRegistryApiReleaseProcessingActionSections,
+  listRegistrySourceReleaseProcessingActions,
+  listRegistrySourceReleaseProcessingActionSections,
   listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey,
   markDatasetCurrent,
   listRegistryReleases,
@@ -163,10 +165,17 @@ function createRegistryReleasesDb() {
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
       datasetId TEXT,
+      sourceReleaseId TEXT,
       code TEXT,
       sourceVersion TEXT,
       ingestedAt TEXT,
       processingRules TEXT
+    );
+
+    CREATE TABLE sourceReleases (
+      id TEXT PRIMARY KEY,
+      datasetId TEXT NOT NULL,
+      code TEXT NOT NULL
     );
 
     CREATE TABLE publishers (
@@ -310,10 +319,15 @@ describe('listRegistryReleases', () => {
         ('dataset-a', 'en', 'Hong Kong addresses'),
         ('dataset-a', 'zh-Hant', '香港地址');
 
-      INSERT INTO releases (id, datasetId, code, sourceVersion, ingestedAt, processingRules) VALUES
-        ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-c', 'dataset-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
+      INSERT INTO sourceReleases (id, datasetId, code) VALUES
+        ('source-version-a', 'dataset-a', 'dr-hk-addresses-2026-07-15'),
+        ('source-version-b', 'dataset-b', 'dr-hk-landsd-addresses-2026-07-15'),
+        ('source-version-c', 'dataset-c', 'dr-hk-overture-divisions-2026-07-15');
+
+      INSERT INTO releases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
+        ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
 
       INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
@@ -428,6 +442,31 @@ describe('listRegistryReleases', () => {
     )
     expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
     expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
+
+    const sourceActionSections =
+      await listRegistrySourceReleaseProcessingActionSections(db as never, {
+        datasetCode: 'hkgov-als',
+        releaseCode: 'dr-hk-addresses-2026-07-15',
+      })
+    expect(sourceActionSections).toEqual([
+      {
+        action: 'address_normalised',
+        affectedRecordCount: 5,
+        mode: 'automatic',
+        totalCount: 1,
+      },
+    ])
+    const sourceActionPage = await listRegistrySourceReleaseProcessingActions(
+      db as never,
+      {
+        action: 'address_normalised',
+        datasetCode: 'hkgov-als',
+        limit: 50,
+        offset: 0,
+        releaseCode: 'dr-hk-addresses-2026-07-15',
+      },
+    )
+    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a'])
     sqlite.close()
   })
 })

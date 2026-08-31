@@ -1,11 +1,13 @@
 import { browser } from '$app/env'
 
 import { getSourceReleaseContentData } from '#lib/registry/meta.remote.js'
+import type { SourceReleaseTab } from './sourceReleasePage.utils'
 
 export type SourceReleaseContentInput = {
   datasetCode: string
   releaseCode: string
   previousReleaseCode: null
+  tab: SourceReleaseTab
 }
 
 type SourceReleaseContentQuery = ReturnType<typeof getSourceReleaseContentData>
@@ -15,7 +17,8 @@ const preloadedQueries = new Map<string, SourceReleaseContentQuery>()
 const sourceReleaseContentKey = ({
   datasetCode,
   releaseCode,
-}: SourceReleaseContentInput) => `${datasetCode}/${releaseCode}`
+  tab,
+}: SourceReleaseContentInput) => `${datasetCode}/${releaseCode}/${tab}`
 
 export function getSourceReleaseContentQuery(input: SourceReleaseContentInput) {
   if (!browser) return getSourceReleaseContentData(input)

@@ -188,6 +188,7 @@ export type SourceVersion = {
     createdAt: string
     updatedAt: string
   }>
+  processingActionCount?: number
   releaseAs?: Array<{
     apiFamily: string
     apiVersion: string
