@@ -64,7 +64,7 @@ const completeAndScroll = async () => {
 
 {#snippet completeDetails()}
   <div class="flex items-center justify-between gap-4">
-    <p class="font-body text-body-md leading-7 text-foreground-alt">
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
       {resetDescription}
     </p>
     <Button class="shrink-0" size="compact" variant="secondary" onclick={onReset}>

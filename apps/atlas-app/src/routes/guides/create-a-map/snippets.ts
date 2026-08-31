@@ -989,7 +989,7 @@ export const urbanDensitySetupZ14TileFetcherCode = [
   "progressDistrict.className = 'land-analysis-progress-district'",
   "const progressCounts = document.createElement('dl')",
   "progressCounts.className = 'land-analysis-progress-counts'",
-  `progressCounts.innerHTML = '<div><dt>TILES</dt><dd data-tiles>0 / 0</dd></div><div aria-hidden="true">and</div><div><dt>PARTS</dt><dd data-parts>0 / –</dd></div><div aria-hidden="true">for</div><div><dt>DISTRICTS</dt><dd data-districts>0 / \${districts.length}</dd></div>'`,
+  `progressCounts.innerHTML = \`<div><dt>TILES</dt><dd data-tiles>0 / 0</dd></div><div aria-hidden="true">and</div><div><dt>PARTS</dt><dd data-parts>0 / –</dd></div><div aria-hidden="true">for</div><div><dt>DISTRICTS</dt><dd data-districts>0 / \${districts.length}</dd></div>\``,
   '// A custom progress bar lets the completed portion keep a gentle moving glow.',
   "const progress = document.createElement('div')",
   "progress.className = 'land-analysis-progress-bar'",

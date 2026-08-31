@@ -383,7 +383,7 @@ const resetRequirement = (requirement: number) => {
 }
 </script>
 
-<div class="mt-8 space-y-10">
+<div class="mt-3 space-y-10">
   <div
     class="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
   >
@@ -496,7 +496,7 @@ const resetRequirement = (requirement: number) => {
             <p class="font-body text-body-lg leading-8 text-primary">
               {m.guide_publish_github_external_installation_title()}
             </p>
-            <p class="mt-2 font-body text-body-md leading-7 text-foreground-alt">
+            <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
               {m.guide_publish_github_external_installation_description()}
             </p>
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
@@ -631,11 +631,11 @@ const resetRequirement = (requirement: number) => {
         copiedLabel={m.common_copied()}
       />
       {#if hosting === 'cloudflare'}
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
           {m.guide_publish_cloudflare_authentication_url_note()}
         </p>
         <div class="mt-6 space-y-3">
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {m.guide_publish_cloudflare_authorize_description()}
           </p>
           <GuideScreenshot
@@ -645,7 +645,7 @@ const resetRequirement = (requirement: number) => {
           />
         </div>
         <div class="mt-6 space-y-3">
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {m.guide_publish_cloudflare_authorization_success_description()}
           </p>
           <GuideScreenshot
@@ -749,7 +749,7 @@ const resetRequirement = (requirement: number) => {
     </section>
 
     {#if hosting === 'cloudflare'}
-      <aside>
+      <aside class="mt-12">
         <GuideInstructionCallout
           description={m.guide_publish_workers_static_assets_description()}
           label={m.guide_publish_workers_static_assets_label()}
@@ -806,9 +806,13 @@ const resetRequirement = (requirement: number) => {
           <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
             {@html m.guide_publish_cloudflare_build_warning()}
           </p>
-          <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_publish_static_api_key()}
-          </p>
+          <div class="mt-4">
+            <GuideInstructionCallout
+              description={m.guide_publish_static_api_key()}
+              label={m.guide_publish_static_api_key_label()}
+              title={m.guide_publish_static_api_key_title()}
+            />
+          </div>
           <div class="mt-6">
             <p class="font-body text-body-lg leading-8 text-foreground-alt">
               {@html m.guide_publish_cloudflare_deploy_description()}
@@ -856,14 +860,18 @@ const resetRequirement = (requirement: number) => {
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_publish_static_api_key()}
-          </p>
+          <div class="mt-5">
+            <GuideInstructionCallout
+              description={m.guide_publish_static_api_key()}
+              label={m.guide_publish_static_api_key_label()}
+              title={m.guide_publish_static_api_key_title()}
+            />
+          </div>
         {/if}
       </GuidePublishRequirement>
     </section>
 
-    <aside>
+    <aside class="mt-12">
       <GuideInstructionCallout
         description={m.guide_publish_building_description()}
         label={m.guide_publish_building_label()}
@@ -892,7 +900,7 @@ const resetRequirement = (requirement: number) => {
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_share()}
     </p>
-    <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {@html llmHelp}
     </p>
   </section>
