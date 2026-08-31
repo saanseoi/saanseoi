@@ -2,6 +2,7 @@
 import { GuideCodeBlock } from '#lib/bits/pages/guides/index.js'
 
 type Props = {
+  class?: string
   code: string
   commandLabel: string
   copyLabel: string
@@ -13,6 +14,7 @@ type Props = {
 }
 
 let {
+  class: className = 'mt-3',
   code,
   commandLabel,
   copyLabel,
@@ -30,7 +32,7 @@ let {
   </p>
 {/if}
 <GuideCodeBlock
-  class="mt-3"
+  class={className}
   label={commandLabel}
   {code}
   {language}

@@ -116,6 +116,7 @@ import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.sve
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 import GuideCreateAMapEmbed from './guideCreateAMapEmbed.svelte'
 import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
+import GuideCreateAMapPublishOther from './guideCreateAMapPublishOther.svelte'
 import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import {
@@ -732,6 +733,13 @@ const scrollPrimerToTop = async (id: string) => {
   if (!primer) return
 
   scrollToElementBelowHeader(primer)
+}
+
+const scrollToGuideChoice = (event: MouseEvent, id: string) => {
+  event.preventDefault()
+
+  const choice = document.getElementById(id)
+  if (choice) scrollToElementBelowHeader(choice)
 }
 
 const handleLlmModeChange = (value?: string) => {
@@ -2880,14 +2888,47 @@ const styleChoices = $derived.by(() =>
             turfInstallCode={urbanDensityTurfInstallCode}
             turfInstallOutput={urbanDensityTurfInstallOutput}
           />
-        {:else if dataSource === 'api'}
+        {:else if dataSource === 'api' && (!renderer || !selectedStyle)}
           <GuideCallout class="mt-8" size="generous">
             <h3 class="font-display text-headline-sm font-bold text-primary">
-              {@html m.guide_data_urban_density_maplibre_only_title()}
+              {@html m.guide_data_urban_density_preferences_title()}
             </h3>
             <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-              {@html m.guide_data_urban_density_maplibre_only_description()}
+              {@html m.guide_data_urban_density_missing_preferences_intro()}
             </p>
+            <ul
+              class="mt-3 list-disc space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+            >
+              {#if !renderer}
+                <li>
+                  <a
+                    class="font-semibold text-secondary underline underline-offset-4"
+                    href="#map-library"
+                    onclick={event => scrollToGuideChoice(event, 'map-library')}
+                  >
+                    {@html m.guide_data_urban_density_missing_renderer()}
+                  </a>
+                </li>
+              {/if}
+              {#if !selectedStyle}
+                <li>
+                  <a
+                    class="font-semibold text-secondary underline underline-offset-4"
+                    href="#style-choice"
+                    onclick={event => scrollToGuideChoice(event, 'style-choice')}
+                  >
+                    {@html m.guide_data_urban_density_missing_style()}
+                  </a>
+                </li>
+              {/if}
+            </ul>
+            {#if region && region !== 'hk'}
+              <p class="mt-4 font-body text-body-lg leading-8 text-foreground-alt">
+                {@html m.guide_data_urban_density_missing_preferences_region({
+                  region: selectedRegion?.label ?? '',
+                })}
+              </p>
+            {/if}
           </GuideCallout>
         {/if}
         {#if llmGuidanceEnabled && dataSource}
@@ -3009,6 +3050,14 @@ const styleChoices = $derived.by(() =>
                 {terminalProjectPath}
                 onCompletedRequirementsChange={requirements =>
                   (completedPublishRequirements = requirements)}
+                onPublishedChange={published => (isMapPublished = published)}
+              />
+            {:else if hosting === 'other'}
+              <GuideCreateAMapPublishOther
+                completed={completedPublishRequirements.includes(1)}
+                {terminalProjectPath}
+                onCompletedChange={complete =>
+                  (completedPublishRequirements = complete ? [1] : [])}
                 onPublishedChange={published => (isMapPublished = published)}
               />
             {/if}
