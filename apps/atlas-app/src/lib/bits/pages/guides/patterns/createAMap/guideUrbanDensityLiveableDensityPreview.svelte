@@ -80,7 +80,7 @@ const addIllustrativeLiveableLand = (map: MapLibreMap) => {
       source: 'basemap',
       'source-layer': 'landuse',
       filter: ['in', 'kind', ...nonLiveableLandUse],
-      paint: { 'fill-color': '#e76f51', 'fill-opacity': 0.62 },
+      paint: { 'fill-color': '#ff503d', 'fill-opacity': 0.62 },
     },
     firstLabelLayerId,
   )
