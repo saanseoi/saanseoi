@@ -969,48 +969,30 @@ async function replayGeometryIntoRemote(
       context.state.dbCacheDir,
       releaseId,
       async () => {
-        await mapGeometryImportsWithConcurrency(
-          tableImports.filter(tableImport => tableImport.sql.trim()),
-          3,
-          tableImport =>
-            runProgressPhase(
-              describeRemoteGeometryImport(tableImport.name, plan, target),
-              () =>
-                executeSqlText(
-                  {
-                    databaseId: tableImport.databaseId ?? null,
-                    name: tableImport.name,
-                  },
-                  tableImport.sql,
-                  options,
-                ),
-            ),
-        )
+        // A LocalUploadProgress instance owns one in-place terminal row. Keep
+        // remote table phases sequential so concurrent imports cannot leave
+        // several live renderers writing duplicate rows to stdout.
+        for (const tableImport of tableImports) {
+          if (!tableImport.sql.trim()) continue
+          await runProgressPhase(
+            describeRemoteGeometryImport(tableImport.name, plan, target),
+            () =>
+              executeSqlText(
+                {
+                  databaseId: tableImport.databaseId ?? null,
+                  name: tableImport.name,
+                },
+                tableImport.sql,
+                options,
+              ),
+          )
+        }
       },
     )
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     throw new Error(`Remote geometry replay failed. ${reason}`)
   }
-}
-
-async function mapGeometryImportsWithConcurrency<T>(
-  values: readonly T[],
-  concurrency: number,
-  operation: (value: T) => Promise<unknown>,
-) {
-  let nextIndex = 0
-  const workers = Array.from(
-    { length: Math.min(Math.max(1, concurrency), values.length) },
-    async () => {
-      while (nextIndex < values.length) {
-        const value = values[nextIndex]
-        nextIndex += 1
-        if (value !== undefined) await operation(value)
-      }
-    },
-  )
-  await Promise.all(workers)
 }
 
 function readGeometryReplayMetadata(
