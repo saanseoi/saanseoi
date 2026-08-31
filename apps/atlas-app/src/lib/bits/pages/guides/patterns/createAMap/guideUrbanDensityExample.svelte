@@ -2,7 +2,6 @@
 import { onMount } from 'svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
-import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
@@ -21,13 +20,6 @@ import GuideUrbanDensityLiveableAnalysisPreview from './guideUrbanDensityLiveabl
 import GuideUrbanDensityPreview from './guideUrbanDensityPreview.svelte'
 import GuideUrbanDensityMapPreview from './guideUrbanDensityMapPreview.svelte'
 import GuideUrbanDensityStatsPreview from './guideUrbanDensityStatsPreview.svelte'
-
-type ShareLink = {
-  href: string
-  icon: string
-  label: string
-  newWindow?: boolean
-}
 
 type Props = {
   editorIcon?: string
@@ -62,8 +54,6 @@ type Props = {
   statsCode: string
   statsDisplayCode: string
   turfInstallCode: string
-  shareLinks: ShareLink[]
-  onShareExternalLink: (provider: string) => void
 }
 
 let {
@@ -99,8 +89,6 @@ let {
   statsCode,
   statsDisplayCode,
   turfInstallCode,
-  shareLinks,
-  onShareExternalLink,
 }: Props = $props()
 
 onMount(() => {
@@ -140,51 +128,51 @@ const statsComments = [
     html: true,
   },
   {
-    line: 8,
+    line: 11,
     text: m.guide_data_urban_density_stats_comment_api_base_url(),
   },
   {
-    line: 15,
+    line: 18,
     text: m.guide_data_urban_density_stats_comment_endpoint(),
   },
   {
-    line: 16,
+    line: 19,
     text: m.guide_data_urban_density_stats_comment_dataset(),
   },
   {
-    line: 18,
+    line: 21,
     text: m.guide_data_urban_density_stats_comment_helper(),
   },
   {
-    line: 19,
+    line: 22,
     text: m.guide_data_urban_density_stats_comment_url(),
   },
   {
-    line: 20,
+    line: 23,
     text: m.guide_data_urban_density_stats_comment_cohort(),
   },
   {
-    line: 21,
+    line: 24,
     text: m.guide_data_urban_density_stats_comment_dataset_filter(),
   },
   {
-    line: 22,
+    line: 25,
     text: m.guide_data_urban_density_stats_comment_field(),
   },
   {
-    line: 23,
+    line: 26,
     text: m.guide_data_urban_density_stats_comment_reference_period(),
   },
   {
-    line: 25,
+    line: 28,
     text: m.guide_data_urban_density_stats_comment_request(),
   },
   {
-    line: 26,
+    line: 29,
     text: m.guide_data_urban_density_stats_comment_values(),
   },
   {
-    line: 29,
+    line: 32,
     text: m.guide_data_urban_density_stats_comment_fields(),
   },
 ]
@@ -453,35 +441,36 @@ const liveableAreaComments = [
     line: 50,
     text: m.guide_data_urban_density_liveable_area_comment_liveable_districts(),
   },
-  { line: 53, text: m.guide_data_urban_density_liveable_area_comment_json() },
-  { line: 54, text: m.guide_data_urban_density_liveable_area_comment_dialog() },
+  { line: 53, text: m.guide_data_urban_density_saved_result_keep() },
+  { line: 54, text: m.guide_data_urban_density_liveable_area_comment_json() },
+  { line: 55, text: m.guide_data_urban_density_liveable_area_comment_dialog() },
   {
-    line: 55,
+    line: 56,
     text: m.guide_data_urban_density_liveable_area_comment_dialog_style(),
   },
-  { line: 56, text: m.guide_data_urban_density_liveable_area_comment_result_title() },
+  { line: 57, text: m.guide_data_urban_density_liveable_area_comment_result_title() },
   {
-    line: 57,
+    line: 58,
     text: m.guide_data_urban_density_liveable_area_comment_result_title_content(),
   },
   {
-    line: 58,
+    line: 59,
     text: m.guide_data_urban_density_liveable_area_comment_result_title_style(),
   },
-  { line: 59, text: m.guide_data_urban_density_liveable_area_comment_download() },
-  { line: 60, text: m.guide_data_urban_density_liveable_area_comment_download_label() },
+  { line: 60, text: m.guide_data_urban_density_liveable_area_comment_download() },
+  { line: 61, text: m.guide_data_urban_density_liveable_area_comment_download_label() },
   {
-    line: 61,
+    line: 62,
     text: m.guide_data_urban_density_liveable_area_comment_download_style(),
   },
-  { line: 62, text: m.guide_data_urban_density_liveable_area_comment_download_url() },
-  { line: 63, text: m.guide_data_urban_density_liveable_area_comment_download_name() },
+  { line: 63, text: m.guide_data_urban_density_liveable_area_comment_download_url() },
+  { line: 64, text: m.guide_data_urban_density_liveable_area_comment_download_name() },
   {
-    line: 64,
+    line: 65,
     text: m.guide_data_urban_density_liveable_area_comment_dialog_contents(),
   },
-  { line: 65, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
-  { line: 66, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
+  { line: 66, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
+  { line: 67, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
 ]
 
 const liveableAreaCssComments = [
@@ -1052,32 +1041,6 @@ const liveableAreaMapComments = [
       >
         {@html m.guide_data_urban_density_conclusion_summary()}
       </p>
-    </section>
-    <section>
-      <GuideSubSectionHeader title={m.guide_data_urban_density_conclusion_title()} />
-      <div
-        class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
-      >
-        <p>{@html m.guide_data_urban_density_conclusion_community_phewee()}</p>
-        <p>{@html m.guide_data_urban_density_conclusion_community_complexity()}</p>
-        <p>{@html m.guide_data_urban_density_conclusion_community_continue()}</p>
-        <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
-        <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
-          {#each shareLinks as link}
-            <a
-              class="inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary no-underline transition-colors hover:bg-secondary-container"
-              href={link.href}
-              onclick={() => onShareExternalLink(link.icon)}
-              target={link.newWindow === false ? undefined : '_blank'}
-              rel={link.newWindow === false ? undefined : 'noreferrer'}
-              aria-label={link.label}
-              title={link.label}
-            >
-              <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
-            </a>
-          {/each}
-        </nav>
-      </div>
     </section>
   </div>
 </section>
