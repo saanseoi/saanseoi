@@ -37,11 +37,15 @@ import {
   eq,
   metaApiComposition,
   metaApiReleaseSets,
+  metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
   metaPublisherI18n,
   metaPublishers,
   metaReleases,
+  metaSchema,
+  metaSnapshotSources,
+  or,
   type ApiFamilyType,
 } from '@repo/db'
 
@@ -761,10 +765,12 @@ export async function handleReconcileDraftReleaseSets(
   request: ReconcileDraftReleaseSetsRequest = {},
 ): Promise<ReconcileDraftReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
-    const [draftReleaseSets, primaryReleases] = await Promise.all([
-      listDraftReleaseSets(db, request),
-      listDraftReleaseSetPrimaryReleases(db, request),
-    ])
+    const [draftReleaseSets, primaryReleases, recoverableCurrentStatsTargets] =
+      await Promise.all([
+        listDraftReleaseSets(db, request),
+        listDraftReleaseSetPrimaryReleases(db, request),
+        listCurrentReleaseSetStatsTargets(db, request),
+      ])
     const primaryReleaseByReleaseSetId = new Map(
       primaryReleases.map(release => [release.apiReleaseSetId, release]),
     )
@@ -830,9 +836,89 @@ export async function handleReconcileDraftReleaseSets(
       publishedReleaseSetAnnouncements,
       publishedReleaseSetPublications,
       publishedReleaseSetCodes,
-      publishedReleaseSetStatsTargets,
+      publishedReleaseSetStatsTargets: [
+        ...publishedReleaseSetStatsTargets,
+        ...recoverableCurrentStatsTargets,
+      ],
     }
   })
+}
+
+async function listCurrentReleaseSetStatsTargets(
+  db: HarbourReadableDb,
+  request: ReconcileDraftReleaseSetsRequest,
+) {
+  if (request.apiFamily !== 'addresses' && request.apiFamily !== 'divisions') {
+    return []
+  }
+
+  const rows = await db
+    .select({
+      apiReleaseSetId: metaApiReleaseSets.id,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      releaseCode: metaReleases.code,
+      releaseId: metaReleases.id,
+      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiReleaseSetSnapshots,
+      and(
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+        eq(metaApiReleaseSetSnapshots.role, 'primary'),
+      ),
+    )
+    .innerJoin(
+      metaSnapshotSources,
+      and(
+        eq(metaSnapshotSources.snapshotId, metaApiReleaseSetSnapshots.snapshotId),
+        eq(metaSnapshotSources.role, 'primary'),
+      ),
+    )
+    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .where(
+      and(
+        eq(metaApiReleaseSets.status, 'current'),
+        eq(
+          metaApiVersions.familyType,
+          request.apiFamily === 'addresses' ? 'addresses' : 'divisions',
+        ),
+        request.regionCode
+          ? eq(metaApiReleaseSets.regionCode, request.regionCode)
+          : undefined,
+        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+      ),
+    )
+    .orderBy(metaApiReleaseSets.cohortKey, metaApiReleaseSets.revision)
+    .all()
+
+  const seenReleaseSetIds = new Set<string>()
+  const targets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] = []
+  for (const row of rows) {
+    if (seenReleaseSetIds.has(row.apiReleaseSetId)) continue
+    seenReleaseSetIds.add(row.apiReleaseSetId)
+
+    const existingStats = await db
+      .select({ id: metaSchema.stats.id })
+      .from(metaSchema.stats)
+      .where(eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId))
+      .limit(1)
+      .get()
+    if (existingStats) continue
+    if (!row.cohortKey) continue
+
+    targets.push({
+      apiReleaseSetId: row.apiReleaseSetId,
+      cohortKey: row.cohortKey,
+      family: request.apiFamily === 'addresses' ? 'address' : 'division',
+      releaseCode: row.releaseCode,
+      releaseId: row.releaseId,
+      snapshotId: row.snapshotId,
+    })
+  }
+
+  return targets
 }
 
 /**
@@ -863,7 +949,6 @@ export async function handleBootstrapStatsReleaseSets(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
-          eq(metaReleases.resourceType, 'divisionStatistic'),
           eq(metaReleases.status, 'published'),
         ),
       )

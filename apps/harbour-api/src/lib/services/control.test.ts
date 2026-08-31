@@ -270,9 +270,10 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   expect(
     sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
   ).toEqual({ status: 'published' })
-  // A C&SD source can materialise both geometry and Statistics snapshots. Once
-  // the source release is classified as geometry, neither it nor the companion
-  // geometry snapshot may bootstrap a Statistics release set.
+  // A C&SD source can materialise both geometry and Statistics snapshots. The
+  // source release may be classified as geometry, but its linked Statistics
+  // snapshot must still enter the cohort release set; the geometry snapshot
+  // itself must not.
   const geometrySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
     cohortKey: '2021',
     datasetCode: datasetCodes[0],
@@ -304,7 +305,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(result).toEqual({
     createdReleaseSetCodes: ['data-hk-stats-2021'],
-    inspectedSnapshots: 1,
+    inspectedSnapshots: 2,
     skippedCohortKeys: [],
   })
   expect(
@@ -322,7 +323,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         )`,
       )
       .get(),
-  ).toEqual({ count: 1 })
+  ).toEqual({ count: 2 })
   expect(
     sqlite
       .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
@@ -331,7 +332,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 1,
+    inspectedSnapshots: 2,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -411,7 +412,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 1,
+    inspectedSnapshots: 2,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -449,7 +450,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 3,
     skippedCohortKeys: ['2021', '2022'],
   })
   expect(
@@ -2070,6 +2071,18 @@ describe('control service', () => {
       ],
     })
     expect(reconciledSet.status).toBe('current')
+    const statsRecovery = await handleReconcileDraftReleaseSets(db, {
+      apiFamily: 'divisions',
+      regionCode: 'hk',
+    })
+    expect(statsRecovery.publishedReleaseSetStatsTargets).toContainEqual({
+      apiReleaseSetId: releaseSetId,
+      cohortKey,
+      family: 'division',
+      releaseCode: division.releaseCode,
+      releaseId: division.releaseId,
+      snapshotId: expect.any(String),
+    })
     const deferredAfterReconciliation = await handlePublishDataset(db, {
       deferApiReleaseSet: true,
       releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
