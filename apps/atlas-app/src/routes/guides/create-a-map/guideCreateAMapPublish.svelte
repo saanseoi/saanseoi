@@ -759,102 +759,118 @@ const resetRequirement = (requirement: number) => {
     {/if}
   </div>
 
-  <section aria-labelledby="publish-deployment-title">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_publish_requirement({ current: deploymentRequirement, total: requirementTotal })}
-    </p>
-    <h3
-      id="publish-deployment-title"
-      class="mt-1 font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_deployment_title({ host })}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_deployment_description({ host })}
-    </p>
-    <GuidePublishRequirement
-      id="publish-deployment-readiness"
-      titleId="publish-deployment-readiness-title"
-      complete={completedRequirements.includes(deploymentRequirement)}
-      completeAction={m.guide_publish_deployment_complete_action()}
-      eyebrow={m.guide_publish_deployment_ready({ platform: host })}
-      description={m.guide_publish_deployment_ready_description({ platform: host })}
-      resetDescription={m.guide_publish_reset_description()}
-      resetLabel={m.guide_readiness_reset()}
-      scrollTargetId="publish-deployment-title"
-      onComplete={() => completeRequirement(deploymentRequirement)}
-      onReset={() => resetRequirement(deploymentRequirement)}
-    >
-      {#if hosting === 'cloudflare'}
-        <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
-          description={m.guide_publish_cloudflare_build_description()}
-          code="bun run build"
-          language={terminalLanguage}
-          output={cloudflareBuildOutput}
-          outputLabel={m.guide_publish_cloudflare_build_output()}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_build_warning()}
-        </p>
-        <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_static_api_key()}
-        </p>
-        <div class="mt-6">
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
+  >
+    <section aria-labelledby="publish-deployment-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: deploymentRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-deployment-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_deployment_title({ host })}
+      </h3>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {@html m.guide_publish_deployment_description({ host })}
+      </p>
+      <GuidePublishRequirement
+        id="publish-deployment-readiness"
+        titleId="publish-deployment-readiness-title"
+        complete={completedRequirements.includes(deploymentRequirement)}
+        completeAction={m.guide_publish_deployment_complete_action()}
+        eyebrow={m.guide_publish_deployment_ready({ platform: host })}
+        description={m.guide_publish_deployment_ready_description({ platform: host })}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-deployment-title"
+        onComplete={() => completeRequirement(deploymentRequirement)}
+        onReset={() => resetRequirement(deploymentRequirement)}
+      >
+        {#if hosting === 'cloudflare'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_build_description()}
+          </p>
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
-            description={m.guide_publish_cloudflare_deploy_description()}
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+            code="bun run build"
+            language={terminalLanguage}
+            output={cloudflareBuildOutput}
+            outputLabel={m.guide_publish_cloudflare_build_output()}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_build_warning()}
+          </p>
+          <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_static_api_key()}
+          </p>
+          <div class="mt-6">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
+              code={deploymentCode}
+              language={terminalLanguage}
+              output={cloudflareDeploymentInitialOutput}
+              outputLabel={m.guide_publish_cloudflare_deploy_initial_output()}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_register_subdomain()}
+            </p>
+            <GuideCodeBlock
+              class="mt-3"
+              code={cloudflareDeploymentSubdomainOutput}
+              label={m.guide_publish_cloudflare_deploy_subdomain_output()}
+              copyable={false}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_choose_subdomain()}
+            </p>
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_confirm_subdomain()}
+            </p>
+            <GuideCodeBlock
+              class="mt-3"
+              code={cloudflareDeploymentCompleteOutput}
+              label={m.guide_publish_cloudflare_deploy_complete_output()}
+              copyable={false}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+          </div>
+        {:else}
+          <GuideCodeBlock
+            label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
             code={deploymentCode}
             language={terminalLanguage}
-            output={cloudflareDeploymentInitialOutput}
-            outputLabel={m.guide_publish_cloudflare_deploy_initial_output()}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_register_subdomain()}
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_static_api_key()}
           </p>
-          <GuideCodeBlock
-            class="mt-3"
-            code={cloudflareDeploymentSubdomainOutput}
-            label={m.guide_publish_cloudflare_deploy_subdomain_output()}
-            copyable={false}
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-          />
-          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_choose_subdomain()}
-          </p>
-          <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_confirm_subdomain()}
-          </p>
-          <GuideCodeBlock
-            class="mt-3"
-            code={cloudflareDeploymentCompleteOutput}
-            label={m.guide_publish_cloudflare_deploy_complete_output()}
-            copyable={false}
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-          />
-        </div>
-      {:else}
-        <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
-          code={deploymentCode}
-          language={terminalLanguage}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_static_api_key()}
-        </p>
-      {/if}
-    </GuidePublishRequirement>
-  </section>
+        {/if}
+      </GuidePublishRequirement>
+    </section>
+
+    <aside>
+      <GuideInstructionCallout
+        description={m.guide_publish_building_description()}
+        label={m.guide_publish_building_label()}
+        title={m.guide_publish_building_title()}
+      />
+    </aside>
+  </div>
 
   <section aria-labelledby="publish-next-title">
     <h3
