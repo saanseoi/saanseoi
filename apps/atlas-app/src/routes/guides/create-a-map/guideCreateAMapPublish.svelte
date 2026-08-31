@@ -27,6 +27,7 @@ import vercelAuthenticationLight from '#lib/assets/guides/publish-vercel-auth-li
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
+import GuidePublishHostingCallout from './guidePublishHostingCallout.svelte'
 import GuidePublishTerminalCommand from './guidePublishTerminalCommand.svelte'
 
 type Hosting = Extract<
@@ -200,6 +201,36 @@ const authenticationCode = $derived(
         ? 'bunx vercel login'
         : 'bunx netlify login',
 )
+const githubAuthenticationOutput = [
+  '? What account do you want to log into? GitHub.com',
+  '? What is your preferred protocol for Git operations on this host? HTTPS',
+  '? Authenticate Git with your GitHub credentials? Yes',
+  '? How would you like to authenticate GitHub CLI? Login with a web browser',
+  '',
+  '! First copy your one-time code: XXXX-XXXX',
+  'Press Enter to open https://github.com/login/device in your browser...',
+  '✓ Authentication complete.',
+  '✓ Configured git protocol',
+  '✓ Logged in as YOUR_GITHUB_USER_NAME',
+].join('\n')
+const vercelAuthenticationOutput = [
+  'Vercel CLI 59.10.0',
+  '> Visit https://vercel.com/oauth/device?user_code=ABCD-EFGH',
+  'Waiting for authentication...',
+  '',
+  'Congratulations! You are now signed in.',
+  '',
+  'To deploy something, run `vercel`.',
+].join('\n')
+const netlifyAuthenticationOutput = [
+  'Logging into your Netlify account...',
+  'Opening https://app.netlify.com/authorize?...',
+  'Waiting for authorization...',
+  '',
+  'You are now logged into your Netlify account!',
+  '',
+  'Run netlify status for account details',
+].join('\n')
 const cloudflareAuthenticationOutput = [
   '⛅️ wrangler 4.127.1',
   '────────────────────',
@@ -208,6 +239,15 @@ const cloudflareAuthenticationOutput = [
   '',
   'Successfully logged in.',
 ].join('\n')
+const authenticationOutput = $derived(
+  hosting === 'cloudflare'
+    ? cloudflareAuthenticationOutput
+    : hosting === 'github-pages'
+      ? githubAuthenticationOutput
+      : hosting === 'vercel'
+        ? vercelAuthenticationOutput
+        : netlifyAuthenticationOutput,
+)
 const cloudflareSetupInitialOutput = [
   '⛅️ wrangler 4.127.1',
   '────────────────────',
@@ -266,29 +306,67 @@ const configurationCode = $derived(
     ? 'bunx wrangler setup'
     : hosting === 'github-pages'
       ? [
-          'git config --global user.name "Your name"',
-          'git config --global user.email "you@example.com"',
           'git init -b main',
+          'git config user.name "Your name"',
+          'git config user.email "you@example.com"',
           'git add .',
           'git commit -m "Publish my map"',
           'gh repo create saanseoi-project --public --source=. --push',
         ].join('\n')
       : hosting === 'vercel'
-        ? 'bunx vercel link'
+        ? 'bunx vercel link --yes --project saanseoi-project'
         : 'bunx netlify sites:create --name saanseoi-project',
+)
+const githubConfigurationOutput = [
+  'Initialized empty Git repository in /home/YOUR_NAME/saanseoi-project/.git/',
+  '[main (root-commit) a1b2c3d] Publish my map',
+  ' 17 files changed, 5212 insertions(+)',
+  'https://github.com/YOUR_GITHUB_USER_NAME/saanseoi-project',
+  'To https://github.com/YOUR_GITHUB_USER_NAME/saanseoi-project.git',
+  ' * [new branch]      HEAD -> main',
+  "branch 'main' set up to track 'origin/main'.",
+].join('\n')
+const vercelConfigurationOutput = [
+  'Vercel CLI 59.10.0',
+  'Loading teams…',
+  '',
+  'Directory       ~/saanseoi-project',
+  '',
+  'Searching for existing projects…',
+  '',
+  'Detected Vite (Build Command: vite build, Output Directory: dist)',
+  '',
+  '✓ Created         YOUR_TEAM/saanseoi-project',
+  '✓ Created         .env.local file',
+].join('\n')
+const netlifyConfigurationOutput = [
+  'Project Created',
+  '',
+  'Admin URL:  https://app.netlify.com/projects/saanseoi-project',
+  'URL:        https://saanseoi-project.netlify.app',
+  'Project ID: YOUR_PROJECT_ID',
+  '',
+  'Adding local .netlify folder to .gitignore file...',
+  '✔ Linked to saanseoi-project',
+].join('\n')
+const configurationOutput = $derived(
+  hosting === 'github-pages'
+    ? githubConfigurationOutput
+    : hosting === 'vercel'
+      ? vercelConfigurationOutput
+      : netlifyConfigurationOutput,
 )
 const deploymentCode = $derived(
   hosting === 'cloudflare'
     ? 'bunx wrangler deploy'
     : hosting === 'github-pages'
       ? [
-          'bunx vite build --base=/saanseoi-project/',
+          'bunx tsc --noEmit && bunx vite build --base=/saanseoi-project/',
           'bunx gh-pages -d dist',
-          'gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=gh-pages" -f "source[path]=/"',
         ].join('\n')
       : hosting === 'vercel'
-        ? ['bun run build', 'bunx vercel --prod'].join('\n')
-        : ['bun run build', 'bunx netlify deploy --dir=dist --prod'].join('\n'),
+        ? 'bunx vercel --prod'
+        : 'bunx netlify deploy --dir=dist --prod',
 )
 const cloudflareBuildOutput = [
   '$ tsc && vite build',
@@ -354,6 +432,50 @@ const cloudflareDeploymentCompleteOutput = [
   '  https://saanseoi-project.saanseoi-guides-create-a-map.workers.dev',
   'Current Version ID: e05fa8db-ec08-49a9-8431-3c3c823143e5',
 ].join('\n')
+const githubDeploymentOutput = [
+  'vite v8.2.2 building client environment for production...',
+  '✓ 319 modules transformed.',
+  'computing gzip size...',
+  'dist/index.html                                  0.51 kB │ gzip:   0.30 kB',
+  'dist/assets/index-EXAMPLE.css                   90.24 kB │ gzip:  12.44 kB',
+  'dist/assets/index-EXAMPLE.js                   969.40 kB │ gzip: 254.97 kB',
+  '✓ built in 266ms',
+  '',
+  'Published',
+].join('\n')
+const vercelDeploymentOutput = [
+  'Vercel CLI 59.10.0',
+  'Deploying YOUR_TEAM/saanseoi-project',
+  'Uploading [====================] (39.9MB/39.9MB)',
+  'Inspect: https://vercel.com/YOUR_TEAM/saanseoi-project/DEPLOYMENT_ID',
+  'Production: https://saanseoi-project-EXAMPLE-YOUR_TEAM.vercel.app',
+  'Building…',
+  'Running "bun run build"',
+  '✓ built',
+  'Completing…',
+  'Aliased: https://saanseoi-project.vercel.app',
+].join('\n')
+const netlifyDeploymentOutput = [
+  'Deploying to Netlify',
+  '',
+  'Deploy path: /home/YOUR_NAME/saanseoi-project/dist',
+  '✔ Finished uploading blobs to deploy store',
+  '✔ Finished hashing',
+  '✔ Finished uploading assets',
+  '✔ Deploy is live!',
+  '',
+  '🚀 Deploy complete',
+  '',
+  'Production URL: https://saanseoi-project.netlify.app',
+  'Unique deploy URL: https://DEPLOY_ID--saanseoi-project.netlify.app',
+].join('\n')
+const deploymentOutput = $derived(
+  hosting === 'github-pages'
+    ? githubDeploymentOutput
+    : hosting === 'vercel'
+      ? vercelDeploymentOutput
+      : netlifyDeploymentOutput,
+)
 const visitUrl = $derived(
   hosting === 'github-pages'
     ? 'https://your-github-user-name.github.io/saanseoi-project/'
@@ -419,6 +541,11 @@ const resetRequirement = (requirement: number) => {
         </Button>
         {' '}{m.guide_publish_account_description()}
       </p>
+      {#if hosting === 'vercel' || hosting === 'netlify'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_account_github_oauth({ host })}
+        </p>
+      {/if}
       <GuidePublishRequirement
         id="publish-account-readiness"
         titleId="publish-account-readiness-title"
@@ -629,10 +756,8 @@ const resetRequirement = (requirement: number) => {
         commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
         code={authenticationCode}
         language={terminalLanguage}
-        output={hosting === 'cloudflare' ? cloudflareAuthenticationOutput : undefined}
-        outputLabel={hosting === 'cloudflare'
-          ? m.guide_publish_command_output({ action: m.guide_publish_authentication_command() })
-          : undefined}
+        output={authenticationOutput}
+        outputLabel={m.guide_publish_command_output({ action: m.guide_publish_authentication_command() })}
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
       />
@@ -661,19 +786,27 @@ const resetRequirement = (requirement: number) => {
           />
         </div>
       {:else if authenticationScreenshot}
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html hosting === 'github-pages'
+            ? m.guide_publish_github_authentication_browser()
+            : hosting === 'vercel'
+              ? m.guide_publish_vercel_authentication_browser()
+              : m.guide_publish_netlify_authentication_browser()}
+        </p>
         <GuideScreenshot
           src={authenticationScreenshot}
           srcDark={authenticationScreenshotDark}
           alt={m.guide_publish_authentication_screenshot_alt({ host })}
         />
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_authentication_return_to_terminal({ host })}
+        </p>
       {/if}
     </GuidePublishRequirement>
   </section>
 
   <div
-    class={hosting === 'cloudflare'
-      ? 'grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]'
-      : ''}
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
   >
     <section aria-labelledby="publish-configuration-title">
       <p
@@ -692,7 +825,9 @@ const resetRequirement = (requirement: number) => {
           ? m.guide_publish_cloudflare_configuration_description()
           : hosting === 'github-pages'
             ? m.guide_publish_github_configuration_description()
-            : m.guide_publish_configuration_description({ platform: host })}
+            : hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_description()
+              : m.guide_publish_netlify_configuration_description()}
       </p>
       <GuidePublishRequirement
         id="publish-configuration-readiness"
@@ -743,26 +878,36 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
         {:else}
-          <GuideCodeBlock
-            label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {hosting === 'github-pages'
+              ? m.guide_publish_github_configuration_command_description()
+              : hosting === 'vercel'
+                ? m.guide_publish_vercel_configuration_command_description()
+                : m.guide_publish_netlify_configuration_command_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
             code={configurationCode}
             language={terminalLanguage}
+            output={configurationOutput}
+            outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {hosting === 'github-pages'
+              ? m.guide_publish_github_configuration_complete()
+              : hosting === 'vercel'
+                ? m.guide_publish_vercel_configuration_complete()
+                : m.guide_publish_netlify_configuration_complete()}
+          </p>
         {/if}
       </GuidePublishRequirement>
     </section>
 
-    {#if hosting === 'cloudflare'}
-      <aside class="mt-12">
-        <GuideInstructionCallout
-          description={m.guide_publish_workers_static_assets_description()}
-          label={m.guide_publish_workers_static_assets_label()}
-          title={m.guide_publish_workers_static_assets_title()}
-        />
-      </aside>
-    {/if}
+    <aside class="mt-12">
+      <GuidePublishHostingCallout hostingPlatform={hosting} />
+    </aside>
   </div>
 
   <div
@@ -863,13 +1008,70 @@ const resetRequirement = (requirement: number) => {
             />
           </div>
         {:else}
-          <GuideCodeBlock
-            label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
-            code={deploymentCode}
-            language={terminalLanguage}
-            copyLabel={m.common_copy()}
-            copiedLabel={m.common_copied()}
-          />
+          {#if hosting === 'github-pages'}
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_deploy_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+              code={deploymentCode}
+              language={terminalLanguage}
+              output={deploymentOutput}
+              outputLabel={m.guide_publish_command_output({ action: m.guide_publish_deployment_command() })}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_deploy_wait()}
+            </p>
+          {:else}
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_platform_build_description({ host })}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+              code="bun run build"
+              language={terminalLanguage}
+              output={cloudflareBuildOutput}
+              outputLabel={m.guide_publish_cloudflare_build_output()}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_build_warning()}
+            </p>
+            <div class="mt-6">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                {@html hosting === 'vercel'
+                  ? m.guide_publish_vercel_deploy_description()
+                  : m.guide_publish_netlify_deploy_description()}
+              </p>
+              <GuidePublishTerminalCommand
+                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+                code={deploymentCode}
+                language={terminalLanguage}
+                output={deploymentOutput}
+                outputLabel={m.guide_publish_command_output({ action: m.guide_publish_deployment_command() })}
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+            </div>
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html hosting === 'vercel'
+                ? m.guide_publish_vercel_deploy_complete()
+                : m.guide_publish_netlify_deploy_complete()}
+            </p>
+            {#if hosting === 'netlify'}
+              <div class="mt-5 border border-secondary/45 bg-secondary/10 p-5">
+                <p class="font-body text-body-lg leading-8 text-primary">
+                  {m.guide_publish_netlify_visibility_title()}
+                </p>
+                <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+                  {@html m.guide_publish_netlify_visibility_description()}
+                </p>
+              </div>
+            {/if}
+          {/if}
         {/if}
       </GuidePublishRequirement>
     </section>
@@ -906,7 +1108,9 @@ const resetRequirement = (requirement: number) => {
         ? m.guide_publish_visit_github({ url: visitUrl })
         : hosting === 'cloudflare'
           ? m.guide_publish_visit_cloudflare()
-          : m.guide_publish_visit_output()}
+          : hosting === 'vercel'
+            ? m.guide_publish_visit_vercel()
+            : m.guide_publish_visit_netlify()}
     </p>
     <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}

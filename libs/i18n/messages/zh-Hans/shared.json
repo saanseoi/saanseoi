@@ -1339,7 +1339,7 @@
   "guide_editor_card_explainer_dimmed_code": "淡化的代码已在先前加入。它仍会被复制，让你可以替换整个文件。",
   "guide_editor_card_explainer_comment": "注释会说明紧接在它们下方的代码，且不会影响你的应用。",
   "guide_render_description": "地图渲染库是在浏览器中渲染地图的软件。我们会将它安装到上面创建的项目中，再通过我们的服务器运行它。",
-  "guide_renderer_label": "我想用",
+  "guide_renderer_label": "选择地图库",
   "guide_renderer_maplibre": "MapLibre",
   "guide_renderer_recommended": "受到推崇的",
   "guide_renderer_mapbox": "Mapbox",

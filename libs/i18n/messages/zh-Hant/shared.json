@@ -1338,7 +1338,7 @@
   "guide_setup_notebook_cell": "運行第一個地圖單元格",
   "guide_setup_embed_description": "{provider} 可能會提供地圖插件，但它們可能會限制您的地圖的功能。本指南使用映射庫的全部靈活性：將範例位址替換為部署中的公共 URL，然後在此發布步驟結束時將此 iframe 貼上到 {provider} 中。",
   "guide_setup_notebook_environment": "安裝筆記本環境",
-  "guide_renderer_label": "我想用",
+  "guide_renderer_label": "選擇地圖程式庫",
   "guide_renderer_maplibre": "MapLibre",
   "guide_renderer_recommended": "受到推崇的",
   "guide_renderer_mapbox": "Mapbox",
