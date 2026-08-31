@@ -44,6 +44,10 @@ const RegistryDetailResponseSchema = z
   })
   .openapi('RegistryDetailResponse')
 
+function parseJsonResponse<TSchema extends z.ZodType>(schema: TSchema, value: unknown) {
+  return schema.parse(JSON.parse(JSON.stringify(value)))
+}
+
 type RegistryResource = {
   publicName: string
   responseLabelKey: Parameters<typeof openApiText>[0]
@@ -190,7 +194,7 @@ export const registryRoutes = [
         const { limit } = c.req.valid('query')
         const data = await resource.list(c.var.metaDb, limit)
 
-        return c.json({ data }, 200)
+        return c.json(parseJsonResponse(RegistryListResponseSchema, { data }), 200)
       },
     }),
   ),
@@ -213,7 +217,7 @@ export const registryRoutes = [
           )
         }
 
-        return c.json({ data }, 200)
+        return c.json(parseJsonResponse(RegistryDetailResponseSchema, { data }), 200)
       },
     }),
   ),

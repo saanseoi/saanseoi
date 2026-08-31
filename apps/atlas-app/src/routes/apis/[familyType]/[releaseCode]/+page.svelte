@@ -1,5 +1,5 @@
 <script lang="ts">
-import { goto } from '$app/navigation'
+import { afterNavigate, goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { apiProfileNames, type ApiProfileName } from '@repo/core/apiLocales'
@@ -532,8 +532,10 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
-$effect(() => {
-  const tab = getApiReleaseTabFromUrl(page.url)
+afterNavigate(({ to }) => {
+  if (!to) return
+
+  const tab = getApiReleaseTabFromUrl(to.url)
   activeTab = tabs.some(({ id }) => id === tab) ? tab : 'release'
 })
 

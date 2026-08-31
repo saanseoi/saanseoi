@@ -361,7 +361,7 @@ const visitUrl = $derived(
 )
 const llmHelp = $derived(
   llmMode === 'manual'
-    ? m.guide_publish_assistance_manual()
+    ? undefined
     : aiAccess === 'agentic'
       ? m.guide_publish_assistance_agentic()
       : m.guide_publish_assistance_chat(),
@@ -408,7 +408,13 @@ const resetRequirement = (requirement: number) => {
       </h3>
       <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
         {m.guide_publish_account_create_before()}{' '}
-        <Button href={accountUrl} rel="noreferrer" size="compact" variant="secondary">
+        <Button
+          class="mr-3"
+          href={accountUrl}
+          rel="noreferrer"
+          size="compact"
+          variant="secondary"
+        >
           {m.guide_publish_account_create_action()}
         </Button>
         {' '}{m.guide_publish_account_description()}
@@ -893,7 +899,9 @@ const resetRequirement = (requirement: number) => {
     >
       {m.guide_publish_visit_title()}
     </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+    <p
+      class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+    >
       {@html visitUrl
         ? m.guide_publish_visit_github({ url: visitUrl })
         : hosting === 'cloudflare'
@@ -901,13 +909,12 @@ const resetRequirement = (requirement: number) => {
           : m.guide_publish_visit_output()}
     </p>
     <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_update({ host })}
+      {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}
     </p>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_share()}
-    </p>
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html llmHelp}
-    </p>
+    {#if llmHelp}
+      <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+        {@html llmHelp}
+      </p>
+    {/if}
   </section>
 </div>
