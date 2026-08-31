@@ -535,6 +535,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            deferApiReleaseSet: options.deferApiReleaseSet,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )
@@ -696,6 +697,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            cacheArtefacts,
             deferApiReleaseSet: options.deferApiReleaseSet,
             deferPublish: shouldDeriveHkgovSimplifiedGeometry,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -728,6 +730,7 @@ ${mutedBar}  `)
             uploadResult,
             preparedUploadFile,
             {
+              cacheArtefacts,
               deferApiReleaseSet: options.deferApiReleaseSet,
               inputFilePath: preparedUploadFile.filePath,
               normalisedInput: processingResult.normalisedRows,
