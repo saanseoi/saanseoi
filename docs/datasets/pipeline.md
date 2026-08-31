@@ -68,9 +68,9 @@ command.
 
 For a clean production baseline, use `./bin/saanseoi init:production`. This
 destructively resets every production D1 database, reapplies its migrations and metadata
-registry, then runs the same Geographic Divisions, LandsD Divisions and official
-Statistics initialisers as `init:local`. Planning Unit, New Town and Addresses remain
-dedicated initialisers.
+registry, re-exports the production D1 cache, then runs the same Geographic Divisions,
+LandsD Divisions and official Statistics initialisers as `init:local`. Planning Unit,
+New Town and Addresses remain dedicated initialisers.
 
 To reset local databases before a focused run, then use the command for the domain under
 review:
