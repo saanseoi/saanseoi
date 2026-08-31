@@ -1817,6 +1817,7 @@ const styleChoices = $derived.by(() =>
       {outline}
       {projectOutline}
       projectOutlineAnchorId="saanseoi-project"
+      projectOutlineEndAnchorId="publish"
       decisions={guideDecisions}
       decisionsLabel={m.guide_decisions_title()}
       tocLabel={m.guide_toc()}

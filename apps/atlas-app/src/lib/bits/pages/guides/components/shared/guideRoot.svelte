@@ -19,6 +19,7 @@ type Props = {
   outline: GuideOutlineItem[]
   projectOutline?: GuideOutlineItem[]
   projectOutlineAnchorId?: string
+  projectOutlineEndAnchorId?: string
   reminderId?: string
   tocLabel: string
 }
@@ -32,6 +33,7 @@ let {
   outline,
   projectOutline = [],
   projectOutlineAnchorId,
+  projectOutlineEndAnchorId,
   reminderId,
   tocLabel,
 }: Props = $props()
@@ -116,11 +118,16 @@ function updateProjectOutline() {
 
   if (projectOutlineAnchorId && projectOutline.length > 0) {
     const project = document.getElementById(projectOutlineAnchorId)
+    const projectEnd = projectOutlineEndAnchorId
+      ? document.getElementById(projectOutlineEndAnchorId)
+      : undefined
     const focusLine = window.innerHeight / 2
     projectOutlineActive = Boolean(
       project &&
         project.getBoundingClientRect().top <= focusLine &&
-        project.getBoundingClientRect().bottom > focusLine,
+        (projectEnd
+          ? projectEnd.getBoundingClientRect().top > focusLine
+          : project.getBoundingClientRect().bottom > focusLine),
     )
   } else {
     projectOutlineActive = false
