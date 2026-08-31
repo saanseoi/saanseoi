@@ -385,12 +385,57 @@ const resetRequirement = (requirement: number) => {
 
 <div class="mt-8 space-y-10">
   <div
-    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(16rem,26rem)]"
+    class="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
   >
-    <p class="font-body text-body-lg leading-8 text-foreground-alt">
+    <p class="order-1 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_intro({ host })}
     </p>
-    <aside>
+
+    <section
+      class="order-3 mt-4 md:col-start-1 md:row-start-2 md:order-none"
+      aria-labelledby="publish-account-title"
+    >
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: 1, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-account-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_account_title({ host })}
+      </h3>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {m.guide_publish_account_create_before()}{' '}
+        <Button href={accountUrl} rel="noreferrer" size="compact" variant="secondary">
+          {m.guide_publish_account_create_action()}
+        </Button>
+        {' '}{m.guide_publish_account_description()}
+      </p>
+      <GuidePublishRequirement
+        id="publish-account-readiness"
+        titleId="publish-account-readiness-title"
+        complete={completedRequirements.includes(1)}
+        completeAction={m.guide_publish_account_complete_action()}
+        eyebrow={m.guide_publish_account_ready()}
+        description={m.guide_publish_account_ready_description({ host })}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        onComplete={() => completeRequirement(1)}
+        onReset={() => resetRequirement(1)}
+      >
+        <GuideScreenshot
+          src={accountScreenshot}
+          srcDark={accountScreenshotDark}
+          alt={m.guide_publish_account_screenshot_alt({ host })}
+        />
+      </GuidePublishRequirement>
+    </section>
+
+    <aside
+      class="order-2 md:absolute md:top-0 md:right-0 md:order-none md:w-48 lg:w-64"
+    >
       <GuideInstructionCallout
         description={m.guide_publish_static_files_description()}
         label={m.guide_publish_static_files_label()}
@@ -398,45 +443,6 @@ const resetRequirement = (requirement: number) => {
       />
     </aside>
   </div>
-
-  <section aria-labelledby="publish-account-title">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_publish_requirement({ current: 1, total: requirementTotal })}
-    </p>
-    <h3
-      id="publish-account-title"
-      class="mt-1 font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_account_title({ host })}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {m.guide_publish_account_create_before()}{' '}
-      <Button href={accountUrl} rel="noreferrer" size="compact" variant="secondary">
-        {m.guide_publish_account_create_action()}
-      </Button>
-      {' '}{m.guide_publish_account_description()}
-    </p>
-    <GuidePublishRequirement
-      id="publish-account-readiness"
-      titleId="publish-account-readiness-title"
-      complete={completedRequirements.includes(1)}
-      completeAction={m.guide_publish_account_complete_action()}
-      eyebrow={m.guide_publish_account_ready()}
-      description={m.guide_publish_account_ready_description({ host })}
-      resetDescription={m.guide_publish_reset_description()}
-      resetLabel={m.guide_readiness_reset()}
-      onComplete={() => completeRequirement(1)}
-      onReset={() => resetRequirement(1)}
-    >
-      <GuideScreenshot
-        src={accountScreenshot}
-        srcDark={accountScreenshotDark}
-        alt={m.guide_publish_account_screenshot_alt({ host })}
-      />
-    </GuidePublishRequirement>
-  </section>
 
   {#if hasGitDependencies}
     <section aria-labelledby="publish-git-dependencies-title">
