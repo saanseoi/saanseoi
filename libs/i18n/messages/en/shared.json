@@ -1690,6 +1690,8 @@
   "guide_data_urban_density_census_areas_description": "You may have noticed that some water is highlighted too. These are marine parks, which are surprisingly part of the land-use dataset; as people cannot live there either, we can safely resume the analysis :). The earlier <code>Divisions</code> response includes the <code>2021</code> C&amp;SD land-clipped district geometry, so we'll reuse it here. Let's first inspect which district geometry make up the Areas.",
   "guide_data_urban_density_install_code": "Install calculation libraries",
   "guide_data_urban_density_install_output": "Output (versions may differ)",
+  "guide_data_urban_density_geometry_worker_code": "src/land-analysis.worker.ts — geometry worker",
+  "guide_data_urban_density_geometry_worker_description": "Put the expensive polygon repair, union and intersection work in a Web Worker. It runs wholly in your browser, but putting it in a worker prevents blocking map interaction or freezing the page.",
   "guide_data_urban_density_install_description": "To calculate each district’s liveable land, we need two inputs:",
   "guide_data_urban_density_install_non_liveable_land": "A complete z14 set of non-liveable land tiles",
   "guide_data_urban_density_install_land_clipped_geometry": "Each district’s land-clipped geometry",

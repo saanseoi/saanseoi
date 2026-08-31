@@ -96,6 +96,7 @@ import {
   urbanDensityMetricsCode,
   urbanDensityMetricsDisplayCode,
   createUrbanDensityMetricsCss,
+  urbanDensityGeometryWorkerCode,
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaCss,
   urbanDensityLiveableAreaDisplayCode,
@@ -2859,6 +2860,7 @@ const styleChoices = $derived.by(() =>
             mapDisplayCode={urbanDensityMapDisplayCode}
             calculationCode={urbanDensityCalculationCode}
             calculationDisplayCode={urbanDensityCalculationDisplayCode}
+            geometryWorkerCode={urbanDensityGeometryWorkerCode}
             metricsCode={urbanDensityMetricsCode}
             metricsDisplayCode={urbanDensityMetricsDisplayCode}
             metricsCss={createUrbanDensityMetricsCss(selectedStyle.appearance)}
