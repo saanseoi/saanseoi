@@ -119,12 +119,20 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
   const releaseId = 'release-hkgov-censtatd-district-statistic-2024'
   sqlite
     .query(
+      `INSERT INTO sourceReleases
+       (id, datasetId, code, sourceVersion, cohortKey, status)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(releaseId, dataset.id, `sr-${releaseId}`, '2024', '2024', 'processing')
+  sqlite
+    .query(
       `INSERT INTO releases (
-        id, datasetId, resourceType, code, sourceVersion, cohortKey,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
+      releaseId,
       releaseId,
       dataset.id,
       'divisionStatistic',
@@ -223,13 +231,19 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'primary', 0, 'exact_ref', ${index}
       );
       INSERT INTO releases (
-        id, datasetId, resourceType, code, sourceVersion, cohortKey,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
-        '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2021',
+        '${releaseId}', '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2021',
         '2021', '2021', 'hk/test/2021/${index}.parquet', '${index}.parquet',
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
+      );
+      INSERT INTO sourceReleases
+        (id, datasetId, code, sourceVersion, cohortKey, status)
+      VALUES (
+        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2021', '2021',
+        'processing'
       );
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
@@ -331,11 +345,17 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 1 })
 
   sqlite.exec(`
+    INSERT INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    VALUES (
+      'legacy-release-2022', 'dataset-0', 'sr-legacy-release-2022',
+      '2022', '2022', 'processing'
+    );
     INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
-      'legacy-release-2022', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2022',
+      'legacy-release-2022', 'legacy-release-2022', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2022',
       '2022', '2022', 'hk/test/2022/legacy.parquet', 'legacy.parquet',
       'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
       '2026-08-25T00:00:00.000Z'
@@ -357,11 +377,17 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     'primary',
   )
   sqlite.exec(`
+    INSERT INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    VALUES (
+      'staged-release-2023', 'dataset-0', 'sr-staged-release-2023',
+      '2023', '2023', 'staged'
+    );
     INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
-      'staged-release-2023', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2023',
+      'staged-release-2023', 'staged-release-2023', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2023',
       '2023', '2023', 'hk/test/2023/staged.parquet', 'staged.parquet',
       'staged', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
       '2026-08-25T00:00:00.000Z'
@@ -456,13 +482,20 @@ test('retains a dataset source variant when reading a release for publication', 
     );
 
     INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     )
     SELECT
-      '${releaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
+      '${releaseId}', '${releaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
       'hk/hkgov-censtatd/2021/division-area.parquet', 'division-area.parquet', 'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
+    FROM datasets
+    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
+
+    INSERT INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    SELECT
+      '${releaseId}', id, 'sr-${releaseId}', '2021', '2021', 'staged'
     FROM datasets
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
   `)
@@ -575,11 +608,12 @@ function seedCompleteDivisionSourceSignature(
       ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
 
     INSERT OR IGNORE INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
       cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
       updatedAt
     ) VALUES
     (
+      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
@@ -590,6 +624,7 @@ function seedCompleteDivisionSourceSignature(
     ),
     (
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+      'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'hkgov-censtatd-hk-district-annual', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       '2024', '1.0', '2024',
@@ -597,6 +632,22 @@ function seedCompleteDivisionSourceSignature(
       'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
+
+    INSERT OR IGNORE INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    VALUES
+      (
+        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        'hkgov-censtatd-hk-permanent-living-quarters',
+        'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        '2023-H2', '2023-H2', 'published'
+      ),
+      (
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        'hkgov-censtatd-hk-district-annual',
+        'sr-hkgov-censtatd-division-area-district-annual-2024',
+        '2024', '2024', 'published'
+      );
 
     INSERT OR IGNORE INTO snapshotSources (
       snapshotId, datasetId, sourceReleaseId, role
@@ -1655,10 +1706,17 @@ describe('control service', () => {
       releaseId: 'release-dr-hk-hkgov-had-division-area-district-2022',
     }
     sqlite.exec(`
+      INSERT INTO sourceReleases
+        (id, datasetId, code, sourceVersion, cohortKey, status)
+      VALUES (
+        '${hadArea.releaseId}', 'hkgov-had-hk-district',
+        'sr-${hadArea.releaseCode}', '2022', '2022', 'staged'
+      );
       INSERT INTO releases (
-        id, datasetId, resourceType, code, sourceVersion, cohortKey, rawObjectKey,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, rawObjectKey,
         originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
+        '${hadArea.releaseId}',
         '${hadArea.releaseId}',
         'hkgov-had-hk-district',
         'divisionArea',
