@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   GuideCodeBlock,
-  GuideCodeInstructionStep,
+  GuideInstructionCallout,
   GuideScreenshot,
 } from '#lib/bits/pages/guides/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -359,9 +359,6 @@ const visitUrl = $derived(
     ? 'https://your-github-user-name.github.io/saanseoi-project/'
     : undefined,
 )
-const staticFilesCode = ['index.html', 'styles.css', 'map.js', 'map-data.json'].join(
-  '\n',
-)
 const llmHelp = $derived(
   llmMode === 'manual'
     ? m.guide_publish_assistance_manual()
@@ -386,23 +383,21 @@ const resetRequirement = (requirement: number) => {
 }
 </script>
 
-<div class="mt-8 max-w-3xl space-y-10">
-  <p class="font-body text-body-lg leading-8 text-foreground-alt">
-    {@html m.guide_publish_intro({ host })}
-  </p>
-  <GuideCodeInstructionStep
-    code={staticFilesCode}
-    codeLabel={m.guide_publish_static_files_code_label()}
-    copyable={false}
-    copyLabel={m.common_copy()}
-    copiedLabel={m.common_copied()}
-    instruction={{
-      description: m.guide_publish_static_files_description(),
-      label: m.guide_publish_static_files_label(),
-      title: m.guide_publish_static_files_title(),
-    }}
-    language="text"
-  />
+<div class="mt-8 space-y-10">
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(16rem,26rem)]"
+  >
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
+      {@html m.guide_publish_intro({ host })}
+    </p>
+    <aside>
+      <GuideInstructionCallout
+        description={m.guide_publish_static_files_description()}
+        label={m.guide_publish_static_files_label()}
+        title={m.guide_publish_static_files_title()}
+      />
+    </aside>
+  </div>
 
   <section aria-labelledby="publish-account-title">
     <p
