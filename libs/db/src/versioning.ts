@@ -155,14 +155,12 @@ export function buildDataReleaseSetCode(
   apiFamily: ApiFamily,
   cohortKey: string,
   revision = 0,
-  options: { explicitInitialRevision?: boolean } = {},
 ) {
   if (!Number.isInteger(revision) || revision < 0) {
     throw new Error(`Invalid release-set revision="${revision}". Expected 0 or more.`)
   }
 
-  const revisionSegment =
-    revision === 0 && !options.explicitInitialRevision ? '' : `-r${revision}`
+  const revisionSegment = revision === 0 ? '' : `-r${revision}`
 
   return `data-${regionCode}-${apiFamily}-${normaliseCohortCodeSegment(cohortKey)}${revisionSegment}`
 }

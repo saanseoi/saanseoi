@@ -1,4 +1,6 @@
 <script lang="ts">
+import { onMount } from 'svelte'
+
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { Dialog } from 'bits-ui'
 
@@ -8,12 +10,30 @@ type Props = {
   alt: string
   caption?: string
   src: string
+  srcDark?: string
 }
 
-let { alt, caption, src }: Props = $props()
+let { alt, caption, src, srcDark }: Props = $props()
 let enlarged = $state(false)
 let image: HTMLImageElement
 let displayWidth = $state(0)
+let darkModeEnabled = $state(false)
+let displayedSrc = $derived(darkModeEnabled && srcDark ? srcDark : src)
+
+onMount(() => {
+  const updateTheme = () => {
+    darkModeEnabled = document.documentElement.classList.contains('dark')
+  }
+  const observer = new MutationObserver(updateTheme)
+
+  updateTheme()
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+
+  return () => observer.disconnect()
+})
 
 const enlarge = () => {
   displayWidth = image.getBoundingClientRect().width
@@ -33,7 +53,7 @@ const enlarge = () => {
     <img
       bind:this={image}
       class="mx-auto max-h-144 max-w-full object-contain"
-      {src}
+      src={displayedSrc}
       {alt}
       loading="lazy"
     >
@@ -60,7 +80,11 @@ const enlarge = () => {
       >
         <Icon icon="ion:close-outline" class="size-5" aria-hidden="true" />
       </button>
-      <img class="max-h-[calc(100svh-3.5rem)] w-full object-contain" {src} {alt}>
+      <img
+        class="max-h-[calc(100svh-3.5rem)] w-full object-contain"
+        src={displayedSrc}
+        {alt}
+      >
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

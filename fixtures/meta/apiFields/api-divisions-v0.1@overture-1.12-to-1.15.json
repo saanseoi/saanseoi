@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5bc2ad90b3331f83caa6bfb986a3680cd4cd854d1370a450da4b48400f743189",
+  "versionHash": "sha256:bf4947b4a34949469ef2106fe3fb6412becf379915ec091e3f1e62c9d541609b",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -12,8 +12,9 @@
         "ds-hk-overture-division-area": "1.12.0",
         "ds-hk-overture-division-boundary": "1.12.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
     {
@@ -23,8 +24,9 @@
         "ds-hk-overture-division-area": "1.13.0",
         "ds-hk-overture-division-boundary": "1.13.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
     {
@@ -34,8 +36,9 @@
         "ds-hk-overture-division-area": "1.14.0",
         "ds-hk-overture-division-boundary": "1.14.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
     {
@@ -45,8 +48,9 @@
         "ds-hk-overture-division-area": "1.15.0",
         "ds-hk-overture-division-boundary": "1.15.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
       }
     },
     {
@@ -56,8 +60,64 @@
         "ds-hk-overture-division-area": "1.15.0",
         "ds-hk-overture-division-boundary": "1.15.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
-        "ds-hk-hkgov-censtatd-division-area-district": "1.0",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type": "1.0"
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-09-24.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.12.0",
+        "ds-hk-overture-division-area": "1.12.0",
+        "ds-hk-overture-division-boundary": "1.12.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-10-22.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.13.0",
+        "ds-hk-overture-division-area": "1.13.0",
+        "ds-hk-overture-division-boundary": "1.13.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-11-19.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.14.0",
+        "ds-hk-overture-division-area": "1.14.0",
+        "ds-hk-overture-division-boundary": "1.14.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-12-17.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.15.0",
+        "ds-hk-overture-division-area": "1.15.0",
+        "ds-hk-overture-division-boundary": "1.15.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-01-21.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.15.0",
+        "ds-hk-overture-division-area": "1.15.0",
+        "ds-hk-overture-division-boundary": "1.15.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
       }
     }
   ],
@@ -408,8 +468,8 @@
     },
     {
       "apiField": "divisionArea.attributes.variant",
-      "variant": "hkgov-censtatd:2016",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "variant": "hkgov-censtatd-landclipped",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -418,8 +478,8 @@
     },
     {
       "apiField": "divisionArea.attributes.variant",
-      "variant": "hkgov-censtatd:2016:simplified",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "variant": "hkgov-censtatd-landclipped:simplified",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -428,8 +488,8 @@
     },
     {
       "apiField": "divisionArea.attributes.variant",
-      "variant": "hkgov-censtatd:2021",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "variant": "hkgov-censtatd",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
@@ -438,8 +498,8 @@
     },
     {
       "apiField": "divisionArea.attributes.variant",
-      "variant": "hkgov-censtatd:2021:simplified",
-      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "variant": "hkgov-censtatd:simplified",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",

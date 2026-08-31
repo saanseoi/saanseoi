@@ -29,7 +29,20 @@ export async function linkManagedSourceAssetToRelease(
 
   if (asset.releaseId) {
     const linkedRelease = await getReleaseSourceLineage(repository, asset.releaseId)
-    if (linkedRelease !== targetRelease.sourceReleaseId) {
+    if (linkedRelease.sourceReleaseId !== targetRelease.sourceReleaseId) {
+      if (linkedRelease.status === 'failed') {
+        await repository
+          .update(metaAssets)
+          .set({ releaseId: input.releaseId })
+          .where(
+            and(
+              eq(metaAssets.assetKey, input.assetKey),
+              eq(metaAssets.releaseId, asset.releaseId),
+            ),
+          )
+          .run()
+        return { assetId: asset.assetId, status: 'linked' as const }
+      }
       throw new Error(
         `Source asset ${input.assetKey} is already linked to a different source release.`,
       )
@@ -56,7 +69,7 @@ export async function linkManagedSourceAssetToRelease(
     repository,
     linkedAsset.releaseId,
   )
-  if (linkedSourceReleaseId !== targetRelease.sourceReleaseId) {
+  if (linkedSourceReleaseId.sourceReleaseId !== targetRelease.sourceReleaseId) {
     throw new Error(
       `Source asset ${input.assetKey} is already linked to a different source release.`,
     )
@@ -73,12 +86,15 @@ export async function linkManagedSourceAssetToRelease(
 
 async function getReleaseSourceLineage(db: HarbourReadableDb, releaseId: string) {
   const release = await db
-    .select({ sourceReleaseId: metaReleases.sourceReleaseId })
+    .select({
+      sourceReleaseId: metaReleases.sourceReleaseId,
+      status: metaReleases.status,
+    })
     .from(metaReleases)
     .where(eq(metaReleases.id, releaseId))
     .get()
   if (!release?.sourceReleaseId) {
     throw new Error(`Release has no source-release lineage: ${releaseId}`)
   }
-  return release.sourceReleaseId
+  return release
 }

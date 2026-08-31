@@ -159,3 +159,30 @@ test('allows browser preflight for public-key headers', async () => {
   )
   assert.match(response.headers.get('access-control-allow-headers') ?? '', /x-api-key/i)
 })
+
+test('exposes an invalid public-key response to an allowed browser origin', async () => {
+  const response = await worker.fetch(
+    new Request(
+      'https://tiles.saanseoi.hk/hk-latest.json?access_token=pk.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      { headers: { origin: 'https://example.com' } },
+    ),
+    {
+      ...config,
+      AUTH_MODE: 'required',
+      ENVIRONMENT: 'production',
+      EXTERNAL_ORIGINS: '*',
+      PUBLIC_KEY_LEASES: { get: async () => null },
+      PUBLIC_KEY_LEASE_COORDINATOR: {
+        getByName: () => ({ fetch: async () => new Response(null, { status: 401 }) }),
+      },
+    } as unknown as CloudflareBindings,
+    { waitUntil: () => {} } as unknown as ExecutionContext,
+  )
+
+  assert.equal(response.status, 401)
+  assert.equal(
+    response.headers.get('access-control-allow-origin'),
+    'https://example.com',
+  )
+  assert.equal(await response.text(), 'A valid SaanSeoi public API key is required.')
+})

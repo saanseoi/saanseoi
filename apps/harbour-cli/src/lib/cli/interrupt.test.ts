@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { installInterruptHandler } from './interrupt.ts'
+import { installInterruptHandler, registerInterruptCleanup } from './interrupt.ts'
 
 test('exits once with the conventional interrupt status', () => {
   const listeners = new Map<string, () => void>()
@@ -54,6 +54,47 @@ test('exits once with the conventional interrupt status', () => {
 
   expect(processRef.exitCode).toBe(130)
   expect(exits).toEqual([130])
+})
+
+test('runs registered cleanup before exiting on an interrupt', () => {
+  const listeners = new Map<string, () => void>()
+  const cleanupSignals: string[] = []
+  const processRef: {
+    exit(code?: number): never
+    exitCode: number | string | null
+    off(signal: 'SIGINT' | 'SIGTERM', listener: () => void): unknown
+    on(signal: 'SIGINT' | 'SIGTERM', listener: () => void): unknown
+  } = {
+    exit() {
+      return undefined as never
+    },
+    exitCode: null,
+    off(signal) {
+      listeners.delete(signal)
+      return processRef
+    },
+    on(signal, listener) {
+      listeners.set(signal, listener)
+      return processRef
+    },
+  }
+  const inputRef = {
+    off() {
+      return inputRef
+    },
+    on() {
+      return inputRef
+    },
+  }
+  const disposeCleanup = registerInterruptCleanup(signal => {
+    cleanupSignals.push(signal)
+  })
+
+  installInterruptHandler(processRef, inputRef)
+  listeners.get('SIGTERM')?.()
+  disposeCleanup()
+
+  expect(cleanupSignals).toEqual(['SIGTERM'])
 })
 
 test('removes its interrupt listeners when disposed', () => {

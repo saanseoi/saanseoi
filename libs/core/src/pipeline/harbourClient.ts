@@ -26,6 +26,8 @@ export type HarbourClient = {
     releaseId: string,
     releaseCode?: string,
     options?: {
+      /** Publish source data and snapshots while keeping the API release set draft. */
+      deferApiReleaseSet?: boolean
       /** Publish source data and snapshots, but leave Statistics cohorts for a launch bootstrap. */
       deferStatsReleaseSet?: boolean
       skipSnapshotCleanup?: boolean

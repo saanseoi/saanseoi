@@ -1,0 +1,30 @@
+{
+  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+  "measures": [
+    {
+      "localisations": [
+        {
+          "description": "Number of occupied quarters.",
+          "isTranslationVerified": false,
+          "locale": "en",
+          "name": "Occupied quarters"
+        },
+        {
+          "description": "有人居住的屋宇單位數目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hant",
+          "name": "有人居住的屋宇單位數目"
+        },
+        {
+          "description": "有人居住的屋宇单位数目",
+          "isTranslationVerified": false,
+          "locale": "zh-Hans",
+          "name": "有人居住的屋宇单位数目"
+        }
+      ],
+      "measureCode": "occupiedQuarters"
+    }
+  ],
+  "schemaVersion": 1,
+  "versionHash": "sha256:ed4f90b780a3bada6bf5d4da827c4f549c058dba272b1cf4633603c53802a42b"
+}

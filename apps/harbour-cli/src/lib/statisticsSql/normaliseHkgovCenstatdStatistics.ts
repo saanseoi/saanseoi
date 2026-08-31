@@ -86,6 +86,10 @@ export type CanonicalStatsRows = {
 }
 
 export type HkgovCenstatdStatisticSourceRow = {
+  areaCompanionByReferencePeriod?: Record<
+    string,
+    { cohortKey: string; domainCode: string; variant: string }
+  >
   datasetCode: string
   divisionId?: string | null
   /** Reviewed public geography; source identifiers remain in the raw row/ref. */
@@ -125,11 +129,15 @@ export function normaliseHkgovCenstatdStatistics(
       referencePeriodCode: profile.referencePeriodCode,
       sourceFeatureRef: row.sourceFeatureRef,
     })
+    const geography = withAreaCompanion(
+      row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
+      row.areaCompanionByReferencePeriod,
+      referencePeriod.endYear,
+    )
     series.set(seriesId, {
       datasetCode: row.datasetCode,
       divisionId: row.divisionId ?? null,
-      geography:
-        row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
+      geography,
       id: seriesId,
       referencePeriodCode: profile.referencePeriodCode,
       referencePeriodEnd: referencePeriod.end,
@@ -296,6 +304,47 @@ export function normaliseHkgovCenstatdStatistics(
   }
 }
 
+function withAreaCompanion(
+  geography: CanonicalStatsGeography,
+  companions:
+    | Record<string, { cohortKey: string; domainCode: string; variant: string }>
+    | undefined,
+  referencePeriodEndYear: string,
+) {
+  const template = companions?.[referencePeriodEndYear] ?? companions?.['*']
+  if (!template) return geography
+  const areaCompanion = {
+    cohortKey: template.cohortKey.replaceAll(
+      '{referencePeriodEndYear}',
+      referencePeriodEndYear,
+    ),
+    variant: template.variant.replaceAll(
+      '{referencePeriodEndYear}',
+      referencePeriodEndYear,
+    ),
+    domainCode: template.domainCode.replaceAll(
+      '{referencePeriodEndYear}',
+      referencePeriodEndYear,
+    ),
+  }
+  if (!/^[a-z0-9][a-z0-9:-]*$/.test(areaCompanion.variant)) {
+    throw new Error(
+      `Invalid configured statistics area companion variant: ${areaCompanion.variant}.`,
+    )
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(areaCompanion.cohortKey)) {
+    throw new Error(
+      `Invalid configured statistics area companion cohort: ${areaCompanion.cohortKey}.`,
+    )
+  }
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(areaCompanion.domainCode)) {
+    throw new Error(
+      `Invalid configured statistics area companion domain: ${areaCompanion.domainCode}.`,
+    )
+  }
+  return { ...geography, areaCompanion }
+}
+
 type Dimension = {
   code: string
   nameEn?: string
@@ -344,7 +393,7 @@ function profileFor(
       add('new-town', 'newtown', 'newtown_eng', 'newtown_chi')
       reference('gml_id')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type':
+    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters':
       add('area', 'AREA_ENG', 'AREA_ENG', 'AREA_CHI')
       reference('PERIOD')
       return {

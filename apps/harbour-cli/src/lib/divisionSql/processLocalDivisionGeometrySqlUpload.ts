@@ -1,4 +1,8 @@
-import { datasetVariantForSource, type RegionCode } from '@repo/core'
+import {
+  datasetVariantForSource,
+  type GeometryStatus,
+  type RegionCode,
+} from '@repo/core'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -28,18 +32,24 @@ import {
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
 import { chunkArray } from '@repo/core/pipeline/utils'
+import { createHash } from '@repo/core/pipeline/utils'
 import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
+  type NormalisedDivisionArea,
 } from '@repo/core/pipeline/services/divisionGeometry'
 import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
 } from '@repo/core/pipeline/services/geometryStats'
-import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import {
+  calculateGeoJsonBbox,
+  type GeoJsonGeometry,
+  type GeoJsonPosition,
+} from '@repo/core/pipeline/geojson'
 import {
   compressJsonBrotli,
   decompressJsonBrotli,
@@ -47,7 +57,7 @@ import {
 } from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
@@ -91,6 +101,7 @@ import {
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
+import { simplifyPolygonCoverageCached } from '../geometry/simplifyPolygonCoverage.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -113,6 +124,7 @@ type GeometryUploadPlan = {
     | 'hkgov-pland-pu'
     | 'hkgov-pland-new-town'
   sourceVersion: string
+  geometryStatus?: GeometryStatus
   transform?: 'simplified'
   theme: 'divisions'
   type: 'divisionArea' | 'divisionBoundary'
@@ -127,7 +139,8 @@ type GeometryWriteProgress = (label: string, current?: number, total?: number) =
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
-const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd:2021'
+const CENSTATD_2021_DISTRICT_VARIANT = 'hkgov-censtatd-landclipped'
+const HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES = 10
 // D1 accepts statements no larger than 100 KB. Reserve a small margin for
 // platform-side import handling rather than producing statements at the limit.
 export const MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES = 96 * 1024
@@ -143,6 +156,8 @@ export async function processLocalDivisionGeometrySqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     deferPublish?: boolean
     inputFilePath?: string
     /**
@@ -197,7 +212,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       },
     )
   } catch (error) {
-    progress.fail()
+    progress.fail(error)
     throw error
   }
 
@@ -286,51 +301,11 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - processingStateStartedAt,
       ),
     )
-    const snapshotStartedAt = Date.now()
-    progress.beginPhase(
-      formatGeometryProgressLabel('Assemble draft', `${previewPlan.type} snapshot`),
-      {
-        current: 0,
-        max: null,
-      },
-    )
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const dataset = await waitForDatasetRecord(metaDb, { releaseId })
     if (!dataset) {
       throw new Error(`Release not found: ${releaseId}`)
     }
-    const snapshot = await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
-      cohortKey: previewPlan.cohortKey,
-      datasetCode,
-      datasetId: dataset.datasetId,
-      regionCode: previewPlan.regionCode,
-      sourceReleaseId: dataset.releaseId,
-      variant: geometryVariant(previewPlan),
-    })
-    await upsertSnapshotSource(
-      metaDb,
-      snapshot.id,
-      dataset.datasetId,
-      dataset.releaseId,
-      'primary',
-      {
-        anchorReleaseId: dataset.releaseId,
-        selectedByRule: 'snapshot-assembly-division-geometry-v1',
-        selectionMode: 'exact_ref',
-        sourceCohortKey: dataset.cohortKey,
-      },
-    )
-    await recordSnapshotAssemblyRun(metaDb, {
-      snapshotId: snapshot.id,
-      resourceType: previewPlan.type,
-      anchorReleaseId: dataset.releaseId,
-      anchorCohortKey: dataset.cohortKey,
-      selectionSummaryJson: {
-        releaseRole: 'primary',
-        sourceReleaseId: dataset.releaseId,
-        sourceVersion: dataset.sourceVersion,
-      },
-    })
     const [historyShard, sourceShard] = await Promise.all([
       resolveShardForTypeRegionYear(
         metaDb,
@@ -355,17 +330,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     await Promise.all([
       upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
       upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
-      upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id),
     ])
-
-    progress.complete(
-      formatGeometryCompletedLabel(
-        'Assemble draft',
-        `${previewPlan.type} snapshot`,
-        undefined,
-        Date.now() - snapshotStartedAt,
-      ),
-    )
     const normalisationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel(
@@ -380,7 +345,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const file = options.inputFilePath
       ? await asyncBufferFromFile(options.inputFilePath)
       : await createAsyncBufferFromR2(bucket, rawObjectKey)
-    const normalised: Array<NonNullable<NormalisedGeometry>> = []
+    let normalised: Array<NonNullable<NormalisedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -396,6 +361,7 @@ export async function processLocalDivisionGeometrySqlUpload(
               await metaDb
                 .select({
                   externalId: metaSchema.metaIdentifierBridges.externalId,
+                  externalCode: metaSchema.metaIdentifierBridges.externalCode,
                   canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
                 })
                 .from(metaSchema.metaIdentifierBridges)
@@ -404,7 +370,7 @@ export async function processLocalDivisionGeometrySqlUpload(
                     eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
                     eq(
                       metaSchema.metaIdentifierBridges.cohortKey,
-                      previewPlan.cohortKey,
+                      providerBridgeConfig.cohortKey ?? previewPlan.cohortKey,
                     ),
                     eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
                     eq(
@@ -414,7 +380,10 @@ export async function processLocalDivisionGeometrySqlUpload(
                   ),
                 )
                 .all()
-            ).map(row => [row.externalId, row.canonicalId]),
+            ).flatMap(row => [
+              [row.externalId, row.canonicalId] as const,
+              [row.externalCode, row.canonicalId] as const,
+            ]),
           )
         : null
     for await (const batch of readParquetObjectsInBatches(file, 8192)) {
@@ -482,6 +451,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       normalised.push(...syntheticRows)
     }
 
+    if (previewPlan.transform === 'simplified') {
+      if (previewPlan.type !== 'divisionArea') {
+        throw new Error('The simplified display transform is available only for areas.')
+      }
+      normalised = (await simplifyHkgovDivisionAreas(
+        normalised as NormalisedDivisionArea[],
+      )) as Array<NonNullable<NormalisedGeometry>>
+    }
+
     progress.complete(
       formatGeometryCompletedLabel(
         'Normalise source',
@@ -507,6 +485,114 @@ export async function processLocalDivisionGeometrySqlUpload(
           normalised,
         )
       : null
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Validate',
+        `${previewPlan.type} references`,
+        undefined,
+        Date.now() - validationStartedAt,
+      ),
+    )
+    const snapshotStartedAt = Date.now()
+    progress.beginPhase(
+      formatGeometryProgressLabel('Assemble draft', `${previewPlan.type} snapshot`),
+      {
+        current: 0,
+        max: null,
+      },
+    )
+    const identicalSnapshot = isCenstatdGeometryCompanionPlan(previewPlan)
+      ? await findIdenticalCenstatdGeometrySnapshot(
+          dbContext.currentDb,
+          metaDb,
+          previewPlan,
+          normalised,
+        )
+      : null
+    const reusesExistingGeometrySnapshot = identicalSnapshot !== null
+    const snapshot =
+      identicalSnapshot ??
+      (await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
+        cohortKey: previewPlan.cohortKey,
+        datasetCode,
+        datasetId: dataset.datasetId,
+        regionCode: previewPlan.regionCode,
+        sourceReleaseId: dataset.releaseId,
+        geometryStatus: previewPlan.geometryStatus,
+        variant: geometryVariant(previewPlan),
+        reuseDraftSnapshotForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
+        reuseSnapshotLineageForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
+      }))
+
+    if (reusesExistingGeometrySnapshot) {
+      await upsertSnapshotSource(
+        metaDb,
+        snapshot.id,
+        dataset.datasetId,
+        dataset.releaseId,
+        'enrichment',
+        {
+          anchorReleaseId: dataset.releaseId,
+          selectedByRule: 'verified-censtatd-geometry-materialisation-v1',
+          selectionMode: 'verified_identical_geometry',
+          sourceCohortKey: dataset.cohortKey,
+        },
+      )
+    } else {
+      if (isCenstatdGeometryCompanionPlan(previewPlan) && snapshot.parentSnapshotId) {
+        const inheritedSources = await metaDb
+          .select({
+            datasetId: metaSchema.metaSnapshotSources.datasetId,
+            role: metaSchema.metaSnapshotSources.role,
+            sourceReleaseId: metaSchema.metaSnapshotSources.sourceReleaseId,
+          })
+          .from(metaSchema.metaSnapshotSources)
+          .where(
+            eq(metaSchema.metaSnapshotSources.snapshotId, snapshot.parentSnapshotId),
+          )
+          .all()
+        for (const source of selectCenstatdInheritedSnapshotSources(inheritedSources)) {
+          await upsertSnapshotSource(
+            metaDb,
+            snapshot.id,
+            source.datasetId,
+            source.sourceReleaseId,
+            'enrichment',
+            {
+              selectedByRule: 'inherited-censtatd-companion-provenance',
+              selectionMode: 'carried_forward_companion',
+            },
+          )
+        }
+      }
+      await upsertSnapshotSource(
+        metaDb,
+        snapshot.id,
+        dataset.datasetId,
+        dataset.releaseId,
+        'primary',
+        {
+          anchorReleaseId: dataset.releaseId,
+          selectedByRule: 'snapshot-assembly-division-geometry-v1',
+          selectionMode: isCenstatdGeometryCompanionPlan(previewPlan)
+            ? 'contributed_geometry'
+            : 'exact_ref',
+          sourceCohortKey: dataset.cohortKey,
+        },
+      )
+      await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
+    }
+    await recordSnapshotAssemblyRun(metaDb, {
+      snapshotId: snapshot.id,
+      resourceType: previewPlan.type,
+      anchorReleaseId: dataset.releaseId,
+      anchorCohortKey: dataset.cohortKey,
+      selectionSummaryJson: {
+        releaseRole: reusesExistingGeometrySnapshot ? 'verified-identical' : 'primary',
+        sourceReleaseId: dataset.releaseId,
+        sourceVersion: dataset.sourceVersion,
+      },
+    })
     if (divisionLookup) {
       await recordSnapshotLookupDependency(metaDb, {
         anchorReleaseId: dataset.releaseId,
@@ -516,13 +602,12 @@ export async function processLocalDivisionGeometrySqlUpload(
         snapshotId: snapshot.id,
       })
     }
-
     progress.complete(
       formatGeometryCompletedLabel(
-        'Validate',
-        `${previewPlan.type} references`,
+        'Assemble draft',
+        `${previewPlan.type} snapshot`,
         undefined,
-        Date.now() - validationStartedAt,
+        Date.now() - snapshotStartedAt,
       ),
     )
     const writeStartedAt = Date.now()
@@ -545,6 +630,8 @@ export async function processLocalDivisionGeometrySqlUpload(
         snapshotId: snapshot.id,
         parentSnapshotId: snapshot.parentSnapshotId,
         cohortKey: previewPlan.cohortKey,
+        merge: isCenstatdGeometryCompanionPlan(previewPlan),
+        skipCanonicalMaterialisation: reusesExistingGeometrySnapshot,
         transform: previewPlan.transform,
       },
       (() => {
@@ -625,7 +712,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         previewPlan,
         releaseId,
         snapshot.id,
-        writeResult.currentRows,
+        reusesExistingGeometrySnapshot,
         (subject, operation) =>
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
       )
@@ -660,6 +747,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       'source release',
       () =>
         client.publishDataset(releaseId, releaseCode, {
+          deferApiReleaseSet: options.deferApiReleaseSet,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
     )
@@ -694,7 +782,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       publishResult,
     }
   } catch (error) {
-    progress.fail()
+    progress.fail(error)
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)
     if (!remotePublished) {
@@ -720,7 +808,7 @@ async function replayGeometryIntoRemote(
   plan: GeometryUploadPlan,
   releaseId: string,
   snapshotId: string,
-  currentRows: Array<Record<string, unknown>>,
+  skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
@@ -747,16 +835,27 @@ async function replayGeometryIntoRemote(
     plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
   const historyTable = currentTable
   const sourceTable = resolveGeometrySourceTable(plan)
-  const historyRows = readGeometryCacheRows(
-    context.state.dbCacheDir,
-    historyBindingName,
-    `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-  )
-  const changeRows = readGeometryCacheRows(
-    context.state.dbCacheDir,
-    historyBindingName,
-    `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-  )
+  const currentRows = skipCanonicalMaterialisation
+    ? []
+    : readGeometryCacheRows(
+        context.state.dbCacheDir,
+        currentBindingName,
+        `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+      )
+  const historyRows = skipCanonicalMaterialisation
+    ? []
+    : readGeometryCacheRows(
+        context.state.dbCacheDir,
+        historyBindingName,
+        `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+      )
+  const changeRows = skipCanonicalMaterialisation
+    ? []
+    : readGeometryCacheRows(
+        context.state.dbCacheDir,
+        historyBindingName,
+        `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+      )
   const sourceRows = sourceTable
     ? readGeometryCacheRows(
         context.state.dbCacheDir,
@@ -777,25 +876,37 @@ async function replayGeometryIntoRemote(
       name: 'meta' as const,
       sql: metaRows,
     },
-    {
-      bindingName: currentBindingName,
-      databaseId: context.state.bindings[currentBindingName]?.databaseId,
-      name: 'current' as const,
-      sql: `${geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId)}\n${geometryBuildUpsertSql(currentTable, currentRows)}`,
-    },
-    {
-      bindingName: historyBindingName,
-      databaseId: context.state.bindings[historyBindingName]?.databaseId,
-      name: 'history' as const,
-      sql: [
-        geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId),
-        geometrySqlLiteralDelete('snapshotVersionChanges', 'snapshotId', snapshotId),
-        geometryBuildUpsertSql(historyTable, historyRows),
-        geometryBuildUpsertSql('snapshotVersionChanges', changeRows),
-      ]
-        .filter(Boolean)
-        .join('\n'),
-    },
+    ...(!skipCanonicalMaterialisation
+      ? [
+          {
+            bindingName: currentBindingName,
+            databaseId: context.state.bindings[currentBindingName]?.databaseId,
+            name: 'current' as const,
+            sql: `${geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId)}\n${geometryBuildUpsertSql(currentTable, currentRows)}`,
+          },
+        ]
+      : []),
+    ...(!skipCanonicalMaterialisation
+      ? [
+          {
+            bindingName: historyBindingName,
+            databaseId: context.state.bindings[historyBindingName]?.databaseId,
+            name: 'history' as const,
+            sql: [
+              geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId),
+              geometrySqlLiteralDelete(
+                'snapshotVersionChanges',
+                'snapshotId',
+                snapshotId,
+              ),
+              geometryBuildUpsertSql(historyTable, historyRows),
+              geometryBuildUpsertSql('snapshotVersionChanges', changeRows),
+            ]
+              .filter(Boolean)
+              .join('\n'),
+          },
+        ]
+      : []),
     {
       bindingName: sourceBindingName,
       databaseId: context.state.bindings[sourceBindingName]?.databaseId,
@@ -1193,36 +1304,63 @@ function normaliseHkgovCenstatdInputRow(
   }
   const districtClass =
     typeof row.district_class === 'string' ? row.district_class.trim() : ''
-  const divisionId = districtClass ? bridge?.get(districtClass) : undefined
-  if (!districtClass || !divisionId) {
+  const districtCode =
+    typeof row.district_code === 'number' || typeof row.district_code === 'string'
+      ? String(row.district_code).trim()
+      : ''
+  const bridgeKey = districtClass || districtCode
+  const divisionId = bridgeKey ? bridge?.get(bridgeKey) : undefined
+  if (!bridgeKey || !divisionId) {
     throw new Error(
-      `C&SD district area ${districtClass || '<unknown>'} has no reviewed administrative identifier bridge.`,
+      `C&SD district area ${bridgeKey || '<unknown>'} has no reviewed administrative identifier bridge.`,
     )
   }
   const sources = normaliseJsonArray(row.sources)
   return {
     ...row,
-    id:
-      typeof row.id === 'string' && row.id.trim()
-        ? row.id
-        : `CENSTATD:${districtClass}`,
+    id: typeof row.id === 'string' && row.id.trim() ? row.id : `CENSTATD:${bridgeKey}`,
     division_id: divisionId,
-    sources: sources?.length ? sources : [{ dataset: 'hkgov-censtatd', districtClass }],
+    sources: sources?.length
+      ? sources
+      : [
+          {
+            dataset: 'hkgov-censtatd',
+            ...(districtClass ? { districtClass } : { districtCode }),
+          },
+        ],
   }
 }
 
 function geometryVariant(plan: GeometryUploadPlan) {
+  const withTransform = (variant: string) =>
+    plan.transform ? `${variant}:${plan.transform}` : variant
   if (
     plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
   ) {
-    return 'hkgov-censtatd-area'
+    return withTransform('hkgov-censtatd-landclipped')
+  }
+  if (
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+  ) {
+    return withTransform('hkgov-censtatd')
+  }
+  if (
+    plan.datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+  ) {
+    return withTransform('hkgov-censtatd')
   }
   if (
     plan.datasetCode ===
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
   ) {
-    return 'hkgov-censtatd-hma'
+    return withTransform('hkgov-censtatd-hma')
   }
   return datasetVariantForSource('divisionArea', plan.source, {
     cohortKey: plan.cohortKey,
@@ -1231,11 +1369,145 @@ function geometryVariant(plan: GeometryUploadPlan) {
   })
 }
 
-function isCenstatdAreaTypePlan(plan: GeometryUploadPlan) {
+/**
+ * Area simplification is a display derivative. Its division references remain
+ * anchored to the exact-source division snapshot, which has no transform
+ * suffix.
+ */
+export function divisionReferenceVariant(plan: GeometryUploadPlan) {
+  return geometryVariant({ ...plan, transform: undefined })
+}
+
+/**
+ * C&SD companion provenance accumulates its contributing source releases, but
+ * a lookup only records a division-reference dependency for one materialisation.
+ * Carrying that lookup forward turns it into an API input and can combine it
+ * with a later release of the same dataset.
+ */
+export function selectCenstatdInheritedSnapshotSources<
+  T extends { role: 'primary' | 'geometry' | 'enrichment' | 'fallback' | 'lookup' },
+>(sources: readonly T[]) {
+  return sources.filter(source => source.role !== 'lookup')
+}
+
+function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.type === 'divisionArea' &&
+    ['hkgov-censtatd', 'hkgov-censtatd:simplified'].includes(geometryVariant(plan))
+  )
+}
+
+/**
+ * Returns a C&SD companion snapshot only when every canonical geometry record
+ * in this source release has already been materialised for the same cohort.
+ * Source assertions remain independently retained; this avoids mistaking a
+ * source-level archive match for an identical geometry snapshot.
+ */
+async function findIdenticalCenstatdGeometrySnapshot(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  metaDb: HarbourReadableDb,
+  plan: GeometryUploadPlan,
+  rows: readonly NonNullable<NormalisedGeometry>[],
+) {
+  if (rows.length === 0) return null
+
+  const candidates = await metaDb
+    .select({
+      cohortKey: metaSchema.metaSnapshots.cohortKey,
+      id: metaSchema.metaSnapshots.id,
+      parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId,
+      resourceType: metaSchema.metaSnapshots.resourceType,
+      snapshotLineageId: metaSchema.metaSnapshots.snapshotLineageId,
+      status: metaSchema.metaSnapshots.status,
+    })
+    .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaSnapshots.resourceType, plan.type),
+        eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+        eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
+        eq(metaSchema.metaSnapshotLineages.variant, geometryVariant(plan)),
+      ),
+    )
+    .orderBy(desc(metaSchema.metaSnapshots.revision))
+    .all()
+  const expected = await Promise.all(
+    rows.map(async row => ({
+      hash: await hashGeometryMaterialisation(row.canonical),
+      id: row.canonical.id,
+    })),
+  )
+
+  for (const candidate of candidates) {
+    if (candidate.status === 'archived') continue
+    const materialisedRows =
+      plan.type === 'divisionArea'
+        ? await currentDb
+            .select()
+            .from(currentSchema.divisionAreas)
+            .where(eq(currentSchema.divisionAreas.snapshotId, candidate.id))
+            .all()
+        : await currentDb
+            .select()
+            .from(currentSchema.divisionBoundaries)
+            .where(eq(currentSchema.divisionBoundaries.snapshotId, candidate.id))
+            .all()
+    const actual = await Promise.all(
+      materialisedRows.map(async row => ({
+        hash: await hashGeometryMaterialisation({
+          ...row,
+          geometry: decodeStoredGeoJsonGeometry(row.geometry),
+        }),
+        id: row.id,
+      })),
+    )
+    if (hasIdenticalGeometryMaterialisation(expected, actual)) return candidate
+  }
+  return null
+}
+
+/**
+ * Hashes only materialised geometry semantics. Publisher source assertions and
+ * derived bounding boxes are intentionally excluded: those can differ without
+ * changing the geometry snapshot selected by the Divisions API.
+ */
+async function hashGeometryMaterialisation(row: Record<string, unknown>) {
+  return createHash({
+    divisionId: row.divisionId,
+    geometry: row.geometry,
+    id: row.id,
+    isLand: row.isLand,
+    isTerritorial: row.isTerritorial,
+    leftDivisionId: row.leftDivisionId,
+    rightDivisionId: row.rightDivisionId,
+    type: row.type,
+  })
+}
+
+export function hasIdenticalGeometryMaterialisation(
+  expected: readonly { hash: string; id: string }[],
+  actual: readonly { hash: string; id: string }[],
+) {
+  const expectedHashes = new Map(expected.map(row => [row.id, row.hash]))
+  if (expectedHashes.size !== expected.length) return false
+  const actualHashes = new Map(actual.map(row => [row.id, row.hash]))
+  if (actualHashes.size !== actual.length) return false
+  return [...expectedHashes].every(([id, hash]) => actualHashes.get(id) === hash)
+}
+
+function isCenstatdPermanentLivingQuartersPlan(plan: GeometryUploadPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   )
 }
 
@@ -1245,9 +1517,25 @@ function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
   }
   if (
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district'
+    plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
   ) {
-    return { authority: 'hkgov-censtatd' }
+    return { authority: 'hkgov-censtatd', cohortKey: plan.cohortKey }
+  }
+  if (
+    plan.source === 'hkgov-censtatd' &&
+    (plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+      plan.datasetCode ===
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+      plan.datasetCode ===
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district')
+  ) {
+    // The reviewed 2021 C&SD-to-canonical bridge has the same district
+    // identifiers as the annual and PLQ publications. It is deliberately an
+    // identity bridge, not an assertion that their geometries are the 2021
+    // land-clipped geometry.
+    return { authority: 'hkgov-censtatd', cohortKey: '2021' }
   }
   return null
 }
@@ -1313,8 +1601,8 @@ async function assertDivisionReferences(
   const lookup = await resolveDivisionReferenceLookup(metaDb, plan)
   if (lookup.snapshots.length === 0) {
     throw new Error(
-      isCenstatdAreaTypePlan(plan)
-        ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD area/type references cannot be validated.`
+      isCenstatdPermanentLivingQuartersPlan(plan)
+        ? `No published canonical Overture division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; C&SD permanent living quarters references cannot be validated.`
         : `No published division snapshot exists for ${plan.regionCode}/${plan.cohortKey}; geometry references cannot be validated.`,
     )
   }
@@ -1393,7 +1681,7 @@ async function resolveDivisionReferenceLookup(
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
 ) {
-  if (isCenstatdAreaTypePlan(plan)) {
+  if (isCenstatdPermanentLivingQuartersPlan(plan)) {
     const prior =
       await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
         metaDb,
@@ -1430,7 +1718,7 @@ async function resolveDivisionReferenceLookup(
         'division',
         plan.regionCode,
         plan.cohortKey,
-        { variant: geometryVariant(plan) },
+        { variant: divisionReferenceVariant(plan) },
       ),
     ].filter((snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot)),
     selectedByRule: 'api-composition:divisions:division-geometry->division',
@@ -1582,6 +1870,69 @@ function formatDiagnosticRecord(record: unknown) {
   return JSON.stringify(record, bigintJsonReplacer, 2)
 }
 
+/**
+ * Produces the shared map-display representation for every Hong Kong Government
+ * area publisher. Exact publisher geometry remains in the source assertion and
+ * in the exact snapshot; this pass only writes the named display snapshot.
+ */
+export async function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
+  const reader = new GeoJSONReader(new GeometryFactory())
+  const simplified = await simplifyPolygonCoverageCached(
+    rows.map(row => requireAreaGeometry(row.canonical.geometry, row.canonical.id)),
+    HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+  )
+
+  return rows.map((row, index) => {
+    const geometry = requireAreaGeometry(
+      simplified.geometries[index]!,
+      row.canonical.id,
+    )
+    const parsed = reader.read(geometry)
+    if (!IsValidOp.isValid(parsed)) {
+      const error = new IsValidOp(parsed).getValidationError()
+      throw new Error(
+        `Shapely coverage simplification produced invalid geometry for ${row.canonical.id}: ${error?.getMessage() ?? 'unknown validation error'}.`,
+      )
+    }
+    return {
+      ...row,
+      canonical: {
+        ...row.canonical,
+        bbox: calculateGeoJsonBbox(geometry),
+        geometry,
+      },
+      source: {
+        ...row.source,
+        derivation: {
+          inputGeometryProjection: 'EPSG:4326',
+          method: 'topology-preserving-simplification',
+          toleranceMetres: HKGOV_DISPLAY_SIMPLIFICATION_TOLERANCE_METRES,
+          workingProjection: 'wgs84-interface-local-equirectangular',
+          sharedBoundaryPolicy: 'geos-coverage-simplification',
+          engine: simplified.engine,
+          engineVersion: simplified.engineVersion,
+          ...(simplified.inputValidationRepairIndexes.includes(index)
+            ? { inputValidationRepair: 'make-valid' }
+            : {}),
+        },
+      },
+    }
+  })
+}
+
+function requireAreaGeometry(value: unknown, id: string): GeoJsonGeometry {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    !('type' in value) ||
+    ((value as { type?: unknown }).type !== 'Polygon' &&
+      (value as { type?: unknown }).type !== 'MultiPolygon')
+  ) {
+    throw new Error(`Display simplification did not produce an area for ${id}.`)
+  }
+  return value as GeoJsonGeometry
+}
+
 async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   type: GeometryUploadPlan['type'],
@@ -1594,6 +1945,12 @@ async function writeGeometryRows(
     snapshotId: string
     parentSnapshotId: string | null
     cohortKey: string
+    merge?: boolean
+    /**
+     * The source release is independently retained, but its complete canonical
+     * materialisation has already been verified against this snapshot.
+     */
+    skipCanonicalMaterialisation?: boolean
     transform?: GeometryUploadPlan['transform']
   },
   onProgress?: GeometryWriteProgress,
@@ -1615,8 +1972,9 @@ async function writeGeometryRows(
           ? sourceSchema.sourceHkgovCenstatdDivisionAreas
           : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
+  const isDisplayDerivative = version.transform === 'simplified'
   const isCenstatdDerivative =
-    version.source === 'hkgov-censtatd' && version.transform === 'simplified'
+    version.source === 'hkgov-censtatd' && isDisplayDerivative
   // Statistics archive geometries are already retained in
   // hkgovCenstatdStatistics. The district-only source table has mandatory
   // district columns and must not be misused for Area/HMA assertions.
@@ -1631,22 +1989,30 @@ async function writeGeometryRows(
           'dc_class' in row.source.rawProperties
         ),
     )
-  onProgress?.('clear current rows')
-  await context.currentDb
-    .delete(currentTable)
-    // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
-    // A snapshot therefore represents exactly one geometry variant. Clear the full
-    // snapshot so a retry also replaces rows written before a variant was renamed
-    // (for example the legacy `hkgov-censtatd` C&SD variant).
-    .where(eq(currentTable.snapshotId, version.snapshotId))
-    .run()
+  onProgress?.(
+    version.skipCanonicalMaterialisation
+      ? 'retain verified geometry snapshot'
+      : version.merge
+        ? 'retain companion rows'
+        : 'clear current rows',
+  )
+  if (!version.merge && !version.skipCanonicalMaterialisation) {
+    await context.currentDb
+      .delete(currentTable)
+      // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
+      // A snapshot therefore represents exactly one geometry variant. Clear the full
+      // snapshot so a retry also replaces rows written before a variant was renamed
+      // (for example the legacy `hkgov-censtatd` C&SD variant).
+      .where(eq(currentTable.snapshotId, version.snapshotId))
+      .run()
+  }
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()
   onProgress?.('hash geometry rows', 0, rows.length)
   for (const [index, row] of rows.entries()) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
     if (
-      !isCenstatdDerivative &&
+      !isDisplayDerivative &&
       !isCenstatdStatisticGeometry &&
       version.source !== 'hkgov-pland-pu' &&
       version.source !== 'hkgov-pland-new-town'
@@ -1664,35 +2030,47 @@ async function writeGeometryRows(
   // cache. In particular, independent C&SD census cohorts have no parent and
   // must therefore start with an empty baseline rather than compare against
   // whichever geometry snapshot was most recently written.
-  const previousById = await getGeometryChurnBaseline(
-    context.currentDb,
-    type,
-    version.parentSnapshotId,
-  )
+  const previousById = version.skipCanonicalMaterialisation
+    ? new Map(
+        rows.map(row => [
+          row.canonical.id,
+          {
+            id: row.canonical.id,
+            type: row.canonical.type,
+            versionHash: requireGeometryHash(historyHashes, row.canonical.id),
+          },
+        ]),
+      )
+    : await getGeometryChurnBaseline(context.currentDb, type, version.parentSnapshotId)
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById)
   onProgress?.('close history rows')
-  const closedHistoryRows = await closeChangedRows(
-    context.historyDb,
-    historyTable,
-    historyTable.id,
-    historyHashes,
-    {
-      isCurrent: false,
-    },
-  )
-  await recordSnapshotVersionChanges(
-    context.historyDb as unknown as HarbourWritableDb,
-    {
-      snapshotId: version.snapshotId,
-      sourceReleaseId: version.releaseId,
-      recordType: type,
-      operation: 'delete',
-      changes: closedHistoryRows.map(row => ({ recordId: row.id })),
-    },
-  )
+  const closedHistoryRows =
+    version.merge || version.skipCanonicalMaterialisation
+      ? []
+      : await closeChangedRows(
+          context.historyDb,
+          historyTable,
+          historyTable.id,
+          historyHashes,
+          {
+            isCurrent: false,
+          },
+        )
+  if (!version.skipCanonicalMaterialisation) {
+    await recordSnapshotVersionChanges(
+      context.historyDb as unknown as HarbourWritableDb,
+      {
+        snapshotId: version.snapshotId,
+        sourceReleaseId: version.releaseId,
+        recordType: type,
+        operation: 'delete',
+        changes: closedHistoryRows.map(row => ({ recordId: row.id })),
+      },
+    )
+  }
   onProgress?.('close source rows')
   if (
-    !isCenstatdDerivative &&
+    !isDisplayDerivative &&
     !isCenstatdStatisticGeometry &&
     version.source !== 'hkgov-pland-pu' &&
     version.source !== 'hkgov-pland-new-town'
@@ -1706,37 +2084,79 @@ async function writeGeometryRows(
     )
   }
   onProgress?.('build write batches')
-  const currentRows = rows.map(row => ({
-    ...row.canonical,
-    geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-      ? compressJsonBrotli(
-          row.canonical.geometry,
-          version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
-        )
-      : row.canonical.geometry,
-    snapshotId: version.snapshotId,
-    createdAt: now,
-    updatedAt: now,
-  }))
-  const historyRows = await Promise.all(
-    rows.map(async row => ({
+  const inheritedCurrentRows =
+    !version.skipCanonicalMaterialisation && version.merge && version.parentSnapshotId
+      ? await context.currentDb
+          .select()
+          .from(currentTable)
+          .where(eq(currentTable.snapshotId, version.parentSnapshotId))
+          .all()
+      : []
+  const currentRowsById = new Map<string, Record<string, unknown>>(
+    inheritedCurrentRows.map(row => [
+      row.id,
+      { ...row, snapshotId: version.snapshotId },
+    ]),
+  )
+  const materialisedGeometryById = new Map<string, unknown>()
+  if (!version.skipCanonicalMaterialisation) {
+    onProgress?.('materialise geometry rows', 0, rows.length)
+    for (const [index, row] of rows.entries()) {
+      materialisedGeometryById.set(
+        row.canonical.id,
+        shouldCompressCanonicalGeometry(version.source, version.transform)
+          ? compressJsonBrotli(
+              row.canonical.geometry,
+              version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
+            )
+          : row.canonical.geometry,
+      )
+      if ((index + 1) % 32 === 0 || index + 1 === rows.length) {
+        onProgress?.('materialise geometry rows', index + 1, rows.length)
+      }
+    }
+  }
+  if (!version.skipCanonicalMaterialisation)
+    for (const row of rows.map(row => ({
       ...row.canonical,
-      geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-        ? compressJsonBrotli(
-            row.canonical.geometry,
-            version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
-          )
-        : row.canonical.geometry,
+      geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
+      snapshotId: version.snapshotId,
+      createdAt: now,
+      updatedAt: now,
+    }))) {
+      currentRowsById.set(row.id, row)
+    }
+  const currentRows = [...currentRowsById.values()]
+  const inheritedHistoryRows =
+    !version.skipCanonicalMaterialisation && version.merge && version.parentSnapshotId
+      ? await context.historyDb
+          .select()
+          .from(historyTable)
+          .where(eq(historyTable.snapshotId, version.parentSnapshotId))
+          .all()
+      : []
+  const historyRowsById = new Map<string, Record<string, unknown>>(
+    inheritedHistoryRows.map(row => [
+      row.id,
+      { ...row, snapshotId: version.snapshotId },
+    ]),
+  )
+  if (!version.skipCanonicalMaterialisation)
+    for (const row of rows.map(row => ({
+      ...row.canonical,
+      geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
       versionHash: requireGeometryHash(historyHashes, row.canonical.id),
       sourceReleaseId: version.releaseId,
       snapshotId: version.snapshotId,
       isCurrent: true,
       createdAt: now,
       updatedAt: now,
-    })),
-  )
+    }))) {
+      historyRowsById.set(row.id, row)
+    }
+  const historyRows = [...historyRowsById.values()]
   const sourceRows =
-    isCenstatdDerivative ||
+    isDisplayDerivative ||
     isCenstatdStatisticGeometry ||
     version.source === 'hkgov-pland-pu' ||
     version.source === 'hkgov-pland-new-town'
@@ -1792,11 +2212,25 @@ async function writeGeometryRows(
     await context.currentDb
       .insert(currentTable)
       .values(chunk as never)
+      .onConflictDoUpdate({
+        target: [currentTable.snapshotId, currentTable.id],
+        set: {
+          bbox: sql`excluded.bbox`,
+          geometry: sql`excluded.geometry`,
+          isLand: sql`excluded.isLand`,
+          isTerritorial: sql`excluded.isTerritorial`,
+          sourceKeys: sql`excluded.sourceKeys`,
+          sources: sql`excluded.sources`,
+          type: sql`excluded.type`,
+          variant: sql`excluded.variant`,
+          updatedAt: now,
+        },
+      })
       .run()
     writtenCurrentRows += chunk.length
     onProgress?.('write current rows', writtenCurrentRows, currentRows.length)
   }
-  if (historyRows.length) {
+  if (!version.skipCanonicalMaterialisation && historyRows.length) {
     let writtenHistoryRows = 0
     onProgress?.('write history rows', writtenHistoryRows, historyRows.length)
     for (const chunk of chunkRows(historyRows)) {
@@ -1824,8 +2258,8 @@ async function writeGeometryRows(
         recordType: type,
         operation: 'upsert',
         changes: historyRows.map(row => ({
-          recordId: row.id,
-          versionHash: row.versionHash,
+          recordId: requireString(row.id, 'history row id'),
+          versionHash: requireString(row.versionHash, 'history row versionHash'),
         })),
       },
     )
@@ -1852,7 +2286,7 @@ async function writeGeometryRows(
       onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }
   }
-  if (isCenstatdDerivative) {
+  if (isCenstatdDerivative && !isCenstatdStatisticGeometry) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       rows,
@@ -1862,13 +2296,24 @@ async function writeGeometryRows(
     )
   }
 
-  return { churn, currentRows }
+  return { churn }
 }
 
 function requireGeometryHash(hashes: Map<string, string>, id: string) {
   const hash = hashes.get(id)
   if (!hash) throw new Error(`Missing computed geometry hash for ${id}.`)
   return hash
+}
+
+function requireMaterialisedGeometry(
+  materialisedGeometryById: ReadonlyMap<string, unknown>,
+  id: string,
+) {
+  const geometry = materialisedGeometryById.get(id)
+  if (geometry === undefined) {
+    throw new Error(`Missing materialised geometry for ${id}.`)
+  }
+  return geometry
 }
 
 function hashGeometrySourceAssertion(
@@ -2359,7 +2804,14 @@ export function supportsDistrictGeometryStatistics(plan: GeometryUploadPlan) {
     plan.source === 'hkgov-had' ||
     plan.source === 'overture' ||
     (plan.source === 'hkgov-censtatd' &&
-      plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district')
+      (plan.datasetCode ===
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
+        plan.datasetCode ===
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'))
   )
 }
 

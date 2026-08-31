@@ -122,6 +122,11 @@ export const metaSnapshots = sqliteTable(
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     code: text('code').notNull(),
     cohortKey: text('cohortKey').notNull(),
+    geometryStatus: text('geometryStatus', {
+      enum: ['authoritative', 'fallback'],
+    })
+      .notNull()
+      .default('authoritative'),
     revision: integer('revision').notNull().default(0),
     status: text('status', { enum: snapshotStatuses }).notNull(),
     publishedAt: isoTimestamp('publishedAt'),

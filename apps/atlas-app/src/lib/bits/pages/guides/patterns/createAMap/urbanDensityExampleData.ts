@@ -101,45 +101,45 @@ export function calculateUrbanDensityMetrics(
   populationByDistrict: Record<string, string>,
   landAreaByDistrict: Record<string, string>,
 ) {
-  const byDivisionCode = Object.fromEntries(
-    response.data.flatMap(division => {
-      const code = division.attributes.divisionCode
-      const area = division.relationships.hierarchy.data.find(
-        item => item.meta.subType === 'area',
-      )
+  const districts = response.data.map(division => {
+    const code = division.attributes.divisionCode
+    const area = division.relationships.hierarchy.data.find(
+      item => item.meta.subType === 'area',
+    )
 
-      return code && area ? [[code, { id: area.id, name: area.meta.name }]] : []
-    }),
-  )
+    if (!area) throw new Error(`No Area ancestor for ${code}`)
+    return {
+      code,
+      area: area.meta.name,
+      population: Number(populationByDistrict[code]),
+      landAreaSqKm: Number(landAreaByDistrict[code]),
+    }
+  })
 
-  const totalsByArea = Object.entries(populationByDistrict).reduce(
-    (totals, [divisionCode, population]) => {
-      const area = byDivisionCode[divisionCode]
-      if (!area) throw new Error(`No Area ancestor for ${divisionCode}`)
+  const totalsByArea = districts.reduce((totals, district) => {
+    const total = totals.get(district.area) ?? {
+      name: district.area,
+      population: 0,
+      landAreaSqKm: 0,
+    }
+    total.population += district.population
+    total.landAreaSqKm += district.landAreaSqKm
+    totals.set(district.area, total)
+    return totals
+  }, new Map<string, { name: string; population: number; landAreaSqKm: number }>())
 
-      const total = totals.get(area.id) ?? {
-        name: area.name,
-        population: 0,
-        landAreaSqKm: 0,
-      }
-      total.population += Number(population)
-      total.landAreaSqKm += Number(landAreaByDistrict[divisionCode] ?? 0)
-      totals.set(area.id, total)
-      return totals
-    },
-    new Map<string, { name: string; population: number; landAreaSqKm: number }>(),
-  )
-
-  return [...totalsByArea.values()].map(total => ({
-    ...total,
-    peoplePerSqKm: total.population / total.landAreaSqKm,
-  }))
+  return [...totalsByArea.values()]
+    .map(total => ({
+      ...total,
+      peoplePerSqKm: total.population / total.landAreaSqKm,
+    }))
+    .sort((first, second) => first.name.localeCompare(second.name))
 }
 
 export const urbanDensityLiveableLandAreas = {
-  'Hong Kong Island': 32.999442731780796,
-  Kowloon: 37.25548460996576,
-  'New Territories': 332.08958134182427,
+  'Hong Kong Island': 23.785863281767654,
+  Kowloon: 28.984783689490598,
+  'New Territories': 195.20912462313322,
 } as const
 
 export const calculateUrbanDensityLiveableMetrics = () => {

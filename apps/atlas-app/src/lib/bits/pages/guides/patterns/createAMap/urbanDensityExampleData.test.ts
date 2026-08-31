@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test'
+import { booleanValid } from '@turf/turf'
 
 import {
   calculateUrbanDensityMetrics,
@@ -7,6 +8,7 @@ import {
   urbanDensityStatsResponses,
 } from './urbanDensityExampleData.ts'
 import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
+import { decodeLandAnalysis } from './guideUrbanDensityLiveableMap.ts'
 
 test('groups Kwai Tsing with the New Territories', () => {
   const kwaiTsing = urbanDensityDivisionsResponse.data.find(
@@ -37,9 +39,9 @@ test('groups Kwai Tsing with the New Territories', () => {
     metric => metric.name === 'Kowloon',
   )
   expect(liveableKowloon).toMatchObject({
-    landAreaSqKm: 37.25548460996576,
-    liveablePercentage: 79.36830977836763,
-    peoplePerSqKm: 60162.9538164813,
+    landAreaSqKm: 28.984783689490598,
+    liveablePercentage: 61.748580505945036,
+    peoplePerSqKm: 77330.2303723141,
   })
 })
 
@@ -50,4 +52,81 @@ test('ships the simplified land-clipped census districts used by the previews', 
       feature => feature.properties.divisionCode,
     ),
   ).toContain('ILD')
+  urbanDensityCensusDistricts.features.forEach(feature => {
+    expect(booleanValid(feature)).toBeTrue()
+  })
+})
+
+test('requires saved liveable and excluded District geometry', async () => {
+  const liveableDistrictLand = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { area: 'Kowloon', districtCode: 'KLC' },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [114.18, 22.33],
+              [114.19, 22.33],
+              [114.19, 22.34],
+              [114.18, 22.33],
+            ],
+          ],
+        },
+      },
+    ],
+  } as const
+
+  await expect(decodeLandAnalysis({ liveableDistrictLand })).rejects.toThrow(
+    'Land-analysis JSON must include liveable and excluded District land.',
+  )
+
+  const land = await decodeLandAnalysis({
+    liveableDistrictLand,
+    excludedDistrictLand: liveableDistrictLand,
+  })
+
+  expect(land.liveableDistrictLand[0]?.properties).toEqual({
+    area: 'Kowloon',
+    divisionCode: 'KLC',
+  })
+  expect(land.excludedDistrictLand[0]?.properties).toEqual({
+    area: 'Kowloon',
+    divisionCode: 'KLC',
+  })
+})
+
+test('rejects a saved overlay with invalid polygonal geometry', async () => {
+  const invalidDistrictLand = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { area: 'Kowloon', districtCode: 'KLC' },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [114.18, 22.33],
+              [114.19, 22.34],
+              [114.19, 22.33],
+              [114.18, 22.34],
+              [114.18, 22.33],
+            ],
+          ],
+        },
+      },
+    ],
+  } as const
+
+  await expect(
+    decodeLandAnalysis({
+      liveableDistrictLand: invalidDistrictLand,
+      excludedDistrictLand: invalidDistrictLand,
+    }),
+  ).rejects.toThrow(
+    'Land-analysis contains invalid KLC geometry. Regenerate land-analysis.json.',
+  )
 })

@@ -441,7 +441,7 @@ const agentWorkflowScreenshots = $derived([
   {#if expanded}
     <aside
       class="mt-16 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
-      aria-label="Zed setup alternative"
+      aria-label={m.guide_zed_setup_alternative_label()}
     >
       <p class="font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_zed_setup_alternative()}

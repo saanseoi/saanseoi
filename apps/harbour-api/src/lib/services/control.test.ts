@@ -154,7 +154,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
     .get(releaseId) as { status: string }
 
   expect(result).toMatchObject({
-    apiReleaseSetCode: 'data-hk-stats-2024-25-r0',
+    apiReleaseSetCode: 'data-hk-stats-2024-25',
     apiReleaseSetStatus: 'current',
     releaseId,
     snapshotId: snapshot.id,
@@ -170,7 +170,7 @@ test('publishes a dataset snapshot as an exact reference-period Statistics relea
   sqlite.close()
 })
 
-test('bootstraps one cohort-complete Statistics r0 release set', async () => {
+test('bootstraps one cohort-complete initial Statistics release set', async () => {
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistics-bootstrap.sqlite'))
   const db = createLocalHarbourDb(sqlite)
@@ -256,6 +256,28 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   expect(
     sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
   ).toEqual({ status: 'published' })
+  // A C&SD source can materialise both geometry and Statistics snapshots. Once
+  // the source release is classified as geometry, neither it nor the companion
+  // geometry snapshot may bootstrap a Statistics release set.
+  const geometrySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
+    cohortKey: '2021',
+    datasetCode: datasetCodes[0],
+    datasetId: 'dataset-0',
+    regionCode: 'hk',
+    sourceReleaseId: firstReleaseId,
+    variant: 'hkgov-censtatd',
+  })
+  await upsertSnapshotSource(
+    db,
+    geometrySnapshot.id,
+    'dataset-0',
+    firstReleaseId,
+    'primary',
+  )
+  sqlite.exec(`
+    UPDATE snapshots SET status = 'published' WHERE id = '${geometrySnapshot.id}';
+    UPDATE releases SET resourceType = 'divisionArea' WHERE id = '${firstReleaseId}';
+  `)
   expect(
     sqlite
       .query(
@@ -267,14 +289,14 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
   const result = await handleBootstrapStatsReleaseSets(db)
 
   expect(result).toEqual({
-    createdReleaseSetCodes: ['data-hk-stats-2021-r0'],
-    inspectedSnapshots: 2,
+    createdReleaseSetCodes: ['data-hk-stats-2021'],
+    inspectedSnapshots: 1,
     skippedCohortKeys: [],
   })
   expect(
     sqlite
       .query(
-        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'`,
+        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'`,
       )
       .get(),
   ).toEqual({ revision: 0, status: 'current' })
@@ -282,11 +304,11 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
     sqlite
       .query(
         `SELECT count(*) AS count FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = (
-          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021-r0'
+          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'
         )`,
       )
       .get(),
-  ).toEqual({ count: 2 })
+  ).toEqual({ count: 1 })
   expect(
     sqlite
       .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
@@ -295,7 +317,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 1,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -363,7 +385,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
+    inspectedSnapshots: 1,
     skippedCohortKeys: ['2021'],
   })
   expect(
@@ -383,7 +405,7 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
       .query(
         `SELECT count(*) AS count
          FROM apiReleaseSets
-         WHERE code IN ('data-hk-stats-2022-r0', 'data-hk-stats-2023-r0')`,
+         WHERE code IN ('data-hk-stats-2022', 'data-hk-stats-2023')`,
       )
       .get(),
   ).toEqual({ count: 0 })
@@ -401,16 +423,16 @@ test('bootstraps one cohort-complete Statistics r0 release set', async () => {
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 3,
+    inspectedSnapshots: 2,
     skippedCohortKeys: ['2021', '2022'],
   })
   expect(
     sqlite
       .query(
-        `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022-r0'`,
+        `SELECT count(*) AS count FROM apiReleaseSets WHERE code = 'data-hk-stats-2022'`,
       )
       .get(),
-  ).toEqual({ count: 0 })
+  ).toEqual({ count: 1 })
   sqlite.close()
 })
 
@@ -528,42 +550,64 @@ function seedCompleteDivisionSourceSignature(
     ) VALUES
       (
         'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'as-needed',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district', 'hk', 'static', 'as-needed',
         'divisions', 'default', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
       ),
       (
-        'hkgov-censtatd-hk-area-type', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly',
+        'divisions', 'official-statistics', 'https://www.censtatd.gov.hk/',
+        'vh-dataset-hkgov-censtatd-hk-district-annual-v1', 1761264000000, 1761264000000
+      ),
+      (
+        'hkgov-censtatd-hk-permanent-living-quarters', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
         'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
         'https://www.censtatd.gov.hk/',
-        'vh-dataset-hkgov-censtatd-hk-area-type-v1', 1761264000000, 1761264000000
+        'vh-dataset-hkgov-censtatd-hk-permanent-living-quarters-v1', 1761264000000, 1761264000000
       );
 
     INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
     VALUES
       ('hkgov-censtatd-hk-district', 'divisionArea'),
-      ('hkgov-censtatd-hk-area-type', 'divisionArea');
+      ('hkgov-censtatd-hk-district-annual', 'divisionArea'),
+      ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
 
     INSERT OR IGNORE INTO releases (
       id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
       cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
       updatedAt
-    ) VALUES (
-      'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
-      'hkgov-censtatd-hk-area-type', 'divisionArea',
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2',
+    ) VALUES
+    (
+      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+      'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       '2023-H2', '1.0', '2023-H2',
       'hk/hkgov-censtatd/2023-H2/division-area.parquet',
+      'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
+      '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
+    ),
+    (
+      'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+      'hkgov-censtatd-hk-district-annual', 'divisionArea',
+      'dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+      '2024', '1.0', '2024',
+      'hk/hkgov-censtatd/2024/division-area.parquet',
       'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
 
     INSERT OR IGNORE INTO snapshotSources (
       snapshotId, datasetId, sourceReleaseId, role
-    ) VALUES (
-      '${snapshotId}', 'hkgov-censtatd-hk-area-type',
-      'release-dr-hk-hkgov-censtatd-area-type-2023-H2', 'supporting'
+    ) VALUES
+    (
+      '${snapshotId}', 'hkgov-censtatd-hk-permanent-living-quarters',
+      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2', 'supporting'
+    ),
+    (
+      '${snapshotId}', 'hkgov-censtatd-hk-district-annual',
+      'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'supporting'
     );
   `)
 
@@ -587,6 +631,7 @@ function seedCompleteDivisionSourceSignature(
       schemaVersion: '1.2',
     },
     {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
       source: 'hkgov-censtatd',
       type: 'divisionArea' as const,
       sourceVersion: '2016',
@@ -598,6 +643,7 @@ function seedCompleteDivisionSourceSignature(
     const releaseCode = `dr-hk-${release.source}-${release.type === 'divisionArea' && release.source !== 'overture' ? 'division-area-district' : release.type === 'divisionBoundary' ? 'division-boundary' : 'division-area'}-${release.sourceVersion}`
     const releaseId = `release-${releaseCode}`
     insertFixtureRelease(sqlite, {
+      datasetCode: release.datasetCode,
       releaseId,
       source: release.source,
       regionCode: 'hk',
@@ -1721,11 +1767,15 @@ describe('control service', () => {
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
         theme, sourceUrl, versionHash, createdAt, updatedAt
       ) VALUES (
-        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'five-yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district', 1761264000001, 1761264000001
+        'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district', 'hk', 'static', 'five-yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district', 1761264000001, 1761264000001
+      ), (
+        'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district-annual', 1761264000001, 1761264000001
       );
 
       INSERT INTO datasetResourceTypes (datasetId, resourceType)
-      VALUES ('hkgov-censtatd-hk-district', 'divisionArea');
+      VALUES
+        ('hkgov-censtatd-hk-district', 'divisionArea'),
+        ('hkgov-censtatd-hk-district-annual', 'divisionArea');
     `)
     for (const year of ['2016', '2021']) {
       const releaseId = `release-dr-hk-hkgov-censtatd-division-area-district-${year}`
@@ -1760,6 +1810,40 @@ describe('control service', () => {
         .run(`lineage-censtatd-${year}`, snapshotId)
     }
 
+    sqlite.exec(`
+      INSERT INTO releases (
+        id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
+        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        'hkgov-censtatd-hk-district-annual', 'divisionArea',
+        'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', '1.0', '2024',
+        'hk/hkgov-censtatd/2024/division-area.gml', 'division-area.gml', 'published',
+        '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
+      );
+      INSERT INTO snapshotLineages (
+        id, code, regionCode, resourceType, variant, identityMode,
+        primaryDatasetId, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'lineage-censtatd-annual-2024',
+        'sl-ds-hk-hkgov-censtatd-division-area-district-annual',
+        'hk', 'divisionArea', 'hkgov-censtatd', 'persistent',
+        'hkgov-censtatd-hk-district-annual', 'vh-lineage-censtatd-annual-2024',
+        1761264000001, 1761264000001
+      );
+    `)
+    const annualSnapshotId = seedSnapshot(sqlite, {
+      code: 'ss-hk-division-area-district-annual-2024',
+      cohortKey: '2024',
+      datasetId: 'hkgov-censtatd-hk-district-annual',
+      resourceType: 'divisionArea',
+      releaseId: 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+      status: 'published',
+    })
+    sqlite
+      .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
+      .run('lineage-censtatd-annual-2024', annualSnapshotId)
+
     const incompleteReconciliation = await handleReconcileDraftReleaseSets(db, {
       apiFamily: 'divisions',
       regionCode: 'hk',
@@ -1773,23 +1857,23 @@ describe('control service', () => {
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
         theme, sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
       ) VALUES (
-        'hkgov-censtatd-hk-area-type', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+        'hkgov-censtatd-hk-permanent-living-quarters', 'publisher-hkgov-censtatd',
+        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
         'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
-        'https://www.censtatd.gov.hk/', 'vh-censtatd-area-type',
+        'https://www.censtatd.gov.hk/', 'vh-censtatd-permanent-living-quarters',
         1761264000001, 1761264000001
       );
 
       INSERT INTO datasetResourceTypes (datasetId, resourceType)
-      VALUES ('hkgov-censtatd-hk-area-type', 'divisionArea');
+      VALUES ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
 
       INSERT INTO releases (
         id, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
-        'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
-        'hkgov-censtatd-hk-area-type', 'divisionArea',
-        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type-2023-H2',
+        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
+        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
         '2023-H2', '1.0', '2023-H2',
         'hk/hkgov-censtatd/2023-H2/division-area.parquet', 'division-area.parquet',
         'published', '2026-06-05T00:02:00.000Z',
@@ -1802,21 +1886,44 @@ describe('control service', () => {
       ) VALUES (
         'lineage-censtatd-area-type', 'sl-ds-hk-hkgov-censtatd-area-type',
         'hk', 'divisionArea', 'hkgov-censtatd-area', 'persistent',
-        'hkgov-censtatd-hk-area-type', 'vh-lineage-censtatd-area-type',
+        'hkgov-censtatd-hk-permanent-living-quarters', 'vh-lineage-censtatd-area-type',
         1761264000001, 1761264000001
       );
     `)
     const areaTypeSnapshotId = seedSnapshot(sqlite, {
       code: 'ss-hk-division-area-hkgov-censtatd-area-2023-H2',
       cohortKey: '2023-H2',
-      datasetId: 'hkgov-censtatd-hk-area-type',
+      datasetId: 'hkgov-censtatd-hk-permanent-living-quarters',
       resourceType: 'divisionArea',
-      releaseId: 'release-dr-hk-hkgov-censtatd-area-type-2023-H2',
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       status: 'published',
     })
     sqlite
       .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
       .run('lineage-censtatd-area-type', areaTypeSnapshotId)
+    sqlite
+      .query(
+        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES (?, ?, ?, ?)',
+      )
+      .run(
+        areaTypeSnapshotId,
+        'hkgov-censtatd-hk-district-annual',
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        'supporting',
+      )
+
+    // Initialisation stages the Overture members as draft r0 sets until every
+    // required C&SD area is ready. Publishing the final provider with the
+    // deferral must preserve that r0 rather than minting an enrichment r1.
+    const deferredPublication = await handlePublishDataset(db, {
+      deferApiReleaseSet: true,
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    })
+    const revisionRowsBeforeReconciliation = sqlite
+      .query(
+        'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      )
+      .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
 
     const reconciliation = await handleReconcileDraftReleaseSets(db, {
       apiFamily: 'divisions',
@@ -1825,7 +1932,6 @@ describe('control service', () => {
     const reconciledSet = sqlite
       .query('SELECT status FROM apiReleaseSets WHERE id = ?')
       .get(releaseSetId) as { status: string }
-    sqlite.close()
 
     expect(result.apiReleaseSetId).toBe(releaseSetId)
     expect(result.apiReleaseSetStatus).toBe('draft')
@@ -1838,6 +1944,17 @@ describe('control service', () => {
       publishedReleaseSetCodes: [],
     })
     expect(stillDraftSet.status).toBe('draft')
+    expect(deferredPublication).toMatchObject({
+      apiReleaseSetCode: `data-hk-divisions-${cohortKey}`,
+      apiReleaseSetStatus: 'draft',
+    })
+    expect(revisionRowsBeforeReconciliation).toEqual([
+      {
+        code: `data-hk-divisions-${cohortKey}`,
+        revision: 0,
+        status: 'draft',
+      },
+    ])
     expect(reconciliation).toMatchObject({
       inspected: 1,
       pendingReleaseSetCodes: [],
@@ -1858,6 +1975,28 @@ describe('control service', () => {
       ],
     })
     expect(reconciledSet.status).toBe('current')
+    const deferredAfterReconciliation = await handlePublishDataset(db, {
+      deferApiReleaseSet: true,
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    })
+    const revisionRowsAfterReconciliation = sqlite
+      .query(
+        'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      )
+      .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
+
+    expect(deferredAfterReconciliation).toMatchObject({
+      releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+      snapshotId: areaTypeSnapshotId,
+      status: 'published',
+    })
+    expect(revisionRowsAfterReconciliation).toEqual([
+      {
+        code: `data-hk-divisions-${cohortKey}`,
+        revision: 0,
+        status: 'current',
+      },
+    ])
     expect(members).toEqual([
       {
         anchorCode: null,
@@ -1880,6 +2019,7 @@ describe('control service', () => {
         variant: 'overture',
       },
     ])
+    sqlite.close()
   })
 
   test('revokes the superseded dataset only for corrected same-release publishes', async () => {

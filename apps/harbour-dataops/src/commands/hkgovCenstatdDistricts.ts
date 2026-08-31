@@ -20,20 +20,25 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
 ) {
   const sourceArchive = args.positionals[0]
   const sourceVersion = args.options['source-version']
+  const datasetCode = args.options['dataset-code']
   const releaseNotesUrl = args.options['release-notes-url']
   const sourceArchiveKey = args.options['source-archive-key']
   const sourceArchiveSha256 = args.options['source-archive-sha256']
+  const deferApiReleaseSet = args.options['defer-api-release-set'] === true
   if (
     !sourceArchive ||
     args.positionals.length !== 1 ||
-    (sourceVersion !== '2016' && sourceVersion !== '2021') ||
+    (sourceVersion !== '2016' &&
+      sourceVersion !== '2021' &&
+      sourceVersion !== '2024') ||
+    typeof datasetCode !== 'string' ||
     typeof releaseNotesUrl !== 'string' ||
     typeof sourceArchiveKey !== 'string' ||
     !isSha256(sourceArchiveSha256)
   ) {
     printUsage()
     throw new Error(
-      'C&SD district-area ingestion requires <source.zip>, --source-version 2016|2021, --release-notes-url, --source-archive-key, and --source-archive-sha256.',
+      'C&SD district-area ingestion requires <source.zip>, --dataset-code, --source-version 2016|2021|2024, --release-notes-url, --source-archive-key, and --source-archive-sha256.',
     )
   }
 
@@ -44,7 +49,11 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
     const gmlPath = join(workDir, `district-council-districts-${sourceVersion}.gml`)
     await writeFile(
       gmlPath,
-      readHkgovCenstatdDistrictGmlArchive(archiveBytes, sourceVersion),
+      readHkgovCenstatdDistrictGmlArchive(
+        archiveBytes,
+        sourceVersion,
+        datasetCode as Parameters<typeof readHkgovCenstatdDistrictGmlArchive>[2],
+      ),
       'utf8',
     )
     await runUploadCommand(
@@ -53,7 +62,7 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
         positionals: [gmlPath],
         options: {
           'cohort-key': sourceVersion,
-          'dataset-code': 'ds-hk-hkgov-censtatd-division-area-district',
+          'dataset-code': datasetCode,
           'release-notes-url': releaseNotesUrl,
           region: 'hk',
           source: 'hkgov-censtatd',
@@ -67,6 +76,7 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
       },
       target,
       {
+        deferApiReleaseSet,
         dryRun: false,
         forceUpload: true,
         invocationCwd: REPO_ROOT,

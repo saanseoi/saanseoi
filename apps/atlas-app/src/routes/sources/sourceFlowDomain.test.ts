@@ -54,7 +54,7 @@ describe('sourceFlowDomain', () => {
       sourceFlowDomain(
         source({
           resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
-          sourceVariant: 'hkgov-censtatd-area',
+          sourceVariant: 'hkgov-censtatd',
           theme: 'stats',
         }),
         'divisions',

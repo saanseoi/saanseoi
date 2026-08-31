@@ -46,6 +46,10 @@ Hong Kong-specific override:
 - <black>Hong Kong Island</black>, <black>Kowloon</black>, and <black>New
   Territories</black> are preserved as <black>level : 1</black> and <black>type :
   area</black> rows even where Overture labels them as <black>region</black>.
+- <black>Lok Ma Chau Loop</black> (`222b7818-970a-491d-98b6-b88d8c6f0161`) is classified
+  as <black>level : 4</black> and <black>type : macrohood</black>, rather than an
+  administrative district. The raw Overture <black>region</black> and <black>admin_level
+  : 2</black> values remain source provenance.
 
 #### Fallback mapping
 
@@ -106,6 +110,10 @@ SaanSeoi 使用自訂的區劃 `level` 和 `type` 分類法。
 - <black>Hong Kong Island</black>、<black>Kowloon</black> 和 <black>New
   Territories</black> 會保留為 <black>level : 1</black> 和 <black>type : area</black>
   的資料列，即使 Overture 將它們標示為 <black>region</black>。
+- <black>Lok Ma Chau Loop</black>（`222b7818-970a-491d-98b6-b88d8c6f0161`）會分類為
+  <black>level : 4</black> 及 <black>type :
+  macrohood</black>，而非行政區。原始 Overture 的 <black>region</black> 及
+  <black>admin_level : 2</black> 值會保留為來源沿革。
 
 #### 回退對應
 
@@ -171,6 +179,10 @@ SaanSeoi 使用自定义的区划 `level` 和 `type` 分类法。
 - <black>Hong Kong Island</black>、<black>Kowloon</black> 和 <black>New
   Territories</black> 会保留为 <black>level : 1</black> 和 <black>type : area</black>
   的数据行，即使 Overture 将它们标记为 <black>region</black>。
+- <black>Lok Ma Chau Loop</black>（`222b7818-970a-491d-98b6-b88d8c6f0161`）会分类为
+  <black>level : 4</black> 及 <black>type :
+  macrohood</black>，而非行政区。原始 Overture 的 <black>region</black> 及
+  <black>admin_level : 2</black> 值会保留为来源沿革。
 
 #### 回退映射
 

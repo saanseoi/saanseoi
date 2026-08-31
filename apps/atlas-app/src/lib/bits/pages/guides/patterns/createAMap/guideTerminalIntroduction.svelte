@@ -56,7 +56,9 @@ const terminalLearningResource = $derived(
 >
   <div class="terminal-introduction__hero">
     <div>
-      <p class="terminal-introduction__eyebrow">01 / Getting started</p>
+      <p class="terminal-introduction__eyebrow">
+        {m.guide_terminal_intro_hero_eyebrow()}
+      </p>
       <p class="mt-3 max-w-xl font-body text-body-lg leading-8 text-foreground-alt">
         {@html m.guide_terminal_intro_description()}
       </p>
@@ -64,7 +66,7 @@ const terminalLearningResource = $derived(
 
     <div
       class="terminal-introduction__comparison"
-      aria-label="Graphical application compared with a terminal"
+      aria-label={m.guide_terminal_intro_comparison_label()}
       role="img"
     >
       <div class="application-window">
@@ -85,9 +87,11 @@ const terminalLearningResource = $derived(
         <Icon icon="material-symbols-light:arrow-forward-alt-rounded" />
       </div>
       <div class="mini-terminal">
-        <span class="mini-terminal__label">Terminal</span>
-        <p><span>$</span> open project</p>
-        <p><span>✓</span> Done</p>
+        <span class="mini-terminal__label"
+          >{m.guide_terminal_intro_terminal_label()}</span
+        >
+        <p><span>$</span> {m.guide_terminal_intro_terminal_command()}</p>
+        <p><span>✓</span> {m.guide_terminal_intro_terminal_done()}</p>
       </div>
     </div>
   </div>
@@ -114,7 +118,9 @@ const terminalLearningResource = $derived(
   <div class="mt-10">
     <div class="flex items-end justify-between gap-4">
       <div>
-        <p class="terminal-introduction__eyebrow">03 / A few useful moves</p>
+        <p class="terminal-introduction__eyebrow">
+          {m.guide_terminal_intro_basics_eyebrow()}
+        </p>
         <h4 class="font-display text-headline-sm font-bold text-primary">
           {@html m.guide_terminal_intro_basics_title()}
         </h4>

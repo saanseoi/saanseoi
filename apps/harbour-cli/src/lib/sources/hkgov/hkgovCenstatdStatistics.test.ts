@@ -54,9 +54,8 @@ const CASES: Array<{
   },
   {
     archive:
-      'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+      'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip',
+    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
     rowCount: 3,
     sourceVersion: '2023-H2',
   },
@@ -74,7 +73,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 180,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -82,7 +81,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 126,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -90,7 +89,7 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 144,
-    sourceVersion: '2021',
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -98,7 +97,15 @@ const CASES: Array<{
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
     rowCount: 162,
-    sourceVersion: '2021',
+    sourceVersion: '2024',
+  },
+  {
+    archive:
+      'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
+    datasetCode:
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    rowCount: 162,
+    sourceVersion: '2026-Q2',
   },
   {
     archive:
@@ -194,7 +201,7 @@ describe('C&SD native statistics archives', () => {
     ).rejects.toThrow('CSDI archive is missing NewTown_21C.gml.')
   })
 
-  test('fans native Area/type and HMA polygons into reviewed division contracts', async () => {
+  test('fans native Permanent Living Quarters and HMA polygons into reviewed division contracts', async () => {
     for (const entry of [CASES[0]!, CASES[3]!]) {
       const dir = await unpack(entry.archive)
       const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
@@ -241,7 +248,7 @@ describe('C&SD native statistics archives', () => {
     for (const area of overtureHongKongAreas) {
       expect(
         hkgovCenstatdStatisticDivisionId(
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
           area.censtatdCode,
         ),
       ).toBe(overtureHongKongAreaDivisionId(area.code))
@@ -257,8 +264,7 @@ function expectedFirstReferencePeriod(datasetCode: string, sourceVersion: string
     return '2016'
   }
   if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type'
+    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
   ) {
     return '2023'
   }

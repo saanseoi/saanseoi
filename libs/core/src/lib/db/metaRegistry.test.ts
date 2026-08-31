@@ -8,6 +8,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   ensureIngestRunStarted,
+  canonicaliseApiFieldSourceSchemas,
   getCurrentReleaseForDatasetId,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceDatasetType,
@@ -32,6 +33,27 @@ import {
   resolveShardForTypeRegionYear,
   updateDatasetStatus,
 } from './metaRegistry'
+
+describe('canonicaliseApiFieldSourceSchemas', () => {
+  test('retains Density as source provenance but excludes it from the canonical Population and Household field relationship', () => {
+    const result = canonicaliseApiFieldSourceSchemas({
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
+        '1.0',
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+    })
+
+    expect(result).toEqual({
+      redundantDatasetCodes: [
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      ],
+      sourceSchemas: {
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+      },
+    })
+  })
+})
 
 describe('resolveRegistryReleaseDisplayStatus', () => {
   test('keeps older cohort revisions reader-facing as revised', () => {
@@ -417,6 +439,7 @@ function createSnapshotLookupDb() {
       id TEXT PRIMARY KEY,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
@@ -456,6 +479,7 @@ function createDraftSnapshotDb() {
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       revision INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL,
       publishedAt TEXT,
@@ -625,6 +649,7 @@ function createRegionalSnapshotLookupDb() {
       snapshotLineageId TEXT,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
@@ -680,6 +705,7 @@ function createLatestDatasetLookupDb() {
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
       cohortKey TEXT NOT NULL,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       rawObjectKey TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
       releaseNotesUrl TEXT,
@@ -702,6 +728,7 @@ function createLatestDatasetLookupDb() {
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
       cohortKey TEXT,
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
       rawObjectKey TEXT,
       originalFileName TEXT,
       releaseNotesUrl TEXT,
@@ -1017,8 +1044,9 @@ function createPublishReleaseArtefactsDb() {
       ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area'),
       ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
-      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district'),
-      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type');
+      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'),
+      ('dataset-hkgov-censtatd-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'),
+      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters');
   `)
 
   return {
@@ -1045,6 +1073,7 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000),
+      ('release-supporting-censtatd-annual', '2024', '1.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
 
     INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
@@ -1052,6 +1081,7 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
+      ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
 }
@@ -2189,7 +2219,9 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         ('snapshot-published-historical-cohort', 'division', 'published'),
         ('snapshot-published-retained-revision', 'division', 'published'),
         ('snapshot-published-draft-member', 'division', 'published'),
-        ('snapshot-published-candidate', 'division', 'published');
+        ('snapshot-published-candidate', 'division', 'published'),
+        ('snapshot-published-area-variant', 'divisionArea', 'published'),
+        ('snapshot-published-boundary-variant', 'divisionBoundary', 'published');
 
       INSERT INTO apiReleaseSets (id, code, status) VALUES
         ('release-set-default', 'ss-hk-division-2026-05-20.0', 'published'),
@@ -2236,6 +2268,18 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         resourceType: 'division',
       },
     ])
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        resourceType: 'divisionArea',
+      }),
+    ).resolves.toEqual([])
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        resourceType: 'divisionBoundary',
+      }),
+    ).resolves.toEqual([])
   })
 })
 
@@ -2426,6 +2470,41 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       resourceType: 'division',
       status: 'published',
     })
+
+    sqlite.close()
+  })
+
+  test('prefers authoritative geometry over a later fallback for the same variant and cohort', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE datasets ADD COLUMN code TEXT;
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
+      INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
+        ('dataset-censtatd', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk');
+      INSERT INTO snapshotLineages (id, variant) VALUES
+        ('lineage-censtatd', 'hkgov-censtatd');
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, geometryStatus, status, publishedAt, createdAt
+      ) VALUES
+        ('censtatd-authoritative-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.0', '2024', 'authoritative', 'published', 1735689600000, 1735689600000),
+        ('censtatd-fallback-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.1', '2024', 'fallback', 'published', 1767225600000, 1767225600000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('censtatd-authoritative-2024', 'dataset-censtatd', 'release-censtatd-2024', 'primary'),
+        ('censtatd-fallback-2024', 'dataset-censtatd', 'release-censtatd-2026-q2', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2024',
+        { variant: 'hkgov-censtatd' },
+      ),
+    ).resolves.toMatchObject({ id: 'censtatd-authoritative-2024' })
 
     sqlite.close()
   })

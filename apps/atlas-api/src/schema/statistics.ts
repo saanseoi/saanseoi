@@ -36,6 +36,13 @@ const StatisticResourceSchema = z
         kind: z.string(),
         code: z.string(),
         class: z.string().optional(),
+        areaCompanion: z
+          .object({
+            cohortKey: z.string(),
+            domainCode: z.string(),
+            variant: z.string(),
+          })
+          .optional(),
       }),
       dimensions: z.record(z.string(), z.string()),
       values: z.record(z.string(), z.string()),
@@ -73,7 +80,7 @@ const RequestedLocalesQuerySchema = z
 const IncludeSchema = z
   .string()
   .regex(
-    /^(none|(fields|divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?)(,(fields|divisions|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-censtatd-area|hkgov-censtatd-hma))?))*)$/,
+    /^(none|(fields|divisions|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?))?)(,(fields|divisions|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?))?))*)$/,
   )
   .optional()
   .openapi({

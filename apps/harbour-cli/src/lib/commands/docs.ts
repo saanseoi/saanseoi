@@ -121,7 +121,7 @@ export async function createApiReleaseSetRevisionDraft(
 
   const previousCode = input.apiReleaseSetCode.replace(
     /-r\d+(?=--|$)/,
-    `-r${parsedCode.sequence - 1}`,
+    parsedCode.sequence === 1 ? '' : `-r${parsedCode.sequence - 1}`,
   )
   const previousFixture = await readFixtureIfExists(parsedCode.apiFamily, previousCode)
   if (!previousFixture) {
@@ -185,7 +185,7 @@ export async function createApiReleaseSetRevisionDraft(
   return { path: targetPath, guidePath, status: 'created' as const }
 }
 
-/** Creates editable Notes and Guide drafts for a newly published r0 release. */
+/** Creates editable Notes and Guide drafts for a newly published initial release. */
 export async function createApiReleaseSetInitialDraft(
   apiReleaseSetCode: string,
   target: UploadTarget,
@@ -825,6 +825,7 @@ async function findEffectiveReleaseFixture(
 async function readFixtureIfExists(apiFamily: string, code: string) {
   const paths = [
     resolveDocsFixturePath(apiFamily, code),
+    resolveInitialRevisionDocsFixturePath(apiFamily, code),
     resolveLegacyDocsFixturePath(apiFamily, code),
   ]
 
@@ -841,14 +842,21 @@ async function readFixtureIfExists(apiFamily: string, code: string) {
 }
 
 async function readGuideFixtureIfExists(apiFamily: string, code: string) {
-  const path = resolveGuideFixturePath(apiFamily, code)
+  const paths = [
+    resolveGuideFixturePath(apiFamily, code),
+    resolveInitialRevisionGuideFixturePath(apiFamily, code),
+  ]
 
-  if (!existsSync(path)) return null
+  for (const path of paths) {
+    if (!existsSync(path)) continue
 
-  return {
-    ...parseMarkdownFixture(await readFile(path, 'utf8')),
-    path,
+    return {
+      ...parseMarkdownFixture(await readFile(path, 'utf8')),
+      path,
+    }
   }
+
+  return null
 }
 
 async function readReleaseFixtureIfExists(datasetCode: string, code: string) {
@@ -993,7 +1001,7 @@ function resolveDocsFixturePath(apiFamily: string, code: string) {
     API_RELEASE_SET_DOCS_ROOT,
     apiFamily,
     API_RELEASE_SET_NOTES_DIRECTORY,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+    `${code}.md`,
   )
 }
 
@@ -1002,16 +1010,30 @@ function resolveGuideFixturePath(apiFamily: string, code: string) {
     API_RELEASE_SET_DOCS_ROOT,
     apiFamily,
     API_RELEASE_SET_GUIDES_DIRECTORY,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
+    `${code}.md`,
+  )
+}
+
+function resolveInitialRevisionDocsFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    API_RELEASE_SET_NOTES_DIRECTORY,
+    `${code}-r0.md`,
+  )
+}
+
+function resolveInitialRevisionGuideFixturePath(apiFamily: string, code: string) {
+  return resolve(
+    API_RELEASE_SET_DOCS_ROOT,
+    apiFamily,
+    API_RELEASE_SET_GUIDES_DIRECTORY,
+    `${code}-r0.md`,
   )
 }
 
 function resolveLegacyDocsFixturePath(apiFamily: string, code: string) {
-  return resolve(
-    API_RELEASE_SET_DOCS_ROOT,
-    apiFamily,
-    `${/-r\d+(?:--|$)/.test(code) ? code : `${code}-r0`}.md`,
-  )
+  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}.md`)
 }
 
 async function resolvePublisherName(publisherCode: string) {
@@ -1588,20 +1610,15 @@ function companionResourceShortDescription(
   locale: ApiReleaseSetSourceDocsLocale,
 ) {
   const descriptions = {
-    'areas:hkgov-censtatd:2016': {
-      en: '2016 census district areas.',
-      'zh-Hant': '2016 年人口普查區議會分區範圍。',
-      'zh-Hans': '2016 年人口普查区议会分区范围。',
+    'areas:hkgov-censtatd': {
+      en: 'C&SD annual district and Area/type statistical geometry.',
+      'zh-Hant': '政府統計處按年區議會分區及地區／類別統計地理資料。',
+      'zh-Hans': '政府统计处年度区议会分区及地区／类别统计地理数据。',
     },
-    'areas:hkgov-censtatd:2021': {
-      en: '2021 census district areas.',
-      'zh-Hant': '2021 年人口普查區議會分區範圍。',
-      'zh-Hans': '2021 年人口普查区议会分区范围。',
-    },
-    'areas:hkgov-censtatd-area': {
-      en: 'Areas for permanent living quarters by area and type.',
-      'zh-Hant': '按地區及類別劃分的常住屋宇單位範圍。',
-      'zh-Hans': '按地区及类别划分的常住屋宇单位范围。',
+    'areas:hkgov-censtatd-landclipped': {
+      en: 'C&SD census land-clipped district areas.',
+      'zh-Hant': '政府統計處人口普查經土地裁切的區議會分區範圍。',
+      'zh-Hans': '政府统计处人口普查经土地裁切的区议会分区范围。',
     },
     'areas:hkgov-had': {
       en: 'Official district areas.',

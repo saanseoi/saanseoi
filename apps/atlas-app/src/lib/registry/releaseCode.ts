@@ -8,10 +8,11 @@ const releaseVersionPattern =
 const releasePeriodVersionPattern = /^(\d{4})['-]([q][1-4]|h[1-2])(?:-r(\d+))?$/i
 
 function formatReleaseVersion(version: string) {
-  const period = version.match(releasePeriodVersionPattern)
-  if (!period?.[1] || !period[2]) return version
+  const displayVersion = version.replace(/-r0$/i, '')
+  const period = displayVersion.match(releasePeriodVersionPattern)
+  if (!period?.[1] || !period[2]) return displayVersion
 
-  const revision = period[3] ? `-R${period[3]}` : ''
+  const revision = period[3] ? `-r${period[3]}` : ''
   return `${period[1]}'${period[2].toUpperCase()}${revision}`
 }
 

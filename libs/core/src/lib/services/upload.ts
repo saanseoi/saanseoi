@@ -2,6 +2,7 @@ import {
   getDatasetById,
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
+  listIngestRunStatesForRelease,
   resetFailedDataset,
   upsertIngestRunStatus,
 } from '../db/metaRegistry'
@@ -745,6 +746,7 @@ function resolveUploadPlan(
     type,
     source,
     sourceVersion: resolvedSourceVersion,
+    geometryStatus: options.geometryStatus,
     filePath: options.filePath,
     fileName,
     originalFileName,
@@ -833,7 +835,7 @@ export async function planUpload(
   const existingDataset = await getDatasetById(db, releaseCode)
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
+    await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
   }
 
   const { latestDataset } = await getLatestDatasetForRegionSourceDatasetType(
@@ -1122,6 +1124,45 @@ function getRequiredInspection(
   return resolvedInspection
 }
 
+async function assertExistingDatasetCanBeReuploaded(
+  db: HarbourReadableDb,
+  existingDataset: {
+    datasetId: string
+    source?: string
+    datasetCode?: string
+    releaseId: string
+    status: ReleaseStatus
+  },
+  options: RegisterUploadOptions,
+) {
+  if (existingDataset.status !== 'processing') {
+    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
+    return
+  }
+
+  if (!options.resumeInterruptedProcessingRelease) {
+    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
+    return
+  }
+
+  const runs = await listIngestRunStatesForRelease(db, existingDataset.releaseId)
+  const processCompleted = runs.some(
+    run => run.phase === 'processDataset' && run.status === 'completed',
+  )
+  const activePhase = runs.find(run => run.status === 'running')
+
+  if (processCompleted && !activePhase) return
+
+  const datasetIdentifier = formatDatasetIdentifier(
+    existingDataset.datasetCode,
+    existingDataset.datasetId,
+  )
+  const reason = activePhase
+    ? `phase ${activePhase.phase} is still running`
+    : 'the processing phase did not complete'
+  throw new Error(`Cannot continue processing release ${datasetIdentifier}: ${reason}.`)
+}
+
 function assertDatasetCanBeReuploaded(
   existingDataset: {
     datasetId: string
@@ -1171,7 +1212,7 @@ export async function registerUpload(
   const now = new Date().toISOString()
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
+    await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
     await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
   } else {
     await insertDataset(db, plan, rawObjectKey, now)

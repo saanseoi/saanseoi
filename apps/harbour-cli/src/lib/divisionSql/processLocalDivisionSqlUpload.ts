@@ -226,6 +226,8 @@ export async function processLocalDivisionSqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
@@ -843,6 +845,7 @@ export async function processLocalDivisionSqlUpload(
           releaseId,
           releaseCode,
           {
+            deferApiReleaseSet: options.deferApiReleaseSet,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )

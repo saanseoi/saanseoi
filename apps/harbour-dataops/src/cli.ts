@@ -15,11 +15,12 @@ function printUsage() {
   bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes] [--continue]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
+  bun run dataops -- geometry:simplify-coverage <input.json> --output PATH --tolerance-metres METRES
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
   bun run dataops -- hkgov-pland:ingest --kind pu|new-town <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
-  bun run dataops -- hkgov-censtatd:district-land-area-population-density <source.zip> --target local|preview|production --source-version 2022|2024 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
-  bun run dataops -- hkgov-censtatd:district-area <source.zip> --target local|preview|production --source-version 2016|2021 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
-  bun run dataops -- hkgov-censtatd:statistics <source.zip> --target local|preview|production --dataset-code CODE --source-version PERIOD --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256 [--geography-only] [--force-upload]
+  bun run dataops -- hkgov-censtatd:district-land-area-population-density <source.zip> --target local|preview|production --source-version 2022|2024 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256 [--defer-stats-release-set] [--defer-api-release-set]
+  bun run dataops -- hkgov-censtatd:district-area <source.zip> --target local|preview|production --dataset-code CODE --source-version 2016|2021|2024 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256 [--defer-api-release-set]
+  bun run dataops -- hkgov-censtatd:statistics <source.zip> --target local|preview|production --dataset-code CODE --source-version PERIOD --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256 [--geography-only] [--defer-api-release-set] [--force-upload]
   bun run dataops -- hkgov-had:district-area <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-hyd:street <source.zip> --target local|preview|production --dataset-code CODE --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-landsd:place-name <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
@@ -73,6 +74,13 @@ async function main() {
     case 'hkgov-pland:prepare': {
       const { runHkgovPlandPrepCommand } = await import('./commands/hkgovPland.ts')
       await runHkgovPlandPrepCommand(args, printUsage)
+      return
+    }
+    case 'geometry:simplify-coverage': {
+      const { runGeometrySimplifyCoverageCommand } = await import(
+        './commands/geometrySimplifyCoverage.ts'
+      )
+      await runGeometrySimplifyCoverageCommand(args, printUsage)
       return
     }
     case 'hkgov-pland:backfill': {

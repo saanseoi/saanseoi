@@ -17,6 +17,17 @@ Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
 `geography.code`; the publisher's numeric `DC` remains only in source provenance and the
 constructed `sourceFeatureRef`.
 
+When a reviewed statistic has an area companion, its dataset fixture declares
+`areaCompanionByReferencePeriod`. Ingestion resolves that declaration for each
+observation and stores its `domainCode`, `variant` and `cohortKey` in
+`geography.areaCompanion`. Thus bare `include=areas` and `include=divisions` use the
+geometry and canonical division domain explicitly reviewed for the record's own
+reference period; the API never infers either from a dataset name, delivery release, or
+the Geographic domain's Overture default. A qualified `areas:<variant>` request changes
+only the variant and retains that stored cohort. If that exact counterpart is
+unavailable, it returns `409 variant_cohort_unavailable` rather than falling back. The
+response permalink qualifies the resolved variant.
+
 For the C&SD density releases, the updater parses its locally prepared publisher ZIP and
 records the mirrored archive's managed key and SHA-256 in source provenance. Only GML
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
@@ -45,8 +56,8 @@ distinct exact reference period. Statistics release sets use that period code as
 cohort and composition members match it with `exact_ref`. Dataset-code members are
 optional because not every dataset publishes every period; a later dataset or corrected
 compilation creates a new immutable revision only for the affected period. The first
-compilation is always an explicit `-r0` release set; later source contributions use
-`-r1`, `-r2`, and so on.
+compilation is an unadorned initial release set; later source contributions use `-r1`,
+`-r2`, and so on.
 
 Each packed measure value stores exact decimal text (not floats), its original source
 literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
@@ -119,28 +130,23 @@ The source-release Stats tab then exposes the release's measure dictionary with 
 definition, unit, and observation count. Its structural cards at the end show the
 reviewed statistic kinds and aggregations; `valueKind` remains an ingestion detail.
 
-Area/type and HMA are approved source-release fan-outs. Area/type creates the three
-Geographic-domain level-1 areas; HMA creates the separate C&SD Housing Market Area
-domain. Their observations carry the matching deterministic canonical `divisionId`.
-Building Group centroids remain source-only for a future buildings projection.
+Permanent Living Quarters and HMA are approved source-release fan-outs. Permanent Living
+Quarters creates the three Geographic-domain level-1 areas; HMA creates the separate
+C&SD Housing Market Area domain. Their observations carry the matching deterministic
+canonical `divisionId`. Building Group centroids remain source-only for a future
+buildings projection.
 
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).
 
-## Local C&SD replay reset
+## Initial Statistics publication
 
-Use `./bin/saanseoi stats:reset-censtatd --target local --dry-run` to inspect the local
-C&SD statistic releases and rows that would be cleared. Re-run with `--yes` to remove
-only their source assertions, canonical statistic rows, ingestion metrics and processing
-actions, then mark those releases retryable. It does not remove the C&SD district-area
-source assertions or any non-C&SD statistics. Re-ingest with
-`./bin/saanseoi update --target local --scope stats --download --yes --check-now`.
-
-For a launch bootstrap, add `--defer-stats-release-set` to that update command. It
-publishes all source releases and materialises their snapshots without publishing an
-intermediate Statistics release set. Then run
-`./bin/saanseoi release-sets:bootstrap-stats --target local --region hk` to create one
-cohort-complete `r0` per reference period.
+`./bin/saanseoi init:stats:official --target local` ingests the official C&SD launch
+set, defers intermediate Statistics release-set publication, and bootstraps the
+completed cohorts once. Each reference period is therefore first published as one
+complete unadorned initial release set. Bootstrap considers every published Stats-family
+source and selects its linked `divisionStatistic` snapshots, so a source whose primary
+artefact is C&SD geometry contributes both its geometry and its Statistics periods.
 
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and

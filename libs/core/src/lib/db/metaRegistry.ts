@@ -28,7 +28,13 @@ import {
   resourceTypeCodeSlug,
 } from '../../codes'
 
-import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
+import type {
+  DatasetRecord,
+  GeometryStatus,
+  RegionCode,
+  ResourceType,
+  UploadPlan,
+} from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type {
   ApiFamilyType,
@@ -1628,6 +1634,7 @@ const releaseRecordSelection = {
   releaseCode: metaReleases.code,
   regionCode: metaDatasets.regionCode,
   cohortKey: metaReleases.cohortKey,
+  geometryStatus: metaReleases.geometryStatus,
   theme: metaDatasets.theme,
   type: metaReleases.resourceType,
   sourceVariant: metaDatasets.sourceVariant,
@@ -1828,6 +1835,20 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   )
 }
 
+export async function listIngestRunStatesForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+) {
+  return db
+    .select({
+      phase: metaSchema.ingestRuns.phase,
+      status: metaSchema.ingestRuns.status,
+    })
+    .from(metaSchema.ingestRuns)
+    .where(eq(metaSchema.ingestRuns.releaseId, releaseId))
+    .all()
+}
+
 export async function getDatasetRecordByReleaseId(
   db: HarbourReadableDb,
   releaseId: string,
@@ -1990,6 +2011,7 @@ export async function insertDataset(
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2019,6 +2041,7 @@ export async function insertDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2125,6 +2148,7 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2145,6 +2169,7 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
+      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2615,7 +2640,13 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             eq(metaSnapshotSources.role, 'primary'),
           ),
         )
-        .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+        .orderBy(
+          asc(
+            sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+          ),
+          desc(metaSnapshots.publishedAt),
+          desc(metaSnapshots.createdAt),
+        )
         .limit(1)
         .get()) ?? null
     )
@@ -2651,7 +2682,13 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
             : undefined,
         ),
       )
-      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .orderBy(
+        asc(
+          sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+        ),
+        desc(metaSnapshots.publishedAt),
+        desc(metaSnapshots.createdAt),
+      )
       .limit(1)
       .get()) ?? null
   )
@@ -2770,6 +2807,9 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBef
         ),
       )
       .orderBy(
+        asc(
+          sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+        ),
         desc(metaSnapshots.cohortKey),
         desc(metaSnapshots.publishedAt),
         desc(metaSnapshots.createdAt),
@@ -2825,6 +2865,9 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
       ),
     )
     .orderBy(
+      asc(
+        sql`case ${metaSnapshots.geometryStatus} when 'authoritative' then 0 else 1 end`,
+      ),
       desc(metaSnapshots.cohortKey),
       desc(metaSnapshots.publishedAt),
       desc(metaSnapshots.createdAt),
@@ -2850,13 +2893,33 @@ export async function ensureDraftSnapshotForRelease(
     cohortKey: string
     datasetCode: string
     datasetId: string
+    geometryStatus?: GeometryStatus
     identityMode?: 'persistent' | 'cohort_scoped'
+    /**
+     * C&SD statistical companions can combine several source releases (for
+     * example annual districts and Area/type polygons) in one draft snapshot.
+     */
+    reuseDraftSnapshotForVariant?: boolean
+    /**
+     * Keep several publisher-authorised source datasets in one geometry
+     * companion family. Their source releases remain distinct snapshot sources.
+     */
+    reuseSnapshotLineageForVariant?: boolean
     regionCode: string
     sourceReleaseId: string
     variant?: string
   },
 ) {
   const variant = args.variant ?? 'default'
+  const geometryStatus = args.geometryStatus ?? 'authoritative'
+  const preserveOrPromoteGeometryStatus = async (snapshotId: string) => {
+    if (geometryStatus !== 'authoritative') return
+    await db
+      .update(metaSnapshots)
+      .set({ geometryStatus: 'authoritative', updatedAt: toIsoTimestamp() })
+      .where(eq(metaSnapshots.id, snapshotId))
+      .run()
+  }
   const snapshotForSourceRelease = await db
     .select({
       id: metaSnapshots.id,
@@ -2886,11 +2949,67 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (snapshotForSourceRelease) {
+    await preserveOrPromoteGeometryStatus(snapshotForSourceRelease.id)
     return snapshotForSourceRelease
   }
 
-  const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
-  const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
+  if (args.reuseDraftSnapshotForVariant) {
+    const sharedDraft = await db
+      .select({
+        id: metaSnapshots.id,
+        parentSnapshotId: metaSnapshots.parentSnapshotId,
+        snapshotLineageId: metaSnapshots.snapshotLineageId,
+        code: metaSnapshots.code,
+        cohortKey: metaSnapshots.cohortKey,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .where(
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.cohortKey, args.cohortKey),
+          eq(metaSnapshots.status, 'draft'),
+          eq(metaSnapshotLineages.regionCode, args.regionCode),
+          eq(metaSnapshotLineages.variant, variant),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.revision), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()
+    if (sharedDraft) {
+      await preserveOrPromoteGeometryStatus(sharedDraft.id)
+      return sharedDraft
+    }
+  }
+
+  const reusableLineage = args.reuseSnapshotLineageForVariant
+    ? await db
+        .select({
+          id: metaSnapshotLineages.id,
+          code: metaSnapshotLineages.code,
+        })
+        .from(metaSnapshotLineages)
+        .where(
+          and(
+            eq(metaSnapshotLineages.regionCode, args.regionCode),
+            eq(metaSnapshotLineages.resourceType, resourceType),
+            eq(metaSnapshotLineages.variant, variant),
+          ),
+        )
+        .orderBy(desc(metaSnapshotLineages.createdAt))
+        .limit(1)
+        .get()
+    : null
+  const lineageCode =
+    reusableLineage?.code ??
+    buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
+  const deterministicLineageId =
+    reusableLineage?.id ?? buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
     args.identityMode ??
     (variant === 'hkgov-pland-new-town' ? 'cohort_scoped' : 'persistent')
@@ -2904,50 +3023,54 @@ export async function ensureDraftSnapshotForRelease(
     primaryDatasetId: args.datasetId,
   })
 
-  await db
-    .insert(metaSnapshotLineages)
-    .values({
-      id: deterministicLineageId,
-      code: lineageCode,
-      regionCode: args.regionCode,
-      resourceType,
-      variant,
-      identityMode,
-      primaryDatasetId: args.datasetId,
-      versionHash: lineageVersionHash,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: [
-        metaSnapshotLineages.primaryDatasetId,
-        metaSnapshotLineages.resourceType,
-        metaSnapshotLineages.variant,
-      ],
-      set: {
+  if (!reusableLineage) {
+    await db
+      .insert(metaSnapshotLineages)
+      .values({
+        id: deterministicLineageId,
         code: lineageCode,
         regionCode: args.regionCode,
         resourceType,
         variant,
         identityMode,
+        primaryDatasetId: args.datasetId,
         versionHash: lineageVersionHash,
+        createdAt: now,
         updatedAt: now,
-      },
-    })
-    .run()
+      })
+      .onConflictDoUpdate({
+        target: [
+          metaSnapshotLineages.primaryDatasetId,
+          metaSnapshotLineages.resourceType,
+          metaSnapshotLineages.variant,
+        ],
+        set: {
+          code: lineageCode,
+          regionCode: args.regionCode,
+          resourceType,
+          variant,
+          identityMode,
+          versionHash: lineageVersionHash,
+          updatedAt: now,
+        },
+      })
+      .run()
+  }
 
-  const lineage = await db
-    .select({ id: metaSnapshotLineages.id })
-    .from(metaSnapshotLineages)
-    .where(
-      and(
-        eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
-        eq(metaSnapshotLineages.resourceType, resourceType),
-        eq(metaSnapshotLineages.variant, variant),
-      ),
-    )
-    .limit(1)
-    .get()
+  const lineage =
+    reusableLineage ??
+    (await db
+      .select({ id: metaSnapshotLineages.id })
+      .from(metaSnapshotLineages)
+      .where(
+        and(
+          eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
+          eq(metaSnapshotLineages.resourceType, resourceType),
+          eq(metaSnapshotLineages.variant, variant),
+        ),
+      )
+      .limit(1)
+      .get())
 
   if (!lineage) {
     throw new Error(`Snapshot lineage not found for dataset ${args.datasetCode}.`)
@@ -2978,6 +3101,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (latestForCohort?.status === 'draft') {
+    await preserveOrPromoteGeometryStatus(latestForCohort.id)
     return latestForCohort
   }
 
@@ -3030,6 +3154,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (existing) {
+    await preserveOrPromoteGeometryStatus(existing.id)
     return existing
   }
 
@@ -3044,6 +3169,7 @@ export async function ensureDraftSnapshotForRelease(
       resourceType,
       code: snapshotCode,
       cohortKey: args.cohortKey,
+      geometryStatus,
       revision,
       status: 'draft',
       publishedAt: null,
@@ -3195,7 +3321,7 @@ export async function resolveSnapshotForRelease(
   )
 }
 
-/** Returns the latest snapshot revision for every cohort materialised by a release. */
+/** Returns the latest snapshot revision for every cohort and variant materialised by a release. */
 export async function listSnapshotsForRelease(
   db: HarbourReadableDb,
   releaseId: string,
@@ -3209,6 +3335,7 @@ export async function listSnapshotsForRelease(
       id: metaSnapshots.id,
       revision: metaSnapshots.revision,
       status: metaSnapshots.status,
+      variant: metaSnapshotLineages.variant,
     })
     .from(metaSnapshotSources)
     .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
@@ -3228,7 +3355,8 @@ export async function listSnapshotsForRelease(
 
   const latestByCohort = new Map<string, (typeof rows)[number]>()
   for (const row of rows) {
-    if (!latestByCohort.has(row.cohortKey)) latestByCohort.set(row.cohortKey, row)
+    const key = `${row.cohortKey}\u0000${row.variant}`
+    if (!latestByCohort.has(key)) latestByCohort.set(key, row)
   }
   return [...latestByCohort.values()]
 }
@@ -3545,7 +3673,6 @@ export async function ensureDraftReleaseSetForRelease(
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
   options: {
     domainCode?: string
-    explicitInitialRevision?: boolean
     forceNew?: boolean
   } = {},
 ) {
@@ -3657,7 +3784,6 @@ export async function ensureDraftReleaseSetForRelease(
       apiVersion.familyType,
       release.cohortKey,
       nextRevision,
-      { explicitInitialRevision: options.explicitInitialRevision },
     ),
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
   ]
@@ -4010,6 +4136,8 @@ export async function publishReleaseArtefacts(
     publishedAt: string
     releaseSetId: string
     snapshotId: string
+    /** The materialised snapshot variant, when it is more specific than its dataset. */
+    snapshotVariant?: string
     type: ResourceType
     /** Publish the dataset snapshot, but leave the API release set as draft. */
     deferApiReleaseSet?: boolean
@@ -4091,12 +4219,14 @@ export async function publishReleaseArtefacts(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
-  const datasetVariant = datasetVariantForSource(args.type, args.dataset.source, {
-    cohortKey: args.dataset.cohortKey,
-    datasetCode: args.dataset.datasetCode,
-    sourceVariant: args.dataset.sourceVariant,
-    sourceVersion: args.dataset.sourceVersion,
-  })
+  const datasetVariant =
+    args.snapshotVariant ??
+    datasetVariantForSource(args.type, args.dataset.source, {
+      cohortKey: args.dataset.cohortKey,
+      datasetCode: args.dataset.datasetCode,
+      sourceVariant: args.dataset.sourceVariant,
+      sourceVersion: args.dataset.sourceVersion,
+    })
   const datasetMember = compositionMembers.find(
     member =>
       member.domainCode === releaseSet.domainCode &&
@@ -4335,15 +4465,19 @@ export async function publishReleaseArtefacts(
     sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
   }
 
+  const canonicalSourceSchemas = canonicaliseApiFieldSourceSchemas(
+    Object.fromEntries(
+      [...sourceSchemas.entries()].sort(([left], [right]) => left.localeCompare(right)),
+    ),
+  )
   const apiFieldFixtureLookup = {
     apiVersion: releaseSet.apiVersion,
     domainCode: releaseSet.domainCode,
     lineageSnapshotVersions: primarySnapshotLineageVersions,
     schemaVersion: releaseSet.schemaVersion,
     rulesetVersion: releaseSet.rulesetVersion,
-    sourceSchemas: Object.fromEntries(
-      [...sourceSchemas.entries()].sort(([left], [right]) => left.localeCompare(right)),
-    ),
+    sourceSchemas: canonicalSourceSchemas.sourceSchemas,
+    redundantSourceDatasetCodes: canonicalSourceSchemas.redundantDatasetCodes,
   }
   const resolvedApiFieldFixture = deferApiReleaseSet
     ? null
@@ -4683,6 +4817,44 @@ export async function publishReleaseArtefacts(
   })
 
   return apiCatalogRevision
+}
+
+const CENSTATD_DENSITY_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const CENSTATD_PERMANENT_LIVING_QUARTERS_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+const CENSTATD_POPULATION_HOUSEHOLDS_DISTRICT_DATASET =
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+
+/**
+ * Selects the canonical C&SD source relationship for API field provenance.
+ *
+ * Density remains a retained snapshot source because it can supply the first
+ * reviewed district geometry. Once Population and Household Statistics or
+ * Permanent Living Quarters is present, however, it is redundant for the API
+ * field contract and must not create a second competing field signature.
+ */
+export function canonicaliseApiFieldSourceSchemas(
+  sourceSchemas: Record<string, string>,
+) {
+  const canonicalSourceSchemas = { ...sourceSchemas }
+  const hasDensity =
+    canonicalSourceSchemas[CENSTATD_DENSITY_DISTRICT_DATASET] !== undefined
+  const hasCanonicalCenstatdSource =
+    canonicalSourceSchemas[CENSTATD_POPULATION_HOUSEHOLDS_DISTRICT_DATASET] !==
+      undefined ||
+    canonicalSourceSchemas[CENSTATD_PERMANENT_LIVING_QUARTERS_DATASET] !== undefined
+  const redundantDatasetCodes =
+    hasDensity && hasCanonicalCenstatdSource ? [CENSTATD_DENSITY_DISTRICT_DATASET] : []
+
+  for (const datasetCode of redundantDatasetCodes) {
+    delete canonicalSourceSchemas[datasetCode]
+  }
+
+  return {
+    redundantDatasetCodes,
+    sourceSchemas: canonicalSourceSchemas,
+  }
 }
 
 export async function publishSnapshot(
@@ -5115,7 +5287,20 @@ export async function listCurrentSnapshotCleanupCandidates(
   }
   const protectedSnapshotIds = new Set(protectedRows.map(row => row.snapshotId))
 
-  return snapshots.filter(row => !protectedSnapshotIds.has(row.snapshotId))
+  return snapshots.filter(
+    row =>
+      !protectedSnapshotIds.has(row.snapshotId) &&
+      !isExplicitlyRequestableDivisionGeometry(row.resourceType),
+  )
+}
+
+/**
+ * Divisions can resolve a published geometry snapshot by its explicit variant
+ * and cohort, independently of the active release-set composition. Retain
+ * those materialisations in the current store while they remain published.
+ */
+function isExplicitlyRequestableDivisionGeometry(resourceType: ResourceType) {
+  return resourceType === 'divisionArea' || resourceType === 'divisionBoundary'
 }
 
 export async function resolveActiveSnapshotForType(

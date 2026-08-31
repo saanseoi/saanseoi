@@ -253,9 +253,8 @@ flowchart TD
   Geographic --> ODiv[division / overture<br/>primary, required<br/>exact_ref]
   Geographic --> OArea[divisionArea / overture<br/>geometry, required<br/>exact_ref]
   Geographic --> HadArea[divisionArea / hkgov-had<br/>geometry, required<br/>latest_at_or_before_cohort_per_dataset]
-  Geographic --> C2016[divisionArea / hkgov-censtatd:2016<br/>geometry, required<br/>latest compatible]
-  Geographic --> C2021[divisionArea / hkgov-censtatd:2021<br/>geometry, required<br/>latest compatible]
-  Geographic --> CArea[divisionArea / hkgov-censtatd-area<br/>geometry, required<br/>latest compatible]
+  Geographic --> CsdArea[divisionArea / hkgov-censtatd<br/>annual district and Area/type geometry<br/>exact cohort]
+  Geographic --> CsdLand[divisionArea / hkgov-censtatd-landclipped<br/>census district geometry<br/>exact cohort]
   Geographic --> Boundary[divisionBoundary / overture<br/>geometry, required<br/>exact_ref]
 
   HMA --> HMADiv[division / hkgov-censtatd:2021<br/>primary, required<br/>exact_ref]

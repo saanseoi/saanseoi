@@ -280,7 +280,7 @@ onMount(() => {
     {@html m.guide_editor_card_explainer_title()}
   </h4>
   <div
-    class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-13 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
+    class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-17 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
   >
     <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
       <div
@@ -293,7 +293,7 @@ onMount(() => {
           {comments}
           dimmedLines={[1, 2]}
           {editorIcon}
-          label="src/main.ts"
+          label={m.guide_editor_card_explainer_label()}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}

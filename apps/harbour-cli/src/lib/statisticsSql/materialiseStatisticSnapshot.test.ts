@@ -99,3 +99,49 @@ test('assigns source delivery and canonical period snapshots to different shards
 
   sqlite.close()
 })
+
+test('rejects a reference period later than the source release cohort', async () => {
+  const sqlite = new Database(':memory:')
+  sqlite.exec(
+    loadMigrationSql(MIGRATIONS_DIR, ['meta']).replaceAll(
+      '--> statement-breakpoint',
+      '',
+    ),
+  )
+  sqlite.exec(`
+    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES ('publisher', 'hkgov-censtatd', 'publisher-hash', '${NOW}', '${NOW}');
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'dataset', 'publisher', 'dataset-statistics', 'hk', 'static', 'yearly',
+      'stats', 'official-statistics', 'dataset-hash', '${NOW}', '${NOW}'
+    );
+    INSERT INTO releases (
+      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      'release', 'dataset', 'divisionStatistic', 'release-statistics-2021',
+      '2021', '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
+    );
+  `)
+  const db = createLocalHarbourDb(sqlite)
+
+  await expect(
+    materialiseStatisticSnapshots({
+      datasetCode: 'dataset-statistics',
+      metaDb: db,
+      referencePeriods: [{ code: '2025', endYear: '2025' }],
+      releaseId: 'release',
+      target: { environment: 'dev', remote: false },
+    }),
+  ).rejects.toThrow(
+    'Statistic reference period 2025 postdates source release release-statistics-2021 (2021).',
+  )
+  expect(sqlite.query('SELECT count(*) AS count FROM snapshots').get()).toEqual({
+    count: 0,
+  })
+
+  sqlite.close()
+})

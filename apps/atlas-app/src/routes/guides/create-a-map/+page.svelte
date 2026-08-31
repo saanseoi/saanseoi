@@ -1,4 +1,5 @@
 <script lang="ts">
+import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { page } from '$app/state'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
@@ -49,6 +50,7 @@ import {
   createAMapTileset,
   detectOperatingSystem,
   getCreateAMapQueryChoice,
+  type CreateAMapSelectionQuery,
   type CreateAMapSelectionValue,
 } from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
@@ -71,38 +73,47 @@ import {
 import { createCreateAMapGuidePresentation } from './createAMapGuidePresentation'
 import {
   createAgentProjectCommand,
-  createDeploymentCode,
   editorCardExplainerCode,
   editorCardExplainerDisplayCode,
   createNotebookCode,
   createNotebookSetupCode,
   createProjectSetupCode,
   createRestartProjectCode,
+  createUrbanDensityStatsCode,
+  createUrbanDensityStatsDisplayCode,
   createUrbanDensityMapReadyCode,
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
   getBunInstallCode,
   getCreateAMapRendererReference,
-  getHostingInstallCode,
   getRendererTerminalCommand,
   iframeCode,
   mapboxTokenCode,
   urbanDensityMapCode,
-  urbanDensityCensusAreasCode,
+  urbanDensityMapDisplayCode,
   urbanDensityCalculationCode,
   urbanDensityCalculationDisplayCode,
   urbanDensityMetricsCode,
-  urbanDensityMetricsCss,
-  urbanDensityMetricsCssDisplayCode,
+  urbanDensityMetricsDisplayCode,
+  createUrbanDensityMetricsCss,
   urbanDensityLiveableAreaCode,
+  urbanDensityLiveableAreaCss,
+  urbanDensityLiveableAreaDisplayCode,
+  urbanDensityLiveableAreaMapCode,
+  urbanDensityLiveableAreaMapDisplayCode,
+  urbanDensityCollectNonLiveableLandCode,
+  urbanDensityCollectNonLiveableLandDisplayCode,
+  urbanDensitySetupZ14TileFetcherCode,
+  urbanDensitySetupZ14TileFetcherCss,
+  urbanDensitySetupZ14TileFetcherDisplayCode,
   urbanDensityLiveableMetricsCode,
-  urbanDensityStatsCode,
-  urbanDensityStatsDisplayCode,
+  urbanDensityLiveableMetricsDisplayCode,
   urbanDensityTurfInstallCode,
   viteReadyOutput,
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
+import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import {
@@ -123,7 +134,51 @@ type HandoverChatLlm = Extract<
 type VpnAccess = CreateAMapSelectionValue<'vpnAccess'>
 type WebsitePlatform = CreateAMapSelectionValue<'websitePlatform'>
 
+const getPublishReadinessKey = ({
+  aiAccess,
+  hosting,
+  llmMode,
+  operatingSystem,
+  terminalExperience,
+}: Pick<
+  CreateAMapSelectionQuery,
+  'aiAccess' | 'hosting' | 'llmMode' | 'operatingSystem' | 'terminalExperience'
+>) => [hosting, operatingSystem, terminalExperience, llmMode, aiAccess].join(':')
+
+const getCompletedPublishRequirements = (value: string | null, key: string) => {
+  const [storedKey, serializedRequirements] = value?.split('|', 2) ?? []
+  if (storedKey !== key || !serializedRequirements) return []
+
+  return [
+    ...new Set(
+      serializedRequirements
+        .split(',')
+        .map(Number)
+        .filter(
+          requirement =>
+            Number.isInteger(requirement) && requirement >= 1 && requirement <= 6,
+        ),
+    ),
+  ].sort((left, right) => left - right)
+}
+
 let locale = $derived(getCurrentLocale())
+const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
+  /\/+$/,
+  '',
+)
+let urbanDensityStatsCode = $derived(
+  createUrbanDensityStatsCode(
+    apiBaseUrl,
+    m.guide_data_urban_density_stats_comment_saved_result(),
+  ),
+)
+let urbanDensityStatsDisplayCode = $derived(
+  createUrbanDensityStatsDisplayCode(
+    apiBaseUrl,
+    m.guide_data_urban_density_stats_comment_saved_result(),
+  ),
+)
 let isVpnRequired = $derived(page.data.isVpnRequired)
 let visitorRegionCode = $derived(page.data.visitorRegionCode)
 const vpnRegionLabels = {
@@ -214,6 +269,42 @@ let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 let usingExistingBasemapApiKey = $state(false)
+let isMapPublished = $state(false)
+let publishedHosting = $state<string | undefined>()
+const initialPublishReadinessKey = getPublishReadinessKey({
+  aiAccess: getCreateAMapQueryChoice(page.url.searchParams, 'aiAccess'),
+  hosting: getCreateAMapQueryChoice(page.url.searchParams, 'hosting'),
+  llmMode: getCreateAMapQueryChoice(page.url.searchParams, 'llmMode'),
+  operatingSystem: getCreateAMapQueryChoice(page.url.searchParams, 'operatingSystem'),
+  terminalExperience: getCreateAMapQueryChoice(
+    page.url.searchParams,
+    'terminalExperience',
+  ),
+})
+let publishReadinessKey = $derived(
+  getPublishReadinessKey({
+    aiAccess,
+    hosting,
+    llmMode,
+    operatingSystem,
+    terminalExperience,
+  }),
+)
+let completedPublishRequirements = $state(
+  getCompletedPublishRequirements(
+    page.url.searchParams.get('publish-ready'),
+    initialPublishReadinessKey,
+  ),
+)
+let previousPublishReadinessKey = $state(initialPublishReadinessKey)
+
+$effect(() => {
+  if (previousPublishReadinessKey !== publishReadinessKey) {
+    completedPublishRequirements = []
+    isMapPublished = false
+  }
+  previousPublishReadinessKey = publishReadinessKey
+})
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
 let dataReadinessKey = $derived(dataSource ?? '')
@@ -241,7 +332,7 @@ let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
 let basemapAccountContinueUrl = $derived.by(() => {
   const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
-  return `${url.pathname}${url.search}${url.hash}`
+  return `${url.pathname}${url.search}`
 })
 
 const completeEditorReadiness = () => {
@@ -335,6 +426,14 @@ const resetMapboxToken = () => {
   mapboxTokenConfigured = false
 }
 
+const scrollToBasemapApiKeyRequirement = async () => {
+  await tick()
+  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+  const requirement = document.getElementById('basemap-api-key-requirement')
+  if (requirement) scrollToElementBelowHeader(requirement)
+}
+
 const openZedSetup = async () => {
   zedSetupExpanded = true
   zedSetupContentExpanded = true
@@ -385,7 +484,9 @@ createCreateAMapGuideAdapter({
     completedEditorReadinessKey,
     completedLlmReadinessKey,
     completedPaymentKey,
+    completedPublishRequirements,
     mapboxTokenConfigured,
+    publishReadinessKey,
     agenticAiPrimerExpanded,
     terminalIntroductionExpanded,
     zedSetupExpanded,
@@ -657,10 +758,12 @@ const handleObjectiveChange = (value: string) => {
   mobilePlatform = undefined
   notebookLibrary = undefined
   notebookRuntime = undefined
+  isMapPublished = false
 }
 const handleWebsitePlatformChange = (value: string) => {
   websitePlatform = value as WebsitePlatform
   hosting = value === 'other' ? undefined : 'cloudflare'
+  isMapPublished = false
 }
 const handleRendererChange = (value: string) => {
   renderer = value as CreateAMapSelectionValue<'renderer'>
@@ -671,7 +774,10 @@ onMount(() => {
   operatingSystem ??= detectOperatingSystem(navigator.userAgent)
   analyticsTrackingStarted = true
 
-  if (page.url.searchParams.get('basemap-account') === 'complete') {
+  if (
+    page.url.searchParams.get('basemap-account') === 'complete' &&
+    !window.location.hash
+  ) {
     void tick().then(() => {
       const basemap = document.getElementById('basemap')
       if (basemap) scrollToElementBelowHeader(basemap)
@@ -1088,6 +1194,10 @@ const notebookRuntimeChoices = $derived.by(() => {
 const selectedHosting = $derived(
   hostingChoices.find(choice => choice.value === hosting),
 )
+$effect(() => {
+  if (publishedHosting && publishedHosting !== hosting) isMapPublished = false
+  publishedHosting = hosting
+})
 const selectedWebsitePlatform = $derived(
   websitePlatformChoices.find(choice => choice.value === websitePlatform),
 )
@@ -1263,6 +1373,36 @@ const selectedMapLibrary = $derived(
       : selectedRenderer,
 )
 const outline = $derived(guideOutline)
+const projectOutline = $derived([
+  {
+    id: 'project-pre-check',
+    label: m.guide_data_urban_density_toc_pre_check(),
+  },
+  {
+    id: 'project-fetch-stats',
+    label: m.guide_data_urban_density_toc_fetch_stats(),
+  },
+  {
+    id: 'project-calc-pop-density',
+    label: m.guide_data_urban_density_toc_calc_pop_density(),
+  },
+  {
+    id: 'project-add-stats-to-map',
+    label: m.guide_data_urban_density_toc_add_stats_to_map(),
+  },
+  {
+    id: 'project-highlight-excl',
+    label: m.guide_data_urban_density_toc_highlight_excl(),
+  },
+  {
+    id: 'project-calc-liveable-land',
+    label: m.guide_data_urban_density_toc_calc_liveable_land(),
+  },
+  {
+    id: 'project-finalise-map',
+    label: m.guide_data_urban_density_toc_finalise_map(),
+  },
+])
 const selectedPlatform = $derived(
   objective === 'local'
     ? m.guide_platform_local()
@@ -1396,18 +1536,12 @@ const guideDecisions = $derived.by(() => {
   ]
 })
 
-const hostingInstallCode = $derived(getHostingInstallCode(hosting))
 const setupCode = $derived(createProjectSetupCode(operatingSystem, renderer))
-const hostingInstallExplanation = $derived(
-  m.guide_setup_install_hosting_tool_explanation({
-    host: selectedHosting?.label ?? '',
-  }),
-)
 const bunInstallExplanation = $derived(
   `${m.guide_setup_install_bun_explanation()}${terminalExperience === 'basic' ? ` ${m.guide_setup_install_bun_alternative_toolchain()}` : ''}`,
 )
-const setupStartStepNumber = $derived(hostingInstallCode ? 4 : 3)
-const setupContinueStepNumber = $derived(hostingInstallCode ? 5 : 4)
+const setupStartStepNumber = 3
+const setupContinueStepNumber = 4
 const restartProjectCode = $derived(createRestartProjectCode(operatingSystem))
 const agentProjectCommand = $derived(createAgentProjectCommand(agentTool))
 const stopServerModifier = $derived(operatingSystem === 'macos' ? 'Control' : 'Ctrl')
@@ -1426,18 +1560,6 @@ const projectSetupIntro = $derived.by(() => {
 const bunInstallCode = $derived(getBunInstallCode(operatingSystem))
 const notebookSetupCode = $derived(
   createNotebookSetupCode(operatingSystem, notebookLibrary),
-)
-const deploymentCode = $derived(createDeploymentCode(hosting))
-const hostingDocsUrl = $derived(
-  hosting === 'cloudflare'
-    ? 'https://developers.cloudflare.com/workers/static-assets/get-started/'
-    : hosting === 'github-pages'
-      ? 'https://docs.github.com/pages/getting-started-with-github-pages/creating-a-github-pages-site'
-      : hosting === 'vercel'
-        ? 'https://vercel.com/docs/deployments'
-        : hosting === 'netlify'
-          ? 'https://docs.netlify.com/welcome/add-new-site/'
-          : undefined,
 )
 const mobileDocsUrl = $derived(
   mobilePlatform === 'android'
@@ -1491,6 +1613,12 @@ const rendererTerminalReminder = $derived(
 )
 const rendererEditorPath = 'src/main.ts'
 const rendererStylesheetPath = 'src/style.css'
+const rendererEditorLabel = $derived(
+  `${rendererEditorPath} — ${m.guide_renderer_editor_card_start_map()}`,
+)
+const rendererStylesheetLabel = $derived(
+  `${rendererStylesheetPath} — ${m.guide_renderer_editor_card_reset_styles()}`,
+)
 const editorNewFileShortcut = $derived(operatingSystem === 'macos' ? '⌘N' : 'Ctrl+N')
 const mapboxTokenPasteInstruction = $derived(
   operatingSystem === 'windows'
@@ -1538,7 +1666,7 @@ const basemapCode = $derived(
     : '',
 )
 const basemapCodeDimmedLines = $derived(
-  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 24] : [],
+  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 25] : [],
 )
 const basemapCodeComments = $derived(
   renderer === 'maplibre'
@@ -1741,6 +1869,9 @@ const styleChoices = $derived.by(() =>
   <div class="mt-7">
     <GuideRoot
       {outline}
+      {projectOutline}
+      projectOutlineAnchorId="saanseoi-project"
+      projectOutlineEndAnchorId="publish"
       decisions={guideDecisions}
       decisionsLabel={m.guide_decisions_title()}
       tocLabel={m.guide_toc()}
@@ -1987,8 +2118,6 @@ const styleChoices = $derived.by(() =>
               {bunInstallCode}
               {bunInstallExplanation}
               {codeEditor}
-              {hostingInstallCode}
-              {hostingInstallExplanation}
               {locale}
               {notebookCode}
               {notebookLibrary}
@@ -2237,9 +2366,9 @@ const styleChoices = $derived.by(() =>
                       />
                     </div>
                   {/if}
-                  <div class="mt-4 max-w-2xl">
+                  <div class="mt-4 max-w-[80ch]">
                     <GuideCodeBlock
-                      label={rendererStylesheetPath}
+                      label={rendererStylesheetLabel}
                       code={rendererCssCode}
                       editorIcon={selectedCodeEditor?.icon}
                       language="css"
@@ -2264,7 +2393,7 @@ const styleChoices = $derived.by(() =>
                   {#if renderer === 'maplibre'}
                     <div class="mt-4 max-w-[80ch]">
                       <GuidePreviewCodeBlock
-                        label={rendererEditorPath}
+                        label={rendererEditorLabel}
                         code={rendererCode}
                         comments={rendererCodeComments}
                         editorIcon={selectedCodeEditor?.icon}
@@ -2284,9 +2413,9 @@ const styleChoices = $derived.by(() =>
                       </GuidePreviewCodeBlock>
                     </div>
                   {:else}
-                    <div class="mt-4 max-w-2xl">
+                    <div class="mt-4 max-w-[80ch]">
                       <GuideCodeBlock
-                        label={rendererEditorPath}
+                        label={rendererEditorLabel}
                         code={rendererCode}
                         editorIcon={selectedCodeEditor?.icon}
                         language="typescript"
@@ -2402,7 +2531,7 @@ const styleChoices = $derived.by(() =>
           {/if}
         </div>
         {#if page.data.user}
-          <div class="mt-10 max-w-3xl">
+          <div id="basemap-api-key-requirement" class="mt-10 max-w-3xl scroll-mt-28">
             <GuideSubSectionHeader
               requirement={{
                 current: 2,
@@ -2441,6 +2570,7 @@ const styleChoices = $derived.by(() =>
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
               {terminalProjectPath}
+              onApiKeyConfirmed={scrollToBasemapApiKeyRequirement}
               onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
               showHeading={false}
               bind:usingExistingKey={usingExistingBasemapApiKey}
@@ -2599,7 +2729,7 @@ const styleChoices = $derived.by(() =>
           </GuideCallout>
         {/if}
         {#if selectedStyle && renderer}
-          <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
+          <div class="mt-10 max-w-3xl pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
               title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
@@ -2710,6 +2840,7 @@ const styleChoices = $derived.by(() =>
         {:else if dataSource === 'api' && renderer === 'maplibre' && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}
+            hasNonHongKongBasemap={Boolean(region && region !== 'hk')}
             hongKongBasemapNote={region && region !== 'hk'
               ? m.guide_data_urban_density_hong_kong_note({
                   region: selectedRegion?.label ?? '',
@@ -2719,23 +2850,33 @@ const styleChoices = $derived.by(() =>
             mapPreviewLabel={m.guide_data_urban_density_map_preview_label({
               style: selectedStyle.name,
             })}
+            mapAppearance={selectedStyle.appearance}
             {styleUrl}
             {terminalProjectPath}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
             mapCode={urbanDensityMapCode}
-            censusAreasCode={urbanDensityCensusAreasCode}
+            mapDisplayCode={urbanDensityMapDisplayCode}
             calculationCode={urbanDensityCalculationCode}
             calculationDisplayCode={urbanDensityCalculationDisplayCode}
             metricsCode={urbanDensityMetricsCode}
-            metricsCss={urbanDensityMetricsCss}
-            metricsCssDisplayCode={urbanDensityMetricsCssDisplayCode}
+            metricsDisplayCode={urbanDensityMetricsDisplayCode}
+            metricsCss={createUrbanDensityMetricsCss(selectedStyle.appearance)}
+            metricsCssDisplayCode={createUrbanDensityMetricsCss(selectedStyle.appearance)}
             liveableAreaCode={urbanDensityLiveableAreaCode}
+            liveableAreaCss={urbanDensityLiveableAreaCss}
+            liveableAreaDisplayCode={urbanDensityLiveableAreaDisplayCode}
+            liveableAreaMapCode={urbanDensityLiveableAreaMapCode}
+            liveableAreaMapDisplayCode={urbanDensityLiveableAreaMapDisplayCode}
+            collectNonLiveableLandCode={urbanDensityCollectNonLiveableLandCode}
+            collectNonLiveableLandDisplayCode={urbanDensityCollectNonLiveableLandDisplayCode}
+            setupZ14TileFetcherCode={urbanDensitySetupZ14TileFetcherCode}
+            setupZ14TileFetcherCss={urbanDensitySetupZ14TileFetcherCss}
+            setupZ14TileFetcherDisplayCode={urbanDensitySetupZ14TileFetcherDisplayCode}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
+            liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
-            {shareLinks}
-            onShareExternalLink={shareExternalLink}
           />
         {:else if dataSource === 'api'}
           <GuideCallout class="mt-8" size="generous">
@@ -2821,11 +2962,10 @@ const styleChoices = $derived.by(() =>
           id="publish"
           number={7}
           showBorder={false}
-          eyebrow={m.guide_publish_eyebrow()}
-          title={m.guide_setup_publish_title()}
+          eyebrow={m.guide_setup_publish_title()}
           description={objective === 'mobile-embed'
               ? m.guide_publish_mobile_description()
-              : m.guide_setup_publish_description()}
+              : undefined}
         >
           {#if llmGuidanceEnabled && isDataStepComplete}
             <GuidePromptBlock
@@ -2857,24 +2997,18 @@ const styleChoices = $derived.by(() =>
               </GuideCallout>
             {/if}
           {:else}
-            <GuideCodeBlock
-              label={m.guide_setup_terminal_label({
-                action: m.guide_setup_publish_code(),
-                path: terminalProjectPath,
-              })}
-              code={deploymentCode}
-              language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
-            {#if hostingDocsUrl}
-              <a
-                class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
-                href={hostingDocsUrl}
-                target="_blank"
-                rel="noreferrer"
-                >{@html m.guide_setup_hosting_docs()}</a
-              >
+            {#if hosting === 'cloudflare' || hosting === 'github-pages' || hosting === 'vercel' || hosting === 'netlify'}
+              <GuideCreateAMapPublish
+                {aiAccess}
+                completedRequirements={completedPublishRequirements}
+                {hosting}
+                {llmMode}
+                {operatingSystem}
+                {terminalProjectPath}
+                onCompletedRequirementsChange={requirements =>
+                  (completedPublishRequirements = requirements)}
+                onPublishedChange={published => (isMapPublished = published)}
+              />
             {/if}
             {#if objective === 'web-embed' && websitePlatform !== 'other'}
               <div class="mt-8">
@@ -2897,6 +3031,50 @@ const styleChoices = $derived.by(() =>
               </div>
             {/if}
           {/if}
+        </GuideSection>
+      {/if}
+
+      {#if showPublishStep && dataSource}
+        <GuideSection
+          id="keep-exploring"
+          showBorder={false}
+          title={m.guide_data_urban_density_conclusion_title()}
+        >
+          <div
+            class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+          >
+            <p>
+              {@html dataSource === 'api'
+                ? isMapPublished
+                  ? m.guide_data_urban_density_conclusion_community_phewee_published()
+                  : m.guide_data_urban_density_conclusion_community_phewee()
+                : isMapPublished
+                  ? m.guide_data_urban_density_conclusion_community_own_data_published()
+                  : m.guide_data_urban_density_conclusion_community_own_data()}
+            </p>
+            {#if dataSource === 'api'}
+              <p>
+                {@html m.guide_data_urban_density_conclusion_community_complexity()}
+              </p>
+            {/if}
+            <p>{@html m.guide_data_urban_density_conclusion_community_continue()}</p>
+            <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
+            <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
+              {#each shareLinks as link}
+                <a
+                  class="inline-flex size-10 items-center justify-center border border-border-card bg-background text-secondary no-underline transition-colors hover:bg-secondary-container"
+                  href={link.href}
+                  onclick={() => shareExternalLink(link.icon)}
+                  target={link.newWindow === false ? undefined : '_blank'}
+                  rel={link.newWindow === false ? undefined : 'noreferrer'}
+                  aria-label={link.label}
+                  title={link.label}
+                >
+                  <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
+                </a>
+              {/each}
+            </nav>
+          </div>
         </GuideSection>
       {/if}
     </GuideRoot>

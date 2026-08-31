@@ -8,8 +8,6 @@ import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
 import { runAddressApiStatsBackfillCommand } from './lib/commands/statsBackfillAddressApi.ts'
-import { runCenstatdStatsBackfillCommand } from './lib/commands/statsBackfillCenstatd.ts'
-import { runCenstatdStatsResetCommand } from './lib/commands/statsResetCenstatd.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import { runBootstrapStatsReleaseSetsCommand } from './lib/commands/bootstrapStatsReleaseSets.ts'
@@ -47,6 +45,7 @@ async function main() {
   const invocationCwd =
     process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
+  const deferApiReleaseSet = Boolean(args.options['defer-api-release-set'])
   const forceUpload = Boolean(args.options.force)
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
@@ -79,12 +78,6 @@ async function main() {
       return
     case 'stats:backfill-addresses':
       await runAddressApiStatsBackfillCommand(args, target, printUsage)
-      return
-    case 'stats:backfill-censtatd':
-      await runCenstatdStatsBackfillCommand(args, target, printUsage)
-      return
-    case 'stats:reset-censtatd':
-      await runCenstatdStatsResetCommand(args, target, printUsage)
       return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {
@@ -129,6 +122,7 @@ async function main() {
     case 'upload':
       await runUploadCommand(args, target, {
         dryRun,
+        deferApiReleaseSet,
         forceUpload,
         invocationCwd,
         printUsage,
@@ -139,6 +133,7 @@ async function main() {
       return
     case 'init:addresses:official':
     case 'init':
+    case 'init:local':
     case 'init:stats:official':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':

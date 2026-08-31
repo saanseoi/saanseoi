@@ -9,9 +9,58 @@ import {
   createAMapAgenticSectionPrompt,
   createAMapChatSectionPrompt,
 } from './createAMapLlmPrompt'
-import { createAMapRendererBasemapCode } from './snippets'
+import {
+  createAMapRendererBasemapCode,
+  createAMapRendererStyleCode,
+  createUrbanDensityMapReadyCode,
+  createUrbanDensityStatsCode,
+  getCreateAMapRendererReference,
+  urbanDensitySetupZ14TileFetcherCode,
+} from './snippets'
 
 describe('Create a Map LLM instructions', () => {
+  test('starts MapLibre attribution controls in compact mode', () => {
+    const styleUrl = 'https://styles.saanseoi.hk/midnight.json'
+    const tilejsonUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'
+
+    for (const code of [
+      getCreateAMapRendererReference('maplibre').code,
+      createAMapRendererBasemapCode('maplibre', styleUrl, tilejsonUrl),
+      createAMapRendererStyleCode('maplibre', styleUrl, tilejsonUrl),
+      createUrbanDensityMapReadyCode(styleUrl),
+    ]) {
+      expect(code).toContain('attributionControl: { compact: true }')
+    }
+  })
+
+  test('loads a completed land analysis with the statistics step', () => {
+    const mapSetup = createUrbanDensityMapReadyCode('https://styles.example/light.json')
+    const stats = createUrbanDensityStatsCode(
+      'https://api.example',
+      'Analyse the map in several steps, then save the result.\nLoad it directly next time.\nSkip the calculation.',
+    )
+
+    expect(mapSetup).not.toContain('savedResultUrl')
+    expect(stats).toContain(
+      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
+    )
+    expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
+    expect(stats).not.toContain('await import(savedResultPath)')
+    expect(stats.indexOf('savedResultUrl')).toBeLessThan(stats.indexOf('apiBaseUrl'))
+    expect(stats).toContain("const apiBaseUrl = 'https://api.example'")
+    expect(stats).toContain('let populationByDistrict: Record<string, string> = {}')
+    expect(stats).toContain('let landAreaByDistrict: Record<string, string> = {}')
+    expect(stats).toContain(
+      '[populationByDistrict, landAreaByDistrict] = await Promise.all([',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      "if (typeof kind !== 'string' || !nonLiveableKinds.has(kind)) return []",
+    )
+    expect(stats).toContain(
+      "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
+    )
+  })
+
   test('renders the complete guide', () => {
     const instructions = createAMapLlmInstructions()
 

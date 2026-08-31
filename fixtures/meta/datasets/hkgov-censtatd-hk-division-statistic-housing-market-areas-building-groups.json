@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1e9fdff0d3be9da71ed3e5f8bb3adde2ec45538b8e1dd6de7ae4cb3c3a67cb2f",
+  "versionHash": "sha256:d010f4325c848f052c9baa65b08ee43bd1cdaac1ae11c8323c2efcfee004b725",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
@@ -7,12 +7,15 @@
   "releaseFrequency": "five-yearly",
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-hma",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd-hma",
+      "domainCode": "hkgov-censtatd-hma",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic",
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
@@ -35,9 +38,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -77,6 +78,21 @@
           "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
         }
       ]
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-censtatd-hma:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "i18n": [

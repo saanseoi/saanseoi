@@ -19,6 +19,7 @@ const SOURCE_SCHEMA_RELEASES = [
   { source: 'hkgov-censtatd', schema: '1.0', version: '2022' },
   { source: 'hkgov-censtatd', schema: '1.0', version: '2023-H2' },
   { source: 'hkgov-censtatd', schema: '1.0', version: '2024' },
+  { source: 'hkgov-censtatd', schema: '1.0', version: '2026-Q2' },
   { source: 'hkgov-pland-pu', schema: '1.0', version: '2001' },
   { source: 'hkgov-pland-pu', schema: '1.0', version: '2006' },
   { source: 'hkgov-pland-pu', schema: '1.0', version: '2011' },

@@ -155,6 +155,19 @@ export type DatasetRelease = {
   }>
   sourceVersion?: string
   sourceUrl?: string
+  /**
+   * Publisher fields that identify the reference periods carried by one
+   * delivery. A source version may therefore contain historical records.
+   */
+  referencePeriods?: {
+    /**
+     * Whether geometry materialised from this delivery is publisher-authoritative
+     * for its labelled reference periods, or is a temporary fallback.
+     */
+    geometryStatus?: 'authoritative' | 'fallback'
+    materialiseAreaCompanions?: boolean
+    sourceField: string
+  }
   referenceYear?: string
   referenceDate?: string
   releaseDate?: string
@@ -181,6 +194,15 @@ export type DatasetFixture = {
   type?: string
   resourceTypes?: readonly string[]
   sourceVariant?: string
+  /**
+   * The reviewed `include=areas` companion for each statistics reference year.
+   * `*` applies when no year-specific entry exists; every value may contain
+   * `{referencePeriodEndYear}`.
+   */
+  areaCompanionByReferencePeriod?: Record<
+    string,
+    { cohortKey: string; domainCode: string; variant: string }
+  >
   mergeRules?: Array<{
     rulesetVersion: string
     operationCodes: string[]
@@ -1501,23 +1523,33 @@ async function runCsdiArchiveIngestPlaceholder(
   }
 
   if (
-    dataset.code === 'ds-hk-hkgov-censtatd-division-area-district' &&
-    (release?.sourceVersion === '2016' || release?.sourceVersion === '2021') &&
+    (dataset.code ===
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+      dataset.code ===
+        'ds-hk-hkgov-censtatd-division-statistic-population-households-district') &&
+    (release?.sourceVersion === '2016' ||
+      release?.sourceVersion === '2021' ||
+      release?.sourceVersion === '2024') &&
     release.sourceUrl
   ) {
     const child = Bun.spawn(
-      buildHkgovCenstatdDistrictArchiveIngestCommand({
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
+        datasetCode: dataset.code,
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
         inputFile: prepared.sourcePath,
         releaseNotesUrl: release.sourceUrl,
         sourceArchiveKey: prepared.manifest.archive.objectKey,
         sourceArchiveSha256: prepared.manifest.archive.sha256,
         sourceVersion: release.sourceVersion,
         target,
+        yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
     if ((await child.exited) !== 0) {
-      throw new Error(`C&SD district-area ingest failed for ${release.sourceVersion}.`)
+      throw new Error(
+        `C&SD district statistic ingest failed for ${release.sourceVersion}.`,
+      )
     }
     return 'ingested'
   }
@@ -1736,11 +1768,15 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
 }
 
 export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
+  datasetCode:
+    | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  deferApiReleaseSet?: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
   sourceArchiveSha256: string
-  sourceVersion: '2016' | '2021'
+  sourceVersion: '2016' | '2021' | '2024'
   target: import('../cli/options.ts').UploadTarget
 }) {
   return [
@@ -1755,12 +1791,15 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
     input.target.environment === 'dev' ? 'local' : input.target.environment,
     '--source-version',
     input.sourceVersion,
+    '--dataset-code',
+    input.datasetCode,
     '--release-notes-url',
     input.releaseNotesUrl,
     '--source-archive-key',
     input.sourceArchiveKey,
     '--source-archive-sha256',
     input.sourceArchiveSha256,
+    ...(input.deferApiReleaseSet ? ['--defer-api-release-set'] : []),
   ]
 }
 
@@ -1768,7 +1807,7 @@ const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
   'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
   'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
   'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
   'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
   'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
@@ -1987,6 +2026,16 @@ function findCsdiDatasetRelease(
     ),
   )
   if (archiveMatch) return archiveMatch
+
+  // A configured current CSDI source version can use its archive slot as its
+  // release identity. Prefer that exact match before falling back to another
+  // release that happens to share the same catalogue URL. Without it, a new
+  // slot such as 2026-Q2 is incorrectly ingested as the first historical
+  // release (for example, 2024).
+  const slotMatch = matchingReleases.find(
+    release => release.sourceVersion === releaseSlot,
+  )
+  if (slotMatch) return slotMatch
 
   return (
     matchingReleases.find(release => release.sourceUrl === archiveSourceUrl) ??

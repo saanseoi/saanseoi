@@ -1264,6 +1264,7 @@ export function seedFixtureCatalog(db: Database) {
 }
 
 type FixtureRelease = {
+  datasetCode?: string
   source: string
   regionCode: string
   type: ResourceType
@@ -1285,7 +1286,9 @@ type FixtureRelease = {
 
 export function insertFixtureRelease(db: Database, release: FixtureRelease) {
   const publisherCode = publisherCodeForSource(release.source)
-  const datasetCode = buildDatasetCode(release.regionCode, release.source, release.type)
+  const datasetCode =
+    release.datasetCode ??
+    buildDatasetCode(release.regionCode, release.source, release.type)
   const releaseCode =
     release.releaseCode ??
     buildDatasetReleaseCode(

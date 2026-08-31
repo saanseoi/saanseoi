@@ -6,13 +6,17 @@ import {
   calculateHousingMarketAreaDistrictCoverage,
   createGeometryChurnCounts,
   decodeStoredGeoJsonGeometry,
+  divisionReferenceVariant,
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
+  hasIdenticalGeometryMaterialisation,
   hasDivisionReferences,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   selectOvertureHongKongAreasWithoutSourceGeometry,
   shouldCompressCanonicalGeometry,
+  selectCenstatdInheritedSnapshotSources,
   supportsDistrictGeometryStatistics,
+  simplifyHkgovDivisionAreas,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
@@ -85,7 +89,7 @@ describe('asOptionalInteger', () => {
   })
 })
 
-describe('C&SD area/type division references', () => {
+describe('C&SD permanent living quarters division references', () => {
   test('skips an older Overture snapshot until all synthetic Hong Kong area IDs exist', () => {
     const references = new Set([
       'hong-kong-island-id',
@@ -97,6 +101,60 @@ describe('C&SD area/type division references', () => {
 
     expect(hasDivisionReferences(preSyntheticSnapshot, references)).toBeFalse()
     expect(hasDivisionReferences(firstSyntheticSnapshot, references)).toBeTrue()
+  })
+})
+
+describe('divisionReferenceVariant', () => {
+  test('uses the exact Planning Unit division snapshot for a simplified area', () => {
+    expect(
+      divisionReferenceVariant({
+        cohortKey: '2001',
+        datasetCode: 'ds-hk-hkgov-pland-division-pu',
+        regionCode: 'hk',
+        releaseCode: 'dr-hk-hkgov-pland-division-area-pu-2001',
+        rowCount: 4978,
+        source: 'hkgov-pland-pu',
+        sourceVersion: '2001',
+        theme: 'divisions',
+        transform: 'simplified',
+        type: 'divisionArea',
+      }),
+    ).toBe('hkgov-pland-pu')
+  })
+})
+
+describe('Hong Kong Government display simplification', () => {
+  test('repairs an invalid display polygon without changing its input geometry', async () => {
+    const sourceGeometry = {
+      type: 'Polygon' as const,
+      coordinates: [
+        [
+          [114, 22.35],
+          [114.0002, 22.3502],
+          [114, 22.3502],
+          [114.0002, 22.35],
+          [114, 22.35],
+        ],
+      ],
+    }
+    const row = normaliseDivisionAreaGeometryRow(
+      {
+        division_id: 'division-1',
+        geometry: sourceGeometry,
+        id: 'area-1',
+      },
+      'hkgov-pland-pu',
+    )
+
+    if (!row) throw new Error('Expected a normalised Planning area.')
+    const [simplified] = await simplifyHkgovDivisionAreas([row])
+    if (!simplified) throw new Error('Expected a simplified Planning area.')
+
+    expect(['Polygon', 'MultiPolygon']).toContain(simplified.canonical.geometry.type)
+    expect(simplified.source.derivation).toMatchObject({
+      inputValidationRepair: 'make-valid',
+    })
+    expect(row.canonical.geometry).toEqual(sourceGeometry)
   })
 })
 
@@ -180,6 +238,65 @@ describe('createGeometryChurnCounts', () => {
   })
 })
 
+describe('C&SD geometry materialisation identity', () => {
+  test('recognises a complete matching geometry row set', () => {
+    const expected = [
+      { hash: 'district-a', id: 'district-a' },
+      { hash: 'district-b', id: 'district-b' },
+    ]
+
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [...expected].reverse()),
+    ).toBeTrue()
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [
+        ...expected,
+        { hash: 'area', id: 'hong-kong-island' },
+      ]),
+    ).toBeTrue()
+  })
+
+  test('rejects a changed overlapping geometry or a partial contribution', () => {
+    const expected = [
+      { hash: 'district-a', id: 'district-a' },
+      { hash: 'district-b', id: 'district-b' },
+    ]
+
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [
+        { hash: 'changed', id: 'district-a' },
+        { hash: 'district-b', id: 'district-b' },
+      ]),
+    ).toBeFalse()
+    expect(hasIdenticalGeometryMaterialisation(expected, [expected[0]!])).toBeFalse()
+  })
+})
+
+describe('C&SD companion provenance', () => {
+  test('does not carry a parent snapshot lookup dependency into a new companion', () => {
+    expect(
+      selectCenstatdInheritedSnapshotSources([
+        {
+          datasetId: 'dataset-censtatd',
+          role: 'primary' as const,
+          sourceReleaseId: 'release-censtatd',
+        },
+        {
+          datasetId: 'dataset-overture',
+          role: 'lookup' as const,
+          sourceReleaseId: 'release-overture-2025-09-24',
+        },
+      ]),
+    ).toEqual([
+      {
+        datasetId: 'dataset-censtatd',
+        role: 'primary',
+        sourceReleaseId: 'release-censtatd',
+      },
+    ])
+  })
+})
+
 describe('exact geometry release statistics', () => {
   test('C&SD simplified derivatives cannot replace exact release measurements', () => {
     expect(shouldWriteExactGeometryReleaseStats(undefined)).toBe(true)
@@ -208,9 +325,11 @@ describe('exact geometry release statistics', () => {
     expect(
       supportsDistrictGeometryStatistics({
         cohortKey: '2021',
-        datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         regionCode: 'hk',
-        releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021',
         rowCount: 18,
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
