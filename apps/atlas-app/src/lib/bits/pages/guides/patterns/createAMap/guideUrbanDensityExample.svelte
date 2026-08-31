@@ -35,6 +35,7 @@ type Props = {
   mapDisplayCode: string
   calculationCode: string
   calculationDisplayCode: string
+  geometryWorkerCode: string
   setupZ14TileFetcherCode: string
   setupZ14TileFetcherCss: string
   setupZ14TileFetcherDisplayCode: string
@@ -71,6 +72,7 @@ let {
   mapDisplayCode,
   calculationCode,
   calculationDisplayCode,
+  geometryWorkerCode,
   setupZ14TileFetcherCode,
   setupZ14TileFetcherCss,
   setupZ14TileFetcherDisplayCode,
@@ -911,6 +913,18 @@ const liveableAreaMapComments = [
               code={turfInstallOutput}
               language="text"
               copyable={false}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-6 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_data_urban_density_geometry_worker_description()}
+            </p>
+            <GuideCodeBlock
+              label={m.guide_data_urban_density_geometry_worker_code()}
+              code={geometryWorkerCode}
+              {editorIcon}
+              language="typescript"
+              variant="editor"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
             />

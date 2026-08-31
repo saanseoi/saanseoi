@@ -1693,6 +1693,8 @@
   "guide_data_urban_density_census_areas_code": "src/main.ts — 顯示人口普查分區",
   "guide_data_urban_density_install_code": "安裝計算程式庫",
   "guide_data_urban_density_install_output": "輸出（版本可能不同）",
+  "guide_data_urban_density_geometry_worker_code": "src/land-analysis.worker.ts — 幾何運算 Worker",
+  "guide_data_urban_density_geometry_worker_description": "把耗時的多邊形修復、聯集和相交運算放進 Web Worker。所有工作仍完全在瀏覽器內進行，但不會再阻塞地圖操作或令頁面無回應。",
   "guide_data_urban_density_liveable_area_code": "src/main.ts — 計算並下載分區土地",
   "guide_data_urban_density_liveable_area_css": "src/style.css — 設定已儲存結果的樣式",
   "guide_data_urban_density_code_omitted_liveable_area_css": "已省略 107 行：保留可運作的樣式",
