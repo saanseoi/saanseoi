@@ -20,6 +20,7 @@ import { auditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
 const AUDIT_PAGE_SIZE = 50
+const COMPLETE_SEARCH_PAGE_SIZE = 500
 const COMPLETE_SEARCH_MIN_LENGTH = 3
 const COMPLETE_SEARCH_CONCURRENCY = 3
 
@@ -32,7 +33,11 @@ type Props = {
   showBulkActions?: boolean
   headings?: MarkdownHeading[]
   activeHeadingId?: string | null
-  onLoadMoreSection?: (action: string, offset: number) => Promise<AuditActionPage>
+  onLoadMoreSection?: (
+    action: string,
+    offset: number,
+    limit: number,
+  ) => Promise<AuditActionPage>
 }
 
 let {
@@ -662,7 +667,10 @@ const actionHasUnfetchedRows = (action: string) => {
     : false
 }
 
-async function fetchNextSectionPage(action: string): Promise<AuditActionPage | null> {
+async function fetchNextSectionPage(
+  action: string,
+  limit = AUDIT_PAGE_SIZE,
+): Promise<AuditActionPage | null> {
   const section = getActionSection(action)
   if (!section || !onLoadMoreSection || !actionHasUnfetchedRows(action)) return null
 
@@ -681,6 +689,7 @@ async function fetchNextSectionPage(action: string): Promise<AuditActionPage | n
         paginationByAction[action]?.nextOffset ??
           section.nextOffset ??
           section.rows.length,
+        limit,
       )
       const knownIds = new Set(getCachedActionRows(action).map(row => row.id))
       additionalRowsByAction = {
@@ -755,7 +764,7 @@ async function loadAllActionRows() {
       if (!action) return
 
       while (actionHasUnfetchedRows(action)) {
-        const page = await fetchNextSectionPage(action)
+        const page = await fetchNextSectionPage(action, COMPLETE_SEARCH_PAGE_SIZE)
         if (!page) {
           failed = true
           break

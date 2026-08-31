@@ -33,7 +33,12 @@ import type {
   ReleaseNavTab,
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
-import { getDistrictCoverageMapData } from '#lib/registry/meta.remote.js'
+import {
+  getDistrictCoverageMapData,
+  getRegistryAccessMetricsData,
+  getSourceReleaseAuditActionPage,
+  getSourceReleaseAuditData,
+} from '#lib/registry/meta.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
@@ -74,18 +79,21 @@ let previousVersion = $derived.by(() => {
   return currentIndex >= 0 ? versions[currentIndex + 1] : undefined
 })
 let contentResource = createDeferredRemoteResource({
-  createQuery: ({ datasetCode, releaseCode }) =>
+  createQuery: ({ datasetCode, releaseCode, tab }) =>
     getSourceReleaseContentQuery({
       datasetCode,
       releaseCode,
       previousReleaseCode: null,
+      tab,
     }),
   getInput: () => ({
     datasetCode: params.datasetCode,
     releaseCode: params.releaseCode,
+    tab: activeTab,
   }),
-  getKey: input => `${input.datasetCode}/${input.releaseCode}`,
+  getKey: input => `${input.datasetCode}/${input.releaseCode}/${input.tab}`,
   hasShell: () => Boolean(shell),
+  retainAcrossKeys: false,
 })
 function preloadVersion(version: ReleaseNavVersion) {
   if (version.code === params.releaseCode) return
@@ -94,11 +102,37 @@ function preloadVersion(version: ReleaseNavVersion) {
     datasetCode: params.datasetCode,
     releaseCode: version.code,
     previousReleaseCode: null,
+    tab: activeTab,
   })
 }
 let content = $derived(contentResource.current)
 let contentVersion = $derived(content?.version ?? null)
-let version = $derived(contentVersion ?? shellVersion)
+let accessMetricsQuery = $derived(
+  shellVersion
+    ? getRegistryAccessMetricsData({
+        entityId: shellVersion.id,
+        scope: 'source_release',
+      })
+    : null,
+)
+let version = $derived(
+  shellVersion && contentVersion
+    ? ({
+        ...shellVersion,
+        ...contentVersion,
+        accessMetrics: accessMetricsQuery?.ready
+          ? accessMetricsQuery.current
+          : shellVersion.accessMetrics,
+      } as typeof shellVersion)
+    : shellVersion
+      ? {
+          ...shellVersion,
+          accessMetrics: accessMetricsQuery?.ready
+            ? accessMetricsQuery.current
+            : shellVersion.accessMetrics,
+        }
+      : contentVersion,
+)
 let isContentLoading = $derived(contentResource.loading)
 let seoTitle = $derived.by(() => {
   const sourceName =
@@ -144,6 +178,51 @@ $effect(() => {
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
+let auditDataQuery = $derived(
+  activeTab === 'audit' && (version?.processingActionCount ?? 0) > 0
+    ? getSourceReleaseAuditData({
+        datasetCode: params.datasetCode,
+        releaseCode: params.releaseCode,
+      })
+    : null,
+)
+let auditSectionPageQueries = $derived(
+  auditDataQuery?.ready
+    ? auditDataQuery.current.sections.map(section => ({
+        section,
+        query: getSourceReleaseAuditActionPage({
+          action: section.action,
+          datasetCode: params.datasetCode,
+          limit: 50,
+          offset: 0,
+          releaseCode: params.releaseCode,
+        }),
+      }))
+    : [],
+)
+let auditData = $derived.by(() => {
+  if (!auditDataQuery?.ready) return null
+
+  const pageReadiness = auditSectionPageQueries.map(item => item.query.ready)
+  if (pageReadiness.some(ready => !ready)) return null
+
+  return {
+    sections: auditSectionPageQueries.map(item => ({
+      ...item.section,
+      rows: item.query.current?.rows ?? [],
+      hasMore: item.query.current?.hasMore ?? false,
+      nextOffset: item.query.current?.nextOffset ?? 0,
+    })),
+  }
+})
+const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
+  getSourceReleaseAuditActionPage({
+    action,
+    datasetCode: params.datasetCode,
+    limit,
+    offset,
+    releaseCode: params.releaseCode,
+  })
 
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
 
@@ -180,7 +259,10 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'schema' || activeTab === 'samples')
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
-    return Boolean(version?.processingActions?.length || bulkActions.length)
+    return Boolean(
+      (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
+        bulkActions.length,
+    )
   }
   if (activeTab === 'assembly') return Boolean(version?.assembledWith?.length)
   return Boolean(version?.releaseAs?.length)
@@ -278,7 +360,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
-  version?.processingActions?.length ||
+  (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
@@ -296,7 +378,10 @@ $effect(() => {
     (tab === 'audit' &&
       !(
         isContentLoading ||
-        Boolean(version?.processingActions?.length || bulkActions.length)
+        Boolean(
+          (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
+            0 || bulkActions.length,
+        )
       ))
       ? 'notes'
       : tab
@@ -515,9 +600,11 @@ $effect(() => {
             <ReleaseAudit.Root
               analyticsSurface="source_release"
               actions={version.processingActions}
+              actionSections={auditData?.sections}
               {bulkActions}
               {locale}
               {showBulkActions}
+              onLoadMoreSection={loadMoreAuditSection}
               bind:headings={auditHeadings}
               bind:activeHeadingId={activeAuditHeadingId}
             />

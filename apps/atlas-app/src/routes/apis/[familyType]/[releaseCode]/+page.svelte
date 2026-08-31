@@ -19,6 +19,7 @@ import {
   getApiReleaseAuditData,
   getApiReleasePageData,
   getDistrictCoverageMapData,
+  getRegistryAccessMetricsData,
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
@@ -57,10 +58,14 @@ $effect(() => {
 })
 let shell = $derived(initialShell ?? lastReadyShell)
 let contentResource = createDeferredRemoteResource({
-  createQuery: familyType => getApiReleasePageData(familyType),
-  getInput: () => params.familyType,
-  getKey: familyType => familyType,
+  createQuery: input => getApiReleasePageData(input),
+  getInput: () => ({
+    familyType: params.familyType,
+    releaseCode: params.releaseCode,
+  }),
+  getKey: input => `${input.familyType}/${input.releaseCode}`,
   hasShell: () => Boolean(shell),
+  retainAcrossKeys: false,
 })
 let api = $derived.by(() => {
   const value = contentResource.current ?? shell
@@ -69,12 +74,24 @@ let api = $derived.by(() => {
 })
 let isContentLoading = $derived(contentResource.loading)
 
-let release = $derived.by(() => {
+let releaseBase = $derived.by(() => {
   const selected = resolveReleaseSetRef(api.releases, params.releaseCode)
 
   if (!selected) error(404, 'API release not found.')
 
   return selected
+})
+let accessMetricsQuery = $derived(
+  getRegistryAccessMetricsData({
+    entityId: releaseBase.id,
+    scope: 'api_release_set',
+  }),
+)
+let release = $derived({
+  ...releaseBase,
+  accessMetrics: accessMetricsQuery.ready
+    ? accessMetricsQuery.current
+    : releaseBase.accessMetrics,
 })
 
 let seoTitle = $derived(
@@ -654,11 +671,40 @@ let auditDataQuery = $derived(
       })
     : null,
 )
-let auditData = $derived(auditDataQuery?.ready ? auditDataQuery.current : null)
-const loadMoreAuditSection = (action: string, offset: number) =>
+let auditSectionPageQueries = $derived(
+  auditDataQuery?.ready
+    ? auditDataQuery.current.sections.map(section => ({
+        section,
+        query: getApiReleaseAuditActionPage({
+          action: section.action,
+          familyType: api.familyType,
+          limit: 50,
+          offset: 0,
+          releaseCode: release.code,
+        }),
+      }))
+    : [],
+)
+let auditData = $derived.by(() => {
+  if (!auditDataQuery?.ready) return null
+
+  const pageReadiness = auditSectionPageQueries.map(item => item.query.ready)
+  if (pageReadiness.some(ready => !ready)) return null
+
+  return {
+    sections: auditSectionPageQueries.map(item => ({
+      ...item.section,
+      rows: item.query.current?.rows ?? [],
+      hasMore: item.query.current?.hasMore ?? false,
+      nextOffset: item.query.current?.nextOffset ?? 0,
+    })),
+  }
+})
+const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
   getApiReleaseAuditActionPage({
     action,
     familyType: api.familyType,
+    limit,
     offset,
     releaseCode: release.code,
   })
