@@ -1,1 +1,0 @@
-ALTER TABLE `statsMeasures` ADD `measurementKind` text DEFAULT 'unreviewed' NOT NULL;

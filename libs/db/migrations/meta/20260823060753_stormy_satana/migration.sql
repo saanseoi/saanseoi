@@ -1,1 +1,0 @@
-ALTER TABLE `apiReleaseSets` ADD `guide` text;
