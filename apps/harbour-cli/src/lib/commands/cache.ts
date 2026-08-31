@@ -89,7 +89,7 @@ export async function runCacheSeedResetCommand(
   const progress = new LocalUploadProgress()
   try {
     await seedRemoteDbCacheAfterReset(target, event =>
-      updateDbCacheProgress(progress, event, { operation: 'seed reset' }),
+      updateDbCacheProgress(progress, event, { operation: 're-export' }),
     )
   } catch (error) {
     progress.fail()

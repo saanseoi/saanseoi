@@ -22,6 +22,35 @@ export type SourceAssetMetadata = {
   sourcePageUrl?: string
 }
 
+export async function preflightManagedSourceAsset(
+  db: HarbourReadableDb & HarbourWritableDb,
+  bucket: AssetBucket,
+  input: { byteLength: number; metadata: SourceAssetMetadata },
+) {
+  assertMetadata(input.metadata)
+  if (!Number.isSafeInteger(input.byteLength) || input.byteLength < 0) {
+    throw new Error('Source asset byteLength must be a non-negative integer.')
+  }
+
+  const existingObject = await bucket.head(input.metadata.assetKey)
+  if (!existingObject) return { needsUpload: true as const }
+  if (
+    existingObject.size !== input.byteLength ||
+    existingObject.customMetadata?.sha256 !== input.metadata.contentHash
+  ) {
+    throw new Error(
+      `Immutable source asset conflict for ${input.metadata.assetKey}; existing bytes differ.`,
+    )
+  }
+
+  const assetId = await registerSourceAssetMetadata(
+    db,
+    input.metadata,
+    input.byteLength,
+  )
+  return { assetId, needsUpload: false as const, status: 'existing' as const }
+}
+
 export async function registerManagedSourceAsset(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: AssetBucket,
@@ -64,6 +93,18 @@ export async function registerManagedSourceAsset(
     })
   }
 
+  const assetId = await registerSourceAssetMetadata(db, metadata, body.byteLength)
+  return {
+    assetId,
+    status: existingObject ? ('existing' as const) : ('uploaded' as const),
+  }
+}
+
+async function registerSourceAssetMetadata(
+  db: HarbourReadableDb & HarbourWritableDb,
+  metadata: SourceAssetMetadata,
+  byteLength: number,
+) {
   const existingAsset = await db
     .select({ contentHash: metaAssets.contentHash, id: metaAssets.id })
     .from(metaAssets)
@@ -76,7 +117,7 @@ export async function registerManagedSourceAsset(
         `Registered source asset conflict for ${metadata.assetKey}; existing hash differs.`,
       )
     }
-    return { assetId: existingAsset.id, status: 'existing' as const }
+    return existingAsset.id
   }
 
   const assetId = crypto.randomUUID()
@@ -84,7 +125,7 @@ export async function registerManagedSourceAsset(
     .insert(metaAssets)
     .values({
       assetKey: metadata.assetKey,
-      byteLength: body.byteLength,
+      byteLength,
       contentHash,
       id: assetId,
       manifest: metadata.manifest ?? null,
@@ -110,11 +151,7 @@ export async function registerManagedSourceAsset(
     throw new Error(`Could not register source asset ${metadata.assetKey}.`)
   }
 
-  return {
-    assetId: registeredAsset.id,
-    status:
-      registeredAsset.id === assetId ? ('uploaded' as const) : ('existing' as const),
-  }
+  return registeredAsset.id
 }
 
 export function parseSourceAssetMetadata(value: string | File | null) {
