@@ -709,7 +709,7 @@ const liveableAreaMapComments = [
                   title={m.guide_data_urban_density_calculation_level_callout_title()}
                   description={m.guide_data_urban_density_calculation_comment_level_explainer()}
                 />
-                <div class="mt-6 lg:mt-[42.25rem]">
+                <div class="mt-6 lg:mt-169">
                   <GuideInstructionCallout
                     label={m.guide_data_urban_density_calculation_geojson_feature_callout_label()}
                     title={m.guide_data_urban_density_calculation_geojson_feature_callout_title()}
