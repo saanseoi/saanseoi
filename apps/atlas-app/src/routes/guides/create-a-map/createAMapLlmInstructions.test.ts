@@ -42,7 +42,7 @@ describe('Create a Map LLM instructions', () => {
 
     expect(mapSetup).not.toContain('savedResultUrl')
     expect(stats).toContain(
-      "const savedResultUrl = new URL('./land-analysis.json', import.meta.url)",
+      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
     )
     expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
     expect(stats).not.toContain('await import(savedResultPath)')
