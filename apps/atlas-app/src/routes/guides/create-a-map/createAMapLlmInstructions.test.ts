@@ -15,6 +15,8 @@ import {
   createUrbanDensityMapReadyCode,
   createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
+  urbanDensityCollectNonLiveableLandCode,
+  urbanDensityLiveableAreaCode,
   urbanDensitySetupZ14TileFetcherCode,
 } from './snippets'
 
@@ -59,6 +61,30 @@ describe('Create a Map LLM instructions', () => {
     expect(stats).toContain(
       "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
     )
+  })
+
+  test('dissolves fixed-precision tile coverage before measuring districts', () => {
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain('const precisionGrid = 4')
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'geos.GEOSUnaryUnionPrec(collection, precisionGrid)',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'geos.GEOSIntersectionPrec(firstGeometry, secondGeometry, precisionGrid)',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'intersectAnalysisGeometries(merged, tileCoreGeometry(tile))',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      "map.setFeatureState({ source: 'analysis-tiles', id: tileKey(tile) }, { status })",
+    )
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
+      "setTileStatus(tile, 'complete')",
+    )
+    expect(urbanDensityLiveableAreaCode).toContain(
+      'const excludedGeometry = await unionAnalysisGeometries(clippedExclusions)',
+    )
+    expect(urbanDensityLiveableAreaCode).toContain('area: district.properties.area')
+    expect(urbanDensityLiveableAreaCode).not.toContain('intersect(featureCollection')
   })
 
   test('renders the complete guide', () => {
