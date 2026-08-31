@@ -112,7 +112,7 @@ async function registerSourceAssetMetadata(
     .get()
 
   if (existingAsset) {
-    if (existingAsset.contentHash !== contentHash) {
+    if (existingAsset.contentHash !== metadata.contentHash) {
       throw new Error(
         `Registered source asset conflict for ${metadata.assetKey}; existing hash differs.`,
       )
@@ -126,7 +126,7 @@ async function registerSourceAssetMetadata(
     .values({
       assetKey: metadata.assetKey,
       byteLength,
-      contentHash,
+      contentHash: metadata.contentHash,
       id: assetId,
       manifest: metadata.manifest ?? null,
       mediaType: metadata.mediaType,
@@ -147,7 +147,7 @@ async function registerSourceAssetMetadata(
     .from(metaAssets)
     .where(eq(metaAssets.assetKey, metadata.assetKey))
     .get()
-  if (!registeredAsset || registeredAsset.contentHash !== contentHash) {
+  if (!registeredAsset || registeredAsset.contentHash !== metadata.contentHash) {
     throw new Error(`Could not register source asset ${metadata.assetKey}.`)
   }
 

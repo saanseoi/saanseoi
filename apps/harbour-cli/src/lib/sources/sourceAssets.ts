@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 
@@ -460,6 +460,38 @@ export async function uploadManagedSourceAsset(
 ): Promise<UploadedSourceAsset> {
   if (!target.remote) {
     return uploadLocalManagedSourceAsset(target, input, localOptions)
+  }
+  const fileStat = await stat(input.filePath)
+  const preflightResponse = await fetch(
+    `${resolveHarbourApiUrl(target)}/v1/assets/preflight`,
+    {
+      body: JSON.stringify({
+        byteLength: fileStat.size,
+        metadata: input.metadata,
+      }),
+      headers: { 'content-type': 'application/json', ...getAuthHeaders() },
+      method: 'POST',
+    },
+  )
+  const preflight = (await preflightResponse.json().catch(() => null)) as {
+    assetId?: unknown
+    assetUrl?: unknown
+    needsUpload?: unknown
+  } | null
+  if (!preflightResponse.ok) {
+    const message =
+      preflight &&
+      typeof preflight === 'object' &&
+      typeof (preflight as { message?: unknown }).message === 'string'
+        ? (preflight as { message: string }).message
+        : `Harbour source asset preflight failed with HTTP ${preflightResponse.status}.`
+    throw new Error(message)
+  }
+  if (preflight?.needsUpload === false && typeof preflight.assetId === 'string') {
+    return {
+      assetId: preflight.assetId,
+      url: buildManagedAssetUrl(target, preflight.assetId),
+    }
   }
   const form = new FormData()
   form.set(
