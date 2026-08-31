@@ -1,4 +1,5 @@
 import {
+  box,
   cancel,
   confirm,
   intro,
@@ -482,14 +483,13 @@ ${mutedBar}  `)
           previewResult.plan,
           options.divisionCohortKey,
         )
-        note(
+        wideApiDomainReleaseNote(
           formatAddressApiReleaseSetReadiness(
             previewResult.plan,
             processingResult.publishResult?.apiReleaseSetStatus === 'current',
             processingResult.publishResult?.apiReleaseSetCode,
             releaseSetReadiness.divisionCohortKey,
           ),
-          'API DOMAIN RELEASE',
         )
         await logApiReleaseSetPublication(
           processingResult.publishResult,
@@ -544,9 +544,8 @@ ${mutedBar}  `)
           target,
           previewResult.plan,
         )
-        note(
+        wideApiDomainReleaseNote(
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-          'API DOMAIN RELEASE',
         )
         await logApiReleaseSetPublication(
           processingResult.publishResult,
@@ -634,9 +633,8 @@ ${mutedBar}  `)
             processingResult.publishResult?.apiReleaseSetCode,
           ),
         )
-        note(
+        wideApiDomainReleaseNote(
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-          'API DOMAIN RELEASE',
         )
         await logApiReleaseSetPublication(
           processingResult.publishResult ?? undefined,
@@ -750,7 +748,7 @@ ${mutedBar}  `)
               ?.apiReleaseSetCode,
           ),
         )
-        note(
+        wideApiDomainReleaseNote(
           formatDivisionApiReleaseSetReadiness(
             withReleaseSetCohort(
               previewResult.plan,
@@ -759,7 +757,6 @@ ${mutedBar}  `)
             ),
             releaseSetReadiness,
           ),
-          'API DOMAIN RELEASE',
         )
         await logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
@@ -1369,6 +1366,14 @@ export function formatDivisionApiReleaseSetReadiness(
       return `  ${available ? greenText('✓') : member.isRequired ? redText('○') : yellowText('○')} ${formatResourceType(member.resourceType.padEnd(width))}  ${mutedText(`(${member.variant}; ${mode}${cohort ? `: ${cohort}` : ''})`)}  ${available ? greenText('available') : member.isRequired ? redText('unavailable') : yellowText('[optional]')}`
     }),
   ].join('\n')
+}
+
+function wideApiDomainReleaseNote(message: string) {
+  box(message, 'API DOMAIN RELEASE', {
+    contentPadding: 0,
+    formatBorder: mutedText,
+    width: 1,
+  })
 }
 
 function formatResourceType(resourceType: string) {
