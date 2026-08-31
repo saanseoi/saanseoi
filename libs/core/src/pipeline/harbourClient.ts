@@ -11,6 +11,10 @@ export type PublishDatasetResult = {
   apiReleaseSetStatus?: 'current' | 'draft'
   apiReleaseSetPublications?: ApiReleaseSetPublication[]
   datasetId?: string
+  metadataDelta?: {
+    apiReleaseSets?: Array<{ id: string; status: 'current' | 'draft' }>
+    releases: Array<{ id: string; status: 'published' }>
+  }
   phase: string | null
   releaseCode: string
   releaseId: string

@@ -282,6 +282,21 @@ export const ManagedSourceAssetResponseSchema = z
   })
   .openapi('HarbourManagedSourceAssetResponse')
 
+export const ManagedSourceAssetPreflightRequestSchema = z
+  .object({
+    byteLength: z.number().int().nonnegative(),
+    metadata: z.record(z.string(), z.unknown()),
+  })
+  .openapi('HarbourManagedSourceAssetPreflightRequest')
+
+export const ManagedSourceAssetPreflightResponseSchema = z
+  .object({
+    assetId: z.string().uuid().optional(),
+    needsUpload: z.boolean(),
+    status: z.literal('existing').optional(),
+  })
+  .openapi('HarbourManagedSourceAssetPreflightResponse')
+
 export const LinkManagedSourceAssetRequestSchema = z
   .object({
     assetKey: z.string().min(1),
@@ -403,6 +418,21 @@ export const ControlResponseSchema = z
     apiReleaseSetCode: z.string().optional(),
     apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
     apiReleaseSetPublications: z.array(ReleaseSetPublicationSchema).optional(),
+    metadataDelta: z
+      .object({
+        apiReleaseSets: z
+          .array(
+            z.object({
+              id: z.string().uuid(),
+              status: z.enum(['current', 'draft']),
+            }),
+          )
+          .optional(),
+        releases: z.array(
+          z.object({ id: z.string().uuid(), status: z.literal('published') }),
+        ),
+      })
+      .optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
