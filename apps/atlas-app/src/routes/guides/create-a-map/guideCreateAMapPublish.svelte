@@ -275,7 +275,7 @@ const configurationCode = $derived(
 )
 const deploymentCode = $derived(
   hosting === 'cloudflare'
-    ? ['bun run build', 'bunx wrangler deploy'].join('\n')
+    ? 'bunx wrangler deploy'
     : hosting === 'github-pages'
       ? [
           'bunx vite build --base=/saanseoi-project/',
@@ -286,6 +286,70 @@ const deploymentCode = $derived(
         ? ['bun run build', 'bunx vercel --prod'].join('\n')
         : ['bun run build', 'bunx netlify deploy --dir=dist --prod'].join('\n'),
 )
+const cloudflareBuildOutput = [
+  '$ tsc && vite build',
+  'vite v8.2.2 building client environment for production...',
+  '',
+  'new URL("./land-analysis.json", import.meta.url) doesn\'t exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.',
+  '✓ 322 modules transformed.',
+  'computing gzip size...',
+  'dist/.assetsignore                            0.02 kB',
+  'dist/index.html                               0.46 kB │ gzip:   0.30 kB',
+  'dist/wrangler.json                            1.23 kB │ gzip:   0.61 kB',
+  'dist/assets/index-DoOT4nBh.css               89.10 kB │ gzip:  12.31 kB',
+  'dist/assets/geos.helpers.esm-rKp5lucd.js      6.96 kB │ gzip:   1.69 kB',
+  'dist/assets/index-C59_vIr8.js             1,049.56 kB │ gzip: 281.06 kB',
+  'dist/assets/geos.esm-lyk__Umi.js          2,577.25 kB │ gzip: 790.63 kB',
+  '',
+  '✓ built in 362ms',
+  '[plugin builtin:vite-reporter]',
+  '(!) Some chunks are larger than 500 kB after minification. Consider:',
+  '- Using dynamic import() to code-split the application',
+  '- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting',
+  '- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.',
+].join('\n')
+const cloudflareDeploymentInitialOutput = [
+  '⛅️ wrangler 4.127.1',
+  '────────────────────',
+  'Using redirected Wrangler configuration.',
+  ' - Configuration being used: "dist/wrangler.json"',
+  ' - Original user\'s configuration: "wrangler.jsonc"',
+  ' - Deploy configuration file: ".wrangler/deploy/config.json"',
+  '▲ [WARNING] You need to register a workers.dev subdomain before publishing to workers.dev',
+  '',
+  '? Would you like to register a workers.dev subdomain now? › (Y/n)',
+].join('\n')
+const cloudflareDeploymentSubdomainOutput = [
+  'What would you like your workers.dev subdomain to be? It will be accessible at https://<subdomain>.workers.dev ›',
+  '',
+  '✔ What would you like your workers.dev subdomain to be? It will be accessible at https://<subdomain>.workers.dev … saanseoi-guides-create-a-map',
+  '? Creating a workers.dev subdomain for your account at https://saanseoi-guides-create-a-map.workers.dev. Ok to proceed? › (Y/n)',
+].join('\n')
+const cloudflareDeploymentCompleteOutput = [
+  'Success! It may take a few minutes for DNS records to update.',
+  'Visit https://dash.cloudflare.com/.../workers/subdomain to edit your workers.dev subdomain',
+  '🌀 Building list of assets...',
+  '✨ Read 10 files from the assets directory /home/io/saanseoi-project/dist',
+  '🌀 Starting asset upload...',
+  '🌀 Found 7 new or modified static assets to upload. Proceeding with upload...',
+  '+ /index.html',
+  '+ /favicon.svg',
+  '+ /assets/geos.esm-lyk__Umi.js',
+  '+ /icons.svg',
+  '+ /assets/index-DoOT4nBh.css',
+  '+ /assets/geos.helpers.esm-rKp5lucd.js',
+  '+ /assets/index-C59_vIr8.js',
+  'Uploaded 2 of 7 assets',
+  'Uploaded 4 of 7 assets',
+  'Uploaded 7 of 7 assets',
+  '✨ Success! Uploaded 7 files (7.79 sec)',
+  '',
+  'Total Upload: 0.31 KiB / gzip: 0.22 KiB',
+  'Uploaded saanseoi-project (11.80 sec)',
+  'Deployed saanseoi-project triggers (1.71 sec)',
+  '  https://saanseoi-project.saanseoi-guides-create-a-map.workers.dev',
+  'Current Version ID: e05fa8db-ec08-49a9-8431-3c3c823143e5',
+].join('\n')
 const visitUrl = $derived(
   hosting === 'github-pages'
     ? 'https://your-github-user-name.github.io/saanseoi-project/'
@@ -524,7 +588,7 @@ const resetRequirement = (requirement: number) => {
       titleId="publish-authentication-readiness-title"
       complete={completedRequirements.includes(authenticationRequirement)}
       completeAction={m.guide_publish_authentication_complete_action()}
-      eyebrow={m.guide_publish_authenticated()}
+      eyebrow={m.guide_publish_authenticated({ host })}
       description={m.guide_publish_authenticated_description({ host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
@@ -601,8 +665,8 @@ const resetRequirement = (requirement: number) => {
       titleId="publish-configuration-readiness-title"
       complete={completedRequirements.includes(configurationRequirement)}
       completeAction={m.guide_publish_configuration_complete_action()}
-      eyebrow={m.guide_publish_configuration_ready()}
-      description={m.guide_publish_configuration_ready_description()}
+      eyebrow={m.guide_publish_configuration_ready({ host })}
+      description={m.guide_publish_configuration_ready_description({ host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
       onComplete={() => completeRequirement(configurationRequirement)}
@@ -610,7 +674,7 @@ const resetRequirement = (requirement: number) => {
     >
       {#if hosting === 'cloudflare'}
         <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
+          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ host }), path: terminalProjectPath })}
           description={m.guide_publish_cloudflare_configuration_command_description()}
           code={configurationCode}
           language={terminalLanguage}
@@ -643,7 +707,7 @@ const resetRequirement = (requirement: number) => {
         />
       {:else}
         <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ host }), path: terminalProjectPath })}
           code={configurationCode}
           language={terminalLanguage}
           copyLabel={m.common_copy()}
@@ -680,13 +744,66 @@ const resetRequirement = (requirement: number) => {
       onComplete={() => completeRequirement(deploymentRequirement)}
       onReset={() => resetRequirement(deploymentRequirement)}
     >
-      <GuideCodeBlock
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
-        code={deploymentCode}
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
+      {#if hosting === 'cloudflare'}
+        <GuidePublishTerminalCommand
+          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+          description={m.guide_publish_cloudflare_build_description()}
+          code="bun run build"
+          language={terminalLanguage}
+          output={cloudflareBuildOutput}
+          outputLabel={m.guide_publish_cloudflare_build_output()}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_publish_cloudflare_build_warning()}
+        </p>
+        <div class="mt-6">
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
+            description={m.guide_publish_cloudflare_deploy_description()}
+            code={deploymentCode}
+            language={terminalLanguage}
+            output={cloudflareDeploymentInitialOutput}
+            outputLabel={m.guide_publish_cloudflare_deploy_initial_output()}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_deploy_register_subdomain()}
+          </p>
+          <GuideCodeBlock
+            class="mt-3"
+            code={cloudflareDeploymentSubdomainOutput}
+            label={m.guide_publish_cloudflare_deploy_subdomain_output()}
+            copyable={false}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_deploy_choose_subdomain()}
+          </p>
+          <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_deploy_confirm_subdomain()}
+          </p>
+          <GuideCodeBlock
+            class="mt-3"
+            code={cloudflareDeploymentCompleteOutput}
+            label={m.guide_publish_cloudflare_deploy_complete_output()}
+            copyable={false}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+        </div>
+      {:else}
+        <GuideCodeBlock
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+          code={deploymentCode}
+          language={terminalLanguage}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+      {/if}
     </GuidePublishRequirement>
   </section>
 
@@ -698,7 +815,11 @@ const resetRequirement = (requirement: number) => {
       {m.guide_publish_visit_title()}
     </h3>
     <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html visitUrl ? m.guide_publish_visit_github({ url: visitUrl }) : m.guide_publish_visit_output()}
+      {@html visitUrl
+        ? m.guide_publish_visit_github({ url: visitUrl })
+        : hosting === 'cloudflare'
+          ? m.guide_publish_visit_cloudflare()
+          : m.guide_publish_visit_output()}
     </p>
     <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_update({ host })}

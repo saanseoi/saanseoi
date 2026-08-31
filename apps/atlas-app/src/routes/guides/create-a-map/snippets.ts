@@ -484,7 +484,7 @@ export const createUrbanDensityStatsCode = (
   [
     ...savedResultComment.split('\n').map(line => `// ${line}`),
     'let savedResult: LandAnalysisResult | undefined',
-    "const savedResultUrl = new URL('./land-analysis.json', import.meta.url)",
+    "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
     'try {',
     '  const savedResultResponse = await fetch(savedResultUrl)',
     "  if (savedResultResponse.headers.get('content-type')?.includes('application/json')) {",
@@ -907,6 +907,9 @@ export const urbanDensitySetupZ14TileFetcherCss = [
   '  #land-analysis-progress .land-analysis-progress-fill { transition: none; }',
   '  #land-analysis-progress .land-analysis-progress-fill::after { animation: none; }',
   '}',
+  '@media (max-width: 640px) {',
+  '  #land-analysis-progress { left: 0; z-index: 11; width: 100%; transform: none; }',
+  '}',
 ].join('\n')
 
 export const urbanDensityCollectNonLiveableLandCode = [
@@ -1154,7 +1157,7 @@ export const createUrbanDensityMetricsCss = (appearance: 'light' | 'dark') => {
     '@keyframes density-card-enter { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }',
     '@media (prefers-reduced-motion: reduce) { #urban-density-metrics article { animation: none; } }',
     '@media (max-width: 640px) {',
-    '  #urban-density-metrics { inset: auto .75rem 2.5rem; grid-template-columns: 1fr; gap: .5rem; }',
+    '  #urban-density-metrics { inset: auto .75rem 2.5rem; z-index: 12; grid-template-columns: 1fr; gap: .5rem; }',
     '  #urban-density-metrics article { padding: .75rem 1rem; }',
     '  #urban-density-metrics p { font-size: .75rem; }',
     '  #urban-density-metrics article > strong { margin: .2rem 0; font-size: 1.35rem; }',
