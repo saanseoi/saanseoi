@@ -8,7 +8,7 @@ import GuideMappingPreview from './guideMappingPreview.svelte'
 import GuideUrbanDensityLiveableLegend from './guideUrbanDensityLiveableLegend.svelte'
 import {
   addUrbanDensityLiveableLand,
-  loadCachedDistrictLand,
+  loadCachedDistrictExclusions,
 } from './guideUrbanDensityLiveableMap.ts'
 import { calculateUrbanDensityLiveableMetrics } from './urbanDensityExampleData.ts'
 
@@ -25,7 +25,7 @@ const areaColour = (name: string) =>
   name === 'Hong Kong Island' ? '#5b8ff9' : name === 'Kowloon' ? '#f6bd16' : '#5ad8a6'
 
 onMount(() => {
-  void loadCachedDistrictLand()
+  void loadCachedDistrictExclusions()
     .then(() => {
       requestAnimationFrame(() => {
         showMetrics = true

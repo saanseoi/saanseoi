@@ -18,6 +18,7 @@ import {
   urbanDensityCalculationCode,
   urbanDensityCollectNonLiveableLandCode,
   urbanDensityLiveableAreaCode,
+  urbanDensityLiveableAreaMapCode,
   urbanDensitySetupZ14TileFetcherCode,
 } from './snippets'
 
@@ -91,8 +92,24 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityLiveableAreaCode).toContain(
       'const excludedGeometry = await unionAnalysisGeometries(clippedExclusions)',
     )
-    expect(urbanDensityLiveableAreaCode).toContain('area: district.properties.area')
+    expect(urbanDensityLiveableAreaCode).toContain(
+      'excludedDistrictLand: featureCollection(excludedDistrictLand)',
+    )
     expect(urbanDensityLiveableAreaCode).not.toContain('intersect(featureCollection')
+    expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('GEOSDifferencePrec')
+    expect(urbanDensityLiveableAreaCode).not.toContain('liveableDistrictLand')
+  })
+
+  test('renders simple District land beneath the excluded geometry', () => {
+    expect(urbanDensityLiveableAreaMapCode).toContain(
+      'data: featureCollection(savedResult.districts)',
+    )
+    expect(urbanDensityLiveableAreaMapCode).not.toContain(
+      'data: savedResult.liveableDistrictLand',
+    )
+    expect(
+      urbanDensityLiveableAreaMapCode.indexOf("id: 'liveable-districts'"),
+    ).toBeLessThan(urbanDensityLiveableAreaMapCode.indexOf("id: 'excluded-districts'"))
   })
 
   test('renders the complete guide', () => {

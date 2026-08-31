@@ -17,10 +17,10 @@ import type {
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
   districtNameByCode,
-  type DistrictLand,
+  type DistrictExclusions,
   urbanDensityCensusDistricts,
 } from './urbanDensityCensusDistricts.ts'
-import { loadCachedDistrictLand } from './guideUrbanDensityLiveableMap.ts'
+import { loadCachedDistrictExclusions } from './guideUrbanDensityLiveableMap.ts'
 
 type Props = {
   label: string
@@ -44,12 +44,9 @@ let completedTiles = $state(0)
 let completedDistricts = $state(0)
 let completedDistrictParts = $state(0)
 let previewMap = $state<MapLibreMap>()
-let excludedDistrictLand = $state.raw<DistrictLand['excludedDistrictLand']>([])
-let completedExcludedDistrictLand = $state.raw<DistrictLand['excludedDistrictLand']>([])
-let excludedByDistrictCode = new Map<
-  string,
-  DistrictLand['excludedDistrictLand'][number]
->()
+let excludedDistrictLand = $state.raw<DistrictExclusions>([])
+let completedExcludedDistrictLand = $state.raw<DistrictExclusions>([])
+let excludedByDistrictCode = new Map<string, DistrictExclusions[number]>()
 
 const emptyTileCollection = { type: 'FeatureCollection' as const, features: [] }
 const processingTileLayers: LayerSpecification[] = [
@@ -358,15 +355,12 @@ onMount(() => {
     districtTimer = window.setInterval(advanceDistrictPart, 120)
   }
 
-  void loadCachedDistrictLand()
-    .then(land => {
+  void loadCachedDistrictExclusions()
+    .then(exclusions => {
       if (cancelled) return
-      excludedDistrictLand = land.excludedDistrictLand
+      excludedDistrictLand = exclusions
       excludedByDistrictCode = new Map(
-        land.excludedDistrictLand.map(feature => [
-          feature.properties.divisionCode,
-          feature,
-        ]),
+        exclusions.map(feature => [feature.properties.divisionCode, feature]),
       )
       updateExclusionSources()
     })
