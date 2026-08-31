@@ -17,8 +17,10 @@ import {
   getCreateAMapRendererReference,
   urbanDensityCalculationCode,
   urbanDensityCollectNonLiveableLandCode,
+  urbanDensityGeometryWorkerCode,
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaMapCode,
+  urbanDensityLiveableMetricsCode,
   urbanDensitySetupZ14TileFetcherCode,
 } from './snippets'
 
@@ -74,12 +76,16 @@ describe('Create a Map LLM instructions', () => {
 
   test('dissolves fixed-precision tile coverage before measuring districts', () => {
     expect(urbanDensitySetupZ14TileFetcherCode).toContain('const precisionGrid = 4')
-    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+    expect(urbanDensityGeometryWorkerCode).toContain(
       'geos.GEOSUnaryUnionPrec(collection, precisionGrid)',
     )
-    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
-      'geos.GEOSIntersectionPrec(firstGeometry, secondGeometry, precisionGrid)',
+    expect(urbanDensityGeometryWorkerCode).toContain(
+      'geos.GEOSIntersectionPrec(first, second, precisionGrid)',
     )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      "new Worker(new URL('./land-analysis.worker.ts', import.meta.url), { type: 'module' })",
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('geos.GEOS')
     expect(urbanDensitySetupZ14TileFetcherCode).toContain(
       'intersectAnalysisGeometries(merged, tileCoreGeometry(tile))',
     )
@@ -88,6 +94,9 @@ describe('Create a Map LLM instructions', () => {
     )
     expect(urbanDensityCollectNonLiveableLandCode).toContain(
       "setTileStatus(tile, 'complete')",
+    )
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
+      'await runWithConcurrency(tiles, 8, async tile => {',
     )
     expect(urbanDensityLiveableAreaCode).toContain(
       'const excludedGeometry = await unionAnalysisGeometries(clippedExclusions)',
@@ -98,6 +107,9 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityLiveableAreaCode).not.toContain('intersect(featureCollection')
     expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('GEOSDifferencePrec')
     expect(urbanDensityLiveableAreaCode).not.toContain('liveableDistrictLand')
+    expect(urbanDensityLiveableAreaCode).not.toContain('savedResult = analysisResult')
+    expect(urbanDensityLiveableMetricsCode).toStartWith('if (savedResult) {')
+    expect(urbanDensityLiveableAreaMapCode).toStartWith('if (savedResult) {')
   })
 
   test('renders simple District land beneath the excluded geometry', () => {
