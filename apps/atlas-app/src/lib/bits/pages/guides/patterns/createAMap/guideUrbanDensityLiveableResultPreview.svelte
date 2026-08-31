@@ -44,7 +44,7 @@ onMount(async () => {
   >
     <dialog
       open
-      class="m-0 flex max-h-full w-full max-w-[32.5rem] flex-col overflow-hidden border border-white/20 bg-[#171c25] p-5 font-body text-white shadow-2xl sm:p-7"
+      class="m-0 flex max-h-full w-full max-w-130 flex-col overflow-hidden border border-white/20 bg-[#171c25] p-5 font-body text-white shadow-2xl sm:p-7"
       aria-labelledby="liveable-result-preview-title"
     >
       <h2
