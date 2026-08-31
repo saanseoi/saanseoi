@@ -87,7 +87,6 @@ import {
   getBunInstallCode,
   getCreateAMapRendererReference,
   getRendererTerminalCommand,
-  iframeCode,
   mapboxTokenCode,
   urbanDensityMapCode,
   urbanDensityMapDisplayCode,
@@ -115,6 +114,7 @@ import {
 } from './snippets'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
+import GuideCreateAMapEmbed from './guideCreateAMapEmbed.svelte'
 import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
@@ -764,7 +764,7 @@ const handleObjectiveChange = (value: string) => {
 }
 const handleWebsitePlatformChange = (value: string) => {
   websitePlatform = value as WebsitePlatform
-  hosting = value === 'other' ? undefined : 'cloudflare'
+  hosting = 'cloudflare'
   isMapPublished = false
 }
 const handleRendererChange = (value: string) => {
@@ -1411,11 +1411,9 @@ const selectedPlatform = $derived(
     : objective === 'web'
       ? selectedHosting?.label
       : objective === 'web-embed'
-        ? websitePlatform === 'other'
-          ? m.guide_platform_local()
-          : selectedWebsitePlatform && selectedHosting
-            ? `${selectedWebsitePlatform.label} · ${selectedHosting.label}`
-            : selectedWebsitePlatform?.label
+        ? selectedWebsitePlatform && selectedHosting
+          ? `${selectedWebsitePlatform.label} · ${selectedHosting.label}`
+          : selectedWebsitePlatform?.label
         : objective === 'mobile-embed'
           ? selectedMobilePlatform?.label
           : [selectedNotebookLibrary?.label, selectedNotebookRuntime?.label]
@@ -3014,28 +3012,17 @@ const styleChoices = $derived.by(() =>
                 onPublishedChange={published => (isMapPublished = published)}
               />
             {/if}
-            {#if objective === 'web-embed' && websitePlatform !== 'other'}
-              <div class="mt-8">
-                <h3 class="font-display text-headline-sm font-bold text-primary">
-                  {@html m.guide_setup_embed_title()}
-                </h3>
-                <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-                  {@html m.guide_setup_embed_description({
-                    provider: selectedWebsitePlatform?.label ?? '',
-                  })}
-                </p>
-                <div class="mt-5">
-                  <GuideCodeBlock
-                    label={m.guide_setup_embed_code()}
-                    code={iframeCode}
-                    copyLabel={m.common_copy()}
-                    copiedLabel={m.common_copied()}
-                  />
-                </div>
-              </div>
-            {/if}
           {/if}
         </GuideSection>
+      {/if}
+
+      {#if objective === 'web-embed' && websitePlatform && hosting}
+        <GuideCreateAMapEmbed
+          {hosting}
+          platform={websitePlatform}
+          platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
+          published={isMapPublished}
+        />
       {/if}
 
       {#if showPublishStep && dataSource}

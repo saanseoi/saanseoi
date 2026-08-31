@@ -61,7 +61,7 @@ export function createPrerequisiteStepIds({
     ids.push('hosting')
   } else if (objective === 'web-embed') {
     ids.push('website-platform')
-    if (websitePlatform && websitePlatform !== 'other') ids.push('hosting')
+    if (websitePlatform) ids.push('hosting')
   } else if (objective === 'mobile-embed') {
     ids.push('mobile-platform')
   } else if (objective === 'notebook-embed') {
@@ -110,11 +110,11 @@ export function createMissingPrerequisiteQuestions({
       : objective === 'web-embed'
         ? !websitePlatform
           ? { id: 'platform', label: m.guide_embed_label(), answered: false }
-          : websitePlatform === 'other'
+          : !hosting
             ? {
                 id: 'platform',
                 label: m.guide_host_label(),
-                answered: Boolean(hosting),
+                answered: false,
               }
             : undefined
         : objective === 'mobile-embed'
@@ -257,9 +257,7 @@ export function isGuideSetupReady({
         : operatingSystem && (llmMode === 'handover' || codeEditor)) &&
       (objective === 'local' ||
         (objective === 'web' && hosting) ||
-        (objective === 'web-embed' &&
-          websitePlatform &&
-          (websitePlatform === 'other' || hosting)) ||
+        (objective === 'web-embed' && websitePlatform && hosting) ||
         (objective === 'mobile-embed' && mobileLibrary && mobilePlatform) ||
         (objective === 'notebook-embed' && notebookLibrary && notebookRuntime)),
   )
