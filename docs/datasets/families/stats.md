@@ -33,6 +33,17 @@ records the mirrored archive's managed key and SHA-256 in source provenance. Onl
 members are expanded, with explicit entry-count and uncompressed-size limits. Remote
 publication still builds SQL using the corresponding local target-database cache.
 
+## C&SD combined ingestion
+
+The `hkgov-censtatd:statistics` importer normally materialises the Statistics snapshot
+and any `division` or `divisionArea` geography companions available in the same C&SD
+archive. Passing `--defer-stats-release-set` changes the default to Statistics-only
+ingestion; `--include-geography` explicitly restores the geography fan-out for that run.
+`--geography-only` skips the Statistics snapshot and processes only the available
+geography companions. These resource uploads share the prepared archive and source
+provenance, but Statistics and Divisions release-set publication remain separate: use
+`--defer-api-release-set` when the Divisions release set must also remain deferred.
+
 Publisher delivery and statistical reference time are separate storage concerns. Raw
 assertions remain in the source shard selected by the publisher release's delivery year.
 Canonical `statsRecords` history is split by `referencePeriodEndYear`; periods ending
