@@ -669,6 +669,10 @@ export async function handlePublishDataset(
       }
     }
 
+    const apiReleaseSetMetadata = releaseSets.at(-1)
+      ? await resolveApiReleaseSetMetadataDelta(db, releaseSets.at(-1)?.id ?? '')
+      : undefined
+
     return {
       apiCatalogRevisionCode: selectedApiCatalogRevision?.code,
       apiCatalogRevisionId: selectedApiCatalogRevision?.id,
@@ -678,17 +682,7 @@ export async function handlePublishDataset(
       apiReleaseSetAnnouncements,
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
-      metadataDelta: publishMetadataDelta(
-        dataset.releaseId,
-        releaseSets.at(-1)
-          ? await db
-              .select()
-              .from(metaApiReleaseSets)
-              .where(eq(metaApiReleaseSets.id, releaseSets.at(-1)?.id ?? ''))
-              .limit(1)
-              .get()
-          : undefined,
-      ),
+      metadataDelta: publishMetadataDelta(dataset.releaseId, apiReleaseSetMetadata),
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
@@ -710,6 +704,51 @@ function publishMetadataDelta(
       : {}),
     releases: [{ id: releaseId, status: 'published' as const }],
   }
+}
+
+async function resolveApiReleaseSetMetadataDelta(
+  db: HarbourReadableDb,
+  releaseSetId: string,
+): Promise<ApiReleaseSetMetadataDelta | undefined> {
+  const releaseSet = await db
+    .select({
+      id: metaApiReleaseSets.id,
+      apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiCompositionId: metaApiReleaseSets.apiCompositionId,
+      code: metaApiReleaseSets.code,
+      regionCode: metaApiReleaseSets.regionCode,
+      domainCode: metaApiReleaseSets.domainCode,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      revision: metaApiReleaseSets.revision,
+      effectiveFrom: metaApiReleaseSets.effectiveFrom,
+      effectiveTo: metaApiReleaseSets.effectiveTo,
+      supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
+      schemaVersion: metaApiReleaseSets.schemaVersion,
+      rulesetVersion: metaApiReleaseSets.rulesetVersion,
+      status: metaApiReleaseSets.status,
+      publishedAt: metaApiReleaseSets.publishedAt,
+      validFrom: metaApiReleaseSets.validFrom,
+      validTo: metaApiReleaseSets.validTo,
+      notes: metaApiReleaseSets.notes,
+      guide: metaApiReleaseSets.guide,
+      versionHash: metaApiReleaseSets.versionHash,
+      createdAt: metaApiReleaseSets.createdAt,
+      updatedAt: metaApiReleaseSets.updatedAt,
+    })
+    .from(metaApiReleaseSets)
+    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .limit(1)
+    .get()
+
+  if (!releaseSet) return undefined
+  const status = releaseSet.status
+  if (status !== 'current' && status !== 'draft') {
+    throw new ControlRequestError(
+      `Cannot include archived API release set ${releaseSetId} in publish metadata delta.`,
+    )
+  }
+
+  return { ...releaseSet, status }
 }
 
 /**
