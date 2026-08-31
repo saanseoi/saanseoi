@@ -96,10 +96,20 @@ describe('Create a Map LLM instructions', () => {
       "setTileStatus(tile, 'complete')",
     )
     expect(urbanDensityCollectNonLiveableLandCode).toContain(
-      'await runWithConcurrency(tiles, 8, async tile => {',
+      'for (let index = 0; index < Math.min(2, tiles.length); index += 1) queueCoverage(index)',
     )
-    expect(urbanDensityLiveableAreaCode).toContain(
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
       'const excludedGeometry = await unionAnalysisGeometries(clippedExclusions)',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'const tileRequests = new Map<string, Promise<Feature<Polygon | MultiPolygon>[]>>()',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'const tileCoverageRequests = new Map<string, Promise<Polygon | MultiPolygon | undefined>>()',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('booleanIntersects')
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
+      'for (const [districtIndex, district] of districts.entries()) {',
     )
     expect(urbanDensityLiveableAreaCode).toContain(
       'excludedDistrictLand: featureCollection(excludedDistrictLand)',

@@ -146,7 +146,9 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
       map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48)
       map.setPaintProperty('excluded-districts-outline', 'line-opacity', 1)
     })
+    return true
   } catch (cause) {
     console.error('Liveable district land could not be calculated.', cause)
+    return false
   }
 }
