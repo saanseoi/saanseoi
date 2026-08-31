@@ -1,4 +1,7 @@
 import type { Feature, FeatureCollection } from 'geojson'
+import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
+import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
+import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 
 import type {
@@ -25,11 +28,21 @@ type LandAnalysis = {
 }
 
 let cachedDistrictLand: Promise<DistrictLand> | undefined
+const geometryReader = new GeoJSONReader(new GeometryFactory())
 
 function isDistrictLand(value: unknown): value is DownloadedDistrictLand {
   if (!value || typeof value !== 'object') return false
   const collection = value as Partial<DownloadedDistrictLand>
   return collection.type === 'FeatureCollection' && Array.isArray(collection.features)
+}
+
+function hasValidDistrictGeometry(
+  feature: Feature<DistrictGeometry, DownloadedDistrictLandProperties>,
+) {
+  return (
+    (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') &&
+    IsValidOp.isValid(geometryReader.read(feature.geometry))
+  )
 }
 
 function normaliseDistrictLand(
@@ -39,6 +52,12 @@ function normaliseDistrictLand(
     const { area, districtCode } = feature.properties
     if (typeof area !== 'string' || typeof districtCode !== 'string') {
       throw new Error('Land-analysis feature is missing its District identity.')
+    }
+    // Saved results must already be valid; previews never alter source geometry.
+    if (!hasValidDistrictGeometry(feature)) {
+      throw new Error(
+        `Land-analysis contains invalid ${districtCode} geometry. Regenerate land-analysis.json.`,
+      )
     }
     return {
       ...feature,

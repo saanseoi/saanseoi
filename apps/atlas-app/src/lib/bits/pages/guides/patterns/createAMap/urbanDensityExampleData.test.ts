@@ -97,3 +97,36 @@ test('requires saved liveable and excluded District geometry', () => {
     divisionCode: 'KLC',
   })
 })
+
+test('rejects a saved overlay with invalid polygonal geometry', () => {
+  const invalidDistrictLand = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { area: 'Kowloon', districtCode: 'KLC' },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [114.18, 22.33],
+              [114.19, 22.34],
+              [114.19, 22.33],
+              [114.18, 22.34],
+              [114.18, 22.33],
+            ],
+          ],
+        },
+      },
+    ],
+  } as const
+
+  expect(() =>
+    decodeLandAnalysis({
+      liveableDistrictLand: invalidDistrictLand,
+      excludedDistrictLand: invalidDistrictLand,
+    }),
+  ).toThrow(
+    'Land-analysis contains invalid KLC geometry. Regenerate land-analysis.json.',
+  )
+})

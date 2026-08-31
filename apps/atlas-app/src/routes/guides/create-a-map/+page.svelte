@@ -2901,7 +2901,7 @@ const styleChoices = $derived.by(() =>
           title={m.guide_setup_publish_title()}
           description={objective === 'mobile-embed'
               ? m.guide_publish_mobile_description()
-              : m.guide_setup_publish_description()}
+              : undefined}
         >
           {#if llmGuidanceEnabled && isDataStepComplete}
             <GuidePromptBlock
@@ -2941,7 +2941,7 @@ const styleChoices = $derived.by(() =>
                 {operatingSystem}
                 {terminalExperience}
                 {terminalProjectPath}
-                onPublished={() => (isMapPublished = true)}
+                onPublishedChange={published => (isMapPublished = published)}
               />
             {/if}
             {#if objective === 'web-embed' && websitePlatform !== 'other'}
