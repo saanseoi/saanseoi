@@ -368,21 +368,16 @@ export const createNotebookSetupCode = (
 
 export const createDeploymentCode = (hosting?: string) =>
   hosting === 'cloudflare'
-    ? [
-        'bun run build',
-        'bunx wrangler login',
-        'bunx wrangler deploy --assets=dist',
-      ].join('\n')
+    ? 'bunx wrangler deploy'
     : hosting === 'github-pages'
       ? [
-          'bun run build',
-          '# For a project site, set Vite’s base path before building. See the guide below.',
+          'bunx tsc --noEmit && bunx vite build --base=/saanseoi-project/',
           'bunx gh-pages -d dist',
         ].join('\n')
       : hosting === 'vercel'
-        ? ['bun run build', 'bunx vercel --prod'].join('\n')
+        ? 'bunx vercel --prod'
         : hosting === 'netlify'
-          ? ['bunx netlify deploy --build --prod'].join('\n')
+          ? 'bunx netlify deploy --dir=dist --prod --no-build'
           : [
               'bun run build',
               '# Publish the contents of dist/ with your hosting provider.',

@@ -26,6 +26,7 @@ import vercelAuthenticationDark from '#lib/assets/guides/publish-vercel-auth-dar
 import vercelAuthenticationLight from '#lib/assets/guides/publish-vercel-auth-light.webp'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
+import { createDeploymentCode } from './snippets.js'
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
 import GuidePublishHostingCallout from './guidePublishHostingCallout.svelte'
 import GuidePublishTerminalCommand from './guidePublishTerminalCommand.svelte'
@@ -356,18 +357,7 @@ const configurationOutput = $derived(
       ? vercelConfigurationOutput
       : netlifyConfigurationOutput,
 )
-const deploymentCode = $derived(
-  hosting === 'cloudflare'
-    ? 'bunx wrangler deploy'
-    : hosting === 'github-pages'
-      ? [
-          'bunx tsc --noEmit && bunx vite build --base=/saanseoi-project/',
-          'bunx gh-pages -d dist',
-        ].join('\n')
-      : hosting === 'vercel'
-        ? 'bunx vercel --prod'
-        : 'bunx netlify deploy --dir=dist --prod',
-)
+const deploymentCode = $derived(createDeploymentCode(hosting))
 const cloudflareBuildOutput = [
   '$ tsc && vite build',
   'vite v8.2.2 building client environment for production...',
@@ -879,7 +869,7 @@ const resetRequirement = (requirement: number) => {
           />
         {:else}
           <p class="font-body text-body-lg leading-8 text-foreground-alt">
-            {hosting === 'github-pages'
+            {@html hosting === 'github-pages'
               ? m.guide_publish_github_configuration_command_description()
               : hosting === 'vercel'
                 ? m.guide_publish_vercel_configuration_command_description()
@@ -895,7 +885,7 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
           <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-            {hosting === 'github-pages'
+            {@html hosting === 'github-pages'
               ? m.guide_publish_github_configuration_complete()
               : hosting === 'vercel'
                 ? m.guide_publish_vercel_configuration_complete()
