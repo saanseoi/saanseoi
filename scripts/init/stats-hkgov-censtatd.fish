@@ -25,3 +25,8 @@ end
 # have been ingested, so an initial pre-release build has a single release set.
 init_run_step ./bin/saanseoi release-sets:bootstrap-stats \
     --target $saanseoi_init_target --region hk
+
+# Statistics release sets are created after the other initialisers' documentation
+# pass, so publish their existing Notes and Guide fixtures as the final step too.
+init_run_step ./bin/saanseoi docs:publish \
+    --target $saanseoi_init_target --scope all
