@@ -15,6 +15,7 @@ import {
   createUrbanDensityMapReadyCode,
   createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
+  urbanDensityCalculationCode,
   urbanDensityCollectNonLiveableLandCode,
   urbanDensityLiveableAreaCode,
   urbanDensitySetupZ14TileFetcherCode,
@@ -43,6 +44,8 @@ describe('Create a Map LLM instructions', () => {
     )
 
     expect(mapSetup).not.toContain('savedResultUrl')
+    expect(mapSetup).not.toContain('type DistrictProperties')
+    expect(stats).toContain('type DistrictProperties')
     expect(stats).toContain(
       "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
     )
@@ -62,6 +65,9 @@ describe('Create a Map LLM instructions', () => {
     )
     expect(stats).toContain(
       "if (!savedResult) {\nconst statsEndpoint = '/stats/v0.1/geographies'",
+    )
+    expect(urbanDensityCalculationCode).not.toContain(
+      "divisionsUrl.searchParams.set('transform', 'simplified')",
     )
   })
 

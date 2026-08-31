@@ -441,7 +441,6 @@ export const createAgentProjectCommand = (
 export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
   [
     "import { Map as MapLibreMap, type GeoJSONSource } from 'maplibre-gl'",
-    "import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'",
     "import 'maplibre-gl/dist/maplibre-gl.css'",
     "import './style.css'",
     '',
@@ -465,7 +464,14 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '  style,',
     '  attributionControl: { compact: true },',
     '})',
-    '',
+  ].join('\n')
+
+export const createUrbanDensityStatsCode = (
+  apiBaseUrl: string,
+  savedResultComment: string,
+) =>
+  [
+    "import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'",
     'type DistrictProperties = { districtCode: string; districtName: string; area: string; population: number; landAreaSqKm: number }',
     'type District = Feature<Polygon | MultiPolygon, DistrictProperties>',
     'type AreaMetric = { name: string; population: number; landAreaSqKm: number; peoplePerSqKm: number }',
@@ -475,13 +481,7 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     '  liveableDistrictLand: FeatureCollection<Polygon | MultiPolygon, DistrictProperties>',
     '  excludedDistrictLand: FeatureCollection<Polygon | MultiPolygon, DistrictProperties>',
     '}',
-  ].join('\n')
-
-export const createUrbanDensityStatsCode = (
-  apiBaseUrl: string,
-  savedResultComment: string,
-) =>
-  [
+    '',
     ...savedResultComment.split('\n').map(line => `// ${line}`),
     'let savedResult: LandAnalysisResult | undefined',
     "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
@@ -543,7 +543,6 @@ export const urbanDensityCalculationCode = [
   'const divisionsUrl = new URL(divisionsEndpoint, apiBaseUrl)',
   "divisionsUrl.searchParams.set('filter[level]', '2')",
   "divisionsUrl.searchParams.set('include', 'hierarchy,areas:hkgov-censtatd-landclipped@2021')",
-  "divisionsUrl.searchParams.set('transform', 'simplified')",
   "const divisionsResponse = await fetch(divisionsUrl, { headers: { 'x-api-key': accessToken } })",
   'if (!divisionsResponse.ok) {',
   '  const error = await divisionsResponse.json().catch(() => null)',
