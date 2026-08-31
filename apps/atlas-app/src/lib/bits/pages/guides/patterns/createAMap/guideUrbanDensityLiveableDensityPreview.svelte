@@ -1,15 +1,12 @@
 <script lang="ts">
-import { onMount } from 'svelte'
 import { fly } from 'svelte/transition'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 
 import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import GuideUrbanDensityLiveableLegend from './guideUrbanDensityLiveableLegend.svelte'
-import {
-  addUrbanDensityLiveableLand,
-  loadCachedDistrictExclusions,
-} from './guideUrbanDensityLiveableMap.ts'
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 import { calculateUrbanDensityLiveableMetrics } from './urbanDensityExampleData.ts'
 
 type Props = {
@@ -23,18 +20,88 @@ const metrics = calculateUrbanDensityLiveableMetrics()
 let showMetrics = $state(false)
 const areaColour = (name: string) =>
   name === 'Hong Kong Island' ? '#5b8ff9' : name === 'Kowloon' ? '#f6bd16' : '#5ad8a6'
-
-onMount(() => {
-  void loadCachedDistrictExclusions()
-    .then(() => {
-      requestAnimationFrame(() => {
-        showMetrics = true
-      })
-    })
-    .catch(() => {
-      // The map helper reports an unavailable cached result without leaving an unhandled promise.
-    })
-})
+const nonLiveableLandUse = [
+  'aerodrome',
+  'airfield',
+  'allotments',
+  'bare_rock',
+  'beach',
+  'cemetery',
+  'commercial',
+  'construction',
+  'dam',
+  'dog_park',
+  'farmland',
+  'forest',
+  'garden',
+  'golf_course',
+  'grass',
+  'grassland',
+  'industrial',
+  'meadow',
+  'military',
+  'nature_reserve',
+  'park',
+  'pedestrian',
+  'pier',
+  'pitch',
+  'platform',
+  'playground',
+  'railway',
+  'recreation_ground',
+  'runway',
+  'sand',
+  'scrub',
+  'wetland',
+  'wood',
+  'zoo',
+]
+const addIllustrativeLiveableLand = (map: MapLibreMap) => {
+  const firstLabelLayerId = map
+    .getStyle()
+    .layers?.find(layer => layer.type === 'symbol')?.id
+  map.addSource('preview-liveable-districts', {
+    type: 'geojson',
+    data: urbanDensityCensusDistricts,
+  })
+  map.addLayer(
+    {
+      id: 'preview-liveable-districts',
+      type: 'fill',
+      source: 'preview-liveable-districts',
+      paint: { 'fill-color': '#36a269', 'fill-opacity': 0.48 },
+    },
+    firstLabelLayerId,
+  )
+  map.addLayer(
+    {
+      id: 'preview-excluded-districts',
+      type: 'fill',
+      source: 'basemap',
+      'source-layer': 'landuse',
+      filter: ['in', 'kind', ...nonLiveableLandUse],
+      paint: { 'fill-color': '#e76f51', 'fill-opacity': 0.62 },
+    },
+    firstLabelLayerId,
+  )
+  map.addLayer(
+    {
+      id: 'preview-excluded-districts-outline',
+      type: 'line',
+      source: 'basemap',
+      'source-layer': 'landuse',
+      filter: ['in', 'kind', ...nonLiveableLandUse],
+      paint: { 'line-color': '#8c3427', 'line-width': 1 },
+    },
+    firstLabelLayerId,
+  )
+}
+const showLiveableLand = async (map: MapLibreMap) => {
+  addIllustrativeLiveableLand(map)
+  requestAnimationFrame(() => {
+    showMetrics = true
+  })
+}
 </script>
 
 <div
@@ -47,7 +114,7 @@ onMount(() => {
       <GuideMappingPreview
         ariaLabel={label}
         center={[114.16, 22.32]}
-        onMapReady={addUrbanDensityLiveableLand}
+        onMapReady={showLiveableLand}
         renderer="maplibre"
         {styleUrl}
         {tilejsonUrl}

@@ -422,6 +422,7 @@ const resetRequirement = (requirement: number) => {
         description={m.guide_publish_account_ready_description({ host })}
         resetDescription={m.guide_publish_reset_description()}
         resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-account-title"
         onComplete={() => completeRequirement(1)}
         onReset={() => resetRequirement(1)}
       >
@@ -467,6 +468,7 @@ const resetRequirement = (requirement: number) => {
         description={m.guide_publish_git_dependencies_ready_description()}
         resetDescription={m.guide_publish_reset_description()}
         resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-git-dependencies-title"
         onComplete={() => completeRequirement(gitDependenciesRequirement)}
         onReset={() => resetRequirement(gitDependenciesRequirement)}
       >
@@ -573,6 +575,7 @@ const resetRequirement = (requirement: number) => {
       description={m.guide_publish_client_ready_description({ client })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
+      scrollTargetId="publish-client-title"
       onComplete={() => completeRequirement(clientRequirement)}
       onReset={() => resetRequirement(clientRequirement)}
     >
@@ -609,12 +612,15 @@ const resetRequirement = (requirement: number) => {
       description={m.guide_publish_authenticated_description({ host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
+      scrollTargetId="publish-authentication-title"
       onComplete={() => completeRequirement(authenticationRequirement)}
       onReset={() => resetRequirement(authenticationRequirement)}
     >
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
+        {m.guide_publish_authentication_description({ host })}
+      </p>
       <GuidePublishTerminalCommand
         commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
-        description={m.guide_publish_authentication_description({ host })}
         code={authenticationCode}
         language={terminalLanguage}
         output={hosting === 'cloudflare' ? cloudflareAuthenticationOutput : undefined}
@@ -658,81 +664,100 @@ const resetRequirement = (requirement: number) => {
     </GuidePublishRequirement>
   </section>
 
-  <section aria-labelledby="publish-configuration-title">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_publish_requirement({ current: configurationRequirement, total: requirementTotal })}
-    </p>
-    <h3
-      id="publish-configuration-title"
-      class="mt-1 font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_configuration_title({ platform: host })}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html hosting === 'cloudflare'
-        ? m.guide_publish_cloudflare_configuration_description()
-        : hosting === 'github-pages'
-          ? m.guide_publish_github_configuration_description()
-          : m.guide_publish_configuration_description({ platform: host })}
-    </p>
-    <GuidePublishRequirement
-      id="publish-configuration-readiness"
-      titleId="publish-configuration-readiness-title"
-      complete={completedRequirements.includes(configurationRequirement)}
-      completeAction={m.guide_publish_configuration_complete_action()}
-      eyebrow={m.guide_publish_configuration_ready({ platform: host })}
-      description={m.guide_publish_configuration_ready_description({ platform: host })}
-      resetDescription={m.guide_publish_reset_description()}
-      resetLabel={m.guide_readiness_reset()}
-      onComplete={() => completeRequirement(configurationRequirement)}
-      onReset={() => resetRequirement(configurationRequirement)}
-    >
-      {#if hosting === 'cloudflare'}
-        <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
-          description={m.guide_publish_cloudflare_configuration_command_description()}
-          code={configurationCode}
-          language={terminalLanguage}
-          output={cloudflareSetupInitialOutput}
-          outputLabel={m.guide_publish_cloudflare_configuration_initial_output()}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
+  <div
+    class={hosting === 'cloudflare'
+      ? 'grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]'
+      : ''}
+  >
+    <section aria-labelledby="publish-configuration-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: configurationRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-configuration-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_configuration_title({ platform: host })}
+      </h3>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {@html hosting === 'cloudflare'
+          ? m.guide_publish_cloudflare_configuration_description()
+          : hosting === 'github-pages'
+            ? m.guide_publish_github_configuration_description()
+            : m.guide_publish_configuration_description({ platform: host })}
+      </p>
+      <GuidePublishRequirement
+        id="publish-configuration-readiness"
+        titleId="publish-configuration-readiness-title"
+        complete={completedRequirements.includes(configurationRequirement)}
+        completeAction={m.guide_publish_configuration_complete_action()}
+        eyebrow={m.guide_publish_configuration_ready({ platform: host })}
+        description={m.guide_publish_configuration_ready_description({ platform: host })}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-configuration-title"
+        onComplete={() => completeRequirement(configurationRequirement)}
+        onReset={() => resetRequirement(configurationRequirement)}
+      >
+        {#if hosting === 'cloudflare'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_cloudflare_configuration_command_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            code={configurationCode}
+            language={terminalLanguage}
+            output={cloudflareSetupInitialOutput}
+            outputLabel={m.guide_publish_cloudflare_configuration_initial_output()}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_configuration_accept_defaults()}
+          </p>
+          <GuideCodeBlock
+            class="mt-3"
+            code={cloudflareSetupConfirmationOutput}
+            label={m.guide_publish_cloudflare_configuration_confirmation_output()}
+            copyable={false}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_configuration_proceed()}
+          </p>
+          <GuideCodeBlock
+            class="mt-3"
+            code={cloudflareSetupCompleteOutput}
+            label={m.guide_publish_cloudflare_configuration_complete_output()}
+            copyable={false}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+        {:else}
+          <GuideCodeBlock
+            label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            code={configurationCode}
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+        {/if}
+      </GuidePublishRequirement>
+    </section>
+
+    {#if hosting === 'cloudflare'}
+      <aside>
+        <GuideInstructionCallout
+          description={m.guide_publish_workers_static_assets_description()}
+          label={m.guide_publish_workers_static_assets_label()}
+          title={m.guide_publish_workers_static_assets_title()}
         />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_configuration_accept_defaults()}
-        </p>
-        <GuideCodeBlock
-          class="mt-3"
-          code={cloudflareSetupConfirmationOutput}
-          label={m.guide_publish_cloudflare_configuration_confirmation_output()}
-          copyable={false}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_configuration_proceed()}
-        </p>
-        <GuideCodeBlock
-          class="mt-3"
-          code={cloudflareSetupCompleteOutput}
-          label={m.guide_publish_cloudflare_configuration_complete_output()}
-          copyable={false}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-      {:else}
-        <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
-          code={configurationCode}
-          language={terminalLanguage}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-      {/if}
-    </GuidePublishRequirement>
-  </section>
+      </aside>
+    {/if}
+  </div>
 
   <section aria-labelledby="publish-deployment-title">
     <p
@@ -758,6 +783,7 @@ const resetRequirement = (requirement: number) => {
       description={m.guide_publish_deployment_ready_description({ platform: host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
+      scrollTargetId="publish-deployment-title"
       onComplete={() => completeRequirement(deploymentRequirement)}
       onReset={() => resetRequirement(deploymentRequirement)}
     >

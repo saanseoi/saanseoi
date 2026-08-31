@@ -17,7 +17,9 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
     <GuideMappingPreview
       ariaLabel={label}
       center={[114.16, 22.32]}
-      onMapReady={addUrbanDensityLiveableLand}
+      onMapReady={async map => {
+        await addUrbanDensityLiveableLand(map)
+      }}
       renderer="maplibre"
       {styleUrl}
       {tilejsonUrl}
