@@ -87,6 +87,8 @@ export async function runCacheSeedResetCommand(
   }
 
   const progress = new LocalUploadProgress()
+  const startedAt = Date.now()
+
   try {
     await seedRemoteDbCacheAfterReset(target, event =>
       updateDbCacheProgress(progress, event, { operation: 're-export' }),
@@ -94,6 +96,18 @@ export async function runCacheSeedResetCommand(
   } catch (error) {
     progress.fail()
     throw error
+  }
+
+  if (progress.hasActivePhase()) {
+    progress.complete(
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(
+          colorTeal('Re-export cache'),
+          colorRed(target.environment),
+        ),
+        [formatDurationMs(Date.now() - startedAt)],
+      ),
+    )
   }
 }
 
