@@ -199,9 +199,62 @@ const cloudflareAuthenticationOutput = [
   '⛅️ wrangler 4.127.1',
   '────────────────────',
   'Attempting to login via OAuth...',
-  'Opening a link in your default browser...',
+  'Opening a link in your default browser: https://dash.cloudflare.com/oauth2/auth?...',
   '',
   'Successfully logged in.',
+].join('\n')
+const cloudflareSetupInitialOutput = [
+  '⛅️ wrangler 4.127.1',
+  '────────────────────',
+  '',
+  'Detected Project Settings:',
+  ' - Worker Name: saanseoi-project',
+  ' - Framework: Vite',
+  ' - Build Command: bun run build',
+  ' - Output Directory: dist',
+  '',
+  '? Do you want to modify these settings? › (y/N)',
+].join('\n')
+const cloudflareSetupConfirmationOutput = [
+  '✔ Do you want to modify these settings? … no',
+  '',
+  '📦 Install packages:',
+  ' - wrangler (devDependency)',
+  ' - @cloudflare/vite-plugin (devDependency)',
+  '',
+  '📝 Update package.json scripts:',
+  ' - "deploy": "bun run build && wrangler deploy"',
+  ' - "preview": "bun run build && wrangler dev"',
+  '',
+  '📄 Create wrangler.jsonc:',
+  '  {',
+  '    "$schema": "node_modules/wrangler/config-schema.json",',
+  '    "name": "saanseoi-project",',
+  '    "compatibility_date": "2026-08-28",',
+  '    "observability": {',
+  '      "enabled": true',
+  '    },',
+  '    "assets": {',
+  '      "not_found_handling": "single-page-application"',
+  '    }',
+  '  }',
+  '',
+  '🛠️  Configuring project for Vite',
+  '',
+  '? Proceed with setup? › (Y/n)',
+].join('\n')
+const cloudflareSetupCompleteOutput = [
+  '├ Installing wrangler A command line tool for building Cloudflare Workers',
+  '│ installed via `bun install wrangler --save-dev`',
+  '│',
+  '├ Installing the Cloudflare Vite plugin',
+  '│ installed @cloudflare/vite-plugin',
+  '│',
+  '├ Adding Wrangler files to the .gitignore file',
+  '│ updated .gitignore file',
+  '│',
+  '🎉 Your project is now setup to deploy to Cloudflare',
+  'You can now deploy with bun run deploy',
 ].join('\n')
 const configurationCode = $derived(
   hosting === 'cloudflare'
@@ -550,13 +603,48 @@ const resetRequirement = (requirement: number) => {
       onComplete={() => completeRequirement(configurationRequirement)}
       onReset={() => resetRequirement(configurationRequirement)}
     >
-      <GuideCodeBlock
-        label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
-        code={configurationCode}
-        language={terminalLanguage}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
+      {#if hosting === 'cloudflare'}
+        <GuidePublishTerminalCommand
+          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
+          description={m.guide_publish_cloudflare_configuration_command_description()}
+          code={configurationCode}
+          language={terminalLanguage}
+          output={cloudflareSetupInitialOutput}
+          outputLabel={m.guide_publish_cloudflare_configuration_initial_output()}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_publish_cloudflare_configuration_accept_defaults()}
+        </p>
+        <GuideCodeBlock
+          class="mt-3"
+          code={cloudflareSetupConfirmationOutput}
+          label={m.guide_publish_cloudflare_configuration_confirmation_output()}
+          copyable={false}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+          {@html m.guide_publish_cloudflare_configuration_proceed()}
+        </p>
+        <GuideCodeBlock
+          class="mt-3"
+          code={cloudflareSetupCompleteOutput}
+          label={m.guide_publish_cloudflare_configuration_complete_output()}
+          copyable={false}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+      {:else}
+        <GuideCodeBlock
+          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command(), path: terminalProjectPath })}
+          code={configurationCode}
+          language={terminalLanguage}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+      {/if}
     </GuidePublishRequirement>
   </section>
 
