@@ -28,6 +28,7 @@ import {
 } from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
@@ -69,6 +70,8 @@ type Plan = {
   type: 'divisionStatistic'
 }
 type UploadResult = {
+  datasetCode?: string
+  rawObjectKey?: string
   releaseCode?: string
   releaseId?: string
 }
@@ -160,6 +163,22 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     })
   }
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const datasetCode = required(uploadResult.datasetCode, 'datasetCode')
+  if (datasetCode !== plan.datasetCode) {
+    throw new Error(
+      `Registered dataset ${datasetCode} does not match upload plan ${plan.datasetCode}.`,
+    )
+  }
+  await syncStagedReleaseIntoLocalMetaCache(
+    context.metaDb,
+    {
+      datasetCode,
+      rawObjectKey: required(uploadResult.rawObjectKey, 'rawObjectKey'),
+      releaseCode,
+      releaseId,
+    },
+    plan,
+  )
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
     : createLocalControlClient(metaDb, {
