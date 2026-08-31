@@ -81,7 +81,12 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     releaseId?: string
   },
   prepared: PreparedUploadFile,
-  options: { deferStatsReleaseSet?: boolean; promptForCuration: boolean },
+  options: {
+    deferStatsReleaseSet?: boolean
+    deferSourcePublish?: boolean
+    promptForCuration: boolean
+    reuseExistingRelease?: boolean
+  },
 ) {
   const releaseId = required(upload.releaseId, 'releaseId')
   const releaseCode = required(upload.releaseCode, 'releaseCode')
@@ -128,6 +133,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       releaseId,
     },
     plan,
+    { reuseExistingRelease: options.reuseExistingRelease },
   )
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
@@ -390,11 +396,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       async () => {
         const published = await client.publishDataset(releaseId, releaseCode, {
           deferStatsReleaseSet: options.deferStatsReleaseSet,
+          deferSourcePublish: options.deferSourcePublish,
         })
         if (target.remote) {
           const targetName =
             target.environment === 'production' ? 'production' : 'preview'
-          if (options.deferStatsReleaseSet && published) {
+          if (
+            (options.deferStatsReleaseSet || options.deferSourcePublish) &&
+            published
+          ) {
             await applyPublishMetadataDeltaToRemoteCache(
               targetName,
               context.state.dbCacheDir,
