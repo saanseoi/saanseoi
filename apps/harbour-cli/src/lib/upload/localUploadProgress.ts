@@ -1,6 +1,8 @@
-import { progress } from '@clack/prompts'
+import { progress, spinner } from '@clack/prompts'
 
 type ProgressBar = ReturnType<typeof progress>
+type ProgressSpinner = ReturnType<typeof spinner>
+type ProgressRenderer = ProgressBar | ProgressSpinner
 
 type ProgressState = {
   current: number
@@ -8,7 +10,7 @@ type ProgressState = {
 }
 
 export class LocalUploadProgress {
-  private progressBar: ProgressBar | null = null
+  private progressBar: ProgressRenderer | null = null
   private currentLabel: string | null = null
   private state: ProgressState | null = null
 
@@ -27,14 +29,11 @@ export class LocalUploadProgress {
           ? Math.floor(options.max)
           : null,
     }
-    this.progressBar = progress({
-      max: Math.max(this.state.max ?? this.state.current, 1),
-      withGuide: true,
-    })
+    this.progressBar = createProgressRenderer(this.state)
     this.progressBar.start(label)
 
-    if (this.state.current > 0) {
-      this.progressBar.advance(
+    if (this.state.max !== null && this.state.current > 0) {
+      ;(this.progressBar as ProgressBar).advance(
         Math.min(this.state.current, this.state.max ?? this.state.current),
         label,
       )
@@ -63,13 +62,10 @@ export class LocalUploadProgress {
 
     if (options?.reset || nextMax !== previousState.max) {
       this.progressBar.clear()
-      this.progressBar = progress({
-        max: Math.max(nextMax ?? nextCurrent, 1),
-        withGuide: true,
-      })
+      this.progressBar = createProgressRenderer({ current: nextCurrent, max: nextMax })
       this.progressBar.start(nextLabel)
-      if (nextCurrent > 0) {
-        this.progressBar.advance(
+      if (nextMax !== null && nextCurrent > 0) {
+        ;(this.progressBar as ProgressBar).advance(
           Math.min(nextCurrent, nextMax ?? nextCurrent),
           nextLabel,
         )
@@ -95,8 +91,8 @@ export class LocalUploadProgress {
     }
     this.currentLabel = nextLabel
 
-    if (delta > 0) {
-      this.progressBar.advance(delta, nextLabel)
+    if (nextMax !== null && delta > 0) {
+      ;(this.progressBar as ProgressBar).advance(delta, nextLabel)
       return
     }
 
@@ -142,4 +138,15 @@ export class LocalUploadProgress {
   hasActivePhase() {
     return this.progressBar !== null
   }
+}
+
+function createProgressRenderer(state: ProgressState): ProgressRenderer {
+  if (state.max === null) {
+    return spinner({ withGuide: true })
+  }
+
+  return progress({
+    max: Math.max(state.max, 1),
+    withGuide: true,
+  })
 }
