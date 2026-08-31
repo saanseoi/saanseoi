@@ -15,6 +15,7 @@ type StagePayload = {
 type PublishPayload = {
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
+  deferSourcePublish?: boolean
   releaseCode?: string
   releaseId?: string
   skipSnapshotCleanup?: boolean
@@ -31,6 +32,7 @@ export function createHarbourControlClient(target: UploadTarget) {
       publishOptions: {
         deferApiReleaseSet?: boolean
         deferStatsReleaseSet?: boolean
+        deferSourcePublish?: boolean
         skipSnapshotCleanup?: boolean
       } = {},
     ) {
@@ -45,6 +47,7 @@ export function createHarbourControlClient(target: UploadTarget) {
           ...(publishOptions.deferStatsReleaseSet
             ? { deferStatsReleaseSet: true }
             : {}),
+          ...(publishOptions.deferSourcePublish ? { deferSourcePublish: true } : {}),
           ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
         },
       )

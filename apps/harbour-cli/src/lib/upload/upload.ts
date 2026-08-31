@@ -56,6 +56,8 @@ type DispatchUploadOptions = {
   force?: boolean
   /** Re-enter an already staged release without permitting a published repair. */
   resumeStagedRelease?: boolean
+  /** Add another resource to the source release created by this intake. */
+  reuseExistingRelease?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
 }
 
@@ -153,11 +155,15 @@ async function registerUploadLocally(
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const allowExistingDatasetStatuses: ReleaseStatus[] | undefined = options.force
       ? options.allowReprocessPublished
-        ? ['staged', 'published']
+        ? options.reuseExistingRelease
+          ? ['staged', 'processing', 'published']
+          : ['staged', 'published']
         : ['staged']
       : options.resumeStagedRelease
         ? ['staged']
-        : undefined
+        : options.reuseExistingRelease
+          ? ['processing']
+          : undefined
     const registered = await registerLocalUpload(metaDb, {
       ...registerOptions,
       allowExistingDatasetStatuses,
@@ -216,6 +222,7 @@ async function requestRemoteRegistration(
         fileName: previewResult.plan.fileName,
         force: Boolean(options.force),
         resumeStagedRelease: Boolean(options.resumeStagedRelease),
+        reuseExistingRelease: Boolean(options.reuseExistingRelease),
         inspection: previewResult.inspection,
         plan: {
           cohortKey: previewResult.plan.cohortKey,
