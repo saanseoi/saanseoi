@@ -191,6 +191,12 @@ function init_reconcile_draft_release_sets
         return $command_status
     end
 
+    # Deferred uploads keep the local mirror current with small publish deltas.
+    # Reconciliation is the validation boundary for the whole domain.
+    if test "$saanseoi_init_target" != local
+        init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
+    end
+
     set -l published_after (init_published_api_release_set_count)
     if test "$published_after" -gt "$published_before"
         set -g saanseoi_init_docs_pending 1

@@ -14,6 +14,7 @@ import { runBootstrapStatsReleaseSetsCommand } from './lib/commands/bootstrapSta
 import {
   runCacheCompletedReleasesCommand,
   runCacheRebuildCommand,
+  runCacheSeedResetCommand,
 } from './lib/commands/cache.ts'
 import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
@@ -60,6 +61,9 @@ async function main() {
   switch (args.command) {
     case 'cache:rebuild':
       await runCacheRebuildCommand(args, target, printUsage)
+      return
+    case 'cache:seed-reset':
+      await runCacheSeedResetCommand(args, target, printUsage)
       return
     case 'cache:completed-releases':
       await runCacheCompletedReleasesCommand(args, target, printUsage)

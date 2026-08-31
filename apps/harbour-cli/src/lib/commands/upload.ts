@@ -730,6 +730,7 @@ ${mutedBar}  `)
             {
               deferApiReleaseSet: options.deferApiReleaseSet,
               inputFilePath: preparedUploadFile.filePath,
+              normalisedInput: processingResult.normalisedRows,
               reuseRunningRelease: true,
               skipRawSeed: true,
               skipSnapshotCleanup: options.skipSnapshotCleanup,
