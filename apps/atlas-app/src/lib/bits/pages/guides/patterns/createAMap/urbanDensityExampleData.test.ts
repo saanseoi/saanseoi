@@ -57,8 +57,8 @@ test('ships the simplified land-clipped census districts used by the previews', 
   })
 })
 
-test('requires saved liveable and excluded District geometry', async () => {
-  const liveableDistrictLand = {
+test('requires saved excluded District geometry', () => {
+  const excludedDistrictLand = {
     type: 'FeatureCollection',
     features: [
       {
@@ -79,54 +79,33 @@ test('requires saved liveable and excluded District geometry', async () => {
     ],
   } as const
 
-  await expect(decodeLandAnalysis({ liveableDistrictLand })).rejects.toThrow(
-    'Land-analysis JSON must include liveable and excluded District land.',
+  expect(() => decodeLandAnalysis({})).toThrow(
+    'Land-analysis JSON must include excluded District land.',
   )
 
-  const land = await decodeLandAnalysis({
-    liveableDistrictLand,
-    excludedDistrictLand: liveableDistrictLand,
-  })
+  const land = decodeLandAnalysis({ excludedDistrictLand })
 
-  expect(land.liveableDistrictLand[0]?.properties).toEqual({
-    area: 'Kowloon',
-    divisionCode: 'KLC',
-  })
-  expect(land.excludedDistrictLand[0]?.properties).toEqual({
+  expect(land[0]?.properties).toEqual({
     area: 'Kowloon',
     divisionCode: 'KLC',
   })
 })
 
-test('rejects a saved overlay with invalid polygonal geometry', async () => {
+test('rejects a saved overlay with non-polygonal geometry', () => {
   const invalidDistrictLand = {
     type: 'FeatureCollection',
     features: [
       {
         type: 'Feature',
         properties: { area: 'Kowloon', districtCode: 'KLC' },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [114.18, 22.33],
-              [114.19, 22.34],
-              [114.19, 22.33],
-              [114.18, 22.34],
-              [114.18, 22.33],
-            ],
-          ],
-        },
+        geometry: { type: 'Point', coordinates: [114.18, 22.33] },
       },
     ],
   } as const
 
-  await expect(
+  expect(() =>
     decodeLandAnalysis({
-      liveableDistrictLand: invalidDistrictLand,
       excludedDistrictLand: invalidDistrictLand,
     }),
-  ).rejects.toThrow(
-    'Land-analysis contains invalid KLC geometry. Regenerate land-analysis.json.',
-  )
+  ).toThrow('Land-analysis contains non-polygonal KLC geometry.')
 })

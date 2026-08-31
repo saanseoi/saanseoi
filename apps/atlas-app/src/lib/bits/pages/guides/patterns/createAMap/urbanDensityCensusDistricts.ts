@@ -50,7 +50,6 @@ export type CensusDistrictCollection = FeatureCollection<
 export const urbanDensityCensusDistricts =
   cachedCensusDistricts as CensusDistrictCollection
 
-export type DistrictLand = {
-  excludedDistrictLand: Array<Feature<DistrictGeometry, DistrictLandProperties>>
-  liveableDistrictLand: Array<Feature<DistrictGeometry, DistrictLandProperties>>
-}
+export type DistrictExclusions = Array<
+  Feature<DistrictGeometry, DistrictLandProperties>
+>

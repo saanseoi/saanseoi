@@ -179,6 +179,7 @@ type RemoteTableImport = {
   tableName: string
 }
 type CachePruneOperation = {
+  retainedRowsWhereSql: string
   tableName: string
   whereSql: string
 }
@@ -2816,6 +2817,12 @@ async function mirrorBinaryGeometryTable(
       : quoteSqlIdentifier(column),
   )
   const orderBy = primaryKeyColumns.map(quoteSqlIdentifier).join(', ')
+  // Binary rows bypass the SQL data export. Mirror the same subset that the
+  // cache worker retains so validation never includes intentionally pruned rows.
+  const retainedRowsWhereSql = resolveCachePruneOperation(
+    targetRecord.bindingName,
+    tableName,
+  )?.retainedRowsWhereSql
   const rows: BinaryGeometryRow[] = []
 
   for (let offset = 0; ; offset += REMOTE_GEOMETRY_PAGE_SIZE) {
@@ -2826,6 +2833,7 @@ async function mirrorBinaryGeometryTable(
         `length(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryLength",`,
         `length(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB)) AS "__geometryByteLength"`,
         `FROM ${quoteSqlIdentifier(tableName)}`,
+        ...(retainedRowsWhereSql ? [`WHERE ${retainedRowsWhereSql}`] : []),
         `ORDER BY ${orderBy}`,
         `LIMIT ${REMOTE_GEOMETRY_PAGE_SIZE} OFFSET ${offset}`,
       ].join(' '),
@@ -2914,6 +2922,7 @@ async function mirrorBinaryGeometryTable(
             `SELECT ${primaryKeyColumns.map(quoteSqlIdentifier).join(', ')},`,
             chunkColumns.join(', '),
             `FROM ${quoteSqlIdentifier(tableName)}`,
+            ...(retainedRowsWhereSql ? [`WHERE ${retainedRowsWhereSql}`] : []),
             `ORDER BY ${orderBy}`,
             `LIMIT ${task.batch.count}`,
             `OFFSET ${offset + task.batch.start}`,
@@ -3180,7 +3189,7 @@ type SqliteCacheWorkerPayload =
       type: 'checkpoint'
     }
 
-function resolveCachePruneOperation(
+export function resolveCachePruneOperation(
   bindingName: string,
   tableName: string,
 ): CachePruneOperation | null {
@@ -3192,6 +3201,7 @@ function resolveCachePruneOperation(
   }
 
   return {
+    retainedRowsWhereSql: '"isCurrent" = 1',
     tableName,
     whereSql: '"isCurrent" <> 1',
   }
