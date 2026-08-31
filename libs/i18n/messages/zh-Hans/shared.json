@@ -1712,7 +1712,7 @@
   "guide_data_urban_density_tile_fetcher_css_comment_connector": "淡化连接词，让数字保持突出。",
   "guide_data_urban_density_tile_fetcher_css_comment_bar": "建立紧凑、全宽的进度轨道，其填充部分只表示已完成的工作。",
   "guide_data_urban_density_tile_fetcher_css_comment_progress_glow": "让柔和的亮光在已完成填充部分中移动，同时尊重减少动态效果偏好。",
-  "guide_data_urban_density_setup_z14_tile_fetcher_description": "这张卡会准备好接下来两张卡下载和处理地图数据所需的一切。它还会确保只下载覆盖分区的图块，跳过无关的海面区域。",
+  "guide_data_urban_density_setup_z14_tile_fetcher_description": "这张卡是供接下来两张 <code>src/main.ts</code> 卡片使用的轻量设置。它只会选择覆盖分区的图块，跳过无关的海面区域。第一个阶段会先下载并解码图块；完成后才开始较繁重的 GEOS 对齐和合并阶段。",
   "guide_data_urban_density_setup_z14_tile_fetcher_css_description": "上方的代码会加入进度面板、图块网格和当前分区的外框。图块会按排队、处理中和完成的状态，由淡色转为琥珀色再转为蓝绿色；面板也会显示当前的精度叠加阶段。",
   "guide_data_urban_density_collect_non_liveable_land_code": "src/main.ts — 获取 z14 土地用途图块",
   "guide_data_urban_density_collect_non_liveable_land_description": "在 <code>src/main.ts</code> 旁尚未有 <code>land-analysis.json</code> 前，每次保存这段代码都会重新执行一次性的图块下载和计算。下载结果后，Vite 会改为加载该文件并跳过两张计算卡。",
