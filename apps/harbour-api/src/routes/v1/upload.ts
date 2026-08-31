@@ -8,6 +8,7 @@ import {
 import {
   parseSourceAssetMetadata,
   linkManagedSourceAssetToRelease,
+  preflightManagedSourceAsset,
   registerManagedSourceAsset,
 } from '../../lib/services/sourceAssets'
 import {
@@ -16,6 +17,8 @@ import {
   LinkManagedSourceAssetResponseSchema,
   LocalUploadRegistrationResponseSchema,
   ManagedSourceAssetResponseSchema,
+  ManagedSourceAssetPreflightRequestSchema,
+  ManagedSourceAssetPreflightResponseSchema,
   RegisterUploadRequestSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
@@ -65,6 +68,33 @@ const managedSourceAssetRouteConfig = createRoute({
       content: { 'application/json': { schema: ErrorResponseSchema } },
       description: 'Source asset upload failed.',
     },
+  },
+})
+
+const managedSourceAssetPreflightRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/assets/preflight',
+  tags: ['Source assets'],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: ManagedSourceAssetPreflightRequestSchema },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: ManagedSourceAssetPreflightResponseSchema },
+      },
+      description: 'Check or recreate immutable source-asset metadata.',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Source asset preflight failed.',
+    },
+    422: ValidationErrorOpenAPIResponse,
   },
 })
 
@@ -157,6 +187,35 @@ export const managedSourceAssetRoute = defineOpenAPIRoute<
   },
 })
 
+export const managedSourceAssetPreflightRoute = defineOpenAPIRoute<
+  typeof managedSourceAssetPreflightRouteConfig,
+  AppEnv
+>({
+  route: managedSourceAssetPreflightRouteConfig,
+  handler: async c => {
+    try {
+      const request = c.req.valid('json')
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const result = await preflightManagedSourceAsset(db, c.env.R2_ASSETS, {
+        byteLength: request.byteLength,
+        metadata: request.metadata as unknown as ReturnType<
+          typeof parseSourceAssetMetadata
+        >,
+      })
+      return c.json(result, 200)
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'source_asset_preflight_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
 export const linkManagedSourceAssetRoute = defineOpenAPIRoute<
   typeof linkManagedSourceAssetRouteConfig,
   AppEnv
@@ -181,6 +240,7 @@ export const linkManagedSourceAssetRoute = defineOpenAPIRoute<
 
 export const uploadRoutes = [
   registerUploadRoute,
+  managedSourceAssetPreflightRoute,
   managedSourceAssetRoute,
   linkManagedSourceAssetRoute,
 ] as const
