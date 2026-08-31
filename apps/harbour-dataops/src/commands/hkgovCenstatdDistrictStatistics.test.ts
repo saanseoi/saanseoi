@@ -35,6 +35,7 @@ describe('C&SD district-density archive identity', () => {
     const uploadOptions: Array<{
       deferApiReleaseSet?: boolean
       deferStatsReleaseSet?: boolean
+      deferSourcePublish?: boolean
       reuseExistingRelease?: boolean
     }> = []
     await writeFile(archivePath, archive)
@@ -73,6 +74,7 @@ describe('C&SD district-density archive identity', () => {
             uploadOptions.push({
               deferApiReleaseSet: options.deferApiReleaseSet,
               deferStatsReleaseSet: options.deferStatsReleaseSet,
+              deferSourcePublish: options.deferSourcePublish,
               reuseExistingRelease: options.reuseExistingRelease,
             })
           }) as typeof runUploadCommand,
@@ -83,8 +85,12 @@ describe('C&SD district-density archive identity', () => {
     }
 
     expect(uploadOptions).toEqual([
-      { deferStatsReleaseSet: true },
-      { deferApiReleaseSet: true, reuseExistingRelease: true },
+      { deferSourcePublish: true, deferStatsReleaseSet: true },
+      {
+        deferApiReleaseSet: true,
+        deferSourcePublish: false,
+        reuseExistingRelease: true,
+      },
     ])
   })
 })

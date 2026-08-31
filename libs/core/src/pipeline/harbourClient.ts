@@ -68,6 +68,8 @@ export type HarbourClient = {
       deferApiReleaseSet?: boolean
       /** Publish source data and snapshots, but leave Statistics cohorts for a launch bootstrap. */
       deferStatsReleaseSet?: boolean
+      /** Publish this resource's artefacts without finalising its shared source release. */
+      deferSourcePublish?: boolean
       skipSnapshotCleanup?: boolean
     },
   ): Promise<PublishDatasetResult | void>

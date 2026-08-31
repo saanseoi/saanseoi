@@ -10,6 +10,7 @@ import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.t
 import { prepareHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
 import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import { planCenstatdResourceLifecycle } from '../lib/censtatdResourceLifecycle.ts'
 import { unzipSelected } from '../lib/zip.ts'
 
 const DATASET_CODE =
@@ -59,6 +60,13 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
     dependencies.prepareHkgovCenstatdDistrictUpload ??
     prepareHkgovCenstatdDistrictUpload
   const upload = dependencies.runUploadCommand ?? runUploadCommand
+  const [statisticLifecycle, geometryLifecycle] = planCenstatdResourceLifecycle([
+    'divisionStatistic',
+    'divisionArea',
+  ])
+  if (!statisticLifecycle || !geometryLifecycle) {
+    throw new Error('C&SD density lifecycle is incomplete.')
+  }
   const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-density-'))
   try {
     // The updater has already prepared and mirrored this immutable archive. Read
@@ -112,6 +120,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         allowHistoricalCohort: true,
         allowReprocessPublished: true,
         deferStatsReleaseSet,
+        deferSourcePublish: statisticLifecycle.deferSourcePublish,
         forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
@@ -147,11 +156,12 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         allowHistoricalCohort: true,
         allowReprocessPublished: true,
         deferApiReleaseSet,
+        deferSourcePublish: geometryLifecycle.deferSourcePublish,
         dryRun: false,
         forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
-        reuseExistingRelease: true,
+        reuseExistingRelease: geometryLifecycle.reuseExistingRelease,
         skipConfirm: true,
         skipSnapshotCleanup: false,
         validateGeometry: false,

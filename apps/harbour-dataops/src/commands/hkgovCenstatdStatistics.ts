@@ -25,6 +25,10 @@ import {
   type ReleaseReportRow,
 } from '../../../harbour-cli/src/lib/api/reporting.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import {
+  planCenstatdResourceLifecycle,
+  type CenstatdCombinedResourceType,
+} from '../lib/censtatdResourceLifecycle.ts'
 import { unzipSelected } from '../lib/zip.ts'
 
 type StatisticResourceType = 'division' | 'divisionArea' | 'divisionStatistic'
@@ -214,6 +218,35 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           requestedTypes,
         )
 
+    const pendingGeographyResources = geographies.flatMap(geography => [
+      ...(geography.divisionCount > 0 &&
+      geography.divisionOutputFile &&
+      pendingTypes.includes('division')
+        ? (['division'] as const)
+        : []),
+      ...(geography.areaCount > 0 && pendingTypes.includes('divisionArea')
+        ? (['divisionArea'] as const)
+        : []),
+    ])
+    const resourceLifecycle = planCenstatdResourceLifecycle(
+      [
+        ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
+          ? (['divisionStatistic'] as const)
+          : []),
+        ...pendingGeographyResources,
+      ],
+      { releaseAlreadyExists: pendingTypes.length < requestedTypes.length },
+    )
+    let resourceLifecycleIndex = 0
+    const nextResourceLifecycle = (type: CenstatdCombinedResourceType) => {
+      const step = resourceLifecycle[resourceLifecycleIndex]
+      if (!step || step.type !== type) {
+        throw new Error(`C&SD resource lifecycle is out of order at ${type}.`)
+      }
+      resourceLifecycleIndex += 1
+      return step
+    }
+
     if (pendingTypes.length === 0) {
       console.log(
         `Skipping ${datasetCode} ${sourceVersion}: every requested resource is already published. Use --force-upload for a deliberate reprocess.`,
@@ -226,6 +259,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         `Skipping published Statistics resource for ${datasetCode} ${sourceVersion}.`,
       )
     } else if (!geographyOnly) {
+      const lifecycle = nextResourceLifecycle('divisionStatistic')
       const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
       await prepareHkgovCenstatdStatisticUpload({
         datasetCode: datasetCode as CenstatdStatisticDatasetCode,
@@ -261,10 +295,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         {
           allowReprocessPublished: true,
           deferStatsReleaseSet: args.options['defer-stats-release-set'] === true,
+          deferSourcePublish: lifecycle.deferSourcePublish,
           dryRun: false,
           forceUpload: true,
           invocationCwd: resolve(import.meta.dir, '../../../..'),
           printUsage: () => undefined,
+          reuseExistingRelease: lifecycle.reuseExistingRelease,
           skipConfirm: Boolean(args.options.yes),
           skipSnapshotCleanup: false,
           validateGeometry: false,
@@ -294,6 +330,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           )
           continue
         }
+        const lifecycle = nextResourceLifecycle(type)
         await runUploadCommand(
           {
             command: 'upload',
@@ -317,10 +354,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           {
             allowReprocessPublished: true,
             deferApiReleaseSet,
+            deferSourcePublish: lifecycle.deferSourcePublish,
             dryRun: false,
             forceUpload: true,
             invocationCwd: resolve(import.meta.dir, '../../../..'),
             printUsage: () => undefined,
+            reuseExistingRelease: lifecycle.reuseExistingRelease,
             skipConfirm: true,
             // The area pass resolves the canonical division snapshot created
             // immediately before it; normal cleanup resumes after publication.
