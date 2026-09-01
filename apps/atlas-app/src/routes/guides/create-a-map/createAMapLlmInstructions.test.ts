@@ -102,9 +102,12 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('type DistrictProperties')
     expect(stats).toContain('type DistrictProperties')
     expect(stats).toContain(
-      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
+      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
     )
     expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
+    expect(stats).toContain(
+      "savedResultResponse.body.pipeThrough(new DecompressionStream('gzip'))",
+    )
     expect(stats).not.toContain('await import(savedResultPath)')
     expect(stats.indexOf('savedResultUrl')).toBeLessThan(stats.indexOf('apiBaseUrl'))
     expect(stats).toContain("const apiBaseUrl = 'https://api.example'")
