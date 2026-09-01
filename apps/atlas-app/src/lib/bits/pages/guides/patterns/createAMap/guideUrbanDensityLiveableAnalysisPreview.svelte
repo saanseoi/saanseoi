@@ -1,5 +1,5 @@
 <script lang="ts">
-import { bbox, bboxPolygon, featureCollection } from '@turf/turf'
+import { bbox, bboxPolygon, booleanIntersects, featureCollection } from '@turf/turf'
 import { onMount } from 'svelte'
 import type {
   GeoJSONSource,
@@ -58,10 +58,16 @@ const tilesCovering = (
   const minY = Math.floor(latitudeToTile(north))
   const maxY = Math.floor(latitudeToTile(south))
   const width = maxX - minX + 1
-  return Array.from({ length: width * (maxY - minY + 1) }, (_, index) => ({
-    x: minX + (index % width),
-    y: minY + Math.floor(index / width),
-  }))
+  const candidateTiles = Array.from(
+    { length: width * (maxY - minY + 1) },
+    (_, index) => ({
+      x: minX + (index % width),
+      y: minY + Math.floor(index / width),
+    }),
+  )
+  return candidateTiles.filter(tile =>
+    booleanIntersects(bboxPolygon(tileBounds(tile)), district),
+  )
 }
 const activeTiles = $derived(activeDistrict ? tilesCovering(activeDistrict) : [])
 const totalTiles = $derived(activeTiles.length)
