@@ -60,7 +60,6 @@ const environmentFileStructureCode = $derived(
         '-a---                index.html',
         '-a---                package.json',
         '-a---                tsconfig.json',
-        '-a---                vite.config.js',
         '-a---                vite.config.ts',
       ].join('\n')
     : [

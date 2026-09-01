@@ -83,6 +83,7 @@ type Renderer = 'leaflet' | 'mapbox' | 'maplibre'
 type Coordinates = [longitude: number, latitude: number]
 
 type Props = {
+  accessToken?: string
   additionalLayers?: LayerSpecification[]
   additionalSources?: StyleSpecification['sources']
   ariaLabel: string
@@ -97,6 +98,7 @@ type Props = {
 }
 
 let {
+  accessToken,
   additionalLayers = [],
   additionalSources = {},
   ariaLabel,
@@ -203,6 +205,7 @@ onMount(() => {
         if (disposed || !container) return
 
         const map = new mapboxgl.Map({
+          accessToken,
           attributionControl: false,
           container,
           center,

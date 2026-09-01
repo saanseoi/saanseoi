@@ -4,7 +4,7 @@ import { onMount, tick } from 'svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
 
-import GuideMapLibreBlankPreview from './guideMapLibreBlankPreview.svelte'
+import GuideRendererBlankPreview from './guideRendererBlankPreview.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 
 type LeaderLine = {
@@ -304,7 +304,7 @@ onMount(() => {
           closeLabel={m.common_close()}
         >
           {#snippet preview()}
-            <GuideMapLibreBlankPreview />
+            <GuideRendererBlankPreview />
           {/snippet}
         </GuidePreviewCodeBlock>
       </div>

@@ -44,28 +44,30 @@ let expanded = $state(false)
   />
 {/snippet}
 {#snippet mapboxTokenIncompleteSummary()}
-  <div class="flex items-start gap-3">
-    <Icon
-      icon="material-symbols-light:warning-rounded"
-      class="mt-0.5 size-5 shrink-0 text-[#b42318] dark:text-[#ef8b88]"
-      aria-hidden="true"
-    />
-    <div class="min-w-0 flex-1">
-      <p
-        id="mapbox-account-readiness-title"
-        class="font-body text-label-sm font-semibold tracking-[0.12em] text-[#b42318] uppercase dark:text-[#ffb4b1]"
-      >
-        {@html m.guide_renderer_mapbox_account_eyebrow()}
-      </p>
-      <GuideTextHeader
-        as="h3"
-        title={m.guide_renderer_mapbox_account_title()}
-        class="mt-2 text-headline-sm"
+  <div>
+    <div class="flex items-center gap-3">
+      <div class="min-w-0 flex-1">
+        <p
+          id="mapbox-account-readiness-title"
+          class="font-body text-label-sm font-semibold tracking-[0.12em] text-[#b42318] uppercase dark:text-[#ffb4b1]"
+        >
+          {@html m.guide_renderer_mapbox_account_eyebrow()}
+        </p>
+        <GuideTextHeader
+          as="h3"
+          title={m.guide_renderer_mapbox_account_title()}
+          class="mt-2 text-headline-sm"
+        />
+      </div>
+      <Icon
+        icon="material-symbols-light:warning-rounded"
+        class="size-10 shrink-0 text-[#b42318] dark:text-[#ef8b88]"
+        aria-hidden="true"
       />
-      <GuideParagraph class="mt-3">
-        {@html m.guide_renderer_mapbox_account_description()}
-      </GuideParagraph>
     </div>
+    <GuideParagraph class="mt-3">
+      {@html m.guide_renderer_mapbox_account_description()}
+    </GuideParagraph>
   </div>
 {/snippet}
 {#snippet mapboxTokenDetails()}

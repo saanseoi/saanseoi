@@ -4,6 +4,7 @@ import {
   GuideInstructionCallout,
   GuideScreenshot,
 } from '#lib/bits/pages/guides/index.js'
+import GuideCallout from '#lib/bits/pages/guides/components/shared/guideCallout.svelte'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { m } from '#lib/bits/internal/i18n.js'
@@ -25,6 +26,7 @@ import vercelAccountDark from '#lib/assets/guides/publish-vercel-account-dark.we
 import vercelAccountLight from '#lib/assets/guides/publish-vercel-account-light.webp'
 import vercelAuthenticationDark from '#lib/assets/guides/publish-vercel-auth-dark.webp'
 import vercelAuthenticationLight from '#lib/assets/guides/publish-vercel-auth-light.webp'
+import mapboxTokenUrlRestrictions from '#lib/assets/guides/mapbox-token-url-restrictions.png'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import { createDeploymentCode } from './snippets.js'
@@ -45,6 +47,7 @@ type Props = {
   onCompletedRequirementsChange?: (requirements: number[]) => void
   onPublishedChange?: (published: boolean) => void
   operatingSystem?: CreateAMapSelectionQuery['operatingSystem']
+  renderer?: CreateAMapSelectionQuery['renderer']
   terminalProjectPath: string
 }
 
@@ -56,6 +59,7 @@ let {
   onCompletedRequirementsChange,
   onPublishedChange,
   operatingSystem,
+  renderer,
   terminalProjectPath,
 }: Props = $props()
 
@@ -138,6 +142,7 @@ const gitUrl = 'https://git-scm.com/downloads'
 const githubCliUrl = 'https://cli.github.com/'
 type LinuxDistribution = 'debian' | 'fedora' | 'arch'
 let linuxDistribution = $state<LinuxDistribution>('fedora')
+let mapboxTokenRestrictionsExpanded = $state(false)
 const linuxDistributionTabs = $derived([
   {
     icons: ['simple-icons:fedora', 'simple-icons:redhat'],
@@ -1178,6 +1183,37 @@ const resetRequirement = (requirement: number) => {
             ? m.guide_publish_visit_vercel()
             : m.guide_publish_visit_netlify()}
     </p>
+    {#if renderer === 'mapbox'}
+      <GuideCallout class="mt-6 max-w-3xl">
+        <h4>
+          <button
+            class="flex w-full cursor-pointer items-center justify-between gap-3 text-left font-display text-headline-sm font-bold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+            type="button"
+            aria-expanded={mapboxTokenRestrictionsExpanded}
+            onclick={() => (mapboxTokenRestrictionsExpanded = !mapboxTokenRestrictionsExpanded)}
+          >
+            {@html m.guide_renderer_mapbox_token_restrictions_title()}
+            <Icon
+              class={`size-5 shrink-0 transition-transform ${mapboxTokenRestrictionsExpanded ? 'rotate-180' : ''}`}
+              icon="material-symbols-light:expand-more-rounded"
+              aria-hidden="true"
+            />
+          </button>
+        </h4>
+        {#if mapboxTokenRestrictionsExpanded}
+          <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_renderer_mapbox_token_restrictions_description()}
+          </p>
+          <div class="mt-5">
+            <GuideScreenshot
+              src={mapboxTokenUrlRestrictions}
+              alt={m.guide_renderer_mapbox_token_restrictions_screenshot_alt()}
+              caption={m.guide_renderer_mapbox_token_restrictions_screenshot_caption()}
+            />
+          </div>
+        {/if}
+      </GuideCallout>
+    {/if}
     <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}
     </p>
