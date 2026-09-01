@@ -701,7 +701,6 @@ export const urbanDensityMapCode = [
   "  filter: ['in', 'kind', ...nonLiveableLandUse],",
   "  paint: { 'line-color': '#8c3427', 'line-width': 1 },",
   '}, firstLabelLayerId)',
-  '',
   '}',
 ].join('\n')
 

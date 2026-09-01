@@ -1042,6 +1042,8 @@
   "guide_code_block_code": "代码",
   "guide_code_block_expand": "展开",
   "guide_code_block_comments": "注释",
+  "guide_code_block_more_lines_above": "上方还有 {count} 行",
+  "guide_code_block_more_lines_below": "还有 {count} 行",
   "guide_code_block_manual_copy_text_label": "要手动复制的文本",
   "guide_code_block_manual_copy_description": "此内容无法自动复制。选择下面的所有文本，然后使用常用的复制快捷方式。",
   "guide_code_block_manual_copy_title": "自己复制这个",

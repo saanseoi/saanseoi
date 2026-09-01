@@ -3,11 +3,12 @@ import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import type { GuideCodeVisibleLine } from '../../components/shared/guideCodeBlock.svelte'
 import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
-import GuideInstructionCallout from '../../components/createAMap/guideInstructionCallout.svelte'
+import GuideVisibleCodeCallouts from '../../components/createAMap/guideVisibleCodeCallouts.svelte'
 
 import GuideUrbanDensityDivisionsPreview from './guideUrbanDensityDivisionsPreview.svelte'
 import GuideUrbanDensityCensusAreasPreview from './guideUrbanDensityCensusAreasPreview.svelte'
@@ -101,6 +102,9 @@ const editorPathSeparator = $derived(
 const landAnalysisFilePath = $derived(
   `src${editorPathSeparator ?? '/'}land-analysis.json`,
 )
+let statsVisibleLines = $state<GuideCodeVisibleLine[]>([])
+let calculationVisibleLines = $state<GuideCodeVisibleLine[]>([])
+let tileFetcherVisibleLines = $state<GuideCodeVisibleLine[]>([])
 
 const mapReadyComments = [
   {
@@ -677,44 +681,47 @@ const liveableAreaMapComments = [
         content={m.guide_data_urban_density_calculate_description()}
         contentClass="[&_code.guide-urban-density-level]:text-foreground"
       >
+        <GuideParagraph
+          class="mb-5 [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
+        >
+          {@html m.guide_data_urban_density_calculate_preview_explanation()}
+        </GuideParagraph>
         <div
           class="grid gap-6 font-mono min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,44.5rem)_minmax(0,1fr)] min-[1000px]:items-start"
         >
-          <div class="space-y-5">
-            <GuideParagraph
-              class="[&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
-            >
-              {@html m.guide_data_urban_density_calculate_preview_explanation()}
-            </GuideParagraph>
-            <GuidePreviewCodeBlock
-              label={m.guide_data_urban_density_calculate_code()}
-              code={`\n${statsCode}`}
-              displayCode={statsDisplayCode}
-              comments={statsComments}
-              {editorIcon}
-              pathSeparator={editorPathSeparator}
-              language="typescript"
-              variant="editor"
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-              previewLabel={m.guide_code_block_preview()}
-              showCodeLabel={m.guide_code_block_code()}
-              expandable
-              expandLabel={m.guide_code_block_expand()}
-              closeLabel={m.common_close()}
-            >
-              {#snippet preview()}
-                <GuideUrbanDensityStatsPreview />
-              {/snippet}
-            </GuidePreviewCodeBlock>
-          </div>
-          <aside class="min-[1000px]:pt-309.5">
-            <GuideInstructionCallout
-              label={m.guide_data_urban_density_statistics_callout_label()}
-              title={m.guide_data_urban_density_statistics_callout_title()}
-              description={m.guide_data_urban_density_calculate_explore_statistics()}
-            />
-          </aside>
+          <GuidePreviewCodeBlock
+            label={m.guide_data_urban_density_calculate_code()}
+            code={`\n${statsCode}`}
+            displayCode={statsDisplayCode}
+            comments={statsComments}
+            {editorIcon}
+            pathSeparator={editorPathSeparator}
+            language="typescript"
+            variant="editor"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+            previewLabel={m.guide_code_block_preview()}
+            showCodeLabel={m.guide_code_block_code()}
+            expandable
+            expandLabel={m.guide_code_block_expand()}
+            closeLabel={m.common_close()}
+            onVisibleLinesChange={lines => (statsVisibleLines = lines)}
+          >
+            {#snippet preview()}
+              <GuideUrbanDensityStatsPreview />
+            {/snippet}
+          </GuidePreviewCodeBlock>
+          <GuideVisibleCodeCallouts
+            visibleLines={statsVisibleLines}
+            callouts={[
+              {
+                line: 28,
+                label: m.guide_data_urban_density_statistics_callout_label(),
+                title: m.guide_data_urban_density_statistics_callout_title(),
+                description: m.guide_data_urban_density_calculate_explore_statistics(),
+              },
+            ]}
+          />
         </div>
         <div class="mt-8">
           <GuideSubSectionHeader
@@ -747,25 +754,29 @@ const liveableAreaMapComments = [
                 expandable
                 expandLabel={m.guide_code_block_expand()}
                 closeLabel={m.common_close()}
+                onVisibleLinesChange={lines => (calculationVisibleLines = lines)}
               >
                 {#snippet preview()}
                   <GuideUrbanDensityDivisionsPreview />
                 {/snippet}
               </GuidePreviewCodeBlock>
-              <aside class="min-[1000px]:pt-142.5">
-                <GuideInstructionCallout
-                  label={m.guide_data_urban_density_calculation_level_callout_label()}
-                  title={m.guide_data_urban_density_calculation_level_callout_title()}
-                  description={m.guide_data_urban_density_calculation_comment_level_explainer()}
-                />
-                <div class="mt-6 min-[1000px]:mt-139.5">
-                  <GuideInstructionCallout
-                    label={m.guide_data_urban_density_calculation_geojson_feature_callout_label()}
-                    title={m.guide_data_urban_density_calculation_geojson_feature_callout_title()}
-                    description={m.guide_data_urban_density_calculation_geojson_feature_callout_description()}
-                  />
-                </div>
-              </aside>
+              <GuideVisibleCodeCallouts
+                visibleLines={calculationVisibleLines}
+                callouts={[
+                  {
+                    line: 13,
+                    label: m.guide_data_urban_density_calculation_level_callout_label(),
+                    title: m.guide_data_urban_density_calculation_level_callout_title(),
+                    description: m.guide_data_urban_density_calculation_comment_level_explainer(),
+                  },
+                  {
+                    line: 30,
+                    label: m.guide_data_urban_density_calculation_geojson_feature_callout_label(),
+                    title: m.guide_data_urban_density_calculation_geojson_feature_callout_title(),
+                    description: m.guide_data_urban_density_calculation_geojson_feature_callout_description(),
+                  },
+                ]}
+              />
             </div>
           </GuideSubSectionBody>
         </div>
@@ -843,9 +854,9 @@ const liveableAreaMapComments = [
         {@html m.guide_data_urban_density_density_reflection()}
       </GuideParagraph>
       {#if showPublishLink}
-        <GuideParagraph>
-          {@html m.guide_data_urban_density_density_publishable()}
-        </GuideParagraph>
+        <GuideSubSectionBody
+          content={m.guide_data_urban_density_density_publishable()}
+        />
       {/if}
     </section>
     <section>
@@ -959,49 +970,51 @@ const liveableAreaMapComments = [
             <div
               class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start"
             >
-              <div class="space-y-6">
-                <GuideCodeBlock
-                  label={m.guide_data_urban_density_setup_z14_tile_fetcher_code()}
-                  code={setupZ14TileFetcherCode}
-                  displayCode={setupZ14TileFetcherDisplayCode}
-                  comments={setupZ14TileFetcherComments}
-                  {editorIcon}
-                  pathSeparator={editorPathSeparator}
-                  language="typescript"
-                  variant="editor"
-                  copyLabel={m.common_copy()}
-                  copiedLabel={m.common_copied()}
-                />
-                <GuideParagraph>
-                  {m.guide_data_urban_density_setup_z14_tile_fetcher_css_description()}
-                </GuideParagraph>
-                <GuideCodeBlock
-                  label={m.guide_data_urban_density_setup_z14_tile_fetcher_css()}
-                  code={setupZ14TileFetcherCss}
-                  comments={setupZ14TileFetcherCssComments}
-                  {editorIcon}
-                  pathSeparator={editorPathSeparator}
-                  language="css"
-                  variant="editor"
-                  copyLabel={m.common_copy()}
-                  copiedLabel={m.common_copied()}
-                />
-              </div>
-              <aside class="min-[1000px]:pt-96">
-                <GuideInstructionCallout
-                  label={m.guide_data_urban_density_web_mercator_callout_label()}
-                  title={m.guide_data_urban_density_web_mercator_callout_title()}
-                  description={m.guide_data_urban_density_web_mercator_callout_description()}
-                />
-                <div class="mt-6 min-[1000px]:mt-[106rem]">
-                  <GuideInstructionCallout
-                    label={m.guide_data_urban_density_tile_decoding_callout_label()}
-                    title={m.guide_data_urban_density_tile_decoding_callout_title()}
-                    description={m.guide_data_urban_density_tile_decoding_callout_description()}
-                  />
-                </div>
-              </aside>
+              <GuideCodeBlock
+                label={m.guide_data_urban_density_setup_z14_tile_fetcher_code()}
+                code={setupZ14TileFetcherCode}
+                displayCode={setupZ14TileFetcherDisplayCode}
+                comments={setupZ14TileFetcherComments}
+                {editorIcon}
+                pathSeparator={editorPathSeparator}
+                language="typescript"
+                variant="editor"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+                onVisibleLinesChange={lines => (tileFetcherVisibleLines = lines)}
+              />
+              <GuideVisibleCodeCallouts
+                visibleLines={tileFetcherVisibleLines}
+                callouts={[
+                  {
+                    line: 10,
+                    label: m.guide_data_urban_density_web_mercator_callout_label(),
+                    title: m.guide_data_urban_density_web_mercator_callout_title(),
+                    description: m.guide_data_urban_density_web_mercator_callout_description(),
+                  },
+                  {
+                    line: 170,
+                    label: m.guide_data_urban_density_tile_decoding_callout_label(),
+                    title: m.guide_data_urban_density_tile_decoding_callout_title(),
+                    description: m.guide_data_urban_density_tile_decoding_callout_description(),
+                  },
+                ]}
+              />
             </div>
+            <GuideParagraph class="mt-6">
+              {m.guide_data_urban_density_setup_z14_tile_fetcher_css_description()}
+            </GuideParagraph>
+            <GuideCodeBlock
+              label={m.guide_data_urban_density_setup_z14_tile_fetcher_css()}
+              code={setupZ14TileFetcherCss}
+              comments={setupZ14TileFetcherCssComments}
+              {editorIcon}
+              pathSeparator={editorPathSeparator}
+              language="css"
+              variant="editor"
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
           </GuideSubSectionBody>
           <GuideSubSectionBody
             content={m.guide_data_urban_density_collect_non_liveable_land_description()}

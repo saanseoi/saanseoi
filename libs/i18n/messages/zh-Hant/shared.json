@@ -1035,6 +1035,8 @@
   "guide_code_block_code": "程式碼",
   "guide_code_block_expand": "展開",
   "guide_code_block_comments": "註解",
+  "guide_code_block_more_lines_above": "上方還有 {count} 行",
+  "guide_code_block_more_lines_below": "還有 {count} 行",
   "guide_zed_setup_image_agent_panel_button_caption": "打開代理面板。",
   "guide_agentic_ai_readiness_complete_eyebrow": "法學碩士準備好了",
   "guide_code_block_manual_copy_title": "自己複製這個",
