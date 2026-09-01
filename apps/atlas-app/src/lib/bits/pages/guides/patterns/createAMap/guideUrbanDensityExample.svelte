@@ -93,6 +93,9 @@ let {
 }: Props = $props()
 
 const projectPathSeparator = $derived(terminalProjectPath.includes('\\') ? '\\' : '/')
+const editorPathPrefix = $derived(
+  terminalProjectPath.includes('\\') ? terminalProjectPath : undefined,
+)
 const landAnalysisFilePath = $derived(
   `${terminalProjectPath}${projectPathSeparator}src${projectPathSeparator}land-analysis.json`,
 )
@@ -619,6 +622,7 @@ const liveableAreaMapComments = [
           code={mapReadyCode}
           comments={mapReadyComments}
           {editorIcon}
+          pathPrefix={editorPathPrefix}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
@@ -663,6 +667,7 @@ const liveableAreaMapComments = [
               displayCode={statsDisplayCode}
               comments={statsComments}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="typescript"
               variant="editor"
               copyLabel={m.common_copy()}
@@ -708,6 +713,7 @@ const liveableAreaMapComments = [
                 displayCode={calculationDisplayCode}
                 comments={calculationComments}
                 {editorIcon}
+                pathPrefix={editorPathPrefix}
                 language="typescript"
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
@@ -764,6 +770,7 @@ const liveableAreaMapComments = [
               displayCode={metricsCssDisplayCode}
               comments={metricsCssComments}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="css"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -785,6 +792,7 @@ const liveableAreaMapComments = [
               displayCode={metricsDisplayCode}
               comments={metricsComments}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -825,6 +833,7 @@ const liveableAreaMapComments = [
             displayCode={mapDisplayCode}
             comments={mapComments}
             {editorIcon}
+            pathPrefix={editorPathPrefix}
             language="typescript"
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
@@ -906,6 +915,7 @@ const liveableAreaMapComments = [
               label={m.guide_data_urban_density_geometry_worker_code()}
               code={geometryWorkerCode}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="typescript"
               variant="editor"
               copyLabel={m.common_copy()}
@@ -925,6 +935,7 @@ const liveableAreaMapComments = [
                   displayCode={setupZ14TileFetcherDisplayCode}
                   comments={setupZ14TileFetcherComments}
                   {editorIcon}
+                  pathPrefix={editorPathPrefix}
                   language="typescript"
                   variant="editor"
                   copyLabel={m.common_copy()}
@@ -938,6 +949,7 @@ const liveableAreaMapComments = [
                   code={setupZ14TileFetcherCss}
                   comments={setupZ14TileFetcherCssComments}
                   {editorIcon}
+                  pathPrefix={editorPathPrefix}
                   language="css"
                   variant="editor"
                   copyLabel={m.common_copy()}
@@ -972,6 +984,7 @@ const liveableAreaMapComments = [
                 displayCode={collectNonLiveableLandDisplayCode}
                 comments={collectNonLiveableLandComments}
                 {editorIcon}
+                pathPrefix={editorPathPrefix}
                 language="typescript"
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
@@ -1001,6 +1014,7 @@ const liveableAreaMapComments = [
                   code={liveableAreaCss}
                   comments={liveableAreaCssComments}
                   {editorIcon}
+                  pathPrefix={editorPathPrefix}
                   language="css"
                   variant="editor"
                   copyLabel={m.common_copy()}
@@ -1012,6 +1026,7 @@ const liveableAreaMapComments = [
                   displayCode={liveableAreaDisplayCode}
                   comments={liveableAreaComments}
                   {editorIcon}
+                  pathPrefix={editorPathPrefix}
                   language="typescript"
                   copyLabel={m.common_copy()}
                   copiedLabel={m.common_copied()}
@@ -1052,6 +1067,7 @@ const liveableAreaMapComments = [
               displayCode={liveableMetricsDisplayCode}
               comments={liveableMetricsComments}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -1066,6 +1082,7 @@ const liveableAreaMapComments = [
               displayCode={liveableAreaMapDisplayCode}
               comments={liveableAreaMapComments}
               {editorIcon}
+              pathPrefix={editorPathPrefix}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}

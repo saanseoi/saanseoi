@@ -5,6 +5,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 
 import GuideCreateAMapPricingTable from './guideCreateAMapPricingTable.svelte'
+import GuideParagraph from '../shared/guideParagraph.svelte'
 import GuideReadinessCompleteToggle from './guideReadinessCompleteToggle.svelte'
 import GuideReadinessIncompleteSummary from './guideReadinessIncompleteSummary.svelte'
 import GuideReadinessPanel from './guideReadinessPanel.svelte'
@@ -87,22 +88,15 @@ let expanded = $state(false)
   {#if !complete || expanded}
     <div
       id="code-editor-readiness-details"
-      class={`ml-8 ${complete ? 'mt-5 border-t border-[#6fdec9]/35 pt-5' : 'mt-4'}`}
+      class={`ml-8 ${complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}`}
     >
-      {#if complete}
-        <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-          {@html completeDescription}
-        </p>
-      {/if}
       {#if welcomeDescription}
-        <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-          {@html welcomeDescription}
-        </p>
+        <GuideParagraph class="mt-5"> {@html welcomeDescription} </GuideParagraph>
       {/if}
       <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
         {#if !complete}
           <Button
-            class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+            class="bg-secondary text-on-secondary hover:bg-secondary/85"
             onclick={onComplete}
           >
             <Icon

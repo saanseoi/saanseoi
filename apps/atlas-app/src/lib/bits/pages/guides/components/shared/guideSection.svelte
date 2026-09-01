@@ -3,6 +3,7 @@ import type { Snippet } from 'svelte'
 
 import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
+import GuideTextHeader from './guideTextHeader.svelte'
 
 type Props = {
   actionLabel?:
@@ -64,16 +65,13 @@ let {
     </p>
   {/if}
   {#if title}
-    <h2
-      class={`${actionLabel ? 'mt-1' : 'mt-8'} font-display text-headline-md font-bold text-primary`}
-    >
-      {@html title}
+    <GuideTextHeader as="h2" {title} class={actionLabel ? 'mt-1' : 'mt-8'}>
       {#if step}
         <span class="ml-3 font-body text-label-md font-semibold text-secondary"
           >[{step}]</span
         >
       {/if}
-    </h2>
+    </GuideTextHeader>
   {/if}
   {#if description}
     <GuideParagraph class={actionLabel ? 'mt-2' : 'mt-4'}>

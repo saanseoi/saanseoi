@@ -51,7 +51,7 @@ const completeAndScroll = async () => {
     window.scrollTo({
       top: Math.max(
         0,
-        window.scrollY + target.getBoundingClientRect().top - headerHeight - 64,
+        window.scrollY + target.getBoundingClientRect().top - headerHeight - 16,
       ),
     })
   })
@@ -63,11 +63,11 @@ const completeAndScroll = async () => {
 {/snippet}
 
 {#snippet completeDetails()}
-  <div class="flex items-center justify-between gap-4">
-    <p class="font-body text-body-lg leading-8 text-foreground-alt">
+  <div class="flex flex-nowrap items-center justify-between gap-4">
+    <p class="min-w-0 font-body text-body-lg leading-8 text-foreground-alt">
       {resetDescription}
     </p>
-    <Button class="shrink-0" size="compact" variant="secondary" onclick={onReset}>
+    <Button class="mr-3 shrink-0" size="compact" variant="secondary" onclick={onReset}>
       <Icon
         icon="material-symbols-light:restart-alt-rounded"
         class="size-5"
@@ -93,7 +93,7 @@ const completeAndScroll = async () => {
   </div>
   <div class="mt-6 flex justify-end">
     <Button
-      class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+      class="bg-secondary text-on-secondary hover:bg-secondary/85"
       size="compact"
       onclick={() => void completeAndScroll()}
     >

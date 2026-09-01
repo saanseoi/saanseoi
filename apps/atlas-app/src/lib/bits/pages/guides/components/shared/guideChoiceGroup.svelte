@@ -6,6 +6,7 @@ import CarouselRoot from '#lib/bits/components/carousel/carouselRoot.svelte'
 
 import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
+import GuideTextHeader from './guideTextHeader.svelte'
 import type { GuideChoice } from './guide.types'
 
 type Props = {
@@ -149,9 +150,7 @@ onMount(() => {
   class={`min-w-0 ${hideLabel && variant === 'illustrated' ? 'mt-0 mb-0' : 'mt-12 mb-0'} ${variant === 'illustrated' ? 'overflow-visible' : ''}`}
   style={illustratedFullBleed ? `--illustrated-content-inset: ${illustratedContentInset}px` : undefined}
 >
-  <legend
-    class={`${hideLabel ? 'sr-only' : 'w-full'} font-bold ${variant === 'illustrated' || variant === 'tiles' ? `font-display text-headline-md leading-tight text-primary ${alignment === 'left' ? 'text-left' : 'text-center'}` : 'font-display text-headline-sm text-secondary'}`}
-  >
+  <legend class={`${hideLabel ? 'sr-only' : 'w-full'} font-bold`}>
     <span class="flex items-end justify-between gap-4">
       <span>
         {#if marker}
@@ -164,7 +163,11 @@ onMount(() => {
             {/if}</span
           >
         {/if}
-        {@html label}
+        <GuideTextHeader
+          as="span"
+          title={label}
+          class={`${variant === 'compact' ? 'text-headline-sm text-secondary' : ''} ${alignment === 'left' ? 'text-left' : 'text-center'}`}
+        />
         {#if step}
           <span class="ml-3 font-body text-label-md font-semibold text-secondary"
             >[{step}]</span
@@ -202,13 +205,13 @@ onMount(() => {
   {#if Array.isArray(hint)}
     {#each hint as paragraph, index}
       <p
-        class={`${index === 0 ? 'mt-1' : 'mt-3'} max-w-3xl font-body text-body-sm leading-6 text-foreground-alt`}
+        class={`${index === 0 ? 'mt-1' : 'mt-3'} max-w-[58rem] font-body text-body-sm leading-6 text-foreground-alt`}
       >
         {@html paragraph}
       </p>
     {/each}
   {:else if hint}
-    <p class="mt-1 max-w-3xl font-body text-body-sm text-foreground-alt">
+    <p class="mt-1 max-w-[58rem] font-body text-body-sm text-foreground-alt">
       {@html hint}
     </p>
   {/if}
@@ -346,7 +349,7 @@ onMount(() => {
       <CarouselRoot
         bind:this={illustratedChoiceCarousel}
         scrollable={!illustratedCarouselFits}
-        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed ? 'relative -ml-(--illustrated-content-inset) w-screen' : alignment === 'center' ? 'relative left-1/2 w-screen -translate-x-1/2' : 'w-full'}`}
+        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed || alignment === 'center' ? 'relative left-1/2 w-[100dvw] -translate-x-1/2' : 'w-full'}`}
         onnavigationchange={navigation => (illustratedCarouselNavigation = navigation)}
       >
         <div

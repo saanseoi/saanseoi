@@ -29,6 +29,8 @@ type Props = {
   closeLabel?: string
   showCodeLabel: string
   variant?: 'code' | 'editor'
+  pathPrefix?: string
+  width?: 'content' | 'short' | 'shortCard'
 }
 
 let {
@@ -50,6 +52,8 @@ let {
   closeLabel,
   showCodeLabel,
   variant = 'editor',
+  pathPrefix,
+  width = 'shortCard',
 }: Props = $props()
 let view = $state<'code' | 'preview'>('code')
 let commentsVisible = $state(true)
@@ -113,7 +117,7 @@ function closePreview() {
 
 <div
   bind:this={previewCard}
-  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 max-w-[80ch] scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
+  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-[58rem]' : width === 'short' ? 'max-w-[48rem]' : 'max-w-[44.5rem]'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
   style:min-height={view === 'preview' ? '0' : minHeight}
   style:height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
   style:max-height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
@@ -140,7 +144,9 @@ function closePreview() {
       {editorIcon}
       {label}
       {language}
+      {pathPrefix}
       {variant}
+      {width}
     >
       {#snippet actions()}
         <button

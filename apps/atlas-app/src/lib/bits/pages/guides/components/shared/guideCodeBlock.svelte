@@ -31,9 +31,11 @@ type Props = {
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
+  pathPrefix?: string
   promptIcon?: string
   terminalDotsSuffix?: Snippet
   variant?: 'code' | 'editor' | 'prompt'
+  width?: 'content' | 'short' | 'shortCard'
 }
 
 type BashTokenKind = 'command' | 'comment' | 'flag' | 'operator' | 'plain' | 'string'
@@ -283,13 +285,20 @@ let {
   leadingActions,
   labelContent,
   onCopy,
+  pathPrefix,
   promptIcon = 'material-symbols-light:auto-awesome',
   terminalDotsSuffix,
   variant = 'code',
+  width = 'shortCard',
 }: Props = $props()
 let copied = $state(false)
 let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
+const displayedLabel = $derived(
+  pathPrefix && (label === '.env' || label.startsWith('src/'))
+    ? `${pathPrefix}\\${label.replaceAll('/', '\\')}`
+    : label,
+)
 const highlightedCode = $derived(
   language === 'bash'
     ? highlightBash(displayCode ?? code)
@@ -359,7 +368,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`${className} w-full min-w-0 max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`${className} w-full min-w-0 ${width === 'content' ? 'max-w-[58rem]' : width === 'short' ? 'max-w-[48rem]' : 'max-w-[44.5rem]'} overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
@@ -413,7 +422,7 @@ const selectManualCopyText = () => {
         >{#if labelContent}
           {@render labelContent()}
         {:else}
-          {@html label}
+          {@html displayedLabel}
         {/if}</span
       >
     </div>

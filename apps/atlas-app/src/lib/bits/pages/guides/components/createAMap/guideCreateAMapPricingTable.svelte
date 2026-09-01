@@ -12,17 +12,20 @@ type Props = {
 let { options }: Props = $props()
 </script>
 
-<div class="mt-4 w-full max-w-3xl">
-  <div class="flex w-full overflow-hidden border border-[#ef8b88]/40 bg-[#ef8b88]/6">
+<div class="mt-4 w-full max-w-[58rem]">
+  <div
+    class="flex w-full overflow-hidden border border-[#b42318]/35 bg-[#fff4f2] dark:border-[#ef8b88]/40 dark:bg-[#ef8b88]/6"
+  >
     <div
       aria-hidden="true"
-      class="flex w-20 shrink-0 items-center justify-center bg-white/6"
+      class="flex w-20 shrink-0 items-center justify-center bg-[#b42318]/8 dark:bg-white/6"
     >
-      <span class="font-display text-[4.125rem] leading-none font-bold text-white/75"
+      <span
+        class="font-display text-[4.125rem] leading-none font-bold text-[#b42318]/75 dark:text-white/75"
         >$</span
       >
     </div>
-    <div class="min-w-0 flex-1 divide-y divide-[#ef8b88]/25">
+    <div class="min-w-0 flex-1 divide-y divide-[#b42318]/20 dark:divide-[#ef8b88]/25">
       {#each options as option}
         <div
           class="flex min-h-16 flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-3"
@@ -36,7 +39,7 @@ let { options }: Props = $props()
           >
             {#if option.price}
               <span
-                class="font-display text-title-lg leading-tight font-bold tracking-tight text-white tabular-nums"
+                class="font-display text-title-lg leading-tight font-bold tracking-tight text-[#b42318] tabular-nums dark:text-white"
                 >{@html option.price}</span
               >
             {/if}

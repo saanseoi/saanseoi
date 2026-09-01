@@ -399,17 +399,21 @@ const terminalLearningResource = $derived(
   gap: 0.85rem;
   margin-top: 1rem;
   padding: 1rem 1.15rem;
-  border: 1px solid #ef8b88;
-  background: color-mix(in srgb, #ef8b88 12%, var(--color-background));
+  border: 1px solid var(--color-error);
+  background: color-mix(
+    in srgb,
+    var(--color-error-container) 38%,
+    var(--color-background)
+  );
 }
 .terminal-introduction__paste-warning > :global(svg) {
   width: 1.45rem;
   height: 1.45rem;
-  color: #ef8b88;
+  color: var(--color-error);
 }
 .terminal-introduction__paste-warning h5 {
   margin: 0;
-  color: #ffb4b1;
+  color: var(--color-on-error-container);
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
@@ -427,11 +431,15 @@ const terminalLearningResource = $derived(
   align-items: center;
   justify-content: center;
   padding: 0 0.35em;
-  border: 1px solid color-mix(in srgb, #ffb4b1 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 65%, transparent);
   border-bottom-width: 2px;
   border-radius: 0.2rem;
-  background: color-mix(in srgb, #ef8b88 12%, var(--color-background));
-  color: #ffe0de;
+  background: color-mix(
+    in srgb,
+    var(--color-error-container) 38%,
+    var(--color-background)
+  );
+  color: var(--color-on-error-container);
   font-family: var(--font-mono);
   font-size: 0.78em;
   font-weight: 700;
