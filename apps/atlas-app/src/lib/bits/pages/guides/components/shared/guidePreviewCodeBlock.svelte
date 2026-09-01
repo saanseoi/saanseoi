@@ -147,6 +147,7 @@ function closePreview() {
       {copyLabel}
       {dimmedLines}
       {editorIcon}
+      fillAvailableHeight
       {label}
       {language}
       {pathSeparator}

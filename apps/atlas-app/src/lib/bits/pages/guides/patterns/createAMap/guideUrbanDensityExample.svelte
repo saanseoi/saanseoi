@@ -8,6 +8,7 @@ import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
+import GuideTextSubHeader from '../../components/shared/guideTextSubHeader.svelte'
 import GuideVisibleCodeCallouts from '../../components/createAMap/guideVisibleCodeCallouts.svelte'
 
 import GuideUrbanDensityDivisionsPreview from './guideUrbanDensityDivisionsPreview.svelte'
@@ -464,6 +465,12 @@ const setupZ14TileFetcherCssComments = [
 ]
 
 const geometryWorkerComments = [
+  {
+    line: 1,
+    text: m.guide_data_urban_density_geometry_worker_comment_header(),
+    alwaysVisible: true,
+    spacerAfter: true,
+  },
   { line: 1, text: m.guide_data_urban_density_geometry_worker_comment_turf() },
   { line: 2, text: m.guide_data_urban_density_geometry_worker_comment_geos() },
   { line: 6, text: m.guide_data_urban_density_geometry_worker_comment_messages() },
@@ -910,6 +917,7 @@ const liveableAreaMapComments = [
               nonLiveableLand={m.guide_data_urban_density_install_non_liveable_land()}
               landClippedGeometry={m.guide_data_urban_density_install_land_clipped_geometry()}
               explanation={m.guide_data_urban_density_install_explanation()}
+              geospatialToolsTitle={m.guide_data_urban_density_geospatial_tools_title()}
               resourceDownloadJsonResult={m.guide_data_urban_density_resource_download_json_result()}
               resourceDownloadInstructions={m.guide_data_urban_density_resource_download_instructions({
                 path: landAnalysisFilePath,
@@ -951,8 +959,15 @@ const liveableAreaMapComments = [
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
             />
-            <GuideParagraph class="mt-6">
+            <GuideTextSubHeader
+              class="mt-6"
+              title={m.guide_data_urban_density_geometry_repair_title()}
+            />
+            <GuideParagraph class="mt-3">
               {@html m.guide_data_urban_density_geometry_worker_description()}
+            </GuideParagraph>
+            <GuideParagraph class="mt-3">
+              {@html m.guide_data_urban_density_geometry_worker_instruction()}
             </GuideParagraph>
             <GuideCodeBlock
               label={m.guide_data_urban_density_geometry_worker_code()}
@@ -1019,6 +1034,7 @@ const liveableAreaMapComments = [
             />
           </GuideSubSectionBody>
           <GuideSubSectionBody
+            class="mt-6"
             content={m.guide_data_urban_density_collect_non_liveable_land_description()}
           >
             <div

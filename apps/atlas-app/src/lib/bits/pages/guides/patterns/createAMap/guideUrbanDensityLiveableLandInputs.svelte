@@ -1,5 +1,13 @@
 <script lang="ts">
+import analysisDissolve from '#lib/assets/guides/urban-density-analysis/dissolve.png'
+import analysisFindDecode from '#lib/assets/guides/urban-density-analysis/find-decode.png'
+import analysisIntersect from '#lib/assets/guides/urban-density-analysis/intersect.png'
+import analysisMeasure from '#lib/assets/guides/urban-density-analysis/measure.png'
+import analysisMergeClip from '#lib/assets/guides/urban-density-analysis/merge-clip.png'
+import analysisSaveJson from '#lib/assets/guides/urban-density-analysis/save-json.png'
+import analysisSubtract from '#lib/assets/guides/urban-density-analysis/subtract.png'
 import GuideInstructionCallout from '../../components/createAMap/guideInstructionCallout.svelte'
+import GuideTextSubHeader from '../../components/shared/guideTextSubHeader.svelte'
 
 import { landAnalysisPath } from './guideUrbanDensityLiveableMap.ts'
 
@@ -7,6 +15,7 @@ type Props = {
   approachSteps: string[]
   closeLabel: string
   description: string
+  geospatialToolsTitle: string
   introduction: string
   landClippedGeometry: string
   nonLiveableLand: string
@@ -27,6 +36,7 @@ let {
   approachSteps,
   closeLabel,
   description,
+  geospatialToolsTitle,
   introduction,
   landClippedGeometry,
   nonLiveableLand,
@@ -44,6 +54,16 @@ let {
 }: Props = $props()
 
 let downloadInstructionsDialog: HTMLDialogElement
+
+const approachIllustrations = [
+  analysisFindDecode,
+  analysisMergeClip,
+  analysisIntersect,
+  analysisDissolve,
+  analysisMeasure,
+  analysisSubtract,
+  analysisSaveJson,
+]
 
 const scrollToFinaliseMap = (event: MouseEvent) => {
   event.preventDefault()
@@ -153,18 +173,34 @@ const scrollToFinaliseMap = (event: MouseEvent) => {
       >
         {@html explanation}
       </p>
-      <ol
-        class="list-decimal space-y-3 pl-7 font-body text-body-lg leading-8 text-foreground-alt marker:font-semibold marker:text-secondary"
-      >
-        {#each approachSteps as step}
-          <li class="pl-2">{@html step}</li>
+      <ol class="grid gap-x-10 gap-y-10 sm:grid-cols-2 sm:gap-y-4 pt-12">
+        {#each approachSteps as step, index}
+          <li class="sm:even:translate-y-16 sm:even:mb-16 sm:odd:-translate-y-6 mb-8">
+            <div
+              class={`flex min-w-0 items-center gap-4 ${index % 2 === 1 ? 'flex-row-reverse' : ''}`}
+            >
+              <img
+                alt=""
+                aria-hidden="true"
+                class="size-28 shrink-0 object-contain sm:size-32"
+                src={approachIllustrations[index]}
+              >
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start gap-3">
+                  <span
+                    class="flex size-10 shrink-0 items-center justify-center bg-secondary font-mono text-label-md font-semibold text-on-secondary"
+                    >{index + 1}</span
+                  >
+                  <span class="mt-5 h-px flex-1 bg-border-card"></span>
+                </div>
+                <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+                  {@html step}
+                </p>
+              </div>
+            </div>
+          </li>
         {/each}
       </ol>
-      <p
-        class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-      >
-        {@html turfExplanation}
-      </p>
     </div>
     <aside
       class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
@@ -175,5 +211,13 @@ const scrollToFinaliseMap = (event: MouseEvent) => {
         description={tileZoomCalloutDescription}
       />
     </aside>
+  </div>
+  <div class="space-y-3">
+    <GuideTextSubHeader title={geospatialToolsTitle} />
+    <p
+      class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+    >
+      {@html turfExplanation}
+    </p>
   </div>
 </div>
