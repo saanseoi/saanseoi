@@ -434,7 +434,7 @@ const setupZ14TileFetcherComments = [
   { line: 231, text: m.guide_data_urban_density_collect_comment_progress() },
   { line: 251, text: m.guide_data_urban_density_setup_comment_progress() },
   { line: 274, text: m.guide_data_urban_density_collect_comment_progress_wrapper() },
-  { line: 279, text: m.guide_data_urban_density_setup_comment_district_progress() },
+  { line: 280, text: m.guide_data_urban_density_setup_comment_district_progress() },
 ]
 
 const setupZ14TileFetcherCssComments = [
@@ -1088,6 +1088,9 @@ const liveableAreaMapComments = [
                   copyLabel={m.common_copy()}
                   copiedLabel={m.common_copied()}
                 />
+                <GuideParagraph>
+                  {@html m.guide_data_urban_density_liveable_area_code_description()}
+                </GuideParagraph>
                 <GuidePreviewCodeBlock
                   label={m.guide_data_urban_density_liveable_area_code()}
                   code={liveableAreaCode}
