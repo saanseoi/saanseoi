@@ -117,7 +117,7 @@ function closePreview() {
 
 <div
   bind:this={previewCard}
-  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-[58rem]' : width === 'short' ? 'max-w-[48rem]' : 'max-w-[44.5rem]'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
+  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
   style:min-height={view === 'preview' ? '0' : minHeight}
   style:height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}
   style:max-height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}

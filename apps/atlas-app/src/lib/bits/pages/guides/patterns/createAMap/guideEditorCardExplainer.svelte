@@ -274,7 +274,7 @@ onMount(() => {
 </script>
 
 <section
-  class="mt-8 max-w-[58rem] space-y-5"
+  class="mt-8 max-w-232 space-y-5"
   aria-label={m.guide_editor_card_explainer_title()}
 >
   <h4 class="font-display text-headline-sm font-bold text-primary">

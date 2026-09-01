@@ -10,7 +10,7 @@ const removal = "sed -i '' '/^insecure$/d' ~/.curlrc"
 </script>
 
 <GuideAdmonition
-  class="max-w-[44.5rem]"
+  class="max-w-178"
   id="macos-curl-certificate-warning"
   title={m.guide_setup_macos_curl_certificate_title()}
 >

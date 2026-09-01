@@ -12,10 +12,10 @@ type Props = {
 
 const widthClasses: Record<GuideWidth, string> = {
   full: 'relative left-1/2 w-screen -translate-x-1/2',
-  main: 'w-full max-w-[80rem]',
-  content: 'w-full max-w-[58rem]',
-  short: 'w-full max-w-[48rem]',
-  shortCard: 'w-full max-w-[44.5rem]',
+  main: 'w-full max-w-7xl',
+  content: 'w-full max-w-232',
+  short: 'w-full max-w-3xl',
+  shortCard: 'w-full max-w-178',
 }
 
 let { children, class: className = '', id, width = 'content' }: Props = $props()

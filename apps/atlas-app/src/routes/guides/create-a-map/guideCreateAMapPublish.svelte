@@ -726,7 +726,7 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
           <GuideAdmonition
-            class="mt-5 max-w-[44.5rem]"
+            class="mt-5 max-w-178"
             id="github-installation-error"
             title={m.guide_publish_installation_error_title()}
           >
@@ -747,7 +747,7 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
           <GuideAdmonition
-            class="mt-5 max-w-[44.5rem]"
+            class="mt-5 max-w-178"
             id="github-installation-error"
             title={m.guide_publish_installation_error_title()}
           >
@@ -1226,7 +1226,7 @@ const resetRequirement = (requirement: number) => {
             </p>
             {#if hosting === 'netlify'}
               <GuideAdmonition
-                class="mt-5 max-w-[44.5rem]"
+                class="mt-5 max-w-178"
                 id="netlify-site-visibility"
                 title={m.guide_publish_netlify_visibility_title()}
               >

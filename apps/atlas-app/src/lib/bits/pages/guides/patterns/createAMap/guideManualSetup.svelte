@@ -179,7 +179,7 @@ const terminalLabel = (path: string, action: string) =>
         </GuideParagraph>
         {#if showGuidance}
           <GuideTextSubHeader
-            class="max-w-[58rem] text-title-lg"
+            class="max-w-232 text-title-lg"
             title={m.guide_setup_quit_and_resume_title()}
           />
           <GuideParagraph>

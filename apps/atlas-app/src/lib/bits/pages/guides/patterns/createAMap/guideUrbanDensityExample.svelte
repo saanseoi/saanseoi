@@ -590,7 +590,7 @@ const liveableAreaMapComments = [
         {@html m.guide_data_urban_density_badge()}
       </span>
       <h3
-        class="mt-5 max-w-[58rem] font-display text-[clamp(2.25rem,4.5vw,3.75rem)] font-bold leading-[0.92] tracking-[-0.045em] text-primary"
+        class="mt-5 max-w-232 font-display text-[clamp(2.25rem,4.5vw,3.75rem)] font-bold leading-[0.92] tracking-[-0.045em] text-primary"
       >
         {@html m.guide_data_urban_density_title()}
       </h3>
