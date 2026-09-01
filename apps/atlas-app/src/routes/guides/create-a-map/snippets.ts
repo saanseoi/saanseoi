@@ -431,9 +431,6 @@ export const createNotebookCode = (notebookLibrary?: string) =>
         'map_view',
       ].join('\n')
 
-export const mapboxTokenCode =
-  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const token=await rl.question("Paste your public Mapbox token: "); rl.close(); await Bun.write(".env","VITE_MAPBOX_TOKEN="+token.trim()+"\\n")\''
-
 export const getRendererTerminalCommand = (operatingSystem?: string) =>
   operatingSystem === 'windows'
     ? 'Set-Location ~\\saanseoi-project'

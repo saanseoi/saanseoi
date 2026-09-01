@@ -88,10 +88,10 @@ let expanded = $state(false)
   {#if !complete || expanded}
     <div
       id="code-editor-readiness-details"
-      class={`ml-8 ${complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}`}
+      class={complete ? 'mt-5 border-t border-secondary/35 pt-6 dark:border-[#6fdec9]/35' : 'mt-4'}
     >
       {#if welcomeDescription}
-        <GuideParagraph class="mt-5"> {@html welcomeDescription} </GuideParagraph>
+        <GuideParagraph> {@html welcomeDescription} </GuideParagraph>
       {/if}
       <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
         {#if !complete}

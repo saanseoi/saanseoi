@@ -25,10 +25,10 @@ type Props = {
   code: string
   displayCode: string
   editorIcon?: string
-  pathPrefix?: string
+  pathSeparator?: '\\'
 }
 
-let { code, displayCode, editorIcon, pathPrefix }: Props = $props()
+let { code, displayCode, editorIcon, pathSeparator }: Props = $props()
 let editorCardElement = $state<HTMLDivElement>()
 let editorIconCallout: HTMLParagraphElement
 let pathCallout: HTMLParagraphElement
@@ -295,7 +295,7 @@ onMount(() => {
           dimmedLines={[1, 2]}
           {editorIcon}
           label={m.guide_editor_card_explainer_label()}
-          {pathPrefix}
+          {pathSeparator}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}

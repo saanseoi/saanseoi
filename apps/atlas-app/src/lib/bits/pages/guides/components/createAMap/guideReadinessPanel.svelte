@@ -60,7 +60,7 @@ const toggleExpanded = () => {
 <aside
   bind:this={panelElement}
   {id}
-  class={`mt-4 mb-12 max-w-[48rem] border-l-4 px-5 py-5 ${complete ? 'border-secondary bg-secondary/10 dark:border-[#6fdec9] dark:bg-[#6fdec9]/12' : 'border-[#b42318] bg-[#fff4f2] dark:border-[#ef8b88] dark:bg-[#ef8b88]/12'}`}
+  class={`mt-4 mb-12 max-w-[48rem] border-l-4 pr-5 pl-[1.625rem] py-5 ${complete ? 'border-secondary bg-secondary/5 dark:border-[#6fdec9] dark:bg-[#6fdec9]/12' : 'border-[#b42318] bg-[#fff4f2] dark:border-[#ef8b88] dark:bg-[#ef8b88]/12'}`}
   aria-labelledby={titleId}
 >
   {#if children}
@@ -82,7 +82,7 @@ const toggleExpanded = () => {
   {#if details && (!complete || expanded)}
     <div
       id={`${id}-details`}
-      class={`ml-8 ${complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}`}
+      class={complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}
     >
       {@render details()}
     </div>

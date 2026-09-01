@@ -1165,7 +1165,7 @@
   "guide_setup_llm_title": "设置您的项目",
   "guide_setup_llm_instruction_before": "结束于",
   "guide_setup_terminal_instructions_windows": "打开 <b>Windows 终端</b>（您可以在其中键入命令的窗口）并按顺序运行以下命令。每行开头的 <code>PS&gt;</code> 称为 shell 提示符。它表明终端已准备好供您输入；它不是命令的一部分，因此请勿键入或复制它。以下命令将安装",
-  "guide_setup_terminal_instructions_none_windows": "每个<b>终端</b>区块都包含要运行的命令，其标题会告诉您终端应位于<b>哪里</b>。选择<b>复制</b>，在 Windows Terminal 中单击，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或右键粘贴，然后按 Enter。终端一次只会在一个文件夹中工作：<code>C:\\Users\\your-name</code> 是您的主文件夹，而 <code>C:\\Users\\your-name\\saanseoi-project</code> 是您的项目文件夹。在这两个文件夹中运行相同命令并不相同。<code>PS&gt;</code> 提示符不是命令的一部分。以下命令将安装 ",
+  "guide_setup_terminal_instructions_none_windows": "每个<b>终端</b>区块都包含要运行的命令，其标题会告诉您终端应位于<b>哪里</b>。选择<b>复制</b>，在 Windows Terminal 中单击，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或右键粘贴，然后按 Enter。终端一次只会在一个文件夹中工作：<code>~</code> 是您的主文件夹，而 <code>~\\saanseoi-project</code> 是您的项目文件夹。在这两个文件夹中运行相同命令并不相同。<code>PS&gt;</code> 提示符不是命令的一部分。以下命令将安装 ",
   "guide_setup_terminal_instructions_none_macos": "每个<b>终端</b>区块都包含要运行的命令，其标题会告诉您终端应位于<b>哪里</b>。选择<b>复制</b>，在 Terminal 中单击，使用 <kbd>Command</kbd> + <kbd>V</kbd> 粘贴，然后按 Return。终端一次只会在一个文件夹中工作：<code>~/</code> 是您的主文件夹，而 <code>~/saanseoi-project</code> 是您的项目文件夹。在这两个文件夹中运行相同命令并不相同。<code>$</code> 提示符不是命令的一部分。以下命令将安装 ",
   "guide_setup_terminal_instructions_none_linux": "每个<b>终端</b>区块都包含要运行的命令，其标题会告诉您终端应位于<b>哪里</b>。选择<b>复制</b>，在终端中单击，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或右键粘贴，然后按 Enter。终端一次只会在一个文件夹中工作：<code>~/</code> 是您的主文件夹，而 <code>~/saanseoi-project</code> 是您的项目文件夹。在这两个文件夹中运行相同命令并不相同。<code>$</code> 提示符不是命令的一部分。以下命令将安装 ",
   "guide_setup_terminal_label": "{path} • {action}",

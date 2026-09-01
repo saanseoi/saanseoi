@@ -55,13 +55,9 @@ let {
 
 const terminalLanguage = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
 const showGuidance = $derived(terminalExperience !== 'advanced')
-const terminalHomePath = $derived(
-  operatingSystem === 'windows' ? 'C:\\Users\\your-name' : '~/',
-)
+const terminalHomePath = $derived(operatingSystem === 'windows' ? '~' : '~/')
 const terminalProjectPath = $derived(
-  operatingSystem === 'windows'
-    ? 'C:\\Users\\your-name\\saanseoi-project'
-    : '~/saanseoi-project',
+  operatingSystem === 'windows' ? '~\\saanseoi-project' : '~/saanseoi-project',
 )
 const terminalLabel = (path: string, action: string) =>
   m.guide_setup_terminal_label({ action, path })

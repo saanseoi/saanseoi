@@ -120,7 +120,7 @@ $effect(() => {
   {#if completed && expanded}
     <div
       id="payment-warning-details"
-      class="ml-8 mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35"
+      class="mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35"
     >
       <div class="flex flex-wrap justify-end gap-3">
         <Button
