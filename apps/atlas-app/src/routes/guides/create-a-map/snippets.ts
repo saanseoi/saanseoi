@@ -1280,6 +1280,7 @@ export const urbanDensityLiveableAreaCode = [
   'resultDialog.append(resultTitle, download)',
   'document.body.append(resultDialog)',
   'resultDialog.showModal()',
+  'savedResult = analysisResult',
   '}',
 ].join('\n')
 
