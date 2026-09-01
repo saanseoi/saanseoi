@@ -6,8 +6,6 @@ import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
 import sublimeOpenStyleCss from '#lib/assets/guides/editor-sublime-open-style-css.png'
-import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
-import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
 import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
 import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-kong-square.png'
 import {
@@ -116,7 +114,7 @@ import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 import GuideCreateAMapEmbed from './guideCreateAMapEmbed.svelte'
 import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideCreateAMapPublishOther from './guideCreateAMapPublishOther.svelte'
-import GuideMapLibreBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreBlankPreview.svelte'
+import GuideRendererBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideRendererBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import {
   createAMapAgenticHandoverPrompt,
@@ -2378,51 +2376,27 @@ const styleChoices = $derived.by(() =>
                   >
                     {@html rendererEditorInstruction}
                   </GuideParagraph>
-                  {#if renderer === 'maplibre'}
-                    <div class="mt-4 max-w-[80ch]">
-                      <GuidePreviewCodeBlock
-                        label={rendererEditorLabel}
-                        code={rendererCode}
-                        comments={rendererCodeComments}
-                        editorIcon={selectedCodeEditor?.icon}
-                        language="typescript"
-                        variant="editor"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                        previewLabel={m.guide_code_block_preview()}
-                        showCodeLabel={m.guide_code_block_code()}
-                        expandable
-                        expandLabel={m.guide_code_block_expand()}
-                        closeLabel={m.common_close()}
-                      >
-                        {#snippet preview()}
-                          <GuideMapLibreBlankPreview />
-                        {/snippet}
-                      </GuidePreviewCodeBlock>
-                    </div>
-                  {:else}
-                    <div class="mt-4 max-w-[80ch]">
-                      <GuideCodeBlock
-                        label={rendererEditorLabel}
-                        code={rendererCode}
-                        editorIcon={selectedCodeEditor?.icon}
-                        language="typescript"
-                        variant="editor"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                      />
-                    </div>
-                  {/if}
-                  {#if renderer === 'mapbox' || renderer === 'leaflet'}
-                    <div class="mt-5 max-w-3xl">
-                      <GuideScreenshot
-                        src={renderer === 'mapbox' ? mapboxSetupResult : leafletSetupResult}
-                        alt={renderer === 'mapbox'
-                          ? m.guide_renderer_mapbox_setup_screenshot_alt()
-                          : m.guide_renderer_leaflet_setup_screenshot_alt()}
-                      />
-                    </div>
-                  {/if}
+                  <div class="mt-4 max-w-[80ch]">
+                    <GuidePreviewCodeBlock
+                      label={rendererEditorLabel}
+                      code={rendererCode}
+                      comments={rendererCodeComments}
+                      editorIcon={selectedCodeEditor?.icon}
+                      language="typescript"
+                      variant="editor"
+                      copyLabel={m.common_copy()}
+                      copiedLabel={m.common_copied()}
+                      previewLabel={m.guide_code_block_preview()}
+                      showCodeLabel={m.guide_code_block_code()}
+                      expandable
+                      expandLabel={m.guide_code_block_expand()}
+                      closeLabel={m.common_close()}
+                    >
+                      {#snippet preview()}
+                        <GuideRendererBlankPreview renderer={renderer ?? 'maplibre'} />
+                      {/snippet}
+                    </GuidePreviewCodeBlock>
+                  </div>
                   <GuideParagraph class="mt-3">
                     {@html rendererEditorRefreshNote}
                   </GuideParagraph>
@@ -2606,7 +2580,8 @@ const styleChoices = $derived.by(() =>
                       closeLabel={m.common_close()}
                     >
                       {#snippet preview()}
-                        <GuideMapLibreBlankPreview
+                        <GuideRendererBlankPreview
+                          {renderer}
                           title={m.guide_basemap_preview_title()}
                           description={m.guide_basemap_preview_description()}
                         />
@@ -3024,6 +2999,7 @@ const styleChoices = $derived.by(() =>
                 {hosting}
                 {llmMode}
                 {operatingSystem}
+                {renderer}
                 {terminalProjectPath}
                 onCompletedRequirementsChange={requirements =>
                   (completedPublishRequirements = requirements)}
