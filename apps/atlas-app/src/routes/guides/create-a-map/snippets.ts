@@ -518,16 +518,36 @@ export const createAgentProjectCommand = (
     : undefined
 }
 
-export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
+export const createUrbanDensityMapReadyCode = (
+  styleUrl: string,
+  renderer: CreateAMapRenderer = 'maplibre',
+) =>
   [
-    "import * as maplibregl from 'maplibre-gl'",
-    "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
-    "import type { GeoJSONSource } from 'maplibre-gl'",
-    "import 'maplibre-gl/dist/maplibre-gl.css'",
+    ...(renderer === 'leaflet'
+      ? [
+          "import L from 'leaflet'",
+          "import * as maplibregl from 'maplibre-gl'",
+          "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+          "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
+          "import 'leaflet/dist/leaflet.css'",
+          "import 'maplibre-gl/dist/maplibre-gl.css'",
+        ]
+      : [
+          renderer === 'mapbox'
+            ? "import mapboxgl from 'mapbox-gl'"
+            : "import * as maplibregl from 'maplibre-gl'",
+          ...(renderer === 'maplibre'
+            ? [
+                "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+              ]
+            : []),
+          `import '${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}/dist/${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}.css'`,
+        ]),
     "import './style.css'",
     '',
-    'maplibregl.setWorkerUrl(workerUrl)',
-    '',
+    ...(renderer === 'maplibre' || renderer === 'leaflet'
+      ? ['maplibregl.setWorkerUrl(workerUrl)', '']
+      : []),
     'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
     'const urlSafeApiKey = encodeURIComponent(accessToken)',
     "const basemapBaseUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'",
@@ -539,15 +559,28 @@ export const createUrbanDensityMapReadyCode = (styleUrl: string) =>
     "  basemap: { type: 'vector', url: basemapUrl },",
     '}',
     '',
+    ...(renderer === 'mapbox'
+      ? ['mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN', '']
+      : []),
     "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
     '',
-    'const map = new maplibregl.Map({',
-    "  container: 'map',",
-    '  center: [114.16, 22.32],',
-    '  zoom: 11.5,',
-    '  style,',
-    '  attributionControl: { compact: true },',
-    '})',
+    ...(renderer === 'leaflet'
+      ? [
+          "const leafletMap = L.map('map').setView([22.32, 114.16], 11.5)",
+          'const basemapLayer = maplibreGL({ style }).addTo(leafletMap)',
+          'const map = basemapLayer.getMaplibreMap()',
+        ]
+      : [
+          `const map = new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
+          "  container: 'map',",
+          '  center: [114.16, 22.32],',
+          '  zoom: 11.5,',
+          '  style,',
+          ...(renderer === 'maplibre'
+            ? ['  attributionControl: { compact: true },']
+            : []),
+          '})',
+        ]),
   ].join('\n')
 
 export const createUrbanDensityStatsCode = (
@@ -570,8 +603,10 @@ export const createUrbanDensityStatsCode = (
     'try {',
     '  const savedResultResponse = await fetch(savedResultUrl)',
     '  if (savedResultResponse.ok && savedResultResponse.body) {',
-    "    const decompressedResult = savedResultResponse.body.pipeThrough(new DecompressionStream('gzip'))",
-    '    savedResult = (await new Response(decompressedResult).json()) as LandAnalysisResult',
+    "    const savedResultBody = savedResultResponse.headers.get('content-encoding') === 'gzip'",
+    '      ? savedResultResponse.body',
+    "      : savedResultResponse.body.pipeThrough(new DecompressionStream('gzip'))",
+    '    savedResult = (await new Response(savedResultBody).json()) as LandAnalysisResult',
     '  }',
     '} catch {}',
     '',
@@ -829,7 +864,7 @@ export const urbanDensityGeometryWorkerCode = [
   '}',
 ].join('\n')
 
-export const urbanDensitySetupZ14TileFetcherCode = [
+const urbanDensitySetupZ14TileFetcherBody = [
   "import { VectorTile } from '@mapbox/vector-tile'",
   "import { PbfReader } from 'pbf'",
   "import { area, bbox, bboxPolygon, booleanIntersects, featureCollection } from '@turf/turf'",
@@ -1123,8 +1158,23 @@ export const urbanDensitySetupZ14TileFetcherCode = [
   '}',
 ].join('\n')
 
+export const createUrbanDensitySetupZ14TileFetcherCode = (
+  renderer: CreateAMapRenderer = 'maplibre',
+) =>
+  [
+    `import type { GeoJSONSource } from '${renderer === 'mapbox' ? 'mapbox-gl' : 'maplibre-gl'}'`,
+    urbanDensitySetupZ14TileFetcherBody,
+  ].join('\n')
+
+export const urbanDensitySetupZ14TileFetcherCode =
+  createUrbanDensitySetupZ14TileFetcherCode()
+
 export const urbanDensitySetupZ14TileFetcherDisplayCode =
   urbanDensitySetupZ14TileFetcherCode
+
+export const createUrbanDensitySetupZ14TileFetcherDisplayCode = (
+  renderer: CreateAMapRenderer = 'maplibre',
+) => createUrbanDensitySetupZ14TileFetcherCode(renderer)
 
 export const urbanDensitySetupZ14TileFetcherCss = [
   '#land-analysis-progress {',

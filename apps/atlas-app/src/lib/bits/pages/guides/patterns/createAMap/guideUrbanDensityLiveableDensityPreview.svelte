@@ -11,11 +11,12 @@ import { calculateUrbanDensityLiveableMetrics } from './urbanDensityExampleData.
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 const metrics = calculateUrbanDensityLiveableMetrics()
 let showMetrics = $state(false)
 const areaColour = (name: string) =>
@@ -110,12 +111,12 @@ const showLiveableLand = async (map: MapLibreMap) => {
   <div
     class="relative h-full min-h-64 overflow-hidden in-data-[guide-map-expanded=true]:h-auto"
   >
-    {#key `${styleUrl}:${tilejsonUrl}`}
+    {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
         center={[114.16, 22.32]}
         onMapReady={showLiveableLand}
-        renderer="maplibre"
+        {renderer}
         {styleUrl}
         {tilejsonUrl}
         zoom={10.75}

@@ -4,12 +4,13 @@ import type { CreateAMapOpeningPosition } from '#lib/guides/createAMapSelections
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
   openingPosition: CreateAMapOpeningPosition
 }
 
-let { label, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
 
 const previewTilejsonUrl = $derived(
   import.meta.env.VITE_SAANSEOI_API_KEY
@@ -19,11 +20,11 @@ const previewTilejsonUrl = $derived(
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${previewTilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
+  {#key `${renderer}:${styleUrl}:${previewTilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
       center={openingPosition.center}
-      renderer="maplibre"
+      {renderer}
       {styleUrl}
       tilejsonUrl={previewTilejsonUrl}
       zoom={openingPosition.zoom}

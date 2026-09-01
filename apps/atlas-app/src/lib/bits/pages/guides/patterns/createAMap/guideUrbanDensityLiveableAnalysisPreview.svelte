@@ -14,8 +14,13 @@ import {
   urbanDensityCensusDistricts,
 } from './urbanDensityCensusDistricts.ts'
 
-type Props = { label: string; styleUrl: string; tilejsonUrl: string }
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+type Props = {
+  label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
+  styleUrl: string
+  tilejsonUrl: string
+}
+let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 
 const analysisZoom = 14
 type ProcessingTile = { x: number; y: number }
@@ -283,7 +288,7 @@ onMount(() => {
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
     <GuideMappingPreview
       ariaLabel={label}
       additionalLayers={processingTileLayers}
@@ -294,7 +299,7 @@ onMount(() => {
         showCompletedDistricts()
         startDistrict()
       }}
-      renderer="maplibre"
+      {renderer}
       {styleUrl}
       {tilejsonUrl}
       zoom={10.75}
