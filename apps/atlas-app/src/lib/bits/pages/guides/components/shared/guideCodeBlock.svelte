@@ -26,6 +26,7 @@ type Props = {
   copyLabel: string
   dimmedLines?: number[]
   editorIcon?: string
+  fillAvailableHeight?: boolean
   label: string
   labelContent?: Snippet
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
@@ -227,7 +228,7 @@ const highlightSource = (
           const maximumLength = codeCommentColumns - indentation.length - 3
           const isVisible = commentsVisible || comment.alwaysVisible
           const visibility = isVisible
-            ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+            ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]'
             : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
           const commentLines = splitCodeComment(comment.text, maximumLength).map(
             text =>
@@ -249,7 +250,7 @@ const highlightSource = (
         const prefix = sourceComment[1] ?? '// '
         const maximumLength = codeCommentColumns - prefix.length
         const visibility = commentsVisible
-          ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+          ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]'
           : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
         const sourceCommentLines = splitCodeComment(
           sourceComment[2] ?? '',
@@ -265,7 +266,7 @@ const highlightSource = (
       }
 
       const sourceCommentVisibility = isSourceComment
-        ? ` overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}`
+        ? ` overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}`
         : ''
 
       return `${renderedComments}<span data-code-line="${index + 1}" class="block${sourceCommentVisibility}${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
@@ -286,6 +287,7 @@ let {
   copyLabel,
   dimmedLines = [],
   editorIcon = 'material-symbols-light:code-rounded',
+  fillAvailableHeight = false,
   label,
   language = 'text',
   leadingActions,
@@ -529,9 +531,16 @@ $effect(() => {
     <pre
       bind:this={codeElement}
       onscroll={reportVisibleLines}
-      class={`m-0 size-full min-h-0 min-w-0 max-w-full overflow-y-auto whitespace-pre-wrap wrap-break-word p-4 ${
+      data-guide-code-scroll
+      class={`m-0 min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto whitespace-pre-wrap wrap-break-word p-4 ${
+      fillAvailableHeight
+        ? 'size-full'
+        : variant === 'prompt'
+          ? 'w-full max-h-[calc(min(640px,calc(100dvh-4.5rem))-3.25rem)]'
+          : 'w-full max-h-[calc(min(1080px,calc(100dvh-4.5rem))-3.25rem)]'
+    } ${
       variant === 'prompt'
-        ? 'min-h-0 overflow-y-auto overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
+        ? 'min-h-0 overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
         : variant === 'editor'
           ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
@@ -551,6 +560,33 @@ $effect(() => {
     {/if}
   </div>
 </div>
+
+<style>
+[data-guide-code-scroll] {
+  overflow-y: overlay;
+  scrollbar-color: #596074 transparent;
+  scrollbar-width: thin;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar {
+  width: 0.625rem;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-thumb {
+  border: 0.1875rem solid transparent;
+  border-radius: 9999px;
+  background: #596074;
+  background-clip: content-box;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-thumb:hover {
+  background-color: #7c8aa3;
+}
+</style>
 
 <Dialog.Root bind:open={manualCopyOpen}>
   <Dialog.Portal>
