@@ -5,6 +5,10 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
+import geojsonIoCsvColumns from '#lib/assets/guides/geojson-io-csv-columns.webp'
+import geojsonIoImportGba from '#lib/assets/guides/geojson-io-import-gba.png'
+import geojsonIoImportHongKong from '#lib/assets/guides/geojson-io-import-geojson.png'
+import geojsonIoImportMacao from '#lib/assets/guides/geojson-io-import-macao.png'
 import sublimeOpenStyleCss from '#lib/assets/guides/editor-sublime-open-style-css.png'
 import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
 import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-kong-square.png'
@@ -19,6 +23,7 @@ import {
   GuideEditorCardExplainer,
   GuideEditorProjectSetupSection,
   GuideEditorReadiness,
+  GuideInstructionCallout,
   GuideLlmReadiness,
   GuideLlmPromptSection,
   GuideMapboxTokenReadiness,
@@ -150,6 +155,14 @@ const getPublishReadinessKey = ({
   'aiAccess' | 'hosting' | 'llmMode' | 'operatingSystem' | 'terminalExperience'
 >) => [hosting, operatingSystem, terminalExperience, llmMode, aiAccess].join(':')
 
+const getPublishAccessibilityRequirement = (
+  hosting: CreateAMapSelectionQuery['hosting'],
+) => {
+  if (hosting === 'other') return 1
+  if (hosting === 'github-pages') return 7
+  return hosting ? 6 : undefined
+}
+
 const getCompletedPublishRequirements = (value: string | null, key: string) => {
   const [storedKey, serializedRequirements] = value?.split('|', 2) ?? []
   if (storedKey !== key || !serializedRequirements) return []
@@ -161,7 +174,7 @@ const getCompletedPublishRequirements = (value: string | null, key: string) => {
         .map(Number)
         .filter(
           requirement =>
-            Number.isInteger(requirement) && requirement >= 1 && requirement <= 6,
+            Number.isInteger(requirement) && requirement >= 1 && requirement <= 7,
         ),
     ),
   ].sort((left, right) => left - right)
@@ -277,7 +290,6 @@ let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 let usingExistingBasemapApiKey = $state(false)
-let isMapPublished = $state(false)
 let publishedHosting = $state<string | undefined>()
 const initialPublishReadinessKey = getPublishReadinessKey({
   aiAccess: getCreateAMapQueryChoice(page.url.searchParams, 'aiAccess'),
@@ -298,10 +310,16 @@ let publishReadinessKey = $derived(
     terminalExperience,
   }),
 )
-let completedPublishRequirements = $state(
-  getCompletedPublishRequirements(
-    page.url.searchParams.get('publish-ready'),
-    initialPublishReadinessKey,
+const initialCompletedPublishRequirements = getCompletedPublishRequirements(
+  page.url.searchParams.get('publish-ready'),
+  initialPublishReadinessKey,
+)
+let completedPublishRequirements = $state(initialCompletedPublishRequirements)
+let isMapAccessible = $state(
+  initialCompletedPublishRequirements.includes(
+    getPublishAccessibilityRequirement(
+      getCreateAMapQueryChoice(page.url.searchParams, 'hosting'),
+    ) ?? 0,
   ),
 )
 let previousPublishReadinessKey = $state(initialPublishReadinessKey)
@@ -309,7 +327,7 @@ let previousPublishReadinessKey = $state(initialPublishReadinessKey)
 $effect(() => {
   if (previousPublishReadinessKey !== publishReadinessKey) {
     completedPublishRequirements = []
-    isMapPublished = false
+    isMapAccessible = false
   }
   previousPublishReadinessKey = publishReadinessKey
 })
@@ -838,12 +856,12 @@ const handleObjectiveChange = (value?: string) => {
   mobilePlatform = undefined
   notebookLibrary = undefined
   notebookRuntime = undefined
-  isMapPublished = false
+  isMapAccessible = false
 }
 const handleWebsitePlatformChange = (value?: string) => {
   websitePlatform = value as WebsitePlatform | undefined
   hosting = value ? 'cloudflare' : undefined
-  isMapPublished = false
+  isMapAccessible = false
 }
 const handleRendererChange = (value?: string) => {
   renderer = value as CreateAMapSelectionValue<'renderer'> | undefined
@@ -1133,6 +1151,13 @@ const geoJsonImportCode = $derived(renderer ? createGeoJsonImportCode(renderer) 
 const sampleDataUrl = $derived(
   `/guides/sample-data/${region === 'mo' ? 'macao' : region === 'gba' ? 'gba' : 'hong-kong'}-places.geojson`,
 )
+const geojsonImportScreenshot = $derived(
+  region === 'mo'
+    ? geojsonIoImportMacao
+    : region === 'gba'
+      ? geojsonIoImportGba
+      : geojsonIoImportHongKong,
+)
 const hostingChoices = $derived.by(() => {
   locale
   return [
@@ -1283,7 +1308,7 @@ const selectedHosting = $derived(
   hostingChoices.find(choice => choice.value === hosting),
 )
 $effect(() => {
-  if (publishedHosting && publishedHosting !== hosting) isMapPublished = false
+  if (publishedHosting && publishedHosting !== hosting) isMapAccessible = false
   publishedHosting = hosting
 })
 const selectedWebsitePlatform = $derived(
@@ -1419,6 +1444,7 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     isBasemapAccountReady: Boolean(page.data.user),
     isBasemapApiKeyReady: hasBasemapApiKey,
     isDataStepComplete,
+    isMapAccessible,
     isMapboxTokenConfigured: mapboxTokenConfigured,
     isPaymentConfirmed,
     isPaymentConfirmationRequired,
@@ -3008,7 +3034,7 @@ const styleChoices = $derived.by(() =>
             marker={{
               current: 1,
               label: m.guide_prerequisites_requirement_label(),
-              total: 2,
+              total: dataSource === 'existing' ? 3 : 1,
             }}
             choices={dataChoices}
             bind:value={dataSource}
@@ -3025,7 +3051,7 @@ const styleChoices = $derived.by(() =>
               marker={{
                 current: 2,
                 label: m.guide_prerequisites_requirement_label(),
-                total: 2,
+                total: 3,
               }}
               hint={m.guide_data_format_hint()}
               choices={dataFormatChoices}
@@ -3037,9 +3063,11 @@ const styleChoices = $derived.by(() =>
           {#if selectedDataFormat}
             <div id="geojson" class="mt-12 max-w-[58rem] scroll-mt-28">
               <GuideSubSectionHeader
-                eyebrow={dataFormat === 'geojson'
-                  ? m.guide_data_geojson_eyebrow()
-                  : m.guide_data_convert_eyebrow()}
+                requirement={{
+                  current: 3,
+                  label: m.guide_prerequisites_requirement_label(),
+                  total: 3,
+                }}
                 title={dataFormat === 'geojson'
                   ? m.guide_data_geojson_title()
                   : m.guide_data_convert_title({ format: selectedDataFormat.label })}
@@ -3054,14 +3082,50 @@ const styleChoices = $derived.by(() =>
                   >
                     <li>{@html m.guide_data_convert_step_open()}</li>
                     <li>{@html m.guide_data_convert_step_import()}</li>
-                    {#if dataFormat === 'csv'}
-                      <li>{@html m.guide_data_convert_step_columns()}</li>
-                    {/if}
                   </ol>
+                  {#if dataFormat === 'csv'}
+                    <GuideScreenshot
+                      class="mt-6"
+                      src={geojsonIoCsvColumns}
+                      alt={m.guide_data_csv_columns_screenshot_alt()}
+                      caption={m.guide_data_csv_columns_screenshot_caption()}
+                      width="content"
+                    />
+                    <div class="mt-6 border-l-2 border-secondary pl-4">
+                      <p class="font-semibold text-primary">
+                        {m.guide_data_csv_kind_title()}
+                      </p>
+                      <p class="mt-2">{@html m.guide_data_csv_kind_coordinates()}</p>
+                      <ul class="mt-3 list-disc space-y-1 pl-6">
+                        <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                        <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                        <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                      </ul>
+                    </div>
+                    <ol
+                      class="mt-6 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                      start="3"
+                    >
+                      <li>{@html m.guide_data_convert_step_columns()}</li>
+                    </ol>
+                  {/if}
                 {/if}
-                <GuideParagraph class={dataFormat === 'geojson' ? '' : 'mt-6'}
-                  >{@html m.guide_data_geojson_description()}</GuideParagraph
-                >
+                <GuideInstructionCallout
+                  class={dataFormat === 'geojson' ? '' : 'mt-6'}
+                  title={m.guide_data_geojson_callout_title()}
+                  description={m.guide_data_geojson_description()}
+                />
+                <GuideScreenshot
+                  class="mt-6"
+                  src={geojsonImportScreenshot}
+                  alt={m.guide_data_geojson_imported_screenshot_alt({
+                    region: selectedRegion?.label ?? '',
+                  })}
+                  caption={m.guide_data_geojson_imported_screenshot_caption({
+                    region: selectedRegion?.label ?? '',
+                  })}
+                  width="content"
+                />
                 <GuideParagraph class="mt-4"
                   >{@html m.guide_data_geojson_editor()}</GuideParagraph
                 >
@@ -3072,6 +3136,22 @@ const styleChoices = $derived.by(() =>
                   <li>{@html m.guide_data_geojson_step_geometry()}</li>
                   <li>{@html m.guide_data_geojson_step_export()}</li>
                 </ol>
+                {#if !isDataStepComplete}
+                  <div class="mt-6 flex justify-end">
+                    <Button
+                      class="bg-secondary text-on-secondary hover:bg-secondary/85"
+                      size="compact"
+                      onclick={completeDataStep}
+                    >
+                      <Icon
+                        icon="material-symbols-light:check-rounded"
+                        class="size-5"
+                        aria-hidden="true"
+                      />
+                      {m.guide_data_geojson_ready()}
+                    </Button>
+                  </div>
+                {/if}
               </GuideSubSectionBody>
             </div>
             {#if renderer && selectedStyle}
@@ -3327,15 +3407,15 @@ const styleChoices = $derived.by(() =>
                 {terminalProjectPath}
                 onCompletedRequirementsChange={requirements =>
                   (completedPublishRequirements = requirements)}
-                onPublishedChange={published => (isMapPublished = published)}
+                onAccessibleChange={accessible => (isMapAccessible = accessible)}
               />
             {:else if hosting === 'other'}
               <GuideCreateAMapPublishOther
-                completed={completedPublishRequirements.includes(1)}
+                completedRequirements={completedPublishRequirements}
                 {terminalProjectPath}
-                onCompletedChange={complete =>
-                  (completedPublishRequirements = complete ? [1] : [])}
-                onPublishedChange={published => (isMapPublished = published)}
+                onCompletedRequirementsChange={requirements =>
+                  (completedPublishRequirements = requirements)}
+                onAccessibleChange={accessible => (isMapAccessible = accessible)}
               />
             {/if}
           {/if}
@@ -3347,7 +3427,7 @@ const styleChoices = $derived.by(() =>
           {hosting}
           platform={websitePlatform}
           platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
-          published={isMapPublished}
+          published={isMapAccessible}
         />
       {/if}
 
@@ -3362,10 +3442,10 @@ const styleChoices = $derived.by(() =>
           >
             <GuideParagraph>
               {@html dataSource === 'api'
-                ? isMapPublished
+                ? isMapAccessible
                   ? m.guide_data_urban_density_conclusion_community_phewee_published()
                   : m.guide_data_urban_density_conclusion_community_phewee()
-                : isMapPublished
+                : isMapAccessible
                   ? m.guide_data_urban_density_conclusion_community_own_data_published()
                   : m.guide_data_urban_density_conclusion_community_own_data()}
             </GuideParagraph>

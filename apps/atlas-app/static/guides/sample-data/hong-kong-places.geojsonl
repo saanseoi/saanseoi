@@ -1,0 +1,10 @@
+{"type":"Feature","properties":{"name":"Victoria Peak"},"geometry":{"type":"Point","coordinates":[114.1501,22.2759]}}
+{"type":"Feature","properties":{"name":"Star Ferry Pier"},"geometry":{"type":"Point","coordinates":[114.16,22.2935]}}
+{"type":"Feature","properties":{"name":"Tian Tan Buddha"},"geometry":{"type":"Point","coordinates":[113.9049,22.2539]}}
+{"type":"Feature","properties":{"name":"Man Mo Temple"},"geometry":{"type":"Point","coordinates":[114.1507,22.2853]}}
+{"type":"Feature","properties":{"name":"Hong Kong Museum of History"},"geometry":{"type":"Point","coordinates":[114.1777,22.3015]}}
+{"type":"Feature","properties":{"name":"Wong Tai Sin Temple"},"geometry":{"type":"Point","coordinates":[114.1929,22.3429]}}
+{"type":"Feature","properties":{"name":"Tai O"},"geometry":{"type":"Point","coordinates":[113.8635,22.2526]}}
+{"type":"Feature","properties":{"name":"Dragon's Back"},"geometry":{"type":"Point","coordinates":[114.245,22.2438]}}
+{"type":"Feature","properties":{"name":"Nan Lian Garden"},"geometry":{"type":"Point","coordinates":[114.203,22.3391]}}
+{"type":"Feature","properties":{"name":"Tai Kwun"},"geometry":{"type":"Point","coordinates":[114.154,22.2815]}}

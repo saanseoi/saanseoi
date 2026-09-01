@@ -261,7 +261,7 @@ onMount(() => {
               onchange={() => handleChoiceChange(choice.value)}
               disabled={choice.disabled}
             >
-            {#if choice.image || choice.imageSlices || choice.darkImageSlices || illustratedLayout === 'grid'}
+            {#if choice.image || choice.imageSlices || choice.darkImageSlices || choice.icon || illustratedLayout === 'grid'}
               <span class="relative flex h-64 items-center justify-center">
                 {#if choice.badge}
                   <span
@@ -313,6 +313,12 @@ onMount(() => {
                       {/each}
                     </span>
                   {/if}
+                {:else if choice.icon}
+                  <Icon
+                    class="size-20 text-secondary"
+                    icon={choice.icon}
+                    aria-hidden="true"
+                  />
                 {/if}
               </span>
             {/if}
@@ -371,7 +377,7 @@ onMount(() => {
                 onchange={() => handleChoiceChange(choice.value)}
                 disabled={choice.disabled}
               >
-              {#if choice.image || choice.imageSlices || choice.darkImageSlices}
+              {#if choice.image || choice.imageSlices || choice.darkImageSlices || choice.icon}
                 <span class="relative flex h-64 items-center justify-center">
                   {#if choice.badge}
                     <span
@@ -425,6 +431,12 @@ onMount(() => {
                         {/each}
                       </span>
                     {/if}
+                  {:else if choice.icon}
+                    <Icon
+                      class="size-20 text-secondary"
+                      icon={choice.icon}
+                      aria-hidden="true"
+                    />
                   {/if}
                 </span>
               {/if}

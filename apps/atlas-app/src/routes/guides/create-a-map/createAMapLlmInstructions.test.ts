@@ -28,7 +28,7 @@ import {
 describe('Create a Map LLM instructions', () => {
   test('opens each regional basemap within its coverage', () => {
     expect(getCreateAMapOpeningPosition('hk').center).toEqual([114.1694, 22.3193])
-    expect(getCreateAMapOpeningPosition('mo').center).toEqual([113.552, 22.17])
+    expect(getCreateAMapOpeningPosition('mo').center).toEqual([113.552, 22.165])
     expect(getCreateAMapOpeningPosition('gba').center).toEqual([113.75, 22.65])
 
     const macaoPosition = getCreateAMapOpeningPosition('mo')
@@ -39,7 +39,7 @@ describe('Create a Map LLM instructions', () => {
         'https://tiles.example/macau.json',
         macaoPosition,
       ),
-    ).toContain('center: [113.552, 22.17]')
+    ).toContain('center: [113.552, 22.165]')
     expect(
       createAMapRendererStyleCode(
         'leaflet',
@@ -47,9 +47,9 @@ describe('Create a Map LLM instructions', () => {
         'https://tiles.example/macau.json',
         macaoPosition,
       ),
-    ).toContain("L.map('map').setView([22.17, 113.552], 12.2)")
+    ).toContain("L.map('map').setView([22.165, 113.552], 12.2)")
     expect(getCreateAMapRendererReference('leaflet', macaoPosition).code).toContain(
-      "L.map('map').setView([22.17, 113.552], 12.2)",
+      "L.map('map').setView([22.165, 113.552], 12.2)",
     )
   })
 

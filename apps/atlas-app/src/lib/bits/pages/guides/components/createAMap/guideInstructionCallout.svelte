@@ -5,6 +5,7 @@ import GuideCalloutTitle from '../shared/guideCalloutTitle.svelte'
 import GuideStepLabel from '../shared/guideStepLabel.svelte'
 
 type Props = {
+  class?: string
   description: string
   label?: string
   stepNumber?: number
@@ -12,10 +13,17 @@ type Props = {
   title: string
 }
 
-let { description, label, stepNumber, stepLabel, title }: Props = $props()
+let {
+  class: className = '',
+  description,
+  label,
+  stepNumber,
+  stepLabel,
+  title,
+}: Props = $props()
 </script>
 
-<div class="border-l-2 border-secondary pl-4">
+<div class={`border-l-2 border-secondary pl-4 ${className}`}>
   {#if stepNumber && stepLabel}
     <GuideCalloutEyebrow>
       <GuideStepLabel number={stepNumber} label={stepLabel} />

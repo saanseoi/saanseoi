@@ -9,22 +9,33 @@ import { m } from '#lib/bits/internal/i18n.js'
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
 
 type Props = {
-  completed?: boolean
-  onCompletedChange?: (completed: boolean) => void
-  onPublishedChange?: (published: boolean) => void
+  completedRequirements?: number[]
+  onCompletedRequirementsChange?: (requirements: number[]) => void
+  onAccessibleChange?: (accessible: boolean) => void
   terminalProjectPath: string
 }
 
 let {
-  completed = false,
-  onCompletedChange,
-  onPublishedChange,
+  completedRequirements = [],
+  onCompletedRequirementsChange,
+  onAccessibleChange,
   terminalProjectPath,
 }: Props = $props()
 
 $effect(() => {
-  onPublishedChange?.(completed)
+  onAccessibleChange?.(completedRequirements.includes(1))
 })
+
+const completeRequirement = (requirement: number) => {
+  if (completedRequirements.includes(requirement)) return
+  onCompletedRequirementsChange?.([...completedRequirements, requirement])
+}
+
+const resetRequirement = (requirement: number) => {
+  onCompletedRequirementsChange?.(
+    completedRequirements.filter(value => value !== requirement),
+  )
+}
 </script>
 
 <div class="mt-3 space-y-10">
@@ -46,15 +57,15 @@ $effect(() => {
     <GuidePublishRequirement
       id="publish-other-readiness"
       titleId="publish-other-readiness-title"
-      complete={completed}
+      complete={completedRequirements.includes(1)}
       completeAction={m.guide_publish_other_complete_action()}
       eyebrow={m.guide_publish_other_ready()}
       description={m.guide_publish_other_ready_description()}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
-      scrollTargetId="publish-other-success-title"
-      onComplete={() => onCompletedChange?.(true)}
-      onReset={() => onCompletedChange?.(false)}
+      scrollTargetId="publish-other-title"
+      onComplete={() => completeRequirement(1)}
+      onReset={() => resetRequirement(1)}
     >
       <div class="space-y-8">
         <div>
@@ -111,17 +122,5 @@ $effect(() => {
         </div>
       </div>
     </GuidePublishRequirement>
-  </section>
-
-  <section aria-labelledby="publish-other-success-title">
-    <h3
-      id="publish-other-success-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_other_success_title()}
-    </h3>
-    <GuideParagraph class="mt-3">
-      {m.guide_publish_other_success_description()}
-    </GuideParagraph>
   </section>
 </div>

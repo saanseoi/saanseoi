@@ -122,7 +122,7 @@ export function createAMapTileset(
 export function getCreateAMapOpeningPosition(
   region: CreateAMapSelectionValue<'region'> | undefined,
 ): CreateAMapOpeningPosition {
-  if (region === 'mo') return { center: [113.552, 22.17], zoom: 12.2 }
+  if (region === 'mo') return { center: [113.552, 22.165], zoom: 12.2 }
   if (region === 'gba') return { center: [113.75, 22.65], zoom: 8.5 }
   return { center: [114.1694, 22.3193], zoom: 11.5 }
 }

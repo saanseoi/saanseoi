@@ -1,8 +1,10 @@
 <script lang="ts">
 import {
+  GuideAdmonition,
   GuideCodeBlock,
   GuideInstructionCallout,
   GuideScreenshot,
+  GuideTextSubHeader,
 } from '#lib/bits/pages/guides/index.js'
 import GuideCallout from '#lib/bits/pages/guides/components/shared/guideCallout.svelte'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -45,7 +47,7 @@ type Props = {
   hosting: Hosting
   llmMode?: CreateAMapSelectionQuery['llmMode']
   onCompletedRequirementsChange?: (requirements: number[]) => void
-  onPublishedChange?: (published: boolean) => void
+  onAccessibleChange?: (accessible: boolean) => void
   operatingSystem?: CreateAMapSelectionQuery['operatingSystem']
   renderer?: CreateAMapSelectionQuery['renderer']
   terminalProjectPath: string
@@ -57,7 +59,7 @@ let {
   hosting,
   llmMode,
   onCompletedRequirementsChange,
-  onPublishedChange,
+  onAccessibleChange,
   operatingSystem,
   renderer,
   terminalProjectPath,
@@ -140,6 +142,13 @@ const clientUrl = $derived(
 )
 const gitUrl = 'https://git-scm.com/downloads'
 const githubCliUrl = 'https://cli.github.com/'
+const macosHomebrewInstallCode =
+  '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+const macosGitInstallCode = 'brew install git gh'
+const windowsGitInstallCode = [
+  'winget install --id Git.Git -e --source winget',
+  'winget install --id GitHub.cli',
+].join('\n')
 type LinuxDistribution = 'debian' | 'fedora' | 'arch'
 let linuxDistribution = $state<LinuxDistribution>('fedora')
 let mapboxTokenRestrictionsExpanded = $state(false)
@@ -168,12 +177,13 @@ const linuxInstallCode = $derived(
       : 'sudo pacman -S git github-cli',
 )
 const hasGitDependencies = $derived(hosting === 'github-pages')
-const requirementTotal = $derived(hasGitDependencies ? 6 : 5)
+const requirementTotal = $derived(hasGitDependencies ? 7 : 6)
 const gitDependenciesRequirement = 2
 const clientRequirement = $derived(hasGitDependencies ? 3 : 2)
 const authenticationRequirement = $derived(hasGitDependencies ? 4 : 3)
 const configurationRequirement = $derived(hasGitDependencies ? 5 : 4)
 const deploymentRequirement = $derived(hasGitDependencies ? 6 : 5)
+const accessibilityRequirement = $derived(deploymentRequirement + 1)
 const installCode = $derived(
   hosting === 'cloudflare'
     ? 'bun add -d wrangler'
@@ -392,6 +402,22 @@ const configurationOutput = $derived(
       : netlifyConfigurationOutput,
 )
 const deploymentCode = $derived(createDeploymentCode(hosting))
+const githubFutureEditsCode = [
+  'git add .',
+  'git commit -m "Update my map"',
+  'git push',
+  '',
+  createDeploymentCode('github-pages'),
+].join('\n')
+const deploymentIntroduction = $derived(
+  hosting === 'github-pages'
+    ? m.guide_publish_github_deployment_introduction()
+    : hosting === 'cloudflare'
+      ? m.guide_publish_cloudflare_deployment_introduction()
+      : hosting === 'vercel'
+        ? m.guide_publish_vercel_deployment_introduction()
+        : m.guide_publish_netlify_deployment_introduction(),
+)
 const cloudflareBuildOutput = [
   '$ tsc && vite build',
   'vite v8.2.2 building client environment for production...',
@@ -514,7 +540,7 @@ const llmHelp = $derived(
 )
 
 $effect(() => {
-  onPublishedChange?.(completedRequirements.includes(deploymentRequirement))
+  onAccessibleChange?.(completedRequirements.includes(accessibilityRequirement))
 })
 
 const completeRequirement = (requirement: number) => {
@@ -533,9 +559,16 @@ const resetRequirement = (requirement: number) => {
   <div
     class="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
   >
-    <p class="order-1 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_intro({ host })}
-    </p>
+    <div class="order-1 font-body text-body-lg leading-8 text-foreground-alt">
+      <p>{@html m.guide_publish_intro({ host })}</p>
+      {#if hosting === 'github-pages'}
+        <p
+          class="mt-3 [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+        >
+          {@html m.guide_publish_github_git_scope()}
+        </p>
+      {/if}
+    </div>
 
     <section
       class="order-3 mt-4 md:col-start-1 md:row-start-2 md:order-0"
@@ -673,6 +706,55 @@ const resetRequirement = (requirement: number) => {
               />
             </div>
           </div>
+        {:else if operatingSystem === 'macos'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_github_macos_installation_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_homebrew()}
+            code={macosHomebrewInstallCode}
+            language="bash"
+            class="mt-5"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_git_and_github_cli()}
+            code={macosGitInstallCode}
+            language="bash"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuideAdmonition
+            class="mt-5 max-w-[44.5rem]"
+            id="github-installation-error"
+            title={m.guide_publish_installation_error_title()}
+          >
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {m.guide_publish_installation_error_help()}
+            </p>
+          </GuideAdmonition>
+        {:else if operatingSystem === 'windows'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_github_windows_installation_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_git_and_github_cli()}
+            code={windowsGitInstallCode}
+            language="powershell"
+            class="mt-5"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuideAdmonition
+            class="mt-5 max-w-[44.5rem]"
+            id="github-installation-error"
+            title={m.guide_publish_installation_error_title()}
+          >
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {m.guide_publish_installation_error_help()}
+            </p>
+          </GuideAdmonition>
         {:else}
           <div class="border border-secondary/45 bg-secondary/10 p-5">
             <p class="font-body text-body-lg leading-8 text-primary">
@@ -869,15 +951,15 @@ const resetRequirement = (requirement: number) => {
       >
         {m.guide_publish_configuration_title({ platform: host })}
       </h3>
-      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-        {@html hosting === 'cloudflare'
-          ? m.guide_publish_cloudflare_configuration_description()
-          : hosting === 'github-pages'
-            ? m.guide_publish_github_configuration_description()
+      {#if hosting !== 'github-pages'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html hosting === 'cloudflare'
+            ? m.guide_publish_cloudflare_configuration_description()
             : hosting === 'vercel'
               ? m.guide_publish_vercel_configuration_description()
               : m.guide_publish_netlify_configuration_description()}
-      </p>
+        </p>
+      {/if}
       <GuidePublishRequirement
         id="publish-configuration-readiness"
         titleId="publish-configuration-readiness-title"
@@ -976,9 +1058,19 @@ const resetRequirement = (requirement: number) => {
       </GuidePublishRequirement>
     </section>
 
-    <aside class="mt-12">
-      <GuidePublishHostingCallout hostingPlatform={hosting} />
-    </aside>
+    {#if !completedRequirements.includes(configurationRequirement)}
+      <aside class="mt-12">
+        <GuidePublishHostingCallout hostingPlatform={hosting} />
+        {#if hosting === 'github-pages'}
+          <GuideInstructionCallout
+            class="mt-10"
+            label={m.guide_publish_git_commit_label()}
+            title={m.guide_publish_git_commit_title()}
+            description={m.guide_publish_git_commit_description()}
+          />
+        {/if}
+      </aside>
+    {/if}
   </div>
 
   <div
@@ -997,7 +1089,7 @@ const resetRequirement = (requirement: number) => {
         {m.guide_publish_deployment_title({ host })}
       </h3>
       <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-        {@html m.guide_publish_deployment_description({ host })}
+        {deploymentIntroduction}
       </p>
       <GuidePublishRequirement
         id="publish-deployment-readiness"
@@ -1133,14 +1225,15 @@ const resetRequirement = (requirement: number) => {
                 : m.guide_publish_netlify_deploy_complete()}
             </p>
             {#if hosting === 'netlify'}
-              <div class="mt-5 border border-secondary/45 bg-secondary/10 p-5">
-                <p class="font-body text-body-lg leading-8 text-primary">
-                  {m.guide_publish_netlify_visibility_title()}
-                </p>
-                <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideAdmonition
+                class="mt-5 max-w-[44.5rem]"
+                id="netlify-site-visibility"
+                title={m.guide_publish_netlify_visibility_title()}
+              >
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
                   {@html m.guide_publish_netlify_visibility_description()}
                 </p>
-              </div>
+              </GuideAdmonition>
             {/if}
           {/if}
         {/if}
@@ -1165,62 +1258,105 @@ const resetRequirement = (requirement: number) => {
     </aside>
   </div>
 
-  <section aria-labelledby="publish-next-title">
-    <h3
-      id="publish-next-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_visit_title()}
-    </h3>
-    <p
-      class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
-    >
-      {@html visitUrl
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
+  >
+    <section aria-labelledby="publish-next-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: accessibilityRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-accessibility-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_visit_title()}
+      </h3>
+      <p
+        class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+      >
+        {@html visitUrl
         ? m.guide_publish_visit_github({ url: visitUrl })
         : hosting === 'cloudflare'
           ? m.guide_publish_visit_cloudflare()
           : hosting === 'vercel'
             ? m.guide_publish_visit_vercel()
             : m.guide_publish_visit_netlify()}
-    </p>
-    {#if renderer === 'mapbox'}
-      <GuideCallout class="mt-6 max-w-3xl">
-        <h4>
-          <button
-            class="flex w-full cursor-pointer items-center justify-between gap-3 text-left font-display text-headline-sm font-bold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
-            type="button"
-            aria-expanded={mapboxTokenRestrictionsExpanded}
-            onclick={() => (mapboxTokenRestrictionsExpanded = !mapboxTokenRestrictionsExpanded)}
-          >
-            {@html m.guide_renderer_mapbox_token_restrictions_title()}
-            <Icon
-              class={`size-5 shrink-0 transition-transform ${mapboxTokenRestrictionsExpanded ? 'rotate-180' : ''}`}
-              icon="material-symbols-light:expand-more-rounded"
-              aria-hidden="true"
-            />
-          </button>
-        </h4>
-        {#if mapboxTokenRestrictionsExpanded}
-          <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_renderer_mapbox_token_restrictions_description()}
-          </p>
-          <div class="mt-5">
-            <GuideScreenshot
-              src={mapboxTokenUrlRestrictions}
-              alt={m.guide_renderer_mapbox_token_restrictions_screenshot_alt()}
-              caption={m.guide_renderer_mapbox_token_restrictions_screenshot_caption()}
-            />
-          </div>
-        {/if}
-      </GuideCallout>
-    {/if}
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}
-    </p>
-    {#if llmHelp}
-      <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-        {@html llmHelp}
       </p>
-    {/if}
-  </section>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {m.guide_publish_accessibility_description()}
+      </p>
+      <GuidePublishRequirement
+        id="publish-accessibility-readiness"
+        titleId="publish-accessibility-readiness-title"
+        complete={completedRequirements.includes(accessibilityRequirement)}
+        completeAction={m.guide_publish_accessibility_complete_action()}
+        eyebrow={m.guide_publish_accessibility_ready()}
+        description={m.guide_publish_accessibility_ready_description()}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-accessibility-title"
+        onComplete={() => completeRequirement(accessibilityRequirement)}
+        onReset={() => resetRequirement(accessibilityRequirement)}
+      />
+      <GuideTextSubHeader class="mt-10" title={m.guide_publish_future_edits_title()} />
+      {#if hosting === 'github-pages'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_github_update()}
+        </p>
+        <GuidePublishTerminalCommand
+          commandLabel={m.guide_publish_github_update_command()}
+          code={githubFutureEditsCode}
+          language={terminalLanguage}
+          class="mt-5"
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_share()}
+        </p>
+      {:else}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}
+        </p>
+      {/if}
+      {#if renderer === 'mapbox'}
+        <GuideCallout class="mt-6 max-w-3xl">
+          <h4>
+            <button
+              class="flex w-full cursor-pointer items-center justify-between gap-3 text-left font-display text-headline-sm font-bold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+              type="button"
+              aria-expanded={mapboxTokenRestrictionsExpanded}
+              onclick={() => (mapboxTokenRestrictionsExpanded = !mapboxTokenRestrictionsExpanded)}
+            >
+              {@html m.guide_renderer_mapbox_token_restrictions_title()}
+              <Icon
+                class={`size-5 shrink-0 transition-transform ${mapboxTokenRestrictionsExpanded ? 'rotate-180' : ''}`}
+                icon="material-symbols-light:expand-more-rounded"
+                aria-hidden="true"
+              />
+            </button>
+          </h4>
+          {#if mapboxTokenRestrictionsExpanded}
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_renderer_mapbox_token_restrictions_description()}
+            </p>
+            <div class="mt-5">
+              <GuideScreenshot
+                src={mapboxTokenUrlRestrictions}
+                alt={m.guide_renderer_mapbox_token_restrictions_screenshot_alt()}
+                caption={m.guide_renderer_mapbox_token_restrictions_screenshot_caption()}
+              />
+            </div>
+          {/if}
+        </GuideCallout>
+      {/if}
+      {#if llmHelp}
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html llmHelp}
+        </p>
+      {/if}
+    </section>
+  </div>
 </div>

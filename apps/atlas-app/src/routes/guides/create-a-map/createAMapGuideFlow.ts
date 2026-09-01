@@ -22,6 +22,7 @@ type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
   isDataStepComplete: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
+  isMapAccessible: boolean
   isMapboxTokenConfigured: boolean
   isPaymentConfirmed: boolean
   isPaymentConfirmationRequired: boolean
@@ -84,6 +85,7 @@ export function createMissingPrerequisiteQuestions({
   isDataStepComplete,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
+  isMapAccessible,
   isMapboxTokenConfigured,
   isPaymentConfirmed,
   isPaymentConfirmationRequired,
@@ -245,6 +247,18 @@ export function createMissingPrerequisiteQuestions({
       label: m.guide_data_readiness_eyebrow(),
       reminderTitle: m.guide_missing_confirmation(),
       answered: !llmGuidanceEnabled || !dataSource || isDataStepComplete,
+    },
+    {
+      id:
+        hosting === 'other'
+          ? 'publish-other-readiness'
+          : 'publish-accessibility-readiness',
+      label:
+        hosting === 'other'
+          ? m.guide_publish_other_ready()
+          : m.guide_publish_accessibility_title(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: !hosting || isMapAccessible,
     },
   ]
 }
