@@ -4,6 +4,7 @@ import { onMount, tick, type Snippet } from 'svelte'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import GuideCodeBlock from './guideCodeBlock.svelte'
+import type { GuideCodeVisibleLine } from './guideCodeBlock.svelte'
 
 type Props = {
   code: string
@@ -30,6 +31,7 @@ type Props = {
   showCodeLabel: string
   variant?: 'code' | 'editor'
   pathSeparator?: '\\'
+  onVisibleLinesChange?: (lines: GuideCodeVisibleLine[]) => void
   width?: 'content' | 'short' | 'shortCard'
 }
 
@@ -53,6 +55,7 @@ let {
   showCodeLabel,
   variant = 'editor',
   pathSeparator,
+  onVisibleLinesChange,
   width = 'shortCard',
 }: Props = $props()
 let view = $state<'code' | 'preview'>('code')
@@ -62,6 +65,7 @@ let viewTransitionName = $state<string>()
 let previewInViewport = $state(false)
 let previewCard: HTMLElement
 let previewPanel: HTMLElement
+const maximumCardHeight = 'min(1080px, calc(100dvh - 4.5rem))'
 const previewTitle = $derived(
   label
     .replace(/^.*?(?:•|—|-)\s*/u, '')
@@ -120,8 +124,8 @@ function closePreview() {
   bind:this={previewCard}
   class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
   style:min-height={view === 'preview' ? '0' : minHeight}
-  style:height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}
-  style:max-height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}
+  style:height={view === 'preview' ? maximumCardHeight : undefined}
+  style:max-height={maximumCardHeight}
 >
   <div
     aria-hidden={view !== 'code'}
@@ -146,6 +150,7 @@ function closePreview() {
       {label}
       {language}
       {pathSeparator}
+      {onVisibleLinesChange}
       {variant}
       {width}
     >

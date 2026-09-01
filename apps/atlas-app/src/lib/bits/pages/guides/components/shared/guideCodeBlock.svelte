@@ -31,6 +31,7 @@ type Props = {
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
+  onVisibleLinesChange?: (lines: GuideCodeVisibleLine[]) => void
   pathSeparator?: '\\'
   promptIcon?: string
   terminalDotsSuffix?: Snippet
@@ -46,6 +47,11 @@ type SourceTokenKind =
   | 'plain'
   | 'selector'
   | 'string'
+
+export type GuideCodeVisibleLine = {
+  line: number
+  top: number
+}
 
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -285,6 +291,7 @@ let {
   leadingActions,
   labelContent,
   onCopy,
+  onVisibleLinesChange,
   pathSeparator,
   promptIcon = 'material-symbols-light:auto-awesome',
   terminalDotsSuffix,
@@ -294,6 +301,9 @@ let {
 let copied = $state(false)
 let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
+let codeElement: HTMLPreElement
+let hiddenLinesAbove = $state(0)
+let hiddenLinesBelow = $state(0)
 const displayedLabel = $derived(
   (pathSeparator === '\\' && (label === '.env' || label.startsWith('src/'))
     ? label.replaceAll('/', '\\')
@@ -374,10 +384,55 @@ const selectManualCopyText = () => {
   manualCopyText.focus()
   manualCopyText.select()
 }
+
+function reportVisibleLines() {
+  if (!codeElement) return
+
+  const viewport = codeElement.getBoundingClientRect()
+  const card = codeElement.parentElement?.getBoundingClientRect()
+  if (!card) return
+  const sourceLines = Array.from(
+    codeElement.querySelectorAll<HTMLElement>('[data-code-line]'),
+  ).filter(line => line.getBoundingClientRect().height > 0)
+  const lines = sourceLines
+    .filter(line => {
+      const rect = line.getBoundingClientRect()
+      return rect.height > 0 && rect.bottom > viewport.top && rect.top < viewport.bottom
+    })
+    .map(line => ({
+      line: Number(line.dataset.codeLine),
+      top: line.getBoundingClientRect().top - card.top,
+    }))
+    .filter(({ line }) => Number.isFinite(line))
+
+  const uniqueLines = lines.filter(
+    (candidate, index) =>
+      lines.findIndex(other => other.line === candidate.line) === index,
+  )
+  const allLineNumbers = [
+    ...new Set(
+      sourceLines.map(line => Number(line.dataset.codeLine)).filter(Number.isFinite),
+    ),
+  ]
+  const firstVisibleLine = uniqueLines[0]?.line
+  const lastVisibleLine = uniqueLines.at(-1)?.line
+  const firstVisibleIndex = allLineNumbers.indexOf(firstVisibleLine ?? -1)
+  const lastVisibleIndex = allLineNumbers.indexOf(lastVisibleLine ?? -1)
+  hiddenLinesAbove = firstVisibleIndex > 0 ? firstVisibleIndex : 0
+  hiddenLinesBelow =
+    lastVisibleIndex >= 0 ? allLineNumbers.length - lastVisibleIndex - 1 : 0
+
+  onVisibleLinesChange?.(uniqueLines)
+}
+
+$effect(() => {
+  void commentsVisible
+  requestAnimationFrame(reportVisibleLines)
+})
 </script>
 
 <div
-  class={`${className} w-full min-w-0 ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`${className} flex w-full min-w-0 flex-col ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} max-h-[min(1080px,calc(100dvh-4.5rem))] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'max-h-[640px]' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
@@ -387,7 +442,7 @@ const selectManualCopyText = () => {
 >
   <div
     data-guide-code-header
-    class={`flex items-center justify-between gap-3 border-b px-4 py-2.5 ${
+    class={`flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
       : variant === 'editor'
@@ -470,15 +525,31 @@ const selectManualCopyText = () => {
       </div>
     {/if}
   </div>
-  <pre
-    class={`m-0 min-w-0 max-w-full whitespace-pre-wrap wrap-break-word p-4 ${
+  <div class="relative min-h-0 flex-1 overflow-hidden">
+    <pre
+      bind:this={codeElement}
+      onscroll={reportVisibleLines}
+      class={`m-0 size-full min-h-0 min-w-0 max-w-full overflow-y-auto whitespace-pre-wrap wrap-break-word p-4 ${
       variant === 'prompt'
         ? 'min-h-0 overflow-y-auto overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
         : variant === 'editor'
           ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
-    }`}
-  ><code>{@html highlightedCode}</code></pre>
+      }`}
+    ><code>{@html highlightedCode}</code></pre>
+    {#if hiddenLinesAbove > 0}
+      <span
+        class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 border border-[#596074] bg-[#202633]/95 px-2 py-1 font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-[#a5d6ff] shadow-sm"
+        >{`{${m.guide_code_block_more_lines_above({ count: hiddenLinesAbove })}}`}</span
+      >
+    {/if}
+    {#if hiddenLinesBelow > 0}
+      <span
+        class="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 border border-[#596074] bg-[#202633]/95 px-2 py-1 font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-[#a5d6ff] shadow-sm"
+        >{`{${m.guide_code_block_more_lines_below({ count: hiddenLinesBelow })}}`}</span
+      >
+    {/if}
+  </div>
 </div>
 
 <Dialog.Root bind:open={manualCopyOpen}>
