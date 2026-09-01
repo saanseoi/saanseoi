@@ -448,6 +448,21 @@ const setupZ14TileFetcherCssComments = [
   },
 ]
 
+const geometryWorkerComments = [
+  { line: 1, text: m.guide_data_urban_density_geometry_worker_comment_turf() },
+  { line: 2, text: m.guide_data_urban_density_geometry_worker_comment_geos() },
+  { line: 6, text: m.guide_data_urban_density_geometry_worker_comment_messages() },
+  { line: 10, text: m.guide_data_urban_density_geometry_worker_comment_ready() },
+  { line: 11, text: m.guide_data_urban_density_geometry_worker_comment_polygonal() },
+  { line: 25, text: m.guide_data_urban_density_geometry_worker_comment_repair() },
+  { line: 34, text: m.guide_data_urban_density_geometry_worker_comment_snap() },
+  { line: 56, text: m.guide_data_urban_density_geometry_worker_comment_union() },
+  { line: 78, text: m.guide_data_urban_density_geometry_worker_comment_intersection() },
+  { line: 100, text: m.guide_data_urban_density_geometry_worker_comment_listen() },
+  { line: 102, text: m.guide_data_urban_density_geometry_worker_comment_choose() },
+  { line: 109, text: m.guide_data_urban_density_geometry_worker_comment_reply() },
+]
+
 const liveableAreaComments = [
   {
     line: 1,
@@ -914,6 +929,7 @@ const liveableAreaMapComments = [
             <GuideCodeBlock
               label={m.guide_data_urban_density_geometry_worker_code()}
               code={geometryWorkerCode}
+              comments={geometryWorkerComments}
               {editorIcon}
               pathSeparator={editorPathSeparator}
               language="typescript"
