@@ -7,7 +7,7 @@ import type {
 } from './urbanDensityCensusDistricts.ts'
 import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
-export const landAnalysisPath = '/guides/create-a-map/land-analysis.json'
+export const landAnalysisPath = '/guides/create-a-map/land-analysis.json.gz'
 
 type DownloadedDistrictExclusionProperties = {
   area: string
@@ -73,7 +73,11 @@ export const loadCachedDistrictExclusions = () => {
       if (!response.ok) {
         throw new Error(`Land-analysis download failed: ${response.status}`)
       }
-      return decodeLandAnalysis(await response.json())
+      if (!response.body) {
+        throw new Error('Land-analysis download has no response body.')
+      }
+      const decompressed = response.body.pipeThrough(new DecompressionStream('gzip'))
+      return decodeLandAnalysis(await new Response(decompressed).json())
     })
     .catch(cause => {
       cachedDistrictExclusions = undefined

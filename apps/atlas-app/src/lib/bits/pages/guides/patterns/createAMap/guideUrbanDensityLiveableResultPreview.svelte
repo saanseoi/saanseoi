@@ -40,7 +40,7 @@ let { label, styleUrl, tilejsonUrl }: Props = $props()
       </h2>
       <a
         class="block w-full border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 text-center font-mono text-base font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
-        download="land-analysis.json"
+        download="land-analysis.json.gz"
         href={landAnalysisPath}
       >
         {m.guide_data_urban_density_liveable_result_preview_download()}

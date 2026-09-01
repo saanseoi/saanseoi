@@ -96,7 +96,7 @@ const scrollToFinaliseMap = (event: MouseEvent) => {
       <div class="mt-5 flex flex-wrap justify-end gap-3">
         <a
           class="inline-flex items-center border border-secondary bg-secondary px-4 py-2 font-body text-label-md font-semibold text-on-secondary transition-colors hover:bg-secondary/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-          download="land-analysis.json"
+          download="land-analysis.json.gz"
           href={landAnalysisPath}
           onclick={() => downloadInstructionsDialog.showModal()}
         >
