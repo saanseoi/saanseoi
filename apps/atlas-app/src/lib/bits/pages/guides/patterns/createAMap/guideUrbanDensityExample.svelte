@@ -220,6 +220,7 @@ const mapComments = [
   { line: 1, text: m.guide_data_urban_density_map_comment_kinds() },
   { line: 5, text: m.guide_data_urban_density_map_comment_ready() },
   { line: 7, text: m.guide_data_urban_density_map_comment_saved_result() },
+  { line: 8, text: m.guide_data_urban_density_map_comment_remove_metrics() },
   { line: 10, text: m.guide_data_urban_density_map_comment_first_label() },
   { line: 12, text: m.guide_data_urban_density_map_comment_completed_source() },
   { line: 14, text: m.guide_data_urban_density_map_comment_completed_source_empty() },

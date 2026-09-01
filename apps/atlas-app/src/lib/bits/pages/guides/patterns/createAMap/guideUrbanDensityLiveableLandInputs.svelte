@@ -143,8 +143,31 @@ const scrollToFinaliseMap = (event: MouseEvent) => {
         <span class="font-semibold text-foreground">{@html landClippedGeometry}</span>
       </li>
     </ul>
+  </div>
+  <div
+    class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,1fr)_24rem] min-[1000px]:items-start"
+  >
+    <div class="space-y-5">
+      <p
+        class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      >
+        {@html explanation}
+      </p>
+      <ol
+        class="list-decimal space-y-3 pl-7 font-body text-body-lg leading-8 text-foreground-alt marker:font-semibold marker:text-secondary"
+      >
+        {#each approachSteps as step}
+          <li class="pl-2">{@html step}</li>
+        {/each}
+      </ol>
+      <p
+        class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      >
+        {@html turfExplanation}
+      </p>
+    </div>
     <aside
-      class="mt-6 max-w-3xl [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
     >
       <GuideInstructionCallout
         label={tileZoomCalloutLabel}
@@ -153,21 +176,4 @@ const scrollToFinaliseMap = (event: MouseEvent) => {
       />
     </aside>
   </div>
-  <p
-    class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-  >
-    {@html explanation}
-  </p>
-  <ol
-    class="list-decimal space-y-3 pl-7 font-body text-body-lg leading-8 text-foreground-alt marker:font-semibold marker:text-secondary"
-  >
-    {#each approachSteps as step}
-      <li class="pl-2">{@html step}</li>
-    {/each}
-  </ol>
-  <p
-    class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-  >
-    {@html turfExplanation}
-  </p>
 </div>
