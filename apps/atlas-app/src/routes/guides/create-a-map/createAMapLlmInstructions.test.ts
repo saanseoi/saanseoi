@@ -175,7 +175,7 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityLiveableAreaCode).not.toContain('intersect(featureCollection')
     expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('GEOSDifferencePrec')
     expect(urbanDensityLiveableAreaCode).not.toContain('liveableDistrictLand')
-    expect(urbanDensityLiveableAreaCode).not.toContain('savedResult = analysisResult')
+    expect(urbanDensityLiveableAreaCode).toContain('savedResult = analysisResult')
     expect(urbanDensityLiveableMetricsCode).toStartWith('if (savedResult) {')
     expect(urbanDensityLiveableAreaMapCode).toStartWith('if (savedResult) {')
   })

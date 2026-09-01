@@ -537,6 +537,7 @@ const liveableAreaComments = [
   },
   { line: 18, text: m.guide_data_urban_density_liveable_area_comment_attach_dialog() },
   { line: 19, text: m.guide_data_urban_density_liveable_area_comment_show_dialog() },
+  { line: 20, text: m.guide_data_urban_density_saved_result_keep() },
 ]
 
 const liveableAreaCssComments = [
@@ -606,6 +607,7 @@ const liveableAreaMapComments = [
     line: 1,
     text: m.guide_data_urban_density_code_header_liveable_map(),
     alwaysVisible: true,
+    spacerAfter: true,
   },
   { line: 1, text: m.guide_data_urban_density_liveable_map_comment_hide() },
   { line: 2, text: m.guide_data_urban_density_liveable_map_comment_order() },
@@ -615,6 +617,8 @@ const liveableAreaMapComments = [
   { line: 11, text: m.guide_data_urban_density_liveable_map_comment_excluded_source() },
   { line: 12, text: m.guide_data_urban_density_liveable_map_comment_excluded_fill() },
   { line: 15, text: m.guide_data_urban_density_liveable_map_comment_outline() },
+  { line: 19, text: m.guide_data_urban_density_liveable_map_comment_legend() },
+  { line: 28, text: m.guide_data_urban_density_liveable_map_comment_reveal() },
 ]
 </script>
 
@@ -988,7 +992,7 @@ const liveableAreaMapComments = [
             content={m.guide_data_urban_density_setup_z14_tile_fetcher_description()}
           >
             <div
-              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start"
+              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start min-[1000px]:gap-2"
             >
               <GuideCodeBlock
                 label={m.guide_data_urban_density_setup_z14_tile_fetcher_code()}
@@ -1069,9 +1073,7 @@ const liveableAreaMapComments = [
               </GuidePreviewCodeBlock>
             </div>
           </GuideSubSectionBody>
-          <GuideSubSectionBody
-            content={m.guide_data_urban_density_liveable_area_description()}
-          >
+          <GuideSubSectionBody>
             <div id="project-liveable-land-result" class="scroll-mt-24">
               <div class="space-y-6">
                 <GuideParagraph>
