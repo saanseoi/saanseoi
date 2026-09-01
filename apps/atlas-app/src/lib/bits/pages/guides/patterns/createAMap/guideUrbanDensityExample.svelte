@@ -928,6 +928,7 @@ const liveableAreaMapComments = [
                 m.guide_data_urban_density_liveable_approach_intersect(),
                 m.guide_data_urban_density_liveable_approach_measure(),
                 m.guide_data_urban_density_liveable_approach_sum(),
+                m.guide_data_urban_density_liveable_approach_subtract(),
                 m.guide_data_urban_density_liveable_approach_display(),
               ]}
             />
