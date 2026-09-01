@@ -314,8 +314,8 @@ onMount(() => {
       <div>
         <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">TILES</dt>
         <dd class="mt-0.5 text-base font-semibold text-white/85">
-          {progressValue}
-          / {totalAnalysisTiles}
+          {activeTileProgress}
+          / {totalTiles}
         </dd>
       </div>
       <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">and</div>
