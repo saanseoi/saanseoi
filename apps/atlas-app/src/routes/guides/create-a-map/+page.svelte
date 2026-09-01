@@ -12,6 +12,7 @@ import {
   CreateAMap,
   GuideAgenticAiPrimer,
   GuideCallout,
+  GuideCardBlock,
   GuideChoiceGroup,
   GuideCodeBlock,
   GuideCreateAMapVersionNotice,
@@ -1644,50 +1645,129 @@ const rendererCodeLabel = $derived.by(() => {
 })
 const rendererCssCode = $derived(rendererReference.stylesheetCode)
 const rendererCode = $derived(rendererReference.code)
-const rendererCodeComments = $derived(
-  renderer === 'maplibre'
-    ? [
-        { line: 1, text: m.guide_renderer_maplibre_comment_import() },
-        { line: 2, text: m.guide_renderer_maplibre_comment_default_styles() },
-        { line: 3, text: m.guide_renderer_maplibre_comment_custom_styles() },
-        { line: 5, text: m.guide_renderer_maplibre_comment_map_node() },
-        { line: 7, text: m.guide_renderer_maplibre_comment_new_map() },
-        { line: 8, text: m.guide_renderer_maplibre_comment_container() },
-        { line: 9, text: m.guide_renderer_maplibre_comment_center() },
-        { line: 10, text: m.guide_renderer_maplibre_comment_zoom() },
-        { line: 11, text: m.guide_renderer_maplibre_comment_style() },
-      ]
-    : [],
-)
+const rendererCodeComments = $derived.by(() => {
+  if (renderer === 'mapbox') {
+    return [
+      { line: 1, text: m.guide_renderer_mapbox_comment_import() },
+      { line: 2, text: m.guide_renderer_mapbox_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_comment_custom_styles() },
+      { line: 5, text: m.guide_renderer_comment_map_node() },
+      { line: 7, text: m.guide_renderer_mapbox_comment_access_token() },
+      { line: 8, text: m.guide_renderer_mapbox_comment_new_map() },
+      { line: 9, text: m.guide_renderer_comment_container() },
+      { line: 10, text: m.guide_renderer_mapbox_comment_style() },
+      { line: 11, text: m.guide_renderer_comment_center() },
+      { line: 12, text: m.guide_renderer_comment_zoom() },
+    ]
+  }
+
+  if (renderer === 'leaflet') {
+    return [
+      { line: 1, text: m.guide_renderer_leaflet_comment_import() },
+      { line: 2, text: m.guide_renderer_leaflet_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_comment_custom_styles() },
+      { line: 5, text: m.guide_renderer_comment_map_node() },
+      { line: 7, text: m.guide_renderer_leaflet_comment_new_map() },
+      { line: 8, text: m.guide_renderer_leaflet_comment_tiles() },
+      { line: 9, text: m.guide_renderer_leaflet_comment_attribution() },
+    ]
+  }
+
+  if (renderer === 'maplibre') {
+    return [
+      { line: 1, text: m.guide_renderer_maplibre_comment_import() },
+      { line: 2, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 3, text: m.guide_renderer_maplibre_comment_default_styles() },
+      { line: 4, text: m.guide_renderer_comment_custom_styles() },
+      { line: 6, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 8, text: m.guide_renderer_comment_map_node() },
+      { line: 10, text: m.guide_renderer_maplibre_comment_new_map() },
+      { line: 11, text: m.guide_renderer_comment_container() },
+      { line: 12, text: m.guide_renderer_comment_center() },
+      { line: 13, text: m.guide_renderer_comment_zoom() },
+      { line: 14, text: m.guide_renderer_maplibre_comment_style() },
+    ]
+  }
+
+  return []
+})
 const basemapCode = $derived(
   renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
     ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl)
     : '',
 )
 const basemapCodeDimmedLines = $derived(
-  renderer === 'maplibre' ? [1, 2, 3, 11, 13, 14, 15, 16, 25] : [],
+  basemapCode
+    .split('\n')
+    .flatMap((line, index) =>
+      line.trim() && rendererCode.split('\n').includes(line) ? [index + 1] : [],
+    ),
 )
-const basemapCodeComments = $derived(
-  renderer === 'maplibre'
-    ? [
-        { line: 1, text: m.guide_renderer_maplibre_comment_import() },
-        { line: 2, text: m.guide_renderer_maplibre_comment_default_styles() },
-        { line: 3, text: m.guide_renderer_maplibre_comment_custom_styles() },
-        { line: 5, text: m.guide_basemap_comment_access_token() },
-        { line: 6, text: m.guide_basemap_comment_validate_token() },
-        { line: 7, text: m.guide_basemap_comment_url_safe_api_key() },
-        { line: 8, text: m.guide_basemap_comment_basemap_base_url() },
-        { line: 9, text: m.guide_basemap_comment_basemap_url() },
-        { line: 11, text: m.guide_renderer_maplibre_comment_map_node() },
-        { line: 13, text: m.guide_renderer_maplibre_comment_new_map() },
-        { line: 14, text: m.guide_renderer_maplibre_comment_container() },
-        { line: 15, text: m.guide_renderer_maplibre_comment_center() },
-        { line: 16, text: m.guide_renderer_maplibre_comment_zoom() },
-        { line: 17, text: m.guide_basemap_comment_style() },
-        { line: 20, text: m.guide_basemap_comment_source() },
-      ]
-    : [],
-)
+const basemapCodeComments = $derived.by(() => {
+  if (renderer === 'mapbox') {
+    return [
+      { line: 1, text: m.guide_renderer_mapbox_comment_import() },
+      { line: 2, text: m.guide_renderer_mapbox_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_comment_custom_styles() },
+      { line: 5, text: m.guide_basemap_comment_access_token() },
+      { line: 6, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 7, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 8, text: m.guide_basemap_comment_basemap_url() },
+      { line: 10, text: m.guide_renderer_comment_map_node() },
+      { line: 12, text: m.guide_renderer_mapbox_comment_new_map() },
+      { line: 13, text: m.guide_renderer_comment_container() },
+      { line: 14, text: m.guide_renderer_comment_center() },
+      { line: 15, text: m.guide_renderer_comment_zoom() },
+      { line: 16, text: m.guide_basemap_comment_style() },
+      { line: 19, text: m.guide_basemap_comment_source() },
+    ]
+  }
+
+  if (renderer === 'leaflet') {
+    return [
+      { line: 1, text: m.guide_renderer_leaflet_comment_import() },
+      { line: 2, text: m.guide_renderer_leaflet_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_maplibre_comment_import() },
+      { line: 4, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 5, text: m.guide_renderer_leaflet_comment_bridge() },
+      { line: 6, text: m.guide_renderer_maplibre_comment_default_styles() },
+      { line: 7, text: m.guide_renderer_comment_custom_styles() },
+      { line: 9, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 11, text: m.guide_basemap_comment_access_token() },
+      { line: 12, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 13, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 14, text: m.guide_basemap_comment_basemap_url() },
+      { line: 16, text: m.guide_renderer_comment_map_node() },
+      { line: 18, text: m.guide_renderer_leaflet_comment_new_map() },
+      { line: 19, text: m.guide_renderer_leaflet_comment_bridge() },
+      { line: 20, text: m.guide_basemap_comment_style() },
+      { line: 23, text: m.guide_basemap_comment_source() },
+    ]
+  }
+
+  if (renderer === 'maplibre') {
+    return [
+      { line: 1, text: m.guide_renderer_maplibre_comment_import() },
+      { line: 2, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 3, text: m.guide_renderer_maplibre_comment_default_styles() },
+      { line: 4, text: m.guide_renderer_comment_custom_styles() },
+      { line: 6, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 8, text: m.guide_basemap_comment_access_token() },
+      { line: 9, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 10, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 11, text: m.guide_basemap_comment_basemap_url() },
+      { line: 13, text: m.guide_renderer_comment_map_node() },
+      { line: 15, text: m.guide_renderer_maplibre_comment_new_map() },
+      { line: 16, text: m.guide_renderer_comment_container() },
+      { line: 17, text: m.guide_renderer_comment_center() },
+      { line: 18, text: m.guide_renderer_comment_zoom() },
+      { line: 19, text: m.guide_basemap_comment_style() },
+      { line: 22, text: m.guide_basemap_comment_source() },
+    ]
+  }
+
+  return []
+})
 const rendererEditorInstruction = $derived(
   m.guide_renderer_editor_instruction({
     editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
@@ -1704,19 +1784,84 @@ const styleEditCode = $derived(
 const styleEditDimmedLines = $derived(
   styleEditCode
     .split('\n')
-    .map((_, index) => index + 1)
-    .filter(lineNumber => lineNumber < 11 || lineNumber > 15),
+    .flatMap((line, index) =>
+      line.trim() && basemapCode.split('\n').includes(line) ? [index + 1] : [],
+    ),
 )
-const styleEditComments = $derived(
-  renderer === 'maplibre'
-    ? [
-        { line: 11, text: m.guide_style_comment_style_url() },
-        { line: 12, text: m.guide_style_comment_fetch() },
-        { line: 13, text: m.guide_style_comment_sources() },
-        { line: 14, text: m.guide_style_comment_basemap_source() },
-      ]
-    : [],
-)
+const styleEditComments = $derived.by(() => {
+  if (renderer === 'mapbox') {
+    return [
+      { line: 1, text: m.guide_renderer_mapbox_comment_import() },
+      { line: 2, text: m.guide_renderer_mapbox_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_comment_custom_styles() },
+      { line: 5, text: m.guide_basemap_comment_access_token() },
+      { line: 6, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 7, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 8, text: m.guide_basemap_comment_basemap_url() },
+      { line: 10, text: m.guide_style_comment_style_url() },
+      { line: 11, text: m.guide_style_comment_fetch() },
+      { line: 12, text: m.guide_style_comment_sources() },
+      { line: 13, text: m.guide_style_comment_basemap_source() },
+      { line: 15, text: m.guide_renderer_comment_map_node() },
+      { line: 17, text: m.guide_renderer_mapbox_comment_new_map() },
+      { line: 18, text: m.guide_renderer_comment_container() },
+      { line: 19, text: m.guide_renderer_comment_center() },
+      { line: 20, text: m.guide_renderer_comment_zoom() },
+      { line: 21, text: m.guide_basemap_comment_style() },
+    ]
+  }
+
+  if (renderer === 'leaflet') {
+    return [
+      { line: 1, text: m.guide_renderer_leaflet_comment_import() },
+      { line: 2, text: m.guide_renderer_leaflet_comment_default_styles() },
+      { line: 3, text: m.guide_renderer_maplibre_comment_import() },
+      { line: 4, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 5, text: m.guide_renderer_leaflet_comment_bridge() },
+      { line: 6, text: m.guide_renderer_maplibre_comment_default_styles() },
+      { line: 7, text: m.guide_renderer_comment_custom_styles() },
+      { line: 9, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 11, text: m.guide_basemap_comment_access_token() },
+      { line: 12, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 13, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 14, text: m.guide_basemap_comment_basemap_url() },
+      { line: 16, text: m.guide_style_comment_style_url() },
+      { line: 17, text: m.guide_style_comment_fetch() },
+      { line: 18, text: m.guide_style_comment_sources() },
+      { line: 19, text: m.guide_style_comment_basemap_source() },
+      { line: 21, text: m.guide_renderer_comment_map_node() },
+      { line: 23, text: m.guide_renderer_leaflet_comment_new_map() },
+      { line: 24, text: m.guide_renderer_leaflet_comment_bridge() },
+      { line: 25, text: m.guide_basemap_comment_style() },
+    ]
+  }
+
+  if (renderer === 'maplibre') {
+    return [
+      { line: 1, text: m.guide_renderer_maplibre_comment_import() },
+      { line: 2, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 3, text: m.guide_renderer_maplibre_comment_default_styles() },
+      { line: 4, text: m.guide_renderer_comment_custom_styles() },
+      { line: 6, text: m.guide_renderer_maplibre_comment_worker() },
+      { line: 8, text: m.guide_basemap_comment_access_token() },
+      { line: 9, text: m.guide_basemap_comment_url_safe_api_key() },
+      { line: 10, text: m.guide_basemap_comment_basemap_base_url() },
+      { line: 11, text: m.guide_basemap_comment_basemap_url() },
+      { line: 13, text: m.guide_style_comment_style_url() },
+      { line: 14, text: m.guide_style_comment_fetch() },
+      { line: 15, text: m.guide_style_comment_sources() },
+      { line: 16, text: m.guide_style_comment_basemap_source() },
+      { line: 18, text: m.guide_renderer_comment_map_node() },
+      { line: 20, text: m.guide_renderer_maplibre_comment_new_map() },
+      { line: 21, text: m.guide_renderer_comment_container() },
+      { line: 22, text: m.guide_renderer_comment_center() },
+      { line: 23, text: m.guide_renderer_comment_zoom() },
+      { line: 24, text: m.guide_basemap_comment_style() },
+    ]
+  }
+
+  return []
+})
 const styleEditorInstruction = $derived(
   m.guide_style_editor_instruction({
     editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
@@ -2308,43 +2453,48 @@ const styleChoices = $derived.by(() =>
             {/if}
             {#if renderer !== 'mapbox' || mapboxTokenConfigured}
               {#if !llmGuidanceEnabled}
+                {#snippet rendererInstallCard()}
+                  <GuideCodeBlock
+                    label={m.guide_setup_terminal_label({
+                      action: m.guide_renderer_install(),
+                      path: terminalProjectPath,
+                    })}
+                    code={rendererInstallCode}
+                    language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
+                    copyLabel={m.common_copy()}
+                    copiedLabel={m.common_copied()}
+                  />
+                {/snippet}
                 <div class="pt-10">
-                  <GuideSubSectionHeader
+                  <GuideCardBlock
                     eyebrow={m.guide_renderer_prompt_none_eyebrow()}
                     title={m.guide_renderer_package_title({
                       library: selectedRenderer?.label ?? '',
                     })}
-                  />
-                  <GuideParagraph
-                    class="mt-3 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    card={rendererInstallCard}
                   >
-                    {@html rendererTerminalReminder}
-                  </GuideParagraph>
-                  <div class="mt-6 max-w-2xl">
-                    <GuideCodeBlock
-                      label={m.guide_setup_terminal_label({
-                        action: m.guide_renderer_install(),
-                        path: terminalProjectPath,
-                      })}
-                      code={rendererInstallCode}
-                      language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                    />
-                  </div>
+                    <GuideParagraph
+                      class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    >
+                      {@html rendererTerminalReminder}
+                    </GuideParagraph>
+                  </GuideCardBlock>
                 </div>
-                <div>
-                  <GuideSubSectionHeader
-                    eyebrow={m.guide_renderer_css_code()}
-                    title={m.guide_renderer_reset_styles_title()}
+                {#snippet rendererStylesheetCard()}
+                  <GuideCodeBlock
+                    label={rendererStylesheetLabel}
+                    code={rendererCssCode}
+                    editorIcon={selectedCodeEditor?.icon}
+                    language="css"
+                    variant="editor"
+                    width="short"
+                    copyLabel={m.common_copy()}
+                    copiedLabel={m.common_copied()}
                   />
-                  <GuideParagraph
-                    class="mt-4 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-                  >
-                    {@html rendererStylesheetInstruction}
-                  </GuideParagraph>
+                {/snippet}
+                {#snippet rendererStylesheetBefore()}
                   {#if codeEditor === 'sublime-text'}
-                    <div class="mt-6 max-w-2xl">
+                    <div class="max-w-2xl">
                       <GuideScreenshot
                         src={sublimeOpenStyleCss}
                         alt={m.guide_renderer_sublime_stylesheet_image_alt()}
@@ -2352,67 +2502,60 @@ const styleChoices = $derived.by(() =>
                       />
                     </div>
                   {/if}
-                  <div class="mt-4 max-w-[80ch]">
-                    <GuideCodeBlock
-                      label={rendererStylesheetLabel}
-                      code={rendererCssCode}
-                      editorIcon={selectedCodeEditor?.icon}
-                      language="css"
-                      variant="editor"
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <GuideSubSectionHeader
-                    eyebrow={rendererCodeLabel}
-                    title={m.guide_renderer_code_title({
-                      library: selectedRenderer?.label ?? '',
-                    })}
-                  />
+                {/snippet}
+                <GuideCardBlock
+                  before={rendererStylesheetBefore}
+                  card={rendererStylesheetCard}
+                  width="short"
+                  eyebrow={m.guide_renderer_css_code()}
+                  title={m.guide_renderer_reset_styles_title()}
+                >
                   <GuideParagraph
-                    class="mt-4 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                    class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                  >
+                    {@html rendererStylesheetInstruction}
+                  </GuideParagraph>
+                </GuideCardBlock>
+                {#snippet rendererCodeCard()}
+                  <GuidePreviewCodeBlock
+                    label={rendererEditorLabel}
+                    code={rendererCode}
+                    comments={rendererCodeComments}
+                    editorIcon={selectedCodeEditor?.icon}
+                    language="typescript"
+                    variant="editor"
+                    width="short"
+                    copyLabel={m.common_copy()}
+                    copiedLabel={m.common_copied()}
+                    previewLabel={m.guide_code_block_preview()}
+                    showCodeLabel={m.guide_code_block_code()}
+                    expandable
+                    expandLabel={m.guide_code_block_expand()}
+                    closeLabel={m.common_close()}
+                  >
+                    {#snippet preview()}
+                      <GuideRendererBlankPreview renderer={renderer ?? 'maplibre'} />
+                    {/snippet}
+                  </GuidePreviewCodeBlock>
+                {/snippet}
+                {#snippet rendererCodeAfter()}
+                  <GuideParagraph> {@html rendererEditorRefreshNote} </GuideParagraph>
+                {/snippet}
+                <GuideCardBlock
+                  after={rendererCodeAfter}
+                  card={rendererCodeCard}
+                  width="short"
+                  eyebrow={rendererCodeLabel}
+                  title={m.guide_renderer_code_title({
+                    library: selectedRenderer?.label ?? '',
+                  })}
+                >
+                  <GuideParagraph
+                    class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererEditorInstruction}
                   </GuideParagraph>
-                  <div class="mt-4 max-w-[80ch]">
-                    <GuidePreviewCodeBlock
-                      label={rendererEditorLabel}
-                      code={rendererCode}
-                      comments={rendererCodeComments}
-                      editorIcon={selectedCodeEditor?.icon}
-                      language="typescript"
-                      variant="editor"
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                      previewLabel={m.guide_code_block_preview()}
-                      showCodeLabel={m.guide_code_block_code()}
-                      expandable
-                      expandLabel={m.guide_code_block_expand()}
-                      closeLabel={m.common_close()}
-                    >
-                      {#snippet preview()}
-                        <GuideRendererBlankPreview renderer={renderer ?? 'maplibre'} />
-                      {/snippet}
-                    </GuidePreviewCodeBlock>
-                  </div>
-                  <GuideParagraph class="mt-3">
-                    {@html rendererEditorRefreshNote}
-                  </GuideParagraph>
-                </div>
-                {#if objective === 'web-embed'}
-                  <GuideCallout>
-                    <GuideParagraph>
-                      {@html m.guide_renderer_web_embed()}
-                      <a
-                        class="font-semibold text-secondary underline underline-offset-4"
-                        href="/#community"
-                        >{@html m.guide_join_community()}</a
-                      >.
-                    </GuideParagraph>
-                  </GuideCallout>
-                {/if}
+                </GuideCardBlock>
               {/if}
             {/if}
           {/if}
@@ -2562,45 +2705,30 @@ const styleChoices = $derived.by(() =>
                   title={m.guide_basemap_editor_title()}
                 />
                 <GuideSubSectionBody content={m.guide_basemap_editor_description()}>
-                  {#if renderer === 'maplibre'}
-                    <GuidePreviewCodeBlock
-                      label={rendererEditorPath}
-                      code={basemapCode}
-                      comments={basemapCodeComments}
-                      dimmedLines={basemapCodeDimmedLines}
-                      editorIcon={selectedCodeEditor?.icon}
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                      language="typescript"
-                      variant="editor"
-                      previewLabel={m.guide_code_block_preview()}
-                      showCodeLabel={m.guide_code_block_code()}
-                      expandable
-                      expandLabel={m.guide_code_block_expand()}
-                      closeLabel={m.common_close()}
-                    >
-                      {#snippet preview()}
-                        <GuideRendererBlankPreview
-                          {renderer}
-                          title={m.guide_basemap_preview_title()}
-                          description={m.guide_basemap_preview_description()}
-                        />
-                      {/snippet}
-                    </GuidePreviewCodeBlock>
-                  {:else}
-                    <GuideCodeBlock
-                      label={rendererEditorPath}
-                      code={basemapCode}
-                      comments={basemapCodeComments}
-                      commentsVisible={true}
-                      dimmedLines={basemapCodeDimmedLines}
-                      editorIcon={selectedCodeEditor?.icon}
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                      language="typescript"
-                      variant="editor"
-                    />
-                  {/if}
+                  <GuidePreviewCodeBlock
+                    label={rendererEditorPath}
+                    code={basemapCode}
+                    comments={basemapCodeComments}
+                    dimmedLines={basemapCodeDimmedLines}
+                    editorIcon={selectedCodeEditor?.icon}
+                    copyLabel={m.common_copy()}
+                    copiedLabel={m.common_copied()}
+                    language="typescript"
+                    variant="editor"
+                    previewLabel={m.guide_code_block_preview()}
+                    showCodeLabel={m.guide_code_block_code()}
+                    expandable
+                    expandLabel={m.guide_code_block_expand()}
+                    closeLabel={m.common_close()}
+                  >
+                    {#snippet preview()}
+                      <GuideRendererBlankPreview
+                        {renderer}
+                        title={m.guide_basemap_preview_title()}
+                        description={m.guide_basemap_preview_description()}
+                      />
+                    {/snippet}
+                  </GuidePreviewCodeBlock>
                   <GuideParagraph>
                     {m.guide_basemap_editor_restart()}
                   </GuideParagraph>
@@ -2700,47 +2828,33 @@ const styleChoices = $derived.by(() =>
               >
                 {@html styleEditorInstruction}
               </GuideParagraph>
-              {#if renderer === 'maplibre'}
-                <GuidePreviewCodeBlock
-                  label={rendererEditorPath}
-                  code={styleEditCode}
-                  comments={styleEditComments}
-                  dimmedLines={styleEditDimmedLines}
-                  editorIcon={selectedCodeEditor?.icon}
-                  language="typescript"
-                  variant="editor"
-                  copyLabel={m.common_copy()}
-                  copiedLabel={m.common_copied()}
-                  previewLabel={m.guide_code_block_preview()}
-                  showCodeLabel={m.guide_code_block_code()}
-                  expandable
-                  expandLabel={m.guide_code_block_expand()}
-                  closeLabel={m.common_close()}
-                >
-                  {#snippet preview()}
-                    <GuideMapLibreStylePreview
-                      label={selectedStyle?.name ?? ''}
-                      {styleUrl}
-                      {tilejsonUrl}
-                    />
-                  {/snippet}
-                </GuidePreviewCodeBlock>
-                <GuideParagraph class="mt-4">
-                  {m.guide_style_editor_success()}
-                </GuideParagraph>
-              {:else}
-                <GuideCodeBlock
-                  label={rendererEditorPath}
-                  code={styleEditCode}
-                  comments={styleEditComments}
-                  dimmedLines={styleEditDimmedLines}
-                  editorIcon={selectedCodeEditor?.icon}
-                  language="typescript"
-                  variant="editor"
-                  copyLabel={m.common_copy()}
-                  copiedLabel={m.common_copied()}
-                />
-              {/if}
+              <GuidePreviewCodeBlock
+                label={rendererEditorPath}
+                code={styleEditCode}
+                comments={styleEditComments}
+                dimmedLines={styleEditDimmedLines}
+                editorIcon={selectedCodeEditor?.icon}
+                language="typescript"
+                variant="editor"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+                previewLabel={m.guide_code_block_preview()}
+                showCodeLabel={m.guide_code_block_code()}
+                expandable
+                expandLabel={m.guide_code_block_expand()}
+                closeLabel={m.common_close()}
+              >
+                {#snippet preview()}
+                  <GuideMapLibreStylePreview
+                    label={selectedStyle?.name ?? ''}
+                    {styleUrl}
+                    {tilejsonUrl}
+                  />
+                {/snippet}
+              </GuidePreviewCodeBlock>
+              <GuideParagraph class="mt-4">
+                {m.guide_style_editor_success()}
+              </GuideParagraph>
             </GuideSubSectionBody>
           </div>
         {/if}

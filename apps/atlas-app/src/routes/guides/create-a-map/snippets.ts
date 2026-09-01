@@ -97,7 +97,6 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
       "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
       '',
       'mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN',
-      "// Mapbox Standard is Mapbox's hosted, ready-to-use basemap style.",
       'const map = new mapboxgl.Map({',
       "  container: 'map',",
       "  style: 'mapbox://styles/mapbox/standard',",
@@ -140,6 +139,7 @@ export const createAMapRendererBasemapCode = (
   renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
+        "import 'leaflet/dist/leaflet.css'",
         "import * as maplibregl from 'maplibre-gl'",
         "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
         "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
@@ -184,7 +184,7 @@ export const createAMapRendererBasemapCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
+        `${renderer === 'mapbox' ? 'const map = ' : ''}new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
         '  zoom: 11.5,',
@@ -209,6 +209,7 @@ export const createAMapRendererStyleCode = (
   renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
+        "import 'leaflet/dist/leaflet.css'",
         "import * as maplibregl from 'maplibre-gl'",
         "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
         "import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'",
@@ -259,7 +260,7 @@ export const createAMapRendererStyleCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
+        `${renderer === 'mapbox' ? 'const map = ' : ''}new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
         '  center: [114.1694, 22.3193],',
         '  zoom: 11.5,',
