@@ -87,6 +87,8 @@ import {
   createUrbanDensityStatsCode,
   createUrbanDensityStatsDisplayCode,
   createUrbanDensityMapReadyCode,
+  createUrbanDensitySetupZ14TileFetcherCode,
+  createUrbanDensitySetupZ14TileFetcherDisplayCode,
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
   createGeoJsonImportCode,
@@ -108,9 +110,7 @@ import {
   urbanDensityLiveableAreaMapDisplayCode,
   urbanDensityCollectNonLiveableLandCode,
   urbanDensityCollectNonLiveableLandDisplayCode,
-  urbanDensitySetupZ14TileFetcherCode,
   urbanDensitySetupZ14TileFetcherCss,
-  urbanDensitySetupZ14TileFetcherDisplayCode,
   urbanDensityLiveableMetricsCode,
   urbanDensityLiveableMetricsDisplayCode,
   urbanDensityTurfInstallCode,
@@ -1147,7 +1147,14 @@ const selectedDataSource = $derived(
 const selectedDataFormat = $derived(
   dataFormatChoices.find(choice => choice.value === dataFormat),
 )
-const geoJsonImportCode = $derived(renderer ? createGeoJsonImportCode(renderer) : '')
+const guideRenderer = $derived(
+  renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
+    ? renderer
+    : undefined,
+)
+const geoJsonImportCode = $derived(
+  guideRenderer ? createGeoJsonImportCode(guideRenderer) : '',
+)
 const sampleDataUrl = $derived(
   `/guides/sample-data/${region === 'mo' ? 'macao' : region === 'gba' ? 'gba' : 'hong-kong'}-places.geojson`,
 )
@@ -2010,7 +2017,9 @@ const rendererStylesheetInstruction = $derived(
   }),
 )
 const urbanDensityMapReadyCode = $derived(
-  selectedStyle ? createUrbanDensityMapReadyCode(styleUrl) : '',
+  selectedStyle && guideRenderer
+    ? createUrbanDensityMapReadyCode(styleUrl, guideRenderer)
+    : '',
 )
 
 const selectedStylePreview = (styleId: string) =>
@@ -2992,6 +3001,7 @@ const styleChoices = $derived.by(() =>
                 {#snippet preview()}
                   <GuideMapLibreStylePreview
                     label={selectedStyle?.name ?? ''}
+                    renderer={guideRenderer ?? 'maplibre'}
                     {styleUrl}
                     {tilejsonUrl}
                     {openingPosition}
@@ -3183,6 +3193,7 @@ const styleChoices = $derived.by(() =>
                       {#snippet preview()}
                         <GuideGeoJsonDataPreview
                           label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                          renderer={guideRenderer ?? 'maplibre'}
                           {openingPosition}
                           {sampleDataUrl}
                           {styleUrl}
@@ -3201,7 +3212,7 @@ const styleChoices = $derived.by(() =>
               </GuideCallout>
             {/if}
           {/if}
-        {:else if dataSource === 'api' && renderer === 'maplibre' && selectedStyle}
+        {:else if dataSource === 'api' && guideRenderer && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}
             hasNonHongKongBasemap={Boolean(region && region !== 'hk')}
@@ -3216,6 +3227,7 @@ const styleChoices = $derived.by(() =>
               style: selectedStyle.name,
             })}
             mapAppearance={selectedStyle.appearance}
+            renderer={guideRenderer}
             {styleUrl}
             {terminalProjectPath}
             tilejsonUrl="https://tiles.saanseoi.hk/hongkong-latest.json"
@@ -3235,9 +3247,9 @@ const styleChoices = $derived.by(() =>
             liveableAreaMapDisplayCode={urbanDensityLiveableAreaMapDisplayCode}
             collectNonLiveableLandCode={urbanDensityCollectNonLiveableLandCode}
             collectNonLiveableLandDisplayCode={urbanDensityCollectNonLiveableLandDisplayCode}
-            setupZ14TileFetcherCode={urbanDensitySetupZ14TileFetcherCode}
+            setupZ14TileFetcherCode={createUrbanDensitySetupZ14TileFetcherCode(guideRenderer)}
             setupZ14TileFetcherCss={urbanDensitySetupZ14TileFetcherCss}
-            setupZ14TileFetcherDisplayCode={urbanDensitySetupZ14TileFetcherDisplayCode}
+            setupZ14TileFetcherDisplayCode={createUrbanDensitySetupZ14TileFetcherDisplayCode(guideRenderer)}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
             liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
             statsCode={urbanDensityStatsCode}

@@ -6,19 +6,20 @@ import { landAnalysisPath } from './guideUrbanDensityLiveableMap.ts'
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a]">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
     <GuideMappingPreview
       ariaLabel={label}
       center={[114.16, 22.32]}
-      renderer="maplibre"
+      {renderer}
       {styleUrl}
       {tilejsonUrl}
       zoom={10.75}

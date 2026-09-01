@@ -196,7 +196,10 @@ onMount(() => {
       if (disposed || !container) return
 
       if (renderer === 'leaflet') {
-        const leaflet = await import('leaflet')
+        const [leaflet, { maplibreGL }] = await Promise.all([
+          import('leaflet'),
+          import('@maplibre/maplibre-gl-leaflet'),
+        ])
         if (disposed || !container) return
 
         const map = leaflet.map(container, {
@@ -209,10 +212,13 @@ onMount(() => {
             .tileLayer(leafletTileUrl, { attribution: leafletAttribution })
             .addTo(map)
         } else {
-          const { maplibreGL } = await import('@maplibre/maplibre-gl-leaflet')
-          if (disposed) return
-
-          maplibreGL({ style: style! }).addTo(map)
+          if (!style)
+            throw new Error(m.guide_mapping_preview_style_and_basemap_required())
+          const maplibreLayer = maplibreGL({ style }).addTo(map)
+          const maplibreMap = maplibreLayer.getMaplibreMap()
+          maplibreMap.once('idle', () => {
+            void onMapReady?.(maplibreMap)
+          })
         }
         remove = () => map.remove()
         observeResize(() => map.invalidateSize())
@@ -228,17 +234,22 @@ onMount(() => {
           style: (mapboxStyleUrl ?? style) as MapboxStyleSpecification,
           zoom,
         })
+        map.once('idle', () => {
+          void onMapReady?.(map as unknown as MapLibreMap)
+        })
         remove = () => map.remove()
         observeResize(() => map.resize())
       } else {
         const { Map: MapLibreMap } = await import('maplibre-gl')
         if (disposed || !container) return
+        if (!style)
+          throw new Error(m.guide_mapping_preview_style_and_basemap_required())
 
         const map = new MapLibreMap({
           ...(unstyled ? {} : { attributionControl: false }),
           container,
           center,
-          style: style!,
+          style,
           zoom,
         })
         map.once('idle', () => {

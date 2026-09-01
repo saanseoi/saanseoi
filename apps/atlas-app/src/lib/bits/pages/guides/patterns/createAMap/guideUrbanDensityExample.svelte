@@ -28,6 +28,7 @@ type Props = {
   mapReadyCode: string
   mapAppearance: 'light' | 'dark'
   mapPreviewLabel: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   terminalProjectPath: string
   tilejsonUrl: string
@@ -66,6 +67,7 @@ let {
   mapReadyCode,
   mapAppearance,
   mapPreviewLabel,
+  renderer,
   styleUrl,
   terminalProjectPath,
   tilejsonUrl,
@@ -141,67 +143,67 @@ const statsComments = [
     text: m.guide_data_urban_density_stats_comment_gzip(),
   },
   {
-    line: 22,
+    line: 26,
     text: m.guide_data_urban_density_stats_comment_population(),
   },
   {
-    line: 23,
+    line: 27,
     text: m.guide_data_urban_density_stats_comment_land_area(),
   },
   {
-    line: 24,
+    line: 28,
     text: m.guide_data_urban_density_stats_comment_districts(),
   },
   {
-    line: 25,
+    line: 29,
     text: m.guide_data_urban_density_stats_comment_metrics(),
   },
   {
-    line: 21,
+    line: 25,
     text: m.guide_data_urban_density_stats_comment_api_base_url(),
   },
   {
-    line: 28,
+    line: 32,
     text: m.guide_data_urban_density_stats_comment_endpoint(),
   },
   {
-    line: 29,
+    line: 33,
     text: m.guide_data_urban_density_stats_comment_dataset(),
   },
   {
-    line: 31,
+    line: 35,
     text: m.guide_data_urban_density_stats_comment_helper(),
   },
   {
-    line: 32,
+    line: 36,
     text: m.guide_data_urban_density_stats_comment_url(),
   },
   {
-    line: 33,
+    line: 37,
     text: m.guide_data_urban_density_stats_comment_cohort(),
   },
   {
-    line: 34,
+    line: 38,
     text: m.guide_data_urban_density_stats_comment_dataset_filter(),
   },
   {
-    line: 35,
+    line: 39,
     text: m.guide_data_urban_density_stats_comment_field(),
   },
   {
-    line: 36,
+    line: 40,
     text: m.guide_data_urban_density_stats_comment_reference_period(),
   },
   {
-    line: 38,
+    line: 42,
     text: m.guide_data_urban_density_stats_comment_request(),
   },
   {
-    line: 39,
+    line: 43,
     text: m.guide_data_urban_density_stats_comment_values(),
   },
   {
-    line: 45,
+    line: 49,
     text: m.guide_data_urban_density_stats_comment_assign_fields(),
   },
 ]
@@ -687,6 +689,7 @@ const liveableAreaMapComments = [
           {#snippet preview()}
             <GuideUrbanDensityMapPreview
               label={mapPreviewLabel}
+              {renderer}
               showExclusions={false}
               {styleUrl}
               {tilejsonUrl}
@@ -811,6 +814,7 @@ const liveableAreaMapComments = [
         >
           <GuideUrbanDensityCensusAreasPreview
             label={mapPreviewLabel}
+            {renderer}
             {styleUrl}
             {tilejsonUrl}
           />
@@ -865,6 +869,7 @@ const liveableAreaMapComments = [
                 <GuideUrbanDensityPreview
                   appearance={mapAppearance}
                   label={mapPreviewLabel}
+                  {renderer}
                   {styleUrl}
                   {tilejsonUrl}
                 />
@@ -910,6 +915,7 @@ const liveableAreaMapComments = [
             {#snippet preview()}
               <GuideUrbanDensityMapPreview
                 label={mapPreviewLabel}
+                {renderer}
                 {styleUrl}
                 {tilejsonUrl}
               />
@@ -1080,6 +1086,7 @@ const liveableAreaMapComments = [
                 {#snippet preview()}
                   <GuideUrbanDensityLiveableAnalysisPreview
                     label={mapPreviewLabel}
+                    {renderer}
                     {styleUrl}
                     {tilejsonUrl}
                   />
@@ -1126,6 +1133,7 @@ const liveableAreaMapComments = [
                   {#snippet preview()}
                     <GuideUrbanDensityLiveableResultPreview
                       label={mapPreviewLabel}
+                      {renderer}
                       {styleUrl}
                       {tilejsonUrl}
                     />
@@ -1182,6 +1190,7 @@ const liveableAreaMapComments = [
               {#snippet preview()}
                 <GuideUrbanDensityLiveableDensityPreview
                   label={mapPreviewLabel}
+                  {renderer}
                   {styleUrl}
                   {tilejsonUrl}
                 />

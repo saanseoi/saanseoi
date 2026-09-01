@@ -23,22 +23,23 @@ const darkAreaTitleClasses: Record<string, string> = {
 type Props = {
   appearance: 'light' | 'dark'
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { appearance, label, styleUrl, tilejsonUrl }: Props = $props()
+let { appearance, label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 </script>
 
 <div
   class="guide-map-preview relative h-full min-h-[16.9rem] overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
   <div class="size-full">
-    {#key `${styleUrl}:${tilejsonUrl}`}
+    {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
       <GuideMappingPreview
         ariaLabel={label}
         center={[114.165, 22.34]}
-        renderer="maplibre"
+        {renderer}
         {styleUrl}
         {tilejsonUrl}
         zoom={11.5}
