@@ -51,7 +51,7 @@ const enlarge = () => {
 </script>
 
 <figure
-  class={`space-y-2 ${width === 'short' ? 'max-w-[48rem]' : 'max-w-[58rem]'} ${className}`}
+  class={`space-y-2 ${width === 'short' ? 'max-w-3xl' : 'max-w-232'} ${className}`}
 >
   <button
     class="group relative block w-full overflow-hidden border border-border-card bg-[#7dd3fc]/10 p-2 text-left shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"

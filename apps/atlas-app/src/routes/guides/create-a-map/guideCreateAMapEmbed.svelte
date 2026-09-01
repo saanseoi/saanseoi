@@ -221,7 +221,7 @@ $effect(() => () => clearPreviewTimer())
     />
     {#if wordpressKind === 'wordpress-com'}
       <GuideAdmonition
-        class="mt-6 max-w-[58rem]"
+        class="mt-6 max-w-232"
         id="wordpress-com-iframe-permissions"
         title={m.guide_embed_wordpress_com_limit_title()}
         expanded
@@ -243,7 +243,7 @@ $effect(() => () => clearPreviewTimer())
       {m.guide_embed_preview_description()}
     </GuideParagraph>
 
-    <div class="mt-8 max-w-[58rem] px-4 md:px-16">
+    <div class="mt-8 max-w-232 px-4 md:px-16">
       <div class="grid gap-6 sm:grid-cols-2">
         <label class="sm:col-span-2">
           <span class="font-body text-body-md font-bold text-primary">
@@ -334,7 +334,7 @@ $effect(() => () => clearPreviewTimer())
 
     {#if previewUrl}
       <div
-        class="mt-6 w-full max-w-[80rem] border border-border-card bg-background p-3 lg:w-[calc(100%+14rem)]"
+        class="mt-6 w-full max-w-7xl border border-border-card bg-background p-3 lg:w-[calc(100%+14rem)]"
       >
         <iframe
           class="block w-full border-0 bg-background-alt"
@@ -393,7 +393,7 @@ $effect(() => () => clearPreviewTimer())
               ? m.guide_embed_placement_webflow()
               : m.guide_embed_placement_other()}
     </GuideParagraph>
-    <div class="mt-5 max-w-[58rem] border border-border-card bg-background p-5">
+    <div class="mt-5 max-w-232 border border-border-card bg-background p-5">
       <p
         class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
       >
@@ -442,7 +442,7 @@ $effect(() => () => clearPreviewTimer())
     />
   </section>
 
-  <section class="mt-10 max-w-[58rem]" aria-labelledby="embed-limits-title">
+  <section class="mt-10 max-w-232" aria-labelledby="embed-limits-title">
     <h3
       id="embed-limits-title"
       class="font-display text-headline-sm font-bold text-primary"

@@ -442,7 +442,7 @@ const agentWorkflowScreenshots = $derived([
 </div>
 
 {#if expanded}
-  <div class="mt-10 max-w-[58rem] space-y-4 border-t border-border-card pt-8">
+  <div class="mt-10 max-w-232 space-y-4 border-t border-border-card pt-8">
     <h3 class="font-display text-headline-sm font-bold text-primary">
       {@html m.guide_zed_setup_prompt_title()}
     </h3>

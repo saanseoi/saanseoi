@@ -2837,7 +2837,7 @@ const styleChoices = $derived.by(() =>
           </div>
           {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             {#if !llmGuidanceEnabled}
-              <div class="mt-10 max-w-[58rem] pt-10">
+              <div class="mt-10 max-w-232 pt-10">
                 <GuideSubSectionHeader
                   eyebrow={m.guide_basemap_editor_eyebrow()}
                   title={m.guide_basemap_editor_title()}
@@ -2962,7 +2962,7 @@ const styleChoices = $derived.by(() =>
           </GuideCallout>
         {/if}
         {#if selectedStyle && renderer}
-          <div class="mt-10 max-w-[58rem] pt-10">
+          <div class="mt-10 max-w-232 pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
               title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
@@ -3061,7 +3061,7 @@ const styleChoices = $derived.by(() =>
             />
           </div>
           {#if selectedDataFormat}
-            <div id="geojson" class="mt-12 max-w-[58rem] scroll-mt-28">
+            <div id="geojson" class="mt-12 max-w-232 scroll-mt-28">
               <GuideSubSectionHeader
                 requirement={{
                   current: 3,
@@ -3155,7 +3155,7 @@ const styleChoices = $derived.by(() =>
               </GuideSubSectionBody>
             </div>
             {#if renderer && selectedStyle}
-              <div class="mt-10 max-w-[58rem]">
+              <div class="mt-10 max-w-232">
                 <GuideSubSectionHeader
                   eyebrow={m.guide_data_import_eyebrow()}
                   title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}

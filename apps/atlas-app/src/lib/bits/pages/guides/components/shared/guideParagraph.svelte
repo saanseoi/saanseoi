@@ -12,7 +12,7 @@ let { ariaHidden, children, class: className = '' }: Props = $props()
 
 <p
   aria-hidden={ariaHidden}
-  class={`max-w-[58rem] font-body text-body-lg leading-8 text-foreground-alt ${className}`}
+  class={`max-w-232 font-body text-body-lg leading-8 text-foreground-alt ${className}`}
 >
   {@render children()}
 </p>

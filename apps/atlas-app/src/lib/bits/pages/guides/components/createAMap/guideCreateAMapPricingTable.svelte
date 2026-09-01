@@ -12,7 +12,7 @@ type Props = {
 let { options }: Props = $props()
 </script>
 
-<div class="mt-4 w-full max-w-[58rem]">
+<div class="mt-4 w-full max-w-232">
   <div
     class="flex w-full overflow-hidden border border-[#b42318]/35 bg-[#fff4f2] dark:border-[#ef8b88]/40 dark:bg-[#ef8b88]/6"
   >

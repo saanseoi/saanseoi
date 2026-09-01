@@ -23,7 +23,7 @@ let {
 </script>
 
 <div
-  class={`grid min-w-0 gap-6 xl:w-[calc(100%+14rem)] xl:max-w-[72rem] xl:items-start ${primaryWidthClasses[primaryWidth]} ${className}`}
+  class={`grid min-w-0 gap-6 xl:w-[calc(100%+14rem)] xl:max-w-6xl xl:items-start ${primaryWidthClasses[primaryWidth]} ${className}`}
 >
   <div class="min-w-0">
     {@render children?.()}

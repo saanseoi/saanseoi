@@ -350,7 +350,7 @@ onMount(() => {
       <CarouselRoot
         bind:this={illustratedChoiceCarousel}
         scrollable={!illustratedCarouselFits}
-        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed || alignment === 'center' ? 'relative left-1/2 w-[100dvw] -translate-x-1/2' : 'w-full'}`}
+        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed || alignment === 'center' ? 'relative left-1/2 w-dvw -translate-x-1/2' : 'w-full'}`}
         onnavigationchange={navigation => (illustratedCarouselNavigation = navigation)}
       >
         <div

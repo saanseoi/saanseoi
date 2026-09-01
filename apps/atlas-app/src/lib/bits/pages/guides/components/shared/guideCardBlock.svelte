@@ -15,9 +15,9 @@ type Props = {
 }
 
 const widthClasses = {
-  content: 'max-w-[58rem]',
-  short: 'max-w-[48rem]',
-  shortCard: 'max-w-[44.5rem]',
+  content: 'max-w-232',
+  short: 'max-w-3xl',
+  shortCard: 'max-w-178',
 } as const
 
 let {
@@ -31,7 +31,7 @@ let {
 }: Props = $props()
 </script>
 
-<section class={`max-w-[58rem] space-y-5 pb-4`}>
+<section class={`max-w-232 space-y-5 pb-4`}>
   {#if title}
     <div>
       <GuideSubSectionHeader {eyebrow} {title} />

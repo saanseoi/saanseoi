@@ -91,7 +91,7 @@ const completeAndScroll = async () => {
   <div class="mt-5" {id}>
     {@render children?.()}
   </div>
-  <div class="mt-6 flex w-full max-w-[44.5rem] justify-end">
+  <div class="mt-6 flex w-full max-w-178 justify-end">
     <Button
       class="bg-secondary text-on-secondary hover:bg-secondary/85"
       size="compact"

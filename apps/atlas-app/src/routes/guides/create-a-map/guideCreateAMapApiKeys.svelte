@@ -118,10 +118,7 @@ $effect(() => {
 })
 </script>
 
-<GuideLayout
-  width="content"
-  class={`mt-8 min-w-0 ${isApiKeyReady ? 'max-w-[48rem]' : ''}`}
->
+<GuideLayout width="content" class={`mt-8 min-w-0 ${isApiKeyReady ? 'max-w-3xl' : ''}`}>
   <section id="basemap-api-key-readiness" aria-labelledby="guide-api-keys-title">
     {#if showHeading}
       <GuideTextHeader

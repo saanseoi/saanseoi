@@ -369,7 +369,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`${className} w-full min-w-0 ${width === 'content' ? 'max-w-[58rem]' : width === 'short' ? 'max-w-[48rem]' : 'max-w-[44.5rem]'} overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`${className} w-full min-w-0 ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
