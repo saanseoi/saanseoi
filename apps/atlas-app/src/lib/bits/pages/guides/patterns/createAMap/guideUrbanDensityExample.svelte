@@ -284,6 +284,9 @@ const metricsCssComments = [
   { line: 19, text: m.guide_data_urban_density_metrics_css_comment_reduced_motion() },
   { line: 21, text: m.guide_data_urban_density_metrics_css_comment_mobile() },
   { line: 22, text: m.guide_data_urban_density_metrics_css_comment_mobile_spacing() },
+  { line: 27, text: m.guide_data_urban_density_metrics_css_comment_map_header() },
+  { line: 32, text: m.guide_data_urban_density_metrics_css_comment_map_title() },
+  { line: 37, text: m.guide_data_urban_density_metrics_css_comment_map_index() },
 ]
 
 const calculationComments = [
@@ -617,8 +620,10 @@ const liveableAreaMapComments = [
   { line: 11, text: m.guide_data_urban_density_liveable_map_comment_excluded_source() },
   { line: 12, text: m.guide_data_urban_density_liveable_map_comment_excluded_fill() },
   { line: 15, text: m.guide_data_urban_density_liveable_map_comment_outline() },
-  { line: 19, text: m.guide_data_urban_density_liveable_map_comment_legend() },
-  { line: 28, text: m.guide_data_urban_density_liveable_map_comment_reveal() },
+  { line: 19, text: m.guide_data_urban_density_liveable_map_comment_header() },
+  { line: 21, text: m.guide_data_urban_density_liveable_map_comment_title() },
+  { line: 23, text: m.guide_data_urban_density_liveable_map_comment_legend() },
+  { line: 32, text: m.guide_data_urban_density_liveable_map_comment_reveal() },
 ]
 </script>
 
@@ -992,7 +997,7 @@ const liveableAreaMapComments = [
             content={m.guide_data_urban_density_setup_z14_tile_fetcher_description()}
           >
             <div
-              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start min-[1000px]:gap-2"
+              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start min-[1000px]:gap-0"
             >
               <GuideCodeBlock
                 label={m.guide_data_urban_density_setup_z14_tile_fetcher_code()}

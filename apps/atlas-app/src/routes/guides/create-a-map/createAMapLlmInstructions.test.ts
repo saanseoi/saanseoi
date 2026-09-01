@@ -193,6 +193,9 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityLiveableAreaMapCode).toContain(
       "landUseLegend.id = 'land-use-legend'",
     )
+    expect(urbanDensityLiveableAreaMapCode).toContain(
+      "landUseTitle.textContent = 'Population Density of Liveable Land Area'",
+    )
   })
 
   test('renders the complete guide', () => {
