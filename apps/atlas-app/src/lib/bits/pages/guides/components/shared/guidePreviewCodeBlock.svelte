@@ -65,6 +65,7 @@ let previewPanel: HTMLElement
 const previewTitle = $derived(
   label
     .replace(/^.*?(?:•|—|-)\s*/u, '')
+    .toLocaleLowerCase()
     .replace(/^./u, character => character.toLocaleUpperCase()),
 )
 
@@ -210,16 +211,6 @@ function closePreview() {
           >
         </div>
         <div class="flex shrink-0 items-center gap-4">
-          {#if expandable}
-            <button
-              class="inline-flex size-6 items-center justify-center text-white/75 hover:text-white"
-              type="button"
-              aria-label={expandLabel}
-              onclick={expandPreview}
-            >
-              <Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
-            </button>
-          {/if}
           <button
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
             type="button"
@@ -233,6 +224,16 @@ function closePreview() {
             />
             {showCodeLabel}
           </button>
+          {#if expandable}
+            <button
+              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+              type="button"
+              onclick={expandPreview}
+            >
+              <Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
+              {expandLabel}
+            </button>
+          {/if}
         </div>
       </header>
     {/if}

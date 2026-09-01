@@ -52,6 +52,7 @@ type Props = {
   metricsCssDisplayCode: string
   statsCode: string
   statsDisplayCode: string
+  showPublishLink?: boolean
   turfInstallCode: string
   turfInstallOutput: string
 }
@@ -89,6 +90,7 @@ let {
   metricsCssDisplayCode,
   statsCode,
   statsDisplayCode,
+  showPublishLink = false,
   turfInstallCode,
   turfInstallOutput,
 }: Props = $props()
@@ -125,69 +127,77 @@ const statsComments = [
     text: m.guide_data_urban_density_stats_comment_data_shape(),
   },
   {
-    line: 14,
+    line: 12,
     text: m.guide_data_urban_density_stats_comment_saved_result_path(),
     html: true,
   },
   {
-    line: 23,
-    text: m.guide_data_urban_density_stats_comment_population(),
-  },
-  {
-    line: 24,
-    text: m.guide_data_urban_density_stats_comment_land_area(),
-  },
-  {
-    line: 25,
-    text: m.guide_data_urban_density_stats_comment_districts(),
-  },
-  {
-    line: 26,
-    text: m.guide_data_urban_density_stats_comment_metrics(),
+    line: 16,
+    text: m.guide_data_urban_density_stats_comment_gzip(),
   },
   {
     line: 22,
+    text: m.guide_data_urban_density_stats_comment_population(),
+  },
+  {
+    line: 23,
+    text: m.guide_data_urban_density_stats_comment_land_area(),
+  },
+  {
+    line: 24,
+    text: m.guide_data_urban_density_stats_comment_districts(),
+  },
+  {
+    line: 25,
+    text: m.guide_data_urban_density_stats_comment_metrics(),
+  },
+  {
+    line: 21,
     text: m.guide_data_urban_density_stats_comment_api_base_url(),
   },
   {
-    line: 29,
+    line: 28,
     text: m.guide_data_urban_density_stats_comment_endpoint(),
   },
   {
-    line: 30,
+    line: 29,
     text: m.guide_data_urban_density_stats_comment_dataset(),
   },
   {
-    line: 32,
+    line: 31,
     text: m.guide_data_urban_density_stats_comment_helper(),
   },
   {
-    line: 33,
+    line: 32,
     text: m.guide_data_urban_density_stats_comment_url(),
   },
   {
-    line: 34,
+    line: 33,
     text: m.guide_data_urban_density_stats_comment_cohort(),
   },
   {
-    line: 35,
+    line: 34,
     text: m.guide_data_urban_density_stats_comment_dataset_filter(),
   },
   {
-    line: 36,
+    line: 35,
     text: m.guide_data_urban_density_stats_comment_field(),
   },
   {
-    line: 37,
+    line: 36,
     text: m.guide_data_urban_density_stats_comment_reference_period(),
   },
   {
-    line: 39,
+    line: 38,
     text: m.guide_data_urban_density_stats_comment_request(),
   },
   {
-    line: 40,
+    line: 39,
     text: m.guide_data_urban_density_stats_comment_values(),
+  },
+  {
+    line: 45,
+    text: m.guide_data_urban_density_stats_comment_assign_fields(),
   },
 ]
 
@@ -668,7 +678,7 @@ const liveableAreaMapComments = [
         contentClass="[&_code.guide-urban-density-level]:text-foreground"
       >
         <div
-          class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
+          class="grid gap-6 font-mono min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,44.5rem)_minmax(0,1fr)] min-[1000px]:items-start"
         >
           <div class="space-y-5">
             <GuideParagraph
@@ -698,7 +708,7 @@ const liveableAreaMapComments = [
               {/snippet}
             </GuidePreviewCodeBlock>
           </div>
-          <aside class="lg:pt-309.5">
+          <aside class="min-[1000px]:pt-309.5">
             <GuideInstructionCallout
               label={m.guide_data_urban_density_statistics_callout_label()}
               title={m.guide_data_urban_density_statistics_callout_title()}
@@ -720,7 +730,7 @@ const liveableAreaMapComments = [
               {@html m.guide_data_urban_density_results_instruction()}
             </GuideParagraph>
             <div
-              class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
+              class="grid gap-6 font-mono min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,44.5rem)_minmax(0,1fr)] min-[1000px]:items-start"
             >
               <GuidePreviewCodeBlock
                 label={m.guide_data_urban_density_results_code()}
@@ -742,13 +752,13 @@ const liveableAreaMapComments = [
                   <GuideUrbanDensityDivisionsPreview />
                 {/snippet}
               </GuidePreviewCodeBlock>
-              <aside class="lg:pt-52">
+              <aside class="min-[1000px]:pt-142.5">
                 <GuideInstructionCallout
                   label={m.guide_data_urban_density_calculation_level_callout_label()}
                   title={m.guide_data_urban_density_calculation_level_callout_title()}
                   description={m.guide_data_urban_density_calculation_comment_level_explainer()}
                 />
-                <div class="mt-6 lg:mt-169">
+                <div class="mt-6 min-[1000px]:mt-139.5">
                   <GuideInstructionCallout
                     label={m.guide_data_urban_density_calculation_geojson_feature_callout_label()}
                     title={m.guide_data_urban_density_calculation_geojson_feature_callout_title()}
@@ -832,6 +842,11 @@ const liveableAreaMapComments = [
       <GuideParagraph class="mt-8">
         {@html m.guide_data_urban_density_density_reflection()}
       </GuideParagraph>
+      {#if showPublishLink}
+        <GuideParagraph>
+          {@html m.guide_data_urban_density_density_publishable()}
+        </GuideParagraph>
+      {/if}
     </section>
     <section>
       <GuideSubSectionHeader
@@ -942,7 +957,7 @@ const liveableAreaMapComments = [
             content={m.guide_data_urban_density_setup_z14_tile_fetcher_description()}
           >
             <div
-              class="grid gap-6 lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] lg:items-start"
+              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start"
             >
               <div class="space-y-6">
                 <GuideCodeBlock
@@ -972,13 +987,13 @@ const liveableAreaMapComments = [
                   copiedLabel={m.common_copied()}
                 />
               </div>
-              <aside class="lg:pt-96">
+              <aside class="min-[1000px]:pt-96">
                 <GuideInstructionCallout
                   label={m.guide_data_urban_density_web_mercator_callout_label()}
                   title={m.guide_data_urban_density_web_mercator_callout_title()}
                   description={m.guide_data_urban_density_web_mercator_callout_description()}
                 />
-                <div class="mt-6 lg:mt-[106rem]">
+                <div class="mt-6 min-[1000px]:mt-[106rem]">
                   <GuideInstructionCallout
                     label={m.guide_data_urban_density_tile_decoding_callout_label()}
                     title={m.guide_data_urban_density_tile_decoding_callout_title()}
@@ -992,7 +1007,7 @@ const liveableAreaMapComments = [
             content={m.guide_data_urban_density_collect_non_liveable_land_description()}
           >
             <div
-              class="grid gap-6 lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] lg:items-start"
+              class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start"
             >
               <GuidePreviewCodeBlock
                 label={m.guide_data_urban_density_collect_non_liveable_land_code()}
