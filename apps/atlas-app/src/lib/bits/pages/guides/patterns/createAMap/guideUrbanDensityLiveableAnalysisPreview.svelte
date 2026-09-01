@@ -65,6 +65,21 @@ const tilesCovering = (
 }
 const activeTiles = $derived(activeDistrict ? tilesCovering(activeDistrict) : [])
 const totalTiles = $derived(activeTiles.length)
+const districtTiles = urbanDensityCensusDistricts.features.map(tilesCovering)
+const totalAnalysisTiles = districtTiles.reduce(
+  (total, tiles) => total + tiles.length,
+  0,
+)
+const completedTilesBeforeDistrict = $derived(
+  districtTiles
+    .slice(0, districtIndex)
+    .reduce((total, tiles) => total + tiles.length, 0),
+)
+const activeTileProgress = $derived(phase === 'tiles' ? completedTiles : totalTiles)
+const progressValue = $derived(completedTilesBeforeDistrict + activeTileProgress)
+const progressPercent = $derived(
+  totalAnalysisTiles === 0 ? 0 : (progressValue / totalAnalysisTiles) * 100,
+)
 const tileKey = (tile: ProcessingTile) => `${tile.x}/${tile.y}`
 
 const processingTileSources: StyleSpecification['sources'] = {
@@ -299,8 +314,8 @@ onMount(() => {
       <div>
         <dt class="text-[0.68rem] font-bold tracking-[0.12em] text-white/55">TILES</dt>
         <dd class="mt-0.5 text-base font-semibold text-white/85">
-          {completedTiles}
-          / {totalTiles}
+          {progressValue}
+          / {totalAnalysisTiles}
         </dd>
       </div>
       <div class="pb-0.5 text-xs font-bold text-white/45" aria-hidden="true">and</div>
@@ -322,10 +337,17 @@ onMount(() => {
         </dd>
       </div>
     </dl>
-    <progress
-      class="mt-4 h-2 w-full accent-[#43c6ad]"
-      max={totalTiles}
-      value={phase === 'tiles' ? completedTiles : completedDistrictParts}
-    ></progress>
+    <div
+      class="mt-4 h-2 w-full overflow-hidden bg-white/16"
+      role="progressbar"
+      aria-valuemin="0"
+      aria-valuemax={totalAnalysisTiles}
+      aria-valuenow={progressValue}
+    >
+      <div
+        class="h-full bg-[#5ad8a6] transition-[width] duration-200 ease-out"
+        style:width={`${progressPercent}%`}
+      ></div>
+    </div>
   </section>
 </div>

@@ -162,7 +162,10 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensitySetupZ14TileFetcherCode).toContain(
       'const tileCoverageRequests = new Map<string, Promise<Polygon | MultiPolygon | undefined>>()',
     )
-    expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('booleanIntersects')
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain('booleanIntersects')
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'candidateTiles.filter(tile => booleanIntersects(bboxPolygon(tileBounds(tile)), district))',
+    )
     expect(urbanDensityCollectNonLiveableLandCode).toContain(
       'for (const [districtIndex, district] of districts.entries()) {',
     )
