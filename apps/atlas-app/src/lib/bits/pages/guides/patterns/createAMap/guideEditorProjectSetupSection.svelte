@@ -48,7 +48,7 @@ const description = $derived(
 <div
   class:mt-14={showHeading}
   class:space-y-5={!showHeading}
-  class="w-full min-w-0 max-w-3xl"
+  class="w-full min-w-0 max-w-[58rem]"
 >
   {#if showHeading}
     <p

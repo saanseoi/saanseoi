@@ -15,13 +15,13 @@ let { children, description, eyebrow, titleId }: Props = $props()
 <div class="flex items-start gap-3">
   <Icon
     icon="material-symbols-light:warning-rounded"
-    class="mt-0.5 size-5 shrink-0 text-[#ef8b88]"
+    class="mt-0.5 size-5 shrink-0 text-[#b42318] dark:text-[#ef8b88]"
     aria-hidden="true"
   />
   <div class="min-w-0 flex-1">
     <p
       id={titleId}
-      class="font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-[#ffb4b1]"
+      class="font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-[#b42318] dark:text-[#ffb4b1]"
     >
       {@html eyebrow}
     </p>

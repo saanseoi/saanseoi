@@ -36,7 +36,6 @@ const scrollToPanelTop = async () => {
     const headerHeight =
       document.querySelector('header')?.getBoundingClientRect().height ?? 72
     window.scrollTo({
-      behavior: 'smooth',
       top: Math.max(
         0,
         window.scrollY + panel.getBoundingClientRect().top - headerHeight - 16,
@@ -61,14 +60,14 @@ const toggleExpanded = () => {
 <aside
   bind:this={panelElement}
   {id}
-  class={`mt-4 mb-12 max-w-3xl border-l-4 px-5 py-5 ${complete ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
+  class={`mt-4 mb-12 max-w-[48rem] border-l-4 px-5 py-5 ${complete ? 'border-secondary bg-secondary/10 dark:border-[#6fdec9] dark:bg-[#6fdec9]/12' : 'border-[#b42318] bg-[#fff4f2] dark:border-[#ef8b88] dark:bg-[#ef8b88]/12'}`}
   aria-labelledby={titleId}
 >
   {#if children}
     {@render children()}
   {:else if complete && completeSummary}
     <button
-      class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6fdec9]"
+      class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
       type="button"
       aria-controls={`${id}-details`}
       aria-expanded={expanded}
@@ -83,7 +82,7 @@ const toggleExpanded = () => {
   {#if details && (!complete || expanded)}
     <div
       id={`${id}-details`}
-      class={`ml-8 ${complete ? 'mt-5 border-t border-[#6fdec9]/35 pt-5' : 'mt-4'}`}
+      class={`ml-8 ${complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}`}
     >
       {@render details()}
     </div>

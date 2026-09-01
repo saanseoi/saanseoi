@@ -1619,8 +1619,16 @@ const rendererTerminalReminder = $derived(
         command: getRendererTerminalCommand(operatingSystem),
       }),
 )
-const rendererEditorPath = 'src/main.ts'
-const rendererStylesheetPath = 'src/style.css'
+const rendererEditorPath = $derived(
+  operatingSystem === 'windows'
+    ? `${terminalProjectPath}\\src\\main.ts`
+    : 'src/main.ts',
+)
+const rendererStylesheetPath = $derived(
+  operatingSystem === 'windows'
+    ? `${terminalProjectPath}\\src\\style.css`
+    : 'src/style.css',
+)
 const rendererEditorLabel = $derived(
   `${rendererEditorPath} — ${m.guide_renderer_editor_card_start_map()}`,
 )
@@ -1902,6 +1910,7 @@ const styleChoices = $derived.by(() =>
               choices={objectiveChoices}
               bind:value={objective}
               onchange={handleObjectiveChange}
+              illustratedFullBleed
               illustratedFitWhenPossible
               variant="illustrated"
             />
@@ -2285,6 +2294,7 @@ const styleChoices = $derived.by(() =>
             code={editorCardExplainerCode}
             displayCode={editorCardExplainerDisplayCode}
             editorIcon={selectedCodeEditor?.icon}
+            pathPrefix={operatingSystem === 'windows' ? terminalProjectPath : undefined}
           />
         {/if}
         <div class="mt-8 space-y-8">
@@ -2575,6 +2585,7 @@ const styleChoices = $derived.by(() =>
               apiKeyReady={hasBasemapApiKey}
               editorIcon={selectedCodeEditor?.icon}
               editorLabel={selectedCodeEditor?.label}
+              environmentFileExists={renderer === 'mapbox'}
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
               {terminalProjectPath}
@@ -2950,13 +2961,13 @@ const styleChoices = $derived.by(() =>
                 icon={isDataStepComplete
                   ? 'material-symbols-light:check-circle-rounded'
                   : 'material-symbols-light:warning-rounded'}
-                class={`mt-0.5 size-5 shrink-0 ${isDataStepComplete ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
+                class={`mt-0.5 size-5 shrink-0 ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ef8b88]'}`}
                 aria-hidden="true"
               />
               <div class="min-w-0 flex-1">
                 <p
                   id="data-step-readiness-title"
-                  class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${isDataStepComplete ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
+                  class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ffb4b1]'}`}
                 >
                   {@html isDataStepComplete
                     ? m.guide_data_readiness_complete_eyebrow()
@@ -2981,7 +2992,7 @@ const styleChoices = $derived.by(() =>
                     </Button>
                   {:else}
                     <Button
-                      class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+                      class="bg-secondary text-on-secondary hover:bg-secondary/85"
                       size="compact"
                       onclick={completeDataStep}
                     >

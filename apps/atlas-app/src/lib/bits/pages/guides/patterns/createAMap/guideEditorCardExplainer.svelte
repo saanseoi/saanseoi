@@ -25,9 +25,10 @@ type Props = {
   code: string
   displayCode: string
   editorIcon?: string
+  pathPrefix?: string
 }
 
-let { code, displayCode, editorIcon }: Props = $props()
+let { code, displayCode, editorIcon, pathPrefix }: Props = $props()
 let editorCardElement = $state<HTMLDivElement>()
 let editorIconCallout: HTMLParagraphElement
 let pathCallout: HTMLParagraphElement
@@ -273,7 +274,7 @@ onMount(() => {
 </script>
 
 <section
-  class="mt-8 max-w-3xl space-y-5"
+  class="mt-8 max-w-[58rem] space-y-5"
   aria-label={m.guide_editor_card_explainer_title()}
 >
   <h4 class="font-display text-headline-sm font-bold text-primary">
@@ -282,7 +283,7 @@ onMount(() => {
   <div
     class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-17 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
   >
-    <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
+    <div class="order-1 xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0">
       <div
         bind:this={editorCardElement}
         class="relative max-sm:**:data-guide-code-header:items-start max-sm:**:data-guide-code-header:flex-col max-sm:**:data-guide-code-header:gap-2 max-sm:**:data-guide-code-actions:w-full max-sm:**:data-guide-code-actions:justify-between max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:relative max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:absolute max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:top-[-0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:right-[-0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:inline-flex max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:size-4.5 max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:items-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:justify-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:rounded-full max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:bg-secondary max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-mono max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-[0.6875rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-bold max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:leading-none max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-on-secondary max-xl:**:data-guide-code-editor-icon:after:content-['1'] max-xl:**:data-guide-code-label:after:content-['2'] max-xl:**:data-guide-code-comments-toggle:after:content-['3'] max-xl:**:data-guide-code-preview:after:content-['4'] max-xl:**:data-guide-code-copy:after:content-['5'] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:relative max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:absolute max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:top-[0.15rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:left-[-1.35rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:inline-flex max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:size-4.5 max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:items-center max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:justify-center max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:rounded-full max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:bg-secondary max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:font-mono max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:text-[0.6875rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:font-bold max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:leading-none max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:text-on-secondary max-xl:**:data-[code-line='4']:before:content-['7'] max-xl:**:data-[code-line='1']:before:content-['8'] max-xl:**:data-[code-comment-for='4']:relative max-xl:**:data-[code-comment-for='4']:pl-6 max-xl:**:data-[code-comment-for='4']:before:absolute max-xl:**:data-[code-comment-for='4']:before:top-[0.15rem] max-xl:**:data-[code-comment-for='4']:before:left-0 max-xl:**:data-[code-comment-for='4']:before:inline-flex max-xl:**:data-[code-comment-for='4']:before:size-4.5 max-xl:**:data-[code-comment-for='4']:before:items-center max-xl:**:data-[code-comment-for='4']:before:justify-center max-xl:**:data-[code-comment-for='4']:before:rounded-full max-xl:[&_[data-code-comment-for='4']]:before:bg-secondary max-xl:**:data-[code-comment-for='4']:before:font-mono max-xl:**:data-[code-comment-for='4']:before:text-[0.6875rem] max-xl:**:data-[code-comment-for='4']:before:font-bold max-xl:**:data-[code-comment-for='4']:before:leading-none max-xl:[&_[data-code-comment-for='4']]:before:text-on-secondary max-xl:**:data-[code-comment-for='4']:before:content-['6']"
@@ -294,6 +295,7 @@ onMount(() => {
           dimmedLines={[1, 2]}
           {editorIcon}
           label={m.guide_editor_card_explainer_label()}
+          {pathPrefix}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}

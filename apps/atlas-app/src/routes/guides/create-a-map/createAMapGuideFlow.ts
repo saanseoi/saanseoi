@@ -109,7 +109,11 @@ export function createMissingPrerequisiteQuestions({
       ? { id: 'platform', label: m.guide_host_label(), answered: Boolean(hosting) }
       : objective === 'web-embed'
         ? !websitePlatform
-          ? { id: 'platform', label: m.guide_embed_label(), answered: false }
+          ? {
+              id: 'platform',
+              label: m.guide_missing_website_platform(),
+              answered: false,
+            }
           : !hosting
             ? {
                 id: 'platform',
@@ -144,7 +148,7 @@ export function createMissingPrerequisiteQuestions({
   return [
     {
       id: 'destination',
-      label: m.guide_objective_label(),
+      label: m.guide_missing_objective(),
       answered: Boolean(objective),
     },
     { id: 'llm-involvement', label: m.guide_llm_label(), answered: Boolean(llmMode) },
@@ -161,12 +165,12 @@ export function createMissingPrerequisiteQuestions({
     },
     {
       id: 'operating-system',
-      label: m.guide_operating_system_label(),
+      label: m.guide_missing_operating_system(),
       answered: !regularFlow || Boolean(operatingSystem),
     },
     {
       id: 'terminal-experience',
-      label: m.guide_terminal_experience_label(),
+      label: m.guide_missing_terminal_experience(),
       answered: (!regularFlow && aiAccess !== 'agentic') || Boolean(terminalExperience),
     },
     {

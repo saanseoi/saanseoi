@@ -2,6 +2,7 @@
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
+import GuideReadinessPanel from '#lib/bits/pages/guides/components/createAMap/guideReadinessPanel.svelte'
 
 type Props = {
   user: {
@@ -21,14 +22,15 @@ let initials = $derived(
 )
 </script>
 
-<section
-  aria-labelledby="guide-basemap-account-complete-title"
-  class="mt-8 min-w-0 max-w-3xl border-l-4 border-[#149b75] bg-[#e2f5ed] px-5 py-5 dark:border-[#6fdec9] dark:bg-[#6fdec9]/12"
+<GuideReadinessPanel
+  id="guide-basemap-account-complete"
+  complete
+  titleId="guide-basemap-account-complete-title"
 >
   <div class="flex min-w-0 items-center justify-between gap-4">
     <div class="flex min-w-0 flex-1 items-center gap-4">
       <div
-        class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#149b75]/45 bg-surface-container-low font-body text-sm font-semibold text-primary dark:border-[#6fdec9]/45"
+        class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-secondary/45 bg-surface-container-low font-body text-sm font-semibold text-primary dark:border-[#6fdec9]/45"
       >
         {#if user.image}
           <img alt="" class="size-full object-cover" src={user.image}>
@@ -38,7 +40,7 @@ let initials = $derived(
       </div>
       <div class="min-w-0">
         <p
-          class="font-body text-label-sm font-semibold tracking-[0.12em] text-[#08745b] uppercase dark:text-[#6fdec9]"
+          class="font-body text-label-sm font-semibold tracking-[0.12em] text-secondary uppercase dark:text-[#6fdec9]"
         >
           {m.guide_basemap_account_complete_eyebrow()}
         </p>
@@ -52,10 +54,10 @@ let initials = $derived(
     </div>
     <div
       aria-label={m.guide_basemap_account_complete()}
-      class="shrink-0 text-[#08745b] dark:text-[#6fdec9]"
+      class="shrink-0 text-secondary dark:text-[#6fdec9]"
       role="img"
     >
       <Icon icon="ion:checkmark-circle" class="size-5" aria-hidden="true" />
     </div>
   </div>
-</section>
+</GuideReadinessPanel>

@@ -627,7 +627,7 @@ const resetRequirement = (requirement: number) => {
         {#if operatingSystem === 'linux'}
           <div class="max-w-[80ch] font-mono">
             <div
-              class="flex min-w-0 overflow-x-auto border-b border-border-card"
+              class="flex min-w-0 overflow-x-auto overflow-y-hidden border-b border-border-card"
               role="tablist"
               aria-label={m.guide_publish_linux_distribution_label()}
             >

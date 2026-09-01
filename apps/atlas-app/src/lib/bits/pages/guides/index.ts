@@ -5,7 +5,15 @@ export { default as GuideColophon } from './components/shared/guideColophon.svel
 export { default as GuideCodeBlock } from './components/shared/guideCodeBlock.svelte'
 export { default as GuidePreviewCodeBlock } from './components/shared/guidePreviewCodeBlock.svelte'
 export { default as GuideCallout } from './components/shared/guideCallout.svelte'
+export { default as GuideCalloutDescription } from './components/shared/guideCalloutDescription.svelte'
+export { default as GuideCalloutEyebrow } from './components/shared/guideCalloutEyebrow.svelte'
+export { default as GuideCalloutTitle } from './components/shared/guideCalloutTitle.svelte'
+export { default as GuideCardBlock } from './components/shared/guideCardBlock.svelte'
+export { default as GuideAttachedLayout } from './components/shared/guideAttachedLayout.svelte'
+export { default as GuideAdmonition } from './components/shared/guideAdmonition.svelte'
 export { default as GuideMissingAnswerReminder } from './components/shared/guideMissingAnswerReminder.svelte'
+export { default as GuideEyebrow } from './components/shared/guideEyebrow.svelte'
+export { default as GuideLayout } from './components/shared/guideLayout.svelte'
 export { default as GuideParagraph } from './components/shared/guideParagraph.svelte'
 export { default as GuideReference } from './components/shared/guideReference.svelte'
 export { default as GuideRoot } from './components/shared/guideRoot.svelte'
@@ -15,6 +23,9 @@ export { default as GuideSelectionSummary } from './components/shared/guideSelec
 export { default as GuideStepLabel } from './components/shared/guideStepLabel.svelte'
 export { default as GuideSubSectionBody } from './components/shared/guideSubSectionBody.svelte'
 export { default as GuideSubSectionHeader } from './components/shared/guideSubSectionHeader.svelte'
+export { default as GuideTextHeader } from './components/shared/guideTextHeader.svelte'
+export { default as GuideTextSubHeader } from './components/shared/guideTextSubHeader.svelte'
+export { default as GuideTitle } from './components/shared/guideTitle.svelte'
 export type {
   GuideChoice,
   GuideDecision,

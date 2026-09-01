@@ -8,7 +8,9 @@ import { Button } from '#lib/bits/primitives/button/index.js'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuideScreenshot from '../../components/shared/guideScreenshot.svelte'
+import GuideTextHeader from '../../components/shared/guideTextHeader.svelte'
 import GuideReadinessCompleteSummary from './guideReadinessCompleteSummary.svelte'
 import GuideReadinessPanel from './guideReadinessPanel.svelte'
 
@@ -56,12 +58,14 @@ let restrictionsExpanded = $state(false)
       >
         {@html m.guide_renderer_mapbox_account_eyebrow()}
       </p>
-      <h3 class="mt-2 font-display text-headline-sm font-bold text-primary">
-        {@html m.guide_renderer_mapbox_account_title()}
-      </h3>
-      <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+      <GuideTextHeader
+        as="h3"
+        title={m.guide_renderer_mapbox_account_title()}
+        class="mt-2 text-headline-sm"
+      />
+      <GuideParagraph class="mt-3">
         {@html m.guide_renderer_mapbox_account_description()}
-      </p>
+      </GuideParagraph>
     </div>
   </div>
 {/snippet}
@@ -113,10 +117,10 @@ let restrictionsExpanded = $state(false)
       caption={m.guide_renderer_mapbox_account_create_screenshot_caption()}
     />
   </div>
-  <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+  <GuideParagraph class="mt-5">
     {@html m.guide_renderer_mapbox_account_copy_token()}
-  </p>
-  <div class="mt-5 max-w-2xl">
+  </GuideParagraph>
+  <div class="mt-5 max-w-[44.5rem]">
     <GuideCodeBlock
       label={m.guide_setup_terminal_label({
         action: m.guide_renderer_mapbox_token_code(),
@@ -178,7 +182,7 @@ let restrictionsExpanded = $state(false)
       </Button>
     {:else}
       <Button
-        class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+        class="bg-secondary text-on-secondary hover:bg-secondary/85"
         size="compact"
         onclick={onComplete}
       >

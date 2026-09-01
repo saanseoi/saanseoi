@@ -436,7 +436,7 @@ export const mapboxTokenCode =
 
 export const getRendererTerminalCommand = (operatingSystem?: string) =>
   operatingSystem === 'windows'
-    ? 'Set-Location ~/saanseoi-project'
+    ? 'Set-Location ~\\saanseoi-project'
     : 'cd ~/saanseoi-project'
 
 export const createAgentProjectCommand = (
