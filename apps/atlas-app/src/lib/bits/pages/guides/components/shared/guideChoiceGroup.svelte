@@ -4,6 +4,7 @@ import { onMount } from 'svelte'
 
 import CarouselRoot from '#lib/bits/components/carousel/carouselRoot.svelte'
 
+import GuideChoiceDescription from './guideChoiceDescription.svelte'
 import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
 import GuideTextHeader from './guideTextHeader.svelte'
@@ -91,7 +92,7 @@ function updateIllustratedCarouselFit() {
 function clearChoice(choiceValue: string) {
   requestAnimationFrame(() => {
     value = undefined
-    inspectedChoiceValue = choiceValue
+    inspectedChoiceValue = undefined
     onchange?.(undefined)
   })
 }
@@ -204,16 +205,12 @@ onMount(() => {
   </legend>
   {#if Array.isArray(hint)}
     {#each hint as paragraph, index}
-      <p
-        class={`${index === 0 ? 'mt-1' : 'mt-3'} max-w-[58rem] font-body text-body-sm leading-6 text-foreground-alt`}
-      >
+      <GuideParagraph class={index === 0 ? 'mt-1' : 'mt-3'}>
         {@html paragraph}
-      </p>
+      </GuideParagraph>
     {/each}
   {:else if hint}
-    <p class="mt-1 max-w-[58rem] font-body text-body-sm text-foreground-alt">
-      {@html hint}
-    </p>
+    <GuideParagraph class="mt-1"> {@html hint} </GuideParagraph>
   {/if}
   {#if hideLabel &&
     (illustratedFullBleed || illustratedFitWhenPossible) &&
@@ -319,7 +316,7 @@ onMount(() => {
                 {/if}
               </span>
             {/if}
-            <span
+            <div
               class={`block border-t-2 pt-4 transition-colors ${value === choice.value ? 'border-secondary' : choice.disabled ? 'border-border-card' : 'border-border-card group-hover:border-secondary/60'}`}
             >
               <span class="flex items-start justify-between gap-3">
@@ -336,12 +333,10 @@ onMount(() => {
                   ></span>
                 </span>
               </span>
-              <span
-                class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-              >
+              <GuideChoiceDescription class="mt-1">
                 {@html choice.description}
-              </span>
-            </span>
+              </GuideChoiceDescription>
+            </div>
           </label>
         {/each}
       </div>
@@ -433,7 +428,7 @@ onMount(() => {
                   {/if}
                 </span>
               {/if}
-              <span
+              <div
                 class={`block border-t-2 pt-4 transition-colors ${value === choice.value ? 'border-secondary' : choice.disabled ? 'border-border-card' : 'border-border-card group-hover:border-secondary/60'}`}
               >
                 <span class="flex items-start justify-between gap-3">
@@ -450,12 +445,10 @@ onMount(() => {
                     ></span>
                   </span>
                 </span>
-                <span
-                  class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-                >
+                <GuideChoiceDescription class="mt-1">
                   {@html choice.description}
-                </span>
-              </span>
+                </GuideChoiceDescription>
+              </div>
             </label>
           {/each}
         </div>
@@ -510,18 +503,16 @@ onMount(() => {
               aria-hidden="true"
             />
           {/if}
-          <span class={variant === 'tiles' ? '' : 'min-w-0'}>
+          <div class={variant === 'tiles' ? '' : 'min-w-0'}>
             <span class="block font-body text-body-md font-semibold text-primary">
               {@html choice.label}
             </span>
             {#if choice.description && variant !== 'tiles'}
-              <span
-                class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-              >
+              <GuideChoiceDescription class="mt-1">
                 {@html choice.description}
-              </span>
+              </GuideChoiceDescription>
             {/if}
-          </span>
+          </div>
           {#if variant === 'tiles' && choice.note}
             <span
               class="absolute right-3 bottom-4 left-3 font-body text-label-sm text-secondary"

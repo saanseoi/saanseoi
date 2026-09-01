@@ -1,5 +1,9 @@
 <script lang="ts">
-import { GuideCodeBlock, GuidePromptBlock } from '#lib/bits/pages/guides/index.js'
+import {
+  GuideCodeBlock,
+  GuideParagraph,
+  GuidePromptBlock,
+} from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
@@ -24,9 +28,7 @@ $effect(() => {
 </script>
 
 <div class="mt-3 space-y-10">
-  <p class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
-    {@html m.guide_publish_other_intro()}
-  </p>
+  <GuideParagraph> {@html m.guide_publish_other_intro()} </GuideParagraph>
 
   <section aria-labelledby="publish-other-title">
     <p
@@ -59,9 +61,9 @@ $effect(() => {
           <h4 class="font-display text-title-lg font-bold text-primary">
             {m.guide_publish_other_build_title()}
           </h4>
-          <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+          <GuideParagraph class="mt-2">
             {@html m.guide_publish_other_build_description()}
-          </p>
+          </GuideParagraph>
           <div class="mt-4">
             <GuideCodeBlock
               label={m.guide_setup_terminal_label({
@@ -80,20 +82,20 @@ $effect(() => {
           <h4 class="font-display text-title-lg font-bold text-primary">
             {m.guide_publish_other_docs_title()}
           </h4>
-          <p
-            class="mt-2 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+          <GuideParagraph
+            class="mt-2 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
           >
             {@html m.guide_publish_other_docs_description()}
-          </p>
+          </GuideParagraph>
         </div>
 
         <div>
           <h4 class="font-display text-title-lg font-bold text-primary">
             {m.guide_publish_other_prompt_title()}
           </h4>
-          <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+          <GuideParagraph class="mt-2">
             {m.guide_publish_other_prompt_description()}
-          </p>
+          </GuideParagraph>
           <div class="mt-4">
             <GuidePromptBlock code={m.guide_publish_other_prompt()} />
           </div>
@@ -103,9 +105,9 @@ $effect(() => {
           <h4 class="font-display text-title-lg font-bold text-primary">
             {m.guide_publish_other_check_title()}
           </h4>
-          <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
+          <GuideParagraph class="mt-2">
             {m.guide_publish_other_check_description()}
-          </p>
+          </GuideParagraph>
         </div>
       </div>
     </GuidePublishRequirement>
@@ -118,8 +120,8 @@ $effect(() => {
     >
       {m.guide_publish_other_success_title()}
     </h3>
-    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+    <GuideParagraph class="mt-3">
       {m.guide_publish_other_success_description()}
-    </p>
+    </GuideParagraph>
   </section>
 </div>

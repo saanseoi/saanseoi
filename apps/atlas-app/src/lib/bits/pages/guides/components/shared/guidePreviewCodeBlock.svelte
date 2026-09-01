@@ -29,7 +29,7 @@ type Props = {
   closeLabel?: string
   showCodeLabel: string
   variant?: 'code' | 'editor'
-  pathPrefix?: string
+  pathSeparator?: '\\'
   width?: 'content' | 'short' | 'shortCard'
 }
 
@@ -52,7 +52,7 @@ let {
   closeLabel,
   showCodeLabel,
   variant = 'editor',
-  pathPrefix,
+  pathSeparator,
   width = 'shortCard',
 }: Props = $props()
 let view = $state<'code' | 'preview'>('code')
@@ -144,7 +144,7 @@ function closePreview() {
       {editorIcon}
       {label}
       {language}
-      {pathPrefix}
+      {pathSeparator}
       {variant}
       {width}
     >

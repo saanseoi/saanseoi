@@ -52,7 +52,7 @@ let {
   {#if expanded}
     <div
       id={`${id}-details`}
-      class="ml-8 mt-5 space-y-5 border-t border-[#d19637]/35 pt-5"
+      class="mt-5 space-y-5 border-t border-[#d19637]/35 pt-5"
       transition:slide={{ duration: 180 }}
     >
       {@render children?.()}

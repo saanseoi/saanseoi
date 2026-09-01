@@ -1177,7 +1177,7 @@
   "guide_setup_start_step_label": "開始",
   "guide_setup_start_server": "啟動開發伺服器",
   "guide_setup_terminal_instructions_windows": "開啟 <b>Windows 終端機</b>（您可以在其中鍵入命令的視窗）並按順序執行以下命令。每行開頭的 <code>PS&gt;</code> 稱為 shell 提示字元。它表明終端已準備好供您輸入；它不是命令的一部分，因此請勿鍵入或複製它。以下命令將安裝",
-  "guide_setup_terminal_instructions_none_windows": "每個<b>終端機</b>區塊都包含要執行的指令，其標題會告訴您終端機應位於<b>哪裡</b>。選取<b>複製</b>，在 Windows Terminal 中按一下，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或按右鍵貼上，然後按 Enter。終端機一次只會在一個資料夾中工作：<code>C:\\Users\\your-name</code> 是您的主資料夾，而 <code>C:\\Users\\your-name\\saanseoi-project</code> 是您的專案資料夾。在這兩個資料夾執行相同的指令並不相同。<code>PS&gt;</code> 提示符號不是指令的一部分。以下指令將安裝 ",
+  "guide_setup_terminal_instructions_none_windows": "每個<b>終端機</b>區塊都包含要執行的指令，其標題會告訴您終端機應位於<b>哪裡</b>。選取<b>複製</b>，在 Windows Terminal 中按一下，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或按右鍵貼上，然後按 Enter。終端機一次只會在一個資料夾中工作：<code>~</code> 是您的主資料夾，而 <code>~\\saanseoi-project</code> 是您的專案資料夾。在這兩個資料夾執行相同的指令並不相同。<code>PS&gt;</code> 提示符號不是指令的一部分。以下指令將安裝 ",
   "guide_setup_terminal_instructions_none_macos": "每個<b>終端機</b>區塊都包含要執行的指令，其標題會告訴您終端機應位於<b>哪裡</b>。選取<b>複製</b>，在 Terminal 中按一下，使用 <kbd>Command</kbd> + <kbd>V</kbd> 貼上，然後按 Return。終端機一次只會在一個資料夾中工作：<code>~/</code> 是您的主資料夾，而 <code>~/saanseoi-project</code> 是您的專案資料夾。在這兩個資料夾執行相同的指令並不相同。<code>$</code> 提示符號不是指令的一部分。以下指令將安裝 ",
   "guide_setup_terminal_instructions_none_linux": "每個<b>終端機</b>區塊都包含要執行的指令，其標題會告訴您終端機應位於<b>哪裡</b>。選取<b>複製</b>，在終端機中按一下，使用 <kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>V</kbd> 或按右鍵貼上，然後按 Enter。終端機一次只會在一個資料夾中工作：<code>~/</code> 是您的主資料夾，而 <code>~/saanseoi-project</code> 是您的專案資料夾。在這兩個資料夾執行相同的指令並不相同。<code>$</code> 提示符號不是指令的一部分。以下指令將安裝 ",
   "guide_setup_terminal_label": "{path} • {action}",

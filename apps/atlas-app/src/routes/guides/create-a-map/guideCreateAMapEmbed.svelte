@@ -2,6 +2,7 @@
 import {
   GuideCodeBlock,
   GuideInstructionCallout,
+  GuideParagraph,
   GuideSection,
 } from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
@@ -97,9 +98,11 @@ $effect(() => () => clearPreviewTimer())
   showBorder={false}
   eyebrow={m.guide_embed_section_eyebrow({ platform: platformLabel })}
 >
-  <div class="max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt">
-    <p>{@html m.guide_embed_section_description({ platform: platformLabel })}</p>
-    <p>
+  <div class="space-y-5">
+    <GuideParagraph>
+      {@html m.guide_embed_section_description({ platform: platformLabel })}
+    </GuideParagraph>
+    <GuideParagraph>
       {@html m.guide_embed_section_platform_method({
         element: elementName,
         platform: platformLabel,
@@ -115,11 +118,11 @@ $effect(() => () => clearPreviewTimer())
       {:else}
         {m.guide_embed_other_docs()}.
       {/if}
-    </p>
+    </GuideParagraph>
   </div>
 
   {#if platform === 'wordpress'}
-    <fieldset class="mt-8 max-w-3xl border border-border-card bg-background p-5">
+    <fieldset class="mt-8 max-w-[58rem] border border-border-card bg-background p-5">
       <legend class="px-2 font-display text-title-md font-bold text-primary">
         {m.guide_embed_wordpress_kind_title()}
       </legend>
@@ -151,11 +154,11 @@ $effect(() => () => clearPreviewTimer())
     >
       {m.guide_embed_preview_title()}
     </h3>
-    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+    <GuideParagraph class="mt-3">
       {m.guide_embed_preview_description()}
-    </p>
+    </GuideParagraph>
 
-    <div class="mt-5 grid max-w-3xl gap-5 sm:grid-cols-2">
+    <div class="mt-5 grid max-w-[58rem] gap-5 sm:grid-cols-2">
       <label class="sm:col-span-2">
         <span class="font-body text-label-md font-semibold text-primary">
           {m.guide_embed_map_url_label()}
@@ -285,9 +288,9 @@ $effect(() => () => clearPreviewTimer())
     >
       {m.guide_embed_code_title()}
     </h3>
-    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+    <GuideParagraph class="mt-3">
       {m.guide_embed_code_description()}
-    </p>
+    </GuideParagraph>
     <div class="mt-5 max-w-5xl">
       <GuideCodeBlock
         label={m.guide_embed_code_label({ platform: platformLabel })}
@@ -305,7 +308,7 @@ $effect(() => () => clearPreviewTimer())
     >
       {m.guide_embed_placement_title({ platform: platformLabel })}
     </h3>
-    <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+    <GuideParagraph class="mt-3">
       {platform === 'wordpress'
         ? m.guide_embed_placement_wordpress()
         : platform === 'squarespace'
@@ -315,9 +318,9 @@ $effect(() => () => clearPreviewTimer())
             : platform === 'webflow'
               ? m.guide_embed_placement_webflow()
               : m.guide_embed_placement_other()}
-    </p>
+    </GuideParagraph>
     <div
-      class="mt-5 max-w-3xl border border-border-card bg-background p-5"
+      class="mt-5 max-w-[58rem] border border-border-card bg-background p-5"
       role="img"
       aria-label={m.guide_embed_illustration_alt({ element: elementName, platform: platformLabel })}
     >
@@ -368,7 +371,7 @@ $effect(() => () => clearPreviewTimer())
     />
   </section>
 
-  <section class="mt-10 max-w-3xl" aria-labelledby="embed-limits-title">
+  <section class="mt-10 max-w-[58rem]" aria-labelledby="embed-limits-title">
     <h3
       id="embed-limits-title"
       class="font-display text-headline-sm font-bold text-primary"

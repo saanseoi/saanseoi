@@ -31,7 +31,7 @@ type Props = {
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
-  pathPrefix?: string
+  pathSeparator?: '\\'
   promptIcon?: string
   terminalDotsSuffix?: Snippet
   variant?: 'code' | 'editor' | 'prompt'
@@ -285,7 +285,7 @@ let {
   leadingActions,
   labelContent,
   onCopy,
-  pathPrefix,
+  pathSeparator,
   promptIcon = 'material-symbols-light:auto-awesome',
   terminalDotsSuffix,
   variant = 'code',
@@ -295,8 +295,8 @@ let copied = $state(false)
 let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
 const displayedLabel = $derived(
-  pathPrefix && (label === '.env' || label.startsWith('src/'))
-    ? `${pathPrefix}\\${label.replaceAll('/', '\\')}`
+  pathSeparator === '\\' && (label === '.env' || label.startsWith('src/'))
+    ? label.replaceAll('/', '\\')
     : label,
 )
 const highlightedCode = $derived(

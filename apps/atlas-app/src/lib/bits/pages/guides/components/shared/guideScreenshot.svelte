@@ -70,7 +70,7 @@ const enlarge = () => {
     >
   </button>
   {#if caption}
-    <figcaption><GuideParagraph>{caption}</GuideParagraph></figcaption>
+    <figcaption><GuideParagraph>{@html caption}</GuideParagraph></figcaption>
   {/if}
 </figure>
 

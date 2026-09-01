@@ -87,7 +87,6 @@ import {
   getBunInstallCode,
   getCreateAMapRendererReference,
   getRendererTerminalCommand,
-  mapboxTokenCode,
   urbanDensityMapCode,
   urbanDensityMapDisplayCode,
   urbanDensityCalculationCode,
@@ -1554,9 +1553,7 @@ const restartProjectCode = $derived(createRestartProjectCode(operatingSystem))
 const agentProjectCommand = $derived(createAgentProjectCommand(agentTool))
 const stopServerModifier = $derived(operatingSystem === 'macos' ? 'Control' : 'Ctrl')
 const terminalProjectPath = $derived(
-  operatingSystem === 'windows'
-    ? 'C:\\Users\\your-name\\saanseoi-project'
-    : '~/saanseoi-project',
+  operatingSystem === 'windows' ? '~\\saanseoi-project' : '~/saanseoi-project',
 )
 const projectSetupIntro = $derived.by(() => {
   if (llmMode !== 'manual' || !setupReady || terminalExperience === 'advanced') {
@@ -1620,14 +1617,10 @@ const rendererTerminalReminder = $derived(
       }),
 )
 const rendererEditorPath = $derived(
-  operatingSystem === 'windows'
-    ? `${terminalProjectPath}\\src\\main.ts`
-    : 'src/main.ts',
+  operatingSystem === 'windows' ? 'src\\main.ts' : 'src/main.ts',
 )
 const rendererStylesheetPath = $derived(
-  operatingSystem === 'windows'
-    ? `${terminalProjectPath}\\src\\style.css`
-    : 'src/style.css',
+  operatingSystem === 'windows' ? 'src\\style.css' : 'src/style.css',
 )
 const rendererEditorLabel = $derived(
   `${rendererEditorPath} — ${m.guide_renderer_editor_card_start_map()}`,
@@ -1636,14 +1629,6 @@ const rendererStylesheetLabel = $derived(
   `${rendererStylesheetPath} — ${m.guide_renderer_editor_card_reset_styles()}`,
 )
 const editorNewFileShortcut = $derived(operatingSystem === 'macos' ? '⌘N' : 'Ctrl+N')
-const mapboxTokenPasteInstruction = $derived(
-  operatingSystem === 'windows'
-    ? m.guide_renderer_mapbox_token_paste_windows()
-    : operatingSystem === 'macos'
-      ? m.guide_renderer_mapbox_token_paste_macos()
-      : m.guide_renderer_mapbox_token_paste_linux(),
-)
-const isWebsiteMap = $derived(objective === 'web' || objective === 'web-embed')
 const rendererEditorRefreshNote = $derived(
   renderer === 'mapbox' || renderer === 'leaflet'
     ? m.guide_renderer_leaflet_editor_refresh_note()
@@ -2164,11 +2149,9 @@ const styleChoices = $derived.by(() =>
                       showHeading={false}
                     />
                   {:else if agentProjectCommand}
-                    <p
-                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
+                    <GuideParagraph>
                       {@html m.guide_setup_agent_terminal_instruction()}
-                    </p>
+                    </GuideParagraph>
                     <GuideCodeBlock
                       label={m.guide_setup_agent_terminal_label()}
                       code={agentProjectCommand}
@@ -2177,11 +2160,9 @@ const styleChoices = $derived.by(() =>
                       copiedLabel={m.common_copied()}
                     />
                     {#if agentTool === 'codex-cli'}
-                      <p
-                        class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                      >
+                      <GuideParagraph>
                         {@html m.guide_setup_agent_codex_cli_trust_directory()}
-                      </p>
+                      </GuideParagraph>
                       <div class="max-w-3xl">
                         <GuideScreenshot
                           src={codexCliTrustDirectory}
@@ -2190,40 +2171,30 @@ const styleChoices = $derived.by(() =>
                       </div>
                     {/if}
                   {:else if agentTool === 'codex-app'}
-                    <p
-                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
+                    <GuideParagraph>
                       {@html m.guide_setup_agent_codex_app_instruction()}
-                    </p>
+                    </GuideParagraph>
                   {:else if agentTool === 'claude-cowork'}
-                    <p
-                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
+                    <GuideParagraph>
                       {@html m.guide_setup_agent_claude_cowork_instruction()}
-                    </p>
+                    </GuideParagraph>
                   {:else}
-                    <p
-                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
+                    <GuideParagraph>
                       {@html m.guide_setup_agent_other_instruction()}
-                    </p>
+                    </GuideParagraph>
                   {/if}
                   {#if agentModelSelectionInstruction}
-                    <p
-                      class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                    >
+                    <GuideParagraph>
                       {@html agentModelSelectionInstruction}
-                    </p>
+                    </GuideParagraph>
                   {/if}
                 </div>
               {/if}
               {#if aiAccess === 'agentic'}
                 {#if agentTool === 'zed'}
-                  <p
-                    class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                  >
+                  <GuideParagraph>
                     {@html m.guide_setup_agent_zed_prompt_instruction()}
-                  </p>
+                  </GuideParagraph>
                 {/if}
                 <GuidePromptBlock
                   code={progressiveSectionPrompts.prerequisites}
@@ -2239,9 +2210,7 @@ const styleChoices = $derived.by(() =>
                     eyebrow={m.guide_setup_llm_eyebrow()}
                     title={m.guide_setup_llm_title()}
                   />
-                  <p
-                    class="max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                  >
+                  <GuideParagraph>
                     {@html m.guide_setup_llm_instruction_before()}
                     {#if selectedLlmChatUrl}
                       <Button
@@ -2263,7 +2232,7 @@ const styleChoices = $derived.by(() =>
                       </span>
                     {/if}
                     {@html m.guide_setup_llm_instruction_after()}
-                  </p>
+                  </GuideParagraph>
                   <GuidePromptBlock
                     code={progressiveSectionPrompts.prerequisites}
                     promptIcon={selectedLlmOption?.icon}
@@ -2294,7 +2263,7 @@ const styleChoices = $derived.by(() =>
             code={editorCardExplainerCode}
             displayCode={editorCardExplainerDisplayCode}
             editorIcon={selectedCodeEditor?.icon}
-            pathPrefix={operatingSystem === 'windows' ? terminalProjectPath : undefined}
+            pathSeparator={operatingSystem === 'windows' ? '\\' : undefined}
           />
         {/if}
         <div class="mt-8 space-y-8">
@@ -2330,11 +2299,12 @@ const styleChoices = $derived.by(() =>
             {#if renderer === 'mapbox'}
               <GuideMapboxTokenReadiness
                 configured={mapboxTokenConfigured}
-                {isWebsiteMap}
+                editorIcon={selectedCodeEditor?.icon}
+                editorLabel={selectedCodeEditor?.label}
+                newFileShortcut={editorNewFileShortcut}
                 onComplete={completeMapboxToken}
                 onReset={resetMapboxToken}
-                tokenCode={mapboxTokenCode}
-                tokenPasteInstruction={mapboxTokenPasteInstruction}
+                {operatingSystem}
                 {terminalProjectPath}
               />
             {/if}
@@ -2347,11 +2317,11 @@ const styleChoices = $derived.by(() =>
                       library: selectedRenderer?.label ?? '',
                     })}
                   />
-                  <p
-                    class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                  <GuideParagraph
+                    class="mt-3 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererTerminalReminder}
-                  </p>
+                  </GuideParagraph>
                   <div class="mt-6 max-w-2xl">
                     <GuideCodeBlock
                       label={m.guide_setup_terminal_label({
@@ -2370,11 +2340,11 @@ const styleChoices = $derived.by(() =>
                     eyebrow={m.guide_renderer_css_code()}
                     title={m.guide_renderer_reset_styles_title()}
                   />
-                  <p
-                    class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                  <GuideParagraph
+                    class="mt-4 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererStylesheetInstruction}
-                  </p>
+                  </GuideParagraph>
                   {#if codeEditor === 'sublime-text'}
                     <div class="mt-6 max-w-2xl">
                       <GuideScreenshot
@@ -2403,11 +2373,11 @@ const styleChoices = $derived.by(() =>
                       library: selectedRenderer?.label ?? '',
                     })}
                   />
-                  <p
-                    class="mt-4 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+                  <GuideParagraph
+                    class="mt-4 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
                   >
                     {@html rendererEditorInstruction}
-                  </p>
+                  </GuideParagraph>
                   {#if renderer === 'maplibre'}
                     <div class="mt-4 max-w-[80ch]">
                       <GuidePreviewCodeBlock
@@ -2453,22 +2423,20 @@ const styleChoices = $derived.by(() =>
                       />
                     </div>
                   {/if}
-                  <p
-                    class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                  >
+                  <GuideParagraph class="mt-3">
                     {@html rendererEditorRefreshNote}
-                  </p>
+                  </GuideParagraph>
                 </div>
                 {#if objective === 'web-embed'}
                   <GuideCallout>
-                    <p>
+                    <GuideParagraph>
                       {@html m.guide_renderer_web_embed()}
                       <a
                         class="font-semibold text-secondary underline underline-offset-4"
                         href="/#community"
                         >{@html m.guide_join_community()}</a
                       >.
-                    </p>
+                    </GuideParagraph>
                   </GuideCallout>
                 {/if}
               {/if}
@@ -2476,7 +2444,7 @@ const styleChoices = $derived.by(() =>
           {/if}
           {#if objective === 'mobile-embed'}
             <GuideCallout id="map-library" class="scroll-mt-28">
-              <p>{@html m.guide_renderer_mobile()}</p>
+              <GuideParagraph>{@html m.guide_renderer_mobile()}</GuideParagraph>
               {#if mobileDocsUrl}
                 <a
                   class="mt-3 inline-flex font-semibold text-secondary underline underline-offset-4"
@@ -2491,9 +2459,7 @@ const styleChoices = $derived.by(() =>
             </GuideCallout>
           {:else if objective === 'notebook-embed'}
             <GuideCallout id="map-library" class="space-y-4 scroll-mt-28">
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
-                {@html m.guide_renderer_notebook()}
-              </p>
+              <GuideParagraph> {@html m.guide_renderer_notebook()} </GuideParagraph>
               {#if notebookLibrary}
                 <GuideCodeBlock
                   label={m.guide_notebook_code()}
@@ -2577,9 +2543,9 @@ const styleChoices = $derived.by(() =>
               {/snippet}
             </GuideSubSectionHeader>
             {#if !hasBasemapApiKey && !usingExistingBasemapApiKey}
-              <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph class="mt-3">
                 {m.guide_basemap_api_key_create_instruction()}
-              </p>
+              </GuideParagraph>
             {/if}
             <GuideCreateAMapApiKeys
               apiKeyReady={hasBasemapApiKey}
@@ -2616,7 +2582,7 @@ const styleChoices = $derived.by(() =>
           </div>
           {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             {#if !llmGuidanceEnabled}
-              <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
+              <div class="mt-10 max-w-[58rem] border-t border-border-card pt-10">
                 <GuideSubSectionHeader
                   eyebrow={m.guide_basemap_editor_eyebrow()}
                   title={m.guide_basemap_editor_title()}
@@ -2660,26 +2626,26 @@ const styleChoices = $derived.by(() =>
                       variant="editor"
                     />
                   {/if}
-                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                  <GuideParagraph>
                     {m.guide_basemap_editor_restart()}
-                  </p>
-                  <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+                  </GuideParagraph>
+                  <GuideParagraph class="mt-3">
                     {m.guide_basemap_editor_style_next()}
-                  </p>
+                  </GuideParagraph>
                 </GuideSubSectionBody>
               </div>
             {/if}
           {:else if region && objective === 'mobile-embed'}
             <GuideCallout class="mt-8">
-              <p>
+              <GuideParagraph>
                 {@html m.guide_basemap_mobile_handoff()}
-              </p>
+              </GuideParagraph>
             </GuideCallout>
           {:else if region && objective === 'notebook-embed'}
             <GuideCallout class="mt-8">
-              <p>
+              <GuideParagraph>
                 {@html m.guide_basemap_notebook_handoff()}
-              </p>
+              </GuideParagraph>
             </GuideCallout>
           {/if}
           {#if llmGuidanceEnabled && region}
@@ -2729,9 +2695,9 @@ const styleChoices = $derived.by(() =>
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_style_custom_title()}
             </h3>
-            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+            <GuideParagraph class="mt-3">
               {@html m.guide_style_custom_description()}
-            </p>
+            </GuideParagraph>
             <div class="mt-5 flex flex-wrap gap-4">
               <Button href="https://maplibre.org/maputnik/" variant="secondary"
                 >{@html m.guide_style_open_maputnik()}</Button
@@ -2748,17 +2714,17 @@ const styleChoices = $derived.by(() =>
           </GuideCallout>
         {/if}
         {#if selectedStyle && renderer}
-          <div class="mt-10 max-w-3xl pt-10">
+          <div class="mt-10 max-w-[58rem] pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
               title={m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' })}
             />
             <GuideSubSectionBody>
-              <p
-                class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+              <GuideParagraph
+                class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
               >
                 {@html styleEditorInstruction}
-              </p>
+              </GuideParagraph>
               {#if renderer === 'maplibre'}
                 <GuidePreviewCodeBlock
                   label={rendererEditorPath}
@@ -2904,9 +2870,9 @@ const styleChoices = $derived.by(() =>
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_data_urban_density_preferences_title()}
             </h3>
-            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+            <GuideParagraph class="mt-3">
               {@html m.guide_data_urban_density_missing_preferences_intro()}
-            </p>
+            </GuideParagraph>
             <ul
               class="mt-3 list-disc space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
             >
@@ -2934,11 +2900,11 @@ const styleChoices = $derived.by(() =>
               {/if}
             </ul>
             {#if region && region !== 'hk'}
-              <p class="mt-4 font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph class="mt-4">
                 {@html m.guide_data_urban_density_missing_preferences_region({
                   region: selectedRegion?.label ?? '',
                 })}
-              </p>
+              </GuideParagraph>
             {/if}
           </GuideCallout>
         {/if}
@@ -3040,14 +3006,14 @@ const styleChoices = $derived.by(() =>
               >
             {:else}
               <GuideCallout>
-                <p>
+                <GuideParagraph>
                   {@html m.guide_setup_mobile_other()}
                   <a
                     class="font-semibold text-secondary underline underline-offset-4"
                     href="/#community"
                     >{@html m.guide_join_community()}</a
                   >.
-                </p>
+                </GuideParagraph>
               </GuideCallout>
             {/if}
           {:else}
@@ -3092,9 +3058,9 @@ const styleChoices = $derived.by(() =>
           title={m.guide_data_urban_density_conclusion_title()}
         >
           <div
-            class="mt-3 max-w-3xl space-y-5 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+            class="mt-3 space-y-5 [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
           >
-            <p>
+            <GuideParagraph>
               {@html dataSource === 'api'
                 ? isMapPublished
                   ? m.guide_data_urban_density_conclusion_community_phewee_published()
@@ -3102,14 +3068,18 @@ const styleChoices = $derived.by(() =>
                 : isMapPublished
                   ? m.guide_data_urban_density_conclusion_community_own_data_published()
                   : m.guide_data_urban_density_conclusion_community_own_data()}
-            </p>
+            </GuideParagraph>
             {#if dataSource === 'api'}
-              <p>
+              <GuideParagraph>
                 {@html m.guide_data_urban_density_conclusion_community_complexity()}
-              </p>
+              </GuideParagraph>
             {/if}
-            <p>{@html m.guide_data_urban_density_conclusion_community_continue()}</p>
-            <p>{@html m.guide_data_urban_density_conclusion_explore()}</p>
+            <GuideParagraph>
+              {@html m.guide_data_urban_density_conclusion_community_continue()}
+            </GuideParagraph>
+            <GuideParagraph
+              >{@html m.guide_data_urban_density_conclusion_explore()}</GuideParagraph
+            >
             <nav class="flex flex-wrap gap-2" aria-label={m.guide_share_title()}>
               {#each shareLinks as link}
                 <a

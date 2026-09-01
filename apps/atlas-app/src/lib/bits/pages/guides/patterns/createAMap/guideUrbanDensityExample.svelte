@@ -3,6 +3,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideCallout from '../../components/shared/guideCallout.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 import GuideSubSectionBody from '../../components/shared/guideSubSectionBody.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
@@ -92,12 +93,11 @@ let {
   turfInstallOutput,
 }: Props = $props()
 
-const projectPathSeparator = $derived(terminalProjectPath.includes('\\') ? '\\' : '/')
-const editorPathPrefix = $derived(
-  terminalProjectPath.includes('\\') ? terminalProjectPath : undefined,
+const editorPathSeparator = $derived(
+  terminalProjectPath.includes('\\') ? '\\' : undefined,
 )
 const landAnalysisFilePath = $derived(
-  `${terminalProjectPath}${projectPathSeparator}src${projectPathSeparator}land-analysis.json`,
+  `src${editorPathSeparator ?? '/'}land-analysis.json`,
 )
 
 const mapReadyComments = [
@@ -590,20 +590,20 @@ const liveableAreaMapComments = [
         {@html m.guide_data_urban_density_badge()}
       </span>
       <h3
-        class="mt-5 max-w-3xl font-display text-[clamp(2.25rem,4.5vw,3.75rem)] font-bold leading-[0.92] tracking-[-0.045em] text-primary"
+        class="mt-5 max-w-[58rem] font-display text-[clamp(2.25rem,4.5vw,3.75rem)] font-bold leading-[0.92] tracking-[-0.045em] text-primary"
       >
         {@html m.guide_data_urban_density_title()}
       </h3>
-      <p class="mt-5 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+      <GuideParagraph class="mt-5">
         {@html m.guide_data_urban_density_description()}
-      </p>
+      </GuideParagraph>
     </div>
   </header>
   {#if hongKongBasemapNote}
     <GuideCallout class="mt-6">
-      <p class="font-body text-body-lg leading-8 text-foreground-alt">
+      <GuideParagraph>
         {hongKongBasemapNote}
-      </p>
+      </GuideParagraph>
     </GuideCallout>
   {/if}
   <div class="mt-8 space-y-12">
@@ -622,7 +622,7 @@ const liveableAreaMapComments = [
           code={mapReadyCode}
           comments={mapReadyComments}
           {editorIcon}
-          pathPrefix={editorPathPrefix}
+          pathSeparator={editorPathSeparator}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
@@ -656,18 +656,18 @@ const liveableAreaMapComments = [
           class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
         >
           <div class="space-y-5">
-            <p
-              class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
+            <GuideParagraph
+              class="[&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
             >
               {@html m.guide_data_urban_density_calculate_preview_explanation()}
-            </p>
+            </GuideParagraph>
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_calculate_code()}
               code={`\n${statsCode}`}
               displayCode={statsDisplayCode}
               comments={statsComments}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="typescript"
               variant="editor"
               copyLabel={m.common_copy()}
@@ -699,11 +699,11 @@ const liveableAreaMapComments = [
           <GuideSubSectionBody
             content={m.guide_data_urban_density_results_description()}
           >
-            <p
-              class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code.guide-urban-density-metrics]:text-secondary"
+            <GuideParagraph
+              class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code.guide-urban-density-metrics]:text-secondary"
             >
               {@html m.guide_data_urban_density_results_instruction()}
-            </p>
+            </GuideParagraph>
             <div
               class="grid gap-6 font-mono lg:-mr-96 lg:w-[calc(100%+24rem)] lg:grid-cols-[minmax(0,80ch)_minmax(0,1fr)] lg:items-start"
             >
@@ -713,7 +713,7 @@ const liveableAreaMapComments = [
                 displayCode={calculationDisplayCode}
                 comments={calculationComments}
                 {editorIcon}
-                pathPrefix={editorPathPrefix}
+                pathSeparator={editorPathSeparator}
                 language="typescript"
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
@@ -744,9 +744,9 @@ const liveableAreaMapComments = [
             </div>
           </GuideSubSectionBody>
         </div>
-        <p class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+        <GuideParagraph class="mt-8">
           {@html m.guide_data_urban_density_census_areas_map_description()}
-        </p>
+        </GuideParagraph>
         <div
           class="mt-5 h-208 max-w-[80ch] overflow-hidden border border-[#596074] bg-[#10151a] shadow-card"
         >
@@ -770,7 +770,7 @@ const liveableAreaMapComments = [
               displayCode={metricsCssDisplayCode}
               comments={metricsCssComments}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="css"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -792,7 +792,7 @@ const liveableAreaMapComments = [
               displayCode={metricsDisplayCode}
               comments={metricsComments}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -814,9 +814,9 @@ const liveableAreaMapComments = [
           </GuideSubSectionBody>
         </div>
       </GuideSubSectionBody>
-      <p class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+      <GuideParagraph class="mt-8">
         {@html m.guide_data_urban_density_density_reflection()}
-      </p>
+      </GuideParagraph>
     </section>
     <section>
       <GuideSubSectionHeader
@@ -833,7 +833,7 @@ const liveableAreaMapComments = [
             displayCode={mapDisplayCode}
             comments={mapComments}
             {editorIcon}
-            pathPrefix={editorPathPrefix}
+            pathSeparator={editorPathSeparator}
             language="typescript"
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
@@ -851,9 +851,9 @@ const liveableAreaMapComments = [
               />
             {/snippet}
           </GuidePreviewCodeBlock>
-          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+          <GuideParagraph>
             {@html m.guide_data_urban_density_exclusion_detail_description()}
-          </p>
+          </GuideParagraph>
         </GuideSubSectionBody>
         <div class="mt-8">
           <GuideSubSectionHeader
@@ -908,14 +908,14 @@ const liveableAreaMapComments = [
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
             />
-            <p class="mt-6 font-body text-body-lg leading-8 text-foreground-alt">
+            <GuideParagraph class="mt-6">
               {@html m.guide_data_urban_density_geometry_worker_description()}
-            </p>
+            </GuideParagraph>
             <GuideCodeBlock
               label={m.guide_data_urban_density_geometry_worker_code()}
               code={geometryWorkerCode}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="typescript"
               variant="editor"
               copyLabel={m.common_copy()}
@@ -935,21 +935,21 @@ const liveableAreaMapComments = [
                   displayCode={setupZ14TileFetcherDisplayCode}
                   comments={setupZ14TileFetcherComments}
                   {editorIcon}
-                  pathPrefix={editorPathPrefix}
+                  pathSeparator={editorPathSeparator}
                   language="typescript"
                   variant="editor"
                   copyLabel={m.common_copy()}
                   copiedLabel={m.common_copied()}
                 />
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {m.guide_data_urban_density_setup_z14_tile_fetcher_css_description()}
-                </p>
+                </GuideParagraph>
                 <GuideCodeBlock
                   label={m.guide_data_urban_density_setup_z14_tile_fetcher_css()}
                   code={setupZ14TileFetcherCss}
                   comments={setupZ14TileFetcherCssComments}
                   {editorIcon}
-                  pathPrefix={editorPathPrefix}
+                  pathSeparator={editorPathSeparator}
                   language="css"
                   variant="editor"
                   copyLabel={m.common_copy()}
@@ -984,7 +984,7 @@ const liveableAreaMapComments = [
                 displayCode={collectNonLiveableLandDisplayCode}
                 comments={collectNonLiveableLandComments}
                 {editorIcon}
-                pathPrefix={editorPathPrefix}
+                pathSeparator={editorPathSeparator}
                 language="typescript"
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
@@ -1014,7 +1014,7 @@ const liveableAreaMapComments = [
                   code={liveableAreaCss}
                   comments={liveableAreaCssComments}
                   {editorIcon}
-                  pathPrefix={editorPathPrefix}
+                  pathSeparator={editorPathSeparator}
                   language="css"
                   variant="editor"
                   copyLabel={m.common_copy()}
@@ -1026,7 +1026,7 @@ const liveableAreaMapComments = [
                   displayCode={liveableAreaDisplayCode}
                   comments={liveableAreaComments}
                   {editorIcon}
-                  pathPrefix={editorPathPrefix}
+                  pathSeparator={editorPathSeparator}
                   language="typescript"
                   copyLabel={m.common_copy()}
                   copiedLabel={m.common_copied()}
@@ -1046,11 +1046,11 @@ const liveableAreaMapComments = [
                 </GuidePreviewCodeBlock>
               </div>
             </div>
-            <p
-              class="mt-8 font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+            <GuideParagraph
+              class="mt-8 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
             >
               {@html m.guide_data_urban_density_liveable_result_description()}
-            </p>
+            </GuideParagraph>
           </GuideSubSectionBody>
         </div>
         <div class="mt-8">
@@ -1067,22 +1067,22 @@ const liveableAreaMapComments = [
               displayCode={liveableMetricsDisplayCode}
               comments={liveableMetricsComments}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
               variant="editor"
             />
-            <p class="mt-8 font-body text-body-lg leading-8 text-foreground-alt">
+            <GuideParagraph class="mt-8">
               {@html m.guide_data_urban_density_liveable_area_map_description()}
-            </p>
+            </GuideParagraph>
             <GuidePreviewCodeBlock
               label={m.guide_data_urban_density_liveable_area_map_code()}
               code={liveableAreaMapCode}
               displayCode={liveableAreaMapDisplayCode}
               comments={liveableAreaMapComments}
               {editorIcon}
-              pathPrefix={editorPathPrefix}
+              pathSeparator={editorPathSeparator}
               language="typescript"
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
@@ -1103,11 +1103,11 @@ const liveableAreaMapComments = [
           </GuideSubSectionBody>
         </div>
       </GuideSubSectionBody>
-      <p
-        class="mt-8 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+      <GuideParagraph
+        class="mt-8 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
       >
         {@html m.guide_data_urban_density_conclusion_summary()}
-      </p>
+      </GuideParagraph>
     </section>
   </div>
 </section>
