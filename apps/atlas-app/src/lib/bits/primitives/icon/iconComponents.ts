@@ -88,6 +88,7 @@ import IconProiconsGlobe from '@iconify-svelte/proicons/globe'
 import IconProiconsInfo from '@iconify-svelte/proicons/info'
 import IconProiconsKey from '@iconify-svelte/proicons/key'
 import IconProiconsLaptop from '@iconify-svelte/proicons/laptop'
+import IconProiconsLayers from '@iconify-svelte/proicons/layers'
 import IconProiconsLocation from '@iconify-svelte/proicons/location'
 import IconProiconsMail from '@iconify-svelte/proicons/mail'
 import IconProiconsMap from '@iconify-svelte/proicons/map'
@@ -264,6 +265,7 @@ export const localIconComponents = {
   'proicons:info': IconProiconsInfo,
   'proicons:key': IconProiconsKey,
   'proicons:laptop': IconProiconsLaptop,
+  'proicons:layers': IconProiconsLayers,
   'proicons:location': IconProiconsLocation,
   'proicons:mail': IconProiconsMail,
   'proicons:map': IconProiconsMap,

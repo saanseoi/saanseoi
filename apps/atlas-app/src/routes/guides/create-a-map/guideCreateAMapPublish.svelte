@@ -555,7 +555,7 @@ const resetRequirement = (requirement: number) => {
       <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
         {m.guide_publish_account_create_before()}{' '}
         <Button
-          class="mr-3"
+          class="mx-3"
           href={accountUrl}
           rel="noreferrer"
           size="compact"

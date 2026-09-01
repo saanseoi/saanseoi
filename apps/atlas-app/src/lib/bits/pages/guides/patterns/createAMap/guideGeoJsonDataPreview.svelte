@@ -1,27 +1,50 @@
 <script lang="ts">
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import type { CreateAMapOpeningPosition } from '#lib/guides/createAMapSelections.js'
+import type { StyleSpecification } from 'maplibre-gl'
 
 type Props = {
   label: string
+  sampleDataUrl: string
   styleUrl: string
   tilejsonUrl: string
   openingPosition: CreateAMapOpeningPosition
 }
 
-let { label, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
+let { label, sampleDataUrl, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
 
 const previewTilejsonUrl = $derived(
   import.meta.env.VITE_SAANSEOI_API_KEY
     ? `${tilejsonUrl}?access_token=${encodeURIComponent(import.meta.env.VITE_SAANSEOI_API_KEY)}`
     : tilejsonUrl,
 )
+const additionalSources = $derived({
+  places: {
+    type: 'geojson' as const,
+    data: sampleDataUrl,
+  },
+} satisfies StyleSpecification['sources'])
+const additionalLayers = [
+  {
+    id: 'places-outline',
+    type: 'circle' as const,
+    source: 'places',
+    paint: {
+      'circle-radius': 8,
+      'circle-color': '#2dd4bf',
+      'circle-stroke-color': '#0f766e',
+      'circle-stroke-width': 2,
+    },
+  },
+]
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${previewTilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
+  {#key `${styleUrl}:${previewTilejsonUrl}:${sampleDataUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
+      {additionalLayers}
+      {additionalSources}
       center={openingPosition.center}
       renderer="maplibre"
       {styleUrl}
@@ -32,7 +55,7 @@ const previewTilejsonUrl = $derived(
   <div
     class="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-sm border border-white/20 bg-[#10151a]/90 px-3 py-2 font-mono text-[0.68rem] font-semibold tracking-[0.08em] text-white/80 uppercase shadow-sm"
   >
-    <span>SaanSeoi Basemap</span>
+    <span>Sample places</span>
     <span class="truncate text-right text-white/60">{label}</span>
   </div>
 </div>

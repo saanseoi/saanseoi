@@ -295,9 +295,10 @@ let copied = $state(false)
 let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
 const displayedLabel = $derived(
-  pathSeparator === '\\' && (label === '.env' || label.startsWith('src/'))
+  (pathSeparator === '\\' && (label === '.env' || label.startsWith('src/'))
     ? label.replaceAll('/', '\\')
-    : label,
+    : label
+  ).replace(/\s(?:—|-)\s/gu, ' • '),
 )
 const highlightedCode = $derived(
   language === 'bash'

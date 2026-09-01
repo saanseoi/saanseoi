@@ -1,4 +1,8 @@
-import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
+import {
+  getCreateAMapOpeningPosition,
+  type CreateAMapOpeningPosition,
+  type CreateAMapSelectionQuery,
+} from '#lib/guides/createAMapSelections.js'
 
 export type CreateAMapRenderer = 'maplibre' | 'mapbox' | 'leaflet'
 
@@ -128,15 +132,37 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
 export const isCreateAMapRenderer = (value?: string): value is CreateAMapRenderer =>
   value === 'maplibre' || value === 'mapbox' || value === 'leaflet'
 
-export const getCreateAMapRendererReference = (renderer: CreateAMapRenderer) =>
-  rendererReferences[renderer]
+export const getCreateAMapRendererReference = (
+  renderer: CreateAMapRenderer,
+  openingPosition: CreateAMapOpeningPosition = getCreateAMapOpeningPosition(undefined),
+): CreateAMapRendererReference => {
+  const [longitude, latitude] = openingPosition.center
+  const reference = rendererReferences[renderer]
+  const code =
+    renderer === 'leaflet'
+      ? reference.code.replace(
+          "L.map('map').setView([22.3193, 114.1694], 11)",
+          `L.map('map').setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
+        )
+      : reference.code
+          .replace(
+            'center: [114.1694, 22.3193],',
+            `center: [${longitude}, ${latitude}],`,
+          )
+          .replace('zoom: 11.5,', `zoom: ${openingPosition.zoom},`)
+
+  return { ...reference, code }
+}
 
 export const createAMapRendererBasemapCode = (
   renderer: CreateAMapRenderer,
   _styleUrl: string,
   tilejsonUrl: string,
-) =>
-  renderer === 'leaflet'
+  openingPosition: CreateAMapOpeningPosition = getCreateAMapOpeningPosition(undefined),
+) => {
+  const [longitude, latitude] = openingPosition.center
+
+  return renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
         "import 'leaflet/dist/leaflet.css'",
@@ -155,7 +181,7 @@ export const createAMapRendererBasemapCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        "const map = L.map('map').setView([22.3193, 114.1694], 11)",
+        `const map = L.map('map').setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
         'maplibreGL({',
         '  style: {',
         '    version: 8,',
@@ -186,8 +212,8 @@ export const createAMapRendererBasemapCode = (
         '',
         `${renderer === 'mapbox' ? 'const map = ' : ''}new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
-        '  center: [114.1694, 22.3193],',
-        '  zoom: 11.5,',
+        `  center: [${longitude}, ${latitude}],`,
+        `  zoom: ${openingPosition.zoom},`,
         '  style: {',
         '    version: 8,',
         '    sources: {',
@@ -200,13 +226,17 @@ export const createAMapRendererBasemapCode = (
           : []),
         '})',
       ].join('\n')
+}
 
 export const createAMapRendererStyleCode = (
   renderer: CreateAMapRenderer,
   styleUrl: string,
   tilejsonUrl: string,
-) =>
-  renderer === 'leaflet'
+  openingPosition: CreateAMapOpeningPosition = getCreateAMapOpeningPosition(undefined),
+) => {
+  const [longitude, latitude] = openingPosition.center
+
+  return renderer === 'leaflet'
     ? [
         "import L from 'leaflet'",
         "import 'leaflet/dist/leaflet.css'",
@@ -231,7 +261,7 @@ export const createAMapRendererStyleCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        "const map = L.map('map').setView([22.3193, 114.1694], 11)",
+        `const map = L.map('map').setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
         'maplibreGL({',
         '  style,',
         '}).addTo(map)',
@@ -262,14 +292,48 @@ export const createAMapRendererStyleCode = (
         '',
         `${renderer === 'mapbox' ? 'const map = ' : ''}new ${renderer === 'mapbox' ? 'mapboxgl.Map' : 'maplibregl.Map'}({`,
         "  container: 'map',",
-        '  center: [114.1694, 22.3193],',
-        '  zoom: 11.5,',
+        `  center: [${longitude}, ${latitude}],`,
+        `  zoom: ${openingPosition.zoom},`,
         '  style,',
         ...(renderer === 'maplibre'
           ? ['  attributionControl: { compact: true },']
           : []),
         '})',
       ].join('\n')
+}
+
+export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
+  if (renderer === 'leaflet') {
+    return [
+      "const places = await fetch('/features.geojson').then(response => response.json())",
+      '',
+      'L.geoJSON(places, {',
+      '  pointToLayer: (_, latlng) => L.circleMarker(latlng, {',
+      "    color: '#0f766e',",
+      "    fillColor: '#2dd4bf',",
+      '    fillOpacity: 0.9,',
+      '    radius: 7,',
+      '  }),',
+      "  onEachFeature: (feature, layer) => layer.bindPopup(feature.properties?.name ?? 'Place'),",
+      '}).addTo(map)',
+    ].join('\n')
+  }
+
+  return [
+    "const places = await fetch('/features.geojson').then(response => response.json())",
+    '',
+    'const addPlaces = () => {',
+    "  map.addSource('places', { type: 'geojson', data: places })",
+    "  map.addLayer({ id: 'places', type: 'circle', source: 'places',",
+    "    paint: { 'circle-radius': 7, 'circle-color': '#2dd4bf',",
+    "      'circle-stroke-width': 2, 'circle-stroke-color': '#0f766e' },",
+    '  })',
+    '}',
+    '',
+    'if (map.isStyleLoaded()) addPlaces()',
+    "else map.once('load', addPlaces)",
+  ].join('\n')
+}
 
 export const createAMapRendererReferenceInstructions = (
   renderer: CreateAMapRenderer,

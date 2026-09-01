@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { getCreateAMapOpeningPosition } from '#lib/guides/createAMapSelections.js'
 
 import {
   createAMapLlmInstructions,
@@ -25,6 +26,33 @@ import {
 } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
+  test('opens each regional basemap within its coverage', () => {
+    expect(getCreateAMapOpeningPosition('hk').center).toEqual([114.1694, 22.3193])
+    expect(getCreateAMapOpeningPosition('mo').center).toEqual([113.552, 22.17])
+    expect(getCreateAMapOpeningPosition('gba').center).toEqual([113.75, 22.65])
+
+    const macaoPosition = getCreateAMapOpeningPosition('mo')
+    expect(
+      createAMapRendererBasemapCode(
+        'maplibre',
+        'https://styles.example/light.json',
+        'https://tiles.example/macau.json',
+        macaoPosition,
+      ),
+    ).toContain('center: [113.552, 22.17]')
+    expect(
+      createAMapRendererStyleCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/macau.json',
+        macaoPosition,
+      ),
+    ).toContain("L.map('map').setView([22.17, 113.552], 12.2)")
+    expect(getCreateAMapRendererReference('leaflet', macaoPosition).code).toContain(
+      "L.map('map').setView([22.17, 113.552], 12.2)",
+    )
+  })
+
   test('starts MapLibre attribution controls in compact mode', () => {
     const styleUrl = 'https://styles.saanseoi.hk/midnight.json'
     const tilejsonUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'

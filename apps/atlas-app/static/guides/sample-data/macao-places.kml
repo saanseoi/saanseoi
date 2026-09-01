@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document>
+<Placemark><name>Ruins of St Paul's</name><Point><coordinates>113.5392,22.1977</coordinates></Point></Placemark>
+<Placemark><name>Senado Square</name><Point><coordinates>113.5438,22.1934</coordinates></Point></Placemark>
+<Placemark><name>A-Ma Temple</name><Point><coordinates>113.5325,22.1866</coordinates></Point></Placemark>
+<Placemark><name>Macau Tower</name><Point><coordinates>113.5405,22.1808</coordinates></Point></Placemark>
+<Placemark><name>Taipa Houses</name><Point><coordinates>113.5605,22.1539</coordinates></Point></Placemark>
+<Placemark><name>Coloane Village</name><Point><coordinates>113.5590,22.1167</coordinates></Point></Placemark>
+<Placemark><name>Guia Fortress</name><Point><coordinates>113.5528,22.2013</coordinates></Point></Placemark>
+<Placemark><name>Macao Museum</name><Point><coordinates>113.5396,22.1982</coordinates></Point></Placemark>
+<Placemark><name>Hac Sa Beach</name><Point><coordinates>113.5682,22.1208</coordinates></Point></Placemark>
+<Placemark><name>Cotai Strip</name><Point><coordinates>113.5681,22.1468</coordinates></Point></Placemark>
+</Document></kml>

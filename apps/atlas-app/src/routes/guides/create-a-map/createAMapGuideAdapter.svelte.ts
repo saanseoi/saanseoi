@@ -65,6 +65,7 @@ export function createCreateAMapGuideAdapter({
       region: state.region,
       style: state.style,
       data: state.dataSource,
+      'data-format': state.dataFormat,
       'basemap-key-ready': state.basemapApiKeyReady ? 'true' : undefined,
       'data-ready': state.completedDataKey,
       'editor-ready': state.completedEditorReadinessKey,
