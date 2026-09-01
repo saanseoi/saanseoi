@@ -57,7 +57,7 @@ let initials = $derived(
       class="shrink-0 text-secondary dark:text-[#6fdec9]"
       role="img"
     >
-      <Icon icon="ion:checkmark-circle" class="size-5" aria-hidden="true" />
+      <Icon icon="ion:checkmark-circle" class="size-10" aria-hidden="true" />
     </div>
   </div>
 </GuideReadinessPanel>

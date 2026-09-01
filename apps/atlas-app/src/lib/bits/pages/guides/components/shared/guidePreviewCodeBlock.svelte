@@ -119,8 +119,8 @@ function closePreview() {
   bind:this={previewCard}
   class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-[58rem]' : width === 'short' ? 'max-w-[48rem]' : 'max-w-[44.5rem]'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
   style:min-height={view === 'preview' ? '0' : minHeight}
-  style:height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
-  style:max-height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
+  style:height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}
+  style:max-height={view === 'preview' ? 'min(1080px, calc(100dvh - 4.5rem))' : undefined}
 >
   <div
     aria-hidden={view !== 'code'}
@@ -173,7 +173,7 @@ function closePreview() {
       : undefined}
     class={`${
       expanded
-        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
         : 'col-start-1 row-start-1 h-full min-h-0 w-full'
     } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
       view === 'preview'

@@ -89,6 +89,9 @@ type Props = {
   ariaLabel: string
   beforeLayerId?: string
   center: Coordinates
+  leafletAttribution?: string
+  leafletTileUrl?: string
+  mapboxStyleUrl?: string
   onMapReady?: (map: MapLibreMap) => void | Promise<void>
   renderer: Renderer
   styleUrl?: string
@@ -104,6 +107,9 @@ let {
   ariaLabel,
   beforeLayerId,
   center,
+  leafletAttribution,
+  leafletTileUrl,
+  mapboxStyleUrl,
   onMapReady,
   renderer,
   styleUrl,
@@ -182,14 +188,15 @@ onMount(() => {
     try {
       loading = true
       error = undefined
-      const style = await loadStyle()
+      const style =
+        (renderer === 'mapbox' && mapboxStyleUrl) ||
+        (renderer === 'leaflet' && leafletTileUrl)
+          ? undefined
+          : await loadStyle()
       if (disposed || !container) return
 
       if (renderer === 'leaflet') {
-        const [leaflet, { maplibreGL }] = await Promise.all([
-          import('leaflet'),
-          import('@maplibre/maplibre-gl-leaflet'),
-        ])
+        const leaflet = await import('leaflet')
         if (disposed || !container) return
 
         const map = leaflet.map(container, {
@@ -197,7 +204,16 @@ onMount(() => {
           zoomControl: false,
         })
         map.setView([center[1], center[0]], zoom)
-        maplibreGL({ style }).addTo(map)
+        if (leafletTileUrl) {
+          leaflet
+            .tileLayer(leafletTileUrl, { attribution: leafletAttribution })
+            .addTo(map)
+        } else {
+          const { maplibreGL } = await import('@maplibre/maplibre-gl-leaflet')
+          if (disposed) return
+
+          maplibreGL({ style: style! }).addTo(map)
+        }
         remove = () => map.remove()
         observeResize(() => map.invalidateSize())
       } else if (renderer === 'mapbox') {
@@ -209,7 +225,7 @@ onMount(() => {
           attributionControl: false,
           container,
           center,
-          style: style as unknown as MapboxStyleSpecification,
+          style: (mapboxStyleUrl ?? style) as MapboxStyleSpecification,
           zoom,
         })
         remove = () => map.remove()
@@ -222,7 +238,7 @@ onMount(() => {
           ...(unstyled ? {} : { attributionControl: false }),
           container,
           center,
-          style,
+          style: style!,
           zoom,
         })
         map.once('idle', () => {
@@ -250,7 +266,7 @@ onMount(() => {
 </script>
 
 <div
-  class="relative size-full overflow-hidden bg-[#10151a]"
+  class="relative z-0 size-full overflow-hidden bg-[#10151a]"
   role="img"
   aria-label={ariaLabel}
 >

@@ -2,7 +2,7 @@
 import type { Snippet } from 'svelte'
 
 import GuideCalloutEyebrow from './guideCalloutEyebrow.svelte'
-import GuideTextHeader from './guideTextHeader.svelte'
+import GuideSubSectionHeader from './guideSubSectionHeader.svelte'
 
 type Props = {
   after?: Snippet
@@ -31,12 +31,13 @@ let {
 }: Props = $props()
 </script>
 
-<section class={`max-w-[58rem] space-y-5`}>
-  {#if eyebrow}
-    <GuideCalloutEyebrow text={eyebrow} />
-  {/if}
+<section class={`max-w-[58rem] space-y-5 pb-4`}>
   {#if title}
-    <GuideTextHeader as="h3" {title} />
+    <div>
+      <GuideSubSectionHeader {eyebrow} {title} />
+    </div>
+  {:else if eyebrow}
+    <GuideCalloutEyebrow text={eyebrow} />
   {/if}
   {@render children?.()}
   {@render before?.()}
