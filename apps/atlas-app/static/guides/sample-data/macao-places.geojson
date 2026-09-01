@@ -1,0 +1,12 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"name":"Ruins of St Paul's"},"geometry":{"type":"Point","coordinates":[113.5392,22.1977]}},
+{"type":"Feature","properties":{"name":"Senado Square"},"geometry":{"type":"Point","coordinates":[113.5438,22.1934]}},
+{"type":"Feature","properties":{"name":"A-Ma Temple"},"geometry":{"type":"Point","coordinates":[113.5325,22.1866]}},
+{"type":"Feature","properties":{"name":"Macau Tower"},"geometry":{"type":"Point","coordinates":[113.5405,22.1808]}},
+{"type":"Feature","properties":{"name":"Taipa Houses"},"geometry":{"type":"Point","coordinates":[113.5605,22.1539]}},
+{"type":"Feature","properties":{"name":"Coloane Village"},"geometry":{"type":"Point","coordinates":[113.5590,22.1167]}},
+{"type":"Feature","properties":{"name":"Guia Fortress"},"geometry":{"type":"Point","coordinates":[113.5528,22.2013]}},
+{"type":"Feature","properties":{"name":"Macao Museum"},"geometry":{"type":"Point","coordinates":[113.5396,22.1982]}},
+{"type":"Feature","properties":{"name":"Hac Sa Beach"},"geometry":{"type":"Point","coordinates":[113.5682,22.1208]}},
+{"type":"Feature","properties":{"name":"Cotai Strip"},"geometry":{"type":"Point","coordinates":[113.5681,22.1468]}}
+]}

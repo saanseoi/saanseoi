@@ -76,6 +76,7 @@ export function createMissingPrerequisiteQuestions({
   aiAccess,
   agentTool,
   codeEditor,
+  dataFormat,
   dataSource,
   hosting,
   isBasemapAccountReady,
@@ -228,6 +229,16 @@ export function createMissingPrerequisiteQuestions({
       label: m.api_keys_title(),
       reminderTitle: m.guide_missing_confirmation(),
       answered: !isBasemapAccountReady || isBasemapApiKeyReady,
+    },
+    {
+      id: 'project-data',
+      label: m.guide_data_label(),
+      answered: Boolean(dataSource),
+    },
+    {
+      id: 'data-format',
+      label: m.guide_data_format_label(),
+      answered: dataSource !== 'existing' || Boolean(dataFormat),
     },
     {
       id: 'data-step-readiness',

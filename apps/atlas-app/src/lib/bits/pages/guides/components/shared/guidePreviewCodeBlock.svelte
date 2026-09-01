@@ -64,7 +64,7 @@ let previewCard: HTMLElement
 let previewPanel: HTMLElement
 const previewTitle = $derived(
   label
-    .replace(/^.*?—\s*/u, '')
+    .replace(/^.*?(?:•|—|-)\s*/u, '')
     .replace(/^./u, character => character.toLocaleUpperCase()),
 )
 

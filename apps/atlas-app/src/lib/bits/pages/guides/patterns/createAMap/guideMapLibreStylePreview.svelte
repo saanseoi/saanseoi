@@ -1,24 +1,32 @@
 <script lang="ts">
 import GuideMappingPreview from './guideMappingPreview.svelte'
+import type { CreateAMapOpeningPosition } from '#lib/guides/createAMapSelections.js'
 
 type Props = {
   label: string
   styleUrl: string
   tilejsonUrl: string
+  openingPosition: CreateAMapOpeningPosition
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
+
+const previewTilejsonUrl = $derived(
+  import.meta.env.VITE_SAANSEOI_API_KEY
+    ? `${tilejsonUrl}?access_token=${encodeURIComponent(import.meta.env.VITE_SAANSEOI_API_KEY)}`
+    : tilejsonUrl,
+)
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${styleUrl}:${previewTilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
-      center={[114.1694, 22.3193]}
+      center={openingPosition.center}
       renderer="maplibre"
       {styleUrl}
-      {tilejsonUrl}
-      zoom={10.5}
+      tilejsonUrl={previewTilejsonUrl}
+      zoom={openingPosition.zoom}
     />
   {/key}
   <div

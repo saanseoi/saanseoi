@@ -29,7 +29,7 @@ type Props = {
       }
   onchange?: (value?: string) => void
   step?: string
-  tileLayout?: 'fixed' | 'flow' | 'six-across'
+  tileLayout?: 'fixed' | 'flow' | 'five-across' | 'six-across'
   value?: string
   variant?: 'compact' | 'illustrated' | 'tiles'
 }
@@ -460,6 +460,8 @@ onMount(() => {
           ? `mt-4 grid gap-3 ${
               tileLayout === 'flow'
                 ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]'
+                : tileLayout === 'five-across'
+                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
                 : tileLayout === 'six-across'
                   ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6'
                   : 'max-w-lg grid-cols-3'

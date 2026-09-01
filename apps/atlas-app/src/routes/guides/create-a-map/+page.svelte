@@ -48,6 +48,7 @@ import {
   createAMapStylePreviewUrl,
   createAMapTileset,
   detectOperatingSystem,
+  getCreateAMapOpeningPosition,
   getCreateAMapQueryChoice,
   type CreateAMapSelectionQuery,
   type CreateAMapSelectionValue,
@@ -83,6 +84,7 @@ import {
   createUrbanDensityMapReadyCode,
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
+  createGeoJsonImportCode,
   getBunInstallCode,
   getCreateAMapRendererReference,
   getRendererTerminalCommand,
@@ -117,6 +119,7 @@ import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideCreateAMapPublishOther from './guideCreateAMapPublishOther.svelte'
 import GuideRendererBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideRendererBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
+import GuideGeoJsonDataPreview from '#lib/bits/pages/guides/patterns/createAMap/guideGeoJsonDataPreview.svelte'
 import {
   createAMapAgenticHandoverPrompt,
   createAMapAgenticSectionPrompt,
@@ -128,6 +131,7 @@ import {
 type Objective = CreateAMapSelectionValue<'objective'>
 type AgentTool = CreateAMapSelectionValue<'agentTool'>
 type CodeEditor = CreateAMapSelectionValue<'codeEditor'>
+type DataFormat = CreateAMapSelectionValue<'dataFormat'>
 type HandoverChatLlm = Extract<
   CreateAMapSelectionValue<'llm'>,
   'chatgpt' | 'claude' | 'deepseek' | 'gemini' | 'kimi'
@@ -235,6 +239,9 @@ let renderer = $state(getCreateAMapQueryChoice(page.url.searchParams, 'renderer'
 let region = $state(getCreateAMapQueryChoice(page.url.searchParams, 'region'))
 let style = $state(getCreateAMapQueryChoice(page.url.searchParams, 'style'))
 let dataSource = $state(getCreateAMapQueryChoice(page.url.searchParams, 'dataSource'))
+let dataFormat = $state<DataFormat | undefined>(
+  getCreateAMapQueryChoice(page.url.searchParams, 'dataFormat'),
+)
 let mapboxTokenConfigured = $state(
   page.url.searchParams.get('mapbox-token-ready') === 'true',
 )
@@ -308,7 +315,9 @@ $effect(() => {
 })
 
 let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`)
-let dataReadinessKey = $derived(dataSource ?? '')
+let dataReadinessKey = $derived(
+  dataSource === 'existing' ? `${dataSource}:${dataFormat ?? ''}` : (dataSource ?? ''),
+)
 let isDataStepComplete = $derived(
   Boolean(dataReadinessKey) && completedDataKey === dataReadinessKey,
 )
@@ -472,6 +481,7 @@ const getSelection = () => ({
   region,
   style,
   dataSource,
+  dataFormat,
 })
 
 createCreateAMapGuideAdapter({
@@ -681,6 +691,68 @@ const dataChoices = $derived.by(() => {
     },
   ]
 })
+const dataFormatChoices = [
+  {
+    value: 'geojson',
+    label: 'GeoJSON(L)',
+    description: '.geojson, .json, .geojsonl, .geojsons, .ld',
+    icon: 'proicons:brackets',
+  },
+  { value: 'kml', label: 'KML/KMZ', description: '.kml, .kmz', icon: 'proicons:globe' },
+  {
+    value: 'csv',
+    label: 'CSV/TSV',
+    description: '.csv, .tsv',
+    icon: 'proicons:brackets',
+  },
+  {
+    value: 'topojson',
+    label: 'TopoJSON',
+    description: '.topojson, .json',
+    icon: 'proicons:layers',
+  },
+  {
+    value: 'shapefile',
+    label: 'Shapefile',
+    description: '.zip',
+    icon: 'proicons:archive',
+  },
+  {
+    value: 'flatgeobuf',
+    label: 'FlatGeobuf',
+    description: '.fgb',
+    icon: 'proicons:database',
+  },
+  {
+    value: 'wkt',
+    label: 'WKT',
+    description: 'Well-Known Text',
+    icon: 'proicons:brackets',
+  },
+  {
+    value: 'xlsx',
+    label: 'XLS/XLSX',
+    description: 'Excel spreadsheet',
+    icon: 'proicons:brackets',
+  },
+  {
+    value: 'osm',
+    label: 'OSM',
+    description: '.osm, .xml',
+    icon: 'proicons:map',
+  },
+  {
+    value: 'other',
+    label: 'Other',
+    description: 'GPX, GeoTIFF, photos, routes, coordinates and other spatial data',
+    icon: 'proicons:more',
+  },
+] satisfies Array<{
+  value: DataFormat
+  label: string
+  description: string
+  icon: string
+}>
 const handoverChatChoices = $derived.by(
   (): Array<{
     value: HandoverChatLlm
@@ -1034,6 +1106,7 @@ $effect(() => {
   }
 })
 const tileset = $derived(createAMapTileset(region))
+const openingPosition = $derived(getCreateAMapOpeningPosition(region))
 const tilejsonUrl = $derived(`https://tiles.saanseoi.hk/${tileset}-latest.json`)
 const selectedStyle = $derived(
   mapStyleDefinitions.find(candidate => candidate.id === style),
@@ -1052,6 +1125,13 @@ const selectedRenderer = $derived(
 const selectedRegion = $derived(regionChoices.find(choice => choice.value === region))
 const selectedDataSource = $derived(
   dataChoices.find(choice => choice.value === dataSource),
+)
+const selectedDataFormat = $derived(
+  dataFormatChoices.find(choice => choice.value === dataFormat),
+)
+const geoJsonImportCode = $derived(renderer ? createGeoJsonImportCode(renderer) : '')
+const sampleDataUrl = $derived(
+  `/guides/sample-data/${region === 'mo' ? 'macao' : region === 'gba' ? 'gba' : 'hong-kong'}-places.geojson`,
 )
 const hostingChoices = $derived.by(() => {
   locale
@@ -1356,6 +1436,7 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     notebookRuntime,
     renderer,
     dataSource,
+    dataFormat,
   })
 })
 $effect(() => {
@@ -1596,6 +1677,7 @@ const rendererReference = $derived(
     renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
       ? renderer
       : 'leaflet',
+    openingPosition,
   ),
 )
 const rendererInstallCode = $derived(rendererReference.installCommand)
@@ -1622,10 +1704,18 @@ const rendererStylesheetPath = $derived(
   operatingSystem === 'windows' ? 'src\\style.css' : 'src/style.css',
 )
 const rendererEditorLabel = $derived(
-  `${rendererEditorPath} — ${m.guide_renderer_editor_card_start_map()}`,
+  `${rendererEditorPath} • ${m.guide_renderer_editor_card_start_map()}`,
 )
 const rendererStylesheetLabel = $derived(
-  `${rendererStylesheetPath} — ${m.guide_renderer_editor_card_reset_styles()}`,
+  `${rendererStylesheetPath} • ${m.guide_renderer_editor_card_reset_styles()}`,
+)
+const basemapEditorLabel = $derived(
+  `${rendererEditorPath} • ${m.guide_basemap_editor_title()}`,
+)
+const styleEditorLabel = $derived(
+  `${rendererEditorPath} • ${m.guide_style_editor_title({
+    library: selectedRenderer?.label ?? '',
+  })}`,
 )
 const editorNewFileShortcut = $derived(operatingSystem === 'macos' ? '⌘N' : 'Ctrl+N')
 const rendererEditorRefreshNote = $derived(
@@ -1693,7 +1783,7 @@ const rendererCodeComments = $derived.by(() => {
 })
 const basemapCode = $derived(
   renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
-    ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl)
+    ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl, openingPosition)
     : '',
 )
 const basemapCodeDimmedLines = $derived(
@@ -1713,8 +1803,6 @@ const basemapCodeComments = $derived.by(() => {
       { line: 6, text: m.guide_basemap_comment_url_safe_api_key() },
       { line: 7, text: m.guide_basemap_comment_basemap_base_url() },
       { line: 8, text: m.guide_basemap_comment_basemap_url() },
-      { line: 10, text: m.guide_renderer_comment_map_node() },
-      { line: 12, text: m.guide_renderer_mapbox_comment_new_map() },
       { line: 13, text: m.guide_renderer_comment_container() },
       { line: 14, text: m.guide_renderer_comment_center() },
       { line: 15, text: m.guide_renderer_comment_zoom() },
@@ -1737,8 +1825,6 @@ const basemapCodeComments = $derived.by(() => {
       { line: 12, text: m.guide_basemap_comment_url_safe_api_key() },
       { line: 13, text: m.guide_basemap_comment_basemap_base_url() },
       { line: 14, text: m.guide_basemap_comment_basemap_url() },
-      { line: 16, text: m.guide_renderer_comment_map_node() },
-      { line: 18, text: m.guide_renderer_leaflet_comment_new_map() },
       { line: 19, text: m.guide_renderer_leaflet_comment_bridge() },
       { line: 20, text: m.guide_basemap_comment_style() },
       { line: 23, text: m.guide_basemap_comment_source() },
@@ -1756,8 +1842,6 @@ const basemapCodeComments = $derived.by(() => {
       { line: 9, text: m.guide_basemap_comment_url_safe_api_key() },
       { line: 10, text: m.guide_basemap_comment_basemap_base_url() },
       { line: 11, text: m.guide_basemap_comment_basemap_url() },
-      { line: 13, text: m.guide_renderer_comment_map_node() },
-      { line: 15, text: m.guide_renderer_maplibre_comment_new_map() },
       { line: 16, text: m.guide_renderer_comment_container() },
       { line: 17, text: m.guide_renderer_comment_center() },
       { line: 18, text: m.guide_renderer_comment_zoom() },
@@ -1778,9 +1862,40 @@ const rendererEditorInstruction = $derived(
 const styleEditCode = $derived(
   selectedStyle &&
     (renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet')
-    ? createAMapRendererStyleCode(renderer, styleUrl, tilejsonUrl)
+    ? createAMapRendererStyleCode(renderer, styleUrl, tilejsonUrl, openingPosition)
     : '',
 )
+const geoJsonImportOmittedLines = $derived(
+  styleEditCode ? styleEditCode.split('\n').length : 0,
+)
+const geoJsonImportComments = $derived.by(() => {
+  const omittedLinesComment = {
+    alwaysVisible: true,
+    line: 1,
+    spacerAfter: true,
+    text: m.guide_data_import_code_omitted({ lines: geoJsonImportOmittedLines }),
+  }
+
+  if (renderer === 'leaflet') {
+    return [
+      omittedLinesComment,
+      { line: 1, text: m.guide_data_import_comment_fetch() },
+      { line: 3, text: m.guide_data_import_comment_layer() },
+      { line: 4, text: m.guide_data_import_comment_marker() },
+      { line: 11, text: m.guide_data_import_comment_popup() },
+    ]
+  }
+
+  return [
+    omittedLinesComment,
+    { line: 1, text: m.guide_data_import_comment_fetch() },
+    { line: 3, text: m.guide_data_import_comment_ready() },
+    { line: 4, text: m.guide_data_import_comment_source() },
+    { line: 5, text: m.guide_data_import_comment_layer() },
+    { line: 6, text: m.guide_data_import_comment_marker() },
+    { line: 11, text: m.guide_data_import_comment_loaded() },
+  ]
+})
 const styleEditDimmedLines = $derived(
   styleEditCode
     .split('\n')
@@ -1802,8 +1917,6 @@ const styleEditComments = $derived.by(() => {
       { line: 11, text: m.guide_style_comment_fetch() },
       { line: 12, text: m.guide_style_comment_sources() },
       { line: 13, text: m.guide_style_comment_basemap_source() },
-      { line: 15, text: m.guide_renderer_comment_map_node() },
-      { line: 17, text: m.guide_renderer_mapbox_comment_new_map() },
       { line: 18, text: m.guide_renderer_comment_container() },
       { line: 19, text: m.guide_renderer_comment_center() },
       { line: 20, text: m.guide_renderer_comment_zoom() },
@@ -1829,8 +1942,6 @@ const styleEditComments = $derived.by(() => {
       { line: 17, text: m.guide_style_comment_fetch() },
       { line: 18, text: m.guide_style_comment_sources() },
       { line: 19, text: m.guide_style_comment_basemap_source() },
-      { line: 21, text: m.guide_renderer_comment_map_node() },
-      { line: 23, text: m.guide_renderer_leaflet_comment_new_map() },
       { line: 24, text: m.guide_renderer_leaflet_comment_bridge() },
       { line: 25, text: m.guide_basemap_comment_style() },
     ]
@@ -1851,8 +1962,6 @@ const styleEditComments = $derived.by(() => {
       { line: 14, text: m.guide_style_comment_fetch() },
       { line: 15, text: m.guide_style_comment_sources() },
       { line: 16, text: m.guide_style_comment_basemap_source() },
-      { line: 18, text: m.guide_renderer_comment_map_node() },
-      { line: 20, text: m.guide_renderer_maplibre_comment_new_map() },
       { line: 21, text: m.guide_renderer_comment_container() },
       { line: 22, text: m.guide_renderer_comment_center() },
       { line: 23, text: m.guide_renderer_comment_zoom() },
@@ -2534,7 +2643,10 @@ const styleChoices = $derived.by(() =>
                     closeLabel={m.common_close()}
                   >
                     {#snippet preview()}
-                      <GuideRendererBlankPreview renderer={renderer ?? 'maplibre'} />
+                      <GuideRendererBlankPreview
+                        renderer={renderer ?? 'maplibre'}
+                        {openingPosition}
+                      />
                     {/snippet}
                   </GuidePreviewCodeBlock>
                 {/snippet}
@@ -2699,14 +2811,19 @@ const styleChoices = $derived.by(() =>
           </div>
           {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
             {#if !llmGuidanceEnabled}
-              <div class="mt-10 max-w-[58rem] border-t border-border-card pt-10">
+              <div class="mt-10 max-w-[58rem] pt-10">
                 <GuideSubSectionHeader
                   eyebrow={m.guide_basemap_editor_eyebrow()}
                   title={m.guide_basemap_editor_title()}
                 />
                 <GuideSubSectionBody content={m.guide_basemap_editor_description()}>
+                  {#if renderer === 'leaflet'}
+                    <GuideParagraph>
+                      {m.guide_basemap_leaflet_bridge_description()}
+                    </GuideParagraph>
+                  {/if}
                   <GuidePreviewCodeBlock
-                    label={rendererEditorPath}
+                    label={basemapEditorLabel}
                     code={basemapCode}
                     comments={basemapCodeComments}
                     dimmedLines={basemapCodeDimmedLines}
@@ -2724,8 +2841,10 @@ const styleChoices = $derived.by(() =>
                     {#snippet preview()}
                       <GuideRendererBlankPreview
                         {renderer}
+                        {openingPosition}
                         title={m.guide_basemap_preview_title()}
                         description={m.guide_basemap_preview_description()}
+                        unstyled
                       />
                     {/snippet}
                   </GuidePreviewCodeBlock>
@@ -2829,7 +2948,7 @@ const styleChoices = $derived.by(() =>
                 {@html styleEditorInstruction}
               </GuideParagraph>
               <GuidePreviewCodeBlock
-                label={rendererEditorPath}
+                label={styleEditorLabel}
                 code={styleEditCode}
                 comments={styleEditComments}
                 dimmedLines={styleEditDimmedLines}
@@ -2849,6 +2968,7 @@ const styleChoices = $derived.by(() =>
                     label={selectedStyle?.name ?? ''}
                     {styleUrl}
                     {tilejsonUrl}
+                    {openingPosition}
                   />
                 {/snippet}
               </GuidePreviewCodeBlock>
@@ -2888,7 +3008,7 @@ const styleChoices = $derived.by(() =>
             marker={{
               current: 1,
               label: m.guide_prerequisites_requirement_label(),
-              total: 1,
+              total: 2,
             }}
             choices={dataChoices}
             bind:value={dataSource}
@@ -2898,19 +3018,109 @@ const styleChoices = $derived.by(() =>
           />
         </div>
         {#if dataSource === 'existing'}
-          <GuideCallout class="mt-8" size="generous">
-            <h3 class="font-display text-headline-sm font-bold text-primary">
-              {@html m.guide_data_existing_title()}
-            </h3>
-            <div class="mt-5">
-              <GuideCodeBlock
-                label={m.guide_data_existing_prompt_label()}
-                code={m.guide_data_existing_prompt()}
-                copyLabel={m.common_copy()}
-                copiedLabel={m.common_copied()}
+          <div id="data-format" class="mt-8 scroll-mt-28">
+            <GuideChoiceGroup
+              alignment="left"
+              label={m.guide_data_format_label()}
+              marker={{
+                current: 2,
+                label: m.guide_prerequisites_requirement_label(),
+                total: 2,
+              }}
+              hint={m.guide_data_format_hint()}
+              choices={dataFormatChoices}
+              bind:value={dataFormat}
+              variant="tiles"
+              tileLayout="five-across"
+            />
+          </div>
+          {#if selectedDataFormat}
+            <div id="geojson" class="mt-12 max-w-[58rem] scroll-mt-28">
+              <GuideSubSectionHeader
+                eyebrow={dataFormat === 'geojson'
+                  ? m.guide_data_geojson_eyebrow()
+                  : m.guide_data_convert_eyebrow()}
+                title={dataFormat === 'geojson'
+                  ? m.guide_data_geojson_title()
+                  : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
+              <GuideSubSectionBody>
+                {#if dataFormat !== 'geojson'}
+                  <GuideParagraph>
+                    {@html m.guide_data_convert_description({ format: selectedDataFormat.label })}
+                  </GuideParagraph>
+                  <ol
+                    class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                  >
+                    <li>{@html m.guide_data_convert_step_open()}</li>
+                    <li>{@html m.guide_data_convert_step_import()}</li>
+                    {#if dataFormat === 'csv'}
+                      <li>{@html m.guide_data_convert_step_columns()}</li>
+                    {/if}
+                  </ol>
+                {/if}
+                <GuideParagraph class={dataFormat === 'geojson' ? '' : 'mt-6'}
+                  >{@html m.guide_data_geojson_description()}</GuideParagraph
+                >
+                <GuideParagraph class="mt-4"
+                  >{@html m.guide_data_geojson_editor()}</GuideParagraph
+                >
+                <ol
+                  class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                >
+                  <li>{@html m.guide_data_geojson_step_properties()}</li>
+                  <li>{@html m.guide_data_geojson_step_geometry()}</li>
+                  <li>{@html m.guide_data_geojson_step_export()}</li>
+                </ol>
+              </GuideSubSectionBody>
             </div>
-          </GuideCallout>
+            {#if renderer && selectedStyle}
+              <div class="mt-10 max-w-[58rem]">
+                <GuideSubSectionHeader
+                  eyebrow={m.guide_data_import_eyebrow()}
+                  title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}
+                />
+                <GuideSubSectionBody>
+                  <GuideParagraph
+                    >{@html m.guide_data_import_description()}</GuideParagraph
+                  >
+                  <div class="mt-5">
+                    <GuidePreviewCodeBlock
+                      label={m.guide_data_import_code_label()}
+                      code={geoJsonImportCode}
+                      comments={geoJsonImportComments}
+                      editorIcon={selectedCodeEditor?.icon}
+                      language="typescript"
+                      variant="editor"
+                      copyLabel={m.common_copy()}
+                      copiedLabel={m.common_copied()}
+                      previewLabel={m.guide_code_block_preview()}
+                      showCodeLabel={m.guide_code_block_code()}
+                      expandable
+                      expandLabel={m.guide_code_block_expand()}
+                      closeLabel={m.common_close()}
+                    >
+                      {#snippet preview()}
+                        <GuideGeoJsonDataPreview
+                          label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                          {openingPosition}
+                          {sampleDataUrl}
+                          {styleUrl}
+                          {tilejsonUrl}
+                        />
+                      {/snippet}
+                    </GuidePreviewCodeBlock>
+                  </div>
+                </GuideSubSectionBody>
+              </div>
+            {:else}
+              <GuideCallout class="mt-8" size="generous">
+                <GuideParagraph
+                  >{@html m.guide_data_import_missing_preferences()}</GuideParagraph
+                >
+              </GuideCallout>
+            {/if}
+          {/if}
         {:else if dataSource === 'api' && renderer === 'maplibre' && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}

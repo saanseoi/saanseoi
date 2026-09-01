@@ -26,6 +26,7 @@ const selectionSchema = z
     region: z.enum(choices.region).optional(),
     style: z.enum(choices.style).optional(),
     dataSource: z.enum(choices.dataSource).optional(),
+    dataFormat: z.enum(choices.dataFormat).optional(),
   })
   .strict()
 
@@ -36,7 +37,7 @@ const notSelected = 'not-selected'
 /**
  * Dataset: ss-map-guide-selections-<environment>
  *
- * blob1: event name; blob2: schema version; blobs 3-21: guide selections in
+ * blob1: event name; blob2: schema version; blobs 3-22: guide selections in
  * `selectionKeys` order; double1: event count.
  */
 export const trackCreateAMapSelection = command(selectionSchema, selection => {
