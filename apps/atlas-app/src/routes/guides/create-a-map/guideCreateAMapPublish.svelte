@@ -422,7 +422,7 @@ const cloudflareBuildOutput = [
   '$ tsc && vite build',
   'vite v8.2.2 building client environment for production...',
   '',
-  'new URL("./land-analysis.json", import.meta.url) doesn\'t exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.',
+  'new URL("./land-analysis.json.gz", import.meta.url) doesn\'t exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.',
   '✓ 322 modules transformed.',
   'computing gzip size...',
   'dist/.assetsignore                            0.02 kB',

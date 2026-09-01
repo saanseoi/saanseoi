@@ -1234,16 +1234,24 @@ export const urbanDensityCollectNonLiveableLandCode = [
   "    showDistrictProgress(districtIndex + 1, district, tileCoverages.length, tileCoverages.length, 'DISTRICT COMPLETE')",
   '    await pauseForAir()',
   '  }',
+  '  // Clear the temporary tile and District outlines.',
   '  clearProcessingOutlines()',
+  '  // Hide the completed analysis tile layers.',
   "  map.setLayoutProperty('analysis-tiles', 'visibility', 'none')",
   "  map.setLayoutProperty('analysis-tiles-outline', 'visibility', 'none')",
+  '  // Stop the geometry worker when no calculations remain.',
   '  stopGeometryWorker()',
+  '  // Remove the completed-analysis progress panel.',
   '  progressPanel.remove()',
   '}',
 ].join('\n')
 
 export const urbanDensityCollectNonLiveableLandDisplayCode =
   urbanDensityCollectNonLiveableLandCode
+    .split('\n')
+    .slice(1, -1)
+    .map(line => (line.startsWith('  ') ? line.slice(2) : line))
+    .join('\n')
 
 export const urbanDensityLiveableAreaCode = [
   'if (!savedResult) {',
@@ -1251,17 +1259,17 @@ export const urbanDensityLiveableAreaCode = [
   '  districts,',
   '  excludedDistrictLand: featureCollection(excludedDistrictLand),',
   '}',
-  'const resultJson = JSON.stringify(analysisResult)',
+  "const compressedResult = await new Response(new Blob([JSON.stringify(analysisResult)]).stream().pipeThrough(new CompressionStream('gzip'))).blob()",
   "const resultDialog = document.createElement('dialog')",
   "resultDialog.id = 'land-analysis-result'",
   "const resultTitle = document.createElement('h2')",
   "resultTitle.textContent = 'Calculation complete'",
   "resultTitle.className = 'land-analysis-result-title'",
   "const download = document.createElement('a')",
-  "download.textContent = 'Download land-analysis.json'",
+  "download.textContent = 'Download land-analysis.json.gz'",
   "download.className = 'land-analysis-result-download'",
-  "download.href = URL.createObjectURL(new Blob([resultJson], { type: 'application/json' }))",
-  "download.download = 'land-analysis.json'",
+  'download.href = URL.createObjectURL(compressedResult)',
+  "download.download = 'land-analysis.json.gz'",
   'resultDialog.append(resultTitle, download)',
   'document.body.append(resultDialog)',
   'resultDialog.showModal()',
