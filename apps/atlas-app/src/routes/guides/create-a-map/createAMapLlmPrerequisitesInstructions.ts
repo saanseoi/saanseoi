@@ -23,9 +23,9 @@ Ask the questions in this order, waiting for each answer before asking the next 
      - **Another host:** a provider the user already knows or has an account with.
    - For **Embedded in a site**, ask: “What is the map embedded in?” Offer:
      - **WordPress:** use a Custom HTML block for the published map’s iframe.
-     - **Squarespace:** use a Code block for the published map’s iframe.
-     - **Wix:** use an Embed Code element for the published map’s iframe.
-     - **Webflow:** use an Embed element for the published map’s iframe.
+     - **Squarespace:** use a Code Block for the published map’s iframe.
+     - **Wix:** use an Embed HTML element for the published map’s iframe.
+     - **Webflow:** use a Code Embed element for the published map’s iframe.
      - **Another platform:** this guide has no iframe recipe; build and publish the map
        first, then consult that platform’s integration documentation.
    - After selecting a supported site platform, ask the same hosting question and offer

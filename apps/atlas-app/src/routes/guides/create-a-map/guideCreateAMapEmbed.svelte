@@ -1,9 +1,12 @@
 <script lang="ts">
 import {
   GuideCodeBlock,
+  GuideAdmonition,
+  GuideChoiceGroup,
   GuideInstructionCallout,
   GuideParagraph,
   GuideSection,
+  GuideSubSectionHeader,
 } from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -38,6 +41,72 @@ let previewState = $state<PreviewState>('idle')
 let wordpressKind = $state<'self-hosted' | 'wordpress-com'>('self-hosted')
 let previewTimer: ReturnType<typeof setTimeout> | undefined
 
+const wordpressKindChoices = $derived([
+  {
+    value: 'self-hosted',
+    label: m.guide_embed_wordpress_self_hosted(),
+    description: m.guide_embed_wordpress_self_hosted_description(),
+    icon: 'proicons:server',
+  },
+  {
+    value: 'wordpress-com',
+    label: m.guide_embed_wordpress_com(),
+    description: m.guide_embed_wordpress_com_description(),
+    icon: 'simple-icons:wordpress',
+  },
+])
+
+const placementSteps = $derived(
+  platform === 'wordpress'
+    ? [
+        m.guide_embed_flow_wordpress_open(),
+        m.guide_embed_flow_wordpress_add(),
+        m.guide_embed_flow_wordpress_paste(),
+        m.guide_embed_flow_wordpress_preview(),
+        m.guide_embed_flow_wordpress_publish(),
+      ]
+    : platform === 'squarespace'
+      ? [
+          m.guide_embed_flow_squarespace_open(),
+          m.guide_embed_flow_squarespace_add(),
+          m.guide_embed_flow_squarespace_html(),
+          m.guide_embed_flow_squarespace_paste(),
+          m.guide_embed_flow_squarespace_publish(),
+        ]
+      : platform === 'wix'
+        ? [
+            m.guide_embed_flow_wix_open(),
+            m.guide_embed_flow_wix_add(),
+            m.guide_embed_flow_wix_choose(),
+            m.guide_embed_flow_wix_apply(),
+            m.guide_embed_flow_wix_publish(),
+          ]
+        : platform === 'webflow'
+          ? [
+              m.guide_embed_flow_webflow_open(),
+              m.guide_embed_flow_webflow_add(),
+              m.guide_embed_flow_webflow_position(),
+              m.guide_embed_flow_webflow_save(),
+              m.guide_embed_flow_webflow_publish(),
+            ]
+          : [
+              m.guide_embed_illustration_edit(),
+              embedElementName(platform),
+              m.guide_embed_illustration_publish(),
+            ],
+)
+const embedRequirementTotal = $derived(platform === 'wordpress' ? 3 : 2)
+const codeRequirement = $derived({
+  current: platform === 'wordpress' ? 2 : 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: embedRequirementTotal,
+})
+const placementRequirement = $derived({
+  current: embedRequirementTotal,
+  label: m.guide_prerequisites_requirement_label(),
+  total: embedRequirementTotal,
+})
+
 const normalisedUrl = $derived(normalisePublishedMapUrl(mapUrl))
 const height = $derived<EmbedHeight>(
   heightMode === 'fill'
@@ -49,6 +118,19 @@ const iframeCode = $derived(
 )
 const elementName = $derived(embedElementName(platform))
 const previewHeight = $derived(height.mode === 'fixed' ? `${height.pixels}px` : '70dvh')
+const siteBuilderHelp = $derived(
+  platform === 'wordpress'
+    ? wordpressKind === 'wordpress-com'
+      ? m.guide_embed_site_builder_wordpress_com_help()
+      : m.guide_embed_site_builder_wordpress_self_hosted_help()
+    : platform === 'squarespace'
+      ? m.guide_embed_site_builder_squarespace_help()
+      : platform === 'wix'
+        ? m.guide_embed_site_builder_wix_help()
+        : platform === 'webflow'
+          ? m.guide_embed_site_builder_webflow_help()
+          : m.guide_embed_site_builder_other_help({ element: elementName }),
+)
 
 const officialGuideUrl = $derived(
   platform === 'wordpress'
@@ -98,7 +180,7 @@ $effect(() => () => clearPreviewTimer())
   showBorder={false}
   eyebrow={m.guide_embed_section_eyebrow({ platform: platformLabel })}
 >
-  <div class="space-y-5">
+  <div class="mt-3 space-y-5">
     <GuideParagraph>
       {@html m.guide_embed_section_description({ platform: platformLabel })}
     </GuideParagraph>
@@ -122,129 +204,138 @@ $effect(() => () => clearPreviewTimer())
   </div>
 
   {#if platform === 'wordpress'}
-    <fieldset class="mt-8 max-w-[58rem] border border-border-card bg-background p-5">
-      <legend class="px-2 font-display text-title-md font-bold text-primary">
-        {m.guide_embed_wordpress_kind_title()}
-      </legend>
-      <p class="font-body text-body-md leading-7 text-foreground-alt">
-        {m.guide_embed_wordpress_kind_description()}
-      </p>
-      <div class="mt-4 flex flex-wrap gap-5 font-body text-body-md text-foreground-alt">
-        <label class="flex items-center gap-2">
-          <input bind:group={wordpressKind} type="radio" value="self-hosted">
-          {m.guide_embed_wordpress_self_hosted()}
-        </label>
-        <label class="flex items-center gap-2">
-          <input bind:group={wordpressKind} type="radio" value="wordpress-com">
-          {m.guide_embed_wordpress_com()}
-        </label>
-      </div>
-      {#if wordpressKind === 'wordpress-com'}
-        <p class="mt-4 font-body text-body-md leading-7 text-foreground-alt">
+    <GuideChoiceGroup
+      alignment="left"
+      label={m.guide_embed_wordpress_kind_title()}
+      marker={{
+        current: 1,
+        label: m.guide_prerequisites_requirement_label(),
+        total: embedRequirementTotal,
+      }}
+      hint={m.guide_embed_wordpress_kind_description()}
+      choices={wordpressKindChoices}
+      bind:value={wordpressKind}
+      illustratedCardSizing="fixed"
+      illustratedFitWhenPossible
+      variant="illustrated"
+    />
+    {#if wordpressKind === 'wordpress-com'}
+      <GuideAdmonition
+        class="mt-6 max-w-[58rem]"
+        id="wordpress-com-iframe-permissions"
+        title={m.guide_embed_wordpress_com_limit_title()}
+        expanded
+      >
+        <GuideParagraph>
           {m.guide_embed_wordpress_com_limit()}
-        </p>
-      {/if}
-    </fieldset>
+        </GuideParagraph>
+      </GuideAdmonition>
+    {/if}
   {/if}
 
-  <section class="mt-10" aria-labelledby="embed-preview-title">
-    <h3
-      id="embed-preview-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_embed_preview_title()}
-    </h3>
+  <section class="mt-10" aria-labelledby="embed-code-title">
+    <GuideSubSectionHeader
+      id="embed-code-title"
+      requirement={codeRequirement}
+      title={m.guide_embed_code_title()}
+    />
     <GuideParagraph class="mt-3">
       {m.guide_embed_preview_description()}
     </GuideParagraph>
 
-    <div class="mt-5 grid max-w-[58rem] gap-5 sm:grid-cols-2">
-      <label class="sm:col-span-2">
-        <span class="font-body text-label-md font-semibold text-primary">
-          {m.guide_embed_map_url_label()}
-        </span>
-        <input
-          class="mt-2 w-full border border-border-card bg-background px-4 py-3 font-body text-body-md text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-          type="url"
-          inputmode="url"
-          autocomplete="url"
-          placeholder="https://your-published-map.example/"
-          bind:value={mapUrl}
-        >
-        {#if mapUrl && !normalisedUrl}
-          <span class="mt-2 block font-body text-label-md text-destructive">
-            {m.guide_embed_map_url_error()}
-          </span>
-        {/if}
-      </label>
-
-      <label class="sm:col-span-2">
-        <span class="font-body text-label-md font-semibold text-primary">
-          {m.guide_embed_map_title_label()}
-        </span>
-        <input
-          class="mt-2 w-full border border-border-card bg-background px-4 py-3 font-body text-body-md text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-          type="text"
-          placeholder={m.guide_embed_map_title_placeholder()}
-          bind:value={mapTitle}
-        >
-        <span class="mt-2 block font-body text-label-md leading-6 text-foreground-alt">
-          {m.guide_embed_map_title_hint()}
-        </span>
-      </label>
-
-      <fieldset>
-        <legend class="font-body text-label-md font-semibold text-primary">
-          {m.guide_embed_height_label()}
-        </legend>
-        <div
-          class="mt-3 flex flex-wrap gap-5 font-body text-body-md text-foreground-alt"
-        >
-          <label class="flex items-center gap-2">
-            <input bind:group={heightMode} type="radio" value="fixed">
-            {m.guide_embed_height_fixed()}
-          </label>
-          <label class="flex items-center gap-2">
-            <input bind:group={heightMode} type="radio" value="fill">
-            {m.guide_embed_height_fill()}
-          </label>
-        </div>
-      </fieldset>
-
-      {#if heightMode === 'fixed'}
-        <label>
-          <span class="font-body text-label-md font-semibold text-primary">
-            {m.guide_embed_height_pixels()}
+    <div class="mt-8 max-w-[58rem] px-4 md:px-16">
+      <div class="grid gap-6 sm:grid-cols-2">
+        <label class="sm:col-span-2">
+          <span class="font-body text-body-md font-bold text-primary">
+            {m.guide_embed_map_url_label()}
           </span>
           <input
-            class="mt-2 w-full border border-border-card bg-background px-4 py-3 font-body text-body-md text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-            type="number"
-            min="240"
-            max="1600"
-            step="20"
-            bind:value={heightPixels}
+            class="mt-2 w-full border border-border-card bg-background px-5 py-4 font-body text-body-lg text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="https://your-published-map.example/"
+            bind:value={mapUrl}
           >
+          {#if mapUrl && !normalisedUrl}
+            <span class="mt-2 block font-body text-label-md text-destructive">
+              {m.guide_embed_map_url_error()}
+            </span>
+          {/if}
         </label>
-      {:else}
-        <p class="font-body text-body-md leading-7 text-foreground-alt">
-          {m.guide_embed_height_fill_hint()}
-        </p>
-      {/if}
-    </div>
 
-    <div class="mt-5 flex flex-wrap items-center gap-4">
-      <Button onclick={showPreview} disabled={!published || !normalisedUrl}>
-        {m.guide_embed_preview_action()}
-      </Button>
-      {#if !published}
-        <span class="font-body text-label-md text-foreground-alt">
-          {m.guide_embed_preview_publish_first()}
-        </span>
-      {/if}
+        <label class="sm:col-span-2">
+          <span class="font-body text-body-md font-bold text-primary">
+            {m.guide_embed_map_title_label()}
+          </span>
+          <input
+            class="mt-2 w-full border border-border-card bg-background px-5 py-4 font-body text-body-lg text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+            type="text"
+            placeholder={m.guide_embed_map_title_placeholder()}
+            bind:value={mapTitle}
+          >
+          <span class="mt-2 block font-body text-body-md leading-6 text-foreground-alt">
+            {m.guide_embed_map_title_hint()}
+          </span>
+        </label>
+
+        <fieldset>
+          <legend class="font-body text-body-md font-bold text-primary">
+            {m.guide_embed_height_label()}
+          </legend>
+          <div class="mt-3 flex flex-wrap gap-3">
+            <label
+              class="flex min-h-11 cursor-pointer items-center gap-3 px-3 font-body text-body-lg font-medium text-foreground-alt"
+            >
+              <input class="size-5" bind:group={heightMode} type="radio" value="fixed">
+              {m.guide_embed_height_fixed()}
+            </label>
+            <label
+              class="flex min-h-11 cursor-pointer items-center gap-3 px-3 font-body text-body-lg font-medium text-foreground-alt"
+            >
+              <input class="size-5" bind:group={heightMode} type="radio" value="fill">
+              {m.guide_embed_height_fill()}
+            </label>
+          </div>
+        </fieldset>
+
+        {#if heightMode === 'fixed'}
+          <label>
+            <span class="font-body text-body-md font-bold text-primary">
+              {m.guide_embed_height_pixels()}
+            </span>
+            <input
+              class="mt-2 w-full border border-border-card bg-background px-5 py-4 font-body text-body-lg text-foreground outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              type="number"
+              min="240"
+              max="1600"
+              step="20"
+              bind:value={heightPixels}
+            >
+          </label>
+        {:else}
+          <p class="font-body text-body-md leading-7 text-foreground-alt">
+            {m.guide_embed_height_fill_hint()}
+          </p>
+        {/if}
+      </div>
+
+      <div class="mt-12 mb-4 flex flex-wrap items-center justify-center gap-4">
+        <Button onclick={showPreview} disabled={!published || !normalisedUrl}>
+          {m.guide_embed_preview_action()}
+        </Button>
+        {#if !published}
+          <span class="font-body text-label-md text-foreground-alt">
+            {m.guide_embed_preview_publish_first()}
+          </span>
+        {/if}
+      </div>
     </div>
 
     {#if previewUrl}
-      <div class="mt-6 max-w-5xl border border-border-card bg-background p-3">
+      <div
+        class="mt-6 w-full max-w-[80rem] border border-border-card bg-background p-3 lg:w-[calc(100%+14rem)]"
+      >
         <iframe
           class="block w-full border-0 bg-background-alt"
           style:height={previewHeight}
@@ -270,44 +361,27 @@ $effect(() => () => clearPreviewTimer())
             : previewState === 'error'
               ? m.guide_embed_preview_error()
               : m.guide_embed_preview_loading()}
-        <a
-          class="ml-1 font-semibold text-secondary underline underline-offset-4"
-          href={previewUrl}
-          target="_blank"
-          rel="noreferrer"
-          >{m.guide_embed_open_new_tab()}</a
-        >
       </p>
     {/if}
-  </section>
-
-  <section class="mt-10" aria-labelledby="embed-code-title">
-    <h3
-      id="embed-code-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_embed_code_title()}
-    </h3>
-    <GuideParagraph class="mt-3">
-      {m.guide_embed_code_description()}
-    </GuideParagraph>
-    <div class="mt-5 max-w-5xl">
-      <GuideCodeBlock
-        label={m.guide_embed_code_label({ platform: platformLabel })}
-        code={iframeCode}
-        copyLabel={m.common_copy()}
-        copiedLabel={m.common_copied()}
-      />
+    <div class="mt-10 max-w-5xl">
+      <GuideParagraph>{m.guide_embed_code_description()}</GuideParagraph>
+      <div class="mt-5">
+        <GuideCodeBlock
+          label={m.guide_embed_code_label({ platform: platformLabel })}
+          code={iframeCode}
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+      </div>
     </div>
   </section>
 
   <section class="mt-10" aria-labelledby="embed-placement-title">
-    <h3
+    <GuideSubSectionHeader
       id="embed-placement-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_embed_placement_title({ platform: platformLabel })}
-    </h3>
+      requirement={placementRequirement}
+      title={m.guide_embed_placement_title({ platform: platformLabel })}
+    />
     <GuideParagraph class="mt-3">
       {platform === 'wordpress'
         ? m.guide_embed_placement_wordpress()
@@ -319,31 +393,28 @@ $effect(() => () => clearPreviewTimer())
               ? m.guide_embed_placement_webflow()
               : m.guide_embed_placement_other()}
     </GuideParagraph>
-    <div
-      class="mt-5 max-w-[58rem] border border-border-card bg-background p-5"
-      role="img"
-      aria-label={m.guide_embed_illustration_alt({ element: elementName, platform: platformLabel })}
-    >
+    <div class="mt-5 max-w-[58rem] border border-border-card bg-background p-5">
       <p
         class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
       >
-        {m.guide_embed_illustration_label()}
+        {m.guide_embed_flow_label({ platform: platformLabel })}
       </p>
-      <div
-        class="mt-4 grid items-center gap-3 text-center font-body text-body-md font-semibold text-primary sm:grid-cols-[1fr_auto_1fr_auto_1fr]"
+      <ol
+        class="mt-4 flex flex-wrap justify-center gap-3 font-body text-body-md font-semibold text-primary"
       >
-        <div class="border border-border-card bg-background-alt p-4">
-          1. {m.guide_embed_illustration_edit()}
-        </div>
-        <span aria-hidden="true">→</span>
-        <div class="border border-secondary bg-secondary-container p-4">
-          2. {elementName}
-        </div>
-        <span aria-hidden="true">→</span>
-        <div class="border border-border-card bg-background-alt p-4">
-          3. {m.guide_embed_illustration_publish()}
-        </div>
-      </div>
+        {#each placementSteps as step, index}
+          <li
+            class="flex w-full min-w-0 flex-col items-center justify-center gap-3 border border-border-card bg-background-alt p-4 text-center sm:w-[min(100%,13.5rem)]"
+          >
+            <span
+              class="grid size-7 shrink-0 place-items-center rounded-full bg-secondary-container text-secondary"
+            >
+              {index + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        {/each}
+      </ol>
     </div>
   </section>
 
@@ -367,7 +438,7 @@ $effect(() => () => clearPreviewTimer())
     <GuideInstructionCallout
       label={m.guide_embed_site_builder_label()}
       title={m.guide_embed_site_builder_title({ platform: platformLabel })}
-      description={m.guide_embed_site_builder_help({ element: elementName })}
+      description={siteBuilderHelp}
     />
   </section>
 
@@ -382,10 +453,8 @@ $effect(() => () => clearPreviewTimer())
       class="mt-4 list-disc space-y-3 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
     >
       <li>{m.guide_embed_limit_responsive()}</li>
-      <li>{m.guide_embed_limit_accessibility()}</li>
       <li>{m.guide_embed_limit_performance()}</li>
       <li>{m.guide_embed_limit_privacy()}</li>
-      <li>{m.guide_embed_limit_cross_origin()}</li>
     </ul>
   </section>
 </GuideSection>

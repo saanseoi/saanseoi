@@ -101,6 +101,7 @@ import IconProiconsPizza from '@iconify-svelte/proicons/pizza'
 import IconProiconsQuestion from '@iconify-svelte/proicons/question'
 import IconProiconsSapling from '@iconify-svelte/proicons/sapling'
 import IconProiconsSearch from '@iconify-svelte/proicons/search'
+import IconProiconsServer from '@iconify-svelte/proicons/server'
 import IconProiconsSettings from '@iconify-svelte/proicons/settings'
 import IconProiconsShare from '@iconify-svelte/proicons/share'
 import IconProiconsSparkle from '@iconify-svelte/proicons/sparkle'
@@ -280,6 +281,7 @@ export const localIconComponents = {
   'proicons:question': IconProiconsQuestion,
   'proicons:sapling': IconProiconsSapling,
   'proicons:search': IconProiconsSearch,
+  'proicons:server': IconProiconsServer,
   'proicons:settings': IconProiconsSettings,
   'proicons:share': IconProiconsShare,
   'proicons:sparkle': IconProiconsSparkle,

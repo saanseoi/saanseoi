@@ -55,11 +55,11 @@ export function embedElementName(
     case 'wordpress':
       return 'Custom HTML block'
     case 'squarespace':
-      return 'Code block'
+      return 'Code Block'
     case 'wix':
-      return 'Embed Code element'
+      return 'Embed HTML element'
     case 'webflow':
-      return 'Embed element'
+      return 'Code Embed element'
     case 'other':
       return 'HTML or embed element'
   }

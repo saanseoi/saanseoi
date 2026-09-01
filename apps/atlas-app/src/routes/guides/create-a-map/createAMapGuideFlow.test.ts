@@ -5,9 +5,11 @@ mock.module('$app/server', () => ({
   getRequestEvent: () => ({ locals: {}, platform: undefined }),
 }))
 
-const { createPrerequisiteStepIds, isGuideSetupReady } = await import(
-  './createAMapGuideFlow'
-)
+const {
+  createMissingPrerequisiteQuestions,
+  createPrerequisiteStepIds,
+  isGuideSetupReady,
+} = await import('./createAMapGuideFlow')
 
 describe('create-a-map embedded website hosting flow', () => {
   test('asks for hosting after another website platform is selected', () => {
@@ -37,5 +39,47 @@ describe('create-a-map embedded website hosting flow', () => {
 
     expect(isGuideSetupReady(selections)).toBe(false)
     expect(isGuideSetupReady({ ...selections, hosting: 'cloudflare' })).toBe(true)
+  })
+
+  test('reminds a user to confirm publication before embedding', () => {
+    const questions = createMissingPrerequisiteQuestions({
+      agentTool: undefined,
+      aiAccess: undefined,
+      codeEditor: 'cursor',
+      dataFormat: 'csv',
+      dataSource: 'existing',
+      hosting: 'github-pages',
+      isBasemapAccountReady: true,
+      isBasemapApiKeyReady: true,
+      isDataStepComplete: true,
+      isEditorReadinessComplete: true,
+      isLlmReadinessComplete: true,
+      isMapAccessible: false,
+      isMapboxTokenConfigured: false,
+      isPaymentConfirmed: true,
+      isPaymentConfirmationRequired: false,
+      isVpnRequired: false,
+      isZedSetupGuideProvided: false,
+      llmGuidanceEnabled: false,
+      llmMode: 'manual',
+      mobilePlatform: undefined,
+      notebookLibrary: undefined,
+      notebookRuntime: undefined,
+      objective: 'web-embed',
+      operatingSystem: 'windows',
+      renderer: 'leaflet',
+      selectedCodeEditor: {},
+      selectedLlmOption: undefined,
+      terminalExperience: 'basic',
+      vpnAccess: undefined,
+      websitePlatform: 'webflow',
+    })
+
+    expect(questions).toContainEqual(
+      expect.objectContaining({
+        answered: false,
+        id: 'publish-accessibility-readiness',
+      }),
+    )
   })
 })
