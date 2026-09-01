@@ -3211,6 +3211,7 @@ const styleChoices = $derived.by(() =>
                 })
               : undefined}
             mapReadyCode={urbanDensityMapReadyCode}
+            showPublishLink={objective !== 'local'}
             mapPreviewLabel={m.guide_data_urban_density_map_preview_label({
               style: selectedStyle.name,
             })}

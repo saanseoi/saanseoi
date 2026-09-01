@@ -300,6 +300,14 @@ const displayedLabel = $derived(
     : label
   ).replace(/\s(?:—|-)\s/gu, ' • '),
 )
+const editorLabel = $derived(
+  variant === 'editor'
+    ? displayedLabel.replace(
+        /(\s•\s)(.*)$/u,
+        (_, separator, title) => `${separator}${title.toLocaleLowerCase()}`,
+      )
+    : displayedLabel,
+)
 const highlightedCode = $derived(
   language === 'bash'
     ? highlightBash(displayCode ?? code)
@@ -423,7 +431,7 @@ const selectManualCopyText = () => {
         >{#if labelContent}
           {@render labelContent()}
         {:else}
-          {@html displayedLabel}
+          {@html editorLabel}
         {/if}</span
       >
     </div>
