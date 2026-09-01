@@ -73,7 +73,7 @@ const sourceTokenClass: Record<Exclude<SourceTokenKind, 'plain'>, string> = {
   string: 'text-[#a5d6ff]',
 }
 
-const codeCommentColumns = 83
+const codeCommentColumns = 79
 
 const splitCodeComment = (text: string, maximumLength: number) => {
   const lines: string[] = []
