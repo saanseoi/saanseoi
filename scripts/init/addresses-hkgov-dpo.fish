@@ -12,6 +12,9 @@ init_run_step ./bin/saanseoi init:addresses:official:begin --target $saanseoi_in
 
 init_run_step bun run --silent dataops -- hkgov-dpo:ingest \
     "$saanseoi_init_repo/data/hkgov/dpo/ALS" \
-    --target $saanseoi_init_target --cohort-key 2025-12-17.0 $continue_args
+    --target $saanseoi_init_target --cohort-key 2025-12-17.0 \
+    --defer-api-release-set $continue_args
+init_run_step ./bin/saanseoi release-sets:reconcile \
+    --target $saanseoi_init_target --api-family addresses --region hk
 init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
 init_run_step ./bin/saanseoi init:addresses:official:complete --target $saanseoi_init_target
