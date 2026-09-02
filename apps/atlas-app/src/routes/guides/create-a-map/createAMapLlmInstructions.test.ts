@@ -748,6 +748,7 @@ describe('Create a Map LLM instructions', () => {
 
   test('composes basemap instructions for agent and chat workspaces', () => {
     const state = {
+      basemapApiKey: 'pk.guide-test',
       codeEditorValue: 'vscode',
       operatingSystemValue: 'windows',
       preferredLocale: 'en',
@@ -768,10 +769,11 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('https://tiles.saanseoi.hk/hongkong-latest.json')
       expect(prompt).toContain('`VITE_SAANSEOI_API_KEY`')
       expect(prompt).toContain('`access_token`')
+      expect(prompt).toContain('`pk.guide-test`')
+      expect(prompt).toContain('do not use an existing key')
       expect(prompt).toContain('src\\main.ts')
       expect(prompt).toContain('A blank map is expected')
       expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
-      expect(prompt).not.toContain('pk.')
       expect(prompt).not.toContain('The single next action')
     }
 

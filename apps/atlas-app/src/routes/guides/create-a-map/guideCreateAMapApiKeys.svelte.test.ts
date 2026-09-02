@@ -65,6 +65,27 @@ test('asks the user to confirm their existing key is in .env', async () => {
   expect(confirmed).toBe(true)
 })
 
+test('does not offer an existing key when a new key is required', async () => {
+  const screen = await render(GuideCreateAMapApiKeys, {
+    allowExistingKey: false,
+  })
+
+  await expect
+    .element(screen.getByRole('button', { name: 'Use Existing' }))
+    .not.toBeInTheDocument()
+})
+
+test('hides environment setup when the LLM will add the new key', async () => {
+  const screen = await render(GuideCreateAMapApiKeys, {
+    showEnvironmentSetup: false,
+    usingExistingKey: true,
+  })
+
+  await expect
+    .element(screen.getByRole('heading', { name: 'Add your API key to the project' }))
+    .not.toBeInTheDocument()
+})
+
 test('opens the existing Mapbox environment file instead of creating another', async () => {
   const screen = await render(GuideCreateAMapApiKeys, {
     editorLabel: 'Zed',

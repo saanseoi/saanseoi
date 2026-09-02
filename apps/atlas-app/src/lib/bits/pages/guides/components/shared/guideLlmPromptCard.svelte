@@ -53,13 +53,11 @@ const selectReference = (offset: number) => {
 }
 </script>
 
-<div
-  class="grid w-full max-w-232 min-w-0 grid-rows-[minmax(0,1fr)] overflow-hidden font-mono shadow-card"
->
+<div class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card">
   <section
     aria-hidden={view !== 'prompt'}
     inert={view !== 'prompt'}
-    class={`col-start-1 row-start-1 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+    class={`${view === 'prompt' ? 'relative' : 'absolute inset-0'} overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'prompt'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
@@ -103,7 +101,7 @@ const selectReference = (offset: number) => {
   <section
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
-    class={`col-start-1 row-start-1 overflow-hidden transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+    class={`${view === 'code' ? 'relative' : 'absolute inset-0'} overflow-hidden transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'code'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
@@ -184,7 +182,9 @@ const selectReference = (offset: number) => {
     class={`${
       expanded
         ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
-        : 'col-start-1 row-start-1'
+        : view === 'preview'
+          ? 'relative'
+          : 'absolute inset-0'
     } flex min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'preview'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'

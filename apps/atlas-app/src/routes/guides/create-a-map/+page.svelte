@@ -297,6 +297,10 @@ let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 let usingExistingBasemapApiKey = $state(false)
+let llmBasemapApiKey = $state<string>()
+const llmGuidanceEnabled = $derived(
+  llmMode === 'assisted' && (aiAccess === 'agentic' || aiAccess === 'web'),
+)
 let publishedHosting = $state<string | undefined>()
 const initialPublishReadinessKey = getPublishReadinessKey({
   aiAccess: getCreateAMapQueryChoice(page.url.searchParams, 'aiAccess'),
@@ -363,7 +367,11 @@ let llmReadinessKey = $derived(
 )
 let isZedSetupGuideProvided = $derived(aiAccess === 'agentic' && agentTool === 'zed')
 let isLlmReadinessComplete = $derived(completedLlmReadinessKey === llmReadinessKey)
-let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
+let isBasemapReady = $derived(
+  Boolean(page.data.user) &&
+    hasBasemapApiKey &&
+    (!llmGuidanceEnabled || Boolean(llmBasemapApiKey)),
+)
 let basemapAccountContinueUrl = $derived.by(() => {
   const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
@@ -391,6 +399,13 @@ const completeDataStep = () => {
     entityId: 'data_ready',
   })
 }
+
+$effect(() => {
+  if (llmGuidanceEnabled && !llmBasemapApiKey) {
+    hasBasemapApiKey = false
+    usingExistingBasemapApiKey = false
+  }
+})
 
 const resetDataStep = () => {
   completedDataKey = undefined
@@ -1554,9 +1569,6 @@ const selectedPlatform = $derived(
               .filter(Boolean)
               .join(' · '),
 )
-const llmGuidanceEnabled = $derived(
-  llmMode === 'assisted' && (aiAccess === 'agentic' || aiAccess === 'web'),
-)
 const promptEditor = $derived(
   aiAccess === 'agentic' && isCreateAMapAgentCapableEditor(agentTool)
     ? selectedLlmOption?.label
@@ -1574,9 +1586,7 @@ const showEditorProjectSetup = $derived(
       editorValue: promptEditorValue,
     }),
 )
-const showRenderEditorInstructions = $derived(
-  !llmGuidanceEnabled || showEditorProjectSetup,
-)
+const showRenderEditorInstructions = $derived(!llmGuidanceEnabled)
 const promptEditorIcon = $derived(
   aiAccess === 'agentic' && isCreateAMapAgentCapableEditor(agentTool)
     ? selectedLlmOption?.icon
@@ -1586,6 +1596,7 @@ const llmPromptState = $derived.by(() => {
   return {
     agentTool: selectedLlmOption?.label,
     agentToolValue: agentTool,
+    basemapApiKey: llmBasemapApiKey,
     codeEditor: promptEditor,
     codeEditorValue: promptEditorValue,
     dataSource,
@@ -1774,7 +1785,7 @@ const rendererReference = $derived(
 const rendererInstallCode = $derived(rendererReference.installCommand)
 const rendererVersionDependency = $derived(
   renderer === 'maplibre'
-    ? { name: 'maplibre-gl', pinnedVersion: '6.6.0' }
+    ? { name: 'maplibre-gl', pinnedVersion: '6.7.0' }
     : renderer === 'mapbox'
       ? { name: 'mapbox-gl', pinnedVersion: '3.29.0' }
       : { name: 'leaflet', pinnedVersion: '1.9.4' },
@@ -2874,7 +2885,7 @@ const styleChoices = $derived.by(() =>
             </GuideCallout>
           {/if}
           {#if llmGuidanceEnabled && guideRenderer && selectedMapLibrary}
-            <div class="border-t border-border-card pt-10">
+            <div>
               <GuideSubSectionHeader
                 eyebrow={m.guide_setup_llm_eyebrow()}
                 title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
@@ -2974,6 +2985,7 @@ const styleChoices = $derived.by(() =>
               </GuideParagraph>
             {/if}
             <GuideCreateAMapApiKeys
+              allowExistingKey={!llmGuidanceEnabled}
               apiKeyReady={hasBasemapApiKey}
               editorIcon={selectedCodeEditor?.icon}
               editorLabel={selectedCodeEditor?.label}
@@ -2981,9 +2993,18 @@ const styleChoices = $derived.by(() =>
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
               {terminalProjectPath}
+              onApiKeyCreated={key => {
+                if (!llmGuidanceEnabled) return
+                llmBasemapApiKey = key
+                hasBasemapApiKey = true
+              }}
               onApiKeyConfirmed={scrollToBasemapApiKeyRequirement}
-              onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
+              onApiKeyReadyChange={ready => {
+                hasBasemapApiKey = ready
+                if (!ready) llmBasemapApiKey = undefined
+              }}
               showHeading={false}
+              showEnvironmentSetup={!llmGuidanceEnabled}
               bind:usingExistingKey={usingExistingBasemapApiKey}
             />
           </div>
@@ -3071,9 +3092,7 @@ const styleChoices = $derived.by(() =>
             <div class="mt-10">
               <div class="border-t border-border-card pt-10">
                 <GuideSubSectionHeader
-                  eyebrow={aiAccess === 'agentic'
-                    ? m.guide_renderer_prompt_agent_eyebrow()
-                    : m.guide_renderer_prompt_chat_eyebrow()}
+                  eyebrow={m.guide_setup_llm_eyebrow()}
                   title={m.guide_basemap_prompt_title()}
                 />
                 <div class="mt-6 max-w-232">
@@ -3196,9 +3215,7 @@ const styleChoices = $derived.by(() =>
         {/if}
         {#if llmGuidanceEnabled && style}
           <GuideLlmPromptSection
-            eyebrow={aiAccess === 'agentic'
-              ? m.guide_renderer_prompt_agent_eyebrow()
-              : m.guide_renderer_prompt_chat_eyebrow()}
+            eyebrow={m.guide_setup_llm_eyebrow()}
             prompt={progressiveSectionPrompts.style}
             promptIcon={selectedLlmOption?.icon}
             title={m.guide_renderer_setup_title({
