@@ -2405,7 +2405,6 @@ const styleChoices = $derived.by(() =>
                   onReset={resetLlmReadiness}
                   {operatingSystem}
                   option={selectedLlmOption}
-                  prompt={progressiveSectionPrompts.prerequisites}
                   {zedSetupContentExpanded}
                   {zedSetupExpanded}
                   onZedSetupContentExpandedChange={(expanded: boolean) =>
@@ -2536,9 +2535,9 @@ const styleChoices = $derived.by(() =>
             <div class="mt-14 space-y-6">
               {#if aiAccess === 'agentic'}
                 <div class="space-y-5">
-                  {#if showEditorProjectSetup && isCreateAMapAgentCapableEditor(agentTool)}
+                  {#if showEditorProjectSetup && agentTool === 'cursor'}
                     <GuideEditorProjectSetupSection editor={agentTool} />
-                  {:else}
+                  {:else if agentTool !== 'zed'}
                     <GuideSubSectionHeader
                       eyebrow={m.guide_setup_agent_eyebrow()}
                       title={m.guide_setup_agent_title()}

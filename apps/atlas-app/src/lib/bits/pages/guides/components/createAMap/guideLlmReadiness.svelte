@@ -36,7 +36,6 @@ type Props = {
   onReset: () => void
   operatingSystem?: 'windows' | 'macos' | 'linux'
   option: LlmOption
-  prompt: string
   zedSetupContentExpanded: boolean
   zedSetupExpanded: boolean
   onZedSetupContentExpandedChange: (expanded: boolean) => void
@@ -58,7 +57,6 @@ let {
   onReset,
   operatingSystem,
   option,
-  prompt,
   zedSetupContentExpanded,
   zedSetupExpanded,
   onZedSetupContentExpandedChange,
@@ -221,6 +219,5 @@ let expanded = $state(false)
     {operatingSystem}
     {onComplete}
     onExpandedChange={onZedSetupContentExpandedChange}
-    {prompt}
   />
 {/if}

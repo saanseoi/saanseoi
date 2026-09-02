@@ -985,8 +985,6 @@
   "guide_zed_setup_save": "Press {shortcut} to save the file and apply the settings.",
   "guide_zed_setup_ready_title": "Start the agent",
   "guide_zed_setup_ready_intro": "Now let’s open a <i>thread</i> (another name for <i>chat</i>) with DeepSeek.",
-  "guide_zed_setup_prompt_title": "Continue with your setup instructions",
-  "guide_zed_setup_prompt_intro": "Copy the generated instruction below into the Zed Agent Thread. It contains the choices you made in the prerequisites section.",
   "guide_zed_setup_all_good": "All Good!",
   "guide_zed_setup_image_download_alt": "Zed download page showing the platform download options.",
   "guide_zed_setup_image_download_caption": "Download the version of Zed for your operating system.",
