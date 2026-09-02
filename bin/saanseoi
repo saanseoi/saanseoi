@@ -37,13 +37,14 @@ if [[ "${SAANSEOI_LOG_ACTIVE:-}" != 1 ]]; then
   } > "$log_file"
   printf 'SaanSeoi log: %s\n' "${log_file#"$repo_root/"}" >&2
 
-  # Clack otherwise animates spinners even when stdout is redirected. Keep the
-  # live terminal view animated when the command was started from a TTY, while
-  # retaining one stable line per progress item for non-interactive captures.
-  # This check must happen before the descriptors below are redirected.
+  # Clack uses CI mode to turn each redraw into a new line. stdout may be
+  # intercepted by a terminal host, though, while stdin remains attached to
+  # that terminal. Treat either descriptor being a TTY as interactive so the
+  # cursor controls survive the proxy and replace the active line. This check
+  # must happen before the descriptors below are redirected.
   export SAANSEOI_LOG_ACTIVE=1
   export SAANSEOI_LOG_PATH="$log_file"
-  if [[ -t 1 ]]; then
+  if [[ -t 1 || -t 0 ]]; then
     export CI=false
   else
     export CI=true
