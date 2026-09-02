@@ -53,15 +53,19 @@ const selectReference = (offset: number) => {
 }
 </script>
 
-<div class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card">
+<div
+  data-guide-llm-prompt-card
+  class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card"
+>
   <section
     aria-hidden={view !== 'prompt'}
     inert={view !== 'prompt'}
-    class={`${view === 'prompt' ? 'relative' : 'absolute inset-0'} overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+    class={`absolute inset-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'prompt'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
     }`}
+    class:relative={view === 'prompt'}
   >
     <GuideCodeBlock
       class="max-w-none"
@@ -101,11 +105,12 @@ const selectReference = (offset: number) => {
   <section
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
-    class={`${view === 'code' ? 'relative' : 'absolute inset-0'} overflow-hidden transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+    class={`absolute inset-0 overflow-hidden transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'code'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
     }`}
+    class:relative={view === 'code'}
   >
     {#if reference}
       {#snippet referenceLabel()}
@@ -181,15 +186,15 @@ const selectReference = (offset: number) => {
     inert={view !== 'preview'}
     class={`${
       expanded
-        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
-        : view === 'preview'
-          ? 'relative'
-          : 'absolute inset-0'
-    } flex min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+        ? 'top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+        : 'inset-0'
+    } absolute flex min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
       view === 'preview'
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
     }`}
+    style:position={expanded ? 'fixed' : undefined}
+    class:relative={!expanded && view === 'preview'}
   >
     <header
       class="flex items-center justify-between gap-3 border-b border-[#596074] bg-[#202633] px-4 py-2.5"

@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-svelte'
 
 import GuideLlmPromptCard from './guideLlmPromptCard.svelte'
 
-test('sizes itself to the visible prompt instead of a hidden reference', async () => {
+test('takes hidden references out of the prompt card layout', async () => {
   const screen = await render(GuideLlmPromptCard, {
     prompt: 'Add the basemap.',
     references: [
@@ -21,12 +21,10 @@ test('sizes itself to the visible prompt instead of a hidden reference', async (
     title: 'Set up basemap',
   })
 
-  const card = screen.container.firstElementChild as HTMLElement
-  const promptBlock = card.querySelector('section > div') as HTMLElement
+  const card = screen.container.querySelector(
+    '[data-guide-llm-prompt-card]',
+  ) as HTMLElement
+  const hiddenReference = card.querySelectorAll('section')[1] as HTMLElement
 
-  expect(
-    Math.abs(
-      card.getBoundingClientRect().height - promptBlock.getBoundingClientRect().height,
-    ),
-  ).toBeLessThan(1)
+  expect(hiddenReference.classList).toContain('absolute')
 })
