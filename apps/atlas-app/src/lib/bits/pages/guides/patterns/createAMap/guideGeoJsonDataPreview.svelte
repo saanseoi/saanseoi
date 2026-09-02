@@ -14,12 +14,6 @@ type Props = {
 
 let { label, renderer, sampleDataUrl, styleUrl, tilejsonUrl, openingPosition }: Props =
   $props()
-
-const previewTilejsonUrl = $derived(
-  import.meta.env.VITE_SAANSEOI_API_KEY
-    ? `${tilejsonUrl}?access_token=${encodeURIComponent(import.meta.env.VITE_SAANSEOI_API_KEY)}`
-    : tilejsonUrl,
-)
 const additionalSources = $derived({
   places: {
     type: 'geojson' as const,
@@ -42,7 +36,7 @@ const additionalLayers = [
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${renderer}:${styleUrl}:${previewTilejsonUrl}:${sampleDataUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}:${sampleDataUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
       {additionalLayers}
@@ -50,7 +44,7 @@ const additionalLayers = [
       center={openingPosition.center}
       {renderer}
       {styleUrl}
-      tilejsonUrl={previewTilejsonUrl}
+      {tilejsonUrl}
       zoom={openingPosition.zoom}
     />
   {/key}

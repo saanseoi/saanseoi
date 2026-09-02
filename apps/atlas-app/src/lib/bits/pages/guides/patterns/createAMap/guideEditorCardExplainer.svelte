@@ -83,7 +83,11 @@ const socketGravity: Record<string, [number, number]> = {
   right: [24, 0],
   top: [0, -24],
 }
-const lineOptions = (startSocket: string, endSocket: string) => ({
+const lineOptions = (
+  startSocket: string,
+  endSocket: string,
+  path: 'arc' | 'fluid' = 'fluid',
+) => ({
   color: '#65d8ba',
   endPlug: 'arrow3',
   endPlugSize: 1.4,
@@ -92,7 +96,7 @@ const lineOptions = (startSocket: string, endSocket: string) => ({
   outline: true,
   outlineColor: '#0c1111',
   outlineSize: 0.7,
-  path: 'fluid',
+  path,
   size: 2,
   startPlug: 'behind',
   startSocket,
@@ -139,11 +143,18 @@ onMount(() => {
           return
         }
 
-        const codePanel = editorCardElement.querySelector('pre')?.parentElement
-        const header = codePanel?.querySelector(':scope > div:first-child')
-        const headerLeading = header?.querySelector(':scope > div:first-child')
-        const icon = headerLeading?.firstElementChild
-        const path = headerLeading?.lastElementChild
+        const header = editorCardElement.querySelector<HTMLElement>(
+          '[data-guide-code-header]',
+        )
+        const headerLeading = header?.querySelector<HTMLElement>(
+          '[data-guide-code-header-leading]',
+        )
+        const icon = headerLeading?.querySelector<HTMLElement>(
+          '[data-guide-code-editor-icon]',
+        )
+        const path = headerLeading?.querySelector<HTMLElement>(
+          '[data-guide-code-label]',
+        )
         const commentsToggle = header?.querySelector(
           '[data-guide-code-comments-toggle]',
         )
@@ -180,6 +191,8 @@ onMount(() => {
         const importsSize = dimensions(imports)
         const commentSize = dimensions(comment)
         const mapCodeSize = dimensions(mapCode)
+        const codeCalloutSize = dimensions(codeCallout)
+        const dimmedCodeCalloutSize = dimensions(dimmedCodeCallout)
         lines = [
           new LeaderLine(
             editorIconCallout,
@@ -218,20 +231,32 @@ onMount(() => {
             lineOptions('top', 'left'),
           ),
           new LeaderLine(
-            codeCallout,
-            LeaderLine.pointAnchor(mapCode, {
-              x: mapCodeSize.width / 2,
-              y: mapCodeSize.height + 12,
+            LeaderLine.pointAnchor(codeCallout, {
+              x: codeCalloutSize.width / 2,
+              y: 0,
             }),
-            lineOptions('top', 'bottom'),
+            LeaderLine.pointAnchor(mapCode, {
+              x: mapCodeSize.width * 0.11,
+              y: mapCodeSize.height / 2 + 66,
+            }),
+            {
+              ...lineOptions('top', 'bottom'),
+              startSocketGravity: [0, -64],
+            },
           ),
           new LeaderLine(
-            dimmedCodeCallout,
-            LeaderLine.pointAnchor(imports, {
-              x: importsSize.width * 0.7,
-              y: importsSize.height + 12,
+            LeaderLine.pointAnchor(dimmedCodeCallout, {
+              x: dimmedCodeCalloutSize.width * 0.1,
+              y: 0,
             }),
-            lineOptions('top', 'bottom'),
+            LeaderLine.pointAnchor(imports, {
+              x: importsSize.width * 0.35,
+              y: importsSize.height / 2,
+            }),
+            {
+              ...lineOptions('top', 'bottom'),
+              startSocketGravity: [0, -96],
+            },
           ),
         ]
 
@@ -377,7 +402,7 @@ onMount(() => {
     </p>
     <p
       bind:this={codeCallout}
-      class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+      class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:w-[120%] xl:border-l-0 xl:pl-0"
     >
       <span
         class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
@@ -388,7 +413,7 @@ onMount(() => {
     </p>
     <p
       bind:this={dimmedCodeCallout}
-      class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-5 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+      class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:w-[87.5%] xl:border-l-0 xl:pl-0"
     >
       <span
         class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"

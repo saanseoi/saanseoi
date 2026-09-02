@@ -5,6 +5,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
+import viteDemoPage from '#lib/assets/guides/vite-demo-page.png'
 import geojsonIoCsvColumns from '#lib/assets/guides/geojson-io-csv-columns.webp'
 import geojsonIoImportGba from '#lib/assets/guides/geojson-io-import-gba.png'
 import geojsonIoImportHongKong from '#lib/assets/guides/geojson-io-import-geojson.png'
@@ -25,6 +26,8 @@ import {
   GuideEditorReadiness,
   GuideInstructionCallout,
   GuideLlmReadiness,
+  GuideLlmPromptCard,
+  GuideLlmPromptCardExplainer,
   GuideLlmPromptSection,
   GuideMapboxTokenReadiness,
   GuideManualSetup,
@@ -83,6 +86,7 @@ import {
   createNotebookCode,
   createNotebookSetupCode,
   createProjectSetupCode,
+  createProjectSetupReferences,
   createRestartProjectCode,
   createUrbanDensityStatsCode,
   createUrbanDensityStatsDisplayCode,
@@ -1657,6 +1661,15 @@ const guideDecisions = $derived.by(() => {
 })
 
 const setupCode = $derived(createProjectSetupCode(operatingSystem, renderer))
+const llmProjectSetupReferences = $derived(
+  createProjectSetupReferences(operatingSystem, renderer, {
+    configureVite: m.guide_llm_prompt_card_configure_vite(),
+    createProject: m.guide_llm_prompt_card_create_project(),
+    createProjectDirectory: m.guide_llm_prompt_card_create_project_directory(),
+    enterProjectDirectory: m.guide_llm_prompt_card_enter_project_directory(),
+    installPackages: m.guide_llm_prompt_card_install_packages(),
+  }),
+)
 const bunInstallExplanation = $derived(
   `${m.guide_setup_install_bun_explanation()}${terminalExperience === 'basic' ? ` ${m.guide_setup_install_bun_alternative_toolchain()}` : ''}`,
 )
@@ -1858,9 +1871,9 @@ const basemapCodeComments = $derived.by(() => {
       { line: 12, text: m.guide_basemap_comment_url_safe_api_key() },
       { line: 13, text: m.guide_basemap_comment_basemap_base_url() },
       { line: 14, text: m.guide_basemap_comment_basemap_url() },
-      { line: 19, text: m.guide_renderer_leaflet_comment_bridge() },
-      { line: 20, text: m.guide_basemap_comment_style() },
-      { line: 23, text: m.guide_basemap_comment_source() },
+      { line: 23, text: m.guide_renderer_leaflet_comment_bridge() },
+      { line: 24, text: m.guide_basemap_comment_style() },
+      { line: 27, text: m.guide_basemap_comment_source() },
     ]
   }
 
@@ -2401,6 +2414,9 @@ const styleChoices = $derived.by(() =>
         eyebrow={m.guide_project_setup_eyebrow()}
         intro={projectSetupIntro}
       >
+        {#if llmGuidanceEnabled}
+          <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
+        {/if}
         {#if guideUnlocked}
           {#if objective && llmMode === 'manual' && setupReady}
             <GuideManualSetup
@@ -2483,9 +2499,13 @@ const styleChoices = $derived.by(() =>
                     {@html m.guide_setup_agent_zed_prompt_instruction()}
                   </GuideParagraph>
                 {/if}
-                <GuidePromptBlock
-                  code={progressiveSectionPrompts.prerequisites}
+                <GuideLlmPromptCard
+                  prompt={progressiveSectionPrompts.prerequisites}
                   promptIcon={selectedLlmOption?.icon}
+                  references={llmProjectSetupReferences}
+                  title={m.guide_setup_llm_title()}
+                  previewImageSrc={viteDemoPage}
+                  previewAlt={m.guide_llm_prompt_card_preview_alt()}
                 />
               {/if}
               {#if aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
@@ -2520,9 +2540,13 @@ const styleChoices = $derived.by(() =>
                     {/if}
                     {@html m.guide_setup_llm_instruction_after()}
                   </GuideParagraph>
-                  <GuidePromptBlock
-                    code={progressiveSectionPrompts.prerequisites}
+                  <GuideLlmPromptCard
+                    prompt={progressiveSectionPrompts.prerequisites}
                     promptIcon={selectedLlmOption?.icon}
+                    references={llmProjectSetupReferences}
+                    title={m.guide_setup_llm_title()}
+                    previewImageSrc={viteDemoPage}
+                    previewAlt={m.guide_llm_prompt_card_preview_alt()}
                   />
                 </div>
               {/if}
@@ -2540,7 +2564,7 @@ const styleChoices = $derived.by(() =>
         <GuideParagraph class="mt-3">
           {@html m.guide_render_description()}
         </GuideParagraph>
-        {#if codeEditor && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
+        {#if !llmGuidanceEnabled && codeEditor && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
           <GuideParagraph class="mt-3">
             {@html m.guide_render_editor_intro({
               editor: selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
