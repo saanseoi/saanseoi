@@ -6,6 +6,7 @@ import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 import {
   alignAddressCurrentDivisionSnapshot,
   cloneAddressCurrentSnapshot,
+  materialiseReplayedAddressCurrentSnapshot,
   prepareAddressVersionInsertContext,
   replaceAddressCurrentBuildingNumberLookups,
   replaceAddressCurrentI18n,
@@ -73,6 +74,29 @@ export async function writeAddressCurrentChunkStage(
   )
 
   if (artefact.rowStart === 0) {
+    if (pipelineMessage.addressHistoricalParentVersions) {
+      if (
+        pipelineMessage.addressHistoricalParentSnapshotId !==
+        versionInsertContext.parentSnapshotId
+      ) {
+        throw new Error(
+          `Address replay parent does not match snapshot ${versionInsertContext.snapshotId}.`,
+        )
+      }
+      const divisionSnapshotId = artefactRows[0]?.base.divisionSnapshotId
+      if (!divisionSnapshotId) {
+        throw new Error(
+          `Address snapshot ${versionInsertContext.snapshotId} has no division snapshot for historical replay.`,
+        )
+      }
+      await materialiseReplayedAddressCurrentSnapshot(
+        currentRepoDb,
+        versionInsertContext.snapshotId,
+        divisionSnapshotId,
+        pipelineMessage.addressHistoricalParentVersions.values(),
+        artefact.processingRunStartedAt,
+      )
+    }
     if (versionInsertContext.parentSnapshotId) {
       await cloneAddressCurrentSnapshot(
         currentRepoDb,

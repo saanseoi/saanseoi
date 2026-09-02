@@ -114,10 +114,12 @@ export async function buildResolvedAddressChunkArtefact(
   )
   if (
     versionInsertContext.parentSnapshotId &&
-    activeSnapshot?.id !== versionInsertContext.parentSnapshotId
+    activeSnapshot?.id !== versionInsertContext.parentSnapshotId &&
+    pipelineMessage.addressCurrentLookupCache?.snapshotId !==
+      versionInsertContext.parentSnapshotId
   ) {
     throw new Error(
-      `Address snapshot ${versionInsertContext.snapshotId} branches from ${versionInsertContext.parentSnapshotId}, but the v0 address diff reader can only materialise active parent ${activeSnapshot?.id ?? 'none'}.`,
+      `Address snapshot ${versionInsertContext.snapshotId} branches from ${versionInsertContext.parentSnapshotId}; it requires an immutable replay lookup for that parent instead of active snapshot ${activeSnapshot?.id ?? 'none'}.`,
     )
   }
   const normalisedRows = dedupeNormalisedAddressRows(artefact.rows)

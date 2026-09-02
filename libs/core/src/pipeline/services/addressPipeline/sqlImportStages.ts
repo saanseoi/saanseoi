@@ -17,6 +17,7 @@ type SqlStageHarbourClient = {
     releaseId: string,
     releaseCode?: string,
     options?: {
+      deferApiReleaseSet?: boolean
       skipSnapshotCleanup?: boolean
     },
   ): Promise<PublishDatasetResult | void>
@@ -274,6 +275,7 @@ export async function importAddressSqlArtefactsAndPublish(
   bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
+  publishOptions: { deferApiReleaseSet?: boolean } = {},
 ): Promise<PublishDatasetResult | void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
@@ -372,7 +374,7 @@ export async function importAddressSqlArtefactsAndPublish(
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
     cleanupSqlStaging(metaDb, message, options),
   )
-  return publishImportedAddressSqlRelease(harbourClient, message)
+  return publishImportedAddressSqlRelease(harbourClient, message, publishOptions)
 }
 
 export async function importAddressSqlDataArtefacts(
@@ -724,6 +726,7 @@ async function cleanupSqlStaging(
 async function publishImportedAddressSqlRelease(
   harbourClient: SqlStageHarbourClient,
   message: DatasetProcessingMessage,
+  publishOptions: { deferApiReleaseSet?: boolean } = {},
 ): Promise<PublishDatasetResult | void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
@@ -757,6 +760,7 @@ async function publishImportedAddressSqlRelease(
   const publishStartedAt = Date.now()
   await harbourClient.stageRunning(releaseId, 'publishDataset', undefined, releaseCode)
   const publishResult = await harbourClient.publishDataset(releaseId, releaseCode, {
+    deferApiReleaseSet: publishOptions.deferApiReleaseSet,
     skipSnapshotCleanup: message.skipSnapshotCleanup,
   })
   await harbourClient.stageCompleted(
