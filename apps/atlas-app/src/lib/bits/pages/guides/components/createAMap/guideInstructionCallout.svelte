@@ -1,4 +1,6 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
+
 import GuideCalloutDescription from '../shared/guideCalloutDescription.svelte'
 import GuideCalloutEyebrow from '../shared/guideCalloutEyebrow.svelte'
 import GuideCalloutTitle from '../shared/guideCalloutTitle.svelte'
@@ -6,6 +8,7 @@ import GuideStepLabel from '../shared/guideStepLabel.svelte'
 
 type Props = {
   class?: string
+  children?: Snippet
   description: string
   label?: string
   stepNumber?: number
@@ -15,6 +18,7 @@ type Props = {
 
 let {
   class: className = '',
+  children,
   description,
   label,
   stepNumber,
@@ -33,4 +37,5 @@ let {
   {/if}
   <GuideCalloutTitle {title} />
   <GuideCalloutDescription {description} />
+  {@render children?.()}
 </div>
