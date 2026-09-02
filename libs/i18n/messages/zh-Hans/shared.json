@@ -1569,7 +1569,7 @@
   "guide_editor_card_explainer_code": "这是用来修改文件的实际代码。请仔细留意它是完整替换、部分替换，还是只需追加代码。",
   "guide_editor_card_explainer_dimmed_code": "淡化的代码已在先前加入。它仍会被复制，让你可以替换整个文件。",
   "guide_editor_card_explainer_comment": "注释会说明紧接在它们下方的代码，且不会影响你的应用。",
-  "guide_render_description": "地图渲染库是在浏览器中渲染地图的软件。我们会将它安装到上面创建的项目中，再通过我们的服务器运行它。",
+  "guide_render_description": "Google Maps 和 Apple Maps 是为寻找地点和路线而设计的，而不是用来制作自己的地图。当它们就是你的地图时，你必须在它们的视觉语言，以及它们对数据、标签、图层和交互所作的选择之内工作。地图渲染库让你拥有更多自由：你可以选择来源数据、决定显示什么，并设计样式和体验。我们会将其中一个安装到上面创建的项目中，再连接到我们的服务器。地图来源主要有两种：栅格和矢量，就像 Photoshop 的像素图像和 Illustrator 的形状图形。栅格地图是已经准备好的图像：易于显示，也能保留提供方的制图风格，但不太容易重新设计样式或加入交互。矢量地图由数据驱动的形状组成：在任何缩放级别都很清晰，并可重新设计样式、制作动画及加入交互，但需要兼容的渲染库。如果使用栅格来源，请选择 Leaflet。若要使用更流畅、更现代的矢量格式，请考虑 Mapbox 或 MapLibre。MapLibre 是原始 Mapbox GL JS 库的开源延续，因此两者有许多共同点；Mapbox 提供许多额外的免费增值服务，而 MapLibre 则有强大的社区和更广泛的插件生态系统。",
   "guide_renderer_label": "选择地图库",
   "guide_renderer_maplibre": "MapLibre",
   "guide_renderer_recommended": "受到推崇的",
