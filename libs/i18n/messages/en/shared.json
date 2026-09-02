@@ -1663,8 +1663,6 @@
   "guide_renderer_prompt_none_eyebrow": "Run in your terminal",
   "guide_renderer_terminal_reminder_unix": "You cannot paste this into the terminal where your <code>bun dev</code> server is running. Instead, open another terminal tab or window, navigate to the project if you have not already, and paste it there. If you are having trouble navigating, <code>{command}</code> returns you to the project root.",
   "guide_renderer_terminal_reminder_windows": "You cannot paste this into the PowerShell window where your <code>bun dev</code> server is running. Instead, open another PowerShell tab or window, navigate to the project if you have not already, and paste it there. If you are having trouble navigating and followed the directory name above, <code>{command}</code> returns you to the project folder.",
-  "guide_renderer_prompt_agent_eyebrow": "LLM-LEVEL: AGENT",
-  "guide_renderer_prompt_chat_eyebrow": "LLM-LEVEL: CHAT",
   "guide_renderer_web_embed": "Embedding can take many forms. Usually you build the map as a web project first, then place it in an iframe or share its map component with the host application.",
   "guide_renderer_mobile": "For Android and iOS, use MapLibre Native and pass the SaanSeoi public key directly to SaanSeoi requests. Ask your mobile developer or LLM to adapt the same tile and style configuration for your app architecture.",
   "guide_renderer_notebook": "A notebook is a browser context too. Use a dedicated SaanSeoi public key, pass it directly to SaanSeoi requests, and do not include it in a notebook you plan to share.",
