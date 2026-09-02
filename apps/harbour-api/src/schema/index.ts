@@ -443,7 +443,7 @@ export const ControlResponseSchema = z
     apiCatalogRevisionId: z.string().uuid().optional(),
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
-    apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
+    apiReleaseSetStatus: z.enum(['current', 'draft', 'archived']).optional(),
     apiReleaseSetPublications: z.array(ReleaseSetPublicationSchema).optional(),
     metadataDelta: z
       .object({
@@ -458,7 +458,7 @@ export const ControlResponseSchema = z
               domainCode: z.string(),
               cohortKey: z.string().nullable(),
               revision: z.number(),
-              status: z.enum(['current', 'draft']),
+              status: z.enum(['current', 'draft', 'archived']),
               effectiveFrom: z.string().nullable(),
               effectiveTo: z.string().nullable(),
               supersedesApiReleaseSetId: z.string().nullable(),
