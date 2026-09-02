@@ -25,6 +25,8 @@ const mobileCalloutNumberClass =
   'mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden'
 const mobileCardNumberClass =
   'pointer-events-none absolute -top-2 -right-2 hidden size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary max-xl:inline-flex'
+const mobileCardContentNumberClass =
+  'pointer-events-none absolute top-2 right-2 hidden size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary max-xl:inline-flex'
 
 const loadLeaderLine = () => {
   const leaderLineWindow = window as LeaderLineWindow
@@ -240,11 +242,11 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-1 min-w-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#211d32] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
+        class="order-1 min-w-0 border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#211d32] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span
-            class="flex min-w-0 items-center gap-3 truncate font-body text-label-sm font-semibold text-[#eeeaff]"
+            class="flex min-w-0 items-center gap-3 xl:truncate font-body text-label-sm font-semibold text-[#eeeaff]"
           >
             <span
               data-guide-llm-prompt-icon
@@ -296,7 +298,7 @@ onMount(() => {
           <p class="max-w-md font-mono text-body-sm leading-6 text-[#eeeaff]/75">
             {m.guide_llm_prompt_card_explainer_prompt_sample()}
           </p>
-          <span class={mobileCardNumberClass} aria-hidden="true">6</span>
+          <span class={mobileCardContentNumberClass} aria-hidden="true">6</span>
         </div>
       </div>
       <span
@@ -352,18 +354,18 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:-mt-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-1 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0 xl:self-start"
+        class="order-1 min-w-0 border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0 xl:self-start"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span
-            class="flex min-w-0 items-center gap-2 truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
+            class="flex min-w-0 items-center gap-2 xl:truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
           >
             <span data-guide-llm-code-index class="relative text-secondary"
               >01<span class={mobileCardNumberClass} aria-hidden="true">1</span></span
             ><span data-guide-llm-code-type class="relative"
               >CLI<span class={mobileCardNumberClass} aria-hidden="true">2</span></span
             ><span aria-hidden="true">•</span
-            ><span data-guide-llm-code-title class="relative truncate"
+            ><span data-guide-llm-code-title class="relative xl:truncate"
               >{m.guide_llm_prompt_card_explainer_code_title()}
               <span class={mobileCardNumberClass} aria-hidden="true">3</span></span
             >
@@ -412,7 +414,7 @@ onMount(() => {
             <span class="mr-2 text-secondary">$</span>bun create vite . --template
             vanilla-ts
           </p>
-          <span class={mobileCardNumberClass} aria-hidden="true">8</span>
+          <span class={mobileCardContentNumberClass} aria-hidden="true">8</span>
         </div>
       </div>
       <span
@@ -482,7 +484,7 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:-mt-16 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-1 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
+        class="order-1 min-w-0 border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span class="truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
@@ -525,7 +527,7 @@ onMount(() => {
           <div
             class="h-20 w-44 border border-[#6b7c96]/45 bg-[linear-gradient(135deg,#5c6f93_0_24%,#8ba9b7_24%_42%,#e4c890_42%_57%,#597e78_57%)] opacity-70"
           ></div>
-          <span class={mobileCardNumberClass} aria-hidden="true">4</span>
+          <span class={mobileCardContentNumberClass} aria-hidden="true">4</span>
         </div>
       </div>
       <span
