@@ -40,54 +40,75 @@ const projectSetupSafetyInstructions =
 preserve them. If Vite says the directory is non-empty, choose “Ignore files and
 continue” — never “Remove existing files.”
 
-\`saanseoi-project\` is the default only when a new subdirectory is required. A coding
-agent must follow the workspace-location policy in the interaction instructions and
-adapt the commands below when creating the app in the current workspace root.
+Before creating anything, inspect the operating system and shell, check whether Bun is
+already installed, and check whether \`saanseoi-project\` already exists in the intended
+parent directory. If Bun is installed, do not run its installation command. If
+\`saanseoi-project\` exists, stop and ask the user whether it is the intended project;
+never overwrite it.
+
+Create the project only as \`/path/to/saanseoi-project\`. After creating it, execute every
+remaining setup command with \`/path/to/saanseoi-project\` as the working directory. Confirm
+that \`package.json\` is inside that directory before continuing. Do not rely on \`.\` unless
+the working directory has just been verified. Running \`bun create vite .\` from a workspace
+root creates the app in the wrong place.
 `.trim()
 
-const unixViteCreateCommand = String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`
+const viteCreateCommand =
+  'bun create vite . --template vanilla-ts --no-immediate --interactive'
 
 const projectSetupInstructions = `### Create a new web-map project
 
 For a new **on-computer**, **online**, or **site-embed** web map, use Bun and
-TypeScript. Use the appropriate commands in the chosen working directory — in this
-tutorial, \`saanseoi-project\`.
+TypeScript. The project directory in this tutorial is \`/path/to/saanseoi-project\`.
 
 ${projectSetupSafetyInstructions}
 
 #### Linux
 
+First check for Bun. Only run the installation command when \`bun --version\` reports that
+Bun is unavailable.
+
 \`\`\`bash
+# Run this only if Bun is not installed:
 curl -fsSL https://bun.sh/install | bash
 
+# Run these only after confirming that saanseoi-project does not already exist.
 mkdir saanseoi-project
 cd saanseoi-project
+pwd
 # If Vite says the directory is non-empty, select “Ignore files and continue”.
 # Never select “Remove existing files.”
-# This sends two Down-arrow presses and Enter to select “Ignore files and continue”.
 # The --no-immediate flag selects “No” for installing and starting now.
-${unixViteCreateCommand}
+${viteCreateCommand}
 bun install
+bun add -d wrangler
 \`\`\`
 
 #### macOS
 
-Use the following commands. Skip the Bun installation command if Bun is already
-installed, and ask the user to open a new terminal after installation if their chosen
-shell requires it.
+Use the Linux command sequence after inspecting the shell. Check \`bun --version\` first;
+skip the Bun installation command when it is already installed, and ask the user to open a
+new terminal after installation if their chosen shell requires it.
 
 #### Windows PowerShell
 
+First check for Bun with \`Get-Command bun -ErrorAction SilentlyContinue\`. Only run the
+installation command when it is unavailable.
+
 \`\`\`powershell
+# Run this only if Bun is not installed:
 irm bun.sh/install.ps1 | iex
 
+# Run these only after confirming that saanseoi-project does not already exist.
 mkdir saanseoi-project
 cd saanseoi-project
+pwd
 # If Vite says the directory is non-empty, select “Ignore files and continue”.
 # Never select “Remove existing files.”
 # The --no-immediate flag selects “No” for installing and starting now.
-bun create vite . --template vanilla-ts --no-immediate
+bun create vite . --template vanilla-ts --no-immediate --interactive
 bun install
+bun add -d wrangler
 \`\`\`
 
 ### If Bun reports a temporary-directory or sandbox error
@@ -115,36 +136,24 @@ bun install
 Remove-Item -Recurse -Force .bun-tmp, .bun-install
 \`\`\`
 
-For an online or embedded map, install exactly one CLI development dependency matching
-the selected host after \`bun install\` and before \`bun dev\`. This only adds a local
-CLI dependency; it does not sign in, configure an account, or deploy.
-
-\`\`\`bash
-# Cloudflare
-bun add -d wrangler
-
-# GitHub Pages
-bun add -d gh-pages
-
-# Netlify
-bun add -d netlify-cli
-
-# Vercel
-bun add -d vercel
-\`\`\`
-
 Then start the development server:
 
 \`\`\`bash
-bun dev
+pwd
+# Confirm that this is /path/to/saanseoi-project and that package.json is here.
+bun dev -- --host 0.0.0.0
 \`\`\`
 
-Keep the development server running. Verify that the local server URL it reports
-(normally \`http://localhost:5173/\`) loads the Vite page: check it yourself when you
-have browser access; otherwise ask the user to open it and report the result. A
-successful Bun command, build, or HTTP response is not visual verification. Once the
-Vite page is confirmed, do not add map libraries, basemaps, hosting configuration, or
-deployment settings in this section.
+Keep the development server running. Use the exact URL Vite reports, including an
+alternative port such as \`http://localhost:5174/\`; do not assume port 5173 is available,
+and do not stop or restart another process using it. Visibly open that reported URL in a
+browser and confirm that the default Vite page is displayed. A successful Bun command,
+build, or HTTP response is not visual verification. If no browser is available, stop and
+ask the user to open the reported URL and describe what they see.
+
+Do not install map libraries or add basemap, style, data, Cloudflare configuration,
+credentials, deployment, or embedding settings. Once the user confirms that the default
+Vite page is visible, summarise the setup and stop.
 `
 
 const linuxStart = projectSetupInstructions.indexOf('#### Linux')
@@ -153,14 +162,13 @@ const windowsStart = projectSetupInstructions.indexOf('#### Windows PowerShell')
 const bunFallbackStart = projectSetupInstructions.indexOf(
   '### If Bun reports a temporary-directory or sandbox error',
 )
-const hostingDependencyStart = projectSetupInstructions.indexOf(
-  'For an online or embedded map, install exactly one CLI development dependency',
-)
 const verificationStart = projectSetupInstructions.indexOf(
   'Keep the development server',
 )
+const developmentServerStart = projectSetupInstructions.indexOf(
+  'Then start the development server',
+)
 
-const projectSetupIntroduction = projectSetupInstructions.slice(0, linuxStart).trimEnd()
 const linuxInstructions = projectSetupInstructions.slice(linuxStart, macosStart).trim()
 const macosIntroduction = projectSetupInstructions
   .slice(macosStart, windowsStart)
@@ -173,7 +181,7 @@ const windowsInstructions = projectSetupInstructions
   .slice(windowsStart, bunFallbackStart)
   .trim()
 const bunInstallFallbackInstructions = projectSetupInstructions
-  .slice(bunFallbackStart, hostingDependencyStart)
+  .slice(bunFallbackStart, developmentServerStart)
   .trim()
 const verificationInstructions = projectSetupInstructions
   .slice(verificationStart)
@@ -223,13 +231,6 @@ const createTerminalAssistanceInstructions = ({
   ]
 }
 
-const hostingToolByValue = {
-  cloudflare: { command: 'bun add -d wrangler', name: 'Wrangler' },
-  'github-pages': { command: 'bun add -d gh-pages', name: 'gh-pages' },
-  netlify: { command: 'bun add -d netlify-cli', name: 'Netlify CLI' },
-  vercel: { command: 'bun add -d vercel', name: 'Vercel CLI' },
-} as const
-
 const createBunInstallFallbackInstructions = ({
   operatingSystem,
 }: AssistancePrerequisitesInput) => {
@@ -265,59 +266,26 @@ const createBunInstallFallbackInstructions = ({
 const developmentServerInstructions = [
   '#### Start the development server',
   '',
-  'After installing the selected host’s CLI dependency when applicable, start the server:',
+  'Immediately before starting the server, run `pwd` and confirm that it prints `/path/to/saanseoi-project`. Confirm that `package.json` is in that directory. Do not rely on `.` until that check has just succeeded.',
   '',
   '```bash',
-  'bun dev',
+  'pwd',
+  'bun dev -- --host 0.0.0.0',
   '```',
 ].join('\n')
-
-const createHostingSetupInstructions = ({
-  assistanceMode,
-  hostingValue,
-  objective,
-  operatingSystem,
-}: AssistancePrerequisitesInput) => {
-  if (objective !== 'web' && objective !== 'web-embed') return []
-
-  const hostingTool = hostingValue
-    ? hostingToolByValue[hostingValue as keyof typeof hostingToolByValue]
-    : undefined
-
-  if (!hostingTool) return []
-
-  const chatTerminalInstruction =
-    assistanceMode === 'chat'
-      ? 'Before installing this dependency, ask me to open another terminal tab or window and navigate to the same project directory. Give me the exact command for that terminal, such as `cd saanseoi-project` when it opens in the parent directory.'
-      : undefined
-
-  const isWindows = operatingSystem?.toLowerCase() === 'windows'
-
-  return [
-    [
-      `### Install the ${hostingTool.name} dependency`,
-      '',
-      ...(chatTerminalInstruction ? [chatTerminalInstruction, ''] : []),
-      `In the project directory, install the ${hostingTool.name} development dependency now. This only adds the local CLI dependency: it does not sign in, configure an account, or deploy.`,
-      isWindows ? '```powershell' : '```bash',
-      hostingTool.command,
-      '```',
-    ].join('\n'),
-  ]
-}
 
 const createProjectSetupIntroduction = ({
   objective,
 }: AssistancePrerequisitesInput) => {
   switch (objective) {
     case 'local':
-      return 'For this local map on my computer, use Bun and TypeScript. Use the appropriate commands in the chosen working directory — in this tutorial, `saanseoi-project`.'
+      return 'For this local map on my computer, use Bun and TypeScript in `/path/to/saanseoi-project`.'
     case 'web':
-      return 'For this stand-alone web app, use Bun and TypeScript. Use the appropriate commands in the chosen working directory — in this tutorial, `saanseoi-project`.'
+      return 'For this stand-alone web app, use Bun and TypeScript in `/path/to/saanseoi-project`.'
     case 'web-embed':
-      return 'For this map embedded in an existing site, first create a standalone web map with Bun and TypeScript. Use the appropriate commands in the chosen working directory — in this tutorial, `saanseoi-project`.'
+      return 'For this map embedded in an existing site, first create a standalone web map with Bun and TypeScript in `/path/to/saanseoi-project`.'
     default:
-      return projectSetupIntroduction
+      return '### Create a new web-map project\n\nFor a new web map, use Bun and TypeScript in `/path/to/saanseoi-project`.'
   }
 }
 
@@ -328,7 +296,6 @@ const createOperatingSystemSetupInstructions = (
   const { operatingSystem } = input
   const introduction = createProjectSetupIntroduction(input)
   const terminalInstructions = createTerminalAssistanceInstructions(input)
-  const hostingInstructions = createHostingSetupInstructions(input)
 
   if (input.assistanceMode === 'agentic') {
     return [
@@ -339,7 +306,6 @@ const createOperatingSystemSetupInstructions = (
       windowsInstructions,
       bunInstallFallbackInstructions,
       developmentServerInstructions,
-      ...hostingInstructions,
       ...(includeVerification ? [verificationInstructions] : []),
     ]
   }
@@ -353,7 +319,6 @@ const createOperatingSystemSetupInstructions = (
         linuxInstructions,
         createBunInstallFallbackInstructions(input),
         developmentServerInstructions,
-        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     case 'macos':
@@ -364,7 +329,6 @@ const createOperatingSystemSetupInstructions = (
         macosInstructions,
         createBunInstallFallbackInstructions(input),
         developmentServerInstructions,
-        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     case 'windows':
@@ -375,7 +339,6 @@ const createOperatingSystemSetupInstructions = (
         windowsInstructions,
         createBunInstallFallbackInstructions(input),
         developmentServerInstructions,
-        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     default:
@@ -388,7 +351,6 @@ const createOperatingSystemSetupInstructions = (
         windowsInstructions,
         createBunInstallFallbackInstructions(input),
         developmentServerInstructions,
-        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
   }

@@ -102,6 +102,10 @@ const sectionLabel = (section: CreateAMapLlmPromptSection) =>
     : section.charAt(0).toUpperCase() + section.slice(1)
 
 const createSectionCompletionInstruction = (section: CreateAMapLlmPromptSection) => {
+  if (section === 'prerequisites') {
+    return 'Once the user confirms that the default Vite page is visibly displayed, summarise the setup and stop. Do not make further changes or begin the “Render your map” section.'
+  }
+
   const nextSection = nextSectionBySection[section]
 
   return nextSection
@@ -525,52 +529,9 @@ export function createAMapBasemapPromptFragments(
       editor: 'all',
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_basemap_context({
-        coverage: state.regionLabel ?? 'TBD',
         library: state.rendererLabel ?? 'TBD',
         tilejsonUrl: state.tilejsonUrl ?? 'TBD',
       }),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
-    },
-    {
-      llmType: 'chat',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_agent_actions(),
-    },
-    {
-      llmType: 'chat',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_chat_actions(),
-    },
-    {
-      llmType: 'all',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
-    },
-    {
-      llmType: 'all',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_api_key(),
     },
     {
       llmType: 'all',
@@ -632,7 +593,6 @@ const createAMapProgressivePrompt = (
     return [
       createAMapBasemapPrompt(state, mode),
       ...(localeInstruction ? [localeInstruction] : []),
-      createSectionCompletionInstruction(section),
     ]
       .filter(Boolean)
       .join('\n\n')
