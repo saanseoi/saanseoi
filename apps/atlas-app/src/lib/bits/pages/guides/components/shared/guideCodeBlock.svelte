@@ -35,8 +35,9 @@ type Props = {
   onVisibleLinesChange?: (lines: GuideCodeVisibleLine[]) => void
   pathSeparator?: '\\'
   promptIcon?: string
+  subheader?: Snippet
   terminalDotsSuffix?: Snippet
-  variant?: 'code' | 'editor' | 'prompt'
+  variant?: 'code' | 'editor' | 'prompt' | 'reference'
   width?: 'content' | 'short' | 'shortCard'
 }
 
@@ -296,6 +297,7 @@ let {
   onVisibleLinesChange,
   pathSeparator,
   promptIcon = 'material-symbols-light:auto-awesome',
+  subheader,
   terminalDotsSuffix,
   variant = 'code',
   width = 'shortCard',
@@ -420,9 +422,12 @@ function reportVisibleLines() {
   const lastVisibleLine = uniqueLines.at(-1)?.line
   const firstVisibleIndex = allLineNumbers.indexOf(firstVisibleLine ?? -1)
   const lastVisibleIndex = allLineNumbers.indexOf(lastVisibleLine ?? -1)
-  hiddenLinesAbove = firstVisibleIndex > 0 ? firstVisibleIndex : 0
+  const isScrollable = codeElement.scrollHeight > codeElement.clientHeight
+  hiddenLinesAbove = isScrollable && firstVisibleIndex > 0 ? firstVisibleIndex : 0
   hiddenLinesBelow =
-    lastVisibleIndex >= 0 ? allLineNumbers.length - lastVisibleIndex - 1 : 0
+    isScrollable && lastVisibleIndex >= 0
+      ? allLineNumbers.length - lastVisibleIndex - 1
+      : 0
 
   onVisibleLinesChange?.(uniqueLines)
 }
@@ -431,13 +436,22 @@ $effect(() => {
   void commentsVisible
   requestAnimationFrame(reportVisibleLines)
 })
+
+$effect(() => {
+  if (!codeElement) return
+
+  const resizeObserver = new ResizeObserver(reportVisibleLines)
+  resizeObserver.observe(codeElement)
+
+  return () => resizeObserver.disconnect()
+})
 </script>
 
 <div
   class={`${className} flex w-full min-w-0 flex-col ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} max-h-[min(1080px,calc(100dvh-4.5rem))] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'max-h-[640px]' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
-      : variant === 'editor'
+      : variant === 'editor' || variant === 'reference'
         ? 'border-[#596074] bg-[#131722]'
       : 'border-[#47605b] bg-[#101515]'
   }`}
@@ -447,7 +461,7 @@ $effect(() => {
     class={`flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
-      : variant === 'editor'
+      : variant === 'editor' || variant === 'reference'
         ? 'border-[#596074] bg-[#202633]'
       : 'border-[#47605b] bg-[#182021]'
     }`}
@@ -468,7 +482,7 @@ $effect(() => {
         >
           <Icon icon={editorIcon} class="size-4" />
         </span>
-      {:else}
+      {:else if variant === 'code'}
         <span class="flex gap-1.5" aria-hidden="true">
           <span class="size-2.5 rounded-full bg-[#ef8b88]"></span>
           <span class="size-2.5 rounded-full bg-[#f2c26d]"></span>
@@ -481,7 +495,7 @@ $effect(() => {
         class={`font-semibold ${
           variant === 'prompt'
             ? 'font-body tracking-[0.01em] text-[#eeeaff]'
-            : variant === 'editor'
+            : variant === 'editor' || variant === 'reference'
               ? 'font-mono text-label-sm text-[#d6e4ff]'
             : 'font-mono text-label-sm text-white/75'
         }`}
@@ -527,6 +541,20 @@ $effect(() => {
       </div>
     {/if}
   </div>
+  {#if subheader}
+    <div
+      data-guide-code-subheader
+      class={`shrink-0 border-b px-4 py-1.5 font-mono text-label-sm ${
+        variant === 'prompt'
+          ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] text-[#eeeaff]/75'
+          : variant === 'editor' || variant === 'reference'
+            ? 'border-[#596074] bg-[#182021] text-[#d6e4ff]/75'
+            : 'border-[#47605b] bg-[#101515] text-white/75'
+      }`}
+    >
+      {@render subheader()}
+    </div>
+  {/if}
   <div class="relative min-h-0 flex-1 overflow-hidden">
     <pre
       bind:this={codeElement}
@@ -541,7 +569,7 @@ $effect(() => {
     } ${
       variant === 'prompt'
         ? 'min-h-0 overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
-        : variant === 'editor'
+          : variant === 'editor' || variant === 'reference'
           ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
       }`}

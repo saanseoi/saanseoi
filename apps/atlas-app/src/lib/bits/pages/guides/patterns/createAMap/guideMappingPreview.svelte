@@ -13,6 +13,24 @@ type CachedTileJson = {
 }
 const cachedTileJsons = new Map<string, Promise<CachedTileJson>>()
 
+const withSaanSeoiPreviewAccessToken = (url: string, accessToken?: string) => {
+  if (!accessToken) return url
+
+  try {
+    const parsedUrl = new URL(url)
+    if (
+      parsedUrl.origin !== 'https://tiles.saanseoi.hk' ||
+      parsedUrl.searchParams.has('access_token')
+    )
+      return url
+
+    parsedUrl.searchParams.set('access_token', accessToken)
+    return parsedUrl.toString()
+  } catch {
+    return url
+  }
+}
+
 const getCachedStyle = (url: string) => {
   const cached = cachedStyles.get(url)
   if (cached) return cached
@@ -83,7 +101,6 @@ type Renderer = 'leaflet' | 'mapbox' | 'maplibre'
 type Coordinates = [longitude: number, latitude: number]
 
 type Props = {
-  accessToken?: string
   additionalLayers?: LayerSpecification[]
   additionalSources?: StyleSpecification['sources']
   ariaLabel: string
@@ -91,6 +108,7 @@ type Props = {
   center: Coordinates
   leafletAttribution?: string
   leafletTileUrl?: string
+  mapboxAccessToken?: string
   mapboxStyleUrl?: string
   onMapReady?: (map: MapLibreMap) => void | Promise<void>
   renderer: Renderer
@@ -101,7 +119,6 @@ type Props = {
 }
 
 let {
-  accessToken,
   additionalLayers = [],
   additionalSources = {},
   ariaLabel,
@@ -109,6 +126,7 @@ let {
   center,
   leafletAttribution,
   leafletTileUrl,
+  mapboxAccessToken,
   mapboxStyleUrl,
   onMapReady,
   renderer,
@@ -120,6 +138,8 @@ let {
 let container = $state<HTMLDivElement>()
 let error = $state<string>()
 let loading = $state(true)
+const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
+const configuredMapboxAccessToken = import.meta.env.VITE_MAPBOX_TOKEN?.trim()
 
 const libraryName = (value: Renderer) =>
   value === 'mapbox' ? 'Mapbox GL JS' : value === 'leaflet' ? 'Leaflet' : 'MapLibre'
@@ -145,9 +165,13 @@ const loadStyle = async (): Promise<StyleSpecification> => {
 
   // Keep the immutable network response for transient previews, while every map
   // receives its own mutable style object.
+  const authenticatedTilejsonUrl = withSaanSeoiPreviewAccessToken(
+    tilejsonUrl,
+    saanseoiAccessToken,
+  )
   const [styleResponse, tileJson] = await Promise.all([
     getCachedStyle(styleUrl),
-    getCachedTileJson(tilejsonUrl),
+    getCachedTileJson(authenticatedTilejsonUrl),
   ])
   const style = structuredClone(styleResponse)
   style.sources = {
@@ -205,6 +229,10 @@ onMount(() => {
         const map = leaflet.map(container, {
           attributionControl: false,
           zoomControl: false,
+          // The MapLibre bridge cannot repaint its canvas while Leaflet scales it.
+          zoomAnimation: false,
+          fadeAnimation: false,
+          markerZoomAnimation: false,
         })
         map.setView([center[1], center[0]], zoom)
         if (leafletTileUrl) {
@@ -227,17 +255,28 @@ onMount(() => {
         if (disposed || !container) return
 
         const map = new mapboxgl.Map({
-          accessToken,
+          accessToken: mapboxAccessToken ?? configuredMapboxAccessToken,
           attributionControl: false,
           container,
           center,
           style: (mapboxStyleUrl ?? style) as MapboxStyleSpecification,
           zoom,
         })
+        const reportBasemapError = (event: {
+          error?: { message?: string }
+          sourceId?: string
+        }) => {
+          if (event.sourceId !== 'basemap') return
+          error = event.error?.message ?? m.guide_mapping_preview_load_error()
+        }
+        map.on('error', reportBasemapError)
         map.once('idle', () => {
           void onMapReady?.(map as unknown as MapLibreMap)
         })
-        remove = () => map.remove()
+        remove = () => {
+          map.off('error', reportBasemapError)
+          map.remove()
+        }
         observeResize(() => map.resize())
       } else {
         const { Map: MapLibreMap } = await import('maplibre-gl')

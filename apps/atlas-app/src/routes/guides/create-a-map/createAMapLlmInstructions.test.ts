@@ -14,6 +14,7 @@ import {
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
   createUrbanDensityMapReadyCode,
+  createUrbanDensitySetupZ14TileFetcherCode,
   createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
   urbanDensityCalculationCode,
@@ -47,7 +48,7 @@ describe('Create a Map LLM instructions', () => {
         'https://tiles.example/macau.json',
         macaoPosition,
       ),
-    ).toContain("L.map('map').setView([22.165, 113.552], 12.2)")
+    ).toContain('}).setView([22.165, 113.552], 12.2)')
     expect(getCreateAMapRendererReference('leaflet', macaoPosition).code).toContain(
       "L.map('map').setView([22.165, 113.552], 12.2)",
     )
@@ -71,6 +72,37 @@ describe('Create a Map LLM instructions', () => {
     }
   })
 
+  test('emits the selected renderer for urban-density setup and tile analysis', () => {
+    const styleUrl = 'https://styles.example/light.json'
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'maplibre')).toContain(
+      'new maplibregl.Map({',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('maplibre')).toStartWith(
+      "import type { GeoJSONSource } from 'maplibre-gl'",
+    )
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'mapbox')).toContain(
+      'new mapboxgl.Map({',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('mapbox')).toStartWith(
+      "import type { GeoJSONSource } from 'mapbox-gl'",
+    )
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      "const leafletMap = L.map('map', {",
+    )
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      'markerZoomAnimation: false',
+    )
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      'const map = basemapLayer.getMaplibreMap()',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('leaflet')).toStartWith(
+      "import type { GeoJSONSource } from 'maplibre-gl'",
+    )
+  })
+
   test('emits the MapLibre production worker for Leaflet bridge snippets', () => {
     for (const code of [
       createAMapRendererBasemapCode(
@@ -88,6 +120,9 @@ describe('Create a Map LLM instructions', () => {
         "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
       )
       expect(code).toContain('maplibregl.setWorkerUrl(workerUrl)')
+      expect(code).toContain('zoomAnimation: false')
+      expect(code).toContain('fadeAnimation: false')
+      expect(code).toContain('markerZoomAnimation: false')
     }
   })
 

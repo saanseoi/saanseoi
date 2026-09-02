@@ -24,8 +24,6 @@ let {
 
 const libraryName = (value: Renderer) =>
   value === 'mapbox' ? 'Mapbox GL JS' : value === 'leaflet' ? 'Leaflet' : 'MapLibre'
-const mapboxPreviewAccessToken =
-  'pk.eyJ1IjoidGlqcHRqaWsiLCJhIjoiY2ppcGt4ZXVxMHkzdzNwbzdhNXZ1dmNuZCJ9.cqrhylStTkcehygootZk9A'
 const unstyled = $derived(unstyledOverride ?? renderer === 'maplibre')
 const previewTitle = $derived(
   title ??
@@ -57,7 +55,6 @@ const previewLabel = $derived(
 >
   {#key `${renderer}:${unstyled}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
-      accessToken={renderer === 'mapbox' ? mapboxPreviewAccessToken : undefined}
       ariaLabel={previewLabel}
       center={openingPosition.center}
       leafletAttribution={renderer === 'leaflet' && !unstyled

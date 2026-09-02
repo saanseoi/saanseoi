@@ -14,6 +14,22 @@ export type CreateAMapRendererReference = {
   stylesheetCode: string
 }
 
+export type CreateAMapProjectSetupReference = {
+  code: string
+  language: 'bash' | 'powershell'
+  path: string
+  title: string
+  type: 'CLI'
+}
+
+type CreateAMapProjectSetupReferenceLabels = {
+  configureVite: string
+  createProject: string
+  createProjectDirectory: string
+  enterProjectDirectory: string
+  installPackages: string
+}
+
 const stylesheetSnippet = [
   "@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');",
   '',
@@ -181,7 +197,11 @@ export const createAMapRendererBasemapCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `const map = L.map('map').setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
+        "const map = L.map('map', {",
+        '  zoomAnimation: false,',
+        '  fadeAnimation: false,',
+        '  markerZoomAnimation: false,',
+        `}).setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
         'maplibreGL({',
         '  style: {',
         '    version: 8,',
@@ -261,7 +281,11 @@ export const createAMapRendererStyleCode = (
         '',
         "document.querySelector<HTMLDivElement>('#app')!.innerHTML = '<div id=\"map\"></div>'",
         '',
-        `const map = L.map('map').setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
+        "const map = L.map('map', {",
+        '  zoomAnimation: false,',
+        '  fadeAnimation: false,',
+        '  markerZoomAnimation: false,',
+        `}).setView([${latitude}, ${longitude}], ${openingPosition.zoom})`,
         'maplibreGL({',
         '  style,',
         '}).addTo(map)',
@@ -418,6 +442,75 @@ export const createProjectSetupCode = (
     ])
     .join('\n')
 
+export const createProjectSetupReferences = (
+  operatingSystem: string | undefined,
+  renderer: CreateAMapRenderer | undefined,
+  labels: CreateAMapProjectSetupReferenceLabels,
+): CreateAMapProjectSetupReference[] => {
+  const isWindows = operatingSystem?.toLowerCase() === 'windows'
+  const language = isWindows ? 'powershell' : 'bash'
+  const projectPath = isWindows ? '~\\saanseoi-project' : '~/saanseoi-project'
+  const viteCommand = isWindows
+    ? 'bun create vite . --template vanilla-ts --no-immediate'
+    : String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`
+  const references: CreateAMapProjectSetupReference[] = [
+    {
+      code: 'mkdir saanseoi-project',
+      language,
+      path: '~',
+      title: labels.createProjectDirectory,
+      type: 'CLI',
+    },
+    {
+      code: 'cd saanseoi-project',
+      language,
+      path: '~',
+      title: labels.enterProjectDirectory,
+      type: 'CLI',
+    },
+    {
+      code: viteCommand,
+      language,
+      path: projectPath,
+      title: labels.createProject,
+      type: 'CLI',
+    },
+  ]
+
+  if (renderer === 'maplibre' || renderer === 'leaflet') {
+    references.push({
+      code: isWindows
+        ? [
+            "$viteConfig = @'",
+            mapLibreViteConfigCode,
+            "'@",
+            '$viteConfig | Set-Content vite.config.js',
+          ].join('\n')
+        : [
+            "printf '%s\\n' \\",
+            ...mapLibreViteConfigCode
+              .split('\n')
+              .map(line => `  ${JSON.stringify(line)} \\`),
+            '  > vite.config.js',
+          ].join('\n'),
+      language,
+      path: projectPath,
+      title: labels.configureVite,
+      type: 'CLI',
+    })
+  }
+
+  references.push({
+    code: 'bun install',
+    language,
+    path: projectPath,
+    title: labels.installPackages,
+    type: 'CLI',
+  })
+
+  return references
+}
+
 export const createRestartProjectCode = (operatingSystem?: string) =>
   operatingSystem === 'windows'
     ? 'cd saanseoi-project\nbun dev'
@@ -566,7 +659,11 @@ export const createUrbanDensityMapReadyCode = (
     '',
     ...(renderer === 'leaflet'
       ? [
-          "const leafletMap = L.map('map').setView([22.32, 114.16], 11.5)",
+          "const leafletMap = L.map('map', {",
+          '  zoomAnimation: false,',
+          '  fadeAnimation: false,',
+          '  markerZoomAnimation: false,',
+          '}).setView([22.32, 114.16], 11.5)',
           'const basemapLayer = maplibreGL({ style }).addTo(leafletMap)',
           'const map = basemapLayer.getMaplibreMap()',
         ]

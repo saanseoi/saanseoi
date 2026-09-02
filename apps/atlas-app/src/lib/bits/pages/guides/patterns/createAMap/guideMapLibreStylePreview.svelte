@@ -11,22 +11,16 @@ type Props = {
 }
 
 let { label, renderer, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
-
-const previewTilejsonUrl = $derived(
-  import.meta.env.VITE_SAANSEOI_API_KEY
-    ? `${tilejsonUrl}?access_token=${encodeURIComponent(import.meta.env.VITE_SAANSEOI_API_KEY)}`
-    : tilejsonUrl,
-)
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${renderer}:${styleUrl}:${previewTilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
       center={openingPosition.center}
       {renderer}
       {styleUrl}
-      tilejsonUrl={previewTilejsonUrl}
+      {tilejsonUrl}
       zoom={openingPosition.zoom}
     />
   {/key}
