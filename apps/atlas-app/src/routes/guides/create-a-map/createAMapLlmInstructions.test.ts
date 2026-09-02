@@ -718,10 +718,14 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('browser visibly shows')
     }
 
-    expect(agentPrompt).toContain(
+    expect(agentPrompt).not.toContain(
       'As an agent, you will implement the requests locally',
     )
-    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain(
+      'Implement the requested renderer changes locally',
+    )
+    expect(agentPrompt).not.toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('collaborative assistance session')
     expect(agentPrompt).not.toContain('create a new `saanseoi-project` subdirectory')
     expect(agentPrompt).not.toContain('For every action, name the exact paste target')
     expect(chatPrompt).toContain(
@@ -794,31 +798,38 @@ describe('Create a Map LLM instructions', () => {
     }
   })
 
-  test('provides the selected renderer reference without exposing a Mapbox token', () => {
-    const prompt = createAMapAgenticSectionPrompt(
-      {
-        preferredLocale: 'en',
-        renderer: 'mapbox',
-        rendererLabel: 'Mapbox GL JS',
-      },
-      'render',
-    )
+  test('guides both LLM modes through local Mapbox token setup without exposing it', () => {
+    const state = {
+      preferredLocale: 'en',
+      renderer: 'mapbox',
+      rendererLabel: 'Mapbox GL JS',
+    }
+    const prompts = [
+      createAMapAgenticSectionPrompt(state, 'render'),
+      createAMapChatSectionPrompt(state, 'render'),
+    ]
 
-    expect(prompt).toContain(
-      'If you have no context for the SaanSeoi project, stop immediately',
-    )
-    expect(prompt).toContain('### Setup')
-    expect(prompt).toContain('bun add mapbox-gl')
-    expect(prompt).toContain('Replace the existing `src/main.ts` with:')
-    expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
-    expect(prompt).toContain('### Verify')
-    expect(prompt).toContain(
-      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`.',
-    )
-    expect(prompt).not.toContain('### This section')
-    expect(prompt).not.toContain('### Project decisions')
-    expect(prompt).toContain('access_token')
-    expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
+    for (const prompt of prompts) {
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('### Setup')
+      expect(prompt).toContain('bun add mapbox-gl')
+      expect(prompt).toContain('Replace the existing `src/main.ts` with:')
+      expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
+      expect(prompt).toContain('### Verify')
+      expect(prompt).toContain('### Mapbox access token')
+      expect(prompt).toContain('Access Tokens dashboard')
+      expect(prompt).toContain('VITE_MAPBOX_TOKEN=...')
+      expect(prompt).toContain('Do not ask me to paste or reveal the token in chat')
+      expect(prompt.indexOf('### Mapbox access token')).toBeLessThan(
+        prompt.indexOf('### Setup'),
+      )
+      expect(prompt).not.toContain('### This section')
+      expect(prompt).not.toContain('### Project decisions')
+      expect(prompt).toContain('access_token')
+      expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
+    }
   })
 
   test('includes renderer-specific style code in agent and chat hand-offs', () => {

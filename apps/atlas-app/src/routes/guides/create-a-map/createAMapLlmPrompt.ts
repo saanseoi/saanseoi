@@ -408,6 +408,9 @@ const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   const library = state.rendererLabel ?? reference.label
 
   return [
+    ...(state.renderer === 'mapbox'
+      ? [m.llm_prompt_guide_create_a_map_render_mapbox_token()]
+      : []),
     m.llm_prompt_guide_create_a_map_render_setup({
       command: reference.installCommand,
       library,
@@ -419,9 +422,6 @@ const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     '```ts',
     reference.code,
     '```',
-    ...(state.renderer === 'mapbox'
-      ? [m.llm_prompt_guide_create_a_map_render_mapbox_token()]
-      : []),
     m.llm_prompt_guide_create_a_map_render_stylesheet_edit({ stylesheetPath }),
     '```css',
     reference.stylesheetCode,
@@ -452,25 +452,11 @@ export function createAMapRenderPromptFragments(
       }),
     },
     {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
-    },
-    {
       llmType: 'chat',
       os: 'all',
       editor: 'all',
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_render_agent_actions(),
     },
     {
       llmType: 'chat',
@@ -480,7 +466,7 @@ export function createAMapRenderPromptFragments(
       text: m.llm_prompt_guide_create_a_map_render_chat_actions(),
     },
     {
-      llmType: 'all',
+      llmType: 'chat',
       os: 'all',
       editor: 'all',
       terminalExperience: 'all',

@@ -5,9 +5,6 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
-import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
-import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
-import mapFoundationBasemap from '#lib/assets/guides/map-foundation-basemap.png'
 import viteDemoPage from '#lib/assets/guides/vite-demo-page.png'
 import geojsonIoCsvColumns from '#lib/assets/guides/geojson-io-csv-columns.webp'
 import geojsonIoImportGba from '#lib/assets/guides/geojson-io-import-gba.png'
@@ -1859,20 +1856,6 @@ const llmRendererReferences = $derived.by(() => {
     },
   ]
 })
-const llmRendererPreview = $derived(
-  renderer === 'mapbox'
-    ? mapboxSetupResult
-    : renderer === 'leaflet'
-      ? leafletSetupResult
-      : viteDemoPage,
-)
-const llmRendererPreviewAlt = $derived(
-  renderer === 'mapbox'
-    ? m.guide_renderer_mapbox_setup_screenshot_alt()
-    : renderer === 'leaflet'
-      ? m.guide_renderer_leaflet_setup_screenshot_alt()
-      : m.guide_llm_prompt_card_preview_alt(),
-)
 const rendererCodeComments = $derived.by(() => {
   if (renderer === 'mapbox') {
     return [
@@ -2542,7 +2525,7 @@ const styleChoices = $derived.by(() =>
           {:else if objective && llmMode === 'assisted' && setupReady && (aiAccess !== 'agentic' || isLlmReadinessComplete)}
             <div class="mt-14 space-y-6">
               {#if aiAccess === 'agentic'}
-                <div class="space-y-5">
+                <div>
                   {#if showEditorProjectSetup && agentTool === 'cursor'}
                     <GuideEditorProjectSetupSection editor={agentTool} />
                   {:else if agentTool !== 'zed'}
@@ -2554,18 +2537,20 @@ const styleChoices = $derived.by(() =>
                       <GuideParagraph>
                         {@html m.guide_setup_agent_terminal_instruction()}
                       </GuideParagraph>
-                      <GuideCodeBlock
-                        label={m.guide_setup_agent_terminal_label()}
-                        code={agentProjectCommand}
-                        language="bash"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                      />
+                      <div class="mt-5">
+                        <GuideCodeBlock
+                          label={m.guide_setup_agent_terminal_label()}
+                          code={agentProjectCommand}
+                          language="bash"
+                          copyLabel={m.common_copy()}
+                          copiedLabel={m.common_copied()}
+                        />
+                      </div>
                       {#if agentTool === 'codex-cli'}
-                        <GuideParagraph>
+                        <GuideParagraph class="mt-5">
                           {@html m.guide_setup_agent_codex_cli_trust_directory()}
                         </GuideParagraph>
-                        <div class="max-w-3xl">
+                        <div class="mt-5 max-w-3xl">
                           <GuideScreenshot
                             src={codexCliTrustDirectory}
                             alt={m.guide_setup_agent_codex_cli_trust_directory_alt()}
@@ -2587,7 +2572,7 @@ const styleChoices = $derived.by(() =>
                     {/if}
                   {/if}
                   {#if agentModelSelectionInstruction}
-                    <GuideParagraph>
+                    <GuideParagraph class="mt-5">
                       {@html agentModelSelectionInstruction}
                     </GuideParagraph>
                   {/if}
@@ -2597,7 +2582,7 @@ const styleChoices = $derived.by(() =>
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <div class="w-full min-w-0 max-w-232 space-y-5">
+                <div class="w-full min-w-0 max-w-232">
                   <GuideSubSectionHeader
                     eyebrow={m.guide_setup_llm_eyebrow()}
                     title={m.guide_setup_llm_title()}
@@ -2615,14 +2600,16 @@ const styleChoices = $derived.by(() =>
                     </span>
                     {@html m.guide_setup_agent_llm_instruction_after()}
                   </GuideParagraph>
-                  <GuideLlmPromptCard
-                    prompt={progressiveSectionPrompts.prerequisites}
-                    promptIcon={selectedLlmOption?.icon}
-                    references={llmProjectSetupReferences}
-                    title={m.guide_setup_llm_title()}
-                    previewImageSrc={viteDemoPage}
-                    previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                  />
+                  <div class="mt-5">
+                    <GuideLlmPromptCard
+                      prompt={progressiveSectionPrompts.prerequisites}
+                      promptIcon={selectedLlmOption?.icon}
+                      references={llmProjectSetupReferences}
+                      title={m.guide_setup_llm_title()}
+                      previewImageSrc={viteDemoPage}
+                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                    />
+                  </div>
                 </div>
               {/if}
               {#if showEditorProjectSetup && aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
@@ -2735,7 +2722,7 @@ const styleChoices = $derived.by(() =>
               contactLabel={m.guide_renderer_version_contact_label()}
               contactAfter={m.guide_renderer_version_contact_after()}
             />
-            {#if renderer === 'mapbox'}
+            {#if renderer === 'mapbox' && !llmGuidanceEnabled}
               <GuideMapboxTokenReadiness
                 configured={mapboxTokenConfigured}
                 editorIcon={promptEditorIcon}
@@ -2889,20 +2876,33 @@ const styleChoices = $derived.by(() =>
           {#if llmGuidanceEnabled && guideRenderer && selectedMapLibrary}
             <div class="border-t border-border-card pt-10">
               <GuideSubSectionHeader
-                eyebrow={aiAccess === 'agentic'
-                  ? m.guide_renderer_prompt_agent_eyebrow()
-                  : m.guide_renderer_prompt_chat_eyebrow()}
+                eyebrow={m.guide_setup_llm_eyebrow()}
                 title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
               />
+              <GuideParagraph>
+                {@html renderer === 'mapbox'
+                  ? m.guide_renderer_prompt_mapbox_instruction({
+                      llm: selectedLlmOption?.label ?? '',
+                    })
+                  : m.guide_renderer_prompt_instruction({
+                      library: selectedMapLibrary.label,
+                      llm: selectedLlmOption?.label ?? '',
+                    })}
+              </GuideParagraph>
               <div class="mt-6 max-w-232">
                 <GuideLlmPromptCard
                   prompt={progressiveSectionPrompts.render}
                   promptIcon={selectedLlmOption?.icon}
                   references={llmRendererReferences}
                   title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
-                  previewImageSrc={llmRendererPreview}
-                  previewAlt={llmRendererPreviewAlt}
-                />
+                >
+                  {#snippet preview()}
+                    <GuideRendererBlankPreview
+                      renderer={renderer ?? 'maplibre'}
+                      {openingPosition}
+                    />
+                  {/snippet}
+                </GuideLlmPromptCard>
               </div>
             </div>
           {/if}
@@ -3082,9 +3082,17 @@ const styleChoices = $derived.by(() =>
                     promptIcon={selectedLlmOption?.icon}
                     references={llmBasemapReferences}
                     title={m.guide_basemap_prompt_title()}
-                    previewImageSrc={mapFoundationBasemap}
-                    previewAlt={m.guide_basemap_prompt_preview_alt()}
-                  />
+                  >
+                    {#snippet preview()}
+                      <GuideRendererBlankPreview
+                        {renderer}
+                        {openingPosition}
+                        title={m.guide_basemap_preview_title()}
+                        description={m.guide_basemap_preview_description()}
+                        unstyled
+                      />
+                    {/snippet}
+                  </GuideLlmPromptCard>
                 </div>
               </div>
             </div>

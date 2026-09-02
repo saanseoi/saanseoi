@@ -2,6 +2,7 @@
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
+import type { Snippet } from 'svelte'
 
 import GuideCodeBlock from './guideCodeBlock.svelte'
 
@@ -16,14 +17,22 @@ export type GuideLlmPromptReference = {
 type Props = {
   prompt: string
   promptIcon?: string
+  preview?: Snippet
+  previewAlt?: string
+  previewImageSrc?: string
   references: GuideLlmPromptReference[]
   title: string
-  previewAlt: string
-  previewImageSrc: string
 }
 
-let { prompt, promptIcon, references, title, previewAlt, previewImageSrc }: Props =
-  $props()
+let {
+  prompt,
+  promptIcon,
+  preview,
+  previewAlt,
+  previewImageSrc,
+  references,
+  title,
+}: Props = $props()
 let view = $state<'code' | 'preview' | 'prompt'>('prompt')
 let referenceIndex = $state(0)
 let expanded = $state(false)
@@ -228,7 +237,15 @@ const selectReference = (offset: number) => {
       </div>
     </header>
     <div class="min-h-0 flex-1 overflow-auto bg-[#131722] p-4">
-      <img class="h-full w-full object-contain" src={previewImageSrc} alt={previewAlt}>
+      {#if preview}
+        {@render preview()}
+      {:else if previewImageSrc}
+        <img
+          class="h-full w-full object-contain"
+          src={previewImageSrc}
+          alt={previewAlt ?? ''}
+        >
+      {/if}
     </div>
   </section>
 </div>
