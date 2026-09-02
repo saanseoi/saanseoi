@@ -13,11 +13,12 @@ import type { DistrictExclusions } from './urbanDensityCensusDistricts.ts'
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 let exclusions = $state.raw<DistrictExclusions | undefined>(undefined)
 let resultReady = $state(false)
 
@@ -28,12 +29,14 @@ onMount(async () => {
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a]">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
     <GuideMappingPreview
       ariaLabel={label}
       center={[114.16, 22.32]}
-      onMapReady={addUrbanDensityLiveableLand}
-      renderer="maplibre"
+      onMapReady={async map => {
+        await addUrbanDensityLiveableLand(map)
+      }}
+      {renderer}
       {styleUrl}
       {tilejsonUrl}
       zoom={10.75}
@@ -59,7 +62,7 @@ onMount(async () => {
       {#if resultReady && exclusions}
         <a
           class="mt-5 block w-full border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 text-center font-mono text-base font-bold text-[#10151a] no-underline hover:bg-[#79e7d1]"
-          download="land-analysis.json"
+          download="land-analysis.json.gz"
           href={landAnalysisPath}
         >
           {m.guide_data_urban_density_liveable_result_preview_download()}

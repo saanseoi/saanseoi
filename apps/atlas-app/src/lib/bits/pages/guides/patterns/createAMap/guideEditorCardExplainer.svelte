@@ -4,7 +4,7 @@ import { onMount, tick } from 'svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
 
-import GuideMapLibreBlankPreview from './guideMapLibreBlankPreview.svelte'
+import GuideRendererBlankPreview from './guideRendererBlankPreview.svelte'
 import GuidePreviewCodeBlock from '../../components/shared/guidePreviewCodeBlock.svelte'
 
 type LeaderLine = {
@@ -25,9 +25,10 @@ type Props = {
   code: string
   displayCode: string
   editorIcon?: string
+  pathSeparator?: '\\'
 }
 
-let { code, displayCode, editorIcon }: Props = $props()
+let { code, displayCode, editorIcon, pathSeparator }: Props = $props()
 let editorCardElement = $state<HTMLDivElement>()
 let editorIconCallout: HTMLParagraphElement
 let pathCallout: HTMLParagraphElement
@@ -82,7 +83,11 @@ const socketGravity: Record<string, [number, number]> = {
   right: [24, 0],
   top: [0, -24],
 }
-const lineOptions = (startSocket: string, endSocket: string) => ({
+const lineOptions = (
+  startSocket: string,
+  endSocket: string,
+  path: 'arc' | 'fluid' = 'fluid',
+) => ({
   color: '#65d8ba',
   endPlug: 'arrow3',
   endPlugSize: 1.4,
@@ -91,7 +96,7 @@ const lineOptions = (startSocket: string, endSocket: string) => ({
   outline: true,
   outlineColor: '#0c1111',
   outlineSize: 0.7,
-  path: 'fluid',
+  path,
   size: 2,
   startPlug: 'behind',
   startSocket,
@@ -138,11 +143,18 @@ onMount(() => {
           return
         }
 
-        const codePanel = editorCardElement.querySelector('pre')?.parentElement
-        const header = codePanel?.querySelector(':scope > div:first-child')
-        const headerLeading = header?.querySelector(':scope > div:first-child')
-        const icon = headerLeading?.firstElementChild
-        const path = headerLeading?.lastElementChild
+        const header = editorCardElement.querySelector<HTMLElement>(
+          '[data-guide-code-header]',
+        )
+        const headerLeading = header?.querySelector<HTMLElement>(
+          '[data-guide-code-header-leading]',
+        )
+        const icon = headerLeading?.querySelector<HTMLElement>(
+          '[data-guide-code-editor-icon]',
+        )
+        const path = headerLeading?.querySelector<HTMLElement>(
+          '[data-guide-code-label]',
+        )
         const commentsToggle = header?.querySelector(
           '[data-guide-code-comments-toggle]',
         )
@@ -179,6 +191,8 @@ onMount(() => {
         const importsSize = dimensions(imports)
         const commentSize = dimensions(comment)
         const mapCodeSize = dimensions(mapCode)
+        const codeCalloutSize = dimensions(codeCallout)
+        const dimmedCodeCalloutSize = dimensions(dimmedCodeCallout)
         lines = [
           new LeaderLine(
             editorIconCallout,
@@ -217,20 +231,32 @@ onMount(() => {
             lineOptions('top', 'left'),
           ),
           new LeaderLine(
-            codeCallout,
-            LeaderLine.pointAnchor(mapCode, {
-              x: mapCodeSize.width / 2,
-              y: mapCodeSize.height + 12,
+            LeaderLine.pointAnchor(codeCallout, {
+              x: codeCalloutSize.width / 2,
+              y: 0,
             }),
-            lineOptions('top', 'bottom'),
+            LeaderLine.pointAnchor(mapCode, {
+              x: mapCodeSize.width * 0.11,
+              y: mapCodeSize.height / 2 + 66,
+            }),
+            {
+              ...lineOptions('top', 'bottom'),
+              startSocketGravity: [0, -64],
+            },
           ),
           new LeaderLine(
-            dimmedCodeCallout,
-            LeaderLine.pointAnchor(imports, {
-              x: importsSize.width * 0.7,
-              y: importsSize.height + 12,
+            LeaderLine.pointAnchor(dimmedCodeCallout, {
+              x: dimmedCodeCalloutSize.width * 0.1,
+              y: 0,
             }),
-            lineOptions('top', 'bottom'),
+            LeaderLine.pointAnchor(imports, {
+              x: importsSize.width * 0.35,
+              y: importsSize.height / 2,
+            }),
+            {
+              ...lineOptions('top', 'bottom'),
+              startSocketGravity: [0, -96],
+            },
           ),
         ]
 
@@ -273,7 +299,7 @@ onMount(() => {
 </script>
 
 <section
-  class="mt-8 max-w-3xl space-y-5"
+  class="mt-8 max-w-232 space-y-5"
   aria-label={m.guide_editor_card_explainer_title()}
 >
   <h4 class="font-display text-headline-sm font-bold text-primary">
@@ -282,7 +308,7 @@ onMount(() => {
   <div
     class="grid gap-x-5 gap-y-4 xl:-mr-56 xl:gap-y-17 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
   >
-    <div class="order-1 xl:col-start-3 xl:col-span-7 xl:row-start-2 xl:order-0">
+    <div class="order-1 xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0">
       <div
         bind:this={editorCardElement}
         class="relative max-sm:**:data-guide-code-header:items-start max-sm:**:data-guide-code-header:flex-col max-sm:**:data-guide-code-header:gap-2 max-sm:**:data-guide-code-actions:w-full max-sm:**:data-guide-code-actions:justify-between max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:relative max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:absolute max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:top-[-0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:right-[-0.55rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:inline-flex max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:size-4.5 max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:items-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:justify-center max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:rounded-full max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:bg-secondary max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-mono max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-[0.6875rem] max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:font-bold max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:leading-none max-xl:[&_:is([data-guide-code-editor-icon],[data-guide-code-label],[data-guide-code-comments-toggle],[data-guide-code-copy],[data-guide-code-preview])]:after:text-on-secondary max-xl:**:data-guide-code-editor-icon:after:content-['1'] max-xl:**:data-guide-code-label:after:content-['2'] max-xl:**:data-guide-code-comments-toggle:after:content-['3'] max-xl:**:data-guide-code-preview:after:content-['4'] max-xl:**:data-guide-code-copy:after:content-['5'] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:relative max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:absolute max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:top-[0.15rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:left-[-1.35rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:inline-flex max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:size-4.5 max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:items-center max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:justify-center max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:rounded-full max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:bg-secondary max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:font-mono max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:text-[0.6875rem] max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:font-bold max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:leading-none max-xl:[&_:is([data-code-line='4'],[data-code-line='1'])]:before:text-on-secondary max-xl:**:data-[code-line='4']:before:content-['7'] max-xl:**:data-[code-line='1']:before:content-['8'] max-xl:**:data-[code-comment-for='4']:relative max-xl:**:data-[code-comment-for='4']:pl-6 max-xl:**:data-[code-comment-for='4']:before:absolute max-xl:**:data-[code-comment-for='4']:before:top-[0.15rem] max-xl:**:data-[code-comment-for='4']:before:left-0 max-xl:**:data-[code-comment-for='4']:before:inline-flex max-xl:**:data-[code-comment-for='4']:before:size-4.5 max-xl:**:data-[code-comment-for='4']:before:items-center max-xl:**:data-[code-comment-for='4']:before:justify-center max-xl:**:data-[code-comment-for='4']:before:rounded-full max-xl:[&_[data-code-comment-for='4']]:before:bg-secondary max-xl:**:data-[code-comment-for='4']:before:font-mono max-xl:**:data-[code-comment-for='4']:before:text-[0.6875rem] max-xl:**:data-[code-comment-for='4']:before:font-bold max-xl:**:data-[code-comment-for='4']:before:leading-none max-xl:[&_[data-code-comment-for='4']]:before:text-on-secondary max-xl:**:data-[code-comment-for='4']:before:content-['6']"
@@ -294,6 +320,7 @@ onMount(() => {
           dimmedLines={[1, 2]}
           {editorIcon}
           label={m.guide_editor_card_explainer_label()}
+          {pathSeparator}
           language="typescript"
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
@@ -302,7 +329,7 @@ onMount(() => {
           closeLabel={m.common_close()}
         >
           {#snippet preview()}
-            <GuideMapLibreBlankPreview />
+            <GuideRendererBlankPreview />
           {/snippet}
         </GuidePreviewCodeBlock>
       </div>
@@ -375,7 +402,7 @@ onMount(() => {
     </p>
     <p
       bind:this={codeCallout}
-      class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+      class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:w-[120%] xl:border-l-0 xl:pl-0"
     >
       <span
         class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"
@@ -386,7 +413,7 @@ onMount(() => {
     </p>
     <p
       bind:this={dimmedCodeCallout}
-      class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-5 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+      class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:w-[87.5%] xl:border-l-0 xl:pl-0"
     >
       <span
         class="mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden"

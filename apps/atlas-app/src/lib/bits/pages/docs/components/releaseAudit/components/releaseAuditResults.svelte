@@ -21,9 +21,12 @@ type Props = {
   expandedEvidenceId: string | null
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
+  failedSectionActions: Set<string>
+  loadingSectionActions: Set<string>
   locale: string
   onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
+  onLoadMore: (section: AuditSection) => Promise<void>
   onToggle: (id: string) => void
   presentRow: (
     action: string,
@@ -57,6 +60,9 @@ let props: Props = $props()
   onToggle={props.onToggle}
   presentRow={props.presentRow}
   sections={props.sections}
+  failedSectionActions={props.failedSectionActions}
+  loadingSectionActions={props.loadingSectionActions}
+  onLoadMore={props.onLoadMore}
 />
 
 {#if !props.sections.length && !props.visibleBulkSections.length}

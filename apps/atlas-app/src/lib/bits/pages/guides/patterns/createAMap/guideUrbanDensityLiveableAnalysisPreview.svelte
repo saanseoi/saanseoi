@@ -24,11 +24,12 @@ import { loadCachedDistrictExclusions } from './guideUrbanDensityLiveableMap.ts'
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
 
 const analysisZoom = 14
 type ProcessingTile = {
@@ -393,7 +394,7 @@ onMount(() => {
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
     <GuideMappingPreview
       ariaLabel={label}
       additionalLayers={processingTileLayers}
@@ -409,7 +410,7 @@ onMount(() => {
         if (activeTile) setTileStatus(activeTile, 'active')
         showTileOutline(activeTile)
       }}
-      renderer="maplibre"
+      {renderer}
       {styleUrl}
       {tilejsonUrl}
       unstyled

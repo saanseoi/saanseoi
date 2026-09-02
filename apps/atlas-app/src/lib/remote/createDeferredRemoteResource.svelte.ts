@@ -6,6 +6,7 @@ type Options<Input, Output> = {
   getKey: (input: Input) => string
   hasShell: () => boolean
   debounceMs?: number
+  retainAcrossKeys?: boolean
 }
 
 export function createDeferredRemoteResource<Input, Output>({
@@ -14,6 +15,7 @@ export function createDeferredRemoteResource<Input, Output>({
   getKey,
   hasShell,
   debounceMs = 80,
+  retainAcrossKeys = true,
 }: Options<Input, Output>) {
   let requestedInput = $state<Input | null>(null)
   let input = $derived(requestedInput ?? getInput())
@@ -34,13 +36,20 @@ export function createDeferredRemoteResource<Input, Output>({
     if (query.ready) lastReady = query.current
   })
 
-  let current = $derived(query.ready ? query.current : lastReady)
+  let queryMatchesRequestedInput = $derived(getKey(input) === getKey(getInput()))
+  let current = $derived(
+    query.ready && queryMatchesRequestedInput
+      ? query.current
+      : retainAcrossKeys
+        ? lastReady
+        : null,
+  )
   let loading = $derived(
     hasShell() &&
       !query.error &&
-      (getKey(input) !== getKey(getInput()) || !query.ready || query.loading),
+      (!queryMatchesRequestedInput || !query.ready || query.loading),
   )
-  let showSkeleton = $derived(loading && lastReady === null)
+  let showSkeleton = $derived(loading && (lastReady === null || !retainAcrossKeys))
 
   let error = $derived(query.error)
   let ready = $derived(query.ready)

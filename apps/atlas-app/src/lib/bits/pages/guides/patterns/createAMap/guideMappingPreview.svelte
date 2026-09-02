@@ -13,6 +13,24 @@ type CachedTileJson = {
 }
 const cachedTileJsons = new Map<string, Promise<CachedTileJson>>()
 
+const withSaanSeoiPreviewAccessToken = (url: string, accessToken?: string) => {
+  if (!accessToken) return url
+
+  try {
+    const parsedUrl = new URL(url)
+    if (
+      parsedUrl.origin !== 'https://tiles.saanseoi.hk' ||
+      parsedUrl.searchParams.has('access_token')
+    )
+      return url
+
+    parsedUrl.searchParams.set('access_token', accessToken)
+    return parsedUrl.toString()
+  } catch {
+    return url
+  }
+}
+
 const getCachedStyle = (url: string) => {
   const cached = cachedStyles.get(url)
   if (cached) return cached
@@ -88,6 +106,10 @@ type Props = {
   ariaLabel: string
   beforeLayerId?: string
   center: Coordinates
+  leafletAttribution?: string
+  leafletTileUrl?: string
+  mapboxAccessToken?: string
+  mapboxStyleUrl?: string
   onMapReady?: (map: MapLibreMap) => void | Promise<void>
   renderer: Renderer
   styleUrl?: string
@@ -102,6 +124,10 @@ let {
   ariaLabel,
   beforeLayerId,
   center,
+  leafletAttribution,
+  leafletTileUrl,
+  mapboxAccessToken,
+  mapboxStyleUrl,
   onMapReady,
   renderer,
   styleUrl,
@@ -112,6 +138,8 @@ let {
 let container = $state<HTMLDivElement>()
 let error = $state<string>()
 let loading = $state(true)
+const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
+const configuredMapboxAccessToken = import.meta.env.VITE_MAPBOX_TOKEN?.trim()
 
 const libraryName = (value: Renderer) =>
   value === 'mapbox' ? 'Mapbox GL JS' : value === 'leaflet' ? 'Leaflet' : 'MapLibre'
@@ -137,9 +165,13 @@ const loadStyle = async (): Promise<StyleSpecification> => {
 
   // Keep the immutable network response for transient previews, while every map
   // receives its own mutable style object.
+  const authenticatedTilejsonUrl = withSaanSeoiPreviewAccessToken(
+    tilejsonUrl,
+    saanseoiAccessToken,
+  )
   const [styleResponse, tileJson] = await Promise.all([
     getCachedStyle(styleUrl),
-    getCachedTileJson(tilejsonUrl),
+    getCachedTileJson(authenticatedTilejsonUrl),
   ])
   const style = structuredClone(styleResponse)
   style.sources = {
@@ -180,7 +212,11 @@ onMount(() => {
     try {
       loading = true
       error = undefined
-      const style = await loadStyle()
+      const style =
+        (renderer === 'mapbox' && mapboxStyleUrl) ||
+        (renderer === 'leaflet' && leafletTileUrl)
+          ? undefined
+          : await loadStyle()
       if (disposed || !container) return
 
       if (renderer === 'leaflet') {
@@ -193,9 +229,25 @@ onMount(() => {
         const map = leaflet.map(container, {
           attributionControl: false,
           zoomControl: false,
+          // The MapLibre bridge cannot repaint its canvas while Leaflet scales it.
+          zoomAnimation: false,
+          fadeAnimation: false,
+          markerZoomAnimation: false,
         })
         map.setView([center[1], center[0]], zoom)
-        maplibreGL({ style }).addTo(map)
+        if (leafletTileUrl) {
+          leaflet
+            .tileLayer(leafletTileUrl, { attribution: leafletAttribution })
+            .addTo(map)
+        } else {
+          if (!style)
+            throw new Error(m.guide_mapping_preview_style_and_basemap_required())
+          const maplibreLayer = maplibreGL({ style }).addTo(map)
+          const maplibreMap = maplibreLayer.getMaplibreMap()
+          maplibreMap.once('idle', () => {
+            void onMapReady?.(maplibreMap)
+          })
+        }
         remove = () => map.remove()
         observeResize(() => map.invalidateSize())
       } else if (renderer === 'mapbox') {
@@ -203,17 +255,34 @@ onMount(() => {
         if (disposed || !container) return
 
         const map = new mapboxgl.Map({
+          accessToken: mapboxAccessToken ?? configuredMapboxAccessToken,
           attributionControl: false,
           container,
           center,
-          style: style as unknown as MapboxStyleSpecification,
+          style: (mapboxStyleUrl ?? style) as MapboxStyleSpecification,
           zoom,
         })
-        remove = () => map.remove()
+        const reportBasemapError = (event: {
+          error?: { message?: string }
+          sourceId?: string
+        }) => {
+          if (event.sourceId !== 'basemap') return
+          error = event.error?.message ?? m.guide_mapping_preview_load_error()
+        }
+        map.on('error', reportBasemapError)
+        map.once('idle', () => {
+          void onMapReady?.(map as unknown as MapLibreMap)
+        })
+        remove = () => {
+          map.off('error', reportBasemapError)
+          map.remove()
+        }
         observeResize(() => map.resize())
       } else {
         const { Map: MapLibreMap } = await import('maplibre-gl')
         if (disposed || !container) return
+        if (!style)
+          throw new Error(m.guide_mapping_preview_style_and_basemap_required())
 
         const map = new MapLibreMap({
           ...(unstyled ? {} : { attributionControl: false }),
@@ -247,7 +316,7 @@ onMount(() => {
 </script>
 
 <div
-  class="relative size-full overflow-hidden bg-[#10151a]"
+  class="relative z-0 size-full overflow-hidden bg-[#10151a]"
   role="img"
   aria-label={ariaLabel}
 >

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { getCreateAMapOpeningPosition } from '#lib/guides/createAMapSelections.js'
 
 import {
   createAMapLlmInstructions,
@@ -7,22 +8,57 @@ import {
 import {
   createAMapAgenticHandoverPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
+  createAMapRenderPromptFragments,
+  createAMapProjectSetupPromptFragments,
+  isCreateAMapAgentCapableEditor,
+  shouldShowCreateAMapEditorSetup,
 } from './createAMapLlmPrompt'
 import {
   createAMapRendererBasemapCode,
   createAMapRendererStyleCode,
   createUrbanDensityMapReadyCode,
+  createUrbanDensitySetupZ14TileFetcherCode,
   createUrbanDensityStatsCode,
   getCreateAMapRendererReference,
   urbanDensityCalculationCode,
   urbanDensityCollectNonLiveableLandCode,
+  urbanDensityGeometryWorkerCode,
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaMapCode,
+  urbanDensityLiveableMetricsCode,
   urbanDensitySetupZ14TileFetcherCode,
 } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
+  test('opens each regional basemap within its coverage', () => {
+    expect(getCreateAMapOpeningPosition('hk').center).toEqual([114.1694, 22.3193])
+    expect(getCreateAMapOpeningPosition('mo').center).toEqual([113.552, 22.165])
+    expect(getCreateAMapOpeningPosition('gba').center).toEqual([113.75, 22.65])
+
+    const macaoPosition = getCreateAMapOpeningPosition('mo')
+    expect(
+      createAMapRendererBasemapCode(
+        'maplibre',
+        'https://styles.example/light.json',
+        'https://tiles.example/macau.json',
+        macaoPosition,
+      ),
+    ).toContain('center: [113.552, 22.165]')
+    expect(
+      createAMapRendererStyleCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/macau.json',
+        macaoPosition,
+      ),
+    ).toContain('}).setView([22.165, 113.552], 12.2)')
+    expect(getCreateAMapRendererReference('leaflet', macaoPosition).code).toContain(
+      "L.map('map').setView([22.165, 113.552], 12.2)",
+    )
+  })
+
   test('starts MapLibre attribution controls in compact mode', () => {
     const styleUrl = 'https://styles.saanseoi.hk/midnight.json'
     const tilejsonUrl = 'https://tiles.saanseoi.hk/hongkong-latest.json'
@@ -34,6 +70,64 @@ describe('Create a Map LLM instructions', () => {
       createUrbanDensityMapReadyCode(styleUrl),
     ]) {
       expect(code).toContain('attributionControl: { compact: true }')
+      expect(code).toContain(
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+      )
+      expect(code).toContain('maplibregl.setWorkerUrl(workerUrl)')
+    }
+  })
+
+  test('emits the selected renderer for urban-density setup and tile analysis', () => {
+    const styleUrl = 'https://styles.example/light.json'
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'maplibre')).toContain(
+      'new maplibregl.Map({',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('maplibre')).toStartWith(
+      "import type { GeoJSONSource } from 'maplibre-gl'",
+    )
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'mapbox')).toContain(
+      'new mapboxgl.Map({',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('mapbox')).toStartWith(
+      "import type { GeoJSONSource } from 'mapbox-gl'",
+    )
+
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      "const leafletMap = L.map('map', {",
+    )
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      'markerZoomAnimation: false',
+    )
+    expect(createUrbanDensityMapReadyCode(styleUrl, 'leaflet')).toContain(
+      'const map = basemapLayer.getMaplibreMap()',
+    )
+    expect(createUrbanDensitySetupZ14TileFetcherCode('leaflet')).toStartWith(
+      "import type { GeoJSONSource } from 'maplibre-gl'",
+    )
+  })
+
+  test('emits the MapLibre production worker for Leaflet bridge snippets', () => {
+    for (const code of [
+      createAMapRendererBasemapCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/hongkong.json',
+      ),
+      createAMapRendererStyleCode(
+        'leaflet',
+        'https://styles.example/light.json',
+        'https://tiles.example/hongkong.json',
+      ),
+    ]) {
+      expect(code).toContain(
+        "import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'",
+      )
+      expect(code).toContain('maplibregl.setWorkerUrl(workerUrl)')
+      expect(code).toContain('zoomAnimation: false')
+      expect(code).toContain('fadeAnimation: false')
+      expect(code).toContain('markerZoomAnimation: false')
     }
   })
 
@@ -48,9 +142,12 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('type DistrictProperties')
     expect(stats).toContain('type DistrictProperties')
     expect(stats).toContain(
-      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json', import.meta.url)",
+      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
     )
     expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
+    expect(stats).toContain(
+      "savedResultResponse.body.pipeThrough(new DecompressionStream('gzip'))",
+    )
     expect(stats).not.toContain('await import(savedResultPath)')
     expect(stats.indexOf('savedResultUrl')).toBeLessThan(stats.indexOf('apiBaseUrl'))
     expect(stats).toContain("const apiBaseUrl = 'https://api.example'")
@@ -74,12 +171,16 @@ describe('Create a Map LLM instructions', () => {
 
   test('dissolves fixed-precision tile coverage before measuring districts', () => {
     expect(urbanDensitySetupZ14TileFetcherCode).toContain('const precisionGrid = 4')
-    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+    expect(urbanDensityGeometryWorkerCode).toContain(
       'geos.GEOSUnaryUnionPrec(collection, precisionGrid)',
     )
-    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
-      'geos.GEOSIntersectionPrec(firstGeometry, secondGeometry, precisionGrid)',
+    expect(urbanDensityGeometryWorkerCode).toContain(
+      'geos.GEOSIntersectionPrec(first, second, precisionGrid)',
     )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      "new Worker(new URL('./land-analysis.worker.ts', import.meta.url), { type: 'module' })",
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('geos.GEOS')
     expect(urbanDensitySetupZ14TileFetcherCode).toContain(
       'intersectAnalysisGeometries(merged, tileCoreGeometry(tile))',
     )
@@ -89,8 +190,24 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityCollectNonLiveableLandCode).toContain(
       "setTileStatus(tile, 'complete')",
     )
-    expect(urbanDensityLiveableAreaCode).toContain(
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
+      'for (let index = 0; index < Math.min(2, tiles.length); index += 1) queueCoverage(index)',
+    )
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
       'const excludedGeometry = await unionAnalysisGeometries(clippedExclusions)',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'const tileRequests = new Map<string, Promise<Feature<Polygon | MultiPolygon>[]>>()',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'const tileCoverageRequests = new Map<string, Promise<Polygon | MultiPolygon | undefined>>()',
+    )
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain('booleanIntersects')
+    expect(urbanDensitySetupZ14TileFetcherCode).toContain(
+      'candidateTiles.filter(tile => booleanIntersects(bboxPolygon(tileBounds(tile)), district))',
+    )
+    expect(urbanDensityCollectNonLiveableLandCode).toContain(
+      'for (const [districtIndex, district] of districts.entries()) {',
     )
     expect(urbanDensityLiveableAreaCode).toContain(
       'excludedDistrictLand: featureCollection(excludedDistrictLand)',
@@ -98,6 +215,9 @@ describe('Create a Map LLM instructions', () => {
     expect(urbanDensityLiveableAreaCode).not.toContain('intersect(featureCollection')
     expect(urbanDensitySetupZ14TileFetcherCode).not.toContain('GEOSDifferencePrec')
     expect(urbanDensityLiveableAreaCode).not.toContain('liveableDistrictLand')
+    expect(urbanDensityLiveableAreaCode).toContain('savedResult = analysisResult')
+    expect(urbanDensityLiveableMetricsCode).toStartWith('if (savedResult) {')
+    expect(urbanDensityLiveableAreaMapCode).toStartWith('if (savedResult) {')
   })
 
   test('renders simple District land beneath the excluded geometry', () => {
@@ -110,6 +230,12 @@ describe('Create a Map LLM instructions', () => {
     expect(
       urbanDensityLiveableAreaMapCode.indexOf("id: 'liveable-districts'"),
     ).toBeLessThan(urbanDensityLiveableAreaMapCode.indexOf("id: 'excluded-districts'"))
+    expect(urbanDensityLiveableAreaMapCode).toContain(
+      "landUseLegend.id = 'land-use-legend'",
+    )
+    expect(urbanDensityLiveableAreaMapCode).toContain(
+      "landUseTitle.textContent = 'Population Density of Liveable Land Area'",
+    )
   })
 
   test('renders the complete guide', () => {
@@ -157,13 +283,14 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).not.toContain('Inspect the existing workspace')
   })
 
-  test('gives agentic and web chat assistance the shared setup without handing over control', () => {
+  test('composes the project setup prompt for agents and web chat', () => {
     const state = {
       objective: 'web',
       hostingValue: 'cloudflare',
       operatingSystem: 'Linux',
-      preferredLocale: 'zh-Hant',
+      operatingSystemValue: 'linux',
       terminalExperienceValue: 'none',
+      preferredLocale: 'en',
     }
     const agentPrompt = createAMapAgenticSectionPrompt(state, 'prerequisites')
     const chatPrompt = createAMapChatSectionPrompt(state, 'prerequisites')
@@ -171,7 +298,7 @@ describe('Create a Map LLM instructions', () => {
     for (const prompt of [agentPrompt, chatPrompt]) {
       expect(prompt).toStartWith('## Overall project')
       expect(prompt).toContain(
-        'We are building a SaanSeoi (a Hong Kong-based digital commons platform offering geospatial data; site: https://saanseoi.hk) digital map that will be hosted online as a stand-alone web app.',
+        'I am following an online guide (https://saanseoi.hk/guides/create-a-map) to build a web-based map that people can visit online with a link.',
       )
       expect(prompt).toContain(
         'In this first session, help me establish the project foundation only',
@@ -182,12 +309,11 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
       expect(prompt).toContain('### Working agreement')
-      expect(prompt).toContain('## Step 0 : Prerequisites')
-      expect(prompt).toContain('### Instructions')
+      expect(prompt).toContain('## Project setup')
       expect(prompt).toContain('### Verification')
       expect(prompt).not.toContain('### Ask these questions first')
-      expect(prompt).toContain('preferred locale (zh-Hant)')
-      expect(prompt).not.toContain('will take ownership of the work')
+      expect(prompt).not.toContain('preferred locale')
+      expect(prompt).not.toContain('will take full ownership')
     }
 
     expect(agentPrompt).toContain('#### Linux')
@@ -197,6 +323,10 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).toContain('BUN_INSTALL="$PWD/.bun-install"')
     expect(agentPrompt).toContain('bun dev')
     expect(agentPrompt).not.toContain('open another terminal tab or window')
+    expect(agentPrompt).toContain(
+      'As an agent, you will implement the requests locally',
+    )
+    expect(agentPrompt).toContain('create a new `saanseoi-project` subdirectory')
 
     expect(chatPrompt).toContain('#### Linux')
     expect(chatPrompt).not.toContain('#### macOS')
@@ -217,15 +347,11 @@ describe('Create a Map LLM instructions', () => {
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
     expect(chatPrompt).toContain('“Ignore files and continue”')
-
     expect(chatPrompt).toContain(
-      'As a web chat, we expect you cannot inspect or edit my computer directly',
+      'As a non-agentic LLM, you will provide me with explicit steps',
     )
     expect(chatPrompt).toContain(
       'IMPORTANT: This is a collaborative assistance session, not a full hand-over.',
-    )
-    expect(chatPrompt).toContain(
-      '- As a web chat, we expect you cannot inspect or edit my computer directly',
     )
     expect(chatPrompt).toContain(
       'State whether I should create, replace, or append the content.\n\nIMPORTANT: This is a collaborative assistance session',
@@ -234,30 +360,65 @@ describe('Create a Map LLM instructions', () => {
     expect(chatPrompt).toContain('### Starting with the terminal')
     expect(chatPrompt).toContain('`Ctrl` + `Alt` + `T`')
     expect(agentPrompt).not.toContain('### Starting with the terminal')
-    expect(agentPrompt).toContain(
-      '## Working agreement\n\n- The guide builds the project in this order',
-    )
-    expect(agentPrompt).toContain('Inspect the existing workspace')
-    expect(agentPrompt).toContain('not the clean basis expected by the guide')
     expect(agentPrompt).toContain('Stop for confirmation before any paid action')
-    expect(agentPrompt).toContain('current workspace root only if it is not the')
     expect(agentPrompt).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
     expect(agentPrompt).toContain('If browser access is unavailable,')
-    expect(chatPrompt).toContain('Assume I am working in a new project folder')
     expect(chatPrompt).toContain('Terminal in `saanseoi-project`')
     expect(chatPrompt).toContain('Editor window in `src/main.ts`')
-    expect(chatPrompt).not.toContain('Inspect the existing workspace')
     expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
 
     expect(agentPrompt).not.toContain('\n\n\n')
-    expect(agentPrompt).not.toContain('tutorial.\n\n- Inspect')
-    expect(agentPrompt).not.toContain('what they see.\n\n- This')
-    expect(agentPrompt).toContain(
-      'what they see.\n\nIMPORTANT: This is a collaborative assistance session',
+  })
+
+  test('filters project setup fragments by LLM type and workspace choices', () => {
+    const fragments = createAMapProjectSetupPromptFragments(
+      {
+        codeEditorValue: 'cursor',
+        operatingSystemValue: 'macos',
+        preferredLocale: 'en',
+        terminalExperienceValue: 'basic',
+      },
+      'chat',
     )
-    expect(agentPrompt).not.toContain('current workspace root.\n\n\n#### Linux')
+
+    expect(fragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(fragments.some(fragment => fragment.llmType === 'chat')).toBe(true)
+    expect(
+      fragments.some(
+        fragment =>
+          fragment.os === 'macos' &&
+          fragment.editor === 'cursor' &&
+          fragment.terminalExperience === 'basic',
+      ),
+    ).toBe(true)
+    expect(
+      fragments.every(
+        fragment => fragment.llmType === 'all' || fragment.llmType === 'chat',
+      ),
+    ).toBe(true)
+    expect(
+      fragments.some(fragment =>
+        fragment.text.startsWith('### Project decisions\n\n- AI tool: TBD'),
+      ),
+    ).toBe(true)
+  })
+
+  test('shows editor setup for chat and agent-capable editors only', () => {
+    expect(isCreateAMapAgentCapableEditor('zed')).toBe(true)
+    expect(isCreateAMapAgentCapableEditor('cursor')).toBe(true)
+    expect(isCreateAMapAgentCapableEditor('vscode')).toBe(false)
+    expect(shouldShowCreateAMapEditorSetup({ llmType: 'chat' })).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'zed' }),
+    ).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'cursor' }),
+    ).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'vscode' }),
+    ).toBe(false)
   })
 
   test('summarises each primary map objective in a complete sentence', () => {
@@ -266,19 +427,19 @@ describe('Create a Map LLM instructions', () => {
         { objective: 'local', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('available locally on my computer.')
+    ).toContain('map that I can use on my computer.')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('hosted online as a stand-alone web app.')
+    ).toContain('map that people can visit online with a link.')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web-embed', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('hosted online and embedded in an existing site.')
+    ).toContain('map that I can embed in an existing site.')
   })
 
   test('uses the selected objective in the collaborative project setup', () => {
@@ -486,6 +647,98 @@ describe('Create a Map LLM instructions', () => {
     }
   })
 
+  test('composes renderer instructions for agent and chat workspaces', () => {
+    const state = {
+      codeEditorValue: 'cursor',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+      region: 'mo',
+      renderer: 'maplibre',
+      rendererLabel: 'MapLibre',
+      terminalExperienceValue: 'basic',
+    }
+    const agentPrompt = createAMapAgenticSectionPrompt(state, 'render')
+    const chatPrompt = createAMapChatSectionPrompt(state, 'render')
+
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Render Section')
+      expect(prompt).toContain('bun add maplibre-gl')
+      expect(prompt).toContain('Terminal in `saanseoi-project`')
+      expect(prompt).toContain('src\\main.ts')
+      expect(prompt).toContain('src\\style.css')
+      expect(prompt).toContain('center: [113.552, 22.165]')
+      expect(prompt).toContain('### Verify')
+      expect(prompt).toContain('browser visibly shows')
+    }
+
+    expect(agentPrompt).toContain(
+      'As an agent, you will implement the requests locally',
+    )
+    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('create a new `saanseoi-project` subdirectory')
+    expect(agentPrompt).not.toContain('For every action, name the exact paste target')
+    expect(chatPrompt).toContain(
+      'As a non-agentic LLM, you will provide me with explicit steps',
+    )
+    expect(chatPrompt).toContain('For every action, name the exact paste target')
+    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+
+    const fragments = createAMapRenderPromptFragments(state, 'chat')
+    expect(fragments.every(fragment => fragment.llmType !== 'agent')).toBe(true)
+    expect(fragments.some(fragment => fragment.os === 'windows')).toBe(true)
+    expect(fragments.some(fragment => fragment.editor === 'cursor')).toBe(true)
+    expect(fragments.some(fragment => fragment.terminalExperience === 'basic')).toBe(
+      true,
+    )
+  })
+
+  test('composes basemap instructions for agent and chat workspaces', () => {
+    const state = {
+      codeEditorValue: 'vscode',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+      region: 'hk',
+      regionLabel: 'Hong Kong',
+      renderer: 'maplibre',
+      rendererLabel: 'MapLibre',
+      styleUrl: 'https://styles.saanseoi.hk/light.json',
+      tilejsonUrl: 'https://tiles.saanseoi.hk/hongkong-latest.json',
+    }
+    const agentPrompt = createAMapAgenticSectionPrompt(state, 'basemap')
+    const chatPrompt = createAMapChatSectionPrompt(state, 'basemap')
+
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Basemap Section')
+      expect(prompt).toContain('selected mapping library is MapLibre')
+      expect(prompt).toContain('selected SaanSeoi coverage is Hong Kong')
+      expect(prompt).toContain('https://tiles.saanseoi.hk/hongkong-latest.json')
+      expect(prompt).toContain('`VITE_SAANSEOI_API_KEY`')
+      expect(prompt).toContain('`access_token` query parameter')
+      expect(prompt).toContain('src\\main.ts')
+      expect(prompt).toContain(
+        'The basemap is not expected to be visible until the Style section',
+      )
+      expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
+      expect(prompt).not.toContain('pk.')
+    }
+
+    expect(agentPrompt).toContain('Implement the requested basemap changes locally')
+    expect(agentPrompt).toContain('never print, reveal, log or commit its value')
+    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('Never ask me to paste the public key into chat')
+
+    expect(chatPrompt).toContain('Give one safe action at a time')
+    expect(chatPrompt).toContain('Never ask me to paste the public key into chat')
+    expect(chatPrompt).not.toContain('Implement the requested basemap changes locally')
+    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+
+    const agentFragments = createAMapBasemapPromptFragments(state, 'agentic')
+    const chatFragments = createAMapBasemapPromptFragments(state, 'chat')
+    expect(agentFragments.some(fragment => fragment.llmType === 'chat')).toBe(false)
+    expect(chatFragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(agentFragments.some(fragment => fragment.os === 'windows')).toBe(true)
+  })
+
   test('adds headings to the later progressive prompts', () => {
     for (const section of ['basemap', 'style', 'data', 'publish'] as const) {
       expect(
@@ -518,12 +771,12 @@ describe('Create a Map LLM instructions', () => {
     expect(prompt).not.toContain('### This section')
     expect(prompt).not.toContain('### Project decisions')
     expect(prompt).toContain('access_token')
-    expect(prompt).toContain('VITE_SAANSEOI_API_KEY')
+    expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
   })
 
   test('includes renderer-specific style code in agent and chat hand-offs', () => {
     const renderers = [
-      ['maplibre', 'MapLibre', "import { Map } from 'maplibre-gl'"],
+      ['maplibre', 'MapLibre', "import * as maplibregl from 'maplibre-gl'"],
       ['mapbox', 'Mapbox GL JS', "import mapboxgl from 'mapbox-gl'"],
       ['leaflet', 'Leaflet', "import L from 'leaflet'"],
     ] as const

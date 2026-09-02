@@ -143,10 +143,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             eq(metaSourceReleases.status, 'staged'),
             eq(metaSourceReleases.status, 'failed'),
             ...(options.reuseExistingRelease
-              ? [
-                  eq(metaSourceReleases.status, 'processing'),
-                  eq(metaSourceReleases.status, 'published'),
-                ]
+              ? [eq(metaSourceReleases.status, 'processing')]
               : []),
           ),
         })

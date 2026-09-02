@@ -2,6 +2,7 @@
 import type { Snippet } from 'svelte'
 
 import GuideProgressMarker from './guideProgressMarker.svelte'
+import GuideTextHeader from './guideTextHeader.svelte'
 
 type Props = {
   actions?: Snippet
@@ -30,9 +31,7 @@ let { actions, eyebrow, id, requirement, title }: Props = $props()
   </p>
 {/if}
 <div class="mt-1 flex flex-wrap items-center justify-between gap-3">
-  <h3 {id} class="font-display text-headline-md leading-tight font-bold text-primary">
-    {@html title}
-  </h3>
+  <GuideTextHeader as="h3" {id} {title} />
   {#if actions}
     <div class="shrink-0">{@render actions()}</div>
   {/if}

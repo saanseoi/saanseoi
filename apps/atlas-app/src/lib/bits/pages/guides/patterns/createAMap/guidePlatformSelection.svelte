@@ -3,6 +3,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import GuideChoiceGroup from '../../components/shared/guideChoiceGroup.svelte'
+import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import type { GuideChoice } from '../../components/shared/guide.types'
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
   notebookRuntime?: CreateAMapSelectionQuery['notebookRuntime']
   notebookRuntimeChoices: GuideChoice[]
   objective?: CreateAMapSelectionQuery['objective']
-  onWebsitePlatformChange?: (value: string) => void
+  onWebsitePlatformChange?: (value?: string) => void
   prerequisiteMarker: (id: string) => {
     current: number
     label: string
@@ -43,9 +44,9 @@ let {
 </script>
 
 {#if objective === 'local'}
-  <p class="mt-3 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt">
+  <GuideParagraph class="mt-3">
     {@html m.guide_platform_local_description()}
-  </p>
+  </GuideParagraph>
 {:else if objective === 'web'}
   <div class="mt-5">
     <GuideChoiceGroup
@@ -73,17 +74,16 @@ let {
       tileLayout="flow"
     />
     {#if websitePlatform === 'other'}
-      <p
-        class="border-l-4 border-secondary bg-background p-5 font-body text-body-lg leading-8 text-foreground-alt"
-      >
+      <GuideParagraph class="border-l-4 border-secondary bg-background p-5">
         {@html m.guide_embed_other_notice()}
         <a
           class="font-semibold text-secondary underline underline-offset-4"
           href="/#community"
           >{@html m.guide_join_community()}</a
         >.
-      </p>
-    {:else if websitePlatform}
+      </GuideParagraph>
+    {/if}
+    {#if websitePlatform}
       <GuideChoiceGroup
         alignment="left"
         label={m.guide_host_label()}
@@ -98,9 +98,7 @@ let {
   </div>
 {:else if objective === 'mobile-embed'}
   <div class="mt-5 space-y-5">
-    <p class="font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_mobile_integration_note()}
-    </p>
+    <GuideParagraph> {@html m.guide_mobile_integration_note()} </GuideParagraph>
     <GuideChoiceGroup
       alignment="left"
       label={m.guide_mobile_platform_label()}
@@ -134,13 +132,9 @@ let {
       />
     {/if}
     {#if notebookLibrary === 'maplibre-jupyter'}
-      <p class="font-body text-body-lg leading-8 text-foreground-alt">
-        {@html m.guide_notebook_maplibre_note()}
-      </p>
+      <GuideParagraph> {@html m.guide_notebook_maplibre_note()} </GuideParagraph>
     {:else if notebookLibrary === 'folium'}
-      <p class="font-body text-body-lg leading-8 text-foreground-alt">
-        {@html m.guide_notebook_folium_note()}
-      </p>
+      <GuideParagraph> {@html m.guide_notebook_folium_note()} </GuideParagraph>
     {/if}
   </div>
 {/if}

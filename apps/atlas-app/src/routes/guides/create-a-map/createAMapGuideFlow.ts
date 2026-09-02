@@ -22,6 +22,7 @@ type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
   isDataStepComplete: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
+  isMapAccessible: boolean
   isMapboxTokenConfigured: boolean
   isPaymentConfirmed: boolean
   isPaymentConfirmationRequired: boolean
@@ -61,7 +62,7 @@ export function createPrerequisiteStepIds({
     ids.push('hosting')
   } else if (objective === 'web-embed') {
     ids.push('website-platform')
-    if (websitePlatform && websitePlatform !== 'other') ids.push('hosting')
+    if (websitePlatform) ids.push('hosting')
   } else if (objective === 'mobile-embed') {
     ids.push('mobile-platform')
   } else if (objective === 'notebook-embed') {
@@ -76,6 +77,7 @@ export function createMissingPrerequisiteQuestions({
   aiAccess,
   agentTool,
   codeEditor,
+  dataFormat,
   dataSource,
   hosting,
   isBasemapAccountReady,
@@ -83,6 +85,7 @@ export function createMissingPrerequisiteQuestions({
   isDataStepComplete,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
+  isMapAccessible,
   isMapboxTokenConfigured,
   isPaymentConfirmed,
   isPaymentConfirmationRequired,
@@ -109,12 +112,16 @@ export function createMissingPrerequisiteQuestions({
       ? { id: 'platform', label: m.guide_host_label(), answered: Boolean(hosting) }
       : objective === 'web-embed'
         ? !websitePlatform
-          ? { id: 'platform', label: m.guide_embed_label(), answered: false }
-          : websitePlatform === 'other'
+          ? {
+              id: 'platform',
+              label: m.guide_missing_website_platform(),
+              answered: false,
+            }
+          : !hosting
             ? {
                 id: 'platform',
                 label: m.guide_host_label(),
-                answered: Boolean(hosting),
+                answered: false,
               }
             : undefined
         : objective === 'mobile-embed'
@@ -144,7 +151,7 @@ export function createMissingPrerequisiteQuestions({
   return [
     {
       id: 'destination',
-      label: m.guide_objective_label(),
+      label: m.guide_missing_objective(),
       answered: Boolean(objective),
     },
     { id: 'llm-involvement', label: m.guide_llm_label(), answered: Boolean(llmMode) },
@@ -161,12 +168,12 @@ export function createMissingPrerequisiteQuestions({
     },
     {
       id: 'operating-system',
-      label: m.guide_operating_system_label(),
+      label: m.guide_missing_operating_system(),
       answered: !regularFlow || Boolean(operatingSystem),
     },
     {
       id: 'terminal-experience',
-      label: m.guide_terminal_experience_label(),
+      label: m.guide_missing_terminal_experience(),
       answered: (!regularFlow && aiAccess !== 'agentic') || Boolean(terminalExperience),
     },
     {
@@ -226,10 +233,32 @@ export function createMissingPrerequisiteQuestions({
       answered: !isBasemapAccountReady || isBasemapApiKeyReady,
     },
     {
+      id: 'project-data',
+      label: m.guide_data_label(),
+      answered: Boolean(dataSource),
+    },
+    {
+      id: 'data-format',
+      label: m.guide_data_format_label(),
+      answered: dataSource !== 'existing' || Boolean(dataFormat),
+    },
+    {
       id: 'data-step-readiness',
       label: m.guide_data_readiness_eyebrow(),
       reminderTitle: m.guide_missing_confirmation(),
       answered: !llmGuidanceEnabled || !dataSource || isDataStepComplete,
+    },
+    {
+      id:
+        hosting === 'other'
+          ? 'publish-other-readiness'
+          : 'publish-accessibility-readiness',
+      label:
+        hosting === 'other'
+          ? m.guide_publish_other_ready()
+          : m.guide_publish_accessibility_title(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: !hosting || isMapAccessible,
     },
   ]
 }
@@ -257,9 +286,7 @@ export function isGuideSetupReady({
         : operatingSystem && (llmMode === 'handover' || codeEditor)) &&
       (objective === 'local' ||
         (objective === 'web' && hosting) ||
-        (objective === 'web-embed' &&
-          websitePlatform &&
-          (websitePlatform === 'other' || hosting)) ||
+        (objective === 'web-embed' && websitePlatform && hosting) ||
         (objective === 'mobile-embed' && mobileLibrary && mobilePlatform) ||
         (objective === 'notebook-embed' && notebookLibrary && notebookRuntime)),
   )

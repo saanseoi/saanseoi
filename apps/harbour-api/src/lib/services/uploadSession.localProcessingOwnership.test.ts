@@ -76,6 +76,23 @@ describe('local upload registration', () => {
     ).resolves.toMatchObject({ status: 'staged' })
   })
 
+  test('does not re-register a published dataset as a companion resource', async () => {
+    const db = initHarness('harbour-local-registration-published-companion.sqlite')
+    await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
+    sqliteHandles.at(-1)?.exec(`
+      UPDATE releases SET status = 'published';
+      UPDATE sourceReleases SET status = 'published';
+    `)
+
+    await expect(
+      registerFixtureUpload(db, '2026-05-20.0', '2026-05', true, false, true),
+    ).rejects.toThrow('Dataset already exists with status published')
+
+    expect(
+      sqliteHandles.at(-1)?.query('SELECT status FROM sourceReleases').get(),
+    ).toEqual({ status: 'published' })
+  })
+
   test('allows --continue to retry a staged dataset but not a published one', async () => {
     const db = initHarness('harbour-local-registration-continue.sqlite')
     await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
@@ -106,6 +123,26 @@ describe('local upload registration', () => {
     await expect(
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', true, false, true),
     ).resolves.toMatchObject({ status: 'staged' })
+  })
+
+  test('keeps a published source release published while registering a companion retry', async () => {
+    const db = initHarness('harbour-local-registration-published-source.sqlite')
+    await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
+    sqliteHandles.at(-1)?.exec(`
+      UPDATE releases SET status = 'failed';
+      UPDATE sourceReleases SET status = 'published';
+    `)
+
+    await expect(
+      registerFixtureUpload(db, '2026-05-20.0', '2026-05', true, false, true),
+    ).resolves.toMatchObject({ status: 'staged' })
+
+    expect(sqliteHandles.at(-1)?.query('SELECT status FROM releases').get()).toEqual({
+      status: 'staged',
+    })
+    expect(
+      sqliteHandles.at(-1)?.query('SELECT status FROM sourceReleases').get(),
+    ).toEqual({ status: 'published' })
   })
 })
 

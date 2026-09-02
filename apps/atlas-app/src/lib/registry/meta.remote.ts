@@ -1,5 +1,9 @@
 import {
   getRegistryApi,
+  listRegistryApiReleaseProcessingActions,
+  listRegistryApiReleaseProcessingActionSections,
+  listRegistrySourceReleaseProcessingActions,
+  listRegistrySourceReleaseProcessingActionSections,
   getRegistrySourceRelease,
   getRegistrySourceReleaseShell,
   getRegistrySource,
@@ -41,7 +45,10 @@ import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
 import { writeServerProductUsage } from '../analytics/productUsage.js'
-import { getRegistryAccessMetrics } from './accessMetrics.js'
+import {
+  getRegistryAccessMetrics,
+  getRegistryAccessMetricsBatch,
+} from './accessMetrics.js'
 import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
@@ -60,9 +67,30 @@ const sourceReleaseShellSchema = z.object({
 })
 const sourceReleaseContentSchema = sourceReleaseShellSchema.extend({
   previousReleaseCode: registryCodeSchema.nullable().optional(),
+  tab: z.enum(['notes', 'schema', 'samples', 'releases', 'assembly', 'stats', 'audit']),
 })
 const releasePageSchema = z.object({
   offset: z.number().int().min(0).max(10_000),
+})
+const apiReleaseAuditSchema = z.object({
+  familyType: registryCodeSchema,
+  releaseCode: registryCodeSchema,
+})
+const apiReleaseDetailSchema = apiReleaseAuditSchema
+const apiReleaseAuditPageSchema = apiReleaseAuditSchema.extend({
+  action: registryCodeSchema,
+  limit: z.number().int().min(1).max(500).default(50),
+  offset: z.number().int().min(0).max(100_000),
+})
+const sourceReleaseAuditSchema = sourceReleaseShellSchema
+const sourceReleaseAuditPageSchema = sourceReleaseAuditSchema.extend({
+  action: registryCodeSchema,
+  limit: z.number().int().min(1).max(500).default(50),
+  offset: z.number().int().min(0).max(100_000),
+})
+const registryAccessMetricsSchema = z.object({
+  entityId: registryCodeSchema,
+  scope: z.enum(['publisher', 'dataset', 'source_release', 'api_release_set']),
 })
 const DATA_RELEASES_PAGE_SIZE = 12
 const BASEMAP_TILE_ORIGIN = 'https://tiles.saanseoi.hk'
@@ -95,6 +123,14 @@ const recordRegistryDataLoad = (
     entityId,
     outcome,
   })
+
+export const getRegistryAccessMetricsData = query.batch(
+  registryAccessMetricsSchema,
+  async inputs => {
+    const results = await getRegistryAccessMetricsBatch(getMetaDb(), inputs)
+    return (_input, index) => results[index] ?? null
+  },
+)
 
 export type SourcesPageSource = Pick<
   RegistrySource,
@@ -432,12 +468,9 @@ export const getSourceReleaseShellData = query(
       selectedReleaseCode: _selectedReleaseCode,
       ...source
     } = shell
-    const accessMetrics = await runWithD1ReadRetry(() =>
-      getRegistryAccessMetrics(getMetaDb(), 'source_release', version.id),
-    )
     const result = {
       source: source as RegistrySource,
-      version: { ...version, accessMetrics } as SourceVersion,
+      version: version as SourceVersion,
       timings,
     }
     recordRegistryDataLoad('/sources/:id/:id', 'source_release', releaseCode)
@@ -447,76 +480,89 @@ export const getSourceReleaseShellData = query(
 
 export const getSourceReleaseContentData = query(
   sourceReleaseContentSchema,
-  ({ datasetCode, releaseCode, previousReleaseCode }) =>
+  ({ datasetCode, releaseCode, previousReleaseCode, tab }) =>
     runWithD1ReadRetry(async () => {
       const db = getMetaDb()
-      const source = await getRegistrySourceRelease(db, datasetCode, releaseCode)
+      const source = await getRegistrySourceRelease(db, datasetCode, releaseCode, {
+        content:
+          tab === 'schema' || tab === 'samples'
+            ? 'minimal'
+            : tab === 'releases'
+              ? 'releases'
+              : tab,
+      })
       if (!source) error(404, 'Source dataset not found.')
 
       const version = source.sourceVersions?.[0]
       if (!version) error(404, 'Source release not found.')
 
-      const previousNotesPromise = previousReleaseCode
-        ? db
-            .select({ notes: metaSourceReleases.notes })
-            .from(metaSourceReleases)
-            .where(
-              and(
-                eq(metaSourceReleases.datasetId, version.datasetId),
-                eq(metaSourceReleases.code, previousReleaseCode),
-              ),
-            )
-            .limit(1)
-            .get()
-            .then(previous => previous?.notes ?? null)
-        : db
-            .select({ code: metaSourceReleases.code, notes: metaSourceReleases.notes })
-            .from(metaSourceReleases)
-            .where(eq(metaSourceReleases.datasetId, version.datasetId))
-            .orderBy(
-              desc(metaSourceReleases.publicationDate),
-              desc(metaSourceReleases.createdAt),
-            )
-            .all()
-            .then(releases => {
-              const currentIndex = releases.findIndex(
-                release => release.code === releaseCode,
-              )
-              return currentIndex >= 0
-                ? (releases[currentIndex + 1]?.notes ?? null)
-                : null
-            })
+      const previousNotesPromise =
+        tab !== 'notes'
+          ? Promise.resolve(null)
+          : previousReleaseCode
+            ? db
+                .select({ notes: metaSourceReleases.notes })
+                .from(metaSourceReleases)
+                .where(
+                  and(
+                    eq(metaSourceReleases.datasetId, version.datasetId),
+                    eq(metaSourceReleases.code, previousReleaseCode),
+                  ),
+                )
+                .limit(1)
+                .get()
+                .then(previous => previous?.notes ?? null)
+            : db
+                .select({
+                  code: metaSourceReleases.code,
+                  notes: metaSourceReleases.notes,
+                })
+                .from(metaSourceReleases)
+                .where(eq(metaSourceReleases.datasetId, version.datasetId))
+                .orderBy(
+                  desc(metaSourceReleases.publicationDate),
+                  desc(metaSourceReleases.createdAt),
+                )
+                .all()
+                .then(releases => {
+                  const currentIndex = releases.findIndex(
+                    release => release.code === releaseCode,
+                  )
+                  return currentIndex >= 0
+                    ? (releases[currentIndex + 1]?.notes ?? null)
+                    : null
+                })
 
       const [previousNotes, archive] = await Promise.all([
         previousNotesPromise,
-        db
-          .select({ assetId: metaAssets.id })
-          .from(metaAssets)
-          .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
-          .where(
-            and(
-              eq(metaAssets.role, 'sourceArchive'),
-              eq(metaReleases.sourceReleaseId, version.id),
-            ),
-          )
-          .orderBy(desc(metaAssets.retrievedAt))
-          .limit(1)
-          .get(),
+        tab === 'audit'
+          ? db
+              .select({ assetId: metaAssets.id })
+              .from(metaAssets)
+              .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+              .where(
+                and(
+                  eq(metaAssets.role, 'sourceArchive'),
+                  eq(metaReleases.sourceReleaseId, version.id),
+                ),
+              )
+              .orderBy(desc(metaAssets.retrievedAt))
+              .limit(1)
+              .get()
+          : Promise.resolve(undefined),
       ])
 
-      const measures = await getSourceReleaseMeasures({
-        datasetCode,
-        releaseId: version.id,
-      })
-      const accessMetrics = await getRegistryAccessMetrics(
-        db,
-        'source_release',
-        version.id,
-      )
+      const measures =
+        tab === 'stats'
+          ? await getSourceReleaseMeasures({
+              datasetCode,
+              releaseId: version.id,
+            })
+          : []
       const result = {
         version: archive
-          ? { ...version, sourceArchiveAssetId: archive.assetId, accessMetrics }
-          : { ...version, accessMetrics },
+          ? { ...version, sourceArchiveAssetId: archive.assetId }
+          : version,
         previousNotes,
         measures,
       } as {
@@ -1195,7 +1241,7 @@ export const getDataReleasesPageData = query(releasePageSchema, async ({ offset 
 
 export const getApiFamilyPageData = query(registryCodeSchema, async familyType => {
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
+    getRegistryApi(getMetaDb(), familyType, { includeProcessingActions: false }),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
@@ -1210,130 +1256,221 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
   return { api, release: null }
 })
 
-export const getApiReleaseShellData = query(registryCodeSchema, async familyType => {
-  const db = getMetaDb()
-  const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(db, familyType),
-  )) as RegistryApi | null
-  if (!api) error(404, 'API family not found.')
-
-  const releases = await Promise.all(
-    (api.releases ?? []).map(async release => ({
-      ...release,
-      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
-    })),
-  )
-
-  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
-  return { ...api, releases }
-})
-
-export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
-  const db = getMetaDb()
-  const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(db, familyType),
-  )) as RegistryApi | null
-  if (!api) error(404, 'API family not found.')
-
-  const sourceReleaseCodes = [
-    ...new Set(
-      api.releases
-        ?.flatMap(release => release.contributingSources ?? [])
-        .map(source => source.sourceReleaseCode) ?? [],
-    ),
-  ]
-  const archives = sourceReleaseCodes.length
-    ? await db
-        .select({
-          assetId: metaAssets.id,
-          mediaType: metaAssets.mediaType,
-          releaseCode: metaSourceReleases.code,
-        })
-        .from(metaAssets)
-        .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
-        .innerJoin(
-          metaSourceReleases,
-          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
-        )
-        .where(
-          and(
-            eq(metaAssets.role, 'sourceArchive'),
-            inArray(metaSourceReleases.code, sourceReleaseCodes),
-          ),
-        )
-        .orderBy(desc(metaAssets.retrievedAt))
-        .all()
-    : []
-  const archiveByReleaseCode = new Map(
-    [...archives].reverse().map(archive => [archive.releaseCode, archive] as const),
-  )
-  const districtStats = sourceReleaseCodes.length
-    ? await db
-        .select({
-          dimension: stats.dimension,
-          groupBy: stats.groupBy,
-          groupValue: stats.groupValue,
-          metric: stats.metric,
-          metricUnit: stats.metricUnit,
-          releaseCode: metaSourceReleases.code,
-          value: stats.value,
-        })
-        .from(stats)
-        .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
-        .innerJoin(
-          metaSourceReleases,
-          eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
-        )
-        .where(
-          and(
-            inArray(metaSourceReleases.code, sourceReleaseCodes),
-            eq(stats.dimension, 'records'),
-            eq(stats.metric, 'distribution'),
-            eq(stats.groupBy, 'district'),
-          ),
-        )
-        .all()
-    : []
-  const districtStatsBySourceReleaseCode = new Map<string, typeof districtStats>()
-  for (const stat of districtStats) {
-    districtStatsBySourceReleaseCode.set(stat.releaseCode, [
-      ...(districtStatsBySourceReleaseCode.get(stat.releaseCode) ?? []),
-      stat,
-    ])
-  }
-
-  const result = {
-    ...api,
-    releases: api.releases?.map(release => ({
-      ...release,
-      stats: (() => {
-        const releaseStats = release.stats ?? []
-        if (releaseStats.some(stat => stat.groupBy === 'district')) return releaseStats
-        const primaryDivisionSourceCodes =
-          release.contributingSources
-            ?.filter(
-              source => source.resourceType === 'division' && source.role === 'primary',
-            )
-            .map(source => source.sourceReleaseCode) ?? []
-        return [
-          ...releaseStats,
-          ...primaryDivisionSourceCodes.flatMap(
-            code => districtStatsBySourceReleaseCode.get(code) ?? [],
-          ),
-        ]
-      })(),
-      contributingSources: release.contributingSources?.map(source => {
-        const archive = archiveByReleaseCode.get(source.sourceReleaseCode)
-        return archive ? { ...source, sourceArchive: archive } : source
+export const getApiReleaseShellData = query(
+  apiReleaseDetailSchema,
+  async ({ familyType, releaseCode }) => {
+    const db = getMetaDb()
+    const api = (await runWithD1ReadRetry(() =>
+      getRegistryApi(db, familyType, {
+        includeProcessingActions: false,
+        releaseCode,
       }),
-    })),
-  }
-  const releasesWithMetrics = await Promise.all(
-    (result.releases ?? []).map(async release => ({
-      ...release,
-      accessMetrics: await getRegistryAccessMetrics(db, 'api_release_set', release.id),
-    })),
+    )) as RegistryApi | null
+    if (!api) error(404, 'API family not found.')
+
+    recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
+    return api
+  },
+)
+
+export const getApiReleasePageData = query(
+  apiReleaseDetailSchema,
+  async ({ familyType, releaseCode }) => {
+    const db = getMetaDb()
+    const api = (await runWithD1ReadRetry(() =>
+      getRegistryApi(db, familyType, {
+        includeProcessingActions: false,
+        releaseCode,
+      }),
+    )) as RegistryApi | null
+    if (!api) error(404, 'API family not found.')
+
+    const sourceReleaseCodes = [
+      ...new Set(
+        api.releases
+          ?.flatMap(release => release.contributingSources ?? [])
+          .map(source => source.sourceReleaseCode) ?? [],
+      ),
+    ]
+    const archives = sourceReleaseCodes.length
+      ? await db
+          .select({
+            assetId: metaAssets.id,
+            mediaType: metaAssets.mediaType,
+            releaseCode: metaSourceReleases.code,
+          })
+          .from(metaAssets)
+          .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+          .innerJoin(
+            metaSourceReleases,
+            eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+          )
+          .where(
+            and(
+              eq(metaAssets.role, 'sourceArchive'),
+              inArray(metaSourceReleases.code, sourceReleaseCodes),
+            ),
+          )
+          .orderBy(desc(metaAssets.retrievedAt))
+          .all()
+      : []
+    const archiveByReleaseCode = new Map(
+      [...archives].reverse().map(archive => [archive.releaseCode, archive] as const),
+    )
+    const districtStats = sourceReleaseCodes.length
+      ? await db
+          .select({
+            dimension: stats.dimension,
+            groupBy: stats.groupBy,
+            groupValue: stats.groupValue,
+            metric: stats.metric,
+            metricUnit: stats.metricUnit,
+            releaseCode: metaSourceReleases.code,
+            value: stats.value,
+          })
+          .from(stats)
+          .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
+          .innerJoin(
+            metaSourceReleases,
+            eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+          )
+          .where(
+            and(
+              inArray(metaSourceReleases.code, sourceReleaseCodes),
+              eq(stats.dimension, 'records'),
+              eq(stats.metric, 'distribution'),
+              eq(stats.groupBy, 'district'),
+            ),
+          )
+          .all()
+      : []
+    const districtStatsBySourceReleaseCode = new Map<string, typeof districtStats>()
+    for (const stat of districtStats) {
+      districtStatsBySourceReleaseCode.set(stat.releaseCode, [
+        ...(districtStatsBySourceReleaseCode.get(stat.releaseCode) ?? []),
+        stat,
+      ])
+    }
+
+    const result = {
+      ...api,
+      releases: api.releases?.map(release => ({
+        ...release,
+        stats: (() => {
+          const releaseStats = release.stats ?? []
+          if (releaseStats.some(stat => stat.groupBy === 'district'))
+            return releaseStats
+          const primaryDivisionSourceCodes =
+            release.contributingSources
+              ?.filter(
+                source =>
+                  source.resourceType === 'division' && source.role === 'primary',
+              )
+              .map(source => source.sourceReleaseCode) ?? []
+          return [
+            ...releaseStats,
+            ...primaryDivisionSourceCodes.flatMap(
+              code => districtStatsBySourceReleaseCode.get(code) ?? [],
+            ),
+          ]
+        })(),
+        contributingSources: release.contributingSources?.map(source => {
+          const archive = archiveByReleaseCode.get(source.sourceReleaseCode)
+          return archive ? { ...source, sourceArchive: archive } : source
+        }),
+      })),
+    }
+    recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
+    return result
+  },
+)
+
+const processingActionPage = async (input: {
+  action: string
+  familyType: string
+  limit: number
+  offset: number
+  releaseCode: string
+}) => {
+  const rows = await runWithD1ReadRetry(() =>
+    listRegistryApiReleaseProcessingActions(getMetaDb(), {
+      ...input,
+      limit: input.limit + 1,
+    }),
   )
-  recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
-  return { ...result, releases: releasesWithMetrics }
+  if (!rows) error(404, 'API release not found.')
+
+  const pageRows = rows.slice(0, input.limit)
+  return {
+    rows: pageRows,
+    hasMore: rows.length > input.limit,
+    nextOffset: input.offset + pageRows.length,
+  }
+}
+
+export const getApiReleaseAuditData = query(apiReleaseAuditSchema, async input => {
+  const sections = await runWithD1ReadRetry(() =>
+    listRegistryApiReleaseProcessingActionSections(getMetaDb(), input),
+  )
+  if (!sections) error(404, 'API release not found.')
+
+  return {
+    sections: sections.filter(
+      section => section.action !== 'als_number_range_singleton_variant_consolidated',
+    ),
+  }
 })
+
+export const getApiReleaseAuditActionPage = query.batch(
+  apiReleaseAuditPageSchema,
+  async inputs => {
+    const pages = await Promise.all(inputs.map(processingActionPage))
+    return (_input, index) => {
+      const page = pages[index]
+      if (!page) throw new Error('Missing batched API audit page result.')
+      return page
+    }
+  },
+)
+
+const sourceProcessingActionPage = async (input: {
+  action: string
+  datasetCode: string
+  limit: number
+  offset: number
+  releaseCode: string
+}) => {
+  const rows = await runWithD1ReadRetry(() =>
+    listRegistrySourceReleaseProcessingActions(getMetaDb(), {
+      ...input,
+      limit: input.limit + 1,
+    }),
+  )
+  const pageRows = rows.slice(0, input.limit)
+  return {
+    rows: pageRows,
+    hasMore: rows.length > input.limit,
+    nextOffset: input.offset + pageRows.length,
+  }
+}
+
+export const getSourceReleaseAuditData = query(
+  sourceReleaseAuditSchema,
+  async input => ({
+    sections: await runWithD1ReadRetry(() =>
+      listRegistrySourceReleaseProcessingActionSections(getMetaDb(), input),
+    ),
+  }),
+)
+
+export const getSourceReleaseAuditActionPage = query.batch(
+  sourceReleaseAuditPageSchema,
+  async inputs => {
+    const pages = await Promise.all(inputs.map(sourceProcessingActionPage))
+    return (_input, index) => {
+      const page = pages[index]
+      if (!page) throw new Error('Missing batched source audit page result.')
+      return page
+    }
+  },
+)

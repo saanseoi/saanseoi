@@ -8,6 +8,7 @@ import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuideReference from '../../components/shared/guideReference.svelte'
 import GuideScreenshot from '../../components/shared/guideScreenshot.svelte'
 import GuideSubSectionHeader from '../../components/shared/guideSubSectionHeader.svelte'
+import GuideTextSubHeader from '../../components/shared/guideTextSubHeader.svelte'
 import GuideEditorProjectSetupSection from './guideEditorProjectSetupSection.svelte'
 import GuideMacosCurlCertificateWarning from './guideMacosCurlCertificateWarning.svelte'
 import GuideTerminalCommandAnatomy from './guideTerminalCommandAnatomy.svelte'
@@ -54,13 +55,9 @@ let {
 
 const terminalLanguage = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
 const showGuidance = $derived(terminalExperience !== 'advanced')
-const terminalHomePath = $derived(
-  operatingSystem === 'windows' ? 'C:\\Users\\your-name' : '~/',
-)
+const terminalHomePath = $derived(operatingSystem === 'windows' ? '~' : '~/')
 const terminalProjectPath = $derived(
-  operatingSystem === 'windows'
-    ? 'C:\\Users\\your-name\\saanseoi-project'
-    : '~/saanseoi-project',
+  operatingSystem === 'windows' ? '~\\saanseoi-project' : '~/saanseoi-project',
 )
 const terminalLabel = (path: string, action: string) =>
   m.guide_setup_terminal_label({ action, path })
@@ -132,11 +129,7 @@ const terminalLabel = (path: string, action: string) =>
         instruction={showGuidance ? { description: bunInstallExplanation, stepLabel: m.guide_setup_install_step_label(), stepNumber: 1, title: m.guide_setup_install_bun() } : undefined}
       />
       {#if operatingSystem === 'macos'}
-        <div
-          class="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem] lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(16rem,26rem)]"
-        >
-          <GuideMacosCurlCertificateWarning />
-        </div>
+        <GuideMacosCurlCertificateWarning />
       {/if}
       <GuideCodeInstructionStep
         codeLabel={terminalLabel(terminalHomePath, m.guide_setup_project())}
@@ -185,9 +178,10 @@ const terminalLabel = (path: string, action: string) =>
           />{@html m.guide_setup_complete_browser_vite_after()}
         </GuideParagraph>
         {#if showGuidance}
-          <h4 class="max-w-3xl font-display text-title-lg font-bold text-primary">
-            {m.guide_setup_quit_and_resume_title()}
-          </h4>
+          <GuideTextSubHeader
+            class="max-w-232 text-title-lg"
+            title={m.guide_setup_quit_and_resume_title()}
+          />
           <GuideParagraph>
             {@html m.guide_setup_complete_stop_before()}
             <kbd

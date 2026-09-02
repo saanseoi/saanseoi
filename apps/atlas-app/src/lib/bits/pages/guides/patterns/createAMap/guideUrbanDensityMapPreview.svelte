@@ -7,12 +7,13 @@ import { nonLiveableLandUse } from './urbanDensityLandUse.ts'
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   showExclusions?: boolean
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { label, showExclusions = true, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, showExclusions = true, styleUrl, tilejsonUrl }: Props = $props()
 
 const notLiveableLayer: LayerSpecification = {
   id: 'not-liveable',
@@ -34,11 +35,11 @@ const notLiveableOutlineLayer: LayerSpecification = {
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${tilejsonUrl}:${showExclusions}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}:${showExclusions}`}
     <GuideMappingPreview
       ariaLabel={label}
       center={[114.165, 22.34]}
-      renderer="maplibre"
+      {renderer}
       additionalLayers={showExclusions
         ? [notLiveableLayer, notLiveableOutlineLayer]
         : []}

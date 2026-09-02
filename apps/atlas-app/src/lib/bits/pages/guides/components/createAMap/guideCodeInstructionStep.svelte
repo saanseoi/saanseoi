@@ -1,5 +1,7 @@
 <script lang="ts">
 import GuideCodeBlock from '../shared/guideCodeBlock.svelte'
+import GuideAttachedLayout from '../shared/guideAttachedLayout.svelte'
+import GuideCardBlock from '../shared/guideCardBlock.svelte'
 import GuideInstructionCallout from './guideInstructionCallout.svelte'
 
 type Props = {
@@ -29,9 +31,7 @@ let {
 }: Props = $props()
 </script>
 
-<div
-  class={`grid gap-6 ${instruction ? 'md:grid-cols-[minmax(0,1fr)_16rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(16rem,26rem)]' : ''}`}
->
+{#snippet commandCard()}
   <GuideCodeBlock
     label={codeLabel}
     {code}
@@ -40,9 +40,15 @@ let {
     {copiedLabel}
     {language}
   />
-  {#if instruction}
-    <aside>
+{/snippet}
+
+{#if instruction}
+  <GuideAttachedLayout primaryWidth="shortCard">
+    <GuideCardBlock card={commandCard} />
+    {#snippet aside()}
       <GuideInstructionCallout {...instruction} />
-    </aside>
-  {/if}
-</div>
+    {/snippet}
+  </GuideAttachedLayout>
+{:else}
+  <GuideCardBlock card={commandCard} />
+{/if}

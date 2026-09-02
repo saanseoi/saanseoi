@@ -14,29 +14,42 @@ import {
   filterBulkProcessingSections,
   type AuditBulkRule,
 } from './releaseAuditBulkSections'
-import type { AuditAction } from './releaseAudit.types'
+import type { AuditAction, AuditActionPage, AuditSection } from './releaseAudit.types'
 import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 
+const AUDIT_PAGE_SIZE = 50
+const COMPLETE_SEARCH_PAGE_SIZE = 500
+const COMPLETE_SEARCH_MIN_LENGTH = 3
+const COMPLETE_SEARCH_CONCURRENCY = 3
+
 type Props = {
   actions?: AuditAction[]
+  actionSections?: Array<Omit<AuditSection, 'id'>>
   analyticsSurface: ReleaseAnalyticsSurface
   bulkActions?: AuditBulkRule[]
   locale: string
   showBulkActions?: boolean
   headings?: MarkdownHeading[]
   activeHeadingId?: string | null
+  onLoadMoreSection?: (
+    action: string,
+    offset: number,
+    limit: number,
+  ) => Promise<AuditActionPage>
 }
 
 let {
   actions = [],
+  actionSections,
   analyticsSurface,
   bulkActions = [],
   locale,
   showBulkActions = false,
   headings = $bindable<MarkdownHeading[]>([]),
   activeHeadingId = $bindable<string | null>(null),
+  onLoadMoreSection,
 }: Props = $props()
 let query = $state('')
 let auditPanel = $state<HTMLElement>()
@@ -46,6 +59,17 @@ let selectedEvidence = $state<unknown>()
 let selectedEvidenceId = $state<string | null>(null)
 let copiedEvidenceId = $state<string | null>(null)
 let copiedEvidenceTimeout: ReturnType<typeof setTimeout> | undefined
+let additionalRowsByAction = $state<Record<string, AuditAction[]>>({})
+let paginationByAction = $state<
+  Record<string, Pick<AuditActionPage, 'hasMore' | 'nextOffset'>>
+>({})
+let visibleRowCountByAction = $state<Record<string, number>>({})
+let loadingSectionActions = $state<Set<string>>(new Set())
+let failedSectionActions = $state<Set<string>>(new Set())
+let loadingCompleteSearch = $state(false)
+let completeSearchLoadFailed = $state(false)
+let lastCompleteSearchAttempt = $state('')
+const pageRequests = new Map<string, Promise<AuditActionPage | null>>()
 
 const formatNumber = (value: number) => new Intl.NumberFormat().format(value)
 
@@ -127,18 +151,27 @@ const searchableText = (action: AuditAction) =>
     .normalize('NFKD')
     .toLocaleLowerCase()
 
+let loadedActions = $derived(
+  actionSections
+    ? actionSections.flatMap(section => [
+        ...section.rows,
+        ...(additionalRowsByAction[section.action] ?? []),
+      ])
+    : actions,
+)
 let visibleActions = $derived(
-  actions.filter(
+  loadedActions.filter(
     action => action.action !== 'als_number_range_singleton_variant_consolidated',
   ),
 )
 let filteredActions = $derived(
   visibleActions.filter(action => matchesFuzzyQuery(searchableText(action), query)),
 )
+let isCompleteSearch = $derived(query.trim().length >= COMPLETE_SEARCH_MIN_LENGTH)
 let visibleBulkSections = $derived(
   showBulkActions ? filterBulkProcessingSections(bulkActions, query) : [],
 )
-let sections = $derived.by(() => {
+let groupedSections = $derived.by(() => {
   const groups = new Map<string, AuditAction[]>()
   for (const action of filteredActions) {
     groups.set(action.action, [...(groups.get(action.action) ?? []), action])
@@ -153,11 +186,60 @@ let sections = $derived.by(() => {
         0,
       ),
       totalCount: visibleActions.filter(item => item.action === action).length,
-      mode: rows.every(row => row.mode === 'automatic') ? 'automatic' : 'manual',
+      mode: rows.every(row => row.mode === 'automatic')
+        ? ('automatic' as const)
+        : ('manual' as const),
       rows,
     }))
     .sort((left, right) => left.action.localeCompare(right.action))
 })
+let sections = $derived.by(() => {
+  if (!actionSections) return groupedSections
+
+  return actionSections.flatMap(section => {
+    const pagination = paginationByAction[section.action]
+    const cachedRows = [
+      ...section.rows,
+      ...(additionalRowsByAction[section.action] ?? []),
+    ]
+    const visibleRowCount =
+      visibleRowCountByAction[section.action] ?? section.rows.length
+    const matchingRows = cachedRows.filter(action =>
+      matchesFuzzyQuery(searchableText(action), query),
+    )
+    const rows = matchingRows.slice(0, visibleRowCount)
+    if (query && matchingRows.length === 0) return []
+
+    return [
+      {
+        ...section,
+        hasMore:
+          visibleRowCount < matchingRows.length ||
+          (!isCompleteSearch && (pagination?.hasMore ?? section.hasMore)),
+        id: auditHeadingId('record', section.action),
+        nextOffset: pagination?.nextOffset ?? section.nextOffset,
+        rows,
+      },
+    ]
+  })
+})
+let totalActionCount = $derived(
+  actionSections
+    ? actionSections.reduce((total, section) => total + section.totalCount, 0)
+    : visibleActions.length,
+)
+let filteredActionCount = $derived(
+  actionSections
+    ? query
+      ? filteredActions.length
+      : sections.reduce((total, section) => total + section.rows.length, 0)
+    : filteredActions.length,
+)
+let hasUnfetchedActionRows = $derived(
+  actionSections?.some(
+    section => paginationByAction[section.action]?.hasMore ?? section.hasMore,
+  ) ?? false,
+)
 let sectionHeadings = $derived([
   ...visibleBulkSections.map(rule => ({
     id: bulkSectionHeadingId(rule),
@@ -565,6 +647,167 @@ async function copyEvidence(id: string, evidence: unknown) {
   }
 }
 
+const getActionSection = (action: string) =>
+  actionSections?.find(section => section.action === action)
+
+const getCachedActionRows = (action: string) => {
+  const section = getActionSection(action)
+  return section ? [...section.rows, ...(additionalRowsByAction[action] ?? [])] : []
+}
+
+const getMatchingActionRows = (action: string) =>
+  getCachedActionRows(action).filter(row =>
+    matchesFuzzyQuery(searchableText(row), query),
+  )
+
+const actionHasUnfetchedRows = (action: string) => {
+  const section = getActionSection(action)
+  return section
+    ? (paginationByAction[action]?.hasMore ?? section.hasMore ?? false)
+    : false
+}
+
+async function fetchNextSectionPage(
+  action: string,
+  limit = AUDIT_PAGE_SIZE,
+): Promise<AuditActionPage | null> {
+  const section = getActionSection(action)
+  if (!section || !onLoadMoreSection || !actionHasUnfetchedRows(action)) return null
+
+  const activeRequest = pageRequests.get(action)
+  if (activeRequest) return activeRequest
+
+  const request = (async () => {
+    loadingSectionActions = new Set(loadingSectionActions).add(action)
+    const nextFailures = new Set(failedSectionActions)
+    nextFailures.delete(action)
+    failedSectionActions = nextFailures
+
+    try {
+      const page = await onLoadMoreSection(
+        action,
+        paginationByAction[action]?.nextOffset ??
+          section.nextOffset ??
+          section.rows.length,
+        limit,
+      )
+      const knownIds = new Set(getCachedActionRows(action).map(row => row.id))
+      additionalRowsByAction = {
+        ...additionalRowsByAction,
+        [action]: [
+          ...(additionalRowsByAction[action] ?? []),
+          ...page.rows.filter(row => !knownIds.has(row.id)),
+        ],
+      }
+      paginationByAction = {
+        ...paginationByAction,
+        [action]: {
+          hasMore: page.hasMore,
+          nextOffset: page.nextOffset,
+        },
+      }
+      return page
+    } catch {
+      failedSectionActions = new Set(failedSectionActions).add(action)
+      return null
+    } finally {
+      const nextLoading = new Set(loadingSectionActions)
+      nextLoading.delete(action)
+      loadingSectionActions = nextLoading
+    }
+  })()
+
+  pageRequests.set(action, request)
+  try {
+    return await request
+  } finally {
+    pageRequests.delete(action)
+  }
+}
+
+async function loadMoreSection(section: AuditSection) {
+  if (!section.hasMore || loadingSectionActions.has(section.action)) return
+
+  const visibleRowCount =
+    visibleRowCountByAction[section.action] ??
+    getActionSection(section.action)?.rows.length ??
+    section.rows.length
+  let matchingRowCount = getMatchingActionRows(section.action).length
+
+  if (visibleRowCount >= matchingRowCount) {
+    const page = await fetchNextSectionPage(section.action)
+    if (!page) return
+    matchingRowCount = getMatchingActionRows(section.action).length
+  }
+
+  visibleRowCountByAction = {
+    ...visibleRowCountByAction,
+    [section.action]: Math.min(visibleRowCount + AUDIT_PAGE_SIZE, matchingRowCount),
+  }
+}
+
+async function loadAllActionRows() {
+  if (!actionSections || loadingCompleteSearch || !hasUnfetchedActionRows) return
+
+  loadingCompleteSearch = true
+  completeSearchLoadFailed = false
+  const pendingActions = actionSections
+    .filter(section => actionHasUnfetchedRows(section.action))
+    .map(section => section.action)
+  let nextActionIndex = 0
+  let failed = false
+
+  const loadAction = async () => {
+    while (nextActionIndex < pendingActions.length) {
+      const action = pendingActions[nextActionIndex]
+      nextActionIndex += 1
+      if (!action) return
+
+      while (actionHasUnfetchedRows(action)) {
+        const page = await fetchNextSectionPage(action, COMPLETE_SEARCH_PAGE_SIZE)
+        if (!page) {
+          failed = true
+          break
+        }
+      }
+    }
+  }
+
+  try {
+    await Promise.all(
+      Array.from(
+        {
+          length: Math.min(COMPLETE_SEARCH_CONCURRENCY, pendingActions.length),
+        },
+        loadAction,
+      ),
+    )
+  } finally {
+    completeSearchLoadFailed = failed
+    loadingCompleteSearch = false
+  }
+}
+
+function retryCompleteSearch() {
+  completeSearchLoadFailed = false
+  lastCompleteSearchAttempt = ''
+}
+
+$effect(() => {
+  const search = query.trim()
+  if (
+    search.length < COMPLETE_SEARCH_MIN_LENGTH ||
+    !hasUnfetchedActionRows ||
+    loadingCompleteSearch ||
+    (completeSearchLoadFailed && lastCompleteSearchAttempt === search)
+  ) {
+    return
+  }
+
+  lastCompleteSearchAttempt = search
+  void loadAllActionRows()
+})
+
 $effect(() => {
   headings = sectionHeadings
 })
@@ -622,10 +865,13 @@ $effect(() => {
 <Tooltip.Provider delayDuration={200}>
   <ReleaseAuditPanel bind:element={auditPanel}>
     <ReleaseAuditControls
-      filteredCount={formatNumber(filteredActions.length)}
+      filteredCount={formatNumber(filteredActionCount)}
       infoDescription={m.source_audit_info_description()}
       infoLabel={m.source_audit_info()}
-      totalCount={formatNumber(visibleActions.length)}
+      loadError={completeSearchLoadFailed}
+      loading={loadingCompleteSearch}
+      onRetry={retryCompleteSearch}
+      totalCount={formatNumber(totalActionCount)}
       bind:query
     />
     <ReleaseAuditResults
@@ -642,6 +888,9 @@ $effect(() => {
       onToggle={toggleEvidence}
       presentRow={rowPresentation}
       {sections}
+      {failedSectionActions}
+      {loadingSectionActions}
+      onLoadMore={loadMoreSection}
       {showBulkActions}
       visibleActionCount={visibleActions.length}
       {visibleBulkSections}

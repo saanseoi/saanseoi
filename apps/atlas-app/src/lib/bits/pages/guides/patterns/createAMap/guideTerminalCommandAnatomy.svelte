@@ -72,7 +72,7 @@ const loadLeaderLine = () => {
   return leaderLineLoader
 }
 
-const path = $derived(operatingSystem === 'windows' ? 'C:\\Users\\your-name' : '~/')
+const path = $derived(operatingSystem === 'windows' ? '~' : '~/')
 const language = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
 const prompt = $derived(operatingSystem === 'windows' ? 'PS>' : '$')
 const command = 'curl -fsSL https://bun.sh/install | bash'

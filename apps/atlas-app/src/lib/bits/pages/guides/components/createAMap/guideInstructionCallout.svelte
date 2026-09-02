@@ -1,7 +1,14 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
+
+import GuideCalloutDescription from '../shared/guideCalloutDescription.svelte'
+import GuideCalloutEyebrow from '../shared/guideCalloutEyebrow.svelte'
+import GuideCalloutTitle from '../shared/guideCalloutTitle.svelte'
 import GuideStepLabel from '../shared/guideStepLabel.svelte'
 
 type Props = {
+  class?: string
+  children?: Snippet
   description: string
   label?: string
   stepNumber?: number
@@ -9,25 +16,26 @@ type Props = {
   title: string
 }
 
-let { description, label, stepNumber, stepLabel, title }: Props = $props()
+let {
+  class: className = '',
+  children,
+  description,
+  label,
+  stepNumber,
+  stepLabel,
+  title,
+}: Props = $props()
 </script>
 
-<div
-  class="border-l-2 border-secondary pl-4 [&>h4]:mt-[0.35rem] [&>h4]:font-display [&>h4]:text-base [&>h4]:font-bold [&>h4]:text-primary [&>p:last-child]:mt-[0.45rem] [&>p:last-child]:font-body [&>p:last-child]:text-sm [&>p:last-child]:leading-[1.6] [&>p:last-child]:text-foreground-alt"
->
+<div class={`border-l-2 border-secondary pl-4 ${className}`}>
   {#if stepNumber && stepLabel}
-    <p
-      class="m-0 font-mono text-[0.7rem] font-bold tracking-[0.08em] text-secondary uppercase"
-    >
+    <GuideCalloutEyebrow>
       <GuideStepLabel number={stepNumber} label={stepLabel} />
-    </p>
+    </GuideCalloutEyebrow>
   {:else if label}
-    <p
-      class="m-0 font-mono text-[0.7rem] font-bold tracking-[0.08em] text-secondary uppercase"
-    >
-      {@html label}
-    </p>
+    <GuideCalloutEyebrow text={label} />
   {/if}
-  <h4>{@html title}</h4>
-  <p>{@html description}</p>
+  <GuideCalloutTitle {title} />
+  <GuideCalloutDescription {description} />
+  {@render children?.()}
 </div>
