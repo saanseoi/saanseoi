@@ -8,11 +8,13 @@ import {
 import {
   parseSourceAssetMetadata,
   linkManagedSourceAssetToRelease,
+  deleteManagedSourceAsset,
   preflightManagedSourceAsset,
   registerManagedSourceAsset,
 } from '../../lib/services/sourceAssets'
 import {
   ErrorResponseSchema,
+  DeletedManagedSourceAssetResponseSchema,
   LinkManagedSourceAssetRequestSchema,
   LinkManagedSourceAssetResponseSchema,
   LocalUploadRegistrationResponseSchema,
@@ -120,6 +122,24 @@ const linkManagedSourceAssetRouteConfig = createRoute({
     400: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
       description: 'Source asset linkage failed.',
+    },
+  },
+})
+
+const deleteManagedSourceAssetRouteConfig = createRoute({
+  method: 'delete',
+  path: '/v1/assets/{assetId}',
+  tags: ['Source assets'],
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: DeletedManagedSourceAssetResponseSchema },
+      },
+      description: 'Remove an owned immutable source asset.',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Source asset deletion failed.',
     },
   },
 })
@@ -238,9 +258,42 @@ export const linkManagedSourceAssetRoute = defineOpenAPIRoute<
   },
 })
 
+export const deleteManagedSourceAssetRoute = defineOpenAPIRoute<
+  typeof deleteManagedSourceAssetRouteConfig,
+  AppEnv
+>({
+  route: deleteManagedSourceAssetRouteConfig,
+  handler: async c => {
+    try {
+      const assetId = c.req.param('assetId')
+      const releaseId = c.req.query('releaseId')
+      if (!assetId || !releaseId) throw new Error('assetId and releaseId are required.')
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const result = await deleteManagedSourceAsset(db, c.env.R2_ASSETS, {
+        assetId,
+        releaseId,
+      })
+      return c.json(
+        { ...result, assetUrl: `${c.env.ATLAS_BASE_URL}/v0/assets/${result.assetId}` },
+        200,
+      )
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'source_asset_delete_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
 export const uploadRoutes = [
   registerUploadRoute,
   managedSourceAssetPreflightRoute,
   managedSourceAssetRoute,
   linkManagedSourceAssetRoute,
+  deleteManagedSourceAssetRoute,
 ] as const

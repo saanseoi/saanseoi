@@ -21,6 +21,11 @@ import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runInitialisationCommand } from './lib/commands/init.ts'
 import {
+  beginOfficialAddressInitialisation,
+  completeOfficialAddressInitialisation,
+  runResetOfficialAddressesCommand,
+} from './lib/commands/resetAddresses.ts'
+import {
   runTilesImportCommand,
   runTilesRebuildCommand,
   runTilesRetractCommand,
@@ -107,6 +112,17 @@ async function main() {
         printUsage,
         skipConfirm,
       })
+      return
+    case 'reset:addresses:official':
+      await runResetOfficialAddressesCommand(args, target, { printUsage })
+      return
+    case 'init:addresses:official:begin':
+      await beginOfficialAddressInitialisation(target, {
+        continue: args.options.continue === true,
+      })
+      return
+    case 'init:addresses:official:complete':
+      await completeOfficialAddressInitialisation(target)
       return
     case 'version:bump':
       await runVersionBumpCommand(args)

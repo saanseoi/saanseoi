@@ -290,6 +290,14 @@ export const ManagedSourceAssetResponseSchema = z
   })
   .openapi('HarbourManagedSourceAssetResponse')
 
+export const DeletedManagedSourceAssetResponseSchema = z
+  .object({
+    assetId: z.string().uuid(),
+    assetUrl: z.string().url(),
+    status: z.literal('deleted'),
+  })
+  .openapi('HarbourDeletedManagedSourceAssetResponse')
+
 export const ManagedSourceAssetPreflightRequestSchema = z
   .object({
     byteLength: z.number().int().nonnegative(),

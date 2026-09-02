@@ -618,6 +618,36 @@ export async function linkManagedSourceAssetToRelease(
   )
 }
 
+/** Delete an asset that is still linked to the exact release recorded by reset. */
+export async function deleteManagedSourceAsset(
+  target: UploadTarget,
+  input: { assetKey: string; id: string; releaseId: string | null },
+) {
+  if (!input.releaseId)
+    throw new Error(`Cannot prove ownership of source asset ${input.id}.`)
+  if (target.remote) {
+    const response = await fetch(
+      `${resolveHarbourApiUrl(target)}/v1/assets/${input.id}?releaseId=${encodeURIComponent(input.releaseId)}`,
+      { headers: getAuthHeaders(), method: 'DELETE' },
+    )
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as {
+        message?: unknown
+      } | null
+      throw new Error(
+        typeof payload?.message === 'string'
+          ? payload.message
+          : `Harbour source asset deletion failed with HTTP ${response.status}.`,
+      )
+    }
+    return
+  }
+  await deleteLocalSourceAssetObject(input.assetKey)
+  await withLocalMetaDb(metaDb =>
+    metaDb.delete(metaAssets).where(eq(metaAssets.id, input.id)).run(),
+  )
+}
+
 async function uploadLocalManagedSourceAsset(
   target: UploadTarget,
   input: ManagedSourceAssetUpload,
@@ -771,6 +801,44 @@ async function putLocalSourceAssetObject(input: {
   if (exitCode !== 0) {
     throw new Error((stderr || stdout || 'Local R2 source asset upload failed.').trim())
   }
+}
+
+async function deleteLocalSourceAssetObject(objectKey: string) {
+  if (!objectKey.startsWith('by-source/'))
+    throw new Error(`Refusing to delete non-source asset ${objectKey}.`)
+  const command = [
+    'bun',
+    'x',
+    'wrangler',
+    'r2',
+    'object',
+    'delete',
+    `${LOCAL_R2_BUCKET_NAME}/${objectKey}`,
+    '--local',
+    '--persist-to',
+    LOCAL_R2_PERSIST_DIR,
+    '--config',
+    HARBOUR_WRANGLER_CONFIG_PATH,
+  ]
+  const child = Bun.spawn(command, {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      WRANGLER_LOG_PATH: process.env.WRANGLER_LOG_PATH ?? WRANGLER_LOG_PATH,
+      XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME ?? WRANGLER_CONFIG_HOME,
+    },
+    stderr: 'pipe',
+    stdout: 'pipe',
+  })
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
+  ])
+  if (exitCode !== 0)
+    throw new Error(
+      (stderr || stdout || 'Local R2 source asset deletion failed.').trim(),
+    )
 }
 
 function isUploadedSourceAsset(value: unknown): value is {
