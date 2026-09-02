@@ -2593,17 +2593,11 @@ const styleChoices = $derived.by(() =>
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <div class="mt-14 w-full min-w-0 max-w-232">
-                  <p
-                    class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-                  >
-                    {@html m.guide_setup_llm_eyebrow()}
-                  </p>
-                  <h3
-                    class="mt-1 font-display text-headline-md leading-tight font-bold text-primary"
-                  >
-                    {@html m.guide_setup_llm_title()}
-                  </h3>
+                <div class="w-full min-w-0 max-w-232 space-y-5">
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_setup_llm_eyebrow()}
+                    title={m.guide_setup_llm_title()}
+                  />
                   <GuideParagraph>
                     {@html m.guide_setup_agent_llm_instruction_before()}
                     <span
@@ -2617,16 +2611,14 @@ const styleChoices = $derived.by(() =>
                     </span>
                     {@html m.guide_setup_agent_llm_instruction_after()}
                   </GuideParagraph>
-                  <div class="mt-5">
-                    <GuideLlmPromptCard
-                      prompt={progressiveSectionPrompts.prerequisites}
-                      promptIcon={selectedLlmOption?.icon}
-                      references={llmProjectSetupReferences}
-                      title={m.guide_setup_llm_title()}
-                      previewImageSrc={viteDemoPage}
-                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                    />
-                  </div>
+                  <GuideLlmPromptCard
+                    prompt={progressiveSectionPrompts.prerequisites}
+                    promptIcon={selectedLlmOption?.icon}
+                    references={llmProjectSetupReferences}
+                    title={m.guide_setup_llm_title()}
+                    previewImageSrc={viteDemoPage}
+                    previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                  />
                 </div>
               {/if}
               {#if showEditorProjectSetup && aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
