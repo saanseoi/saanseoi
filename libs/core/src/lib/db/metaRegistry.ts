@@ -2493,6 +2493,7 @@ export async function resetFailedDataset(
   rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus,
+  options: { preservePublishedSourceRelease?: boolean } = {},
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
   const now = toIsoTimestamp(ingestedAt)
@@ -2501,6 +2502,15 @@ export async function resetFailedDataset(
     sourceVersion: plan.sourceVersion,
     allowOlderMappedRelease: true,
   })
+  const sourceReleaseCode = buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)
+  const sourceRelease = options.preservePublishedSourceRelease
+    ? await db
+        .select({ status: metaSourceReleases.status })
+        .from(metaSourceReleases)
+        .where(eq(metaSourceReleases.code, sourceReleaseCode))
+        .limit(1)
+        .get()
+    : null
 
   await db
     .update(metaReleases)
@@ -2536,19 +2546,14 @@ export async function resetFailedDataset(
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
-      status,
+      status: sourceRelease?.status === 'published' ? 'published' : status,
       ingestedAt: now,
       revokedAt: null,
       revocationReason: null,
       supersededBySourceReleaseId: null,
       updatedAt: now,
     })
-    .where(
-      eq(
-        metaSourceReleases.code,
-        buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion),
-      ),
-    )
+    .where(eq(metaSourceReleases.code, sourceReleaseCode))
     .run()
 }
 
