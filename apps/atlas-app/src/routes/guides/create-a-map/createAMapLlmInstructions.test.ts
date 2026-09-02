@@ -9,6 +9,10 @@ import {
   createAMapAgenticHandoverPrompt,
   createAMapAgenticSectionPrompt,
   createAMapChatSectionPrompt,
+  createAMapRenderPromptFragments,
+  createAMapProjectSetupPromptFragments,
+  isCreateAMapAgentCapableEditor,
+  shouldShowCreateAMapEditorSetup,
 } from './createAMapLlmPrompt'
 import {
   createAMapRendererBasemapCode,
@@ -278,13 +282,14 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).not.toContain('Inspect the existing workspace')
   })
 
-  test('gives agentic and web chat assistance the shared setup without handing over control', () => {
+  test('composes the project setup prompt for agents and web chat', () => {
     const state = {
       objective: 'web',
       hostingValue: 'cloudflare',
       operatingSystem: 'Linux',
-      preferredLocale: 'zh-Hant',
+      operatingSystemValue: 'linux',
       terminalExperienceValue: 'none',
+      preferredLocale: 'en',
     }
     const agentPrompt = createAMapAgenticSectionPrompt(state, 'prerequisites')
     const chatPrompt = createAMapChatSectionPrompt(state, 'prerequisites')
@@ -292,7 +297,7 @@ describe('Create a Map LLM instructions', () => {
     for (const prompt of [agentPrompt, chatPrompt]) {
       expect(prompt).toStartWith('## Overall project')
       expect(prompt).toContain(
-        'We are building a SaanSeoi (a Hong Kong-based digital commons platform offering geospatial data; site: https://saanseoi.hk) digital map that will be hosted online as a stand-alone web app.',
+        'I am following an online guide (https://saanseoi.hk/guides/create-a-map) to build a web-based map that people can visit online with a link.',
       )
       expect(prompt).toContain(
         'In this first session, help me establish the project foundation only',
@@ -303,12 +308,11 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
       expect(prompt).toContain('### Working agreement')
-      expect(prompt).toContain('## Step 0 : Prerequisites')
-      expect(prompt).toContain('### Instructions')
+      expect(prompt).toContain('## Project setup')
       expect(prompt).toContain('### Verification')
       expect(prompt).not.toContain('### Ask these questions first')
-      expect(prompt).toContain('preferred locale (zh-Hant)')
-      expect(prompt).not.toContain('will take ownership of the work')
+      expect(prompt).not.toContain('preferred locale')
+      expect(prompt).not.toContain('will take full ownership')
     }
 
     expect(agentPrompt).toContain('#### Linux')
@@ -318,6 +322,10 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).toContain('BUN_INSTALL="$PWD/.bun-install"')
     expect(agentPrompt).toContain('bun dev')
     expect(agentPrompt).not.toContain('open another terminal tab or window')
+    expect(agentPrompt).toContain(
+      'As an agent, you will implement the requests locally',
+    )
+    expect(agentPrompt).toContain('create a new `saanseoi-project` subdirectory')
 
     expect(chatPrompt).toContain('#### Linux')
     expect(chatPrompt).not.toContain('#### macOS')
@@ -338,15 +346,11 @@ describe('Create a Map LLM instructions', () => {
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
     expect(chatPrompt).toContain('“Ignore files and continue”')
-
     expect(chatPrompt).toContain(
-      'As a web chat, we expect you cannot inspect or edit my computer directly',
+      'As a non-agentic LLM, you will provide me with explicit steps',
     )
     expect(chatPrompt).toContain(
       'IMPORTANT: This is a collaborative assistance session, not a full hand-over.',
-    )
-    expect(chatPrompt).toContain(
-      '- As a web chat, we expect you cannot inspect or edit my computer directly',
     )
     expect(chatPrompt).toContain(
       'State whether I should create, replace, or append the content.\n\nIMPORTANT: This is a collaborative assistance session',
@@ -355,30 +359,65 @@ describe('Create a Map LLM instructions', () => {
     expect(chatPrompt).toContain('### Starting with the terminal')
     expect(chatPrompt).toContain('`Ctrl` + `Alt` + `T`')
     expect(agentPrompt).not.toContain('### Starting with the terminal')
-    expect(agentPrompt).toContain(
-      '## Working agreement\n\n- The guide builds the project in this order',
-    )
-    expect(agentPrompt).toContain('Inspect the existing workspace')
-    expect(agentPrompt).toContain('not the clean basis expected by the guide')
     expect(agentPrompt).toContain('Stop for confirmation before any paid action')
-    expect(agentPrompt).toContain('current workspace root only if it is not the')
     expect(agentPrompt).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
     expect(agentPrompt).toContain('If browser access is unavailable,')
-    expect(chatPrompt).toContain('Assume I am working in a new project folder')
     expect(chatPrompt).toContain('Terminal in `saanseoi-project`')
     expect(chatPrompt).toContain('Editor window in `src/main.ts`')
-    expect(chatPrompt).not.toContain('Inspect the existing workspace')
     expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
 
     expect(agentPrompt).not.toContain('\n\n\n')
-    expect(agentPrompt).not.toContain('tutorial.\n\n- Inspect')
-    expect(agentPrompt).not.toContain('what they see.\n\n- This')
-    expect(agentPrompt).toContain(
-      'what they see.\n\nIMPORTANT: This is a collaborative assistance session',
+  })
+
+  test('filters project setup fragments by LLM type and workspace choices', () => {
+    const fragments = createAMapProjectSetupPromptFragments(
+      {
+        codeEditorValue: 'cursor',
+        operatingSystemValue: 'macos',
+        preferredLocale: 'en',
+        terminalExperienceValue: 'basic',
+      },
+      'chat',
     )
-    expect(agentPrompt).not.toContain('current workspace root.\n\n\n#### Linux')
+
+    expect(fragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(fragments.some(fragment => fragment.llmType === 'chat')).toBe(true)
+    expect(
+      fragments.some(
+        fragment =>
+          fragment.os === 'macos' &&
+          fragment.editor === 'cursor' &&
+          fragment.terminalExperience === 'basic',
+      ),
+    ).toBe(true)
+    expect(
+      fragments.every(
+        fragment => fragment.llmType === 'all' || fragment.llmType === 'chat',
+      ),
+    ).toBe(true)
+    expect(
+      fragments.some(fragment =>
+        fragment.text.startsWith('### Project decisions\n\n- AI tool: TBD'),
+      ),
+    ).toBe(true)
+  })
+
+  test('shows editor setup for chat and agent-capable editors only', () => {
+    expect(isCreateAMapAgentCapableEditor('zed')).toBe(true)
+    expect(isCreateAMapAgentCapableEditor('cursor')).toBe(true)
+    expect(isCreateAMapAgentCapableEditor('vscode')).toBe(false)
+    expect(shouldShowCreateAMapEditorSetup({ llmType: 'chat' })).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'zed' }),
+    ).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'cursor' }),
+    ).toBe(true)
+    expect(
+      shouldShowCreateAMapEditorSetup({ llmType: 'agent', editorValue: 'vscode' }),
+    ).toBe(false)
   })
 
   test('summarises each primary map objective in a complete sentence', () => {
@@ -387,19 +426,19 @@ describe('Create a Map LLM instructions', () => {
         { objective: 'local', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('available locally on my computer.')
+    ).toContain('map that I can use on my computer.')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('hosted online as a stand-alone web app.')
+    ).toContain('map that people can visit online with a link.')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web-embed', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('hosted online and embedded in an existing site.')
+    ).toContain('map that I can embed in an existing site.')
   })
 
   test('uses the selected objective in the collaborative project setup', () => {
@@ -607,6 +646,51 @@ describe('Create a Map LLM instructions', () => {
     }
   })
 
+  test('composes renderer instructions for agent and chat workspaces', () => {
+    const state = {
+      codeEditorValue: 'cursor',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+      region: 'mo',
+      renderer: 'maplibre',
+      rendererLabel: 'MapLibre',
+      terminalExperienceValue: 'basic',
+    }
+    const agentPrompt = createAMapAgenticSectionPrompt(state, 'render')
+    const chatPrompt = createAMapChatSectionPrompt(state, 'render')
+
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Render Section')
+      expect(prompt).toContain('bun add maplibre-gl')
+      expect(prompt).toContain('Terminal in `saanseoi-project`')
+      expect(prompt).toContain('src\\main.ts')
+      expect(prompt).toContain('src\\style.css')
+      expect(prompt).toContain('center: [113.552, 22.165]')
+      expect(prompt).toContain('### Verify')
+      expect(prompt).toContain('browser visibly shows')
+    }
+
+    expect(agentPrompt).toContain(
+      'As an agent, you will implement the requests locally',
+    )
+    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('create a new `saanseoi-project` subdirectory')
+    expect(agentPrompt).not.toContain('For every action, name the exact paste target')
+    expect(chatPrompt).toContain(
+      'As a non-agentic LLM, you will provide me with explicit steps',
+    )
+    expect(chatPrompt).toContain('For every action, name the exact paste target')
+    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+
+    const fragments = createAMapRenderPromptFragments(state, 'chat')
+    expect(fragments.every(fragment => fragment.llmType !== 'agent')).toBe(true)
+    expect(fragments.some(fragment => fragment.os === 'windows')).toBe(true)
+    expect(fragments.some(fragment => fragment.editor === 'cursor')).toBe(true)
+    expect(fragments.some(fragment => fragment.terminalExperience === 'basic')).toBe(
+      true,
+    )
+  })
+
   test('adds headings to the later progressive prompts', () => {
     for (const section of ['basemap', 'style', 'data', 'publish'] as const) {
       expect(
@@ -639,7 +723,7 @@ describe('Create a Map LLM instructions', () => {
     expect(prompt).not.toContain('### This section')
     expect(prompt).not.toContain('### Project decisions')
     expect(prompt).toContain('access_token')
-    expect(prompt).toContain('VITE_SAANSEOI_API_KEY')
+    expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
   })
 
   test('includes renderer-specific style code in agent and chat hand-offs', () => {
