@@ -130,6 +130,7 @@ export async function runHkgovAlsIngestCommand(
   args: ParsedArgs,
   target: UploadTarget,
   printUsage: () => void,
+  options: HkgovAlsIngestOptions = {},
 ) {
   const sourceRoot = args.positionals[0]
     ? resolveInvocationPath(args.positionals[0])
@@ -166,7 +167,10 @@ export async function runHkgovAlsIngestCommand(
   const completedSourceVersions = await listTargetCompletedAlsSourceVersions(
     target,
     sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
-    Boolean(args.options.continue),
+    shouldIncludeSupersededAlsSourceVersions({
+      allowHistoricalCohort: options.allowHistoricalCohort,
+      continue: args.options.continue === true,
+    }),
   )
   const review = await reviewHkgovAlsIngest({
     args,
@@ -282,6 +286,7 @@ export async function runHkgovAlsIngestCommand(
         positionals: [result.outputFile],
         options: {
           'cohort-key': addressCohortKey,
+          ...(args.options.continue === true ? { continue: true } : {}),
           'release-notes-url':
             stringOption(args, 'release-notes-url') ?? HKGOV_ALS_CATALOGUE_URL,
           region: 'hk',
@@ -294,6 +299,8 @@ export async function runHkgovAlsIngestCommand(
       },
       target,
       {
+        ...(options.allowHistoricalCohort ? { allowHistoricalCohort: true } : {}),
+        deferApiReleaseSet: args.options['defer-api-release-set'] === true,
         dryRun: Boolean(args.options['dry-run']),
         divisionCohortKey,
         forceUpload: Boolean(args.options.force),
@@ -335,7 +342,27 @@ export async function runHkgovAlsLocalIngestCommand(
   if (target.remote) {
     throw new Error('`hkgov-dpo:backfill-local` only supports --target local.')
   }
-  return runHkgovAlsIngestCommand(args, target, printUsage)
+  return runHkgovAlsIngestCommand(args, target, printUsage, {
+    allowHistoricalCohort: true,
+  })
+}
+
+type HkgovAlsIngestOptions = {
+  /**
+   * A local historical backfill creates an independent address cohort. It must
+   * not supersede the newer active source release or API cohort.
+   */
+  allowHistoricalCohort?: boolean
+}
+
+export function shouldIncludeSupersededAlsSourceVersions(input: {
+  allowHistoricalCohort?: boolean
+  continue?: boolean
+}) {
+  // A historical backfill starts before the newest release. Every later
+  // completed release is normally superseded, so treating only the active
+  // release as complete would needlessly reprocess the rest of the series.
+  return input.allowHistoricalCohort === true || input.continue === true
 }
 
 async function listTargetCompletedAlsSourceVersions(

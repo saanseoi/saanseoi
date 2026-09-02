@@ -243,8 +243,14 @@ ${mutedBar}  `)
       sourceVersion: previewResult.plan.sourceVersion,
     })
 
-    if (options.deferApiReleaseSet && previewResult.plan.theme !== 'divisions') {
-      throw new Error('--defer-api-release-set requires a Divisions upload.')
+    if (
+      options.deferApiReleaseSet &&
+      previewResult.plan.theme !== 'addresses' &&
+      previewResult.plan.theme !== 'divisions'
+    ) {
+      throw new Error(
+        '--defer-api-release-set requires an Addresses or Divisions upload.',
+      )
     }
 
     note(
@@ -480,6 +486,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            deferApiReleaseSet: options.deferApiReleaseSet,
             processingActions: options.processingActions,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },

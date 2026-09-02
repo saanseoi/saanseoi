@@ -26,11 +26,11 @@ The automatic updater queries the DATA.GOV.HK historical file-version endpoint f
 official `ALS-GeoJSON.zip` resource. It treats the newest publisher timestamp as the new
 release and earlier available timestamps as download-only archive packages. On a
 confirmed new local release it downloads the exact ZIP, unpacks it into its timestamped
-ALS source directory, then invokes `hkgov-dpo:backfill-local` for the existing identity
-review and upload workflow. Archive-package downloads never upload by themselves. The
-query ends on the previous UTC day because the archive API does not accept the current
-day. A successful response whose body is truncated or otherwise invalid JSON is retried
-before the DPO check is reported as an error.
+ALS source directory, then invokes `hkgov-dpo:ingest` for the existing identity review
+and upload workflow. Archive-package downloads never upload by themselves. The query
+ends on the previous UTC day because the archive API does not accept the current day. A
+successful response whose body is truncated or otherwise invalid JSON is retried before
+the DPO check is reported as an error.
 
 The updater applies a ten-minute and 2 GiB compressed-download limit, validates ZIP
 member names, counts, expanded sizes and compression ratios before extraction, and
@@ -276,6 +276,14 @@ local HKGov ALS release are skipped rather than uploaded again. Pass `--force` t
 reprocess and replace those local releases when processing-action evidence changes. The
 persisted ALS identity history is not used as a skip marker, so resetting the local
 database correctly re-ingests every release.
+
+`hkgov-dpo:backfill-local` is the explicit exception for a missing older ALS release. It
+registers that release as an independent historical address cohort, so it does not
+supersede the newer active source release or replace the current Addresses API cohort.
+It treats later superseded ALS releases as already complete, so a run beginning before a
+gap processes the missing release rather than reprocessing the rest of the series. The
+normal `hkgov-dpo:ingest` command remains chronological and continues to reject an older
+source version.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command
