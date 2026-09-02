@@ -27,6 +27,9 @@ const agenticWorkingAgreement = `
 - When creating the new app, use the current workspace root only if it is not the
   user's home directory and it contains no non-hidden items. Otherwise create a new
   \`saanseoi-project\` subdirectory. Preserve any hidden files and directories.
+- For Project setup, the instructions below override this: never create the Vite app in
+  an existing workspace root. Use a new /path/to/saanseoi-project directory only after
+  checking whether it already exists and asking the user if it does.
 - Adapt to the actual project and its conventions. Do not create a parallel project or
   use the guide’s code snippets verbatim; implement the equivalent solution for the
   workspace you find.

@@ -272,16 +272,18 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('BUN_TMPDIR="$PWD/.bun-tmp"')
     expect(instructions).toContain('BUN_INSTALL="$PWD/.bun-install"')
     expect(instructions).toContain('rm -rf .bun-tmp .bun-install')
-    expect(instructions).toMatch(/check it yourself when you\s+have browser access/)
-    expect(instructions).toMatch(
-      /otherwise ask the user to open it and report the result/,
+    expect(instructions).toContain('Visibly open that reported URL in a')
+    expect(instructions).toContain(
+      'ask the user to open the reported URL and describe what they see',
     )
     expect(instructions).toContain(
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
     expect(instructions).toContain('“Ignore files and continue”')
     expect(instructions).toContain('never “Remove existing files.”')
-    expect(instructions).toContain('default only when a new subdirectory is required')
+    expect(instructions).toContain(
+      'Create the project only as `/path/to/saanseoi-project`',
+    )
     expect(instructions).not.toContain('### Ask these questions first')
     expect(instructions).not.toContain('## Render the map')
     expect(instructions).not.toContain('Inspect the existing workspace')
@@ -293,9 +295,11 @@ describe('Create a Map LLM instructions', () => {
       'prerequisites',
     )
 
-    expect(prompt).toContain('Inspect the operating system and shell.')
-    expect(prompt).toContain('Treat the Linux commands in this guide as a baseline')
-    expect(prompt).toContain('do not ask the user to identify their operating system')
+    expect(prompt).toContain(
+      'Before creating anything, inspect the operating system and shell',
+    )
+    expect(prompt).toContain('If Bun is installed, do not run its installation command')
+    expect(prompt).toContain('never overwrite it')
     expect(prompt).toContain('#### Linux')
     expect(prompt).toContain('#### macOS')
     expect(prompt).toContain('#### Windows PowerShell')
@@ -332,7 +336,7 @@ describe('Create a Map LLM instructions', () => {
         'In this first session, help me establish the project foundation only',
       )
       expect(prompt).toEndWith(
-        'The single next action is for you to continue with the “Render your map” section of the guide. Read it until it provides you with a prompt to share with me again.”',
+        'Once the user confirms that the default Vite page is visibly displayed, summarise the setup and stop. Do not make further changes or begin the “Render your map” section.',
       )
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
@@ -355,26 +359,20 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).toContain(
       'As an agent, you will implement the requests locally',
     )
-    expect(agentPrompt).toContain('create a new `saanseoi-project` subdirectory')
+    expect(agentPrompt).toContain('Create only `/path/to/saanseoi-project`')
 
     expect(chatPrompt).toContain('#### Linux')
     expect(chatPrompt).not.toContain('#### macOS')
     expect(chatPrompt).not.toContain('#### Windows PowerShell')
     expect(chatPrompt).toContain(
-      'For this stand-alone web app, use Bun and TypeScript.',
+      'For this stand-alone web app, use Bun and TypeScript in `/path/to/saanseoi-project`.',
     )
-    expect(chatPrompt).toContain('### Install the Wrangler dependency')
     expect(chatPrompt).toContain('bun add -d wrangler')
-    expect(chatPrompt.indexOf('#### Start the development server')).toBeLessThan(
-      chatPrompt.indexOf('### Install the Wrangler dependency'),
-    )
-    expect(chatPrompt).toContain('open another terminal tab or window')
-    expect(chatPrompt).toContain('navigate to the same project directory')
-    expect(chatPrompt).toContain('such as `cd saanseoi-project`')
+    expect(chatPrompt).toContain('bun dev -- --host 0.0.0.0')
+    expect(chatPrompt).toContain('`/path/to/saanseoi-project`')
     expect(chatPrompt).toContain(
       'It uses workspace-local temporary directories for `bun install`',
     )
-    expect(chatPrompt).toContain('does not sign in, configure an account, or deploy')
     expect(chatPrompt).toContain(
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
@@ -386,7 +384,7 @@ describe('Create a Map LLM instructions', () => {
       'IMPORTANT: This is a collaborative assistance session, not a full hand-over.',
     )
     expect(chatPrompt).toContain(
-      'State whether I should create, replace, or append the content.\n\nIMPORTANT: This is a collaborative assistance session',
+      'State whether I should create, replace, or append the content.',
     )
     expect(chatPrompt).toContain('Give me one command at a time')
     expect(chatPrompt).toContain('### Starting with the terminal')
@@ -394,10 +392,10 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).not.toContain('### Starting with the terminal')
     expect(agentPrompt).toContain('Stop for confirmation before any paid action')
     expect(agentPrompt).toContain(
-      'An HTTP 200 response does not visually verify the app',
+      'Browser verification succeeds only when a browser visibly displays',
     )
     expect(agentPrompt).toContain('If browser access is unavailable,')
-    expect(chatPrompt).toContain('Terminal in `saanseoi-project`')
+    expect(chatPrompt).toContain('/path/to/saanseoi-project')
     expect(chatPrompt).toContain('Editor window in `src/main.ts`')
     expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
 
@@ -480,7 +478,9 @@ describe('Create a Map LLM instructions', () => {
         { objective: 'local', operatingSystem: 'Linux', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('For this local map on my computer, use Bun and TypeScript.')
+    ).toContain(
+      'For this local map on my computer, use Bun and TypeScript in `/path/to/saanseoi-project`.',
+    )
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web-embed', operatingSystem: 'Linux', preferredLocale: 'en' },
@@ -491,7 +491,7 @@ describe('Create a Map LLM instructions', () => {
     )
   })
 
-  test('installs the selected hosting dependency for hosted web projects', () => {
+  test('installs Wrangler but no other hosting dependency during project setup', () => {
     expect(
       createAMapAgenticSectionPrompt(
         {
@@ -502,13 +502,13 @@ describe('Create a Map LLM instructions', () => {
         },
         'prerequisites',
       ),
-    ).toContain('bun add -d gh-pages')
+    ).toContain('bun add -d wrangler')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'local', operatingSystem: 'Linux', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).not.toContain('### Install the')
+    ).not.toContain('bun add -d gh-pages')
   })
 
   test('provides a project-local Bun installation fallback', () => {
@@ -553,11 +553,13 @@ describe('Create a Map LLM instructions', () => {
       'Remove-Item -Recurse -Force .bun-tmp, .bun-install',
     )
     expect(macosPrompt).toContain('#### macOS')
-    expect(macosPrompt).toContain('Use the following commands.')
-    expect(macosPrompt).toContain('Skip the Bun installation command')
-    expect(macosPrompt.indexOf('Use the following commands.')).toBeLessThan(
-      macosPrompt.indexOf('curl -fsSL https://bun.sh/install | bash'),
+    expect(macosPrompt).toContain(
+      'Use the Linux command sequence after inspecting the shell.',
     )
+    expect(macosPrompt).toContain('skip the Bun installation command')
+    expect(
+      macosPrompt.indexOf('Use the Linux command sequence after inspecting the shell.'),
+    ).toBeLessThan(macosPrompt.indexOf('curl -fsSL https://bun.sh/install | bash'))
   })
 
   test('uses explicit setup commands and stops at visual Vite verification', () => {
@@ -580,19 +582,20 @@ describe('Create a Map LLM instructions', () => {
 
     expect(scaffold).toBeGreaterThan(-1)
     expect(scaffold).toBeLessThan(install)
-    expect(install).toBeLessThan(server)
-    expect(server).toBeLessThan(hostingDependency)
+    expect(install).toBeLessThan(hostingDependency)
+    expect(hostingDependency).toBeLessThan(server)
     expect(prompt).not.toContain('echo "" | bun create vite')
     expect(prompt).toContain(
-      String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`,
+      'bun create vite . --template vanilla-ts --no-immediate --interactive',
     )
+    expect(prompt).toContain('bun dev -- --host 0.0.0.0')
+    expect(prompt).toContain('http://localhost:5174/')
+    expect(prompt).toContain('do not stop or restart another process using it')
+    expect(prompt).toContain('build, or HTTP response is not visual verification')
     expect(prompt).toContain(
-      'successful Bun command, build, or HTTP response is not visual verification',
+      'Do not install map libraries or add basemap, style, data, Cloudflare configuration,',
     )
-    expect(prompt).toContain(
-      'do not add map libraries, basemaps, hosting configuration, or',
-    )
-    expect(prompt).toContain('deployment settings in this section')
+    expect(prompt).toContain('Vite page is visible, summarise the setup and stop')
   })
 
   test('keeps model selection in the user-only preflight note', () => {
@@ -759,43 +762,40 @@ describe('Create a Map LLM instructions', () => {
     const chatPrompt = createAMapChatSectionPrompt(state, 'basemap')
 
     for (const prompt of [agentPrompt, chatPrompt]) {
-      expect(prompt).toStartWith('## Basemap Section')
-      expect(prompt).toContain('selected mapping library is MapLibre')
-      expect(prompt).toContain('selected SaanSeoi coverage is Hong Kong')
+      expect(prompt).toStartWith('## Basemap')
+      expect(prompt).toContain('existing MapLibre map')
+      expect(prompt).toContain('Hong Kong TileJSON endpoint')
       expect(prompt).toContain('https://tiles.saanseoi.hk/hongkong-latest.json')
       expect(prompt).toContain('`VITE_SAANSEOI_API_KEY`')
-      expect(prompt).toContain('`access_token` query parameter')
+      expect(prompt).toContain('`access_token`')
       expect(prompt).toContain('src\\main.ts')
-      expect(prompt).toContain(
-        'The basemap is not expected to be visible until the Style section',
-      )
+      expect(prompt).toContain('A blank map is expected')
       expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
       expect(prompt).not.toContain('pk.')
+      expect(prompt).not.toContain('The single next action')
     }
 
-    expect(agentPrompt).toContain('Implement the requested basemap changes locally')
-    expect(agentPrompt).toContain('never print, reveal, log or commit its value')
-    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
-    expect(agentPrompt).not.toContain('Never ask me to paste the public key into chat')
-
-    expect(chatPrompt).toContain('Give one safe action at a time')
-    expect(chatPrompt).toContain('Never ask me to paste the public key into chat')
-    expect(chatPrompt).not.toContain('Implement the requested basemap changes locally')
-    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).toBe(chatPrompt)
+    expect(agentPrompt).not.toContain('collaborative assistance session')
+    expect(agentPrompt).not.toContain('Give one safe action at a time')
 
     const agentFragments = createAMapBasemapPromptFragments(state, 'agentic')
     const chatFragments = createAMapBasemapPromptFragments(state, 'chat')
-    expect(agentFragments.some(fragment => fragment.llmType === 'chat')).toBe(false)
-    expect(chatFragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(agentFragments.every(fragment => fragment.llmType === 'all')).toBe(true)
+    expect(chatFragments.every(fragment => fragment.llmType === 'all')).toBe(true)
     expect(agentFragments.some(fragment => fragment.os === 'windows')).toBe(true)
   })
 
   test('adds headings to the later progressive prompts', () => {
-    for (const section of ['basemap', 'style', 'data', 'publish'] as const) {
+    for (const section of ['style', 'data', 'publish'] as const) {
       expect(
         createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, section),
       ).toStartWith(`## ${section.charAt(0).toUpperCase() + section.slice(1)} Section`)
     }
+
+    expect(
+      createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'basemap'),
+    ).toStartWith('## Basemap')
   })
 
   test('guides both LLM modes through local Mapbox token setup without exposing it', () => {
