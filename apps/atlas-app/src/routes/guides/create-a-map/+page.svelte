@@ -1663,11 +1663,15 @@ const guideDecisions = $derived.by(() => {
       label: m.guide_decision_destination(),
       selection: selectedObjective?.label,
     },
-    {
-      id: 'operating-system',
-      label: m.guide_decision_operating_system(),
-      selection: selectedOperatingSystem?.label,
-    },
+    ...(aiAccess === 'agentic'
+      ? []
+      : [
+          {
+            id: 'operating-system',
+            label: m.guide_decision_operating_system(),
+            selection: selectedOperatingSystem?.label,
+          },
+        ]),
     ...(showPlatform
       ? [
           {
