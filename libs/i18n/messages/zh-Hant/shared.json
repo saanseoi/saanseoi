@@ -1574,7 +1574,7 @@
   "guide_renderer_recommended": "受到推崇的",
   "guide_renderer_mapbox": "Mapbox",
   "guide_renderer_leaflet": "傳單",
-  "guide_render_description": "地圖渲染庫是在瀏覽器中渲染地圖的軟體。我們會將它安裝到上面建立的專案中，再透過我們的伺服器執行它。",
+  "guide_render_description": "Google Maps 和 Apple Maps 是為尋找地點和路線而設計，不是用來製作自己的地圖。當它們就是你的地圖時，你必須在它們的視覺語言，以及它們對資料、標籤、圖層和互動所作的選擇之內工作。地圖渲染庫讓你有更多自由：你可以選擇來源資料、決定顯示甚麼，以及設計樣式和體驗。我們會將其中一個安裝到上面建立的專案中，再連接到我們的伺服器。地圖來源主要有兩種：點陣和向量，正如 Photoshop 的像素式影像與 Illustrator 的形狀式圖像。點陣地圖是已準備好的影像：顯示直接，也能保留供應商的製圖風格，但較難重新設計樣式或加入互動。向量地圖由資料驅動的形狀組成：在每個縮放層級都很清晰，並可重新設計樣式、製作動畫及加入互動，但需要相容的渲染庫。如果使用的是點陣來源，請選擇 Leaflet。若要使用更流暢、更現代的向量格式，請考慮 Mapbox 或 MapLibre。MapLibre 是原始 Mapbox GL JS 函式庫的開源延續，因此兩者有許多共通之處；Mapbox 提供許多額外的免費增值服務，而 MapLibre 則有強大的社群和更廣泛的外掛生態系統。",
   "guide_renderer_version_contact_label": "聯絡我們",
   "guide_renderer_maplibre_description": "這類有樣式的向量圖磚分析地圖，請選擇 MapLibre，完全掌控地圖的資料與視覺樣式。",
   "guide_renderer_maplibre_blank_preview_label": "沒有樣式的 MapLibre 地圖",
