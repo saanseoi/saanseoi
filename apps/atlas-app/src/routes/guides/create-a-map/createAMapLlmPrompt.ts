@@ -26,6 +26,7 @@ export type CreateAMapLlmPromptSection =
 export type CreateAMapLlmPromptState = {
   agentTool?: string
   agentToolValue?: string
+  basemapApiKey?: string
   codeEditor?: string
   codeEditorValue?: string
   dataSource?: string
@@ -529,6 +530,7 @@ export function createAMapBasemapPromptFragments(
       editor: 'all',
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_basemap_context({
+        apiKey: state.basemapApiKey ?? 'TBD',
         library: state.rendererLabel ?? 'TBD',
         tilejsonUrl: state.tilejsonUrl ?? 'TBD',
       }),

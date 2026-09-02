@@ -43,7 +43,7 @@ let {
   class={`scroll-mt-28 ${showBorder ? 'border-t border-border-card py-12 first:border-t-0 first:pt-0 md:py-16' : 'py-5 md:py-6'}`}
 >
   {#if eyebrow}
-    <p class="font-display text-headline-lg font-bold leading-tight text-primary">
+    <p class="mt-3 font-display text-headline-lg font-bold leading-tight text-primary">
       {#if number !== undefined}
         <span aria-hidden="true">{number}. </span>
       {/if}
