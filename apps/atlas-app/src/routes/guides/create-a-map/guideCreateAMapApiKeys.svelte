@@ -15,6 +15,7 @@ import { createGuideApiKey } from './createAMapApiKeys.remote'
 
 type Props = {
   allowExistingKey?: boolean
+  autoConfirmCreatedKey?: boolean
   apiKeyReady?: boolean
   editorIcon?: string
   editorLabel?: string
@@ -32,6 +33,7 @@ type Props = {
 
 let {
   allowExistingKey = true,
+  autoConfirmCreatedKey = false,
   apiKeyReady = false,
   editorIcon,
   editorLabel,
@@ -72,6 +74,7 @@ const createKey = async () => {
     isNewKeyRevealed = false
     copied = false
     name = ''
+    if (autoConfirmCreatedKey) completeApiKeyConfirmation()
   } catch (exception) {
     error = exception instanceof Error ? exception.message : m.api_keys_create_error()
   }

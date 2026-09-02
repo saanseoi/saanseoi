@@ -209,10 +209,11 @@ const showPreview = () => {
     <header
       class="flex items-center justify-between gap-3 border-b border-[#596074] bg-[#202633] px-4 py-2.5"
     >
-      <span class="truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
+      <span
+        class="min-w-0 flex-1 truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
         >{title}</span
       >
-      <div class="flex shrink-0 items-center gap-4">
+      <div class="ml-auto flex shrink-0 items-center gap-4">
         <button
           class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
           type="button"
