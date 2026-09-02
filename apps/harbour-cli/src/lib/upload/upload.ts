@@ -156,7 +156,7 @@ async function registerUploadLocally(
     const allowExistingDatasetStatuses: ReleaseStatus[] | undefined = options.force
       ? options.allowReprocessPublished
         ? options.reuseExistingRelease
-          ? ['staged', 'processing', 'published']
+          ? ['staged', 'processing']
           : ['staged', 'published']
         : ['staged']
       : options.resumeStagedRelease
@@ -173,6 +173,7 @@ async function registerUploadLocally(
       originalFileName: previewResult.plan.originalFileName,
       regionCode: previewResult.plan.regionCode,
       releaseNotesUrl: previewResult.plan.releaseNotesUrl,
+      reuseExistingRelease: options.reuseExistingRelease,
       resumeInterruptedProcessingRelease: options.resumeStagedRelease,
       resolveSchemaFingerprint: createLocalSchemaFingerprintResolver(metaDb),
       shardYear,

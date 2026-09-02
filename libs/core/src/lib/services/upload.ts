@@ -1213,7 +1213,9 @@ export async function registerUpload(
 
   if (existingDataset) {
     await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
+    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged', {
+      preservePublishedSourceRelease: options.reuseExistingRelease,
+    })
   } else {
     await insertDataset(db, plan, rawObjectKey, now)
   }

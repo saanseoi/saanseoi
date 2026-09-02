@@ -126,6 +126,8 @@ export type RegisterUploadOptions = {
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
   allowExistingDatasetStatuses?: ReleaseStatus[]
+  /** Registers another resource against an existing source release. */
+  reuseExistingRelease?: boolean
   /** Allows an explicit retry after processing was interrupted with no active phase. */
   resumeInterruptedProcessingRelease?: boolean
   /** Allows an independent historical cohort to be registered after a newer cohort. */
