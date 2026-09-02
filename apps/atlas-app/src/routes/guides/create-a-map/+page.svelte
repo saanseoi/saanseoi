@@ -29,7 +29,6 @@ import {
   GuideLlmReadiness,
   GuideLlmPromptCard,
   GuideLlmPromptCardExplainer,
-  GuideLlmPromptSection,
   GuideMapboxTokenReadiness,
   GuideManualSetup,
   GuideMissingAnswerReminder,
@@ -482,6 +481,11 @@ const scrollToBasemapApiKeyRequirement = async () => {
 
   const requirement = document.getElementById('basemap-api-key-requirement')
   if (requirement) scrollToElementBelowHeader(requirement)
+}
+
+const confirmBasemapApiKey = async () => {
+  hasBasemapApiKey = true
+  await scrollToBasemapApiKeyRequirement()
 }
 
 const openZedSetup = async () => {
@@ -2010,6 +2014,19 @@ const styleEditCode = $derived(
     ? createAMapRendererStyleCode(renderer, styleUrl, tilejsonUrl, openingPosition)
     : '',
 )
+const llmStyleReferences = $derived.by(() => {
+  if (!guideRenderer || !selectedStyle) return []
+
+  return [
+    {
+      code: styleEditCode,
+      language: 'typescript' as const,
+      path: rendererEditorPath,
+      title: m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' }),
+      type: 'TS' as const,
+    },
+  ]
+})
 const geoJsonImportOmittedLines = $derived(
   styleEditCode ? styleEditCode.split('\n').length : 0,
 )
@@ -2986,6 +3003,7 @@ const styleChoices = $derived.by(() =>
             {/if}
             <GuideCreateAMapApiKeys
               allowExistingKey={!llmGuidanceEnabled}
+              autoConfirmCreatedKey={llmGuidanceEnabled}
               apiKeyReady={hasBasemapApiKey}
               editorIcon={selectedCodeEditor?.icon}
               editorLabel={selectedCodeEditor?.label}
@@ -2996,9 +3014,8 @@ const styleChoices = $derived.by(() =>
               onApiKeyCreated={key => {
                 if (!llmGuidanceEnabled) return
                 llmBasemapApiKey = key
-                hasBasemapApiKey = true
               }}
-              onApiKeyConfirmed={scrollToBasemapApiKeyRequirement}
+              onApiKeyConfirmed={confirmBasemapApiKey}
               onApiKeyReadyChange={ready => {
                 hasBasemapApiKey = ready
                 if (!ready) llmBasemapApiKey = undefined
@@ -3213,15 +3230,35 @@ const styleChoices = $derived.by(() =>
             </GuideSubSectionBody>
           </div>
         {/if}
-        {#if llmGuidanceEnabled && style}
-          <GuideLlmPromptSection
-            eyebrow={m.guide_setup_llm_eyebrow()}
-            prompt={progressiveSectionPrompts.style}
-            promptIcon={selectedLlmOption?.icon}
-            title={m.guide_renderer_setup_title({
-              library: selectedMapLibrary?.label ?? '',
-            })}
-          />
+        {#if llmGuidanceEnabled && selectedStyle && guideRenderer}
+          <div class="mt-10">
+            <GuideSubSectionHeader
+              eyebrow={m.guide_setup_llm_eyebrow()}
+              title={m.guide_renderer_setup_title({
+                library: selectedMapLibrary?.label ?? '',
+              })}
+            />
+            <div class="mt-6 max-w-232">
+              <GuideLlmPromptCard
+                prompt={progressiveSectionPrompts.style}
+                promptIcon={selectedLlmOption?.icon}
+                references={llmStyleReferences}
+                title={m.guide_renderer_setup_title({
+                  library: selectedMapLibrary?.label ?? '',
+                })}
+              >
+                {#snippet preview()}
+                  <GuideMapLibreStylePreview
+                    label={selectedStyle.name}
+                    renderer={guideRenderer}
+                    {styleUrl}
+                    {tilejsonUrl}
+                    {openingPosition}
+                  />
+                {/snippet}
+              </GuideLlmPromptCard>
+            </div>
+          </div>
         {/if}
       </GuideSection>
 
