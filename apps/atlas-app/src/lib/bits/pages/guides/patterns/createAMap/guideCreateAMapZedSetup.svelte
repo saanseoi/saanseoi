@@ -127,10 +127,7 @@ const agentWorkflowScreenshots = $derived([
 ])
 </script>
 
-<div
-  id="zed-setup-guide"
-  class="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(18rem,1fr)]"
->
+<div id="zed-setup-guide" class="mt-8">
   <section
     class="min-w-0 border-l-4 border-[#7dd3fc] bg-[#7dd3fc]/12"
     aria-labelledby="zed-setup-toggle-title"
@@ -171,9 +168,18 @@ const agentWorkflowScreenshots = $derived([
         class="px-5 pb-5"
         transition:slide={{ duration: 180 }}
       >
-        <div class="space-y-4 border-b border-[#7dd3fc]/25 pb-8">
-          <GuideParagraph> {@html m.guide_zed_setup_intro()} </GuideParagraph>
-          <GuideParagraph> {@html m.guide_zed_setup_without_vpn()} </GuideParagraph>
+        <div class="border-b border-[#7dd3fc]/25 pb-8">
+          <div class="space-y-4">
+            <GuideParagraph> {@html m.guide_zed_setup_intro()} </GuideParagraph>
+            <GuideParagraph> {@html m.guide_zed_setup_without_vpn()} </GuideParagraph>
+          </div>
+
+          <aside
+            class="mt-8 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
+            aria-label={m.guide_zed_setup_alternative_label()}
+          >
+            <GuideParagraph> {@html m.guide_zed_setup_alternative()} </GuideParagraph>
+          </aside>
         </div>
 
         <ol class="mt-8 list-none space-y-8 p-0">
@@ -430,15 +436,6 @@ const agentWorkflowScreenshots = $derived([
       </div>
     {/if}
   </section>
-
-  {#if expanded}
-    <aside
-      class="mt-16 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
-      aria-label={m.guide_zed_setup_alternative_label()}
-    >
-      <GuideParagraph> {@html m.guide_zed_setup_alternative()} </GuideParagraph>
-    </aside>
-  {/if}
 </div>
 
 {#if expanded}

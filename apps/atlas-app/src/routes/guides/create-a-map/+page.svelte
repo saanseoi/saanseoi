@@ -18,6 +18,7 @@ import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-ko
 import {
   CreateAMap,
   GuideAgenticAiPrimer,
+  GuideAttachedLayout,
   GuideCallout,
   GuideCardBlock,
   GuideChoiceGroup,
@@ -1173,6 +1174,13 @@ const geojsonImportScreenshot = $derived(
       ? geojsonIoImportGba
       : geojsonIoImportHongKong,
 )
+const dataImportLimit = $derived.by(() => {
+  locale
+  if (hosting === 'cloudflare') return m.guide_data_import_limit_cloudflare()
+  if (hosting === 'github-pages') return m.guide_data_import_limit_github_pages()
+  if (hosting === 'vercel') return m.guide_data_import_limit_vercel()
+  return undefined
+})
 const hostingChoices = $derived.by(() => {
   locale
   return [
@@ -3193,87 +3201,89 @@ const styleChoices = $derived.by(() =>
                   ? m.guide_data_geojson_title()
                   : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
-              <GuideSubSectionBody>
-                {#if dataFormat !== 'geojson'}
-                  <GuideParagraph>
-                    {@html m.guide_data_convert_description({ format: selectedDataFormat.label })}
-                  </GuideParagraph>
+              <GuideAttachedLayout primaryWidth="shortCard" class="mt-6">
+                <GuideSubSectionBody class="mt-0">
+                  {#if dataFormat !== 'geojson'}
+                    <GuideParagraph>
+                      {@html m.guide_data_convert_description({ format: selectedDataFormat.label })}
+                    </GuideParagraph>
+                    <ol
+                      class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      <li>{@html m.guide_data_convert_step_open()}</li>
+                      <li>{@html m.guide_data_convert_step_import()}</li>
+                      {#if dataFormat === 'csv'}
+                        <li>{@html m.guide_data_convert_step_columns()}</li>
+                      {/if}
+                    </ol>
+                  {/if}
+                  {#if dataFormat === 'csv'}
+                    <GuideAttachedLayout primaryWidth="shortCard">
+                      <GuideScreenshot
+                        src={geojsonIoCsvColumns}
+                        alt={m.guide_data_csv_columns_screenshot_alt()}
+                        caption={m.guide_data_csv_columns_screenshot_caption()}
+                        width="content"
+                      />
+                      {#snippet aside()}
+                        <GuideInstructionCallout
+                          title={m.guide_data_csv_kind_title()}
+                          description={m.guide_data_csv_kind_coordinates()}
+                        >
+                          <ul
+                            class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                          >
+                            <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                            <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                            <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                          </ul>
+                        </GuideInstructionCallout>
+                      {/snippet}
+                    </GuideAttachedLayout>
+                  {/if}
+                  <GuideParagraph>{@html m.guide_data_geojson_editor()}</GuideParagraph>
+                  <GuideScreenshot
+                    class="mt-6"
+                    src={geojsonImportScreenshot}
+                    alt={m.guide_data_geojson_imported_screenshot_alt({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                    caption={m.guide_data_geojson_imported_screenshot_caption({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                    width="content"
+                  />
                   <ol
                     class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
                   >
-                    <li>{@html m.guide_data_convert_step_open()}</li>
-                    <li>{@html m.guide_data_convert_step_import()}</li>
+                    <li>{@html m.guide_data_geojson_step_properties()}</li>
+                    <li>{@html m.guide_data_geojson_step_geometry()}</li>
+                    <li>{@html m.guide_data_geojson_step_export()}</li>
                   </ol>
-                  {#if dataFormat === 'csv'}
-                    <GuideScreenshot
-                      class="mt-6"
-                      src={geojsonIoCsvColumns}
-                      alt={m.guide_data_csv_columns_screenshot_alt()}
-                      caption={m.guide_data_csv_columns_screenshot_caption()}
-                      width="content"
-                    />
-                    <div class="mt-6 border-l-2 border-secondary pl-4">
-                      <p class="font-semibold text-primary">
-                        {m.guide_data_csv_kind_title()}
-                      </p>
-                      <p class="mt-2">{@html m.guide_data_csv_kind_coordinates()}</p>
-                      <ul class="mt-3 list-disc space-y-1 pl-6">
-                        <li>{@html m.guide_data_csv_kind_wkt()}</li>
-                        <li>{@html m.guide_data_csv_kind_geojson()}</li>
-                        <li>{@html m.guide_data_csv_kind_polyline()}</li>
-                      </ul>
+                  {#if !isDataStepComplete}
+                    <div class="mt-6 flex justify-end">
+                      <Button
+                        class="bg-secondary text-on-secondary hover:bg-secondary/85"
+                        size="compact"
+                        onclick={completeDataStep}
+                      >
+                        <Icon
+                          icon="material-symbols-light:check-rounded"
+                          class="size-5"
+                          aria-hidden="true"
+                        />
+                        {m.guide_data_geojson_ready()}
+                      </Button>
                     </div>
-                    <ol
-                      class="mt-6 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-                      start="3"
-                    >
-                      <li>{@html m.guide_data_convert_step_columns()}</li>
-                    </ol>
                   {/if}
-                {/if}
-                <GuideInstructionCallout
-                  class={dataFormat === 'geojson' ? '' : 'mt-6'}
-                  title={m.guide_data_geojson_callout_title()}
-                  description={m.guide_data_geojson_description()}
-                />
-                <GuideScreenshot
-                  class="mt-6"
-                  src={geojsonImportScreenshot}
-                  alt={m.guide_data_geojson_imported_screenshot_alt({
-                    region: selectedRegion?.label ?? '',
-                  })}
-                  caption={m.guide_data_geojson_imported_screenshot_caption({
-                    region: selectedRegion?.label ?? '',
-                  })}
-                  width="content"
-                />
-                <GuideParagraph class="mt-4"
-                  >{@html m.guide_data_geojson_editor()}</GuideParagraph
-                >
-                <ol
-                  class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-                >
-                  <li>{@html m.guide_data_geojson_step_properties()}</li>
-                  <li>{@html m.guide_data_geojson_step_geometry()}</li>
-                  <li>{@html m.guide_data_geojson_step_export()}</li>
-                </ol>
-                {#if !isDataStepComplete}
-                  <div class="mt-6 flex justify-end">
-                    <Button
-                      class="bg-secondary text-on-secondary hover:bg-secondary/85"
-                      size="compact"
-                      onclick={completeDataStep}
-                    >
-                      <Icon
-                        icon="material-symbols-light:check-rounded"
-                        class="size-5"
-                        aria-hidden="true"
-                      />
-                      {m.guide_data_geojson_ready()}
-                    </Button>
-                  </div>
-                {/if}
-              </GuideSubSectionBody>
+                </GuideSubSectionBody>
+                {#snippet aside()}
+                  <GuideInstructionCallout
+                    title={m.guide_data_geojson_callout_title()}
+                    description={m.guide_data_geojson_description()}
+                  />
+                {/snippet}
+              </GuideAttachedLayout>
             </div>
             {#if renderer && selectedStyle}
               <div class="mt-10 max-w-232">
@@ -3313,6 +3323,14 @@ const styleChoices = $derived.by(() =>
                       {/snippet}
                     </GuidePreviewCodeBlock>
                   </div>
+                  <GuideParagraph class="mt-5">
+                    {@html m.guide_data_import_inspect()}
+                  </GuideParagraph>
+                  {#if dataImportLimit}
+                    <GuideParagraph class="mt-4">
+                      {@html dataImportLimit}
+                    </GuideParagraph>
+                  {/if}
                 </GuideSubSectionBody>
               </div>
             {:else}
