@@ -8,6 +8,7 @@ import {
 import {
   createAMapAgenticHandoverPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
   createAMapRenderPromptFragments,
   createAMapProjectSetupPromptFragments,
@@ -689,6 +690,53 @@ describe('Create a Map LLM instructions', () => {
     expect(fragments.some(fragment => fragment.terminalExperience === 'basic')).toBe(
       true,
     )
+  })
+
+  test('composes basemap instructions for agent and chat workspaces', () => {
+    const state = {
+      codeEditorValue: 'vscode',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+      region: 'hk',
+      regionLabel: 'Hong Kong',
+      renderer: 'maplibre',
+      rendererLabel: 'MapLibre',
+      styleUrl: 'https://styles.saanseoi.hk/light.json',
+      tilejsonUrl: 'https://tiles.saanseoi.hk/hongkong-latest.json',
+    }
+    const agentPrompt = createAMapAgenticSectionPrompt(state, 'basemap')
+    const chatPrompt = createAMapChatSectionPrompt(state, 'basemap')
+
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Basemap Section')
+      expect(prompt).toContain('selected mapping library is MapLibre')
+      expect(prompt).toContain('selected SaanSeoi coverage is Hong Kong')
+      expect(prompt).toContain('https://tiles.saanseoi.hk/hongkong-latest.json')
+      expect(prompt).toContain('`VITE_SAANSEOI_API_KEY`')
+      expect(prompt).toContain('`access_token` query parameter')
+      expect(prompt).toContain('src\\main.ts')
+      expect(prompt).toContain(
+        'The basemap is not expected to be visible until the Style section',
+      )
+      expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
+      expect(prompt).not.toContain('pk.')
+    }
+
+    expect(agentPrompt).toContain('Implement the requested basemap changes locally')
+    expect(agentPrompt).toContain('never print, reveal, log or commit its value')
+    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('Never ask me to paste the public key into chat')
+
+    expect(chatPrompt).toContain('Give one safe action at a time')
+    expect(chatPrompt).toContain('Never ask me to paste the public key into chat')
+    expect(chatPrompt).not.toContain('Implement the requested basemap changes locally')
+    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+
+    const agentFragments = createAMapBasemapPromptFragments(state, 'agentic')
+    const chatFragments = createAMapBasemapPromptFragments(state, 'chat')
+    expect(agentFragments.some(fragment => fragment.llmType === 'chat')).toBe(false)
+    expect(chatFragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(agentFragments.some(fragment => fragment.os === 'windows')).toBe(true)
   })
 
   test('adds headings to the later progressive prompts', () => {

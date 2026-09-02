@@ -417,7 +417,6 @@ const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     }),
     m.llm_prompt_guide_create_a_map_render_code_edits({
       mainPath,
-      stylesheetPath,
     }),
     '```ts',
     reference.code,
@@ -515,10 +514,6 @@ const createAMapRenderPrompt = (state: CreateAMapLlmPromptState, mode: PromptMod
 const createBasemapReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer) || !state.tilejsonUrl) return []
 
-  const reference = getCreateAMapRendererReference(
-    state.renderer,
-    getCreateAMapOpeningPosition(createPromptRegion(state.region)),
-  )
   const path = state.operatingSystemValue === 'windows' ? 'src\\main.ts' : 'src/main.ts'
 
   return [

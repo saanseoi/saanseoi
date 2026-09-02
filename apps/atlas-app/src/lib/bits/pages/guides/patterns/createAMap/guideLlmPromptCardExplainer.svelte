@@ -482,7 +482,7 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:-mt-16 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-4 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
+        class="order-1 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span class="truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
@@ -491,27 +491,30 @@ onMount(() => {
           <span class="flex shrink-0 items-center gap-4 text-white/75">
             <span
               data-guide-llm-preview-code
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
               ><Icon
                 icon="material-symbols-light:code-rounded"
                 class="size-4"
                 aria-hidden="true"
-              />{m.guide_code_block_code()}</span
+              />{m.guide_code_block_code()}
+              <span class={mobileCardNumberClass} aria-hidden="true">1</span></span
             >
             <span
               data-guide-llm-preview-prompt
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
               ><Icon
                 icon="material-symbols-light:auto-awesome"
                 class="size-4"
                 aria-hidden="true"
-              />{m.guide_llm_prompt_card_prompt()}</span
+              />{m.guide_llm_prompt_card_prompt()}
+              <span class={mobileCardNumberClass} aria-hidden="true">2</span></span
             >
             <span
               data-guide-llm-preview-expand
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
               ><Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
-              {m.guide_code_block_expand()}</span
+              {m.guide_code_block_expand()}
+              <span class={mobileCardNumberClass} aria-hidden="true">3</span></span
             >
           </span>
         </div>
@@ -522,6 +525,7 @@ onMount(() => {
           <div
             class="h-20 w-44 border border-[#6b7c96]/45 bg-[linear-gradient(135deg,#5c6f93_0_24%,#8ba9b7_24%_42%,#e4c890_42%_57%,#597e78_57%)] opacity-70"
           ></div>
+          <span class={mobileCardNumberClass} aria-hidden="true">4</span>
         </div>
       </div>
       <span
@@ -533,24 +537,28 @@ onMount(() => {
         data-guide-llm-callout="preview-content"
         class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">4</span>
         {@html m.guide_llm_prompt_card_explainer_preview()}
       </p>
       <p
         data-guide-llm-callout="preview-expand"
-        class="order-3 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-4 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">3</span>
         {@html m.guide_llm_prompt_card_explainer_preview_expand()}
       </p>
       <p
         data-guide-llm-callout="preview-code"
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">1</span>
         {@html m.guide_llm_prompt_card_explainer_preview_code()}
       </p>
       <p
         data-guide-llm-callout="preview-prompt"
-        class="order-2 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-3 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">2</span>
         {@html m.guide_llm_prompt_card_explainer_preview_prompt()}
       </p>
     </div>

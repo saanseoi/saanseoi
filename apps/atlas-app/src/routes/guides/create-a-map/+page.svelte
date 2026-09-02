@@ -7,6 +7,7 @@ import { onMount, tick } from 'svelte'
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
 import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
 import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
+import mapFoundationBasemap from '#lib/assets/guides/map-foundation-basemap.png'
 import viteDemoPage from '#lib/assets/guides/vite-demo-page.png'
 import geojsonIoCsvColumns from '#lib/assets/guides/geojson-io-csv-columns.webp'
 import geojsonIoImportGba from '#lib/assets/guides/geojson-io-import-gba.png'
@@ -1915,6 +1916,19 @@ const basemapCode = $derived(
     ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl, openingPosition)
     : '',
 )
+const llmBasemapReferences = $derived.by(() => {
+  if (!guideRenderer || !region) return []
+
+  return [
+    {
+      code: basemapCode,
+      language: 'typescript' as const,
+      path: rendererEditorPath,
+      title: m.guide_basemap_editor_title(),
+      type: 'TS' as const,
+    },
+  ]
+})
 const basemapCodeDimmedLines = $derived(
   basemapCode
     .split('\n')
@@ -2964,7 +2978,7 @@ const styleChoices = $derived.by(() =>
             </div>
           </div>
           {#if region && renderer && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
-            {#if !llmGuidanceEnabled}
+            {#if showRenderEditorInstructions}
               <div class="mt-10 max-w-232 pt-10">
                 <GuideSubSectionHeader
                   eyebrow={m.guide_basemap_editor_eyebrow()}
@@ -2981,7 +2995,7 @@ const styleChoices = $derived.by(() =>
                     code={basemapCode}
                     comments={basemapCodeComments}
                     dimmedLines={basemapCodeDimmedLines}
-                    editorIcon={selectedCodeEditor?.icon}
+                    editorIcon={promptEditorIcon}
                     copyLabel={m.common_copy()}
                     copiedLabel={m.common_copied()}
                     language="typescript"
@@ -3026,14 +3040,24 @@ const styleChoices = $derived.by(() =>
           {/if}
           {#if llmGuidanceEnabled && region}
             <div class="mt-10">
-              <GuideLlmPromptSection
-                eyebrow={aiAccess === 'agentic'
-                  ? m.guide_renderer_prompt_agent_eyebrow()
-                  : m.guide_renderer_prompt_chat_eyebrow()}
-                prompt={progressiveSectionPrompts.basemap}
-                promptIcon={selectedLlmOption?.icon}
-                title={m.guide_basemap_prompt_title()}
-              />
+              <div class="border-t border-border-card pt-10">
+                <GuideSubSectionHeader
+                  eyebrow={aiAccess === 'agentic'
+                    ? m.guide_renderer_prompt_agent_eyebrow()
+                    : m.guide_renderer_prompt_chat_eyebrow()}
+                  title={m.guide_basemap_prompt_title()}
+                />
+                <div class="mt-6 max-w-232">
+                  <GuideLlmPromptCard
+                    prompt={progressiveSectionPrompts.basemap}
+                    promptIcon={selectedLlmOption?.icon}
+                    references={llmBasemapReferences}
+                    title={m.guide_basemap_prompt_title()}
+                    previewImageSrc={mapFoundationBasemap}
+                    previewAlt={m.guide_basemap_prompt_preview_alt()}
+                  />
+                </div>
+              </div>
             </div>
           {/if}
         {/if}
