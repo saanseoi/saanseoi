@@ -1,4 +1,4 @@
-import { progress, spinner } from '@clack/prompts'
+import { log, progress, spinner } from '@clack/prompts'
 
 type ProgressBar = ReturnType<typeof progress>
 type ProgressSpinner = ReturnType<typeof spinner>
@@ -9,14 +9,27 @@ type ProgressState = {
   max: number | null
 }
 
+type LocalUploadProgressOptions = {
+  /** Override terminal capability detection for an embedded CLI caller. */
+  renderAnimated?: boolean
+}
+
 export class LocalUploadProgress {
   private progressBar: ProgressRenderer | null = null
   private currentLabel: string | null = null
   private state: ProgressState | null = null
+  private readonly renderAnimated: boolean
+  private staticPhaseActive = false
+
+  constructor(options: LocalUploadProgressOptions = {}) {
+    this.renderAnimated = options.renderAnimated ?? canRenderAnimatedProgress()
+  }
 
   beginPhase(label: string, options: { current?: number; max?: number | null }) {
     if (this.progressBar) {
       this.progressBar.stop(this.currentLabel ?? label)
+    } else if (this.staticPhaseActive) {
+      log.success(this.currentLabel ?? label)
     }
 
     this.currentLabel = label
@@ -29,6 +42,12 @@ export class LocalUploadProgress {
           ? Math.floor(options.max)
           : null,
     }
+    if (!this.renderAnimated) {
+      this.staticPhaseActive = true
+      log.step(label)
+      return
+    }
+
     this.progressBar = createProgressRenderer(this.state)
     this.progressBar.start(label)
 
@@ -44,7 +63,7 @@ export class LocalUploadProgress {
     current: number,
     options?: { label?: string; max?: number | null; reset?: boolean },
   ) {
-    if (!this.progressBar || !this.state || !this.currentLabel) {
+    if (!this.state || !this.currentLabel) {
       return
     }
 
@@ -61,6 +80,17 @@ export class LocalUploadProgress {
     const nextLabel = options?.label ?? this.currentLabel
 
     if (options?.reset || nextMax !== previousState.max) {
+      this.state = {
+        ...previousState,
+        current: nextCurrent,
+        max: nextMax,
+      }
+      this.currentLabel = nextLabel
+
+      if (!this.progressBar) {
+        return
+      }
+
       this.progressBar.clear()
       this.progressBar = createProgressRenderer({ current: nextCurrent, max: nextMax })
       this.progressBar.start(nextLabel)
@@ -70,12 +100,6 @@ export class LocalUploadProgress {
           nextLabel,
         )
       }
-      this.state = {
-        ...previousState,
-        current: nextCurrent,
-        max: nextMax,
-      }
-      this.currentLabel = nextLabel
       return
     }
 
@@ -91,6 +115,10 @@ export class LocalUploadProgress {
     }
     this.currentLabel = nextLabel
 
+    if (!this.progressBar) {
+      return
+    }
+
     if (nextMax !== null && delta > 0) {
       ;(this.progressBar as ProgressBar).advance(delta, nextLabel)
       return
@@ -100,25 +128,30 @@ export class LocalUploadProgress {
   }
 
   message(label: string) {
-    if (!this.progressBar) {
+    if (!this.currentLabel) {
       return
     }
 
     this.currentLabel = label
-    this.progressBar.message(label)
+    this.progressBar?.message(label)
   }
 
   complete(message?: string) {
-    if (!this.progressBar || !this.currentLabel || !this.state) {
+    if (!this.currentLabel || !this.state) {
       return
     }
 
     const currentLabel = this.currentLabel
 
-    this.progressBar.stop(message ?? currentLabel)
+    if (this.progressBar) {
+      this.progressBar.stop(message ?? currentLabel)
+    } else if (this.staticPhaseActive) {
+      log.success(message ?? currentLabel)
+    }
     this.progressBar = null
     this.currentLabel = null
     this.state = null
+    this.staticPhaseActive = false
   }
 
   fail(error?: unknown) {
@@ -129,15 +162,26 @@ export class LocalUploadProgress {
         : 'Failed'
       this.progressBar.stop(reason ? `${failureLabel}: ${reason}` : failureLabel)
       this.progressBar = null
+    } else if (this.staticPhaseActive) {
+      const reason = error instanceof Error ? error.message : String(error ?? '')
+      const failureLabel = this.currentLabel
+        ? `Failed during ${this.currentLabel}`
+        : 'Failed'
+      log.error(reason ? `${failureLabel}: ${reason}` : failureLabel)
     }
 
     this.currentLabel = null
     this.state = null
+    this.staticPhaseActive = false
   }
 
   hasActivePhase() {
-    return this.progressBar !== null
+    return this.progressBar !== null || this.staticPhaseActive
   }
+}
+
+function canRenderAnimatedProgress() {
+  return process.stdout.isTTY === true && process.env.TERM !== 'dumb'
 }
 
 function createProgressRenderer(state: ProgressState): ProgressRenderer {
