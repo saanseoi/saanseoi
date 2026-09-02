@@ -2489,9 +2489,6 @@ const styleChoices = $derived.by(() =>
         eyebrow={m.guide_project_setup_eyebrow()}
         intro={projectSetupIntro}
       >
-        {#if llmGuidanceEnabled}
-          <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
-        {/if}
         {#if guideUnlocked}
           {#if objective && llmMode === 'manual' && setupReady}
             <GuideManualSetup
@@ -2573,6 +2570,9 @@ const styleChoices = $derived.by(() =>
                     {@html m.guide_setup_agent_zed_prompt_instruction()}
                   </GuideParagraph>
                 {/if}
+                {#if llmGuidanceEnabled}
+                  <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
+                {/if}
                 <GuideLlmPromptCard
                   prompt={progressiveSectionPrompts.prerequisites}
                   promptIcon={selectedLlmOption?.icon}
@@ -2586,7 +2586,10 @@ const styleChoices = $derived.by(() =>
                 <GuideEditorProjectSetupSection editor={codeEditor} />
               {/if}
               {#if aiAccess === 'web' && isProjectEditorReady && isLlmReadinessComplete}
-                <div class="mt-14 space-y-5">
+                {#if llmGuidanceEnabled}
+                  <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
+                {/if}
+                <div class="mt-12 max-w-232 space-y-5">
                   <GuideSubSectionHeader
                     eyebrow={m.guide_setup_llm_eyebrow()}
                     title={m.guide_setup_llm_title()}

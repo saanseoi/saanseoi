@@ -12,12 +12,7 @@ type LeaderLine = {
   remove: () => void
 }
 type LeaderLineConstructor = {
-  new (
-    start: HTMLElement | unknown,
-    end: HTMLElement | unknown,
-    options: Record<string, unknown>,
-  ): LeaderLine
-  pointAnchor: (element: HTMLElement, options: { x: number; y: number }) => unknown
+  new (options: Record<string, unknown>): LeaderLine
 }
 type LeaderLineWindow = Window &
   typeof globalThis & { LeaderLine?: LeaderLineConstructor }
@@ -25,24 +20,6 @@ type Props = { promptIcon?: string }
 
 let { promptIcon = 'material-symbols-light:auto-awesome' }: Props = $props()
 let explainerElement = $state<HTMLDivElement>()
-let promptIconCallout: HTMLParagraphElement
-let promptSummaryCallout: HTMLParagraphElement
-let promptContentCallout: HTMLParagraphElement
-let promptCodeCallout: HTMLParagraphElement
-let promptPreviewCallout: HTMLParagraphElement
-let promptCopyCallout: HTMLParagraphElement
-let codeIndexCallout: HTMLParagraphElement
-let codeTypeCallout: HTMLParagraphElement
-let codeTitleCallout: HTMLParagraphElement
-let codeNavigationCallout: HTMLParagraphElement
-let codePromptCallout: HTMLParagraphElement
-let codeCopyCallout: HTMLParagraphElement
-let codePathCallout: HTMLParagraphElement
-let codeContentCallout: HTMLParagraphElement
-let previewCodeCallout: HTMLParagraphElement
-let previewPromptCallout: HTMLParagraphElement
-let previewContentCallout: HTMLParagraphElement
-let previewExpandCallout: HTMLParagraphElement
 let leaderLineLoader: Promise<LeaderLineConstructor> | undefined
 
 const loadLeaderLine = () => {
@@ -87,12 +64,13 @@ const lineOptions = (
   startSocket: string,
   endSocket: string,
   path: 'arc' | 'fluid' | 'straight' = 'fluid',
+  gravity?: { end?: [number, number]; start?: [number, number] },
 ) => ({
   color: '#65d8ba',
   endPlug: 'arrow3',
   endPlugSize: 1.4,
   endSocket,
-  endSocketGravity: socketGravity[endSocket],
+  endSocketGravity: gravity?.end ?? socketGravity[endSocket],
   outline: true,
   outlineColor: '#0c1111',
   outlineSize: 0.7,
@@ -100,13 +78,8 @@ const lineOptions = (
   size: 2,
   startPlug: 'behind',
   startSocket,
-  startSocketGravity: socketGravity[startSocket],
+  startSocketGravity: gravity?.start ?? socketGravity[startSocket],
 })
-
-const dimensions = (element: HTMLElement) => {
-  const { height, width } = element.getBoundingClientRect()
-  return { height, width }
-}
 
 onMount(() => {
   let lines: LeaderLine[] = []
@@ -133,6 +106,7 @@ onMount(() => {
     lineSetupStarted = true
 
     void tick()
+      .then(() => document.fonts.ready)
       .then(loadLeaderLine)
       .then(LeaderLine => {
         if (
@@ -144,29 +118,33 @@ onMount(() => {
           lineSetupStarted = false
           return
         }
+        const explainer = explainerElement
 
         const connections = [
-          [promptIconCallout, '[data-guide-llm-prompt-icon]', 'short-above'],
-          [promptSummaryCallout, '[data-guide-llm-prompt-summary]', 'short-above'],
-          [promptCodeCallout, '[data-guide-llm-prompt-code]', 'above'],
-          [promptPreviewCallout, '[data-guide-llm-prompt-preview]', 'above'],
-          [promptCopyCallout, '[data-guide-llm-prompt-copy]', 'above'],
-          [promptContentCallout, '[data-guide-llm-prompt-content]', 'short-below'],
-          [codeIndexCallout, '[data-guide-llm-code-index]', 'above'],
-          [codeTypeCallout, '[data-guide-llm-code-type]', 'above'],
-          [codeTitleCallout, '[data-guide-llm-code-title]', 'short-above'],
-          [codeNavigationCallout, '[data-guide-llm-code-navigation]', 'short-above'],
-          [codePromptCallout, '[data-guide-llm-code-prompt]', 'short-above'],
-          [codeCopyCallout, '[data-guide-llm-code-copy]', 'side-right'],
-          [codePathCallout, '[data-guide-llm-code-path]', 'below'],
-          [codeContentCallout, '[data-guide-llm-code-content]', 'short-below'],
-          [previewCodeCallout, '[data-guide-llm-preview-code]', 'above'],
-          [previewPromptCallout, '[data-guide-llm-preview-prompt]', 'above'],
-          [previewExpandCallout, '[data-guide-llm-preview-expand]', 'above'],
-          [previewContentCallout, '[data-guide-llm-preview-content]', 'short-below'],
+          ['prompt-icon', '[data-guide-llm-prompt-icon]', 'above'],
+          ['prompt-summary', '[data-guide-llm-prompt-summary]', 'above'],
+          ['prompt-code', '[data-guide-llm-prompt-code]', 'above'],
+          ['prompt-preview', '[data-guide-llm-prompt-preview]', 'above'],
+          ['prompt-copy', '[data-guide-llm-prompt-copy]', 'above'],
+          ['prompt-content', '[data-guide-llm-prompt-content]', 'short-below'],
+          ['code-index', '[data-guide-llm-code-index]', 'above'],
+          ['code-type', '[data-guide-llm-code-type]', 'above'],
+          ['code-title', '[data-guide-llm-code-title]', 'above'],
+          ['code-navigation', '[data-guide-llm-code-navigation]', 'above'],
+          ['code-prompt', '[data-guide-llm-code-prompt]', 'above'],
+          ['code-copy', '[data-guide-llm-code-copy]', 'side-right'],
+          ['code-path', '[data-guide-llm-code-path]', 'below'],
+          ['code-content', '[data-guide-llm-code-content]', 'short-below'],
+          ['preview-code', '[data-guide-llm-preview-code]', 'above'],
+          ['preview-prompt', '[data-guide-llm-preview-prompt]', 'above'],
+          ['preview-expand', '[data-guide-llm-preview-expand]', 'above'],
+          ['preview-content', '[data-guide-llm-preview-content]', 'short-below'],
         ] as const
-        const targets = connections.map(([callout, selector, position]) => {
-          const target = explainerElement?.querySelector<HTMLElement>(selector)
+        const targets = connections.map(([calloutName, selector, position]) => {
+          const callout = explainer.querySelector<HTMLParagraphElement>(
+            `[data-guide-llm-callout="${calloutName}"]`,
+          )
+          const target = explainer.querySelector<HTMLElement>(selector)
           return { callout, position, target }
         })
 
@@ -175,9 +153,9 @@ onMount(() => {
             target,
           ): target is {
             callout: HTMLParagraphElement
-            position: 'above' | 'below' | 'short-above' | 'short-below' | 'side-right'
+            position: 'above' | 'below' | 'short-below' | 'side-right'
             target: HTMLElement
-          } => target.target !== null,
+          } => target.callout !== null && target.target !== null,
         )
 
         if (resolvedTargets.length !== targets.length) {
@@ -186,41 +164,25 @@ onMount(() => {
         }
 
         lines = resolvedTargets.map(({ callout, position, target }) => {
-          const targetSize = dimensions(target)
-          return new LeaderLine(
-            callout,
-            LeaderLine.pointAnchor(target, {
-              x:
-                position === 'side-right'
-                  ? targetSize.width + 44
-                  : position === 'short-below'
-                    ? targetSize.width * 0.4
-                    : targetSize.width / 2,
-              y:
-                position === 'side-right'
-                  ? targetSize.height / 2
-                  : position === 'above' || position === 'short-above'
-                    ? 0
-                    : position === 'short-below'
-                      ? targetSize.height
-                      : targetSize.height + 12,
-            }),
-            lineOptions(
+          return new LeaderLine({
+            start: callout,
+            end: target,
+            ...lineOptions(
               position === 'side-right'
                 ? 'left'
-                : position === 'above' || position === 'short-above'
+                : position === 'above'
                   ? 'bottom'
                   : 'top',
               position === 'side-right'
                 ? 'right'
-                : position === 'above' || position === 'short-above'
+                : position === 'above'
                   ? 'top'
                   : 'bottom',
-              position === 'short-above' || position === 'short-below'
+              position === 'short-below' || position === 'side-right'
                 ? 'straight'
                 : 'fluid',
             ),
-          )
+          })
         })
 
         const position = () => {
@@ -229,7 +191,7 @@ onMount(() => {
           })
         }
         observer = new ResizeObserver(position)
-        observer.observe(explainerElement)
+        observer.observe(explainer)
         resolvedTargets.forEach(({ callout, target }) => {
           observer?.observe(callout)
           observer?.observe(target)
@@ -318,9 +280,9 @@ onMount(() => {
         </div>
         <div
           data-guide-llm-prompt-content
-          class="relative h-16 overflow-hidden border-t border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] px-4 py-3 [mask-image:linear-gradient(to_bottom,#000_45%,transparent)]"
+          class="relative h-16 overflow-hidden border-t border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] px-4 py-3 mask-[linear-gradient(to_bottom,#000_45%,transparent)]"
         >
-          <p class="max-w-112 font-mono text-body-sm leading-6 text-[#eeeaff]/75">
+          <p class="max-w-md font-mono text-body-sm leading-6 text-[#eeeaff]/75">
             {m.guide_llm_prompt_card_explainer_prompt_sample()}
           </p>
         </div>
@@ -331,38 +293,38 @@ onMount(() => {
         >{m.guide_llm_prompt_card_explainer_prompt_view()}</span
       >
       <p
-        bind:this={promptContentCallout}
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-content"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt()}
       </p>
       <p
-        bind:this={promptIconCallout}
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-1 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-icon"
+        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-1 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt_icon()}
       </p>
       <p
-        bind:this={promptSummaryCallout}
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-summary"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt_summary()}
       </p>
       <p
-        bind:this={promptCodeCallout}
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-code"
+        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt_code()}
       </p>
       <p
-        bind:this={promptPreviewCallout}
-        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-preview"
+        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt_preview()}
       </p>
       <p
-        bind:this={promptCopyCallout}
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-2 xl:row-start-1 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="prompt-copy"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_prompt_copy()}
       </p>
@@ -420,7 +382,7 @@ onMount(() => {
         </div>
         <div
           data-guide-llm-code-content
-          class="relative h-16 overflow-hidden bg-[#131722] px-4 py-3 [mask-image:linear-gradient(to_bottom,#000_45%,transparent)]"
+          class="relative h-16 overflow-hidden bg-[#131722] px-4 py-3 mask-[linear-gradient(to_bottom,#000_45%,transparent)]"
         >
           <p class="font-mono text-sm leading-6 text-[#d6e4ff]/75">
             <span class="mr-2 text-secondary">$</span>bun create vite . --template
@@ -434,50 +396,50 @@ onMount(() => {
         >{m.guide_llm_prompt_card_explainer_code_view()}</span
       >
       <p
-        bind:this={codeIndexCallout}
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-index"
+        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_index()}
       </p>
       <p
-        bind:this={codeTypeCallout}
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-type"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_type()}
       </p>
       <p
-        bind:this={codeTitleCallout}
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-title"
+        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_title_description()}
       </p>
       <p
-        bind:this={codeNavigationCallout}
-        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-navigation"
+        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_navigation()}
       </p>
       <p
-        bind:this={codePromptCallout}
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-prompt"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_prompt()}
       </p>
       <p
-        bind:this={codeCopyCallout}
+        data-guide-llm-callout="code-copy"
         class="order-7 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-2 xl:order-0 xl:w-48 xl:translate-x-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_copy()}
       </p>
       <p
-        bind:this={codePathCallout}
-        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-path"
+        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_path_description()}
       </p>
       <p
-        bind:this={codeContentCallout}
-        class="order-10 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="code-content"
+        class="order-10 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_reference()}
       </p>
@@ -522,7 +484,7 @@ onMount(() => {
         </div>
         <div
           data-guide-llm-preview-content
-          class="relative h-16 overflow-hidden border-t border-[#596074] bg-[#131722] p-3 [mask-image:linear-gradient(to_bottom,#000_45%,transparent)]"
+          class="relative h-16 overflow-hidden border-t border-[#596074] bg-[#131722] p-3 mask-[linear-gradient(to_bottom,#000_45%,transparent)]"
         >
           <div
             class="h-20 w-44 border border-[#6b7c96]/45 bg-[linear-gradient(135deg,#5c6f93_0_24%,#8ba9b7_24%_42%,#e4c890_42%_57%,#597e78_57%)] opacity-70"
@@ -535,26 +497,26 @@ onMount(() => {
         >{m.guide_llm_prompt_card_explainer_preview_view()}</span
       >
       <p
-        bind:this={previewContentCallout}
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="preview-content"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview()}
       </p>
       <p
-        bind:this={previewExpandCallout}
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-12 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="preview-expand"
+        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-0 xl:translate-y-24 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_expand()}
       </p>
       <p
-        bind:this={previewCodeCallout}
-        class="order-1 max-w-72 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-4 xl:row-start-1 xl:order-0 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="preview-code"
+        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_code()}
       </p>
       <p
-        bind:this={previewPromptCallout}
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-8 xl:col-span-1 xl:row-start-1 xl:order-0 xl:translate-y-6 xl:border-l-0 xl:pl-0"
+        data-guide-llm-callout="preview-prompt"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-24 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_prompt()}
       </p>
