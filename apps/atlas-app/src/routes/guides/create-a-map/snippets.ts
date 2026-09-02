@@ -849,8 +849,6 @@ export const urbanDensityTurfInstallOutput = [
   'installed pbf@5.1.2 with binaries:',
   ' - pbf',
   'installed geos-wasm@3.1.1',
-  '',
-  '4 packages installed [1311.00ms]',
 ].join('\n')
 
 export const urbanDensityGeometryWorkerCode = [
