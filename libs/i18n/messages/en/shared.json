@@ -1218,7 +1218,7 @@
   "llm_prompt_guide_create_a_map_project_setup_instructions_heading": "## Project setup",
   "llm_prompt_guide_create_a_map_project_setup_instructions_subheading": "### Instructions",
   "llm_prompt_guide_create_a_map_project_setup_verification_heading": "### Verification",
-  "llm_prompt_guide_create_a_map_render_context": "## Render Section\n\nContinue the “Render” section of my SaanSeoi map project.\n\nIf you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.\n\nThe selected mapping library is {library}. Make only render-related changes for this library. Keep the map container responsive and accessible. Do not start the basemap, style, data or publishing sections yet.",
+  "llm_prompt_guide_create_a_map_render_context": "## Render Section\n\nContinue the “Render the map” section of my SaanSeoi map project.\n\nIf you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.\n\nThe selected mapping library is {library}. Make only render-related changes for this library. Keep the map container responsive and accessible. Do not start the basemap, style, data or publishing sections yet.",
   "llm_prompt_guide_create_a_map_render_setup": "### Setup\n\nInstall the selected {library} package in the project. Run this in Terminal in `saanseoi-project` (or the project directory you created):\n\n```{shell}\n{command}\n```",
   "llm_prompt_guide_create_a_map_render_code_edits": "### Code edits\n\nReplace the existing `{mainPath}` with:",
   "llm_prompt_guide_create_a_map_render_stylesheet_edit": "Replace the existing styles in `{stylesheetPath}` with:",

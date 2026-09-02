@@ -297,8 +297,18 @@ describe('Create a Map LLM instructions', () => {
     expect(prompt).toContain('Treat the Linux commands in this guide as a baseline')
     expect(prompt).toContain('do not ask the user to identify their operating system')
     expect(prompt).toContain('#### Linux')
+    expect(prompt).toContain('#### macOS')
+    expect(prompt).toContain('#### Windows PowerShell')
     expect(prompt).toContain('curl -fsSL https://bun.sh/install | bash')
-    expect(prompt).not.toContain('#### Windows PowerShell')
+    expect(prompt).toContain('irm bun.sh/install.ps1 | iex')
+    expect(prompt).toContain('#### Linux or macOS')
+    expect(prompt).toContain(
+      'New-Item -ItemType Directory -Force .bun-tmp, .bun-install',
+    )
+    expect(prompt.indexOf('#### Linux')).toBeLessThan(prompt.indexOf('#### macOS'))
+    expect(prompt.indexOf('#### macOS')).toBeLessThan(
+      prompt.indexOf('#### Windows PowerShell'),
+    )
   })
 
   test('composes the project setup prompt for agents and web chat', () => {
@@ -679,7 +689,7 @@ describe('Create a Map LLM instructions', () => {
         'If you have no context for the SaanSeoi project, stop immediately',
       )
       expect(prompt).toContain(
-        'Continue the “Render” section of my SaanSeoi map project.\n\nIf you have no context',
+        'Continue the “Render the map” section of my SaanSeoi map project.\n\nIf you have no context',
       )
     }
   })

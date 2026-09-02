@@ -153,17 +153,27 @@ const windowsStart = projectSetupInstructions.indexOf('#### Windows PowerShell')
 const bunFallbackStart = projectSetupInstructions.indexOf(
   '### If Bun reports a temporary-directory or sandbox error',
 )
+const hostingDependencyStart = projectSetupInstructions.indexOf(
+  'For an online or embedded map, install exactly one CLI development dependency',
+)
 const verificationStart = projectSetupInstructions.indexOf(
   'Keep the development server',
 )
 
 const projectSetupIntroduction = projectSetupInstructions.slice(0, linuxStart).trimEnd()
 const linuxInstructions = projectSetupInstructions.slice(linuxStart, macosStart).trim()
-const macosInstructions = projectSetupInstructions
+const macosIntroduction = projectSetupInstructions
   .slice(macosStart, windowsStart)
   .trim()
+const macosInstructions = [
+  macosIntroduction,
+  linuxInstructions.replace('#### Linux', '').trim(),
+].join('\n\n')
 const windowsInstructions = projectSetupInstructions
   .slice(windowsStart, bunFallbackStart)
+  .trim()
+const bunInstallFallbackInstructions = projectSetupInstructions
+  .slice(bunFallbackStart, hostingDependencyStart)
   .trim()
 const verificationInstructions = projectSetupInstructions
   .slice(verificationStart)
@@ -320,12 +330,14 @@ const createOperatingSystemSetupInstructions = (
   const terminalInstructions = createTerminalAssistanceInstructions(input)
   const hostingInstructions = createHostingSetupInstructions(input)
 
-  if (!operatingSystem && input.assistanceMode === 'agentic') {
+  if (input.assistanceMode === 'agentic') {
     return [
       introduction,
       projectSetupSafetyInstructions,
       linuxInstructions,
-      createBunInstallFallbackInstructions(input),
+      macosInstructions,
+      windowsInstructions,
+      bunInstallFallbackInstructions,
       developmentServerInstructions,
       ...hostingInstructions,
       ...(includeVerification ? [verificationInstructions] : []),
@@ -350,7 +362,6 @@ const createOperatingSystemSetupInstructions = (
         projectSetupSafetyInstructions,
         ...terminalInstructions,
         macosInstructions,
-        linuxInstructions.replace('#### Linux', ''),
         createBunInstallFallbackInstructions(input),
         developmentServerInstructions,
         ...hostingInstructions,
