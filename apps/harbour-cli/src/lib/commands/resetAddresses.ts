@@ -95,7 +95,16 @@ export async function beginOfficialAddressInitialisation(
     requireExistingRemoteCache: target.remote,
   })
   try {
-    await assertCleanAddressBaseline(context)
+    try {
+      await assertCleanAddressBaseline(context)
+    } catch (error) {
+      if (options.continue) {
+        throw new Error(
+          `Cannot continue official address initialisation: its manifest is missing, but address state already exists. Refusing to adopt a partial run because its reset ownership and before-images cannot be verified. ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+      throw error
+    }
     const manifest: OfficialAddressInitManifest = {
       baseline: {
         currentDivisionSnapshotIds: await readCurrentDivisionSnapshotIds(context),
