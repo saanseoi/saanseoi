@@ -1455,6 +1455,23 @@ describe('control service', () => {
       const releaseId = `release-${releaseCode}`
       const snapshotId = `snapshot-${releaseId}`
 
+      if (datasetType === 'address') {
+        // Historical address releases remain published history rather than
+        // replacing the newer active API cohort.
+        sqlite
+          .query(
+            `UPDATE apiReleaseSets
+             SET regionCode = ?, cohortKey = ?, validFrom = ?, validTo = null
+             WHERE id = ?`,
+          )
+          .run(
+            'hk',
+            '2026-07',
+            '2026-07-22T00:00:00.000Z',
+            'api-release-set-data-hk-addresses-2026-06-17.0',
+          )
+      }
+
       if (datasetType === 'place') {
         sqlite.exec(`
           INSERT OR IGNORE INTO datasets (
@@ -1617,6 +1634,10 @@ describe('control service', () => {
         snapshotId: `snapshot-${releaseId}`,
         status: 'current',
       })
+      if (datasetType === 'address') {
+        expect(result.apiReleaseSetStatus).toBe('archived')
+        expect(result.metadataDelta?.apiReleaseSets?.[0]?.status).toBe('archived')
+      }
       expect(releaseRow).toEqual({
         status: 'published',
       })

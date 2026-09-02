@@ -94,7 +94,7 @@ type ControlResult = {
   apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
-  apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetStatus?: 'current' | 'draft' | 'archived'
   /** Release-set publications that crossed draft -> current in this call. */
   apiReleaseSetAnnouncements?: ReleaseSetPublication[]
   apiReleaseSetPublications?: ReleaseSetPublication[]
@@ -547,7 +547,7 @@ export async function handlePublishDataset(
     let selectedApiCatalogRevision: Awaited<
       ReturnType<typeof publishReleaseArtefacts>
     > | null = null
-    let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
+    let selectedReleaseSetStatus: 'current' | 'draft' | 'archived' = 'draft'
     const apiReleaseSetPublications: NonNullable<
       ControlResult['apiReleaseSetPublications']
     > = []
@@ -653,6 +653,7 @@ export async function handlePublishDataset(
           .where(eq(metaApiReleaseSets.id, releaseSet.id))
           .limit(1)
           .get()
+        selectedReleaseSetStatus = publishedReleaseSetStatus?.status ?? 'draft'
         const publishedReleaseSet = await requireReleaseSetPublicationMetadata(
           db,
           releaseSet.id,
@@ -824,9 +825,9 @@ async function resolveApiReleaseSetMetadataDelta(
 
   if (!releaseSet) return undefined
   const status = releaseSet.status
-  if (status !== 'current' && status !== 'draft') {
+  if (status !== 'current' && status !== 'draft' && status !== 'archived') {
     throw new ControlRequestError(
-      `Cannot include archived API release set ${releaseSetId} in publish metadata delta.`,
+      `Cannot include API release set ${releaseSetId} with invalid status ${status} in publish metadata delta.`,
     )
   }
 

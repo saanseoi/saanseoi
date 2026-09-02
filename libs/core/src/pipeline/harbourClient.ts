@@ -17,7 +17,7 @@ export type ApiReleaseSetMetadataDelta = {
   supersedesApiReleaseSetId: string | null
   schemaVersion: string
   rulesetVersion: string
-  status: 'current' | 'draft'
+  status: 'current' | 'draft' | 'archived'
   publishedAt: string | null
   validFrom: string | null
   validTo: string | null
@@ -41,7 +41,7 @@ export type PublishDatasetResult = {
   apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
-  apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetStatus?: 'current' | 'draft' | 'archived'
   apiReleaseSetPublications?: ApiReleaseSetPublication[]
   datasetId?: string
   metadataDelta?: {
