@@ -1722,6 +1722,10 @@ const terminalProjectPath = $derived(
   operatingSystem === 'windows' ? '~\\saanseoi-project' : '~/saanseoi-project',
 )
 const projectSetupIntro = $derived.by(() => {
+  if (aiAccess === 'agentic') {
+    return m.guide_project_setup_agent_intro()
+  }
+
   if (llmMode !== 'manual' || !setupReady || terminalExperience === 'advanced') {
     return m.guide_project_setup_intro()
   }
@@ -2586,22 +2590,44 @@ const styleChoices = $derived.by(() =>
                 </div>
               {/if}
               {#if aiAccess === 'agentic'}
-                {#if agentTool === 'zed'}
-                  <GuideParagraph>
-                    {@html m.guide_setup_agent_zed_prompt_instruction()}
-                  </GuideParagraph>
-                {/if}
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <GuideLlmPromptCard
-                  prompt={progressiveSectionPrompts.prerequisites}
-                  promptIcon={selectedLlmOption?.icon}
-                  references={llmProjectSetupReferences}
-                  title={m.guide_setup_llm_title()}
-                  previewImageSrc={viteDemoPage}
-                  previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                />
+                <div class="mt-14 w-full min-w-0 max-w-232">
+                  <p
+                    class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+                  >
+                    {@html m.guide_setup_llm_eyebrow()}
+                  </p>
+                  <h3
+                    class="mt-1 font-display text-headline-md leading-tight font-bold text-primary"
+                  >
+                    {@html m.guide_setup_llm_title()}
+                  </h3>
+                  <GuideParagraph>
+                    {@html m.guide_setup_agent_llm_instruction_before()}
+                    <span
+                      class="mx-1 inline-flex items-center gap-1 font-semibold text-foreground"
+                    >
+                      <Icon
+                        icon={selectedLlmOption?.icon ?? 'proicons:more'}
+                        class="size-4"
+                      />
+                      {@html selectedLlmOption?.label ?? ''}
+                    </span>
+                    {@html m.guide_setup_agent_llm_instruction_after()}
+                  </GuideParagraph>
+                  <div class="mt-5">
+                    <GuideLlmPromptCard
+                      prompt={progressiveSectionPrompts.prerequisites}
+                      promptIcon={selectedLlmOption?.icon}
+                      references={llmProjectSetupReferences}
+                      title={m.guide_setup_llm_title()}
+                      previewImageSrc={viteDemoPage}
+                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                    />
+                  </div>
+                </div>
               {/if}
               {#if showEditorProjectSetup && aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
                 <GuideEditorProjectSetupSection editor={codeEditor} />
@@ -2610,11 +2636,17 @@ const styleChoices = $derived.by(() =>
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <div class="mt-12 max-w-232 space-y-5">
-                  <GuideSubSectionHeader
-                    eyebrow={m.guide_setup_llm_eyebrow()}
-                    title={m.guide_setup_llm_title()}
-                  />
+                <div class="mt-14 w-full min-w-0 max-w-232">
+                  <p
+                    class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+                  >
+                    {@html m.guide_setup_llm_eyebrow()}
+                  </p>
+                  <h3
+                    class="mt-1 font-display text-headline-md leading-tight font-bold text-primary"
+                  >
+                    {@html m.guide_setup_llm_title()}
+                  </h3>
                   <GuideParagraph>
                     {@html m.guide_setup_llm_instruction_before()}
                     {#if selectedLlmChatUrl}
@@ -2638,14 +2670,16 @@ const styleChoices = $derived.by(() =>
                     {/if}
                     {@html m.guide_setup_llm_instruction_after()}
                   </GuideParagraph>
-                  <GuideLlmPromptCard
-                    prompt={progressiveSectionPrompts.prerequisites}
-                    promptIcon={selectedLlmOption?.icon}
-                    references={llmProjectSetupReferences}
-                    title={m.guide_setup_llm_title()}
-                    previewImageSrc={viteDemoPage}
-                    previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                  />
+                  <div class="mt-5">
+                    <GuideLlmPromptCard
+                      prompt={progressiveSectionPrompts.prerequisites}
+                      promptIcon={selectedLlmOption?.icon}
+                      references={llmProjectSetupReferences}
+                      title={m.guide_setup_llm_title()}
+                      previewImageSrc={viteDemoPage}
+                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                    />
+                  </div>
                 </div>
               {/if}
             </div>

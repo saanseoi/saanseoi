@@ -251,6 +251,10 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('bun add mapbox-gl')
     expect(instructions).toContain('bun add leaflet')
     expect(instructions).toContain('## Publish')
+    expect(instructions).toContain(
+      'Do not ask the user to identify their operating system.',
+    )
+    expect(instructions).not.toContain('What operating system are you using')
     expect(instructions).toContain('current workspace root only if it is not the')
     expect(instructions).toContain(
       'An HTTP 200 response does not visually verify the app',
@@ -283,6 +287,20 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).not.toContain('Inspect the existing workspace')
   })
 
+  test('gives agents Linux commands to adapt after inspecting the environment', () => {
+    const prompt = createAMapAgenticSectionPrompt(
+      { objective: 'local', preferredLocale: 'en' },
+      'prerequisites',
+    )
+
+    expect(prompt).toContain('Inspect the operating system and shell.')
+    expect(prompt).toContain('Treat the Linux commands in this guide as a baseline')
+    expect(prompt).toContain('do not ask the user to identify their operating system')
+    expect(prompt).toContain('#### Linux')
+    expect(prompt).toContain('curl -fsSL https://bun.sh/install | bash')
+    expect(prompt).not.toContain('#### Windows PowerShell')
+  })
+
   test('composes the project setup prompt for agents and web chat', () => {
     const state = {
       objective: 'web',
@@ -304,10 +322,11 @@ describe('Create a Map LLM instructions', () => {
         'In this first session, help me establish the project foundation only',
       )
       expect(prompt).toEndWith(
-        'The single next action is for you to continue with the “Render” section of the guide. Read it until it provides you with a prompt to share with me again.”',
+        'The single next action is for you to continue with the “Render your map” section of the guide. Read it until it provides you with a prompt to share with me again.”',
       )
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
+      expect(prompt).not.toContain('- Operating system:')
       expect(prompt).toContain('### Working agreement')
       expect(prompt).toContain('## Project setup')
       expect(prompt).toContain('### Verification')
@@ -336,6 +355,9 @@ describe('Create a Map LLM instructions', () => {
     )
     expect(chatPrompt).toContain('### Install the Wrangler dependency')
     expect(chatPrompt).toContain('bun add -d wrangler')
+    expect(chatPrompt.indexOf('#### Start the development server')).toBeLessThan(
+      chatPrompt.indexOf('### Install the Wrangler dependency'),
+    )
     expect(chatPrompt).toContain('open another terminal tab or window')
     expect(chatPrompt).toContain('navigate to the same project directory')
     expect(chatPrompt).toContain('such as `cd saanseoi-project`')
@@ -498,6 +520,15 @@ describe('Create a Map LLM instructions', () => {
       },
       'prerequisites',
     )
+    const macosPrompt = createAMapChatSectionPrompt(
+      {
+        objective: 'web',
+        hostingValue: 'cloudflare',
+        operatingSystem: 'macOS',
+        preferredLocale: 'en',
+      },
+      'prerequisites',
+    )
 
     expect(unixPrompt).toContain('mkdir -p .bun-tmp .bun-install')
     expect(unixPrompt).toContain('BUN_TMPDIR="$PWD/.bun-tmp"')
@@ -510,6 +541,12 @@ describe('Create a Map LLM instructions', () => {
     expect(windowsPrompt).toContain('$env:BUN_INSTALL = "$PWD\\.bun-install"')
     expect(windowsPrompt).toContain(
       'Remove-Item -Recurse -Force .bun-tmp, .bun-install',
+    )
+    expect(macosPrompt).toContain('#### macOS')
+    expect(macosPrompt).toContain('Use the following commands.')
+    expect(macosPrompt).toContain('Skip the Bun installation command')
+    expect(macosPrompt.indexOf('Use the following commands.')).toBeLessThan(
+      macosPrompt.indexOf('curl -fsSL https://bun.sh/install | bash'),
     )
   })
 
@@ -533,8 +570,8 @@ describe('Create a Map LLM instructions', () => {
 
     expect(scaffold).toBeGreaterThan(-1)
     expect(scaffold).toBeLessThan(install)
-    expect(install).toBeLessThan(hostingDependency)
-    expect(hostingDependency).toBeLessThan(server)
+    expect(install).toBeLessThan(server)
+    expect(server).toBeLessThan(hostingDependency)
     expect(prompt).not.toContain('echo "" | bun create vite')
     expect(prompt).toContain(
       String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`,
