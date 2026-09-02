@@ -8,8 +8,10 @@ import { parquetWriteFile } from 'hyparquet-writer'
 import { resolveLocalD1Path } from '@repo/core/testing/localDb'
 import {
   currentSchema,
+  historySchema,
   metaSchema,
   type CurrentDatabase,
+  type HistoryDatabase,
   type MetaDatabase,
 } from '@repo/db'
 
@@ -69,6 +71,7 @@ type PrepareHkgovAlsOptions = {
   dbPath?: string
   environment: UploadEnvironment
   currentDb?: CurrentDatabase
+  historyDb?: HistoryDatabase
   identityDecisions?: HkgovAlsIdentityDecisions
   identityHistory?: HkgovAlsIdentityHistory
   metaDb?: MetaDatabase
@@ -319,6 +322,7 @@ export async function prepareHkgovAlsAddressParquet(
 
   const divisionMaps = await loadDivisionLookupMaps({
     currentDb: options.currentDb,
+    historyDb: options.historyDb,
     dbPath: options.dbPath,
     environment: options.environment,
     metaDb: options.metaDb,
@@ -1419,6 +1423,7 @@ function sqlLiteral(value: string) {
 
 async function loadDivisionLookupMaps(options: {
   currentDb?: CurrentDatabase
+  historyDb?: HistoryDatabase
   cohortKey: string
   dbPath?: string
   environment: UploadEnvironment
@@ -1450,7 +1455,7 @@ async function loadDivisionLookupMaps(options: {
         `No published Overture division snapshot found for cohort ${options.cohortKey}.`,
       )
     }
-    const rows = await options.currentDb
+    let rows = await options.currentDb
       .select({
         snapshotId: currentSchema.divisions.snapshotId,
         id: currentSchema.divisions.id,
@@ -1472,6 +1477,30 @@ async function loadDivisionLookupMaps(options: {
       )
       .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
       .all()
+    if (rows.length === 0 && options.historyDb) {
+      rows = await options.historyDb
+        .select({
+          snapshotId: historySchema.divisions.snapshotId,
+          id: historySchema.divisions.id,
+          level: historySchema.divisions.level,
+          type: historySchema.divisions.type,
+          locale: historySchema.divisionsI18n.locale,
+          name: historySchema.divisionsI18n.name,
+        })
+        .from(historySchema.divisions)
+        .innerJoin(
+          historySchema.divisionsI18n,
+          and(
+            eq(historySchema.divisionsI18n.divisionId, historySchema.divisions.id),
+            eq(
+              historySchema.divisionsI18n.versionHash,
+              historySchema.divisions.versionHash,
+            ),
+          ),
+        )
+        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
+        .all()
+    }
     return buildDivisionLookupMaps(rows)
   }
 

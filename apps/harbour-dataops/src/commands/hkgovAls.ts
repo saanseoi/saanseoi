@@ -6,7 +6,7 @@ import { isCancel, log, note, select } from '@clack/prompts'
 import { and, eq, inArray } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { metaSchema } from '@repo/db'
+import { currentSchema, historySchema, metaSchema, toIsoTimestamp } from '@repo/db'
 
 import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
 import {
@@ -275,6 +275,7 @@ export async function runHkgovAlsIngestCommand(
         'CONSOLIDATION',
       )
     }
+    await materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey)
     await runUploadCommand(
       {
         command: 'upload',
@@ -397,6 +398,7 @@ async function prepareHkgovAlsRelease(args: {
     return await prepareHkgovAlsAddressParquet({
       dbPath: explicitDbPath,
       currentDb: dbContext?.currentDb,
+      historyDb: dbContext?.historyDb,
       environment: args.target.environment,
       identityDecisions: args.decisions,
       identityHistory: args.history,
@@ -411,6 +413,136 @@ async function prepareHkgovAlsRelease(args: {
     })
   } finally {
     await dbContext?.cleanup()
+  }
+}
+
+/**
+ * Address rows retain the exact division snapshot selected for their cohort.
+ * Current storage may evict an older projection, while immutable history keeps
+ * it; restore that projection before the address SQL introduces its foreign
+ * keys. This is deliberately done only after review/preparation succeeds.
+ */
+async function materialiseDivisionSnapshotForAddressRelease(
+  target: UploadTarget,
+  cohortKey: string,
+) {
+  const context = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    cohortKey.slice(0, 4),
+    {
+      cacheTableProfile: 'address',
+    },
+  )
+  try {
+    const snapshot = await context.metaDb
+      .select({ id: metaSchema.metaSnapshots.id })
+      .from(metaSchema.metaSnapshots)
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshots.cohortKey, cohortKey),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+        ),
+      )
+      .limit(1)
+      .get()
+    if (!snapshot) {
+      throw new Error(
+        `No published Overture division snapshot found for cohort ${cohortKey}.`,
+      )
+    }
+    const present = await context.currentDb
+      .select({ id: currentSchema.divisions.id })
+      .from(currentSchema.divisions)
+      .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+      .limit(1)
+      .get()
+    if (present) return
+
+    const [divisions, i18n] = await Promise.all([
+      context.historyDb
+        .select({
+          bbox: historySchema.divisions.bbox,
+          cartography: historySchema.divisions.cartography,
+          divisionCode: historySchema.divisions.divisionCode,
+          geometry: historySchema.divisions.geometry,
+          hierarchy: historySchema.divisions.hierarchy,
+          id: historySchema.divisions.id,
+          identifiers: historySchema.divisions.identifiers,
+          level: historySchema.divisions.level,
+          sourceKeys: historySchema.divisions.sourceKeys,
+          sources: historySchema.divisions.sources,
+          type: historySchema.divisions.type,
+          wikidata: historySchema.divisions.wikidata,
+        })
+        .from(historySchema.divisions)
+        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
+        .all(),
+      context.historyDb
+        .select({
+          divisionId: historySchema.divisionsI18n.divisionId,
+          isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
+          locale: historySchema.divisionsI18n.locale,
+          name: historySchema.divisionsI18n.name,
+          nameAlts: historySchema.divisionsI18n.nameAlts,
+          nameRules: historySchema.divisionsI18n.nameRules,
+          nameVariant: historySchema.divisionsI18n.nameVariant,
+        })
+        .from(historySchema.divisionsI18n)
+        .where(eq(historySchema.divisionsI18n.snapshotId, snapshot.id))
+        .all(),
+    ])
+    if (divisions.length === 0) {
+      throw new Error(
+        `Division snapshot ${snapshot.id} is absent from both current storage and immutable history.`,
+      )
+    }
+    const now = toIsoTimestamp()
+    for (const rows of chunk(divisions, 8)) {
+      await context.currentDb
+        .insert(currentSchema.divisions)
+        .values(
+          rows.map(row => ({
+            ...row,
+            createdAt: now,
+            snapshotId: snapshot.id,
+            updatedAt: now,
+          })),
+        )
+        .onConflictDoNothing()
+        .run()
+    }
+    for (const rows of chunk(i18n, 8)) {
+      await context.currentDb
+        .insert(currentSchema.divisionsI18n)
+        .values(
+          rows.map(row => ({
+            ...row,
+            createdAt: now,
+            snapshotId: snapshot.id,
+            updatedAt: now,
+          })),
+        )
+        .onConflictDoNothing()
+        .run()
+    }
+  } finally {
+    context.cleanup()
+  }
+}
+
+function* chunk<T>(rows: T[], size: number) {
+  for (let index = 0; index < rows.length; index += size) {
+    yield rows.slice(index, index + size)
   }
 }
 
@@ -600,6 +732,7 @@ async function resolveAlsSourceReleases(
       const rows = await dbContext.metaDb
         .select({
           cohortKey: metaSchema.metaSnapshots.cohortKey,
+          snapshotId: metaSchema.metaSnapshots.id,
         })
         .from(metaSchema.metaSnapshotSources)
         .innerJoin(
@@ -646,10 +779,32 @@ async function resolveAlsSourceReleases(
           ),
         )
         .all()
+      const candidateSnapshotIds = rows.map(row => row.snapshotId)
+      const [currentRows, historyRows] = await Promise.all([
+        dbContext.currentDb
+          .select({ snapshotId: currentSchema.divisions.snapshotId })
+          .from(currentSchema.divisions)
+          .where(inArray(currentSchema.divisions.snapshotId, candidateSnapshotIds))
+          .all(),
+        dbContext.historyDb
+          .select({ snapshotId: historySchema.divisions.snapshotId })
+          .from(historySchema.divisions)
+          .where(inArray(historySchema.divisions.snapshotId, candidateSnapshotIds))
+          .all(),
+      ])
+      const materialisedSnapshotIds = new Set([
+        ...currentRows.map(row => row.snapshotId),
+        ...historyRows.map(row => row.snapshotId),
+      ])
       cohortsByYear.set(
         year,
         [
-          ...new Set(rows.map(row => row.cohortKey).filter(isSameYearCohort(year))),
+          ...new Set(
+            rows
+              .filter(row => materialisedSnapshotIds.has(row.snapshotId))
+              .map(row => row.cohortKey)
+              .filter(isSameYearCohort(year)),
+          ),
         ].sort(),
       )
     } finally {
