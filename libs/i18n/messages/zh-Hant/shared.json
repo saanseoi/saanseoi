@@ -1741,7 +1741,7 @@
   "guide_basemap_prompt_title": "設定底圖",
   "guide_basemap_prompt_preview_alt": "地圖底圖作為地圖專案基礎一部分的插圖。",
   "guide_style_protomap_default": "原型圖預設值",
-  "guide_style_description": "SaanSeoi 提供控制顏色、標籤和圖層順序的淺色和深色方案。您可以在下面選擇一個之前<a href=\"/themes\">瀏覽風格庫</a>。",
+  "guide_style_description": "樣式是一組把底圖資料轉化為易讀地圖的視覺規則。它透過顏色、標籤和圖層順序建立層次，讓重要的內容突出、次要的內容後退，並使地圖切合用途與氛圍。SaanSeoi 提供淺色與深色方案；您可以在下方選擇一個之前<a href=\"/themes\">瀏覽樣式圖庫</a>。",
   "guide_basemap_editor_restart": "以以上程式碼片段取代檔案內容，然後儲存。開發伺服器會自動重新啟動並載入您的 API 金鑰；瀏覽器也會自動重新整理。",
   "guide_basemap_editor_style_next": "底圖已設定。加入視覺樣式後才會顯示。",
   "guide_style_midnight_description": "夜間在電動道路上行駛",

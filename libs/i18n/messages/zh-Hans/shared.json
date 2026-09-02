@@ -1742,7 +1742,7 @@
   "guide_basemap_preview_title": "已添加底图",
   "guide_basemap_preview_description": "但没有视觉样式，它仍不会留下任何可见痕迹。",
   "guide_basemap_editor_title": "使用您的公钥请求底图切片",
-  "guide_style_description": "SaanSeoi 提供控制颜色、标签和图层顺序的浅色和深色方案。您可以在下面选择一个之前<a href=\"/themes\">浏览风格库</a>。",
+  "guide_style_description": "样式是一组将底图数据转化为易读地图的视觉规则。它通过颜色、标签和图层顺序建立层次，让重要的内容突出、次要的内容后退，并使地图切合用途与氛围。SaanSeoi 提供浅色和深色方案；您可以在下方选择一个之前<a href=\"/themes\">浏览样式图库</a>。",
   "guide_style_protomap_dataviz": "原型图数据可视化",
   "guide_style_protomap_default": "原型图默认值",
   "guide_style_label": "您想使用哪种风格？",
