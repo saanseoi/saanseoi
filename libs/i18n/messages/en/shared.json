@@ -1786,7 +1786,7 @@
   "guide_data_geojson_ready": "I have features.geojson",
   "guide_data_import_eyebrow": "Add to your editor",
   "guide_data_import_title": "Load features.geojson with {library}",
-  "guide_data_import_description": "Put <code>features.geojson</code> in your app’s <code>public</code> folder, then add this after the map is ready. It fetches the file and draws each point with a name-ready style.",
+  "guide_data_import_description": "When you bootstrapped your project, you also created a <code>public</code> folder. It should be in your project directory, e.g <code>~/saanseoi-project/public</code>. This is the folder where you put assets that will be directly linked by a URL. Put <code>features.geojson</code> in that <code>public</code> folder, then add this snippet to your <code>main.ts</code>. It'll fetch the JSON file and draws each point with a name-ready style.",
   "guide_data_import_code_omitted": "{lines} LINES OMITTED: KEEP YOUR WORKING MAP SETUP. APPEND THIS TO src/main.ts.",
   "guide_data_import_comment_fetch": "Fetch the GeoJSON file from the public folder.",
   "guide_data_import_comment_ready": "Keep the work that adds your data together.",
