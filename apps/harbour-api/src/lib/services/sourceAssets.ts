@@ -1,4 +1,4 @@
-import { eq, metaAssets } from '@repo/db'
+import { and, eq, metaAssets } from '@repo/db'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
@@ -6,7 +6,7 @@ export { linkManagedSourceAssetToRelease } from '@repo/core/sourceAssets'
 
 const SOURCE_ASSET_PREFIX = 'by-source/'
 
-type AssetBucket = Pick<R2Bucket, 'head' | 'put'>
+type AssetBucket = Pick<R2Bucket, 'delete' | 'head' | 'put'>
 
 export type SourceAssetMetadata = {
   assetKey: string
@@ -98,6 +98,30 @@ export async function registerManagedSourceAsset(
     assetId,
     status: existingObject ? ('existing' as const) : ('uploaded' as const),
   }
+}
+
+/**
+ * Remove a managed object only while its metadata still proves the caller's
+ * release ownership. R2 and D1 have no shared transaction, so the object is
+ * deleted first; repeating this operation is safe after an interrupted run.
+ */
+export async function deleteManagedSourceAsset(
+  db: HarbourReadableDb & HarbourWritableDb,
+  bucket: AssetBucket,
+  input: { assetId: string; releaseId: string },
+) {
+  const asset = await db
+    .select({ assetKey: metaAssets.assetKey, id: metaAssets.id })
+    .from(metaAssets)
+    .where(
+      and(eq(metaAssets.id, input.assetId), eq(metaAssets.releaseId, input.releaseId)),
+    )
+    .get()
+  if (!asset)
+    throw new Error('Managed source asset is not owned by the specified release.')
+  await bucket.delete(asset.assetKey)
+  await db.delete(metaAssets).where(eq(metaAssets.id, asset.id)).run()
+  return { assetId: asset.id, status: 'deleted' as const }
 }
 
 async function registerSourceAssetMetadata(
