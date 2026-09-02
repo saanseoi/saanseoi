@@ -27,4 +27,9 @@ test('takes hidden references out of the prompt card layout', async () => {
   const hiddenReference = card.querySelectorAll('section')[1] as HTMLElement
 
   expect(hiddenReference.classList).toContain('absolute')
+
+  await screen.getByRole('button', { name: 'Preview' }).click()
+
+  expect(card.style.height).toMatch(/^\d+(?:\.\d+)?px$/)
+  expect(card.querySelector('[aria-label="Preview"]')?.classList).toContain('h-full')
 })
