@@ -331,7 +331,7 @@ onMount(() => {
     </div>
 
     <div
-      class="grid gap-x-5 gap-y-8 py-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
+      class="grid gap-x-5 gap-y-8 py-8 xl:-mt-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
         class="order-8 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0 xl:self-start"
@@ -391,13 +391,13 @@ onMount(() => {
         </div>
       </div>
       <span
-        class="hidden max-w-24 font-mono text-[1.35rem] leading-none font-semibold tracking-[0.16em] text-foreground-alt/45 xl:col-span-2 xl:row-start-2 xl:flex xl:items-center"
+        class="hidden max-w-24 font-mono text-[1.35rem] leading-none font-semibold tracking-[0.16em] text-foreground-alt/45 xl:col-span-2 xl:row-start-2 xl:flex xl:-translate-y-8 xl:items-center"
         aria-hidden="true"
         >{m.guide_llm_prompt_card_explainer_code_view()}</span
       >
       <p
         data-guide-llm-callout="code-index"
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_index()}
       </p>
@@ -427,26 +427,26 @@ onMount(() => {
       </p>
       <p
         data-guide-llm-callout="code-copy"
-        class="order-7 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-2 xl:order-0 xl:w-48 xl:translate-x-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-7 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-2 xl:order-0 xl:w-48 xl:-translate-y-12 xl:translate-x-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_copy()}
       </p>
       <p
         data-guide-llm-callout="code-path"
-        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_path_description()}
       </p>
       <p
         data-guide-llm-callout="code-content"
-        class="order-10 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-10 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:w-[120%] xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_code_reference()}
       </p>
     </div>
 
     <div
-      class="grid gap-x-5 gap-y-8 py-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
+      class="grid gap-x-5 gap-y-8 py-8 xl:-mt-16 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
         class="order-4 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
@@ -504,19 +504,19 @@ onMount(() => {
       </p>
       <p
         data-guide-llm-callout="preview-expand"
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-10 xl:col-span-3 xl:row-start-1 xl:order-0 xl:translate-y-24 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-3 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_expand()}
       </p>
       <p
         data-guide-llm-callout="preview-code"
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_code()}
       </p>
       <p
         data-guide-llm-callout="preview-prompt"
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 whitespace-nowrap text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-24 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-2 min-w-0 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-1 xl:row-start-1 xl:order-0 xl:-translate-y-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
         {@html m.guide_llm_prompt_card_explainer_preview_prompt()}
       </p>
