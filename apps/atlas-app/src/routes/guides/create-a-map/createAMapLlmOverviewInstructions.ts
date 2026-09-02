@@ -30,6 +30,9 @@ const agenticWorkingAgreement = `
 - Adapt to the actual project and its conventions. Do not create a parallel project or
   use the guide’s code snippets verbatim; implement the equivalent solution for the
   workspace you find.
+- Inspect the operating system and shell. Treat the Linux commands in this guide as a
+  baseline and adapt them to the environment you find; do not ask the user to identify
+  their operating system.
 - Stop for confirmation before any paid action, credential entry, deployment, or
   account-linked operation.
 - An HTTP 200 response does not visually verify the app. Browser verification succeeds

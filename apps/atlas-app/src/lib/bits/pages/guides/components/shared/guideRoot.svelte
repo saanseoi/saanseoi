@@ -100,7 +100,14 @@ function navigationOverlapsContent() {
 
   return Array.from(
     main.querySelectorAll<HTMLElement>(
-      'section, article, [role="region"], aside > :not(nav)',
+      [
+        'section',
+        'article',
+        '[role="region"]',
+        '[data-guide-instruction-callout]',
+        '[data-guide-llm-callout]',
+        '[data-guide-explainer-callout]',
+      ].join(', '),
     ),
   ).some(content => {
     if (navigation.contains(content) || content.contains(navigation)) return false

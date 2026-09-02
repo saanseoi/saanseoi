@@ -11,8 +11,9 @@ Ask the questions in this order, waiting for each answer before asking the next 
    - **On my computer** — a private prototype or local setup.
    - **Online with a link** — a map people can visit in a browser.
    - **Embedded in a site** — a map inside an existing site or web app.
-2. **Build environment:** “What operating system are you using: Linux, macOS or
-   Windows?” Detect this from the workspace when possible; otherwise ask.
+2. **Build environment:** inspect the workspace to determine the operating system and
+   shell. The Linux commands below are the baseline; adapt them to the environment you
+   find. Do not ask the user to identify their operating system.
 3. **Destination details:** ask the follow-up question that matches the chosen use case.
    - For **Online with a link**, ask: “Where will you host the map?” Offer:
      - **Cloudflare — Recommended:** global coverage and a generous free tier; the
@@ -71,8 +72,9 @@ bun install
 
 #### macOS
 
-Use the same commands as Linux, unless Bun is already installed or the user's chosen
-shell requires them to open a new terminal after installation.
+Use the following commands. Skip the Bun installation command if Bun is already
+installed, and ask the user to open a new terminal after installation if their chosen
+shell requires it.
 
 #### Windows PowerShell
 
@@ -318,6 +320,18 @@ const createOperatingSystemSetupInstructions = (
   const terminalInstructions = createTerminalAssistanceInstructions(input)
   const hostingInstructions = createHostingSetupInstructions(input)
 
+  if (!operatingSystem && input.assistanceMode === 'agentic') {
+    return [
+      introduction,
+      projectSetupSafetyInstructions,
+      linuxInstructions,
+      createBunInstallFallbackInstructions(input),
+      developmentServerInstructions,
+      ...hostingInstructions,
+      ...(includeVerification ? [verificationInstructions] : []),
+    ]
+  }
+
   switch (operatingSystem?.toLowerCase()) {
     case 'linux':
       return [
@@ -326,8 +340,8 @@ const createOperatingSystemSetupInstructions = (
         ...terminalInstructions,
         linuxInstructions,
         createBunInstallFallbackInstructions(input),
-        ...hostingInstructions,
         developmentServerInstructions,
+        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     case 'macos':
@@ -338,8 +352,8 @@ const createOperatingSystemSetupInstructions = (
         macosInstructions,
         linuxInstructions.replace('#### Linux', ''),
         createBunInstallFallbackInstructions(input),
-        ...hostingInstructions,
         developmentServerInstructions,
+        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     case 'windows':
@@ -349,8 +363,8 @@ const createOperatingSystemSetupInstructions = (
         ...terminalInstructions,
         windowsInstructions,
         createBunInstallFallbackInstructions(input),
-        ...hostingInstructions,
         developmentServerInstructions,
+        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
     default:
@@ -362,8 +376,8 @@ const createOperatingSystemSetupInstructions = (
         macosInstructions,
         windowsInstructions,
         createBunInstallFallbackInstructions(input),
-        ...hostingInstructions,
         developmentServerInstructions,
+        ...hostingInstructions,
         ...(includeVerification ? [verificationInstructions] : []),
       ]
   }

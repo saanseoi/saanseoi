@@ -226,7 +226,7 @@ onMount(() => {
 
 <section
   data-guide-llm-prompt-card-explainer
-  class="mt-10 border-t border-border-card pt-8"
+  class="mt-10"
   aria-label={m.guide_llm_prompt_card_explainer_title()}
 >
   <GuideTextHeader
