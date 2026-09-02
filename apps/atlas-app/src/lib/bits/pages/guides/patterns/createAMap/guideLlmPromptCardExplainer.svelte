@@ -21,6 +21,10 @@ type Props = { promptIcon?: string }
 let { promptIcon = 'material-symbols-light:auto-awesome' }: Props = $props()
 let explainerElement = $state<HTMLDivElement>()
 let leaderLineLoader: Promise<LeaderLineConstructor> | undefined
+const mobileCalloutNumberClass =
+  'mr-2 inline-flex size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary align-text-bottom xl:hidden'
+const mobileCardNumberClass =
+  'pointer-events-none absolute -top-2 -right-2 hidden size-4.5 items-center justify-center rounded-full bg-secondary font-mono text-[0.6875rem] font-bold leading-none text-on-secondary max-xl:inline-flex'
 
 const loadLeaderLine = () => {
   const leaderLineWindow = window as LeaderLineWindow
@@ -236,7 +240,7 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-4 min-w-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#211d32] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
+        class="order-1 min-w-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#211d32] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span
@@ -244,16 +248,20 @@ onMount(() => {
           >
             <span
               data-guide-llm-prompt-icon
-              class="inline-flex size-7 shrink-0 items-center justify-center rounded-full [background:color-mix(in_srgb,var(--color-secondary)_18%,#211d32)] text-secondary"
+              class="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full [background:color-mix(in_srgb,var(--color-secondary)_18%,#211d32)] text-secondary"
             >
               <Icon icon={promptIcon} class="size-4" aria-hidden="true" />
+              <span class={mobileCardNumberClass} aria-hidden="true">1</span>
             </span>
-            <span data-guide-llm-prompt-summary>{m.guide_setup_llm_title()}</span>
+            <span data-guide-llm-prompt-summary class="relative"
+              >{m.guide_setup_llm_title()}
+              <span class={mobileCardNumberClass} aria-hidden="true">2</span></span
+            >
           </span>
           <div class="flex shrink-0 items-center gap-4">
             <span
               data-guide-llm-prompt-code
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
             >
               <Icon
                 icon="material-symbols-light:code-rounded"
@@ -261,20 +269,23 @@ onMount(() => {
                 aria-hidden="true"
               />
               {m.guide_code_block_code()}
+              <span class={mobileCardNumberClass} aria-hidden="true">3</span>
             </span>
             <span
               data-guide-llm-prompt-preview
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
             >
               <Icon icon="proicons:map" class="size-4" aria-hidden="true" />
               {m.guide_code_block_preview()}
+              <span class={mobileCardNumberClass} aria-hidden="true">4</span>
             </span>
             <span
               data-guide-llm-prompt-copy
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75"
             >
               <Icon icon="ion:copy-outline" class="size-4" aria-hidden="true" />
               {m.common_copy()}
+              <span class={mobileCardNumberClass} aria-hidden="true">5</span>
             </span>
           </div>
         </div>
@@ -285,6 +296,7 @@ onMount(() => {
           <p class="max-w-md font-mono text-body-sm leading-6 text-[#eeeaff]/75">
             {m.guide_llm_prompt_card_explainer_prompt_sample()}
           </p>
+          <span class={mobileCardNumberClass} aria-hidden="true">6</span>
         </div>
       </div>
       <span
@@ -294,38 +306,44 @@ onMount(() => {
       >
       <p
         data-guide-llm-callout="prompt-content"
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-7 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">6</span>
         {@html m.guide_llm_prompt_card_explainer_prompt()}
       </p>
       <p
         data-guide-llm-callout="prompt-icon"
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-1 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-1 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">1</span>
         {@html m.guide_llm_prompt_card_explainer_prompt_icon()}
       </p>
       <p
         data-guide-llm-callout="prompt-summary"
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">2</span>
         {@html m.guide_llm_prompt_card_explainer_prompt_summary()}
       </p>
       <p
         data-guide-llm-callout="prompt-code"
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-6 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">3</span>
         {@html m.guide_llm_prompt_card_explainer_prompt_code()}
       </p>
       <p
         data-guide-llm-callout="prompt-preview"
-        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-8 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">4</span>
         {@html m.guide_llm_prompt_card_explainer_prompt_preview()}
       </p>
       <p
         data-guide-llm-callout="prompt-copy"
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-6 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-10 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">5</span>
         {@html m.guide_llm_prompt_card_explainer_prompt_copy()}
       </p>
     </div>
@@ -334,50 +352,56 @@ onMount(() => {
       class="grid gap-x-5 gap-y-8 py-8 xl:-mt-8 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto]"
     >
       <div
-        class="order-8 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0 xl:self-start"
+        class="order-1 min-w-0 overflow-hidden border border-[#596074] bg-[#202633] xl:col-start-3 xl:col-span-8 xl:row-start-2 xl:order-0 xl:self-start"
       >
         <div class="flex min-w-0 items-center justify-between gap-3 px-4 py-2.5">
           <span
             class="flex min-w-0 items-center gap-2 truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
           >
-            <span data-guide-llm-code-index class="text-secondary">01</span
-            ><span data-guide-llm-code-type>CLI</span><span aria-hidden="true">•</span
-            ><span data-guide-llm-code-title class="truncate"
-              >{m.guide_llm_prompt_card_explainer_code_title()}</span
+            <span data-guide-llm-code-index class="relative text-secondary"
+              >01<span class={mobileCardNumberClass} aria-hidden="true">1</span></span
+            ><span data-guide-llm-code-type class="relative"
+              >CLI<span class={mobileCardNumberClass} aria-hidden="true">2</span></span
+            ><span aria-hidden="true">•</span
+            ><span data-guide-llm-code-title class="relative truncate"
+              >{m.guide_llm_prompt_card_explainer_code_title()}
+              <span class={mobileCardNumberClass} aria-hidden="true">3</span></span
             >
           </span>
           <span class="flex shrink-0 items-center gap-4 text-white/75">
-            <span data-guide-llm-code-navigation class="inline-flex items-center"
+            <span
+              data-guide-llm-code-navigation
+              class="relative inline-flex items-center"
               ><Icon icon="proicons:chevron-left" class="size-4" aria-hidden="true" />
-              <Icon
-                icon="proicons:chevron-right"
-                class="size-4"
-                aria-hidden="true"
-              /></span
+              <Icon icon="proicons:chevron-right" class="size-4" aria-hidden="true" />
+              <span class={mobileCardNumberClass} aria-hidden="true">4</span></span
             >
             <span
               data-guide-llm-code-prompt
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
               ><Icon
                 icon="material-symbols-light:auto-awesome"
                 class="size-4"
                 aria-hidden="true"
-              />{m.guide_llm_prompt_card_prompt()}</span
+              /><span class={mobileCardNumberClass} aria-hidden="true">5</span>
+              {m.guide_llm_prompt_card_prompt()}</span
             >
             <span
               data-guide-llm-code-copy
-              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
+              class="relative inline-flex items-center gap-1.5 font-body text-label-sm font-semibold"
               ><Icon icon="ion:copy-outline" class="size-4" aria-hidden="true" />
-              {m.common_copy()}</span
+              {m.common_copy()}
+              <span class={mobileCardNumberClass} aria-hidden="true">6</span></span
             >
           </span>
         </div>
         <div
           class="border-t border-[#596074] bg-[#182021] px-4 py-1.5 font-mono text-label-sm text-[#d6e4ff]/75"
         >
-          <span data-guide-llm-code-path
+          <span data-guide-llm-code-path class="relative"
             ><span class="mr-2 text-white/50">{m.guide_llm_prompt_card_path()}</span
-            ><span>~/saanseoi-project</span></span
+            ><span>~/saanseoi-project</span
+            ><span class={mobileCardNumberClass} aria-hidden="true">7</span></span
           >
         </div>
         <div
@@ -388,6 +412,7 @@ onMount(() => {
             <span class="mr-2 text-secondary">$</span>bun create vite . --template
             vanilla-ts
           </p>
+          <span class={mobileCardNumberClass} aria-hidden="true">8</span>
         </div>
       </div>
       <span
@@ -397,50 +422,58 @@ onMount(() => {
       >
       <p
         data-guide-llm-callout="code-index"
-        class="order-1 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-2 xl:row-start-1 xl:order-0 xl:w-3/4 xl:translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">1</span>
         {@html m.guide_llm_prompt_card_explainer_code_index()}
       </p>
       <p
         data-guide-llm-callout="code-type"
-        class="order-2 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">2</span>
         {@html m.guide_llm_prompt_card_explainer_code_type()}
       </p>
       <p
         data-guide-llm-callout="code-title"
-        class="order-3 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">3</span>
         {@html m.guide_llm_prompt_card_explainer_code_title_description()}
       </p>
       <p
         data-guide-llm-callout="code-navigation"
-        class="order-4 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">4</span>
         {@html m.guide_llm_prompt_card_explainer_code_navigation()}
       </p>
       <p
         data-guide-llm-callout="code-prompt"
-        class="order-5 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-6 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:translate-y-8 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">5</span>
         {@html m.guide_llm_prompt_card_explainer_code_prompt()}
       </p>
       <p
         data-guide-llm-callout="code-copy"
         class="order-7 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-2 xl:order-0 xl:w-48 xl:-translate-y-12 xl:translate-x-4 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">6</span>
         {@html m.guide_llm_prompt_card_explainer_code_copy()}
       </p>
       <p
         data-guide-llm-callout="code-path"
-        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-8 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">7</span>
         {@html m.guide_llm_prompt_card_explainer_code_path_description()}
       </p>
       <p
         data-guide-llm-callout="code-content"
-        class="order-10 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:w-[120%] xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
+        class="order-9 border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:w-[120%] xl:row-start-3 xl:order-0 xl:-translate-y-12 xl:self-start xl:border-l-0 xl:pl-0"
       >
+        <span class={mobileCalloutNumberClass} aria-hidden="true">8</span>
         {@html m.guide_llm_prompt_card_explainer_code_reference()}
       </p>
     </div>

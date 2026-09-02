@@ -347,22 +347,9 @@ export function createAMapChatHandoverPrompt(
 const createSectionInstructions = (
   state: CreateAMapLlmPromptState,
 ): Record<
-  Exclude<CreateAMapLlmPromptSection, 'prerequisites' | 'render'>,
+  Exclude<CreateAMapLlmPromptSection, 'prerequisites' | 'render' | 'basemap'>,
   string[]
 > => ({
-  basemap: [
-    'Integrate the selected SaanSeoi basemap using its public `pk.` key. Place it in the Vite `VITE_SAANSEOI_API_KEY` build variable: it is intentionally embedded in the browser output, so never describe it as a secret or put it in a server-only variable.',
-    'Use the public key directly as the `access_token` query parameter on SaanSeoi API and tile requests. Do not add a client token refresh utility, server proxy, or D1 lookup path.',
-    'Pause before requesting or using the key. After the user has configured it, verify the selected basemap loads and that no token is logged or committed.',
-    ...(state.tilejsonUrl ? [`Use this TileJSON endpoint: ${state.tilejsonUrl}`] : []),
-    ...(state.styleUrl
-      ? [`Use this selected SaanSeoi style URL: ${state.styleUrl}`]
-      : state.style === 'custom'
-        ? [
-            'The style is custom. Ask for the completed style URL or file before wiring it into the map.',
-          ]
-        : []),
-  ],
   style: [
     state.style === 'custom'
       ? 'Help me create and apply a custom map style. First establish the desired visual direction and the style source or URL; keep it compatible with the selected renderer and SaanSeoi tiles.'
@@ -525,6 +512,118 @@ const createAMapRenderPrompt = (state: CreateAMapLlmPromptState, mode: PromptMod
     .map(fragment => fragment.text)
     .join('\n\n')
 
+const createBasemapReferenceInstructions = (state: CreateAMapLlmPromptState) => {
+  if (!isCreateAMapRenderer(state.renderer) || !state.tilejsonUrl) return []
+
+  const reference = getCreateAMapRendererReference(
+    state.renderer,
+    getCreateAMapOpeningPosition(createPromptRegion(state.region)),
+  )
+  const path = state.operatingSystemValue === 'windows' ? 'src\\main.ts' : 'src/main.ts'
+
+  return [
+    m.llm_prompt_guide_create_a_map_basemap_code_edits({ path }),
+    '```ts',
+    createAMapRendererBasemapCode(
+      state.renderer,
+      state.styleUrl ?? '',
+      state.tilejsonUrl,
+      getCreateAMapOpeningPosition(createPromptRegion(state.region)),
+    ),
+    '```',
+  ]
+}
+
+export function createAMapBasemapPromptFragments(
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+): CreateAMapLlmPromptFragment[] {
+  const llmType: Exclude<PromptLlmType, 'all'> = mode === 'agentic' ? 'agent' : 'chat'
+  const fragments: CreateAMapLlmPromptFragment[] = [
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_context({
+        coverage: state.regionLabel ?? 'TBD',
+        library: state.rendererLabel ?? 'TBD',
+        tilejsonUrl: state.tilejsonUrl ?? 'TBD',
+      }),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_agent_actions(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_chat_actions(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_api_key(),
+    },
+    {
+      llmType: 'all',
+      os: state.operatingSystemValue ?? 'all',
+      editor: state.codeEditorValue ?? 'all',
+      terminalExperience: state.terminalExperienceValue ?? 'all',
+      text: createBasemapReferenceInstructions(state).join('\n\n'),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_verify(),
+    },
+  ]
+
+  return fragments.filter(
+    fragment =>
+      (fragment.llmType === 'all' || fragment.llmType === llmType) &&
+      matchesPromptFragment(fragment.os, state.operatingSystemValue) &&
+      matchesPromptFragment(fragment.editor, state.codeEditorValue) &&
+      matchesPromptFragment(fragment.terminalExperience, state.terminalExperienceValue),
+  )
+}
+
+const createAMapBasemapPrompt = (state: CreateAMapLlmPromptState, mode: PromptMode) =>
+  createAMapBasemapPromptFragments(state, mode)
+    .map(fragment => fragment.text)
+    .filter(Boolean)
+    .join('\n\n')
+
 const createAMapProgressivePrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
@@ -548,6 +647,16 @@ const createAMapProgressivePrompt = (
       ...(localeInstruction ? [localeInstruction] : []),
       createSectionCompletionInstruction(section),
     ].join('\n\n')
+  }
+
+  if (section === 'basemap') {
+    return [
+      createAMapBasemapPrompt(state, mode),
+      ...(localeInstruction ? [localeInstruction] : []),
+      createSectionCompletionInstruction(section),
+    ]
+      .filter(Boolean)
+      .join('\n\n')
   }
 
   return [
