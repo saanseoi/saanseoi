@@ -16,10 +16,10 @@ end
 
 set -l failed 0
 
-# Keep the production baseline aligned with init:local. Planning Unit and New
-# Town remain available as dedicated initialisers, but are intentionally omitted.
 for command in \
     init:divisions:geographic \
+    init:divisions:hkgov-pland-pu \
+    init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd \
     init:stats:official
     ./bin/saanseoi $command --target production $cache_artefact_args
