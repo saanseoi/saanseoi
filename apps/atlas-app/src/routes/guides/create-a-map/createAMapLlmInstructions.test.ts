@@ -834,7 +834,7 @@ describe('Create a Map LLM instructions', () => {
     }
   })
 
-  test('includes renderer-specific style code in agent and chat hand-offs', () => {
+  test('keeps agent and chat style hand-offs limited to the style section', () => {
     const renderers = [
       ['maplibre', 'MapLibre', "import * as maplibregl from 'maplibre-gl'"],
       ['mapbox', 'Mapbox GL JS', "import mapboxgl from 'mapbox-gl'"],
@@ -850,20 +850,26 @@ describe('Create a Map LLM instructions', () => {
         styleUrl: 'https://api.saanseoi.hk/v0/styles/light/1.0.0.json',
         tilejsonUrl: 'https://tiles.saanseoi.hk/hongkong-latest.json',
       }
-      const expectedCode = createAMapRendererBasemapCode(
+      const expectedCode = createAMapRendererStyleCode(
         renderer,
         state.styleUrl,
         state.tilejsonUrl,
       )
 
-      for (const prompt of [
-        createAMapAgenticSectionPrompt(state, 'style'),
-        createAMapChatSectionPrompt(state, 'style'),
-      ]) {
+      const agentPrompt = createAMapAgenticSectionPrompt(state, 'style')
+      const chatPrompt = createAMapChatSectionPrompt(state, 'style')
+
+      expect(agentPrompt).toBe(chatPrompt)
+
+      for (const prompt of [agentPrompt, chatPrompt]) {
         expect(prompt).toContain(`The selected renderer is ${rendererLabel}.`)
         expect(prompt).toContain(importLine)
         expect(prompt).toContain(expectedCode)
         expect(prompt).toContain('Make only the style-related changes')
+        expect(prompt).not.toContain('### Project decisions')
+        expect(prompt).not.toContain('collaborative assistance session')
+        expect(prompt).not.toContain('The single next action')
+        expect(prompt).not.toContain('Data” section')
       }
     }
   })

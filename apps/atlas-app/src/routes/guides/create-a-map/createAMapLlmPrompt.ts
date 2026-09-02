@@ -11,6 +11,7 @@ import {
 } from './createAMapLlmPrerequisitesInstructions'
 import {
   createAMapRendererBasemapCode,
+  createAMapRendererStyleCode,
   getCreateAMapRendererReference,
   isCreateAMapRenderer,
 } from './snippets'
@@ -389,12 +390,26 @@ const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     `The selected renderer is ${reference.label}. Use its existing project setup and apply the selected style with the following renderer-specific changes:`,
     '',
     '```ts',
-    createAMapRendererBasemapCode(state.renderer, state.styleUrl, state.tilejsonUrl),
+    createAMapRendererStyleCode(state.renderer, state.styleUrl, state.tilejsonUrl),
     '```',
     '',
     'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup. Do not expose or log the public key.',
   ]
 }
+
+const createAMapStylePrompt = (state: CreateAMapLlmPromptState) =>
+  [
+    '## Style Section',
+    '',
+    'Complete only the “Pick your styles” section of my SaanSeoi map project.',
+    '',
+    ...(state.rendererLabel
+      ? [`- Selected mapping library: ${state.rendererLabel}`]
+      : []),
+    ...(state.styleLabel ? [`- Selected style: ${state.styleLabel}`] : []),
+    '',
+    ...createSectionInstructions(state).style.map(instruction => `- ${instruction}`),
+  ].join('\n')
 
 const createPromptRegion = (region?: string): CreateAMapSelectionQuery['region'] =>
   region === 'hk' || region === 'mo' || region === 'gba' ? region : undefined
@@ -598,6 +613,10 @@ const createAMapProgressivePrompt = (
     ]
       .filter(Boolean)
       .join('\n\n')
+  }
+
+  if (section === 'style') {
+    return createAMapStylePrompt(state)
   }
 
   return [

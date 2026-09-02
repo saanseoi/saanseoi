@@ -3169,7 +3169,7 @@ const styleChoices = $derived.by(() =>
             </div>
           </GuideCallout>
         {/if}
-        {#if selectedStyle && renderer}
+        {#if !llmGuidanceEnabled && selectedStyle && renderer}
           <div class="mt-10 max-w-232 pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
