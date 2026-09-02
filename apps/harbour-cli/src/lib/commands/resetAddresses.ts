@@ -161,29 +161,35 @@ export async function runResetOfficialAddressesCommand(
 ) {
   const keepCache = args.options['keep-cache'] === true
   const dryRun = args.options['dry-run'] === true
+  const discardAbandonedStaged = args.options['discard-abandoned-staged'] === true
+  const discardChangedDocs = args.options['discard-changed-docs'] === true
+  const adoptFailed = args.options['adopt-failed'] === true
   const yes = args.options.yes === true
   if (
     args.positionals.length ||
     Object.keys(args.options).some(
-      key => !['target', 'keep-cache', 'dry-run', 'yes'].includes(key),
+      key =>
+        ![
+          'target',
+          'keep-cache',
+          'dry-run',
+          'yes',
+          'discard-abandoned-staged',
+          'discard-changed-docs',
+          'adopt-failed',
+        ].includes(key),
     )
   ) {
     options.printUsage()
     throw new Error(
-      '`reset:addresses:official` accepts only --target, --dry-run, --yes, and --keep-cache.',
+      '`reset:addresses:official` accepts only --target, --dry-run, --yes, --keep-cache, --discard-abandoned-staged, --discard-changed-docs, and --adopt-failed.',
     )
   }
   const path = manifestPath(target)
-  const manifest = await readManifest(path)
-  if (
-    manifest.target !== targetName(target) ||
-    !['complete', 'running'].includes(manifest.status) ||
-    (manifest.status === 'complete' && !manifest.owned)
-  ) {
-    throw new Error(
-      'Reset requires an official-address initialisation manifest for this target.',
-    )
-  }
+  let manifest = await readManifest(path).catch(error => {
+    if (adoptFailed) return null
+    throw error
+  })
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'address',
     includeAllHistoryShardYears: true,
@@ -191,6 +197,18 @@ export async function runResetOfficialAddressesCommand(
     requireExistingRemoteCache: target.remote,
   })
   try {
+    if (!manifest) {
+      manifest = await adoptFailedAddressResetState(context, target)
+    }
+    if (
+      manifest.target !== targetName(target) ||
+      !['complete', 'running'].includes(manifest.status) ||
+      (manifest.status === 'complete' && !manifest.owned)
+    ) {
+      throw new Error(
+        'Reset requires an official-address initialisation manifest for this target.',
+      )
+    }
     if (manifest.status === 'running') {
       if (!sameDocs(await readDocsState(context), manifest.baseline.docs)) {
         throw new Error(
@@ -199,7 +217,10 @@ export async function runResetOfficialAddressesCommand(
       }
       manifest.owned = await collectOwnedRecords(context)
     }
-    await assertResetStillSafe(context, manifest)
+    if (discardAbandonedStaged) {
+      await absorbAbandonedStagedAddressReleases(context, manifest)
+    }
+    await assertResetStillSafe(context, manifest, { discardChangedDocs })
     const owned = requireOwned(manifest)
     note(
       [
@@ -207,6 +228,8 @@ export async function runResetOfficialAddressesCommand(
         formatField('releases', String(owned.releaseIds.length)),
         formatField('snapshots', String(owned.snapshotIds.length)),
         formatField('assets', String(owned.assetIds.length)),
+        formatField('discardAbandonedStaged', String(discardAbandonedStaged)),
+        formatField('discardChangedDocs', String(discardChangedDocs)),
         formatField('keepCache', String(keepCache)),
         formatField('dryRun', String(dryRun)),
       ].join('\n'),
@@ -318,6 +341,75 @@ async function assertCleanAddressBaseline(
     )
 }
 
+async function adoptFailedAddressResetState(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  target: UploadTarget,
+): Promise<OfficialAddressInitManifest> {
+  if (target.remote) {
+    throw new Error('--adopt-failed only supports the local target.')
+  }
+  const releases = await context.metaDb
+    .select({ id: metaSchema.metaReleases.id, status: metaSchema.metaReleases.status })
+    .from(metaSchema.metaReleases)
+    .innerJoin(
+      metaSchema.metaDatasets,
+      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+    )
+    .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
+    .all()
+  const snapshots = await context.metaDb
+    .select({ status: metaSchema.metaSnapshots.status })
+    .from(metaSchema.metaSnapshots)
+    .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+    .all()
+  const apiReleaseSet = await context.metaDb
+    .select({ id: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId })
+    .from(metaSchema.metaApiReleaseSetSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshots,
+      eq(metaSchema.metaApiReleaseSetSnapshots.snapshotId, metaSchema.metaSnapshots.id),
+    )
+    .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+    .limit(1)
+    .get()
+  if (
+    releases.length === 0 ||
+    releases.some(
+      release => release.status !== 'failed' && release.status !== 'staged',
+    ) ||
+    snapshots.some(snapshot => snapshot.status !== 'draft') ||
+    apiReleaseSet
+  ) {
+    throw new Error(
+      'Cannot adopt failed address state: only failed/staged releases with draft snapshots and no API release set are recoverable.',
+    )
+  }
+  const docs = await readDocsState(context)
+  const manifest: OfficialAddressInitManifest = {
+    baseline: {
+      currentDivisionSnapshotIds: await readCurrentDivisionSnapshotIds(context),
+      docs,
+    },
+    completedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    documentationAfter: docs,
+    identityFiles: {
+      decisions: await readBeforeImage(DECISIONS_FILE),
+      history: await readBeforeImage(HISTORY_FILE),
+    },
+    owned: await collectOwnedRecords(context),
+    runId: crypto.randomUUID(),
+    status: 'complete',
+    target: targetName(target),
+    version: 1,
+  }
+  note(
+    'All address releases are failed or staged with no published API state.',
+    'ADOPTING FAILED ADDRESS RESET STATE',
+  )
+  return manifest
+}
+
 async function collectOwnedRecords(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
 ) {
@@ -374,6 +466,7 @@ async function collectOwnedRecords(
 async function assertResetStillSafe(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   manifest: OfficialAddressInitManifest,
+  options: { discardChangedDocs: boolean },
 ) {
   const owned = requireOwned(manifest)
   const releases = await context.metaDb
@@ -475,6 +568,7 @@ async function assertResetStillSafe(
       'Refusing reset: source assets linked to the initialisation releases have changed.',
     )
   if (
+    !options.discardChangedDocs &&
     manifest.status === 'complete' &&
     (!manifest.documentationAfter ||
       !sameDocs(await readDocsState(context), manifest.documentationAfter))
@@ -482,6 +576,89 @@ async function assertResetStillSafe(
     throw new Error(
       'Refusing reset: release documentation changed after initialisation.',
     )
+}
+
+async function absorbAbandonedStagedAddressReleases(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  manifest: OfficialAddressInitManifest,
+) {
+  const owned = requireOwned(manifest)
+  const releases = await context.metaDb
+    .select({
+      code: metaSchema.metaReleases.code,
+      id: metaSchema.metaReleases.id,
+      sourceReleaseId: metaSchema.metaReleases.sourceReleaseId,
+      status: metaSchema.metaReleases.status,
+    })
+    .from(metaSchema.metaReleases)
+    .innerJoin(
+      metaSchema.metaDatasets,
+      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+    )
+    .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
+    .all()
+  const unowned = releases.filter(release => !owned.releaseIds.includes(release.id))
+
+  for (const release of unowned) {
+    const [snapshot, runs] = await Promise.all([
+      context.metaDb
+        .select({
+          id: metaSchema.metaSnapshotSources.snapshotId,
+          status: metaSchema.metaSnapshots.status,
+        })
+        .from(metaSchema.metaSnapshotSources)
+        .innerJoin(
+          metaSchema.metaSnapshots,
+          eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+        )
+        .where(eq(metaSchema.metaSnapshotSources.sourceReleaseId, release.id))
+        .limit(1)
+        .get(),
+      context.metaDb
+        .select({ status: metaSchema.ingestRuns.status })
+        .from(metaSchema.ingestRuns)
+        .where(eq(metaSchema.ingestRuns.releaseId, release.id))
+        .all(),
+    ])
+    if (
+      release.status !== 'staged' ||
+      snapshot?.status !== 'draft' ||
+      !runs.some(run => run.status === 'error')
+    ) {
+      throw new Error(
+        'Refusing reset: address releases no longer exactly match this initialisation manifest.',
+      )
+    }
+    const apiReleaseSet = await context.metaDb
+      .select({ id: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId })
+      .from(metaSchema.metaApiReleaseSetSnapshots)
+      .where(eq(metaSchema.metaApiReleaseSetSnapshots.snapshotId, snapshot.id))
+      .limit(1)
+      .get()
+    if (apiReleaseSet) {
+      throw new Error(
+        'Refusing reset: abandoned staged address release belongs to an API release set.',
+      )
+    }
+    const assets = await context.metaDb
+      .select({
+        assetKey: metaSchema.metaAssets.assetKey,
+        id: metaSchema.metaAssets.id,
+        releaseId: metaSchema.metaAssets.releaseId,
+      })
+      .from(metaSchema.metaAssets)
+      .where(eq(metaSchema.metaAssets.releaseId, release.id))
+      .all()
+    owned.assetIds.push(...assets)
+    owned.releaseCodes.push(release.code)
+    owned.releaseIds.push(release.id)
+    owned.snapshotIds.push(snapshot.id)
+    owned.sourceReleaseIds.push(release.sourceReleaseId)
+    note(
+      formatField('release', release.code),
+      'DISCARDING ABANDONED STAGED ADDRESS RELEASE',
+    )
+  }
 }
 
 function buildResetSql(
@@ -508,7 +685,7 @@ function buildResetSql(
         `UPDATE releases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {

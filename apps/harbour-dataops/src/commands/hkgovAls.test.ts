@@ -5,6 +5,7 @@ import {
   inferAlsSourceVersionFromPath,
   resolveAlsReleaseVersions,
   selectAlsDivisionCohort,
+  shouldIncludeSupersededAlsSourceVersions,
 } from './hkgovAls.ts'
 
 describe('formatSourceDuplicateSummary', () => {
@@ -94,5 +95,20 @@ describe('ALS release versions', () => {
         sourceVersion: '2025-02-25.0',
       },
     ])
+  })
+})
+
+describe('ALS historical backfills', () => {
+  test('skips every completed release after the requested historical gap', () => {
+    expect(
+      shouldIncludeSupersededAlsSourceVersions({
+        allowHistoricalCohort: true,
+      }),
+    ).toBe(true)
+  })
+
+  test('keeps normal ingestion resume behaviour unchanged', () => {
+    expect(shouldIncludeSupersededAlsSourceVersions({})).toBe(false)
+    expect(shouldIncludeSupersededAlsSourceVersions({ continue: true })).toBe(true)
   })
 })

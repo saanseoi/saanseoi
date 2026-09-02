@@ -7,7 +7,12 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
 
-import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
+import {
+  getReplayedAddressVersionMap,
+  hasCurrentAddressVersions,
+  prepareAddressVersionInsertContext,
+} from '@repo/core/pipeline/db/address'
+import { resolveLatestPublishedSnapshotForLineage } from '@repo/core/db/metaRegistry'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
@@ -34,6 +39,11 @@ import {
   type AddressPipelineMessage,
 } from '@repo/core/pipeline/services/addressPipeline/types'
 import { buildAddressReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+import {
+  buildAddressBaseHashInput,
+  buildMatchKey,
+  normaliseAddressI18nSnapshotRow,
+} from '@repo/core/pipeline/services/addressPipeline/normalisation'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
@@ -114,6 +124,8 @@ export async function processLocalAddressSqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
     processingActions?: ReleaseProcessingAction[]
     skipSnapshotCleanup?: boolean
   } = {},
@@ -294,11 +306,55 @@ export async function processLocalAddressSqlUpload(
       releaseCode,
     )
 
-    const addressCurrentLookupCache = (await hasCurrentAddressVersions(
-      dbContext.historyDb as never,
-    ))
-      ? await loadAddressCurrentLookupCache(resolvedTargetName, previewPlan.regionCode)
-      : null
+    const versionInsertContext = await prepareAddressVersionInsertContext(
+      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      initialMessage,
+      'preview',
+    )
+    const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
+      dbContext.metaDb as unknown as HarbourReadableDb,
+      versionInsertContext.snapshotLineageId,
+    )
+    const isHistoricalBranch =
+      versionInsertContext.parentSnapshotId !== null &&
+      activeSnapshot?.id !== versionInsertContext.parentSnapshotId
+    const historicalParentVersions = isHistoricalBranch
+      ? await getReplayedAddressVersionMap(
+          dbContext.metaDb as unknown as HarbourReadableDb,
+          versionInsertContext.parentSnapshotId as string,
+          new Map(
+            dbContext.historyTargets.map(target => [
+              target.bindingName,
+              {
+                bindingName: target.bindingName,
+                db: target.db as HarbourReadableDb,
+              },
+            ]),
+          ),
+          {
+            buildAddressBaseHashInput,
+            buildMatchKey,
+            normaliseAddressI18nSnapshotRow,
+          },
+        )
+      : undefined
+    const addressCurrentLookupCache = historicalParentVersions
+      ? {
+          byId: new Map(
+            [...historicalParentVersions].map(([id, version]) => [
+              id,
+              { churnHash: version.churnHash, id: version.id },
+            ]),
+          ),
+          byMatchKey: buildHistoricalAddressMatchKeyLookup(historicalParentVersions),
+          snapshotId: versionInsertContext.parentSnapshotId as string,
+        }
+      : (await hasCurrentAddressVersions(dbContext.historyDb as never))
+        ? await loadAddressCurrentLookupCache(
+            resolvedTargetName,
+            previewPlan.regionCode,
+          )
+        : null
     const chunkMessages: AddressPipelineMessage[] = buildChunkRanges(
       previewPlan.rowCount,
       ADDRESS_CHUNK_SIZE,
@@ -306,6 +362,10 @@ export async function processLocalAddressSqlUpload(
       range =>
         ({
           addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
+          addressHistoricalParentSnapshotId: historicalParentVersions
+            ? (versionInsertContext.parentSnapshotId ?? undefined)
+            : undefined,
+          addressHistoricalParentVersions: historicalParentVersions,
           ...initialMessage,
           addressStage: 'normalise',
           chunkSize: ADDRESS_CHUNK_SIZE,
@@ -514,6 +574,7 @@ export async function processLocalAddressSqlUpload(
       bucket,
       finalMessageWithMeta,
       importOptions,
+      { deferApiReleaseSet: options.deferApiReleaseSet },
     )
     if (target.remote) {
       try {
@@ -528,17 +589,19 @@ export async function processLocalAddressSqlUpload(
         postPublishCacheError = normaliseError(error)
       }
     }
-    await calculateAndStoreApiReleaseSetStats({
-      currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
-      family: 'address',
-      harbourClient,
-      importOptions,
-      metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      progress,
-      releaseCode,
-      releaseId,
-      target: resolveApiReleaseSetStatsTarget(publishResult),
-    })
+    if (!options.deferApiReleaseSet) {
+      await calculateAndStoreApiReleaseSetStats({
+        currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+        family: 'address',
+        harbourClient,
+        importOptions,
+        metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        progress,
+        releaseCode,
+        releaseId,
+        target: resolveApiReleaseSetStatsTarget(publishResult),
+      })
+    }
     await writeAddressCurrentLookupCache(
       resolvedTargetName,
       previewPlan.regionCode,
@@ -645,6 +708,20 @@ function normaliseError(error: unknown) {
 
 function shouldIncludePreviousShardYears(cohortKey: string) {
   return /^\d{4}-01(?:-\d{2})?/.test(cohortKey)
+}
+
+function buildHistoricalAddressMatchKeyLookup(
+  versions: NonNullable<AddressPipelineMessage['addressHistoricalParentVersions']>,
+) {
+  const byMatchKey = new Map<string, { churnHash: string; id: string }>()
+  for (const version of versions.values()) {
+    if (!version.matchKey || byMatchKey.has(version.matchKey)) continue
+    byMatchKey.set(version.matchKey, {
+      churnHash: version.churnHash,
+      id: version.id,
+    })
+  }
+  return byMatchKey
 }
 
 function updateDbCacheProgress(
