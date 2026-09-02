@@ -1478,7 +1478,7 @@ async function logApiReleaseSetPublication(
           apiCatalogRevisionCode?: string
           apiReleaseSetCode: string
         }>
-        apiReleaseSetStatus?: 'current' | 'draft'
+        apiReleaseSetStatus?: 'current' | 'draft' | 'archived'
       }
     | void
     | null
@@ -1506,7 +1506,7 @@ async function logApiReleaseSetPublication(
   }
 
   const releaseSetCode = result?.apiReleaseSetCode
-  if (releaseSetCode && result?.apiReleaseSetStatus !== 'current') {
+  if (releaseSetCode && result?.apiReleaseSetStatus === 'draft') {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
 
@@ -1539,7 +1539,7 @@ export function selectPublishedApiReleaseSetPublications(
           apiCatalogRevisionCode?: string
           apiReleaseSetCode: string
         }>
-        apiReleaseSetStatus?: 'current' | 'draft'
+        apiReleaseSetStatus?: 'current' | 'draft' | 'archived'
       }
     | void
     | null

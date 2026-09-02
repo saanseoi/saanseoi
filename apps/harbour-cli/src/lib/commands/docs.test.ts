@@ -4,12 +4,50 @@ import { resolve } from 'node:path'
 
 import {
   createApiReleaseSetRevisionDraft,
+  initialApiReleaseSetNotesBody,
   parseMarkdownFixture,
   releaseVersionFromSourceVersion,
   renderMarkdownFixtureBody,
 } from './docs.ts'
 
 describe('docs markdown fixtures', () => {
+  test('provides publishable initial notes for an address release set', async () => {
+    const rendered = await renderMarkdownFixtureBody(
+      {
+        body: initialApiReleaseSetNotesBody('addresses'),
+        frontmatter: {},
+      },
+      {
+        apiFamily: 'addresses',
+        apiReleaseSet: 'data-hk-addresses-2025-03-21.0',
+        apiVersion: 'api-addresses-v0.1',
+        cohortKey: '2025-03-21.0',
+        domainCode: 'official',
+        regionCode: 'hk',
+        revision: '0',
+      },
+      [
+        {
+          datasetCode: 'ds-hk-hkgov-dpo-address',
+          datasetI18n: [{ locale: 'en', name: 'Addresses' }],
+          publisherCode: 'hkgov-dpo',
+          publisherI18n: [{ locale: 'en', name: 'Data Office' }],
+          releaseCode: 'dr-hk-hkgov-dpo-address-2025-03-21.0',
+          resourceType: 'address',
+          role: 'primary',
+          sourceVersion: '2025-03-21.0',
+          variant: 'default',
+        },
+      ],
+    )
+
+    expect(rendered).toContain('First 山水 | SaanSeoi Addresses API release set')
+    expect(rendered).toContain('### Primary · Address')
+    expect(rendered).toContain('# ZH-HANT')
+    expect(rendered).toContain('# ZH-HANS')
+    expect(rendered).not.toContain('{{apiReleaseSetSources:')
+  })
+
   test('copies the prior API release fixture and adds an English revision log', async () => {
     const apiReleaseSetCode = 'data-hk-divisions-2025-09-24.0-r1'
     const path = resolve(
