@@ -36,6 +36,8 @@ let {
 let view = $state<'code' | 'preview' | 'prompt'>('prompt')
 let referenceIndex = $state(0)
 let expanded = $state(false)
+let promptPanel = $state<HTMLElement>()
+let promptHeight = $state<number>()
 
 const reference = $derived(references[referenceIndex])
 
@@ -51,13 +53,20 @@ const trackCopy = (outcome: 'success' | 'failure', entityId: string) =>
 const selectReference = (offset: number) => {
   referenceIndex = (referenceIndex + offset + references.length) % references.length
 }
+
+const showPreview = () => {
+  promptHeight = promptPanel?.getBoundingClientRect().height
+  view = 'preview'
+}
 </script>
 
 <div
   data-guide-llm-prompt-card
   class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card"
+  style:height={view === 'preview' && promptHeight ? `${promptHeight}px` : undefined}
 >
   <section
+    bind:this={promptPanel}
     aria-hidden={view !== 'prompt'}
     inert={view !== 'prompt'}
     class={`absolute inset-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
@@ -93,7 +102,7 @@ const selectReference = (offset: number) => {
         <button
           class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
           type="button"
-          onclick={() => (view = 'preview')}
+          onclick={showPreview}
         >
           <Icon icon="proicons:map" class="size-4" aria-hidden="true" />
           {m.guide_code_block_preview()}
@@ -195,6 +204,7 @@ const selectReference = (offset: number) => {
     }`}
     style:position={expanded ? 'fixed' : undefined}
     class:relative={!expanded && view === 'preview'}
+    class:h-full={!expanded && view === 'preview'}
   >
     <header
       class="flex items-center justify-between gap-3 border-b border-[#596074] bg-[#202633] px-4 py-2.5"
