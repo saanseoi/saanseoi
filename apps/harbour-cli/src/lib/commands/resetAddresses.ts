@@ -40,13 +40,14 @@ type DocsState = {
   releases: Array<{ id: string; notes: string | null }>
 }
 export type OfficialAddressInitManifest = {
-  baseline: { docs: DocsState }
+  baseline: { currentDivisionSnapshotIds: string[]; docs: DocsState }
   completedAt?: string
   createdAt: string
   identityFiles: { decisions: FileBeforeImage; history: FileBeforeImage }
   owned?: {
     apiReleaseSetIds: string[]
     assetIds: Array<{ assetKey: string; id: string; releaseId: string | null }>
+    materialisedDivisionSnapshotIds: string[]
     releaseCodes: string[]
     releaseIds: string[]
     snapshotIds: string[]
@@ -96,7 +97,10 @@ export async function beginOfficialAddressInitialisation(
   try {
     await assertCleanAddressBaseline(context)
     const manifest: OfficialAddressInitManifest = {
-      baseline: { docs: await readDocsState(context) },
+      baseline: {
+        currentDivisionSnapshotIds: await readCurrentDivisionSnapshotIds(context),
+        docs: await readDocsState(context),
+      },
       createdAt: new Date().toISOString(),
       identityFiles: {
         decisions: await readBeforeImage(DECISIONS_FILE),
@@ -129,6 +133,9 @@ export async function completeOfficialAddressInitialisation(target: UploadTarget
   })
   try {
     manifest.owned = await collectOwnedRecords(context)
+    manifest.owned.materialisedDivisionSnapshotIds = (
+      await readCurrentDivisionSnapshotIds(context)
+    ).filter(id => !(manifest.baseline.currentDivisionSnapshotIds ?? []).includes(id))
     manifest.completedAt = new Date().toISOString()
     manifest.documentationAfter = await readDocsState(context)
     manifest.status = 'complete'
@@ -347,6 +354,7 @@ async function collectOwnedRecords(
   return {
     apiReleaseSetIds: [...new Set(apiRows.map(row => row.id))],
     assetIds: assets,
+    materialisedDivisionSnapshotIds: [],
     releaseCodes: releases.map(row => row.code),
     releaseIds,
     snapshotIds,
@@ -400,6 +408,15 @@ async function assertResetStillSafe(
   if (unexpectedCurrent)
     throw new Error(
       'Refusing reset: current address rows are not owned by this initialisation.',
+    )
+  const currentDivisionSnapshotIds = await readCurrentDivisionSnapshotIds(context)
+  const expectedDivisionSnapshotIds = [
+    ...(manifest.baseline.currentDivisionSnapshotIds ?? []),
+    ...owned.materialisedDivisionSnapshotIds,
+  ]
+  if (!sameSet(currentDivisionSnapshotIds, expectedDivisionSnapshotIds))
+    throw new Error(
+      'Refusing reset: current division projections changed after address initialisation.',
     )
   for (const target of context.historyTargets) {
     const unexpectedHistory = await (target.db as typeof context.historyDb)
@@ -470,7 +487,8 @@ function buildResetSql(
     assets = sqlList(owned.assetIds.map(asset => asset.id))
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE releaseId IN (${ids});`
   const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`
-  const currentSql = `DELETE FROM address2d WHERE snapshotId IN (${snapshots});`
+  const divisionSnapshots = sqlList(owned.materialisedDivisionSnapshotIds)
+  const currentSql = `DELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});`
   const docsSql = [
     ...manifest.baseline.docs.apiReleaseSets.map(
       row =>
@@ -538,6 +556,15 @@ async function readDocsState(
       .all(),
   ])
   return { apiReleaseSets: apiReleaseSets.sort(byId), releases: releases.sort(byId) }
+}
+async function readCurrentDivisionSnapshotIds(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+) {
+  const rows = await context.currentDb
+    .select({ snapshotId: currentSchema.divisions.snapshotId })
+    .from(currentSchema.divisions)
+    .all()
+  return [...new Set(rows.map(row => row.snapshotId))].sort()
 }
 async function readBeforeImage(path: string): Promise<FileBeforeImage> {
   try {

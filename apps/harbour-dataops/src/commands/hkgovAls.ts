@@ -460,13 +460,21 @@ async function materialiseDivisionSnapshotForAddressRelease(
         `No published Overture division snapshot found for cohort ${cohortKey}.`,
       )
     }
-    const present = await context.currentDb
-      .select({ id: currentSchema.divisions.id })
-      .from(currentSchema.divisions)
-      .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
-      .limit(1)
-      .get()
-    if (present) return
+    const [presentDivision, presentI18n] = await Promise.all([
+      context.currentDb
+        .select({ id: currentSchema.divisions.id })
+        .from(currentSchema.divisions)
+        .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+        .limit(1)
+        .get(),
+      context.currentDb
+        .select({ divisionId: currentSchema.divisionsI18n.divisionId })
+        .from(currentSchema.divisionsI18n)
+        .where(eq(currentSchema.divisionsI18n.snapshotId, snapshot.id))
+        .limit(1)
+        .get(),
+    ])
+    if (presentDivision && presentI18n) return
 
     const [divisions, i18n] = await Promise.all([
       context.historyDb
@@ -498,7 +506,17 @@ async function materialiseDivisionSnapshotForAddressRelease(
           nameVariant: historySchema.divisionsI18n.nameVariant,
         })
         .from(historySchema.divisionsI18n)
-        .where(eq(historySchema.divisionsI18n.snapshotId, snapshot.id))
+        .innerJoin(
+          historySchema.divisions,
+          and(
+            eq(historySchema.divisions.id, historySchema.divisionsI18n.divisionId),
+            eq(
+              historySchema.divisions.versionHash,
+              historySchema.divisionsI18n.versionHash,
+            ),
+          ),
+        )
+        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
         .all(),
     ])
     if (divisions.length === 0) {
