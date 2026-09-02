@@ -1,5 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
-import type { HarbourReadableDb } from '../../../lib/db/types'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
   and,
   eq,
@@ -10,8 +10,13 @@ import {
   type SourceDatabase,
 } from '@repo/db'
 
-import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
+import {
+  buildAlignAddressCurrentDivisionSnapshotSql,
+  materialiseReplayedAddressCurrentSnapshot,
+  prepareAddressVersionInsertContext,
+} from '../../db/address'
 import { getCurrentSourceHkgovAlsAddress2dRecords } from '../../db/source'
+import { resolveDataShardEnvironment } from '../shared'
 import type { HarbourWorkerBucket } from '../division'
 import {
   buildPipelineArtefactKey,
@@ -197,6 +202,35 @@ export async function writeAddressCurrentSqlChunkStage(
   const [currentFile] = buildAddressResolvedSqlImportFiles(message, artefact).filter(
     file => file.target === 'current',
   )
+  if (artefact.rowStart === 0 && pipelineMessage.addressHistoricalParentVersions) {
+    const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+    const versionInsertContext = await prepareAddressVersionInsertContext(
+      metaRepoDb,
+      message,
+      resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
+    )
+    if (
+      pipelineMessage.addressHistoricalParentSnapshotId !==
+      versionInsertContext.parentSnapshotId
+    ) {
+      throw new Error(
+        `Address replay parent does not match snapshot ${versionInsertContext.snapshotId}.`,
+      )
+    }
+    const divisionSnapshotId = artefact.rows[0]?.base.divisionSnapshotId
+    if (!divisionSnapshotId) {
+      throw new Error(
+        `Address snapshot ${versionInsertContext.snapshotId} has no division snapshot for historical replay.`,
+      )
+    }
+    await materialiseReplayedAddressCurrentSnapshot(
+      currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      versionInsertContext.snapshotId,
+      divisionSnapshotId,
+      pipelineMessage.addressHistoricalParentVersions.values(),
+      artefact.processingRunStartedAt,
+    )
+  }
   const initFile =
     artefact.rowStart === 0 && artefact.rows[0]?.base.snapshotId
       ? await buildCurrentSnapshotInitSqlFile(

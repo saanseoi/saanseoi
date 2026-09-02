@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
+import type { ReplayedAddressVersionSnapshot } from '../../db/address'
 import type {
   AddressI18nPayload,
   AddressRow,
@@ -38,6 +39,9 @@ export type AddressPipelineStats = {
 export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressStage?: AddressPipelineStage
   addressCurrentLookupCache?: AddressCurrentLookupCache
+  /** Exact historical parent state, supplied only for a local branch backfill. */
+  addressHistoricalParentVersions?: Map<string, ReplayedAddressVersionSnapshot>
+  addressHistoricalParentSnapshotId?: string
   artefactKey?: string
   resolvedArtefactKey?: string
   addressSqlArtefactKeys?: string[]
@@ -52,6 +56,8 @@ export type AddressCurrentLookupEntry = {
 export type AddressCurrentLookupCache = {
   byId: Map<string, AddressCurrentLookupEntry>
   byMatchKey: Map<string, AddressCurrentLookupEntry>
+  /** Present only when the cache was reconstructed for this exact snapshot. */
+  snapshotId?: string
 }
 
 export type NormalisedAddressRecord = {
