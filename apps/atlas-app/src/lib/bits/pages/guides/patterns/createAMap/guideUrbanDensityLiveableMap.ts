@@ -7,7 +7,7 @@ import type {
 } from './urbanDensityCensusDistricts.ts'
 import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
-export const landAnalysisPath = '/guides/create-a-map/land-analysis.json'
+export const landAnalysisPath = '/guides/create-a-map/land-analysis.json.gz'
 
 type DownloadedDistrictExclusionProperties = {
   area: string
@@ -73,7 +73,11 @@ export const loadCachedDistrictExclusions = () => {
       if (!response.ok) {
         throw new Error(`Land-analysis download failed: ${response.status}`)
       }
-      return decodeLandAnalysis(await response.json())
+      if (!response.body) {
+        throw new Error('Land-analysis download has no response body.')
+      }
+      const decompressed = response.body.pipeThrough(new DecompressionStream('gzip'))
+      return decodeLandAnalysis(await new Response(decompressed).json())
     })
     .catch(cause => {
       cachedDistrictExclusions = undefined
@@ -119,7 +123,7 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
         source: 'excluded-districts',
         paint: {
           'fill-antialias': false,
-          'fill-color': '#e76f51',
+          'fill-color': '#ff503d',
           'fill-opacity': 0,
           'fill-opacity-transition': { duration: 700 },
         },
@@ -146,7 +150,9 @@ export async function addUrbanDensityLiveableLand(map: MapLibreMap) {
       map.setPaintProperty('liveable-districts', 'fill-opacity', 0.48)
       map.setPaintProperty('excluded-districts-outline', 'line-opacity', 1)
     })
+    return true
   } catch (cause) {
     console.error('Liveable district land could not be calculated.', cause)
+    return false
   }
 }

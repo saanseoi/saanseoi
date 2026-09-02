@@ -5,6 +5,7 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import ReleaseAuditActionRow from './releaseAuditActionRow.svelte'
 import ReleaseAuditCard from './releaseAuditCard.svelte'
 import ReleaseAuditCardHeader from './releaseAuditCardHeader.svelte'
+import ReleaseAuditLoadMoreSentinel from './releaseAuditLoadMoreSentinel.svelte'
 import type {
   AuditEvidenceCopyHandler,
   AuditRowPresentation,
@@ -18,10 +19,12 @@ type Props = {
   analyticsSurface: ReleaseAnalyticsSurface
   evidenceTransitionName: (id: string) => string
   expandedEvidenceId: string | null
+  failedSectionActions: Set<string>
   formatAction: (action: string) => { issue: string; outcome: string }
   formatNumber: (value: number) => string
   onCopy: AuditEvidenceCopyHandler
   onFullscreen: (id: string, evidence: unknown) => void
+  onLoadMore: (section: AuditSection) => Promise<void>
   onToggle: (id: string) => void
   presentRow: (
     action: string,
@@ -29,6 +32,7 @@ type Props = {
     summary: string,
   ) => AuditRowPresentation
   sections: AuditSection[]
+  loadingSectionActions: Set<string>
 }
 
 let {
@@ -36,13 +40,16 @@ let {
   analyticsSurface,
   evidenceTransitionName,
   expandedEvidenceId,
+  failedSectionActions,
   formatAction,
   formatNumber,
   onCopy,
   onFullscreen,
+  onLoadMore,
   onToggle,
   presentRow,
   sections,
+  loadingSectionActions,
 }: Props = $props()
 
 let expandedSections = $state<Map<string, boolean>>(new Map())
@@ -133,6 +140,13 @@ const toggleSection = (section: AuditSection) => {
                 transitionName={evidenceTransitionName(row.id)}
               />
             {/each}
+            {#if section.hasMore}
+              <ReleaseAuditLoadMoreSentinel
+                failed={failedSectionActions.has(section.action)}
+                loading={loadingSectionActions.has(section.action)}
+                onLoad={() => onLoadMore(section)}
+              />
+            {/if}
           </div>
         {/if}
       </ReleaseAuditCard>

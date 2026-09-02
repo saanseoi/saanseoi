@@ -1,6 +1,11 @@
 <script lang="ts">
-import { GuideFoundations } from '#lib/bits/pages/guides/index.js'
-import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
+import {
+  GuideEyebrow,
+  GuideFoundations,
+  GuideLayout,
+  GuideParagraph,
+  GuideTitle,
+} from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 type Foundation = {
@@ -17,16 +22,14 @@ type Props = {
 let { foundations }: Props = $props()
 </script>
 
-<div class="max-w-4xl">
-  <PageHeader>
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {@html m.guide_create_map_eyebrow()}
-    </p>
-    <PageTitle class="mt-3">{@html m.guide_create_map_hero()}</PageTitle>
-    <PageDescription class="mt-5">{@html m.guide_create_map_intro()}</PageDescription>
-  </PageHeader>
+<div>
+  <GuideLayout width="content">
+    <header>
+      <GuideEyebrow text={m.guide_create_map_eyebrow()} />
+      <GuideTitle title={m.guide_create_map_hero()} class="mt-3" />
+      <GuideParagraph class="mt-5">{@html m.guide_create_map_intro()}</GuideParagraph>
+    </header>
+  </GuideLayout>
   <GuideFoundations
     title={m.guide_foundations_title()}
     description={m.guide_foundations_description()}

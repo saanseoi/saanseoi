@@ -10,6 +10,7 @@ import GuideNumberedStepHeading from '../../components/createAMap/guideNumberedS
 import GuideSubstepHeading from '../../components/createAMap/guideSubstepHeading.svelte'
 import GuideZedProjectPreparation from '../../components/createAMap/guideZedProjectPreparation.svelte'
 import GuideCodeBlock from '../../components/shared/guideCodeBlock.svelte'
+import GuideParagraph from '../../components/shared/guideParagraph.svelte'
 import GuideScreenshot from '../../components/shared/guideScreenshot.svelte'
 
 import apiKeyCreatedImage from '#lib/assets/guides/openrouter-api-key-created.png'
@@ -126,10 +127,7 @@ const agentWorkflowScreenshots = $derived([
 ])
 </script>
 
-<div
-  id="zed-setup-guide"
-  class="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(18rem,1fr)]"
->
+<div id="zed-setup-guide" class="mt-8">
   <section
     class="min-w-0 border-l-4 border-[#7dd3fc] bg-[#7dd3fc]/12"
     aria-labelledby="zed-setup-toggle-title"
@@ -170,13 +168,18 @@ const agentWorkflowScreenshots = $derived([
         class="px-5 pb-5"
         transition:slide={{ duration: 180 }}
       >
-        <div class="space-y-4 border-b border-[#7dd3fc]/25 pb-8">
-          <p class="font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_zed_setup_intro()}
-          </p>
-          <p class="font-body text-body-lg leading-8 text-foreground-alt">
-            {@html m.guide_zed_setup_without_vpn()}
-          </p>
+        <div class="border-b border-[#7dd3fc]/25 pb-8">
+          <div class="space-y-4">
+            <GuideParagraph> {@html m.guide_zed_setup_intro()} </GuideParagraph>
+            <GuideParagraph> {@html m.guide_zed_setup_without_vpn()} </GuideParagraph>
+          </div>
+
+          <aside
+            class="mt-8 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
+            aria-label={m.guide_zed_setup_alternative_label()}
+          >
+            <GuideParagraph> {@html m.guide_zed_setup_alternative()} </GuideParagraph>
+          </aside>
         </div>
 
         <ol class="mt-8 list-none space-y-8 p-0">
@@ -188,9 +191,9 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading id="zed-setup-heading" number="01">
                   {@html m.guide_zed_setup_step_install()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_step_install_description()}
-                </p>
+                </GuideParagraph>
                 <GuideExternalAction
                   href="https://zed.dev/download"
                   icon="proicons:arrow-down-to-bracket"
@@ -214,18 +217,18 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading number="02">
                   {@html m.guide_zed_setup_step_account()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_account_description()}
-                </p>
+                </GuideParagraph>
                 <GuideExternalAction
                   href="https://openrouter.ai/sign-up"
                   icon="proicons:user-add"
                 >
                   {@html m.guide_zed_setup_account_button()}
                 </GuideExternalAction>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_account_confirmation()}
-                </p>
+                </GuideParagraph>
               </div>
               <GuideScreenshot
                 src={openRouterSignUpImage}
@@ -243,18 +246,18 @@ const agentWorkflowScreenshots = $derived([
                 <GuideNumberedStepHeading number="03">
                   {@html m.guide_zed_setup_step_credit()}
                 </GuideNumberedStepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_credit_description()}
-                </p>
+                </GuideParagraph>
                 <GuideExternalAction
                   href="https://openrouter.ai/settings/credits"
                   icon="proicons:credit-card"
                 >
                   {@html m.guide_zed_setup_open_credits()}
                 </GuideExternalAction>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_credit_note()}
-                </p>
+                </GuideParagraph>
               </div>
               <GuideScreenshot
                 src={openRouterCreditsImage}
@@ -272,9 +275,9 @@ const agentWorkflowScreenshots = $derived([
             >
               <li class="space-y-3 pl-1">
                 <div class="flex flex-wrap items-center gap-3">
-                  <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                  <GuideParagraph>
                     {@html m.guide_zed_setup_key_description()}
-                  </p>
+                  </GuideParagraph>
                   <GuideExternalAction
                     href="https://openrouter.ai/workspaces/default/keys"
                     icon="proicons:key"
@@ -284,27 +287,25 @@ const agentWorkflowScreenshots = $derived([
                 </div>
               </li>
               <li class="space-y-3 pl-1">
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_image_api_key_dialog_caption()}
-                </p>
+                </GuideParagraph>
                 <GuideScreenshot
                   src={apiKeyDialogImage}
                   alt={m.guide_zed_setup_image_api_key_dialog_alt()}
                 />
               </li>
               <li class="space-y-3 pl-1">
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
-                  {@html m.guide_zed_setup_key_once()}
-                </p>
+                <GuideParagraph> {@html m.guide_zed_setup_key_once()} </GuideParagraph>
                 <GuideScreenshot
                   src={apiKeyCreatedImage}
                   alt={m.guide_zed_setup_image_api_key_created_alt()}
                 />
               </li>
             </ol>
-            <p class="mt-6 font-body text-body-lg leading-8 text-foreground-alt">
+            <GuideParagraph class="mt-6">
               {@html m.guide_zed_setup_key_manage()}
-            </p>
+            </GuideParagraph>
           </li>
 
           <li class="border-t border-border-card pt-7">
@@ -317,18 +318,18 @@ const agentWorkflowScreenshots = $derived([
                 <GuideSubstepHeading marker="1.">
                   {@html m.guide_zed_setup_open_zed_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_open_zed_description()}
-                </p>
+                </GuideParagraph>
               </li>
 
               <li class="space-y-4">
                 <GuideSubstepHeading marker="2.">
                   {@html m.guide_zed_setup_project_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_project_description()}
-                </p>
+                </GuideParagraph>
                 <GuideScreenshot
                   src={zedOpenProjectImage}
                   alt={m.guide_zed_setup_image_open_project_alt()}
@@ -348,9 +349,9 @@ const agentWorkflowScreenshots = $derived([
               {@html m.guide_zed_setup_provider_title()}
             </GuideNumberedStepHeading>
             <div class="mt-5 space-y-4">
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph>
                 {@html m.guide_zed_setup_provider_description()}
-              </p>
+              </GuideParagraph>
               <div class="grid gap-5">
                 {#each providerNavigationScreenshots as screenshot (screenshot.src)}
                   <GuideScreenshot {...screenshot} />
@@ -360,9 +361,9 @@ const agentWorkflowScreenshots = $derived([
                 src={zedOpenRouterProviderImage}
                 alt={m.guide_zed_setup_image_provider_alt()}
               />
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph>
                 {@html m.guide_zed_setup_provider_docs()}
-              </p>
+              </GuideParagraph>
             </div>
           </li>
 
@@ -371,9 +372,7 @@ const agentWorkflowScreenshots = $derived([
               {@html m.guide_zed_setup_model_title()}
             </GuideNumberedStepHeading>
             <div class="mt-5 space-y-4">
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
-                {@html m.guide_zed_setup_model_intro()}
-              </p>
+              <GuideParagraph> {@html m.guide_zed_setup_model_intro()} </GuideParagraph>
               <GuideSubstepHeading marker="Step 1">
                 {@html m.guide_zed_setup_model_configuration_title()}
               </GuideSubstepHeading>
@@ -382,9 +381,9 @@ const agentWorkflowScreenshots = $derived([
                 alt={m.guide_zed_setup_image_settings_file_menu_alt()}
                 caption={m.guide_zed_setup_image_settings_file_menu_caption()}
               />
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph>
                 {@html m.guide_zed_setup_model_description()}
-              </p>
+              </GuideParagraph>
               <GuideScreenshot
                 src={settingsFileBeforeImage}
                 alt={m.guide_zed_setup_image_settings_file_before_alt()}
@@ -396,18 +395,18 @@ const agentWorkflowScreenshots = $derived([
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
               />
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph>
                 {@html m.guide_zed_setup_full_settings_description()}
-              </p>
+              </GuideParagraph>
               <GuideCodeBlock
                 label={m.guide_zed_setup_full_settings_label()}
                 code={fullSettingsCode}
                 copyLabel={m.common_copy()}
                 copiedLabel={m.common_copied()}
               />
-              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              <GuideParagraph>
                 {@html m.guide_zed_setup_save({ shortcut: saveShortcut })}
-              </p>
+              </GuideParagraph>
               <GuideScreenshot
                 src={settingsFileAfterImage}
                 alt={m.guide_zed_setup_image_settings_file_after_alt()}
@@ -417,9 +416,9 @@ const agentWorkflowScreenshots = $derived([
                 <GuideSubstepHeading marker="Step 2">
                   {@html m.guide_zed_setup_ready_title()}
                 </GuideSubstepHeading>
-                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                <GuideParagraph>
                   {@html m.guide_zed_setup_ready_intro()}
-                </p>
+                </GuideParagraph>
                 <GuideScreenshot
                   src={agentPanelButtonImage}
                   alt={m.guide_zed_setup_image_agent_panel_button_alt()}
@@ -437,27 +436,14 @@ const agentWorkflowScreenshots = $derived([
       </div>
     {/if}
   </section>
-
-  {#if expanded}
-    <aside
-      class="mt-16 border-l-4 border-[#f2c26d] bg-[#f2c26d]/12 px-5 py-5"
-      aria-label={m.guide_zed_setup_alternative_label()}
-    >
-      <p class="font-body text-body-lg leading-8 text-foreground-alt">
-        {@html m.guide_zed_setup_alternative()}
-      </p>
-    </aside>
-  {/if}
 </div>
 
 {#if expanded}
-  <div class="mt-10 max-w-3xl space-y-4 border-t border-border-card pt-8">
+  <div class="mt-10 max-w-232 space-y-4 border-t border-border-card pt-8">
     <h3 class="font-display text-headline-sm font-bold text-primary">
       {@html m.guide_zed_setup_prompt_title()}
     </h3>
-    <p class="font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_zed_setup_prompt_intro()}
-    </p>
+    <GuideParagraph> {@html m.guide_zed_setup_prompt_intro()} </GuideParagraph>
     <GuideCodeBlock
       label={m.guide_llm_modal_prompt_label()}
       code={prompt}

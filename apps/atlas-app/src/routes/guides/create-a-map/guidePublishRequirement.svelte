@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Snippet } from 'svelte'
+import { tick, type Snippet } from 'svelte'
 
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import {
@@ -19,6 +19,7 @@ type Props = {
   onReset: () => void
   resetDescription: string
   resetLabel: string
+  scrollTargetId: string
   titleId: string
 }
 
@@ -33,9 +34,28 @@ let {
   onReset,
   resetDescription,
   resetLabel,
+  scrollTargetId,
   titleId,
 }: Props = $props()
 let expanded = $state(false)
+
+const completeAndScroll = async () => {
+  onComplete()
+  await tick()
+  requestAnimationFrame(() => {
+    const target = document.getElementById(scrollTargetId)
+    if (!target) return
+
+    const headerHeight =
+      document.querySelector('header')?.getBoundingClientRect().height ?? 72
+    window.scrollTo({
+      top: Math.max(
+        0,
+        window.scrollY + target.getBoundingClientRect().top - headerHeight - 16,
+      ),
+    })
+  })
+}
 </script>
 
 {#snippet completeSummary()}
@@ -43,11 +63,11 @@ let expanded = $state(false)
 {/snippet}
 
 {#snippet completeDetails()}
-  <p class="font-body text-body-md leading-7 text-foreground-alt">
-    {resetDescription}
-  </p>
-  <div class="mt-5 flex justify-end">
-    <Button size="compact" variant="secondary" onclick={onReset}>
+  <div class="flex flex-nowrap items-center justify-between gap-4">
+    <p class="min-w-0 font-body text-body-lg leading-8 text-foreground-alt">
+      {resetDescription}
+    </p>
+    <Button class="mr-3 shrink-0" size="compact" variant="secondary" onclick={onReset}>
       <Icon
         icon="material-symbols-light:restart-alt-rounded"
         class="size-5"
@@ -68,14 +88,14 @@ let expanded = $state(false)
     details={completeDetails}
   />
 {:else}
-  <div class="mt-5 max-w-3xl">
+  <div class="mt-5" {id}>
     {@render children?.()}
   </div>
-  <div class="mt-6 flex max-w-3xl justify-end">
+  <div class="mt-6 flex w-full max-w-178 justify-end">
     <Button
-      class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+      class="bg-secondary text-on-secondary hover:bg-secondary/85"
       size="compact"
-      onclick={onComplete}
+      onclick={() => void completeAndScroll()}
     >
       <Icon
         icon="material-symbols-light:check-rounded"

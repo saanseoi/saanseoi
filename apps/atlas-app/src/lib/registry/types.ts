@@ -70,6 +70,7 @@ export type ApiRelease = {
     sourceCode?: string
     sourceReleaseCode?: string
   }>
+  processingActionCount?: number
   bulkActions?: Array<{
     id: string
     operationCode: string
@@ -187,6 +188,7 @@ export type SourceVersion = {
     createdAt: string
     updatedAt: string
   }>
+  processingActionCount?: number
   releaseAs?: Array<{
     apiFamily: string
     apiVersion: string

@@ -9,11 +9,20 @@ import GuideParagraph from './guideParagraph.svelte'
 type Props = {
   alt: string
   caption?: string
+  class?: string
   src: string
   srcDark?: string
+  width?: 'content' | 'short'
 }
 
-let { alt, caption, src, srcDark }: Props = $props()
+let {
+  alt,
+  caption,
+  class: className = '',
+  src,
+  srcDark,
+  width = 'short',
+}: Props = $props()
 let enlarged = $state(false)
 let image: HTMLImageElement
 let displayWidth = $state(0)
@@ -41,7 +50,9 @@ const enlarge = () => {
 }
 </script>
 
-<figure class="space-y-2">
+<figure
+  class={`space-y-2 ${width === 'short' ? 'max-w-3xl' : 'max-w-232'} ${className}`}
+>
   <button
     class="group relative block w-full overflow-hidden border border-border-card bg-[#7dd3fc]/10 p-2 text-left shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
     type="button"
@@ -59,7 +70,7 @@ const enlarge = () => {
     >
   </button>
   {#if caption}
-    <figcaption><GuideParagraph>{caption}</GuideParagraph></figcaption>
+    <figcaption><GuideParagraph>{@html caption}</GuideParagraph></figcaption>
   {/if}
 </figure>
 

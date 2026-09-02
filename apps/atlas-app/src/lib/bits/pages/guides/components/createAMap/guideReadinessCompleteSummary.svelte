@@ -12,19 +12,17 @@ let { description, eyebrow, titleId }: Props = $props()
 
 <Icon
   icon="material-symbols-light:check-circle-rounded"
-  class="mt-0.5 size-5 shrink-0 text-[#6fdec9]"
+  class="order-2 size-10 shrink-0 self-center text-secondary dark:text-[#6fdec9]"
   aria-hidden="true"
 />
-<span class="min-w-0 flex-1">
+<span class="order-1 min-w-0 flex-1">
   <span
     id={titleId}
-    class="block font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-[#6fdec9]"
+    class="block font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-secondary dark:text-[#6fdec9]"
   >
     {@html eyebrow}
   </span>
-  <span
-    class="mt-2 block max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-  >
+  <span class="mt-1 block font-body text-body-md font-semibold text-primary">
     {@html description}
   </span>
 </span>

@@ -5,6 +5,8 @@ import { slide } from 'svelte/transition'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { authClient } from '#lib/auth-client.js'
 import { m } from '#lib/bits/internal/i18n.js'
+import GuideLayout from '../shared/guideLayout.svelte'
+import GuideParagraph from '../shared/guideParagraph.svelte'
 
 type AccountMode = 'sign-in' | 'sign-up'
 type Props = {
@@ -118,11 +120,11 @@ const switchMode = (nextMode: AccountMode) => {
 
 {#snippet accessOptions(accountMode: AccountMode)}
   <div class="min-w-0">
-    <p class="font-body text-body-lg leading-8 text-foreground-alt">
+    <GuideParagraph>
       {accountMode === 'sign-up'
         ? m.guide_basemap_account_options()
         : m.guide_basemap_sign_in_options()}
-    </p>
+    </GuideParagraph>
     <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each providers as provider (provider.id)}
         <button
@@ -252,7 +254,7 @@ const switchMode = (nextMode: AccountMode) => {
   </div>
 {/snippet}
 
-<div {id} class="mt-8 max-w-3xl overflow-hidden">
+<GuideLayout width="content" class="mt-8 overflow-hidden" {id}>
   <div
     class={`flex w-[200%] transition-transform duration-300 ease-out motion-reduce:transition-none ${mode === 'sign-in' ? '-translate-x-1/2' : 'translate-x-0'}`}
   >
@@ -321,4 +323,4 @@ const switchMode = (nextMode: AccountMode) => {
       {socialError}
     </p>
   {/if}
-</div>
+</GuideLayout>

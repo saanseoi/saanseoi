@@ -26,14 +26,19 @@ type Props = {
   copyLabel: string
   dimmedLines?: number[]
   editorIcon?: string
+  fillAvailableHeight?: boolean
   label: string
   labelContent?: Snippet
   language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   leadingActions?: Snippet
   onCopy?: (outcome: 'success' | 'failure') => void
+  onVisibleLinesChange?: (lines: GuideCodeVisibleLine[]) => void
+  pathSeparator?: '\\'
   promptIcon?: string
+  subheader?: Snippet
   terminalDotsSuffix?: Snippet
-  variant?: 'code' | 'editor' | 'prompt'
+  variant?: 'code' | 'editor' | 'prompt' | 'reference'
+  width?: 'content' | 'short' | 'shortCard'
 }
 
 type BashTokenKind = 'command' | 'comment' | 'flag' | 'operator' | 'plain' | 'string'
@@ -44,6 +49,11 @@ type SourceTokenKind =
   | 'plain'
   | 'selector'
   | 'string'
+
+export type GuideCodeVisibleLine = {
+  line: number
+  top: number
+}
 
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -64,7 +74,7 @@ const sourceTokenClass: Record<Exclude<SourceTokenKind, 'plain'>, string> = {
   string: 'text-[#a5d6ff]',
 }
 
-const codeCommentColumns = 83
+const codeCommentColumns = 79
 
 const splitCodeComment = (text: string, maximumLength: number) => {
   const lines: string[] = []
@@ -219,7 +229,7 @@ const highlightSource = (
           const maximumLength = codeCommentColumns - indentation.length - 3
           const isVisible = commentsVisible || comment.alwaysVisible
           const visibility = isVisible
-            ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+            ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]'
             : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
           const commentLines = splitCodeComment(comment.text, maximumLength).map(
             text =>
@@ -241,7 +251,7 @@ const highlightSource = (
         const prefix = sourceComment[1] ?? '// '
         const maximumLength = codeCommentColumns - prefix.length
         const visibility = commentsVisible
-          ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]'
+          ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]'
           : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'
         const sourceCommentLines = splitCodeComment(
           sourceComment[2] ?? '',
@@ -257,7 +267,7 @@ const highlightSource = (
       }
 
       const sourceCommentVisibility = isSourceComment
-        ? ` overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-6 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}`
+        ? ` overflow-hidden transition-[max-height,opacity,transform] duration-300 origin-top motion-reduce:transition-none ${commentsVisible ? 'max-h-24 opacity-100 transform-[rotateX(0deg)]' : 'max-h-0 opacity-0 transform-[rotateX(-90deg)]'}`
         : ''
 
       return `${renderedComments}<span data-code-line="${index + 1}" class="block${sourceCommentVisibility}${dimmedLines.includes(index + 1) ? ' opacity-40' : ''}">${content || '&nbsp;'}</span>`
@@ -278,18 +288,40 @@ let {
   copyLabel,
   dimmedLines = [],
   editorIcon = 'material-symbols-light:code-rounded',
+  fillAvailableHeight = false,
   label,
   language = 'text',
   leadingActions,
   labelContent,
   onCopy,
+  onVisibleLinesChange,
+  pathSeparator,
   promptIcon = 'material-symbols-light:auto-awesome',
+  subheader,
   terminalDotsSuffix,
   variant = 'code',
+  width = 'shortCard',
 }: Props = $props()
 let copied = $state(false)
 let manualCopyOpen = $state(false)
 let manualCopyText: HTMLTextAreaElement
+let codeElement: HTMLPreElement
+let hiddenLinesAbove = $state(0)
+let hiddenLinesBelow = $state(0)
+const displayedLabel = $derived(
+  (pathSeparator === '\\' && (label === '.env' || label.startsWith('src/'))
+    ? label.replaceAll('/', '\\')
+    : label
+  ).replace(/\s(?:—|-)\s/gu, ' • '),
+)
+const editorLabel = $derived(
+  variant === 'editor'
+    ? displayedLabel.replace(
+        /(\s•\s)(.*)$/u,
+        (_, separator, title) => `${separator}${title.toLocaleLowerCase()}`,
+      )
+    : displayedLabel,
+)
 const highlightedCode = $derived(
   language === 'bash'
     ? highlightBash(displayCode ?? code)
@@ -356,23 +388,80 @@ const selectManualCopyText = () => {
   manualCopyText.focus()
   manualCopyText.select()
 }
+
+function reportVisibleLines() {
+  if (!codeElement) return
+
+  const viewport = codeElement.getBoundingClientRect()
+  const card = codeElement.parentElement?.getBoundingClientRect()
+  if (!card) return
+  const sourceLines = Array.from(
+    codeElement.querySelectorAll<HTMLElement>('[data-code-line]'),
+  ).filter(line => line.getBoundingClientRect().height > 0)
+  const lines = sourceLines
+    .filter(line => {
+      const rect = line.getBoundingClientRect()
+      return rect.height > 0 && rect.bottom > viewport.top && rect.top < viewport.bottom
+    })
+    .map(line => ({
+      line: Number(line.dataset.codeLine),
+      top: line.getBoundingClientRect().top - card.top,
+    }))
+    .filter(({ line }) => Number.isFinite(line))
+
+  const uniqueLines = lines.filter(
+    (candidate, index) =>
+      lines.findIndex(other => other.line === candidate.line) === index,
+  )
+  const allLineNumbers = [
+    ...new Set(
+      sourceLines.map(line => Number(line.dataset.codeLine)).filter(Number.isFinite),
+    ),
+  ]
+  const firstVisibleLine = uniqueLines[0]?.line
+  const lastVisibleLine = uniqueLines.at(-1)?.line
+  const firstVisibleIndex = allLineNumbers.indexOf(firstVisibleLine ?? -1)
+  const lastVisibleIndex = allLineNumbers.indexOf(lastVisibleLine ?? -1)
+  const isScrollable = codeElement.scrollHeight > codeElement.clientHeight
+  hiddenLinesAbove = isScrollable && firstVisibleIndex > 0 ? firstVisibleIndex : 0
+  hiddenLinesBelow =
+    isScrollable && lastVisibleIndex >= 0
+      ? allLineNumbers.length - lastVisibleIndex - 1
+      : 0
+
+  onVisibleLinesChange?.(uniqueLines)
+}
+
+$effect(() => {
+  void commentsVisible
+  requestAnimationFrame(reportVisibleLines)
+})
+
+$effect(() => {
+  if (!codeElement) return
+
+  const resizeObserver = new ResizeObserver(reportVisibleLines)
+  resizeObserver.observe(codeElement)
+
+  return () => resizeObserver.disconnect()
+})
 </script>
 
 <div
-  class={`${className} w-full min-w-0 max-w-[80ch] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
+  class={`${className} flex w-full min-w-0 flex-col ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} max-h-[min(1080px,calc(100dvh-4.5rem))] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'max-h-[640px]' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
-      : variant === 'editor'
+      : variant === 'editor' || variant === 'reference'
         ? 'border-[#596074] bg-[#131722]'
       : 'border-[#47605b] bg-[#101515]'
   }`}
 >
   <div
     data-guide-code-header
-    class={`flex items-center justify-between gap-3 border-b px-4 py-2.5 ${
+    class={`flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
-      : variant === 'editor'
+      : variant === 'editor' || variant === 'reference'
         ? 'border-[#596074] bg-[#202633]'
       : 'border-[#47605b] bg-[#182021]'
     }`}
@@ -393,7 +482,7 @@ const selectManualCopyText = () => {
         >
           <Icon icon={editorIcon} class="size-4" />
         </span>
-      {:else}
+      {:else if variant === 'code'}
         <span class="flex gap-1.5" aria-hidden="true">
           <span class="size-2.5 rounded-full bg-[#ef8b88]"></span>
           <span class="size-2.5 rounded-full bg-[#f2c26d]"></span>
@@ -406,14 +495,14 @@ const selectManualCopyText = () => {
         class={`font-semibold ${
           variant === 'prompt'
             ? 'font-body tracking-[0.01em] text-[#eeeaff]'
-            : variant === 'editor'
+            : variant === 'editor' || variant === 'reference'
               ? 'font-mono text-label-sm text-[#d6e4ff]'
             : 'font-mono text-label-sm text-white/75'
         }`}
         >{#if labelContent}
           {@render labelContent()}
         {:else}
-          {@html label}
+          {@html editorLabel}
         {/if}</span
       >
     </div>
@@ -452,16 +541,80 @@ const selectManualCopyText = () => {
       </div>
     {/if}
   </div>
-  <pre
-    class={`m-0 min-w-0 max-w-full whitespace-pre-wrap wrap-break-word p-4 ${
+  {#if subheader}
+    <div
+      data-guide-code-subheader
+      class={`shrink-0 border-b px-4 py-1.5 font-mono text-label-sm ${
+        variant === 'prompt'
+          ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] text-[#eeeaff]/75'
+          : variant === 'editor' || variant === 'reference'
+            ? 'border-[#596074] bg-[#182021] text-[#d6e4ff]/75'
+            : 'border-[#47605b] bg-[#101515] text-white/75'
+      }`}
+    >
+      {@render subheader()}
+    </div>
+  {/if}
+  <div class="relative min-h-0 flex-1 overflow-hidden">
+    <pre
+      bind:this={codeElement}
+      onscroll={reportVisibleLines}
+      data-guide-code-scroll
+      class={`m-0 min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto whitespace-pre-wrap wrap-break-word p-4 ${
+      fillAvailableHeight
+        ? 'size-full'
+        : variant === 'prompt'
+          ? 'w-full max-h-[calc(min(640px,calc(100dvh-4.5rem))-3.25rem)]'
+          : 'w-full max-h-[calc(min(1080px,calc(100dvh-4.5rem))-3.25rem)]'
+    } ${
       variant === 'prompt'
-        ? 'min-h-0 overflow-y-auto overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
-        : variant === 'editor'
+        ? 'min-h-0 overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
+          : variant === 'editor' || variant === 'reference'
           ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
-    }`}
-  ><code>{@html highlightedCode}</code></pre>
+      }`}
+    ><code>{@html highlightedCode}</code></pre>
+    {#if hiddenLinesAbove > 0}
+      <span
+        class="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 border border-[#596074] bg-[#202633]/95 px-2 py-1 font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-[#a5d6ff] shadow-sm"
+        >{`{${m.guide_code_block_more_lines_above({ count: hiddenLinesAbove })}}`}</span
+      >
+    {/if}
+    {#if hiddenLinesBelow > 0}
+      <span
+        class="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 border border-[#596074] bg-[#202633]/95 px-2 py-1 font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-[#a5d6ff] shadow-sm"
+        >{`{${m.guide_code_block_more_lines_below({ count: hiddenLinesBelow })}}`}</span
+      >
+    {/if}
+  </div>
 </div>
+
+<style>
+[data-guide-code-scroll] {
+  overflow-y: overlay;
+  scrollbar-color: #596074 transparent;
+  scrollbar-width: thin;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar {
+  width: 0.625rem;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-thumb {
+  border: 0.1875rem solid transparent;
+  border-radius: 9999px;
+  background: #596074;
+  background-clip: content-box;
+}
+
+[data-guide-code-scroll]::-webkit-scrollbar-thumb:hover {
+  background-color: #7c8aa3;
+}
+</style>
 
 <Dialog.Root bind:open={manualCopyOpen}>
   <Dialog.Portal>

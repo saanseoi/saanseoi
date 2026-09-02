@@ -1,12 +1,16 @@
+import { m } from '@repo/i18n/messages'
+import {
+  getCreateAMapOpeningPosition,
+  type CreateAMapSelectionQuery,
+} from '#lib/guides/createAMapSelections.js'
+
 import { createAMapLlmAssistanceModeInstructions } from './createAMapLlmModeInstructions'
-import { createAMapLlmWorkingAgreementInstructions } from './createAMapLlmOverviewInstructions'
 import {
   createAMapLlmAssistancePrerequisiteInstructions,
   createAMapLlmAssistancePrerequisiteVerificationInstructions,
 } from './createAMapLlmPrerequisitesInstructions'
 import {
   createAMapRendererBasemapCode,
-  createAMapRendererReferenceInstructions,
   getCreateAMapRendererReference,
   isCreateAMapRenderer,
 } from './snippets'
@@ -23,6 +27,7 @@ export type CreateAMapLlmPromptState = {
   agentTool?: string
   agentToolValue?: string
   codeEditor?: string
+  codeEditorValue?: string
   dataSource?: string
   dataSourceLabel?: string
   hosting?: string
@@ -34,6 +39,7 @@ export type CreateAMapLlmPromptState = {
   objective?: string
   objectiveLabel?: string
   operatingSystem?: string
+  operatingSystemValue?: string
   platform?: string
   preferredLocale: string
   region?: string
@@ -51,6 +57,34 @@ export type CreateAMapLlmPromptState = {
 }
 
 type PromptMode = 'agentic' | 'chat'
+
+export type PromptLlmType = 'all' | 'agent' | 'chat'
+
+export type CreateAMapLlmPromptFragment = {
+  llmType: PromptLlmType
+  os: 'all' | string
+  editor: 'all' | string
+  terminalExperience: 'all' | string
+  text: string
+}
+
+const agentCapableEditors = ['zed', 'cursor'] as const
+
+export function isCreateAMapAgentCapableEditor(
+  editor?: string,
+): editor is (typeof agentCapableEditors)[number] {
+  return agentCapableEditors.includes(editor as (typeof agentCapableEditors)[number])
+}
+
+export function shouldShowCreateAMapEditorSetup({
+  editorValue,
+  llmType,
+}: {
+  editorValue?: string
+  llmType: Exclude<PromptLlmType, 'all'>
+}) {
+  return llmType === 'chat' || isCreateAMapAgentCapableEditor(editorValue)
+}
 
 const nextSectionBySection: Partial<
   Record<CreateAMapLlmPromptSection, CreateAMapLlmPromptSection>
@@ -100,42 +134,167 @@ const createSelections = (state: CreateAMapLlmPromptState) =>
     promptValue('Notebook runtime', state.notebookRuntime),
   ].filter((line): line is string => Boolean(line))
 
-const createAMapObjectiveSummary = (state: CreateAMapLlmPromptState) => {
-  const platform =
-    'SaanSeoi (a Hong Kong-based digital commons platform offering geospatial data; site: https://saanseoi.hk)'
-
-  switch (state.objective) {
-    case 'local':
-      return `We are building a ${platform} digital map that will be available locally on my computer.`
-    case 'web':
-      return `We are building a ${platform} digital map that will be hosted online as a stand-alone web app.`
-    case 'web-embed':
-      return `We are building a ${platform} digital map that will be hosted online and embedded in an existing site.`
-    case 'mobile-embed':
-      return `We are building a ${platform} digital map that will be embedded in a mobile app.`
-    case 'notebook-embed':
-      return `We are building a ${platform} digital map that will be embedded in a notebook.`
-    default:
-      return `We are building a ${platform} digital map.`
-  }
-}
-
-const createAMapPrerequisitesProjectOverview = (state: CreateAMapLlmPromptState) =>
-  [
-    '## Overall project',
-    '',
-    createAMapObjectiveSummary(state),
-    'The overall goal is a working, accessible map project that achieves this outcome.',
-    '',
-    'In this first session, help me establish the project foundation only. Do not begin rendering or implementing the map until the setup has been verified.',
-  ].join('\n')
-
 const createLocaleInstruction = (preferredLocale: string, subject: string) =>
   preferredLocale === 'en'
     ? undefined
     : `Respond in ${subject} preferred locale (${preferredLocale}) throughout the interaction, even when this prompt or the guide uses another language.`
 
 const optionalInstruction = (instruction?: string) => (instruction ? [instruction] : [])
+
+const promptDecision = (value?: string) => value ?? 'TBD'
+
+const createProjectSetupUseCase = (objective?: string) => {
+  switch (objective) {
+    case 'local':
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_local()
+    case 'web':
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_web()
+    case 'web-embed':
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_web_embed()
+    case 'mobile-embed':
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_mobile_embed()
+    case 'notebook-embed':
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_notebook_embed()
+    default:
+      return m.llm_prompt_guide_create_a_map_project_setup_use_case_tbd()
+  }
+}
+
+const matchesPromptFragment = (expected: string, actual: string | undefined) =>
+  expected === 'all' || expected === actual
+
+/**
+ * Prompt prose is kept as ordered, localised fragments. The filter fields make
+ * workspace-specific additions possible without duplicating the shared prompt.
+ */
+export function createAMapProjectSetupPromptFragments(
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+): CreateAMapLlmPromptFragment[] {
+  const llmType: Exclude<PromptLlmType, 'all'> = mode === 'agentic' ? 'agent' : 'chat'
+  const fragments: CreateAMapLlmPromptFragment[] = [
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_overall_project({
+        guideUrl: 'https://saanseoi.hk/guides/create-a-map',
+        useCase: createProjectSetupUseCase(state.objective),
+      }),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_first_session(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_project_decisions({
+        aiTool: promptDecision(state.agentTool),
+        objective: promptDecision(state.objectiveLabel),
+        platform: promptDecision(state.platform),
+        operatingSystem: promptDecision(state.operatingSystem),
+        terminalExperience: promptDecision(state.terminalExperience),
+        codeEditor: promptDecision(state.codeEditor),
+        vpnAccess: promptDecision(state.vpnAccess),
+        mapLibrary: promptDecision(
+          state.rendererLabel ?? state.mobileLibrary ?? state.notebookLibrary,
+        ),
+        basemapCoverage: promptDecision(state.regionLabel),
+        style: promptDecision(state.styleLabel),
+        dataSource: promptDecision(state.dataSourceLabel),
+        hosting: promptDecision(state.hosting),
+        websitePlatform: promptDecision(state.websitePlatform),
+      }),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_working_agreement(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_chat_actions(),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_agent_actions(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
+    },
+  ]
+
+  const setupInstructions = createAMapLlmAssistancePrerequisiteInstructions({
+    assistanceMode: mode,
+    hostingValue: state.hostingValue,
+    objective: state.objective,
+    operatingSystem: state.operatingSystem,
+    terminalExperienceValue: state.terminalExperienceValue,
+  })
+  fragments.push({
+    llmType: 'all',
+    os: state.operatingSystemValue ?? 'all',
+    editor: state.codeEditorValue ?? 'all',
+    terminalExperience: state.terminalExperienceValue ?? 'all',
+    text: [
+      m.llm_prompt_guide_create_a_map_project_setup_instructions_heading(),
+      m.llm_prompt_guide_create_a_map_project_setup_instructions_subheading(),
+      setupInstructions,
+      m.llm_prompt_guide_create_a_map_project_setup_verification_heading(),
+      createAMapLlmAssistancePrerequisiteVerificationInstructions(),
+    ].join('\n\n'),
+  })
+
+  return fragments.filter(
+    fragment =>
+      (fragment.llmType === 'all' || fragment.llmType === llmType) &&
+      matchesPromptFragment(fragment.os, state.operatingSystemValue) &&
+      matchesPromptFragment(fragment.editor, state.codeEditorValue) &&
+      matchesPromptFragment(fragment.terminalExperience, state.terminalExperienceValue),
+  )
+}
+
+const createAMapProjectSetupPrompt = (
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+) => {
+  const fragments = createAMapProjectSetupPromptFragments(state, mode)
+
+  return [...fragments.map(fragment => fragment.text)].join('\n\n')
+}
 
 const createAMapFullHandoverPrompt = (
   state: CreateAMapLlmPromptState,
@@ -188,22 +347,9 @@ export function createAMapChatHandoverPrompt(
 const createSectionInstructions = (
   state: CreateAMapLlmPromptState,
 ): Record<
-  Exclude<CreateAMapLlmPromptSection, 'prerequisites' | 'render'>,
+  Exclude<CreateAMapLlmPromptSection, 'prerequisites' | 'render' | 'basemap'>,
   string[]
 > => ({
-  basemap: [
-    'Integrate the selected SaanSeoi basemap using its public `pk.` key. Place it in the Vite `VITE_SAANSEOI_API_KEY` build variable: it is intentionally embedded in the browser output, so never describe it as a secret or put it in a server-only variable.',
-    'Use the public key directly as the `access_token` query parameter on SaanSeoi API and tile requests. Do not add a client token refresh utility, server proxy, or D1 lookup path.',
-    'Pause before requesting or using the key. After the user has configured it, verify the selected basemap loads and that no token is logged or committed.',
-    ...(state.tilejsonUrl ? [`Use this TileJSON endpoint: ${state.tilejsonUrl}`] : []),
-    ...(state.styleUrl
-      ? [`Use this selected SaanSeoi style URL: ${state.styleUrl}`]
-      : state.style === 'custom'
-        ? [
-            'The style is custom. Ask for the completed style URL or file before wiring it into the map.',
-          ]
-        : []),
-  ],
   style: [
     state.style === 'custom'
       ? 'Help me create and apply a custom map style. First establish the desired visual direction and the style source or URL; keep it compatible with the selected renderer and SaanSeoi tiles.'
@@ -247,19 +393,231 @@ const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   ]
 }
 
+const createPromptRegion = (region?: string): CreateAMapSelectionQuery['region'] =>
+  region === 'hk' || region === 'mo' || region === 'gba' ? region : undefined
+
 const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer)) return []
 
+  const reference = getCreateAMapRendererReference(
+    state.renderer,
+    getCreateAMapOpeningPosition(createPromptRegion(state.region)),
+  )
+  const isWindows = state.operatingSystemValue === 'windows'
+  const shell = isWindows ? 'powershell' : 'bash'
+  const mainPath = isWindows ? 'src\\main.ts' : 'src/main.ts'
+  const stylesheetPath = isWindows ? 'src\\style.css' : 'src/style.css'
+  const library = state.rendererLabel ?? reference.label
+
   return [
-    createAMapRendererReferenceInstructions(state.renderer),
-    '',
-    'These snippets are for reference only; write the implementation that suits the workspace configuration you found.',
-    '',
-    '### Verify',
-    '',
-    'Verify the development server, browser-visible blank map, and any relevant build or type check. If browser access is unavailable, ask me to open the reported local URL and describe the result.',
+    m.llm_prompt_guide_create_a_map_render_setup({
+      command: reference.installCommand,
+      library,
+      shell,
+    }),
+    m.llm_prompt_guide_create_a_map_render_code_edits({
+      mainPath,
+    }),
+    '```ts',
+    reference.code,
+    '```',
+    ...(state.renderer === 'mapbox'
+      ? [m.llm_prompt_guide_create_a_map_render_mapbox_token()]
+      : []),
+    m.llm_prompt_guide_create_a_map_render_stylesheet_edit({ stylesheetPath }),
+    '```css',
+    reference.stylesheetCode,
+    '```',
+    m.llm_prompt_guide_create_a_map_render_verify(),
   ]
 }
+
+export function createAMapRenderPromptFragments(
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+): CreateAMapLlmPromptFragment[] {
+  if (!isCreateAMapRenderer(state.renderer)) return []
+
+  const llmType: Exclude<PromptLlmType, 'all'> = mode === 'agentic' ? 'agent' : 'chat'
+  const reference = getCreateAMapRendererReference(
+    state.renderer,
+    getCreateAMapOpeningPosition(createPromptRegion(state.region)),
+  )
+  const fragments: CreateAMapLlmPromptFragment[] = [
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_render_context({
+        library: state.rendererLabel ?? reference.label,
+      }),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_render_agent_actions(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_render_chat_actions(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
+    },
+    {
+      llmType: 'all',
+      os: state.operatingSystemValue ?? 'all',
+      editor: state.codeEditorValue ?? 'all',
+      terminalExperience: state.terminalExperienceValue ?? 'all',
+      text: createRenderReferenceInstructions(state).join('\n\n'),
+    },
+  ]
+
+  return fragments.filter(
+    fragment =>
+      (fragment.llmType === 'all' || fragment.llmType === llmType) &&
+      matchesPromptFragment(fragment.os, state.operatingSystemValue) &&
+      matchesPromptFragment(fragment.editor, state.codeEditorValue) &&
+      matchesPromptFragment(fragment.terminalExperience, state.terminalExperienceValue),
+  )
+}
+
+const createAMapRenderPrompt = (state: CreateAMapLlmPromptState, mode: PromptMode) =>
+  createAMapRenderPromptFragments(state, mode)
+    .map(fragment => fragment.text)
+    .join('\n\n')
+
+const createBasemapReferenceInstructions = (state: CreateAMapLlmPromptState) => {
+  if (!isCreateAMapRenderer(state.renderer) || !state.tilejsonUrl) return []
+
+  const path = state.operatingSystemValue === 'windows' ? 'src\\main.ts' : 'src/main.ts'
+
+  return [
+    m.llm_prompt_guide_create_a_map_basemap_code_edits({ path }),
+    '```ts',
+    createAMapRendererBasemapCode(
+      state.renderer,
+      state.styleUrl ?? '',
+      state.tilejsonUrl,
+      getCreateAMapOpeningPosition(createPromptRegion(state.region)),
+    ),
+    '```',
+  ]
+}
+
+export function createAMapBasemapPromptFragments(
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+): CreateAMapLlmPromptFragment[] {
+  const llmType: Exclude<PromptLlmType, 'all'> = mode === 'agentic' ? 'agent' : 'chat'
+  const fragments: CreateAMapLlmPromptFragment[] = [
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_context({
+        coverage: state.regionLabel ?? 'TBD',
+        library: state.rendererLabel ?? 'TBD',
+        tilejsonUrl: state.tilejsonUrl ?? 'TBD',
+      }),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
+    },
+    {
+      llmType: 'agent',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_agent_actions(),
+    },
+    {
+      llmType: 'chat',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_chat_actions(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_api_key(),
+    },
+    {
+      llmType: 'all',
+      os: state.operatingSystemValue ?? 'all',
+      editor: state.codeEditorValue ?? 'all',
+      terminalExperience: state.terminalExperienceValue ?? 'all',
+      text: createBasemapReferenceInstructions(state).join('\n\n'),
+    },
+    {
+      llmType: 'all',
+      os: 'all',
+      editor: 'all',
+      terminalExperience: 'all',
+      text: m.llm_prompt_guide_create_a_map_basemap_verify(),
+    },
+  ]
+
+  return fragments.filter(
+    fragment =>
+      (fragment.llmType === 'all' || fragment.llmType === llmType) &&
+      matchesPromptFragment(fragment.os, state.operatingSystemValue) &&
+      matchesPromptFragment(fragment.editor, state.codeEditorValue) &&
+      matchesPromptFragment(fragment.terminalExperience, state.terminalExperienceValue),
+  )
+}
+
+const createAMapBasemapPrompt = (state: CreateAMapLlmPromptState, mode: PromptMode) =>
+  createAMapBasemapPromptFragments(state, mode)
+    .map(fragment => fragment.text)
+    .filter(Boolean)
+    .join('\n\n')
 
 const createAMapProgressivePrompt = (
   state: CreateAMapLlmPromptState,
@@ -272,60 +630,43 @@ const createAMapProgressivePrompt = (
 
   if (isPrerequisites) {
     return [
-      createAMapPrerequisitesProjectOverview(state),
-      '',
-      ...projectDecisions,
-      '',
-      createAMapLlmWorkingAgreementInstructions(mode).replace(
-        '## Working agreement',
-        '### Working agreement',
-      ),
-      '',
-      ...createAMapLlmAssistanceModeInstructions(mode),
-      ...(localeInstruction ? ['', localeInstruction] : []),
-      '',
-      '## Step 0 : Prerequisites',
-      '',
-      '### Instructions',
-      '',
-      createAMapLlmAssistancePrerequisiteInstructions({
-        ...state,
-        assistanceMode: mode,
-      }),
-      '',
-      '### Verification',
-      '',
-      createAMapLlmAssistancePrerequisiteVerificationInstructions(),
-      '',
+      createAMapProjectSetupPrompt(state, mode),
+      ...(localeInstruction ? [localeInstruction] : []),
       createSectionCompletionInstruction('prerequisites'),
-    ].join('\n')
+    ].join('\n\n')
+  }
+
+  if (section === 'render') {
+    return [
+      createAMapRenderPrompt(state, mode),
+      ...(localeInstruction ? [localeInstruction] : []),
+      createSectionCompletionInstruction(section),
+    ].join('\n\n')
+  }
+
+  if (section === 'basemap') {
+    return [
+      createAMapBasemapPrompt(state, mode),
+      ...(localeInstruction ? [localeInstruction] : []),
+      createSectionCompletionInstruction(section),
+    ]
+      .filter(Boolean)
+      .join('\n\n')
   }
 
   return [
     `## ${sectionLabel(section)} Section`,
     '',
     `Continue the “${sectionLabel(section)}” section of my SaanSeoi map project.`,
-    ...(section === 'render'
-      ? [
-          '',
-          'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.',
-        ]
-      : []),
     '',
     ...createAMapLlmAssistanceModeInstructions(mode),
     ...(localeInstruction ? ['', localeInstruction] : []),
     '',
-    ...(section === 'render'
-      ? createRenderReferenceInstructions(state)
-      : [
-          'The following entries are the user’s supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when completing this section.',
-          ...projectDecisions,
-          '',
-          'This section:',
-          ...createSectionInstructions(state)[section].map(
-            instruction => `- ${instruction}`,
-          ),
-        ]),
+    'The following entries are the user’s supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when completing this section.',
+    ...projectDecisions,
+    '',
+    'This section:',
+    ...createSectionInstructions(state)[section].map(instruction => `- ${instruction}`),
     '',
     createSectionCompletionInstruction(section),
   ].join('\n')

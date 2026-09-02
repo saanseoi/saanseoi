@@ -4,8 +4,10 @@ import { onMount } from 'svelte'
 
 import CarouselRoot from '#lib/bits/components/carousel/carouselRoot.svelte'
 
+import GuideChoiceDescription from './guideChoiceDescription.svelte'
 import GuideParagraph from './guideParagraph.svelte'
 import GuideProgressMarker from './guideProgressMarker.svelte'
+import GuideTextHeader from './guideTextHeader.svelte'
 import type { GuideChoice } from './guide.types'
 
 type Props = {
@@ -25,9 +27,9 @@ type Props = {
         label: string
         total: number
       }
-  onchange?: (value: string) => void
+  onchange?: (value?: string) => void
   step?: string
-  tileLayout?: 'fixed' | 'flow' | 'six-across'
+  tileLayout?: 'fixed' | 'flow' | 'five-across' | 'six-across'
   value?: string
   variant?: 'compact' | 'illustrated' | 'tiles'
 }
@@ -87,6 +89,33 @@ function updateIllustratedCarouselFit() {
   illustratedCarouselFits = cardsWidth <= viewport.clientWidth
 }
 
+function clearChoice(choiceValue: string) {
+  requestAnimationFrame(() => {
+    value = undefined
+    inspectedChoiceValue = undefined
+    onchange?.(undefined)
+  })
+}
+
+function handleChoiceClick(event: MouseEvent, choiceValue: string) {
+  if (value !== choiceValue) return
+
+  event.preventDefault()
+  clearChoice(choiceValue)
+}
+
+function handleChoiceKeydown(event: KeyboardEvent, choiceValue: string) {
+  if (event.key !== ' ' || value !== choiceValue) return
+
+  event.preventDefault()
+  clearChoice(choiceValue)
+}
+
+function handleChoiceChange(choiceValue: string) {
+  inspectedChoiceValue = choiceValue
+  onchange?.(choiceValue)
+}
+
 onMount(() => {
   const cleanups: Array<() => void> = []
 
@@ -122,9 +151,7 @@ onMount(() => {
   class={`min-w-0 ${hideLabel && variant === 'illustrated' ? 'mt-0 mb-0' : 'mt-12 mb-0'} ${variant === 'illustrated' ? 'overflow-visible' : ''}`}
   style={illustratedFullBleed ? `--illustrated-content-inset: ${illustratedContentInset}px` : undefined}
 >
-  <legend
-    class={`${hideLabel ? 'sr-only' : 'w-full'} font-bold ${variant === 'illustrated' || variant === 'tiles' ? `font-display text-headline-md leading-tight text-primary ${alignment === 'left' ? 'text-left' : 'text-center'}` : 'font-display text-headline-sm text-secondary'}`}
-  >
+  <legend class={`${hideLabel ? 'sr-only' : 'w-full'} font-bold`}>
     <span class="flex items-end justify-between gap-4">
       <span>
         {#if marker}
@@ -137,7 +164,11 @@ onMount(() => {
             {/if}</span
           >
         {/if}
-        {@html label}
+        <GuideTextHeader
+          as="span"
+          title={label}
+          class={`${variant === 'compact' ? 'text-headline-sm text-secondary' : ''} ${alignment === 'left' ? 'text-left' : 'text-center'}`}
+        />
         {#if step}
           <span class="ml-3 font-body text-label-md font-semibold text-secondary"
             >[{step}]</span
@@ -174,16 +205,12 @@ onMount(() => {
   </legend>
   {#if Array.isArray(hint)}
     {#each hint as paragraph, index}
-      <p
-        class={`${index === 0 ? 'mt-1' : 'mt-3'} max-w-3xl font-body text-body-sm leading-6 text-foreground-alt`}
-      >
+      <GuideParagraph class={index === 0 ? 'mt-1' : 'mt-3'}>
         {@html paragraph}
-      </p>
+      </GuideParagraph>
     {/each}
   {:else if hint}
-    <p class="mt-1 max-w-3xl font-body text-body-sm text-foreground-alt">
-      {@html hint}
-    </p>
+    <GuideParagraph class="mt-1"> {@html hint} </GuideParagraph>
   {/if}
   {#if hideLabel &&
     (illustratedFullBleed || illustratedFitWhenPossible) &&
@@ -229,10 +256,12 @@ onMount(() => {
               name={label}
               value={choice.value}
               bind:group={value}
-              onchange={() => onchange?.(choice.value)}
+              onclick={event => handleChoiceClick(event, choice.value)}
+              onkeydown={event => handleChoiceKeydown(event, choice.value)}
+              onchange={() => handleChoiceChange(choice.value)}
               disabled={choice.disabled}
             >
-            {#if choice.image || choice.imageSlices || choice.darkImageSlices || illustratedLayout === 'grid'}
+            {#if choice.image || choice.imageSlices || choice.darkImageSlices || choice.icon || illustratedLayout === 'grid'}
               <span class="relative flex h-64 items-center justify-center">
                 {#if choice.badge}
                   <span
@@ -284,10 +313,16 @@ onMount(() => {
                       {/each}
                     </span>
                   {/if}
+                {:else if choice.icon}
+                  <Icon
+                    class="size-20 text-secondary"
+                    icon={choice.icon}
+                    aria-hidden="true"
+                  />
                 {/if}
               </span>
             {/if}
-            <span
+            <div
               class={`block border-t-2 pt-4 transition-colors ${value === choice.value ? 'border-secondary' : choice.disabled ? 'border-border-card' : 'border-border-card group-hover:border-secondary/60'}`}
             >
               <span class="flex items-start justify-between gap-3">
@@ -304,12 +339,10 @@ onMount(() => {
                   ></span>
                 </span>
               </span>
-              <span
-                class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-              >
+              <GuideChoiceDescription class="mt-1">
                 {@html choice.description}
-              </span>
-            </span>
+              </GuideChoiceDescription>
+            </div>
           </label>
         {/each}
       </div>
@@ -317,7 +350,7 @@ onMount(() => {
       <CarouselRoot
         bind:this={illustratedChoiceCarousel}
         scrollable={!illustratedCarouselFits}
-        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed ? 'relative -ml-(--illustrated-content-inset) w-screen' : alignment === 'center' ? 'relative left-1/2 w-screen -translate-x-1/2' : 'w-full'}`}
+        class={`${hideLabel ? '' : 'mt-6 md:mt-8'} ${illustratedFullBleed || alignment === 'center' ? 'relative left-1/2 w-dvw -translate-x-1/2' : 'w-full'}`}
         onnavigationchange={navigation => (illustratedCarouselNavigation = navigation)}
       >
         <div
@@ -339,10 +372,12 @@ onMount(() => {
                 name={label}
                 value={choice.value}
                 bind:group={value}
-                onchange={() => onchange?.(choice.value)}
+                onclick={event => handleChoiceClick(event, choice.value)}
+                onkeydown={event => handleChoiceKeydown(event, choice.value)}
+                onchange={() => handleChoiceChange(choice.value)}
                 disabled={choice.disabled}
               >
-              {#if choice.image || choice.imageSlices || choice.darkImageSlices}
+              {#if choice.image || choice.imageSlices || choice.darkImageSlices || choice.icon}
                 <span class="relative flex h-64 items-center justify-center">
                   {#if choice.badge}
                     <span
@@ -396,10 +431,16 @@ onMount(() => {
                         {/each}
                       </span>
                     {/if}
+                  {:else if choice.icon}
+                    <Icon
+                      class="size-20 text-secondary"
+                      icon={choice.icon}
+                      aria-hidden="true"
+                    />
                   {/if}
                 </span>
               {/if}
-              <span
+              <div
                 class={`block border-t-2 pt-4 transition-colors ${value === choice.value ? 'border-secondary' : choice.disabled ? 'border-border-card' : 'border-border-card group-hover:border-secondary/60'}`}
               >
                 <span class="flex items-start justify-between gap-3">
@@ -416,12 +457,10 @@ onMount(() => {
                     ></span>
                   </span>
                 </span>
-                <span
-                  class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-                >
+                <GuideChoiceDescription class="mt-1">
                   {@html choice.description}
-                </span>
-              </span>
+                </GuideChoiceDescription>
+              </div>
             </label>
           {/each}
         </div>
@@ -433,6 +472,8 @@ onMount(() => {
           ? `mt-4 grid gap-3 ${
               tileLayout === 'flow'
                 ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]'
+                : tileLayout === 'five-across'
+                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
                 : tileLayout === 'six-across'
                   ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6'
                   : 'max-w-lg grid-cols-3'
@@ -454,10 +495,9 @@ onMount(() => {
             name={label}
             value={choice.value}
             bind:group={value}
-            onchange={() => {
-              inspectedChoiceValue = choice.value
-              onchange?.(choice.value)
-            }}
+            onclick={event => handleChoiceClick(event, choice.value)}
+            onkeydown={event => handleChoiceKeydown(event, choice.value)}
+            onchange={() => handleChoiceChange(choice.value)}
             disabled={choice.disabled}
           >
           {#if choice.badge}
@@ -477,18 +517,16 @@ onMount(() => {
               aria-hidden="true"
             />
           {/if}
-          <span class={variant === 'tiles' ? '' : 'min-w-0'}>
+          <div class={variant === 'tiles' ? '' : 'min-w-0'}>
             <span class="block font-body text-body-md font-semibold text-primary">
               {@html choice.label}
             </span>
             {#if choice.description && variant !== 'tiles'}
-              <span
-                class="mt-1 block font-body text-body-sm leading-6 text-foreground-alt"
-              >
+              <GuideChoiceDescription class="mt-1">
                 {@html choice.description}
-              </span>
+              </GuideChoiceDescription>
             {/if}
-          </span>
+          </div>
           {#if variant === 'tiles' && choice.note}
             <span
               class="absolute right-3 bottom-4 left-3 font-body text-label-sm text-secondary"

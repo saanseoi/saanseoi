@@ -41,8 +41,16 @@ export type AuditEvidenceCopyHandler = (
 export type AuditSection = {
   action: string
   affectedRecordCount: number
+  hasMore?: boolean
   id: string
-  mode: string
+  mode: 'automatic' | 'manual'
+  nextOffset?: number
   rows: AuditAction[]
   totalCount: number
+}
+
+export type AuditActionPage = {
+  hasMore: boolean
+  nextOffset: number
+  rows: AuditAction[]
 }

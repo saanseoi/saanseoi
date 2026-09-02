@@ -1,10 +1,14 @@
 <script lang="ts">
 import {
+  GuideAdmonition,
   GuideCodeBlock,
   GuideInstructionCallout,
   GuideScreenshot,
+  GuideTextSubHeader,
 } from '#lib/bits/pages/guides/index.js'
+import GuideCallout from '#lib/bits/pages/guides/components/shared/guideCallout.svelte'
 import { Button } from '#lib/bits/primitives/button/index.js'
+import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import cloudflareAccountDark from '#lib/assets/guides/publish-cloudflare-account-dark.webp'
 import cloudflareAccountLight from '#lib/assets/guides/publish-cloudflare-account-light.webp'
@@ -24,9 +28,12 @@ import vercelAccountDark from '#lib/assets/guides/publish-vercel-account-dark.we
 import vercelAccountLight from '#lib/assets/guides/publish-vercel-account-light.webp'
 import vercelAuthenticationDark from '#lib/assets/guides/publish-vercel-auth-dark.webp'
 import vercelAuthenticationLight from '#lib/assets/guides/publish-vercel-auth-light.webp'
+import mapboxTokenUrlRestrictions from '#lib/assets/guides/mapbox-token-url-restrictions.png'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
+import { createDeploymentCode } from './snippets.js'
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
+import GuidePublishHostingCallout from './guidePublishHostingCallout.svelte'
 import GuidePublishTerminalCommand from './guidePublishTerminalCommand.svelte'
 
 type Hosting = Extract<
@@ -40,8 +47,9 @@ type Props = {
   hosting: Hosting
   llmMode?: CreateAMapSelectionQuery['llmMode']
   onCompletedRequirementsChange?: (requirements: number[]) => void
-  onPublishedChange?: (published: boolean) => void
+  onAccessibleChange?: (accessible: boolean) => void
   operatingSystem?: CreateAMapSelectionQuery['operatingSystem']
+  renderer?: CreateAMapSelectionQuery['renderer']
   terminalProjectPath: string
 }
 
@@ -51,8 +59,9 @@ let {
   hosting,
   llmMode,
   onCompletedRequirementsChange,
-  onPublishedChange,
+  onAccessibleChange,
   operatingSystem,
+  renderer,
   terminalProjectPath,
 }: Props = $props()
 
@@ -133,13 +142,48 @@ const clientUrl = $derived(
 )
 const gitUrl = 'https://git-scm.com/downloads'
 const githubCliUrl = 'https://cli.github.com/'
+const macosHomebrewInstallCode =
+  '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+const macosGitInstallCode = 'brew install git gh'
+const windowsGitInstallCode = [
+  'winget install --id Git.Git -e --source winget',
+  'winget install --id GitHub.cli',
+].join('\n')
+type LinuxDistribution = 'debian' | 'fedora' | 'arch'
+let linuxDistribution = $state<LinuxDistribution>('fedora')
+let mapboxTokenRestrictionsExpanded = $state(false)
+const linuxDistributionTabs = $derived([
+  {
+    icons: ['simple-icons:fedora', 'simple-icons:redhat'],
+    label: m.guide_publish_linux_distribution_fedora(),
+    value: 'fedora' as const,
+  },
+  {
+    icons: ['simple-icons:archlinux', 'simple-icons:cachyos'],
+    label: m.guide_publish_linux_distribution_arch(),
+    value: 'arch' as const,
+  },
+  {
+    icons: ['simple-icons:debian', 'simple-icons:ubuntu', 'simple-icons:linuxmint'],
+    label: m.guide_publish_linux_distribution_debian(),
+    value: 'debian' as const,
+  },
+])
+const linuxInstallCode = $derived(
+  linuxDistribution === 'debian'
+    ? 'sudo apt install git gh'
+    : linuxDistribution === 'fedora'
+      ? 'sudo dnf install git gh'
+      : 'sudo pacman -S git github-cli',
+)
 const hasGitDependencies = $derived(hosting === 'github-pages')
-const requirementTotal = $derived(hasGitDependencies ? 6 : 5)
+const requirementTotal = $derived(hasGitDependencies ? 7 : 6)
 const gitDependenciesRequirement = 2
 const clientRequirement = $derived(hasGitDependencies ? 3 : 2)
 const authenticationRequirement = $derived(hasGitDependencies ? 4 : 3)
 const configurationRequirement = $derived(hasGitDependencies ? 5 : 4)
 const deploymentRequirement = $derived(hasGitDependencies ? 6 : 5)
+const accessibilityRequirement = $derived(deploymentRequirement + 1)
 const installCode = $derived(
   hosting === 'cloudflare'
     ? 'bun add -d wrangler'
@@ -200,6 +244,36 @@ const authenticationCode = $derived(
         ? 'bunx vercel login'
         : 'bunx netlify login',
 )
+const githubAuthenticationOutput = [
+  '? What account do you want to log into? GitHub.com',
+  '? What is your preferred protocol for Git operations on this host? HTTPS',
+  '? Authenticate Git with your GitHub credentials? Yes',
+  '? How would you like to authenticate GitHub CLI? Login with a web browser',
+  '',
+  '! First copy your one-time code: XXXX-XXXX',
+  'Press Enter to open https://github.com/login/device in your browser...',
+  '✓ Authentication complete.',
+  '✓ Configured git protocol',
+  '✓ Logged in as YOUR_GITHUB_USER_NAME',
+].join('\n')
+const vercelAuthenticationOutput = [
+  'Vercel CLI 59.10.0',
+  '> Visit https://vercel.com/oauth/device?user_code=ABCD-EFGH',
+  'Waiting for authentication...',
+  '',
+  'Congratulations! You are now signed in.',
+  '',
+  'To deploy something, run `vercel`.',
+].join('\n')
+const netlifyAuthenticationOutput = [
+  'Logging into your Netlify account...',
+  'Opening https://app.netlify.com/authorize?...',
+  'Waiting for authorization...',
+  '',
+  'You are now logged into your Netlify account!',
+  '',
+  'Run netlify status for account details',
+].join('\n')
 const cloudflareAuthenticationOutput = [
   '⛅️ wrangler 4.127.1',
   '────────────────────',
@@ -208,6 +282,15 @@ const cloudflareAuthenticationOutput = [
   '',
   'Successfully logged in.',
 ].join('\n')
+const authenticationOutput = $derived(
+  hosting === 'cloudflare'
+    ? cloudflareAuthenticationOutput
+    : hosting === 'github-pages'
+      ? githubAuthenticationOutput
+      : hosting === 'vercel'
+        ? vercelAuthenticationOutput
+        : netlifyAuthenticationOutput,
+)
 const cloudflareSetupInitialOutput = [
   '⛅️ wrangler 4.127.1',
   '────────────────────',
@@ -266,35 +349,80 @@ const configurationCode = $derived(
     ? 'bunx wrangler setup'
     : hosting === 'github-pages'
       ? [
-          'git config --global user.name "Your name"',
-          'git config --global user.email "you@example.com"',
           'git init -b main',
           'git add .',
           'git commit -m "Publish my map"',
           'gh repo create saanseoi-project --public --source=. --push',
         ].join('\n')
       : hosting === 'vercel'
-        ? 'bunx vercel link'
+        ? 'bunx vercel link --yes --project saanseoi-project'
         : 'bunx netlify sites:create --name saanseoi-project',
 )
-const deploymentCode = $derived(
-  hosting === 'cloudflare'
-    ? 'bunx wrangler deploy'
-    : hosting === 'github-pages'
-      ? [
-          'bunx vite build --base=/saanseoi-project/',
-          'bunx gh-pages -d dist',
-          'gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=gh-pages" -f "source[path]=/"',
-        ].join('\n')
+const githubIdentityCode = [
+  'git config --global user.name "Your name"',
+  'git config --global user.email "you@example.com"',
+].join('\n')
+const githubConfigurationOutput = [
+  'Initialized empty Git repository in /home/YOUR_NAME/saanseoi-project/.git/',
+  '[main (root-commit) a1b2c3d] Publish my map',
+  ' 17 files changed, 5212 insertions(+)',
+  'https://github.com/YOUR_GITHUB_USER_NAME/saanseoi-project',
+  'To https://github.com/YOUR_GITHUB_USER_NAME/saanseoi-project.git',
+  ' * [new branch]      HEAD -> main',
+  "branch 'main' set up to track 'origin/main'.",
+].join('\n')
+const vercelConfigurationOutput = [
+  'Vercel CLI 59.10.0',
+  'Loading teams…',
+  '',
+  'Directory       ~/saanseoi-project',
+  '',
+  'Searching for existing projects…',
+  '',
+  'Detected Vite (Build Command: vite build, Output Directory: dist)',
+  '',
+  '✓ Created         YOUR_TEAM/saanseoi-project',
+  '✓ Created         .env.local file',
+].join('\n')
+const netlifyConfigurationOutput = [
+  'Project Created',
+  '',
+  'Admin URL:  https://app.netlify.com/projects/saanseoi-project',
+  'URL:        https://saanseoi-project.netlify.app',
+  'Project ID: YOUR_PROJECT_ID',
+  '',
+  'Adding local .netlify folder to .gitignore file...',
+  '✔ Linked to saanseoi-project',
+].join('\n')
+const configurationOutput = $derived(
+  hosting === 'github-pages'
+    ? githubConfigurationOutput
+    : hosting === 'vercel'
+      ? vercelConfigurationOutput
+      : netlifyConfigurationOutput,
+)
+const deploymentCode = $derived(createDeploymentCode(hosting))
+const githubFutureEditsCode = [
+  'git add .',
+  'git commit -m "Update my map"',
+  'git push',
+  '',
+  createDeploymentCode('github-pages'),
+].join('\n')
+const deploymentIntroduction = $derived(
+  hosting === 'github-pages'
+    ? m.guide_publish_github_deployment_introduction()
+    : hosting === 'cloudflare'
+      ? m.guide_publish_cloudflare_deployment_introduction()
       : hosting === 'vercel'
-        ? ['bun run build', 'bunx vercel --prod'].join('\n')
-        : ['bun run build', 'bunx netlify deploy --dir=dist --prod'].join('\n'),
+        ? m.guide_publish_vercel_deployment_introduction()
+        : m.guide_publish_netlify_deployment_introduction(),
 )
 const cloudflareBuildOutput = [
   '$ tsc && vite build',
   'vite v8.2.2 building client environment for production...',
   '',
-  'new URL("./land-analysis.json", import.meta.url) doesn\'t exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.',
+  'new URL("./land-analysis.json.gz", import.meta.url) doesn\'t exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.',
   '✓ 322 modules transformed.',
   'computing gzip size...',
   'dist/.assetsignore                            0.02 kB',
@@ -354,6 +482,50 @@ const cloudflareDeploymentCompleteOutput = [
   '  https://saanseoi-project.saanseoi-guides-create-a-map.workers.dev',
   'Current Version ID: e05fa8db-ec08-49a9-8431-3c3c823143e5',
 ].join('\n')
+const githubDeploymentOutput = [
+  'vite v8.2.2 building client environment for production...',
+  '✓ 319 modules transformed.',
+  'computing gzip size...',
+  'dist/index.html                                  0.51 kB │ gzip:   0.30 kB',
+  'dist/assets/index-EXAMPLE.css                   90.24 kB │ gzip:  12.44 kB',
+  'dist/assets/index-EXAMPLE.js                   969.40 kB │ gzip: 254.97 kB',
+  '✓ built in 266ms',
+  '',
+  'Published',
+].join('\n')
+const vercelDeploymentOutput = [
+  'Vercel CLI 59.10.0',
+  'Deploying YOUR_TEAM/saanseoi-project',
+  'Uploading [====================] (39.9MB/39.9MB)',
+  'Inspect: https://vercel.com/YOUR_TEAM/saanseoi-project/DEPLOYMENT_ID',
+  'Production: https://saanseoi-project-EXAMPLE-YOUR_TEAM.vercel.app',
+  'Building…',
+  'Running "bun run build"',
+  '✓ built',
+  'Completing…',
+  'Aliased: https://saanseoi-project.vercel.app',
+].join('\n')
+const netlifyDeploymentOutput = [
+  'Deploying to Netlify',
+  '',
+  'Deploy path: /home/YOUR_NAME/saanseoi-project/dist',
+  '✔ Finished uploading blobs to deploy store',
+  '✔ Finished hashing',
+  '✔ Finished uploading assets',
+  '✔ Deploy is live!',
+  '',
+  '🚀 Deploy complete',
+  '',
+  'Production URL: https://saanseoi-project.netlify.app',
+  'Unique deploy URL: https://DEPLOY_ID--saanseoi-project.netlify.app',
+].join('\n')
+const deploymentOutput = $derived(
+  hosting === 'github-pages'
+    ? githubDeploymentOutput
+    : hosting === 'vercel'
+      ? vercelDeploymentOutput
+      : netlifyDeploymentOutput,
+)
 const visitUrl = $derived(
   hosting === 'github-pages'
     ? 'https://your-github-user-name.github.io/saanseoi-project/'
@@ -361,14 +533,14 @@ const visitUrl = $derived(
 )
 const llmHelp = $derived(
   llmMode === 'manual'
-    ? m.guide_publish_assistance_manual()
+    ? undefined
     : aiAccess === 'agentic'
       ? m.guide_publish_assistance_agentic()
       : m.guide_publish_assistance_chat(),
 )
 
 $effect(() => {
-  onPublishedChange?.(completedRequirements.includes(deploymentRequirement))
+  onAccessibleChange?.(completedRequirements.includes(accessibilityRequirement))
 })
 
 const completeRequirement = (requirement: number) => {
@@ -383,13 +555,20 @@ const resetRequirement = (requirement: number) => {
 }
 </script>
 
-<div class="mt-8 space-y-10">
+<div class="mt-3 space-y-10">
   <div
     class="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
   >
-    <p class="order-1 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_intro({ host })}
-    </p>
+    <div class="order-1 font-body text-body-lg leading-8 text-foreground-alt">
+      <p>{@html m.guide_publish_intro({ host })}</p>
+      {#if hosting === 'github-pages'}
+        <p
+          class="mt-3 [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4"
+        >
+          {@html m.guide_publish_github_git_scope()}
+        </p>
+      {/if}
+    </div>
 
     <section
       class="order-3 mt-4 md:col-start-1 md:row-start-2 md:order-0"
@@ -408,11 +587,22 @@ const resetRequirement = (requirement: number) => {
       </h3>
       <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
         {m.guide_publish_account_create_before()}{' '}
-        <Button href={accountUrl} rel="noreferrer" size="compact" variant="secondary">
+        <Button
+          class="mx-3"
+          href={accountUrl}
+          rel="noreferrer"
+          size="compact"
+          variant="secondary"
+        >
           {m.guide_publish_account_create_action()}
         </Button>
         {' '}{m.guide_publish_account_description()}
       </p>
+      {#if hosting === 'vercel' || hosting === 'netlify'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_account_github_oauth({ host })}
+        </p>
+      {/if}
       <GuidePublishRequirement
         id="publish-account-readiness"
         titleId="publish-account-readiness-title"
@@ -422,6 +612,7 @@ const resetRequirement = (requirement: number) => {
         description={m.guide_publish_account_ready_description({ host })}
         resetDescription={m.guide_publish_reset_description()}
         resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-account-title"
         onComplete={() => completeRequirement(1)}
         onReset={() => resetRequirement(1)}
       >
@@ -467,34 +658,109 @@ const resetRequirement = (requirement: number) => {
         description={m.guide_publish_git_dependencies_ready_description()}
         resetDescription={m.guide_publish_reset_description()}
         resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-git-dependencies-title"
         onComplete={() => completeRequirement(gitDependenciesRequirement)}
         onReset={() => resetRequirement(gitDependenciesRequirement)}
       >
         {#if operatingSystem === 'linux'}
-          <div class="space-y-6">
-            <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_fedora(), path: terminalProjectPath })}
-              description={m.guide_publish_install_github_tools_fedora_description()}
-              code="sudo dnf install git gh"
-              language={terminalLanguage}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
-            <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_github_tools_debian(), path: terminalProjectPath })}
-              description={m.guide_publish_install_github_tools_debian_description()}
-              code="sudo apt install git gh"
-              language={terminalLanguage}
-              copyLabel={m.common_copy()}
-              copiedLabel={m.common_copied()}
-            />
+          <div class="max-w-[80ch] font-mono">
+            <div
+              class="flex min-w-0 overflow-x-auto overflow-y-hidden border-b border-border-card"
+              role="tablist"
+              aria-label={m.guide_publish_linux_distribution_label()}
+            >
+              {#each linuxDistributionTabs as distribution (distribution.value)}
+                <button
+                  id={`publish-linux-${distribution.value}-tab`}
+                  class={`relative -mb-px flex min-h-13 min-w-max flex-1 cursor-pointer items-center justify-center gap-2 border px-4 font-body text-label-md font-semibold transition-colors ${linuxDistribution === distribution.value ? 'z-10 border-secondary border-b-[#182021] bg-[#182021] text-white/75' : 'border-[#47605b]/45 text-foreground-alt hover:border-[#47605b] hover:bg-surface-container-low hover:text-primary'}`}
+                  type="button"
+                  role="tab"
+                  aria-controls="publish-linux-install-panel"
+                  aria-selected={linuxDistribution === distribution.value}
+                  onclick={() => (linuxDistribution = distribution.value)}
+                >
+                  <span class="flex items-center gap-1" aria-hidden="true">
+                    {#each distribution.icons as icon (icon)}
+                      <Icon
+                        {icon}
+                        class={`size-5 ${linuxDistribution === distribution.value ? 'text-[#6fdec9]' : 'text-secondary'}`}
+                      />
+                    {/each}
+                  </span>
+                  {distribution.label}
+                </button>
+              {/each}
+            </div>
+            <div
+              id="publish-linux-install-panel"
+              role="tabpanel"
+              aria-labelledby={`publish-linux-${linuxDistribution}-tab`}
+            >
+              <GuidePublishTerminalCommand
+                class="mt-0"
+                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_git_dependencies_title(), path: terminalProjectPath })}
+                code={linuxInstallCode}
+                language={terminalLanguage}
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+            </div>
           </div>
+        {:else if operatingSystem === 'macos'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_github_macos_installation_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_homebrew()}
+            code={macosHomebrewInstallCode}
+            language="bash"
+            class="mt-5"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_git_and_github_cli()}
+            code={macosGitInstallCode}
+            language="bash"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuideAdmonition
+            class="mt-5 max-w-178"
+            id="github-installation-error"
+            title={m.guide_publish_installation_error_title()}
+          >
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {m.guide_publish_installation_error_help()}
+            </p>
+          </GuideAdmonition>
+        {:else if operatingSystem === 'windows'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_github_windows_installation_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_publish_install_git_and_github_cli()}
+            code={windowsGitInstallCode}
+            language="powershell"
+            class="mt-5"
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <GuideAdmonition
+            class="mt-5 max-w-178"
+            id="github-installation-error"
+            title={m.guide_publish_installation_error_title()}
+          >
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {m.guide_publish_installation_error_help()}
+            </p>
+          </GuideAdmonition>
         {:else}
           <div class="border border-secondary/45 bg-secondary/10 p-5">
             <p class="font-body text-body-lg leading-8 text-primary">
               {m.guide_publish_github_external_installation_title()}
             </p>
-            <p class="mt-2 font-body text-body-md leading-7 text-foreground-alt">
+            <p class="mt-2 font-body text-body-lg leading-8 text-foreground-alt">
               {m.guide_publish_github_external_installation_description()}
             </p>
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
@@ -573,6 +839,7 @@ const resetRequirement = (requirement: number) => {
       description={m.guide_publish_client_ready_description({ client })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
+      scrollTargetId="publish-client-title"
       onComplete={() => completeRequirement(clientRequirement)}
       onReset={() => resetRequirement(clientRequirement)}
     >
@@ -609,27 +876,28 @@ const resetRequirement = (requirement: number) => {
       description={m.guide_publish_authenticated_description({ host })}
       resetDescription={m.guide_publish_reset_description()}
       resetLabel={m.guide_readiness_reset()}
+      scrollTargetId="publish-authentication-title"
       onComplete={() => completeRequirement(authenticationRequirement)}
       onReset={() => resetRequirement(authenticationRequirement)}
     >
+      <p class="font-body text-body-lg leading-8 text-foreground-alt">
+        {m.guide_publish_authentication_description({ host })}
+      </p>
       <GuidePublishTerminalCommand
         commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
-        description={m.guide_publish_authentication_description({ host })}
         code={authenticationCode}
         language={terminalLanguage}
-        output={hosting === 'cloudflare' ? cloudflareAuthenticationOutput : undefined}
-        outputLabel={hosting === 'cloudflare'
-          ? m.guide_publish_command_output({ action: m.guide_publish_authentication_command() })
-          : undefined}
+        output={authenticationOutput}
+        outputLabel={m.guide_publish_command_output({ action: m.guide_publish_authentication_command() })}
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
       />
       {#if hosting === 'cloudflare'}
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
           {m.guide_publish_cloudflare_authentication_url_note()}
         </p>
         <div class="mt-6 space-y-3">
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {m.guide_publish_cloudflare_authorize_description()}
           </p>
           <GuideScreenshot
@@ -639,7 +907,7 @@ const resetRequirement = (requirement: number) => {
           />
         </div>
         <div class="mt-6 space-y-3">
-          <p class="font-body text-body-md leading-7 text-foreground-alt">
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {m.guide_publish_cloudflare_authorization_success_description()}
           </p>
           <GuideScreenshot
@@ -649,209 +917,446 @@ const resetRequirement = (requirement: number) => {
           />
         </div>
       {:else if authenticationScreenshot}
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html hosting === 'github-pages'
+            ? m.guide_publish_github_authentication_browser()
+            : hosting === 'vercel'
+              ? m.guide_publish_vercel_authentication_browser()
+              : m.guide_publish_netlify_authentication_browser()}
+        </p>
         <GuideScreenshot
           src={authenticationScreenshot}
           srcDark={authenticationScreenshotDark}
           alt={m.guide_publish_authentication_screenshot_alt({ host })}
         />
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_authentication_return_to_terminal({ host })}
+        </p>
       {/if}
     </GuidePublishRequirement>
   </section>
 
-  <section aria-labelledby="publish-configuration-title">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_publish_requirement({ current: configurationRequirement, total: requirementTotal })}
-    </p>
-    <h3
-      id="publish-configuration-title"
-      class="mt-1 font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_configuration_title({ platform: host })}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html hosting === 'cloudflare'
-        ? m.guide_publish_cloudflare_configuration_description()
-        : hosting === 'github-pages'
-          ? m.guide_publish_github_configuration_description()
-          : m.guide_publish_configuration_description({ platform: host })}
-    </p>
-    <GuidePublishRequirement
-      id="publish-configuration-readiness"
-      titleId="publish-configuration-readiness-title"
-      complete={completedRequirements.includes(configurationRequirement)}
-      completeAction={m.guide_publish_configuration_complete_action()}
-      eyebrow={m.guide_publish_configuration_ready({ platform: host })}
-      description={m.guide_publish_configuration_ready_description({ platform: host })}
-      resetDescription={m.guide_publish_reset_description()}
-      resetLabel={m.guide_readiness_reset()}
-      onComplete={() => completeRequirement(configurationRequirement)}
-      onReset={() => resetRequirement(configurationRequirement)}
-    >
-      {#if hosting === 'cloudflare'}
-        <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
-          description={m.guide_publish_cloudflare_configuration_command_description()}
-          code={configurationCode}
-          language={terminalLanguage}
-          output={cloudflareSetupInitialOutput}
-          outputLabel={m.guide_publish_cloudflare_configuration_initial_output()}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_configuration_accept_defaults()}
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
+  >
+    <section aria-labelledby="publish-configuration-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: configurationRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-configuration-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_configuration_title({ platform: host })}
+      </h3>
+      {#if hosting !== 'github-pages'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html hosting === 'cloudflare'
+            ? m.guide_publish_cloudflare_configuration_description()
+            : hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_description()
+              : m.guide_publish_netlify_configuration_description()}
         </p>
-        <GuideCodeBlock
-          class="mt-3"
-          code={cloudflareSetupConfirmationOutput}
-          label={m.guide_publish_cloudflare_configuration_confirmation_output()}
-          copyable={false}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_configuration_proceed()}
-        </p>
-        <GuideCodeBlock
-          class="mt-3"
-          code={cloudflareSetupCompleteOutput}
-          label={m.guide_publish_cloudflare_configuration_complete_output()}
-          copyable={false}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-      {:else}
-        <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
-          code={configurationCode}
-          language={terminalLanguage}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
       {/if}
-    </GuidePublishRequirement>
-  </section>
-
-  <section aria-labelledby="publish-deployment-title">
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      {m.guide_publish_requirement({ current: deploymentRequirement, total: requirementTotal })}
-    </p>
-    <h3
-      id="publish-deployment-title"
-      class="mt-1 font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_deployment_title({ host })}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_deployment_description({ host })}
-    </p>
-    <GuidePublishRequirement
-      id="publish-deployment-readiness"
-      titleId="publish-deployment-readiness-title"
-      complete={completedRequirements.includes(deploymentRequirement)}
-      completeAction={m.guide_publish_deployment_complete_action()}
-      eyebrow={m.guide_publish_deployment_ready({ platform: host })}
-      description={m.guide_publish_deployment_ready_description({ platform: host })}
-      resetDescription={m.guide_publish_reset_description()}
-      resetLabel={m.guide_readiness_reset()}
-      onComplete={() => completeRequirement(deploymentRequirement)}
-      onReset={() => resetRequirement(deploymentRequirement)}
-    >
-      {#if hosting === 'cloudflare'}
-        <GuidePublishTerminalCommand
-          commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
-          description={m.guide_publish_cloudflare_build_description()}
-          code="bun run build"
-          language={terminalLanguage}
-          output={cloudflareBuildOutput}
-          outputLabel={m.guide_publish_cloudflare_build_output()}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_cloudflare_build_warning()}
-        </p>
-        <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_static_api_key()}
-        </p>
-        <div class="mt-6">
+      <GuidePublishRequirement
+        id="publish-configuration-readiness"
+        titleId="publish-configuration-readiness-title"
+        complete={completedRequirements.includes(configurationRequirement)}
+        completeAction={m.guide_publish_configuration_complete_action()}
+        eyebrow={m.guide_publish_configuration_ready({ platform: host })}
+        description={m.guide_publish_configuration_ready_description({ platform: host })}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-configuration-title"
+        onComplete={() => completeRequirement(configurationRequirement)}
+        onReset={() => resetRequirement(configurationRequirement)}
+      >
+        {#if hosting === 'cloudflare'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {m.guide_publish_cloudflare_configuration_command_description()}
+          </p>
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
-            description={m.guide_publish_cloudflare_deploy_description()}
-            code={deploymentCode}
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            code={configurationCode}
             language={terminalLanguage}
-            output={cloudflareDeploymentInitialOutput}
-            outputLabel={m.guide_publish_cloudflare_deploy_initial_output()}
+            output={cloudflareSetupInitialOutput}
+            outputLabel={m.guide_publish_cloudflare_configuration_initial_output()}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_register_subdomain()}
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_configuration_accept_defaults()}
           </p>
           <GuideCodeBlock
             class="mt-3"
-            code={cloudflareDeploymentSubdomainOutput}
-            label={m.guide_publish_cloudflare_deploy_subdomain_output()}
+            code={cloudflareSetupConfirmationOutput}
+            label={m.guide_publish_cloudflare_configuration_confirmation_output()}
             copyable={false}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
-          <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_choose_subdomain()}
-          </p>
-          <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-            {@html m.guide_publish_cloudflare_deploy_confirm_subdomain()}
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_configuration_proceed()}
           </p>
           <GuideCodeBlock
             class="mt-3"
-            code={cloudflareDeploymentCompleteOutput}
-            label={m.guide_publish_cloudflare_deploy_complete_output()}
+            code={cloudflareSetupCompleteOutput}
+            label={m.guide_publish_cloudflare_configuration_complete_output()}
             copyable={false}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
+          />
+        {:else if hosting === 'github-pages'}
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_github_identity_command(), path: terminalProjectPath })}
+            description={m.guide_publish_github_identity_description()}
+            code={githubIdentityCode}
+            language={terminalLanguage}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <div class="mt-6">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_configuration_command_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+              code={configurationCode}
+              language={terminalLanguage}
+              output={configurationOutput}
+              outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+          </div>
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_github_configuration_complete()}
+          </p>
+        {:else}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {@html hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_command_description()
+              : m.guide_publish_netlify_configuration_command_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            code={configurationCode}
+            language={terminalLanguage}
+            output={configurationOutput}
+            outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+            {@html hosting === 'vercel'
+              ? m.guide_publish_vercel_configuration_complete()
+              : m.guide_publish_netlify_configuration_complete()}
+          </p>
+        {/if}
+      </GuidePublishRequirement>
+    </section>
+
+    {#if !completedRequirements.includes(configurationRequirement)}
+      <aside class="mt-12">
+        <GuidePublishHostingCallout hostingPlatform={hosting} />
+        {#if hosting === 'github-pages'}
+          <GuideInstructionCallout
+            class="mt-10"
+            label={m.guide_publish_git_commit_label()}
+            title={m.guide_publish_git_commit_title()}
+            description={m.guide_publish_git_commit_description()}
+          />
+        {/if}
+      </aside>
+    {/if}
+  </div>
+
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
+  >
+    <section aria-labelledby="publish-deployment-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: deploymentRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-deployment-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_deployment_title({ host })}
+      </h3>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {deploymentIntroduction}
+      </p>
+      <GuidePublishRequirement
+        id="publish-deployment-readiness"
+        titleId="publish-deployment-readiness-title"
+        complete={completedRequirements.includes(deploymentRequirement)}
+        completeAction={m.guide_publish_deployment_complete_action()}
+        eyebrow={m.guide_publish_deployment_ready({ platform: host })}
+        description={m.guide_publish_deployment_ready_description({ platform: host })}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-deployment-title"
+        onComplete={() => completeRequirement(deploymentRequirement)}
+        onReset={() => resetRequirement(deploymentRequirement)}
+      >
+        {#if hosting === 'cloudflare'}
+          <p class="font-body text-body-lg leading-8 text-foreground-alt">
+            {@html m.guide_publish_cloudflare_build_description()}
+          </p>
+          <GuidePublishTerminalCommand
+            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+            code="bun run build"
+            language={terminalLanguage}
+            output={cloudflareBuildOutput}
+            outputLabel={m.guide_publish_cloudflare_build_output()}
+            copyLabel={m.common_copy()}
+            copiedLabel={m.common_copied()}
+          />
+          <div class="relative mt-5">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_build_warning()}
+            </p>
+            <aside
+              class="mt-4 md:absolute md:top-0 md:left-[calc(100%+1.5rem)] md:mt-0 md:w-48 lg:w-64"
+            >
+              <GuideInstructionCallout
+                description={m.guide_publish_static_api_key()}
+                label={m.guide_publish_static_api_key_label()}
+                title={m.guide_publish_static_api_key_title()}
+              />
+            </aside>
+          </div>
+          <div class="mt-6">
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
+              code={deploymentCode}
+              language={terminalLanguage}
+              output={cloudflareDeploymentInitialOutput}
+              outputLabel={m.guide_publish_cloudflare_deploy_initial_output()}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_register_subdomain()}
+            </p>
+            <GuideCodeBlock
+              class="mt-3"
+              code={cloudflareDeploymentSubdomainOutput}
+              label={m.guide_publish_cloudflare_deploy_subdomain_output()}
+              copyable={false}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_choose_subdomain()}
+            </p>
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_deploy_confirm_subdomain()}
+            </p>
+            <GuideCodeBlock
+              class="mt-3"
+              code={cloudflareDeploymentCompleteOutput}
+              label={m.guide_publish_cloudflare_deploy_complete_output()}
+              copyable={false}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+          </div>
+        {:else}
+          {#if hosting === 'github-pages'}
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_deploy_description()}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+              code={deploymentCode}
+              language={terminalLanguage}
+              output={deploymentOutput}
+              outputLabel={m.guide_publish_command_output({ action: m.guide_publish_deployment_command() })}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_github_deploy_wait()}
+            </p>
+          {:else}
+            <p class="font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_platform_build_description({ host })}
+            </p>
+            <GuidePublishTerminalCommand
+              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+              code="bun run build"
+              language={terminalLanguage}
+              output={cloudflareBuildOutput}
+              outputLabel={m.guide_publish_cloudflare_build_output()}
+              copyLabel={m.common_copy()}
+              copiedLabel={m.common_copied()}
+            />
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_publish_cloudflare_build_warning()}
+            </p>
+            <div class="mt-6">
+              <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                {@html hosting === 'vercel'
+                  ? m.guide_publish_vercel_deploy_description()
+                  : m.guide_publish_netlify_deploy_description()}
+              </p>
+              <GuidePublishTerminalCommand
+                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+                code={deploymentCode}
+                language={terminalLanguage}
+                output={deploymentOutput}
+                outputLabel={m.guide_publish_command_output({ action: m.guide_publish_deployment_command() })}
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+            </div>
+            <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html hosting === 'vercel'
+                ? m.guide_publish_vercel_deploy_complete()
+                : m.guide_publish_netlify_deploy_complete()}
+            </p>
+            {#if hosting === 'netlify'}
+              <GuideAdmonition
+                class="mt-5 max-w-178"
+                id="netlify-site-visibility"
+                title={m.guide_publish_netlify_visibility_title()}
+              >
+                <p class="font-body text-body-lg leading-8 text-foreground-alt">
+                  {@html m.guide_publish_netlify_visibility_description()}
+                </p>
+              </GuideAdmonition>
+            {/if}
+          {/if}
+        {/if}
+      </GuidePublishRequirement>
+    </section>
+
+    <aside class="mt-12">
+      <GuideInstructionCallout
+        description={m.guide_publish_building_description()}
+        label={m.guide_publish_building_label()}
+        title={m.guide_publish_building_title()}
+      />
+      {#if hosting !== 'cloudflare'}
+        <div class="mt-10">
+          <GuideInstructionCallout
+            description={m.guide_publish_static_api_key()}
+            label={m.guide_publish_static_api_key_label()}
+            title={m.guide_publish_static_api_key_title()}
           />
         </div>
-      {:else}
-        <GuideCodeBlock
-          label={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
-          code={deploymentCode}
-          language={terminalLanguage}
-          copyLabel={m.common_copy()}
-          copiedLabel={m.common_copied()}
-        />
-        <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_publish_static_api_key()}
-        </p>
       {/if}
-    </GuidePublishRequirement>
-  </section>
+    </aside>
+  </div>
 
-  <section aria-labelledby="publish-next-title">
-    <h3
-      id="publish-next-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_publish_visit_title()}
-    </h3>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html visitUrl
+  <div
+    class="grid gap-6 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start lg:-mr-56 lg:w-[calc(100%+14rem)] lg:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)]"
+  >
+    <section aria-labelledby="publish-next-title">
+      <p
+        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+      >
+        {m.guide_publish_requirement({ current: accessibilityRequirement, total: requirementTotal })}
+      </p>
+      <h3
+        id="publish-accessibility-title"
+        class="mt-1 font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_publish_visit_title()}
+      </h3>
+      <p
+        class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+      >
+        {@html visitUrl
         ? m.guide_publish_visit_github({ url: visitUrl })
         : hosting === 'cloudflare'
           ? m.guide_publish_visit_cloudflare()
-          : m.guide_publish_visit_output()}
-    </p>
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_update({ host })}
-    </p>
-    <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
-      {@html m.guide_publish_share()}
-    </p>
-    <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-      {@html llmHelp}
-    </p>
-  </section>
+          : hosting === 'vercel'
+            ? m.guide_publish_visit_vercel()
+            : m.guide_publish_visit_netlify()}
+      </p>
+      <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+        {m.guide_publish_accessibility_description()}
+      </p>
+      <GuidePublishRequirement
+        id="publish-accessibility-readiness"
+        titleId="publish-accessibility-readiness-title"
+        complete={completedRequirements.includes(accessibilityRequirement)}
+        completeAction={m.guide_publish_accessibility_complete_action()}
+        eyebrow={m.guide_publish_accessibility_ready()}
+        description={m.guide_publish_accessibility_ready_description()}
+        resetDescription={m.guide_publish_reset_description()}
+        resetLabel={m.guide_readiness_reset()}
+        scrollTargetId="publish-accessibility-title"
+        onComplete={() => completeRequirement(accessibilityRequirement)}
+        onReset={() => resetRequirement(accessibilityRequirement)}
+      />
+      <GuideTextSubHeader class="mt-10" title={m.guide_publish_future_edits_title()} />
+      {#if hosting === 'github-pages'}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_github_update()}
+        </p>
+        <GuidePublishTerminalCommand
+          commandLabel={m.guide_publish_github_update_command()}
+          code={githubFutureEditsCode}
+          language={terminalLanguage}
+          class="mt-5"
+          copyLabel={m.common_copy()}
+          copiedLabel={m.common_copied()}
+        />
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {m.guide_publish_share()}
+        </p>
+      {:else}
+        <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html m.guide_publish_update({ host })} {@html m.guide_publish_share()}
+        </p>
+      {/if}
+      {#if renderer === 'mapbox'}
+        <GuideCallout class="mt-6 max-w-3xl">
+          <h4>
+            <button
+              class="flex w-full cursor-pointer items-center justify-between gap-3 text-left font-display text-headline-sm font-bold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+              type="button"
+              aria-expanded={mapboxTokenRestrictionsExpanded}
+              onclick={() => (mapboxTokenRestrictionsExpanded = !mapboxTokenRestrictionsExpanded)}
+            >
+              {@html m.guide_renderer_mapbox_token_restrictions_title()}
+              <Icon
+                class={`size-5 shrink-0 transition-transform ${mapboxTokenRestrictionsExpanded ? 'rotate-180' : ''}`}
+                icon="material-symbols-light:expand-more-rounded"
+                aria-hidden="true"
+              />
+            </button>
+          </h4>
+          {#if mapboxTokenRestrictionsExpanded}
+            <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
+              {@html m.guide_renderer_mapbox_token_restrictions_description()}
+            </p>
+            <div class="mt-5">
+              <GuideScreenshot
+                src={mapboxTokenUrlRestrictions}
+                alt={m.guide_renderer_mapbox_token_restrictions_screenshot_alt()}
+                caption={m.guide_renderer_mapbox_token_restrictions_screenshot_caption()}
+              />
+            </div>
+          {/if}
+        </GuideCallout>
+      {/if}
+      {#if llmHelp}
+        <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+          {@html llmHelp}
+        </p>
+      {/if}
+    </section>
+  </div>
 </div>

@@ -6,7 +6,9 @@ type Props = {
   filteredCount: string
   infoDescription: string
   infoLabel: string
+  loadError?: boolean
   loading?: boolean
+  onRetry?: () => void
   query?: string
   totalCount: string
 }
@@ -15,7 +17,9 @@ let {
   filteredCount,
   infoDescription,
   infoLabel,
+  loadError = false,
   loading = false,
+  onRetry,
   query = $bindable(''),
   totalCount,
 }: Props = $props()
@@ -31,5 +35,5 @@ let {
     {loading}
     {totalCount}
   />
-  <ReleaseAuditControlsSearch bind:query />
+  <ReleaseAuditControlsSearch {loadError} {onRetry} bind:query />
 </section>

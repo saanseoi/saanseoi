@@ -1,5 +1,5 @@
 <script lang="ts">
-import { goto } from '$app/navigation'
+import { afterNavigate, goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { apiProfileNames, type ApiProfileName } from '@repo/core/apiLocales'
@@ -15,8 +15,11 @@ import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
 import {
+  getApiReleaseAuditActionPage,
+  getApiReleaseAuditData,
   getApiReleasePageData,
   getDistrictCoverageMapData,
+  getRegistryAccessMetricsData,
 } from '#lib/registry/meta.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
@@ -55,10 +58,14 @@ $effect(() => {
 })
 let shell = $derived(initialShell ?? lastReadyShell)
 let contentResource = createDeferredRemoteResource({
-  createQuery: familyType => getApiReleasePageData(familyType),
-  getInput: () => params.familyType,
-  getKey: familyType => familyType,
+  createQuery: input => getApiReleasePageData(input),
+  getInput: () => ({
+    familyType: params.familyType,
+    releaseCode: params.releaseCode,
+  }),
+  getKey: input => `${input.familyType}/${input.releaseCode}`,
   hasShell: () => Boolean(shell),
+  retainAcrossKeys: false,
 })
 let api = $derived.by(() => {
   const value = contentResource.current ?? shell
@@ -67,12 +74,24 @@ let api = $derived.by(() => {
 })
 let isContentLoading = $derived(contentResource.loading)
 
-let release = $derived.by(() => {
+let releaseBase = $derived.by(() => {
   const selected = resolveReleaseSetRef(api.releases, params.releaseCode)
 
   if (!selected) error(404, 'API release not found.')
 
   return selected
+})
+let accessMetricsQuery = $derived(
+  getRegistryAccessMetricsData({
+    entityId: releaseBase.id,
+    scope: 'api_release_set',
+  }),
+)
+let release = $derived({
+  ...releaseBase,
+  accessMetrics: accessMetricsQuery.ready
+    ? accessMetricsQuery.current
+    : releaseBase.accessMetrics,
 })
 
 let seoTitle = $derived(
@@ -166,6 +185,13 @@ let auditRoot = $derived(
   activeTab === 'audit'
     ? import(
         '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditRoot.svelte'
+      )
+    : undefined,
+)
+let auditSkeleton = $derived(
+  activeTab === 'audit'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditSkeleton.svelte'
       )
     : undefined,
 )
@@ -499,14 +525,17 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'schema', label: m.api_release_schema() },
   { id: 'samples', label: m.api_release_samples() },
   { id: 'stats', label: m.api_release_stats() },
-  ...(release.processingActions?.length || release.bulkActions?.length
+  ...((release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
+  release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
-$effect(() => {
-  const tab = getApiReleaseTabFromUrl(page.url)
+afterNavigate(({ to }) => {
+  if (!to) return
+
+  const tab = getApiReleaseTabFromUrl(to.url)
   activeTab = tabs.some(({ id }) => id === tab) ? tab : 'release'
 })
 
@@ -620,7 +649,10 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'schema') return true
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
-    return Boolean(release.processingActions?.length || release.bulkActions?.length)
+    return Boolean(
+      (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
+        release.bulkActions?.length,
+    )
   }
   return Boolean(release.contributingSources?.length)
 })
@@ -631,6 +663,53 @@ $effect(() => {
   activeStatsHeadingId = null
   activeAuditHeadingId = null
 })
+
+let auditDataQuery = $derived(
+  activeTab === 'audit' &&
+    (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0
+    ? getApiReleaseAuditData({
+        familyType: api.familyType,
+        releaseCode: release.code,
+      })
+    : null,
+)
+let auditSectionPageQueries = $derived(
+  auditDataQuery?.ready
+    ? auditDataQuery.current.sections.map(section => ({
+        section,
+        query: getApiReleaseAuditActionPage({
+          action: section.action,
+          familyType: api.familyType,
+          limit: 50,
+          offset: 0,
+          releaseCode: release.code,
+        }),
+      }))
+    : [],
+)
+let auditData = $derived.by(() => {
+  if (!auditDataQuery?.ready) return null
+
+  const pageReadiness = auditSectionPageQueries.map(item => item.query.ready)
+  if (pageReadiness.some(ready => !ready)) return null
+
+  return {
+    sections: auditSectionPageQueries.map(item => ({
+      ...item.section,
+      rows: item.query.current?.rows ?? [],
+      hasMore: item.query.current?.hasMore ?? false,
+      nextOffset: item.query.current?.nextOffset ?? 0,
+    })),
+  }
+})
+const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
+  getApiReleaseAuditActionPage({
+    action,
+    familyType: api.familyType,
+    limit,
+    offset,
+    releaseCode: release.code,
+  })
 </script>
 
 <Seo
@@ -784,15 +863,26 @@ $effect(() => {
           {#if auditRoot}
             {#await auditRoot then module}
               {@const ReleaseAuditRoot = module.default}
-              <ReleaseAuditRoot
-                analyticsSurface="api_release"
-                actions={release.processingActions}
-                bulkActions={release.bulkActions}
-                {locale}
-                {showBulkActions}
-                bind:headings={auditHeadings}
-                bind:activeHeadingId={activeAuditHeadingId}
-              />
+              {#if auditData || !auditDataQuery}
+                {#key release.code}
+                  <ReleaseAuditRoot
+                    analyticsSurface="api_release"
+                    actions={release.processingActions}
+                    actionSections={auditData?.sections}
+                    bulkActions={release.bulkActions}
+                    {locale}
+                    {showBulkActions}
+                    onLoadMoreSection={loadMoreAuditSection}
+                    bind:headings={auditHeadings}
+                    bind:activeHeadingId={activeAuditHeadingId}
+                  />
+                {/key}
+              {:else if auditSkeleton}
+                {#await auditSkeleton then skeletonModule}
+                  {@const ReleaseAuditSkeleton = skeletonModule.default}
+                  <ReleaseAuditSkeleton />
+                {/await}
+              {/if}
             {/await}
           {/if}
         {:else}

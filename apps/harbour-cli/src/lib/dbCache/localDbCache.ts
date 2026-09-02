@@ -1358,7 +1358,13 @@ export async function applyPublishMetadataDeltaToRemoteCache(
         'UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?',
       )
       const updateReleaseSet = sqlite.prepare(
-        'UPDATE apiReleaseSets SET status = ?, updatedAt = ? WHERE id = ?',
+        `UPDATE apiReleaseSets SET
+          apiVersionId = ?, apiCompositionId = ?, code = ?, regionCode = ?, domainCode = ?,
+          cohortKey = ?, revision = ?, effectiveFrom = ?, effectiveTo = ?,
+          supersedesApiReleaseSetId = ?, schemaVersion = ?, rulesetVersion = ?, status = ?,
+          publishedAt = ?, validFrom = ?, validTo = ?, notes = ?, guide = ?, versionHash = ?,
+          createdAt = ?, updatedAt = ?
+        WHERE id = ?`,
       )
       const updateSnapshot = sqlite.prepare(
         'UPDATE snapshots SET status = ?, publishedAt = ?, validFrom = ?, validTo = ?, updatedAt = ? WHERE id = ?',
@@ -1392,7 +1398,30 @@ export async function applyPublishMetadataDeltaToRemoteCache(
         }
       }
       for (const releaseSet of delta.apiReleaseSets ?? []) {
-        const result = updateReleaseSet.run(releaseSet.status, updatedAt, releaseSet.id)
+        const result = updateReleaseSet.run(
+          releaseSet.apiVersionId,
+          releaseSet.apiCompositionId,
+          releaseSet.code,
+          releaseSet.regionCode,
+          releaseSet.domainCode,
+          releaseSet.cohortKey,
+          releaseSet.revision,
+          releaseSet.effectiveFrom,
+          releaseSet.effectiveTo,
+          releaseSet.supersedesApiReleaseSetId,
+          releaseSet.schemaVersion,
+          releaseSet.rulesetVersion,
+          releaseSet.status,
+          releaseSet.publishedAt,
+          releaseSet.validFrom,
+          releaseSet.validTo,
+          releaseSet.notes,
+          releaseSet.guide,
+          releaseSet.versionHash,
+          releaseSet.createdAt,
+          releaseSet.updatedAt,
+          releaseSet.id,
+        )
         if (result.changes !== 1) {
           insertReleaseSet.run(
             releaseSet.id,

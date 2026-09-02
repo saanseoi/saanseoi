@@ -1,24 +1,27 @@
 <script lang="ts">
 import GuideMappingPreview from './guideMappingPreview.svelte'
+import type { CreateAMapOpeningPosition } from '#lib/guides/createAMapSelections.js'
 
 type Props = {
   label: string
+  renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
+  openingPosition: CreateAMapOpeningPosition
 }
 
-let { label, styleUrl, tilejsonUrl }: Props = $props()
+let { label, renderer, styleUrl, tilejsonUrl, openingPosition }: Props = $props()
 </script>
 
 <div class="relative h-full overflow-hidden bg-[#10151a] shadow-inner">
-  {#key `${styleUrl}:${tilejsonUrl}`}
+  {#key `${renderer}:${styleUrl}:${tilejsonUrl}:${openingPosition.center.join(',')}:${openingPosition.zoom}`}
     <GuideMappingPreview
       ariaLabel={label}
-      center={[114.1694, 22.3193]}
-      renderer="maplibre"
+      center={openingPosition.center}
+      {renderer}
       {styleUrl}
       {tilejsonUrl}
-      zoom={10.5}
+      zoom={openingPosition.zoom}
     />
   {/key}
   <div

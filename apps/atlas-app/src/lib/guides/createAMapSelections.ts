@@ -38,6 +38,18 @@ export const createAMapSelectionChoices = {
   region: ['hk', 'mo', 'gba'],
   style: ['custom', ...mapStyleDefinitions.map(style => style.id)],
   dataSource: ['existing', 'api'],
+  dataFormat: [
+    'geojson',
+    'kml',
+    'csv',
+    'topojson',
+    'shapefile',
+    'flatgeobuf',
+    'wkt',
+    'xlsx',
+    'osm',
+    'other',
+  ],
 } as const
 
 export type CreateAMapSelectionKey = keyof typeof createAMapSelectionChoices
@@ -49,6 +61,11 @@ export type CreateAMapSelection = {
 }
 
 export type CreateAMapSelectionQuery = Partial<CreateAMapSelection>
+
+export type CreateAMapOpeningPosition = {
+  center: [longitude: number, latitude: number]
+  zoom: number
+}
 
 export const createAMapSelectionQueryKeys = {
   objective: 'objective',
@@ -70,6 +87,7 @@ export const createAMapSelectionQueryKeys = {
   region: 'region',
   style: 'style',
   dataSource: 'data',
+  dataFormat: 'data-format',
 } as const satisfies Record<CreateAMapSelectionKey, string>
 
 export function getCreateAMapQueryChoice<Key extends CreateAMapSelectionKey>(
@@ -95,6 +113,18 @@ export function createAMapTileset(
   region: CreateAMapSelectionValue<'region'> | undefined,
 ) {
   return region === 'mo' ? 'macau' : region === 'gba' ? 'gba' : 'hongkong'
+}
+
+/**
+ * Each basemap starts in an area it covers, so the generated map and its guide
+ * preview show useful map content immediately.
+ */
+export function getCreateAMapOpeningPosition(
+  region: CreateAMapSelectionValue<'region'> | undefined,
+): CreateAMapOpeningPosition {
+  if (region === 'mo') return { center: [113.552, 22.165], zoom: 12.2 }
+  if (region === 'gba') return { center: [113.75, 22.65], zoom: 8.5 }
+  return { center: [114.1694, 22.3193], zoom: 11.5 }
 }
 
 export function createAMapStylePreviewUrl(

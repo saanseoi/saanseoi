@@ -35,6 +35,7 @@ export function createCreateAMapGuidePresentation({
 
   const showPublishStep =
     objective === 'web' || objective === 'web-embed' || objective === 'mobile-embed'
+  const showEmbedStep = objective === 'web-embed'
   const recommendationBadge = (recommended: boolean) =>
     recommended ? m.guide_recommended() : undefined
   const vpnNote = isVpnRequired ? m.guide_agent_tool_vpn_note() : undefined
@@ -201,6 +202,7 @@ export function createCreateAMapGuidePresentation({
       { id: 'style', label: m.guide_step_style() },
       { id: 'data', label: m.guide_step_data() },
       { id: 'publish', label: m.guide_step_publish(), hidden: !showPublishStep },
+      { id: 'embed', label: m.guide_step_embed(), hidden: !showEmbedStep },
     ],
     foundations: [
       {

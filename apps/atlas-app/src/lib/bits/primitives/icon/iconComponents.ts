@@ -88,6 +88,7 @@ import IconProiconsGlobe from '@iconify-svelte/proicons/globe'
 import IconProiconsInfo from '@iconify-svelte/proicons/info'
 import IconProiconsKey from '@iconify-svelte/proicons/key'
 import IconProiconsLaptop from '@iconify-svelte/proicons/laptop'
+import IconProiconsLayers from '@iconify-svelte/proicons/layers'
 import IconProiconsLocation from '@iconify-svelte/proicons/location'
 import IconProiconsMail from '@iconify-svelte/proicons/mail'
 import IconProiconsMap from '@iconify-svelte/proicons/map'
@@ -100,6 +101,7 @@ import IconProiconsPizza from '@iconify-svelte/proicons/pizza'
 import IconProiconsQuestion from '@iconify-svelte/proicons/question'
 import IconProiconsSapling from '@iconify-svelte/proicons/sapling'
 import IconProiconsSearch from '@iconify-svelte/proicons/search'
+import IconProiconsServer from '@iconify-svelte/proicons/server'
 import IconProiconsSettings from '@iconify-svelte/proicons/settings'
 import IconProiconsShare from '@iconify-svelte/proicons/share'
 import IconProiconsSparkle from '@iconify-svelte/proicons/sparkle'
@@ -107,12 +109,16 @@ import IconProiconsTerminal from '@iconify-svelte/proicons/terminal'
 import IconSimpleIconsAlibabacloud from '@iconify-svelte/simple-icons/alibabacloud'
 import IconSimpleIconsAndroid from '@iconify-svelte/simple-icons/android'
 import IconSimpleIconsAnthropic from '@iconify-svelte/simple-icons/anthropic'
+import IconSimpleIconsArchlinux from '@iconify-svelte/simple-icons/archlinux'
 import IconSimpleIconsApple from '@iconify-svelte/simple-icons/apple'
 import IconSimpleIconsAxios from '@iconify-svelte/simple-icons/axios'
+import IconSimpleIconsCachyos from '@iconify-svelte/simple-icons/cachyos'
 import IconSimpleIconsCloudflare from '@iconify-svelte/simple-icons/cloudflare'
 import IconSimpleIconsCursor from '@iconify-svelte/simple-icons/cursor'
+import IconSimpleIconsDebian from '@iconify-svelte/simple-icons/debian'
 import IconSimpleIconsDeepseek from '@iconify-svelte/simple-icons/deepseek'
 import IconSimpleIconsDiscord from '@iconify-svelte/simple-icons/discord'
+import IconSimpleIconsFedora from '@iconify-svelte/simple-icons/fedora'
 import IconSimpleIconsGithub from '@iconify-svelte/simple-icons/github'
 import IconSimpleIconsGo from '@iconify-svelte/simple-icons/go'
 import IconSimpleIconsGooglecolab from '@iconify-svelte/simple-icons/googlecolab'
@@ -122,6 +128,7 @@ import IconSimpleIconsJavascript from '@iconify-svelte/simple-icons/javascript'
 import IconSimpleIconsLeaflet from '@iconify-svelte/simple-icons/leaflet'
 import IconSimpleIconsLinkedin from '@iconify-svelte/simple-icons/linkedin'
 import IconSimpleIconsLinux from '@iconify-svelte/simple-icons/linux'
+import IconSimpleIconsLinuxmint from '@iconify-svelte/simple-icons/linuxmint'
 import IconSimpleIconsMapbox from '@iconify-svelte/simple-icons/mapbox'
 import IconSimpleIconsMaplibre from '@iconify-svelte/simple-icons/maplibre'
 import IconSimpleIconsMoonshotai from '@iconify-svelte/simple-icons/moonshotai'
@@ -131,6 +138,7 @@ import IconSimpleIconsOpenapiinitiative from '@iconify-svelte/simple-icons/opena
 import IconSimpleIconsOpenjdk from '@iconify-svelte/simple-icons/openjdk'
 import IconSimpleIconsPhp from '@iconify-svelte/simple-icons/php'
 import IconSimpleIconsPython from '@iconify-svelte/simple-icons/python'
+import IconSimpleIconsRedhat from '@iconify-svelte/simple-icons/redhat'
 import IconSimpleIconsRuby from '@iconify-svelte/simple-icons/ruby'
 import IconSimpleIconsSinaweibo from '@iconify-svelte/simple-icons/sinaweibo'
 import IconSimpleIconsSquarespace from '@iconify-svelte/simple-icons/squarespace'
@@ -138,6 +146,7 @@ import IconSimpleIconsSublimetext from '@iconify-svelte/simple-icons/sublimetext
 import IconSimpleIconsThreads from '@iconify-svelte/simple-icons/threads'
 import IconSimpleIconsTwitter from '@iconify-svelte/simple-icons/twitter'
 import IconSimpleIconsTypescript from '@iconify-svelte/simple-icons/typescript'
+import IconSimpleIconsUbuntu from '@iconify-svelte/simple-icons/ubuntu'
 import IconSimpleIconsVercel from '@iconify-svelte/simple-icons/vercel'
 import IconSimpleIconsVisualstudiocode from '@iconify-svelte/simple-icons/visualstudiocode'
 import IconSimpleIconsWebflow from '@iconify-svelte/simple-icons/webflow'
@@ -257,6 +266,7 @@ export const localIconComponents = {
   'proicons:info': IconProiconsInfo,
   'proicons:key': IconProiconsKey,
   'proicons:laptop': IconProiconsLaptop,
+  'proicons:layers': IconProiconsLayers,
   'proicons:location': IconProiconsLocation,
   'proicons:mail': IconProiconsMail,
   'proicons:map': IconProiconsMap,
@@ -271,6 +281,7 @@ export const localIconComponents = {
   'proicons:question': IconProiconsQuestion,
   'proicons:sapling': IconProiconsSapling,
   'proicons:search': IconProiconsSearch,
+  'proicons:server': IconProiconsServer,
   'proicons:settings': IconProiconsSettings,
   'proicons:share': IconProiconsShare,
   'proicons:sparkle': IconProiconsSparkle,
@@ -281,12 +292,16 @@ export const localIconComponents = {
   'simple-icons:alibabacloud': IconSimpleIconsAlibabacloud,
   'simple-icons:android': IconSimpleIconsAndroid,
   'simple-icons:anthropic': IconSimpleIconsAnthropic,
+  'simple-icons:archlinux': IconSimpleIconsArchlinux,
   'simple-icons:apple': IconSimpleIconsApple,
   'simple-icons:axios': IconSimpleIconsAxios,
+  'simple-icons:cachyos': IconSimpleIconsCachyos,
   'simple-icons:cloudflare': IconSimpleIconsCloudflare,
   'simple-icons:cursor': IconSimpleIconsCursor,
+  'simple-icons:debian': IconSimpleIconsDebian,
   'simple-icons:deepseek': IconSimpleIconsDeepseek,
   'simple-icons:discord': IconSimpleIconsDiscord,
+  'simple-icons:fedora': IconSimpleIconsFedora,
   'simple-icons:github': IconSimpleIconsGithub,
   'simple-icons:go': IconSimpleIconsGo,
   'simple-icons:googlecolab': IconSimpleIconsGooglecolab,
@@ -296,6 +311,7 @@ export const localIconComponents = {
   'simple-icons:leaflet': IconSimpleIconsLeaflet,
   'simple-icons:linkedin': IconSimpleIconsLinkedin,
   'simple-icons:linux': IconSimpleIconsLinux,
+  'simple-icons:linuxmint': IconSimpleIconsLinuxmint,
   'simple-icons:mapbox': IconSimpleIconsMapbox,
   'simple-icons:maplibre': IconSimpleIconsMaplibre,
   'simple-icons:moonshotai': IconSimpleIconsMoonshotai,
@@ -305,6 +321,7 @@ export const localIconComponents = {
   'simple-icons:openjdk': IconSimpleIconsOpenjdk,
   'simple-icons:php': IconSimpleIconsPhp,
   'simple-icons:python': IconSimpleIconsPython,
+  'simple-icons:redhat': IconSimpleIconsRedhat,
   'simple-icons:ruby': IconSimpleIconsRuby,
   'simple-icons:sinaweibo': IconSimpleIconsSinaweibo,
   'simple-icons:squarespace': IconSimpleIconsSquarespace,
@@ -312,6 +329,7 @@ export const localIconComponents = {
   'simple-icons:threads': IconSimpleIconsThreads,
   'simple-icons:twitter': IconSimpleIconsTwitter,
   'simple-icons:typescript': IconSimpleIconsTypescript,
+  'simple-icons:ubuntu': IconSimpleIconsUbuntu,
   'simple-icons:vercel': IconSimpleIconsVercel,
   'simple-icons:visualstudiocode': IconSimpleIconsVisualstudiocode,
   'simple-icons:webflow': IconSimpleIconsWebflow,

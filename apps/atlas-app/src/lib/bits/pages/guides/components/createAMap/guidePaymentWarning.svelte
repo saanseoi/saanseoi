@@ -4,6 +4,8 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
 
+import GuideReadinessPanel from './guideReadinessPanel.svelte'
+
 type Props = {
   choice: string
   completed: boolean
@@ -28,14 +30,14 @@ $effect(() => {
 })
 </script>
 
-<aside
+<GuideReadinessPanel
   id="payment-readiness"
-  class={`mb-5 max-w-3xl border-l-4 px-5 py-5 ${completed ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
-  aria-labelledby="payment-warning-title"
+  complete={completed}
+  titleId="payment-warning-title"
 >
   {#if completed}
     <button
-      class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6fdec9]"
+      class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
       type="button"
       aria-controls="payment-warning-details"
       aria-expanded={expanded}
@@ -43,13 +45,13 @@ $effect(() => {
     >
       <Icon
         icon="material-symbols-light:check-circle-rounded"
-        class="mt-0.5 size-5 shrink-0 text-[#6fdec9]"
+        class="mt-0.5 size-5 shrink-0 text-secondary dark:text-[#6fdec9]"
         aria-hidden="true"
       />
       <span>
         <span
           id="payment-warning-title"
-          class="block font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-[#6fdec9]"
+          class="block font-body text-label-sm font-semibold uppercase tracking-[0.12em] text-secondary dark:text-[#6fdec9]"
         >
           {m.guide_payment_warning_complete_title()}
         </span>
@@ -66,13 +68,13 @@ $effect(() => {
         icon={completed
         ? 'material-symbols-light:check-circle-rounded'
         : 'material-symbols-light:warning-rounded'}
-        class={`mt-0.5 size-5 shrink-0 ${completed ? 'text-[#6fdec9]' : 'text-[#ef8b88]'}`}
+        class={`mt-0.5 size-5 shrink-0 ${completed ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ef8b88]'}`}
         aria-hidden="true"
       />
       <div class="min-w-0 flex-1">
         <h3
           id="payment-warning-title"
-          class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${completed ? 'text-[#6fdec9]' : 'text-[#ffb4b1]'}`}
+          class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${completed ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ffb4b1]'}`}
         >
           {m.guide_payment_warning_title({ region })}
         </h3>
@@ -92,7 +94,7 @@ $effect(() => {
             {m.guide_payment_warning_workaround_instructions()}
           </Button>
           <Button
-            class="shrink-0 bg-[#6fdec9] px-4 text-[#00201b] hover:bg-[#8aecd9]"
+            class="shrink-0 bg-secondary px-4 text-on-secondary hover:bg-secondary/85"
             size="compact"
             onclick={onPaymentSuccessful}
           >
@@ -106,7 +108,7 @@ $effect(() => {
         </div>
         {#if showIncompleteWarning}
           <p
-            class="mt-3 text-center font-[Krypton,var(--font-mono)] text-body-md leading-7 font-normal tracking-normal text-[#ffb4b1]"
+            class="mt-3 text-center font-[Krypton,var(--font-mono)] text-body-md leading-7 font-normal tracking-normal text-[#b42318] dark:text-[#ffb4b1]"
             role="alert"
           >
             {m.guide_payment_warning_incomplete()}
@@ -118,7 +120,7 @@ $effect(() => {
   {#if completed && expanded}
     <div
       id="payment-warning-details"
-      class="ml-8 mt-5 border-t border-[#6fdec9]/35 pt-5"
+      class="mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35"
     >
       <div class="flex flex-wrap justify-end gap-3">
         <Button
@@ -148,4 +150,4 @@ $effect(() => {
       </div>
     </div>
   {/if}
-</aside>
+</GuideReadinessPanel>

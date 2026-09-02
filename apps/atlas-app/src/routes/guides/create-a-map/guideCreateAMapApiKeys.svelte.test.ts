@@ -65,6 +65,20 @@ test('asks the user to confirm their existing key is in .env', async () => {
   expect(confirmed).toBe(true)
 })
 
+test('opens the existing Mapbox environment file instead of creating another', async () => {
+  const screen = await render(GuideCreateAMapApiKeys, {
+    editorLabel: 'Zed',
+    environmentFileExists: true,
+    newFileShortcut: 'Ctrl+N',
+  })
+
+  await screen.getByRole('button', { name: 'Use Existing' }).click()
+
+  await expect
+    .element(screen.getByText('In Zed, open the existing .env in your project folder.'))
+    .toBeVisible()
+})
+
 test('uses PowerShell to inspect the project folder on Windows', async () => {
   const screen = await render(GuideCreateAMapApiKeys, {
     operatingSystem: 'windows',

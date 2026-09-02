@@ -4,6 +4,7 @@ import { onMount, tick, type Snippet } from 'svelte'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import GuideCodeBlock from './guideCodeBlock.svelte'
+import type { GuideCodeVisibleLine } from './guideCodeBlock.svelte'
 
 type Props = {
   code: string
@@ -29,6 +30,9 @@ type Props = {
   closeLabel?: string
   showCodeLabel: string
   variant?: 'code' | 'editor'
+  pathSeparator?: '\\'
+  onVisibleLinesChange?: (lines: GuideCodeVisibleLine[]) => void
+  width?: 'content' | 'short' | 'shortCard'
 }
 
 let {
@@ -50,6 +54,9 @@ let {
   closeLabel,
   showCodeLabel,
   variant = 'editor',
+  pathSeparator,
+  onVisibleLinesChange,
+  width = 'shortCard',
 }: Props = $props()
 let view = $state<'code' | 'preview'>('code')
 let commentsVisible = $state(true)
@@ -58,9 +65,11 @@ let viewTransitionName = $state<string>()
 let previewInViewport = $state(false)
 let previewCard: HTMLElement
 let previewPanel: HTMLElement
+const maximumCardHeight = 'min(1080px, calc(100dvh - 4.5rem))'
 const previewTitle = $derived(
   label
-    .replace(/^.*?—\s*/u, '')
+    .replace(/^.*?(?:•|—|-)\s*/u, '')
+    .toLocaleLowerCase()
     .replace(/^./u, character => character.toLocaleUpperCase()),
 )
 
@@ -113,10 +122,10 @@ function closePreview() {
 
 <div
   bind:this={previewCard}
-  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 max-w-[80ch] scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
+  class={`grid grid-rows-[minmax(0,1fr)] w-full min-w-0 ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} scroll-mt-18 overflow-hidden font-mono ${expanded ? '' : 'perspective-distant'}`}
   style:min-height={view === 'preview' ? '0' : minHeight}
-  style:height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
-  style:max-height={view === 'preview' ? 'calc(100dvh - 4.5rem)' : undefined}
+  style:height={view === 'preview' ? maximumCardHeight : undefined}
+  style:max-height={maximumCardHeight}
 >
   <div
     aria-hidden={view !== 'code'}
@@ -138,9 +147,13 @@ function closePreview() {
       {copyLabel}
       {dimmedLines}
       {editorIcon}
+      fillAvailableHeight
       {label}
       {language}
+      {pathSeparator}
+      {onVisibleLinesChange}
       {variant}
+      {width}
     >
       {#snippet actions()}
         <button
@@ -167,7 +180,7 @@ function closePreview() {
       : undefined}
     class={`${
       expanded
-        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
         : 'col-start-1 row-start-1 h-full min-h-0 w-full'
     } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
       view === 'preview'
@@ -204,16 +217,6 @@ function closePreview() {
           >
         </div>
         <div class="flex shrink-0 items-center gap-4">
-          {#if expandable}
-            <button
-              class="inline-flex size-6 items-center justify-center text-white/75 hover:text-white"
-              type="button"
-              aria-label={expandLabel}
-              onclick={expandPreview}
-            >
-              <Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
-            </button>
-          {/if}
           <button
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
             type="button"
@@ -227,6 +230,16 @@ function closePreview() {
             />
             {showCodeLabel}
           </button>
+          {#if expandable}
+            <button
+              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+              type="button"
+              onclick={expandPreview}
+            >
+              <Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
+              {expandLabel}
+            </button>
+          {/if}
         </div>
       </header>
     {/if}

@@ -3,9 +3,13 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 
 import { m } from '#lib/bits/internal/i18n.js'
 
-type Props = { query?: string }
+type Props = {
+  loadError?: boolean
+  onRetry?: () => void
+  query?: string
+}
 
-let { query = $bindable('') }: Props = $props()
+let { loadError = false, onRetry, query = $bindable('') }: Props = $props()
 
 function clearQuery() {
   query = ''
@@ -43,3 +47,21 @@ function handleKeydown(event: KeyboardEvent) {
     </button>
   {/if}
 </label>
+
+{#if loadError}
+  <div
+    class="mt-3 flex flex-wrap items-center justify-between gap-3 font-body text-label-sm text-data-danger"
+    role="alert"
+  >
+    <p>{m.source_audit_load_records_error()}</p>
+    {#if onRetry}
+      <button
+        class="cursor-pointer font-semibold text-data-primary underline underline-offset-4"
+        type="button"
+        onclick={onRetry}
+      >
+        {m.source_retry()}
+      </button>
+    {/if}
+  </div>
+{/if}

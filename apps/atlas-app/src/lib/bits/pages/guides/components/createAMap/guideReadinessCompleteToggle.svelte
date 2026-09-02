@@ -19,7 +19,7 @@ let {
 </script>
 
 <button
-  class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#6fdec9]"
+  class="flex w-full cursor-pointer items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
   type="button"
   aria-controls={detailsId}
   aria-expanded={expanded}

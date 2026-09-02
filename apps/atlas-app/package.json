@@ -69,7 +69,8 @@
     "vite": "^8.2.2",
     "vitest": "^4.1.11",
     "vitest-browser-svelte": "^3.0.0",
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.127.1",
+    "xlsx": "^0.18.5"
   },
   "imports": {
     "#lib": "./src/lib/index.js",

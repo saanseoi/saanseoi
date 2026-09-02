@@ -1,6 +1,6 @@
 import { error, type RequestHandler } from '@sveltejs/kit'
 
-const landAnalysisKey = 'guides/create-a-map/land-analysis.json'
+const landAnalysisKey = 'guides/create-a-map/land-analysis.json.gz'
 
 export const GET: RequestHandler = async ({ platform, request }) => {
   const guideAssets = platform?.env.R2_GUIDE_ASSETS
@@ -13,8 +13,8 @@ export const GET: RequestHandler = async ({ platform, request }) => {
 
   const headers = new Headers({
     'cache-control': 'public, max-age=0, must-revalidate',
-    'content-disposition': 'attachment; filename="land-analysis.json"',
-    'content-type': 'application/json; charset=utf-8',
+    'content-disposition': 'attachment; filename="land-analysis.json.gz"',
+    'content-type': 'application/gzip',
     etag: object.httpEtag,
     'x-content-type-options': 'nosniff',
   })

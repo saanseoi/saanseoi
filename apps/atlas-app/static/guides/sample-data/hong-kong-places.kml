@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Hong Kong places</name>
+<Placemark><name>Victoria Peak</name><Point><coordinates>114.1501,22.2759</coordinates></Point></Placemark>
+<Placemark><name>Star Ferry Pier</name><Point><coordinates>114.1600,22.2935</coordinates></Point></Placemark>
+<Placemark><name>Tian Tan Buddha</name><Point><coordinates>113.9049,22.2539</coordinates></Point></Placemark>
+<Placemark><name>Man Mo Temple</name><Point><coordinates>114.1507,22.2853</coordinates></Point></Placemark>
+<Placemark><name>Hong Kong Museum of History</name><Point><coordinates>114.1777,22.3015</coordinates></Point></Placemark>
+<Placemark><name>Wong Tai Sin Temple</name><Point><coordinates>114.1929,22.3429</coordinates></Point></Placemark>
+<Placemark><name>Tai O</name><Point><coordinates>113.8635,22.2526</coordinates></Point></Placemark>
+<Placemark><name>Dragon's Back</name><Point><coordinates>114.2450,22.2438</coordinates></Point></Placemark>
+<Placemark><name>Nan Lian Garden</name><Point><coordinates>114.2030,22.3391</coordinates></Point></Placemark>
+<Placemark><name>Tai Kwun</name><Point><coordinates>114.1540,22.2815</coordinates></Point></Placemark>
+</Document></kml>

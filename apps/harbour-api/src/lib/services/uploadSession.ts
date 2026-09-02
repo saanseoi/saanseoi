@@ -31,7 +31,7 @@ export async function handleRegisterUploadRequest(
   const registered = await registerUpload(db, {
     allowExistingDatasetStatuses: request.force
       ? request.reuseExistingRelease
-        ? ['staged', 'processing', 'published']
+        ? ['staged', 'processing']
         : ['staged', 'published']
       : request.resumeStagedRelease
         ? ['staged']
@@ -45,6 +45,7 @@ export async function handleRegisterUploadRequest(
     inspection: request.inspection,
     regionCode: request.plan.regionCode,
     releaseNotesUrl: request.plan.releaseNotesUrl,
+    reuseExistingRelease: request.reuseExistingRelease,
     resolveSchemaFingerprint: createSchemaFingerprintResolver(db),
     shardYear: request.plan.shardYear,
     source: request.plan.source,
