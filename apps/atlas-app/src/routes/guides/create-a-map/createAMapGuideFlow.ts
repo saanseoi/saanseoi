@@ -19,6 +19,7 @@ type PrerequisiteStepInput = Pick<
 type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
   isBasemapAccountReady: boolean
   isBasemapApiKeyReady: boolean
+  isDataStepComplete: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
   isMapAccessible: boolean
@@ -81,6 +82,7 @@ export function createMissingPrerequisiteQuestions({
   hosting,
   isBasemapAccountReady,
   isBasemapApiKeyReady,
+  isDataStepComplete,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
   isMapAccessible,
@@ -239,6 +241,12 @@ export function createMissingPrerequisiteQuestions({
       id: 'data-format',
       label: m.guide_data_format_label(),
       answered: dataSource !== 'existing' || Boolean(dataFormat),
+    },
+    {
+      id: 'geojson',
+      label: m.guide_data_readiness_eyebrow(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: dataSource !== 'existing' || !dataFormat || isDataStepComplete,
     },
     {
       id:
