@@ -6,6 +6,7 @@ export type MissingPrerequisiteQuestion = {
   deferUntilId?: string
   id: string
   label: string
+  requirementLabel?: string
   reminderTitle?: string
 }
 
@@ -110,18 +111,25 @@ export function createMissingPrerequisiteQuestions({
     llmMode === 'manual' || (llmMode === 'assisted' && aiAccess === 'web')
   const platformQuestion: MissingPrerequisiteQuestion | undefined =
     objective === 'web'
-      ? { id: 'platform', label: m.guide_host_label(), answered: Boolean(hosting) }
+      ? {
+          id: 'platform',
+          label: m.guide_host_label(),
+          requirementLabel: m.guide_hosting_provider(),
+          answered: Boolean(hosting),
+        }
       : objective === 'web-embed'
         ? !websitePlatform
           ? {
               id: 'platform',
               label: m.guide_missing_website_platform(),
+              requirementLabel: m.guide_website_platform(),
               answered: false,
             }
           : !hosting
             ? {
                 id: 'platform',
                 label: m.guide_host_label(),
+                requirementLabel: m.guide_hosting_provider(),
                 answered: false,
               }
             : undefined
