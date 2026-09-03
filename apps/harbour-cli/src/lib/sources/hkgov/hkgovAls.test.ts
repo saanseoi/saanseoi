@@ -211,6 +211,42 @@ describe('buildHkgovAlsProcessingActions', () => {
     })
   })
 
+  test('records when identity history supplies an existing canonical ID', () => {
+    const row = {
+      canonicalId: 'ss-example',
+      chiPremisesAddressJson: null,
+      enFormattedAddress: '17 EXAMPLE ROAD',
+      engPremisesAddressJson: null,
+      identityKey: 'example-identity',
+      identityMatchMethod: 'als-identity-history',
+      identityPreviousSummary: { buildingName: 'EXAMPLE BUILDING' },
+      identitySummary: { buildingName: 'EXAMPLE BUILDING' },
+      sourceFeatureIndexOneBased: 1,
+      sourceFile: 'example.geojson',
+      zhHantFormattedAddress: null,
+    } as unknown as Parameters<
+      typeof buildHkgovAlsProcessingActions
+    >[0]['resolvedRows'][number]
+
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_identity_history_matched',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: expect.any(Object),
+        previousIdentity: { buildingName: 'EXAMPLE BUILDING' },
+      },
+      mode: 'automatic',
+      summary: 'Reused the canonical ALS ID for a previously seen identity.',
+    })
+  })
+
   test('records source-representation differences for equivalent premises', () => {
     const actions = buildHkgovAlsProcessingActions({
       decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },

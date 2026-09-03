@@ -834,6 +834,24 @@ export function buildHkgovAlsProcessingActions(input: {
     )
   }
 
+  const historyMatchedRows = input.resolvedRows.filter(
+    row => row.identityMatchMethod === 'als-identity-history',
+  )
+  if (historyMatchedRows.length > 0) {
+    actions.push(
+      ...historyMatchedRows.map(row => ({
+        action: 'als_identity_history_matched',
+        affectedRecordCount: 1,
+        evidence: {
+          canonicalRecord: summariseHkgovAlsProcessingRow(row),
+          previousIdentity: row.identityPreviousSummary ?? null,
+        },
+        mode: 'automatic' as const,
+        summary: 'Reused the canonical ALS ID for a previously seen identity.',
+      })),
+    )
+  }
+
   for (const [matchMethod, action, summary] of [
     [
       'als-address-component-withdrawal',

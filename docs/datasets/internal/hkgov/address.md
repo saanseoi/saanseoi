@@ -229,6 +229,25 @@ the building-name and estate-name fields, with every other premise component unc
 A premise with a structured block descriptor and number is automatically treated as a
 different address from an otherwise unqualified premise.
 
+The same distinction applies when ALS adds an unstructured trailing site-part qualifier
+to a building name: a numeric, alphabetic, alphanumeric, or Roman-numeral qualifier; a
+cardinal or intercardinal direction; or `HIGH`, `LOW`, `CENTER`, `CENTRE`, or `MIDDLE`
+with a block, tower, villa, house, or HSE identifies a part of the previously whole
+building or estate and receives a new ID. This rule takes precedence over older
+retention decisions recorded before the distinction was automated. Other building-name
+changes still require review.
+
+Identity history is evaluated as a release chain. When several earlier releases share a
+continuity anchor, the latest earlier release is the canonical predecessor for the next
+unambiguous change, so a reviewed `keep-existing-id` decision carries the same canonical
+ID through successive renames. If the latest earlier release contains multiple
+identities for that anchor, the importer refuses to choose between them and does not
+automatically link the new record to either identity.
+
+When a later release repeats an identity key that was previously retained under another
+canonical ID, the importer reuses that canonical ID from identity history without asking
+for the same decision again.
+
 Interactive imports show the old and new relevant details and require one choice:
 
 - **Keep existing ID** — record a versioned decision and retain the prior `ss-` ID.

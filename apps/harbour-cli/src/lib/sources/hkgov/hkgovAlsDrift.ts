@@ -62,6 +62,14 @@ export function parseHkgovAlsIdentityDecisions(
   ) {
     throw new Error('Invalid HKGov ALS identity-decisions file.')
   }
+  const decisionPairs = new Set<string>()
+  for (const decision of decisions.decisions) {
+    const pair = `${decision.previousIdentityKey}\u0000${decision.currentIdentityKey}`
+    if (decisionPairs.has(pair)) {
+      throw new Error('Duplicate HKGov ALS identity decision.')
+    }
+    decisionPairs.add(pair)
+  }
   return decisions as HkgovAlsIdentityDecisions
 }
 
@@ -97,11 +105,23 @@ export function resolveHkgovAlsIdentityDrift(
   const resolvedPreviousRecords = new Map<string, HkgovAlsIdentityRecord>()
 
   for (const record of records) {
-    if (historyByIdentity.has(record.identityKey)) continue
-    const previous = historyByContinuity.get(record.continuityKey) ?? []
-    if (previous.length !== 1) continue
-    const prior = previous[0]
+    const historicalIdentity = historyByIdentity.get(record.identityKey)
+    if (historicalIdentity) {
+      if (historicalIdentity.id !== record.id) {
+        resolvedIds.set(record.identityKey, historicalIdentity.id)
+        resolvedMatchMethods.set(record.identityKey, 'als-identity-history')
+        resolvedPreviousRecords.set(record.identityKey, historicalIdentity)
+      }
+      continue
+    }
+    const prior = latestCanonicalPredecessor(
+      historyByContinuity.get(record.continuityKey) ?? [],
+      record.sourceVersion,
+    )
     if (!prior || prior.identityKey === record.identityKey) continue
+    // A site-part qualifier is a material address distinction, including for
+    // older reviews recorded before this rule existed.
+    if (isBuildingSitePartQualification(prior, record)) continue
     const decision = decisionByPair.get(
       `${prior.identityKey}\u0000${record.identityKey}`,
     )
@@ -127,13 +147,35 @@ export function resolveHkgovAlsIdentityDrift(
     if (isStructuredBlockQualificationChange(prior, record)) {
       continue
     }
-    if (isBuildingSitePartQualification(prior, record)) {
-      continue
-    }
     candidates.push({ current: record, previous: prior })
   }
 
   return { candidates, resolvedIds, resolvedMatchMethods, resolvedPreviousRecords }
+}
+
+/**
+ * Selects the predecessor from the latest historical release only. A later
+ * release may contain several identity entries for one continuity anchor, but
+ * that is a split rather than a sequential chain and cannot identify one
+ * predecessor safely.
+ */
+function latestCanonicalPredecessor(
+  entries: HkgovAlsIdentityRecord[],
+  currentSourceVersion: string,
+) {
+  const earlierEntries = entries.filter(
+    entry => entry.sourceVersion < currentSourceVersion,
+  )
+  if (earlierEntries.length === 0) return undefined
+
+  const latestSourceVersion = earlierEntries.reduce(
+    (latest, entry) => (entry.sourceVersion > latest ? entry.sourceVersion : latest),
+    earlierEntries[0]?.sourceVersion ?? '',
+  )
+  const latestEntries = earlierEntries.filter(
+    entry => entry.sourceVersion === latestSourceVersion,
+  )
+  return latestEntries.length === 1 ? latestEntries[0] : undefined
 }
 
 function isBuildingEstateReassignment(
@@ -230,7 +272,8 @@ function normaliseBuildingName(value: string) {
     .trim()
 }
 
-const SITE_PART_QUALIFIER = '(?:[A-Z]\\d+|\\d+|[IVXLCDM]+|[A-Z])'
+const SITE_PART_QUALIFIER =
+  '(?:NORTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|SOUTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|EAST|WEST|NE|NW|SE|SW|N|S|E|W|HIGH|LOW|CENTER|CENTRE|MIDDLE|[A-Z]\\d+|\\d+[A-Z]|\\d+|[IVXLCDM]+|[A-Z])'
 const SITE_PART_DESCRIPTOR = '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE)'
 const SITE_PART_BUILDING_SUFFIX = new RegExp(
   `^(?:${SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}(?:\\s+(?:AND\\s+)?${SITE_PART_QUALIFIER})*|${SITE_PART_QUALIFIER}\\s+${SITE_PART_DESCRIPTOR})$`,
