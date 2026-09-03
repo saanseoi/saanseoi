@@ -37,7 +37,7 @@ export const createAMapSelectionChoices = {
   renderer: ['maplibre', 'mapbox', 'leaflet'],
   region: ['hk', 'mo', 'gba'],
   style: ['custom', ...mapStyleDefinitions.map(style => style.id)],
-  dataSource: ['existing', 'api'],
+  dataSource: ['existing', 'api', 'llm'],
   dataFormat: [
     'geojson',
     'kml',

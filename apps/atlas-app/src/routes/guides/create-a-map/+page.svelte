@@ -13,6 +13,7 @@ import geojsonIoImportMacao from '#lib/assets/guides/geojson-io-import-macao.png
 import sublimeOpenStyleCss from '#lib/assets/guides/editor-sublime-open-style-css.png'
 import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
 import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-kong-square.png'
+import llmDataHongKongDragons from '#lib/assets/guides/llm-data-hong-kong-dragons.png'
 import {
   CreateAMap,
   GuideAgenticAiPrimer,
@@ -135,6 +136,7 @@ import {
   createAMapChatDataStepPrompt,
   createAMapChatHandoverPrompt,
   createAMapChatSectionPrompt,
+  createAMapCustomDataPrompt,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
   type CreateAMapDataPromptStep,
@@ -726,6 +728,16 @@ const dataChoices = $derived.by(() => {
       description: m.guide_data_api_description(),
       image: saanSeoiDataHongKongSquare,
     },
+    ...(llmGuidanceEnabled
+      ? [
+          {
+            value: 'llm',
+            label: m.guide_data_llm(),
+            description: m.guide_data_llm_description(),
+            image: llmDataHongKongDragons,
+          },
+        ]
+      : []),
     {
       value: 'existing',
       label: m.guide_data_existing(),
@@ -2165,6 +2177,12 @@ const chatSectionPrompts = $derived({
 })
 const progressiveSectionPrompts = $derived(
   aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
+)
+const llmCustomDataPrompt = $derived(
+  createAMapCustomDataPrompt(
+    llmPromptState,
+    aiAccess === 'agentic' ? 'agentic' : 'chat',
+  ),
 )
 const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
   fetchStats: createAMapAgenticDataStepPrompt(
@@ -3653,6 +3671,28 @@ const styleChoices = $derived.by(() =>
               </GuideCallout>
             {/if}
           {/if}
+        {:else if dataSource === 'llm' && llmGuidanceEnabled}
+          <div class="mt-10 max-w-232">
+            <GuideSubSectionHeader
+              eyebrow={m.guide_setup_llm_eyebrow()}
+              title={m.guide_data_llm_title()}
+            />
+            <div class="mt-6">
+              <GuideLlmPromptCard
+                prompt={llmCustomDataPrompt}
+                promptIcon={selectedLlmOption?.icon}
+                title={m.guide_data_llm_title()}
+              />
+              <div class="mt-6 space-y-3">
+                <GuideParagraph>
+                  {@html hosting
+                    ? m.guide_data_llm_continue_publish()
+                    : m.guide_data_llm_continue_refining()}
+                </GuideParagraph>
+                <GuideParagraph>{m.guide_data_llm_revisit()}</GuideParagraph>
+              </div>
+            </div>
+          </div>
         {:else if dataSource === 'api' && guideRenderer && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}
