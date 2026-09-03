@@ -42,7 +42,7 @@ const showPlaceName = (map: MapLibreMap) => {
 
     if (renderer === 'mapbox') {
       const { Popup } = await import('mapbox-gl')
-      new Popup({ className: popupClassName })
+      new Popup({ className: popupClassName, closeButton: false })
         .setLngLat(lngLat)
         .setText(String(name))
         .addTo(map as unknown as MapboxMap)
@@ -50,7 +50,7 @@ const showPlaceName = (map: MapLibreMap) => {
     }
 
     const { Popup } = await import('maplibre-gl')
-    new Popup({ className: popupClassName })
+    new Popup({ className: popupClassName, closeButton: false })
       .setLngLat(lngLat)
       .setText(String(name))
       .addTo(map)
@@ -80,6 +80,7 @@ const showLeafletPlaceName = async (map: LeafletMap) => {
     onEachFeature: (feature, layer) =>
       layer.bindPopup(feature.properties?.name ?? 'Place', {
         className: popupClassName,
+        closeButton: false,
       }),
   }).addTo(map)
 }
@@ -149,20 +150,25 @@ const additionalLayers = [
 
 :global(.guide-data-popup .maplibregl-popup-content),
 :global(.guide-data-popup .mapboxgl-popup-content) {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
   padding: 0.65rem 0.8rem;
+}
+
+:global(.guide-data-popup .leaflet-popup-content-wrapper) {
+  min-width: max-content;
 }
 
 :global(.guide-data-popup .leaflet-popup-content) {
   margin: 0.65rem 0.8rem;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
-:global(.guide-data-popup .maplibregl-popup-close-button),
-:global(.guide-data-popup .mapboxgl-popup-close-button),
-:global(.guide-data-popup .leaflet-popup-close-button) {
+:global(.guide-data-popup .maplibregl-popup-content),
+:global(.guide-data-popup .mapboxgl-popup-content) {
   color: var(--guide-data-popup-text);
-  font-size: 1.1rem;
-  line-height: 1.1;
-  padding: 0.2rem 0.35rem;
 }
 
 :global(.guide-data-popup .leaflet-popup-tip) {

@@ -11,6 +11,7 @@ import {
   createAMapAgenticSectionPrompt,
   createAMapChatDataStepPrompt,
   createAMapCustomDataPrompt,
+  createAMapExistingDataPrompt,
   createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
   createAMapRenderPromptFragments,
@@ -854,6 +855,51 @@ describe('Create a Map LLM instructions', () => {
     expect(localPrompt).not.toContain('Prepare for selected hosting')
     expect(localPrompt).not.toContain('static-asset size limits')
     expect(localPrompt).not.toContain('ready to publish')
+  })
+
+  test('guides chat and agents through adding an existing GeoJSON file', () => {
+    const state = {
+      objective: 'web',
+      operatingSystem: 'Windows',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+    }
+    const references = [
+      {
+        code: "const places = await fetch('/features.geojson').then(response => response.json())",
+        language: 'typescript' as const,
+        path: 'src\\main.ts',
+        title: 'src/main.ts - add your GeoJSON',
+        type: 'TS' as const,
+      },
+    ]
+    const agentPrompt = createAMapExistingDataPrompt(state, 'agentic', references)
+    const chatPrompt = createAMapExistingDataPrompt(state, 'chat', references)
+
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Add GeoJSON to your map')
+      expect(prompt).toContain('Continue the “Add your data” section')
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('features.geojson')
+      expect(prompt).toContain('C:\\Users\\YourName\\saanseoi-project\\public')
+      expect(prompt).toContain('Target: `src\\main.ts`')
+      expect(prompt).toContain(references[0].code)
+      expect(prompt).toContain('verify that the features appear in the right places')
+      expect(prompt).toContain(
+        'The single next action is for you to continue with the “Publish the map” section',
+      )
+    }
+
+    expect(agentPrompt).toContain('Inspect the existing project before changing it.')
+    expect(agentPrompt).toContain('move or copy it to')
+    expect(agentPrompt).not.toContain('Guide me through one safe action at a time')
+    expect(chatPrompt).toContain('Guide me through one safe action at a time')
+    expect(chatPrompt).toContain(
+      'go to the end of the existing map setup, append the GeoJSON loading code below',
+    )
+    expect(chatPrompt).not.toContain('Inspect the existing project before changing it.')
   })
 
   test('keeps urban-density data hand-offs self-contained and scoped', () => {

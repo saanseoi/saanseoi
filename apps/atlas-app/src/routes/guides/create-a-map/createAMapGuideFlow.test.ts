@@ -42,7 +42,7 @@ describe('create-a-map embedded website hosting flow', () => {
   })
 
   test('reminds a user to confirm publication before embedding', () => {
-    const questions = createMissingPrerequisiteQuestions({
+    const input = {
       agentTool: undefined,
       aiAccess: undefined,
       codeEditor: 'cursor',
@@ -51,7 +51,8 @@ describe('create-a-map embedded website hosting flow', () => {
       hosting: 'github-pages',
       isBasemapAccountReady: true,
       isBasemapApiKeyReady: true,
-      isDataStepComplete: true,
+      isDataAdded: true,
+      isDataPrepared: true,
       isEditorReadinessComplete: true,
       isLlmReadinessComplete: true,
       isMapAccessible: false,
@@ -73,12 +74,38 @@ describe('create-a-map embedded website hosting flow', () => {
       terminalExperience: 'basic',
       vpnAccess: undefined,
       websitePlatform: 'webflow',
-    })
+    } as const
+    const questions = createMissingPrerequisiteQuestions(input)
 
     expect(questions).toContainEqual(
       expect.objectContaining({
         answered: false,
         id: 'publish-accessibility-readiness',
+      }),
+    )
+
+    const incompleteDataQuestions = createMissingPrerequisiteQuestions({
+      ...input,
+      isDataAdded: false,
+      isDataPrepared: false,
+    })
+    expect(incompleteDataQuestions).toContainEqual(
+      expect.objectContaining({
+        answered: false,
+        id: 'data-preparation-readiness',
+        reminderTitle: 'GeoJSON readiness',
+      }),
+    )
+
+    const dataNotAddedQuestions = createMissingPrerequisiteQuestions({
+      ...input,
+      isDataAdded: false,
+    })
+    expect(dataNotAddedQuestions).toContainEqual(
+      expect.objectContaining({
+        answered: false,
+        id: 'data-addition-readiness',
+        reminderTitle: 'Data readiness',
       }),
     )
   })

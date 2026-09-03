@@ -39,7 +39,6 @@ export { default as GuideReadinessPanel } from './components/createAMap/guideRea
 export { default as GuideInstructionCallout } from './components/createAMap/guideInstructionCallout.svelte'
 export { default as GuideCodeInstructionStep } from './components/createAMap/guideCodeInstructionStep.svelte'
 export { default as GuideEditorReadiness } from './components/createAMap/guideEditorReadiness.svelte'
-export { default as GuideDataReadiness } from './components/createAMap/guideDataReadiness.svelte'
 export { default as GuideLlmReadiness } from './components/createAMap/guideLlmReadiness.svelte'
 export { default as GuideMapboxTokenReadiness } from './components/createAMap/guideMapboxTokenReadiness.svelte'
 export { default as GuideReadinessCompleteSummary } from './components/createAMap/guideReadinessCompleteSummary.svelte'

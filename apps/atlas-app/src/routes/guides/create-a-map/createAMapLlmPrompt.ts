@@ -515,6 +515,60 @@ const createDataStepReferences = (
   ]
 }
 
+const createExistingDataCompletionInstruction = (state: CreateAMapLlmPromptState) =>
+  state.objective === 'web' || state.objective === 'web-embed'
+    ? 'Once the data is visibly verified, summarise what changed and how you verified it. Then tell me: “The single next action is for you to continue with the “Publish the map” section of the guide. Read it until it provides you with a prompt to share with me again.”'
+    : 'Once the data is visibly verified, summarise what changed and how you verified it. Remain available for further map edits.'
+
+/** Progressive prompt for adding an existing GeoJSON file to the map project. */
+export const createAMapExistingDataPrompt = (
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+  references: CreateAMapDataPromptReference[] = [],
+) => {
+  const publicDirectory =
+    state.operatingSystemValue === 'windows'
+      ? 'C:\\Users\\YourName\\saanseoi-project\\public'
+      : '~/saanseoi-project/public'
+  const mainPath =
+    state.operatingSystemValue === 'windows' ? 'src\\main.ts' : 'src/main.ts'
+  const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
+  const modeInstructions =
+    mode === 'agentic'
+      ? [
+          'Inspect the existing project before changing it.',
+          `Confirm that \`features.geojson\` is available. If it is elsewhere, move or copy it to \`${publicDirectory}/features.geojson\` while preserving its contents. If it is missing, stop and ask me to provide it; do not invent or silently rewrite data.`,
+          `Open \`${mainPath}\` and add the GeoJSON loading code in the appropriate place in the existing map setup. Preserve the working renderer, basemap and style, adapting only what is needed for the actual project.`,
+        ]
+      : [
+          'Guide me through one safe action at a time and wait for my answer before continuing.',
+          `Ask me to put \`features.geojson\` in the project’s \`public\` folder at \`${publicDirectory}\`, then ask me to confirm that the file is there. If I do not have the file, stop and ask me to provide it; do not invent or silently rewrite data.`,
+          `Tell me to open \`${mainPath}\`, go to the end of the existing map setup, append the GeoJSON loading code below, and save the file. Do not ask me to replace the working map setup.`,
+        ]
+
+  return [
+    '## Add GeoJSON to your map',
+    '',
+    'Continue the “Add your data” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
+    ...(localeInstruction ? ['', localeInstruction] : []),
+    '',
+    '### Scope',
+    '',
+    'I am bringing my own data. The data-preparation step has produced a `features.geojson` file for this map.',
+    ...modeInstructions.map(instruction => `- ${instruction}`),
+    '- Keep this step focused on adding the existing GeoJSON data. Do not start publishing or make unrelated changes.',
+    '',
+    ...createDataStepReferences(mode, references),
+    '### Verify',
+    '',
+    'Open the running map in a browser and verify that the features appear in the right places. Click a marker and confirm that its name appears as expected. If the result differs, explain what to check and ask me to report what I see.',
+    '',
+    createExistingDataCompletionInstruction(state),
+  ].join('\n')
+}
+
 const urbanDensityWorkedExampleDecision =
   'User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
 
