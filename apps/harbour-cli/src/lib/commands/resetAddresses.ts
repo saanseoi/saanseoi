@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { not } from 'drizzle-orm'
+import { and, not } from 'drizzle-orm'
 import {
   currentSchema,
   eq,
@@ -29,6 +29,7 @@ const HISTORY_FILE = resolve(REPO_ROOT, '.local/hkgov-dpo/als-identity-history.j
 const PREPARED_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/prepared')
 const RELEASE_ARTEFACT_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 const DATASET_CODE = 'ds-hk-hkgov-dpo-address'
+const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 
 type FileBeforeImage = { exists: boolean; contentBase64?: string }
 type DocsState = {
@@ -205,7 +206,15 @@ export async function runResetOfficialAddressesCommand(
       )
     }
     if (manifest.status === 'running') {
-      if (!sameDocs(await readDocsState(context), manifest.baseline.docs)) {
+      if (
+        !sameDocs(
+          selectDocsForInitialisation(
+            await readDocsState(context),
+            manifest.baseline.docs,
+          ),
+          manifest.baseline.docs,
+        )
+      ) {
         throw new Error(
           'Refusing reset of an incomplete initialisation after documentation changed; complete the manifest first.',
         )
@@ -504,11 +513,14 @@ async function assertResetStillSafe(
     throw new Error(
       'Refusing reset: current address rows are not owned by this initialisation.',
     )
-  const currentDivisionSnapshotIds = await readCurrentDivisionSnapshotIds(context)
-  const expectedDivisionSnapshotIds = [
+  const currentDivisionSnapshotIds = await readGeographicDivisionSnapshotIds(
+    context,
+    await readCurrentDivisionSnapshotIds(context),
+  )
+  const expectedDivisionSnapshotIds = await readGeographicDivisionSnapshotIds(context, [
     ...(manifest.baseline.currentDivisionSnapshotIds ?? []),
     ...owned.materialisedDivisionSnapshotIds,
-  ]
+  ])
   if (!sameSet(currentDivisionSnapshotIds, expectedDivisionSnapshotIds))
     throw new Error(
       'Refusing reset: current division projections changed after address initialisation.',
@@ -564,7 +576,16 @@ async function assertResetStillSafe(
     !options.discardChangedDocs &&
     manifest.status === 'complete' &&
     (!manifest.documentationAfter ||
-      !sameDocs(await readDocsState(context), manifest.documentationAfter))
+      !sameDocs(
+        selectDocsForInitialisation(
+          await readDocsState(context),
+          manifest.baseline.docs,
+        ),
+        selectDocsForInitialisation(
+          manifest.documentationAfter,
+          manifest.baseline.docs,
+        ),
+      ))
   )
     throw new Error(
       'Refusing reset: release documentation changed after initialisation.',
@@ -745,6 +766,40 @@ async function readCurrentDivisionSnapshotIds(
     .all()
   return [...new Set(rows.map(row => row.snapshotId))].sort()
 }
+async function readGeographicDivisionSnapshotIds(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  snapshotIds: string[],
+) {
+  if (snapshotIds.length === 0) return []
+
+  const rows = await context.metaDb
+    .select({ snapshotId: metaSchema.metaSnapshots.id })
+    .from(metaSchema.metaSnapshots)
+    .leftJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .leftJoin(
+      metaSchema.metaDatasets,
+      eq(metaSchema.metaSnapshotLineages.primaryDatasetId, metaSchema.metaDatasets.id),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        inArray(metaSchema.metaSnapshots.id, snapshotIds),
+        or(
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+          eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
+        ),
+      ),
+    )
+    .all()
+
+  return [...new Set(rows.map(row => row.snapshotId))].sort()
+}
 async function readBeforeImage(path: string): Promise<FileBeforeImage> {
   try {
     return { exists: true, contentBase64: (await readFile(path)).toString('base64') }
@@ -798,6 +853,16 @@ function requireOwned(manifest: OfficialAddressInitManifest) {
 }
 function sameDocs(left: DocsState, right: DocsState) {
   return JSON.stringify(left) === JSON.stringify(right)
+}
+function selectDocsForInitialisation(state: DocsState, baseline: DocsState): DocsState {
+  const baselineApiReleaseSetIds = new Set(baseline.apiReleaseSets.map(row => row.id))
+  const baselineReleaseIds = new Set(baseline.releases.map(row => row.id))
+  return {
+    apiReleaseSets: state.apiReleaseSets.filter(row =>
+      baselineApiReleaseSetIds.has(row.id),
+    ),
+    releases: state.releases.filter(row => baselineReleaseIds.has(row.id)),
+  }
 }
 function byId<T extends { id: string }>(a: T, b: T) {
   return a.id.localeCompare(b.id)
