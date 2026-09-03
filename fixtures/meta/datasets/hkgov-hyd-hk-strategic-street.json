@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:2b0cd8d11902503c0dad44fb60ba5a12771e8c37b61af06d0af28f1b4ca65619",
+  "versionHash": "sha256:3c794f4dab558d285e5e0c60ea2ddd9e4dd828eb6697b2fc676d11042ba62965",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-strategic-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ],
+        "discoveries": ["new-release"],
         "includeInitialDownload": true
       }
     },
@@ -49,6 +45,12 @@
     "scheme": "quarterly",
     "correctionSuffixSource": "generated"
   },
+  "releases": [
+    {
+      "sourceVersion": "2025-Q1",
+      "sourceUrl": "https://static.csdi.gov.hk/csdi-webpage/download/common/70af77ce3a2ca3d56a9fecdd9fe0cd27c003afbd58b9c58e18c9a3e6b5d09b52?a=1"
+    }
+  ],
   "sourceLayer": "STRATEGIC",
   "category": "transportation",
   "i18n": [

@@ -127,6 +127,9 @@ export function resolveHkgovAlsIdentityDrift(
     if (isStructuredBlockQualificationChange(prior, record)) {
       continue
     }
+    if (isBuildingSitePartQualification(prior, record)) {
+      continue
+    }
     candidates.push({ current: record, previous: prior })
   }
 
@@ -182,6 +185,56 @@ function isStructuredBlockQualificationChange(
 function hasStructuredBlock(record: HkgovAlsIdentityRecord) {
   return Boolean(record.summary.blockDescriptor && record.summary.blockNumber)
 }
+
+/**
+ * A new trailing block, tower, villa, house, or house-number qualifier narrows
+ * a whole-building name to a particular part of that address site. It is a new
+ * premise even when ALS has not placed the qualifier in structured block fields.
+ */
+function isBuildingSitePartQualification(
+  previous: HkgovAlsIdentityRecord,
+  current: HkgovAlsIdentityRecord,
+) {
+  if (!hasOnlyChangedBuildingName(previous, current)) return false
+
+  const previousBuildingName = previous.summary.buildingName
+  const currentBuildingName = current.summary.buildingName
+  if (!previousBuildingName || !currentBuildingName) return false
+
+  const previousName = normaliseBuildingName(previousBuildingName)
+  const currentName = normaliseBuildingName(currentBuildingName)
+  if (!currentName.startsWith(`${previousName} `)) return false
+
+  const suffix = currentName.slice(previousName.length).trim()
+  return SITE_PART_BUILDING_SUFFIX.test(suffix)
+}
+
+function hasOnlyChangedBuildingName(
+  previous: HkgovAlsIdentityRecord,
+  current: HkgovAlsIdentityRecord,
+) {
+  const fields = new Set([
+    ...Object.keys(previous.summary),
+    ...Object.keys(current.summary),
+  ])
+  return [...fields].every(
+    field =>
+      field === 'buildingName' ||
+      (previous.summary[field] ?? null) === (current.summary[field] ?? null),
+  )
+}
+
+function normaliseBuildingName(value: string) {
+  return normaliseName(value)
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+}
+
+const SITE_PART_QUALIFIER = '(?:[A-Z]\\d+|\\d+|[IVXLCDM]+|[A-Z])'
+const SITE_PART_DESCRIPTOR = '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE)'
+const SITE_PART_BUILDING_SUFFIX = new RegExp(
+  `^(?:${SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}(?:\\s+(?:AND\\s+)?${SITE_PART_QUALIFIER})*|${SITE_PART_QUALIFIER}\\s+${SITE_PART_DESCRIPTOR})$`,
+)
 
 function droppedAddressComponent(
   previous: HkgovAlsIdentityRecord,

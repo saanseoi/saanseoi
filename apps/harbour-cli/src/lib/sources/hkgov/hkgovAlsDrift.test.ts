@@ -95,6 +95,16 @@ const unqualifiedPremise: HkgovAlsIdentityRecord = {
   },
 }
 
+function renamedBuilding(buildingName: string): HkgovAlsIdentityRecord {
+  return {
+    ...previous,
+    id: 'ss-new',
+    identityKey: `new-${buildingName}`,
+    sourceVersion: '2025-02-25.0',
+    summary: { ...previous.summary, buildingName },
+  }
+}
+
 describe('HKGov ALS identity drift', () => {
   test('requires a decision when a premise name changes on one continuity anchor', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
@@ -203,6 +213,50 @@ describe('HKGov ALS identity drift', () => {
 
     expect(result.candidates).toEqual([])
     expect(result.resolvedIds.has(unqualifiedPremise.identityKey)).toBe(false)
+  })
+
+  test.each([
+    'OLD BUILDING (BLOCK 12)',
+    'OLD BUILDING (BLK A)',
+    'OLD BUILDING (TWR A1)',
+    'OLD BUILDING (VILLA II)',
+    'OLD BUILDING (HOUSE B)',
+    'OLD BUILDING (HSE C1)',
+    'OLD BUILDING (BLKS C1 & C2)',
+  ])(
+    'automatically creates a new ID for a newly qualified site part: %s',
+    buildingName => {
+      const current = renamedBuilding(buildingName)
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previous,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+    },
+  )
+
+  test.each([
+    'OLD BUILDING (HIGH BLK)',
+    'OLD BUILDING (NO. 7) INDUSTRIAL BUILDING',
+    'OLD BUILDING (CENTRAL)',
+  ])('still requires review for a non-site-part building rename: %s', buildingName => {
+    const current = renamedBuilding(buildingName)
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([{ current, previous }])
   })
 
   test('does not infer continuity when several historic premises share an anchor', () => {

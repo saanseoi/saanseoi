@@ -200,9 +200,11 @@ members only when an explicit connector establishes a range.
 
 ## ALS-to-ALS drift review
 
-For historical ingestion, the command persists an ignored local identity history at
-`.local/hkgov-dpo/als-identity-history.json` and human decisions at
-`.local/hkgov-dpo/als-identity-decisions.json`.
+For historical ingestion, the command reads and persists the human identity decisions in
+the version-controlled
+[`hkgov-dpo-address.json`](../../../../fixtures/meta/curations/hkgov-dpo-address.json)
+curation fixture by default. The identity history is a derived local replay index at
+`.local/hkgov-dpo/als-identity-history.json` and remains ignored.
 
 Before its first prompt, historical ingestion performs a local, no-write preflight and
 prints the total remaining identity-drift choices across every selected release.
@@ -235,9 +237,10 @@ Interactive imports show the old and new relevant details and require one choice
 With `--yes`, the command does not guess: it stops before that release's database write
 and writes `.local/hkgov-dpo/identity-drift/{source-version}.json` for review. It prints
 the exact interactive command for that source version; after its decisions are saved, a
-later `update --yes` can continue non-interactively. A changed CSU/GeoAddress,
-route/name or number, district, coordinate movement, or several possible historic
-candidates does not automatically link records.
+later `update --yes` can continue non-interactively. Because the decisions file is
+checked in, review and commit any changes to it together with the ingestion result. A
+changed CSU/GeoAddress, route/name or number, district, coordinate movement, or several
+possible historic candidates does not automatically link records.
 
 ## Commands
 
@@ -252,7 +255,7 @@ bun run dataops -- hkgov-dpo:prepare \
   data/hkgov/dpo/ALS/20260710-1054-ALS-GeoJSON \
   --target local --cohort-key 2025-12-17.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
-  --identity-decisions .local/hkgov-dpo/als-identity-decisions.json \
+  --identity-decisions fixtures/meta/curations/hkgov-dpo-address.json \
   --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.0.json
 ```
 

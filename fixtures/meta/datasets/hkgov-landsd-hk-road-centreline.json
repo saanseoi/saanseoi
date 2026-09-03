@@ -5,9 +5,7 @@
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "sourceVariant": "hkgov-landsd-road-centreline",
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Lands Department",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ],
+        "discoveries": ["new-release"],
         "includeInitialDownload": true
       }
     },
@@ -50,6 +46,12 @@
     "scheme": "release-date",
     "correctionSuffixSource": "generated"
   },
+  "releases": [
+    {
+      "sourceVersion": "2026-Q2",
+      "sourceUrl": "https://static.csdi.gov.hk/csdi-webpage/download/common/e7949ec139194db82d9b662523536d93ed19955eb76fb6519fb6bd85bee8bf01?a=1"
+    }
+  ],
   "category": "places",
   "i18n": [
     {
@@ -68,5 +70,5 @@
       "description": "本数据以土地信息系统（“LIS”）1:1000 地形数据集为基础，亦可在 iB1000 数据集的 Street Centre Lines 要素类及 iRG1000 数据集的 Road Centreline 获取。地政总署道路中心线主要用于大概位置查询及地图注记标注。"
     }
   ],
-  "versionHash": "sha256:a9f9cc48dcb064a6b3b4c0bdfc660ca261fd0859b3aa815d356279a6e6c2546f"
+  "versionHash": "sha256:e5e683a6123648c3252d9e318d47cc5a7239c277e346610e3db302362c7fb1ee"
 }

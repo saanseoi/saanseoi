@@ -29,8 +29,16 @@ import type {
 import { terminalSafeText } from '../lib/terminal.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
-const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
-const DEFAULT_DECISIONS_FILE = '.local/hkgov-dpo/als-identity-decisions.json'
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const DEFAULT_HISTORY_FILE = resolve(
+  REPO_ROOT,
+  '.local/hkgov-dpo/als-identity-history.json',
+)
+export const HKGOV_ALS_IDENTITY_CURATION_PATH = resolve(
+  REPO_ROOT,
+  'fixtures/meta/curations/hkgov-dpo-address.json',
+)
+const DEFAULT_DECISIONS_FILE = HKGOV_ALS_IDENTITY_CURATION_PATH
 const INVOCATION_CWD = resolve(
   process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd(),
 )
@@ -61,7 +69,7 @@ export async function runHkgovAlsPrepCommand(
     divisionCohortKey: cohortKey,
     decisions: decisionsFile
       ? await readDecisions(resolveInvocationPath(decisionsFile))
-      : emptyHkgovAlsIdentityDecisions(),
+      : await readDecisions(DEFAULT_DECISIONS_FILE),
     history: historyFile
       ? await readHistory(resolveInvocationPath(historyFile))
       : emptyHkgovAlsIdentityHistory(),
@@ -145,9 +153,10 @@ export async function runHkgovAlsIngestCommand(
   const historyFile = resolveInvocationPath(
     stringOption(args, 'identity-history') ?? DEFAULT_HISTORY_FILE,
   )
-  const decisionsFile = resolveInvocationPath(
-    stringOption(args, 'identity-decisions') ?? DEFAULT_DECISIONS_FILE,
-  )
+  const decisionsOption = stringOption(args, 'identity-decisions')
+  const decisionsFile = decisionsOption
+    ? resolveInvocationPath(decisionsOption)
+    : DEFAULT_DECISIONS_FILE
   let history = await readHistory(historyFile)
   let decisions = await readDecisions(decisionsFile)
   const firstSourceVersion = normaliseAlsSourceVersion(
