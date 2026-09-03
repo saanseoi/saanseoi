@@ -271,6 +271,90 @@ describe('HKGov ALS identity drift', () => {
     )
   })
 
+  test('automatically keeps the ID when ALS adds an estate to an unchanged building name', () => {
+    const current = {
+      ...previous,
+      id: 'ss-new',
+      identityKey: 'estate-added-to-building',
+      sourceVersion: '2025-02-25.0',
+      summary: {
+        ...previous.summary,
+        estateName: 'NEW ESTATE',
+      },
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(current.identityKey)).toBe(previous.id)
+  })
+
+  test('retains an ID when a qualified building name is moved to the estate with a canonical number', () => {
+    const previousQualified = {
+      ...previous,
+      summary: {
+        ...previous.summary,
+        buildingName: 'EMINENCE TOWER I',
+        estateName: 'EMINENCE TOWER 1',
+      },
+    }
+    const current = {
+      ...previousQualified,
+      id: 'ss-new',
+      identityKey: 'qualified-name-moved-to-estate',
+      sourceVersion: '2025-02-25.0',
+      summary: { ...previousQualified.summary, buildingName: null },
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previousQualified,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(current.identityKey)).toBe(previousQualified.id)
+    expect(result.resolvedMatchMethods.get(current.identityKey)).toBe(
+      'als-building-estate-reassignment',
+    )
+  })
+
+  test.each(['HOUSE B', 'BLOCK 2', 'KAM ON GARDEN BLOCK A'])(
+    'creates a new ID when a qualified building name is dropped: %s',
+    buildingName => {
+      const previousQualified = {
+        ...previous,
+        summary: { ...previous.summary, buildingName },
+      }
+      const current = {
+        ...previousQualified,
+        id: 'ss-new',
+        identityKey: `qualified-name-dropped-${buildingName}`,
+        sourceVersion: '2025-02-25.0',
+        summary: { ...previousQualified.summary, buildingName: null },
+      }
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previousQualified,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+    },
+  )
+
   test('automatically creates a new ID when a structured block is gained or lost', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
       qualifiedBlock,
@@ -283,6 +367,76 @@ describe('HKGov ALS identity drift', () => {
 
     expect(result.candidates).toEqual([])
     expect(result.resolvedIds.has(unqualifiedPremise.identityKey)).toBe(false)
+  })
+
+  test('automatically retains an ID when a site part moves into structured fields', () => {
+    const current = {
+      ...unqualifiedPremise,
+      id: 'ss-moved-site-part',
+      identityKey: 'moved-site-part',
+      summary: {
+        ...unqualifiedPremise.summary,
+        blockDescriptor: 'HOUSE',
+        blockNumber: '26',
+        buildingName: null,
+        estateName: 'VILLA LA PLAGE',
+      },
+    }
+    const previousWithName = {
+      ...previous,
+      summary: {
+        ...previous.summary,
+        buildingName: 'VILLA LA PLAGE HOUSE 26',
+      },
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previousWithName,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(current.identityKey)).toBe(previous.id)
+    expect(result.resolvedMatchMethods.get(current.identityKey)).toBe(
+      'als-building-site-part-reassignment',
+    )
+  })
+
+  test('automatically retains an ID when a structured site part is repeated in the name', () => {
+    const current = {
+      ...previous,
+      id: 'ss-repeated-site-part',
+      identityKey: 'repeated-site-part',
+      sourceVersion: '2025-02-25.0',
+      summary: {
+        ...previous.summary,
+        blockDescriptor: 'TOWER',
+        blockNumber: '4',
+        buildingName: 'OLD BUILDING (TOWER 4)',
+      },
+    }
+    const previousWithBlock = {
+      ...previous,
+      summary: {
+        ...previous.summary,
+        blockDescriptor: 'TOWER',
+        blockNumber: '4',
+      },
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previousWithBlock,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(current.identityKey)).toBe(previous.id)
   })
 
   test.each([
@@ -378,8 +532,6 @@ describe('HKGov ALS identity drift', () => {
     ['OLD BUILDING (3A/3B)', true],
     ['OLD BUILDING (3A)', false],
     ['OLD BUILDING (3B)', false],
-    ['OLD BUILDING (NEW WING)', false],
-    ['OLD BUILDING (PRIMARY SECTION)', false],
     ['OLD BUILDING (HALL 16)', false],
     ['OLD BUILDING (KOWLOON)', true],
     ['OLD BUILDING (SECOND CAMPUS)', true],
@@ -417,8 +569,48 @@ describe('HKGov ALS identity drift', () => {
     expect(result.resolvedIds.has(current.identityKey)).toBe(false)
   })
 
+  test.each(['OLD BUILDING (NEW WING)', 'OLD BUILDING (PRIMARY SECTION)'])(
+    'leaves an unnumbered site-part label for manual review: %s',
+    buildingName => {
+      const current = renamedBuilding(buildingName)
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previous,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([{ current, previous }])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+    },
+  )
+
+  test.each(['ATAL TOWER', 'BOSS TOWER', 'EAGLET HOUSE', 'KODAK HSE', 'SUNNY HOUSE'])(
+    'retains an unnumbered name added to an unnamed premise: %s',
+    buildingName => {
+      const unnamedPrevious = {
+        ...previous,
+        summary: { ...previous.summary, buildingName: null },
+      }
+      const current = renamedBuilding(buildingName)
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        unnamedPrevious,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([{ current, previous: unnamedPrevious }])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+    },
+  )
+
   test('creates a new ID for a material site part added to an unnamed premise', () => {
-    const current = renamedBuilding('NEW BUILDING (HALL BLOCK)')
+    const current = renamedBuilding('HALL 16')
     const unnamedPrevious = {
       ...previous,
       summary: { ...previous.summary, buildingName: null },
