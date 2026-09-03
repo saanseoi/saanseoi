@@ -1,5 +1,12 @@
+type DivisionAttributes = {
+  level: number
+  type: 'district'
+  divisionCode: string
+  i18n: { en: { name: string } }
+}
+
 type Division = {
-  attributes: { divisionCode: string }
+  attributes: DivisionAttributes
   relationships: {
     hierarchy: {
       data: Array<{
@@ -11,7 +18,18 @@ type Division = {
   }
 }
 
-type DivisionsResponse = { data: Division[] }
+type IncludedDivision = {
+  type: 'divisions'
+  id: string
+  attributes: {
+    level: number
+    type: 'sar' | 'area'
+    divisionCode?: string
+    i18n: { en: { name: string } }
+  }
+}
+
+type DivisionsResponse = { data: Division[]; included: IncludedDivision[] }
 
 const areas = {
   'Hong Kong Island': {
@@ -28,10 +46,39 @@ const areas = {
   },
 } as const
 
+const districtNameByCode = {
+  CW: 'Central and Western District',
+  WC: 'Wan Chai District',
+  EST: 'Eastern District',
+  STH: 'Southern District',
+  YTM: 'Yau Tsim Mong District',
+  SSP: 'Sham Shui Po District',
+  KLC: 'Kowloon City District',
+  WTS: 'Wong Tai Sin District',
+  KT: 'Kwun Tong District',
+  KC: 'Kwai Tsing District',
+  KTS: 'Kwai Tsing District',
+  TW: 'Tsuen Wan District',
+  TM: 'Tuen Mun District',
+  YL: 'Yuen Long District',
+  NTH: 'North District',
+  TP: 'Tai Po District',
+  ST: 'Sha Tin District',
+  SK: 'Sai Kung District',
+  ILD: 'Islands District',
+} as const
+
+const hongKongId = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
+
 export const urbanDensityDivisionsResponse: DivisionsResponse = {
   data: Object.entries(areas).flatMap(([name, area]) =>
     area.codes.map(divisionCode => ({
-      attributes: { divisionCode },
+      attributes: {
+        level: 2,
+        type: 'district',
+        divisionCode,
+        i18n: { en: { name: districtNameByCode[divisionCode] } },
+      },
       relationships: {
         hierarchy: {
           data: [
@@ -45,6 +92,28 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
       },
     })),
   ),
+  included: [
+    {
+      type: 'divisions',
+      id: hongKongId,
+      attributes: {
+        level: 0,
+        type: 'sar',
+        i18n: { en: { name: 'Hong Kong' } },
+      },
+    },
+    ...Object.entries(areas).map(([name, area]) => ({
+      type: 'divisions' as const,
+      id: area.id,
+      attributes: {
+        level: 1,
+        type: 'area' as const,
+        divisionCode:
+          name === 'Hong Kong Island' ? 'HK' : name === 'Kowloon' ? 'KL' : 'NT',
+        i18n: { en: { name } },
+      },
+    })),
+  ],
 }
 
 export const urbanDensityStatsResponses = [

@@ -458,7 +458,7 @@ $effect(() => {
 >
   <div
     data-guide-code-header
-    class={`flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 ${
+    class={`flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-2.5 ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
       : variant === 'editor' || variant === 'reference'

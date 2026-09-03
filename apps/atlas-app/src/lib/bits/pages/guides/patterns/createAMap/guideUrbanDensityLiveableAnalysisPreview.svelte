@@ -13,6 +13,7 @@ import type {
   Map as MapLibreMap,
   StyleSpecification,
 } from 'maplibre-gl'
+import { m } from '#lib/bits/internal/i18n.js'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
 import {
@@ -265,6 +266,9 @@ const progressPhase = $derived(
     ? '[DOWNLOAD, SNAP & MERGE TILE]'
     : '[INTERSECT & DISSOLVE DISTRICT]',
 )
+const analysisComplete = $derived(
+  phase === 'districts' && completedDistricts === totalDistricts,
+)
 let focusedDistrictCode = $state<string>()
 const updateExclusionSources = () => {
   const rawSource = previewMap?.getSource('raw-exclusions') as GeoJSONSource | undefined
@@ -313,17 +317,21 @@ const setTileStatus = (tile: ProcessingTile, status: 'active' | 'complete') => {
 onMount(() => {
   let cancelled = false
   let tileTimer: number | undefined
-  let districtTimer: number | undefined
+  let districtPartTimer: number | undefined
+  let districtDissolveTimer: number | undefined
 
   const completeDistrict = () => {
     const district = urbanDensityCensusDistricts.features[completedDistricts - 1]
     if (!district) return
 
     const excluded = excludedByDistrictCode.get(district.properties.divisionCode)
-    if (!excluded) return
+    if (excluded) {
+      completedExcludedDistrictLand = [...completedExcludedDistrictLand, excluded]
+      updateExclusionSources()
+    }
 
-    completedExcludedDistrictLand = [...completedExcludedDistrictLand, excluded]
-    updateExclusionSources()
+    if (completedDistricts === totalDistricts) return
+    startDistrict()
   }
 
   const startDistrict = () => {
@@ -331,29 +339,24 @@ onMount(() => {
     completedDistrictParts = 0
     const district = urbanDensityCensusDistricts.features[completedDistricts - 1]
     if (district) focusDistrict(district)
+    districtPartTimer = window.setInterval(advanceDistrictPart, 500)
   }
 
   const advanceDistrictPart = () => {
-    const partStep = Math.max(1, Math.ceil(activeDistrictPartTotal / 6))
     completedDistrictParts = Math.min(
       activeDistrictPartTotal,
-      completedDistrictParts + partStep,
+      completedDistrictParts + 1,
     )
     if (completedDistrictParts !== activeDistrictPartTotal) return
 
-    completeDistrict()
-    if (completedDistricts === totalDistricts) {
-      if (districtTimer) window.clearInterval(districtTimer)
-    } else {
-      startDistrict()
-    }
+    if (districtPartTimer) window.clearInterval(districtPartTimer)
+    districtDissolveTimer = window.setTimeout(completeDistrict, 1000)
   }
 
   const startDistrictProgress = () => {
     phase = 'districts'
     showTileOutline()
     startDistrict()
-    districtTimer = window.setInterval(advanceDistrictPart, 120)
   }
 
   void loadCachedDistrictExclusions()
@@ -370,12 +373,9 @@ onMount(() => {
     })
 
   tileTimer = window.setInterval(() => {
-    const nextCompletedTiles = Math.min(totalTiles, completedTiles + 12)
-    for (let index = completedTiles; index < nextCompletedTiles; index += 1) {
-      const completedTile = processingTiles[index]
-      if (completedTile) setTileStatus(completedTile, 'complete')
-    }
-    completedTiles = nextCompletedTiles
+    const completedTile = processingTiles[completedTiles]
+    if (completedTile) setTileStatus(completedTile, 'complete')
+    completedTiles = Math.min(totalTiles, completedTiles + 1)
     const nextTile = processingTiles[completedTiles]
     if (nextTile) setTileStatus(nextTile, 'active')
     showTileOutline(processingTiles[completedTiles])
@@ -383,12 +383,13 @@ onMount(() => {
       window.clearInterval(tileTimer)
       startDistrictProgress()
     }
-  }, 160)
+  }, 150)
 
   return () => {
     cancelled = true
     if (tileTimer) window.clearInterval(tileTimer)
-    if (districtTimer) window.clearInterval(districtTimer)
+    if (districtPartTimer) window.clearInterval(districtPartTimer)
+    if (districtDissolveTimer) window.clearTimeout(districtDissolveTimer)
   }
 })
 </script>
@@ -413,7 +414,6 @@ onMount(() => {
       {renderer}
       {styleUrl}
       {tilejsonUrl}
-      unstyled
       zoom={10.75}
     />
   {/key}
@@ -466,5 +466,14 @@ onMount(() => {
       max={progressTotal}
       value={progressCompleted}
     ></progress>
+    {#if analysisComplete}
+      <button
+        class="mt-4 w-full border border-[#79e7d1] bg-[#43c6ad] px-4 py-2.5 font-mono text-sm font-bold text-[#10151a] hover:bg-[#79e7d1]"
+        type="button"
+        onclick={() => undefined}
+      >
+        {m.guide_data_urban_density_liveable_analysis_preview_download()}
+      </button>
+    {/if}
   </section>
 </div>

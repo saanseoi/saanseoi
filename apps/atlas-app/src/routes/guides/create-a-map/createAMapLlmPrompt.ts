@@ -24,6 +24,14 @@ export type CreateAMapLlmPromptSection =
   | 'data'
   | 'publish'
 
+export type CreateAMapDataPromptStep =
+  | 'fetchStats'
+  | 'calculateDensity'
+  | 'addStatsToMap'
+  | 'findUnliveableLand'
+  | 'calculateLiveableArea'
+  | 'finaliseMap'
+
 export type CreateAMapLlmPromptState = {
   agentTool?: string
   agentToolValue?: string
@@ -363,9 +371,9 @@ const createSectionInstructions = (
   ],
   data: [
     state.dataSource === 'api'
-      ? 'Build the urban-density example as a reproducible data pipeline: keep source releases and reference years explicit, calculate urban land area and population density defensively, write derived outputs separately, and display both the urban-land overlay and metrics in the map.'
+      ? 'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`, then present the returned District data in a readable table for inspection. Keep source releases and reference years explicit, calculate defensively, and keep source data separate from derived data.'
       : 'Ask me for the schema, source and licence of my existing data before integrating it. Then add the smallest robust loading, validation and map-display path for that data.',
-    'Keep source data and derived data clearly separated. Do not assume unavailable fields or silently fabricate values.',
+    'Do not assume unavailable fields or silently fabricate values.',
   ],
   publish: [
     state.objective === 'mobile-embed'
@@ -378,6 +386,121 @@ const createSectionInstructions = (
       : []),
   ],
 })
+
+const dataStepDetails: Record<
+  CreateAMapDataPromptStep,
+  { heading: string; label: string; next?: string; instructions: string[] }
+> = {
+  fetchStats: {
+    heading: 'Data Section',
+    label: 'Fetch population density statistics',
+    next: 'Calculate population density',
+    instructions: [
+      'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`.',
+      'Present the returned District data in a readable table so I can inspect exactly what the API returned.',
+      'Do not calculate Area-level density or add map overlays in this step; those belong to the following steps.',
+    ],
+  },
+  calculateDensity: {
+    heading: 'Calculate population density',
+    label: 'Calculate population density',
+    next: 'Put the stats on the map',
+    instructions: [
+      'Use the fetched District statistics and the divisions hierarchy to group the population and published land area by Area.',
+      'Calculate each Area’s population density defensively and keep the derived metrics separate from the source responses.',
+      'Do not add the metrics to the map yet; that is the next step.',
+    ],
+  },
+  addStatsToMap: {
+    heading: 'Put the stats on the map',
+    label: 'Put the stats on the map',
+    next: 'Identifying land without human habitats',
+    instructions: [
+      'Add the calculated Area metrics to the map as the three summary cards and the supporting controls and legend.',
+      'Use the CSS and TypeScript references supplied with this prompt, and colour each Area label to match its District overlay colour.',
+      'Verify the cards and Area-coloured Districts in the running map before stopping.',
+    ],
+  },
+  findUnliveableLand: {
+    heading: 'Identifying land without human habitats',
+    label: 'Identifying land without human habitats',
+    next: 'Calculate liveable area',
+    instructions: [
+      'Use the SaanSeoi basemap land-use data to show which land will be excluded from the density denominator.',
+      'Keep this step focused on the exclusion highlighter. Do not begin the tile download, geometry Worker, or saved-result analysis yet.',
+    ],
+  },
+  calculateLiveableArea: {
+    heading: 'Calculate liveable area',
+    label: 'Calculate liveable area',
+    next: 'Finalise map',
+    instructions: [
+      'Implement the complete one-time land analysis using the supplied references: install the geospatial packages, add the geometry Worker, fetch and process z14 tiles, show progress, and save the compressed `land-analysis.json.gz` result.',
+      'Use the existing project and configured public API key. Keep the analysis in the browser and verify that the simulated progress and final download flow are understandable to the user.',
+    ],
+  },
+  finaliseMap: {
+    heading: 'Finalise map',
+    label: 'Finalise map',
+    instructions: [
+      'Load the cached `land-analysis.json.gz` result, aggregate each District’s excluded land by Area, and calculate the revised population density using the remaining liveable land.',
+      'Replace the basemap-based land-exclusion highlighter with the saved District layers and revised Area density, so the map uses the cached result instead of repeating the tile calculation.',
+      'Use both supplied TypeScript references and verify the final map and conclusion data in the browser.',
+    ],
+  },
+}
+
+const createDataStepModeInstruction = (mode: PromptMode) =>
+  mode === 'agentic'
+    ? 'As a coding agent, make only the changes for this step in the existing project. Use the supplied references as implementation guidance, verify the running map, and stop when this step is complete.'
+    : 'As a web chat, guide me through this step one action at a time. Name the exact file or terminal target, tell me whether to create, replace, or append, wait for my confirmation, and stop when this step is complete.'
+
+export const createAMapDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+  mode: PromptMode,
+) => {
+  const details = dataStepDetails[step]
+  const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
+  const nextInstruction = details.next
+    ? `Once this step is verified, summarise what changed and tell me: “The single next action is for you to continue with the “${details.next}” section of the guide. Read it until it provides you with a prompt to share with me again.”`
+    : 'Once this final step is verified, summarise what changed, how you verified it, and the single next action for me.'
+
+  const newDecisionLines =
+    step === 'fetchStats'
+      ? [
+          '',
+          '### Project decisions',
+          '',
+          `- Data source: ${state.dataSourceLabel ?? 'SaanSeoi Statistics API'}`,
+        ]
+      : []
+
+  return [
+    `## ${details.heading}`,
+    '',
+    `Continue the “${details.label}” section of my SaanSeoi map project.`,
+    '',
+    createDataStepModeInstruction(mode),
+    ...(localeInstruction ? ['', localeInstruction] : []),
+    ...newDecisionLines,
+    '',
+    'This step:',
+    ...details.instructions.map(instruction => `- ${instruction}`),
+    '',
+    nextInstruction,
+  ].join('\n')
+}
+
+export const createAMapAgenticDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+) => createAMapDataStepPrompt(state, step, 'agentic')
+
+export const createAMapChatDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+) => createAMapDataStepPrompt(state, step, 'chat')
 
 const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer) || !state.styleUrl || !state.tilejsonUrl) {
@@ -617,6 +740,10 @@ const createAMapProgressivePrompt = (
 
   if (section === 'style') {
     return createAMapStylePrompt(state)
+  }
+
+  if (section === 'data') {
+    return createAMapDataStepPrompt(state, 'fetchStats', mode)
   }
 
   return [
