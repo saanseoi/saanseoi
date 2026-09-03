@@ -1565,17 +1565,6 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     dataFormat,
   })
 })
-const projectSetupMissingRequirement = $derived.by(() => {
-  if (projectSetupContentReady || llmMode === 'handover') return undefined
-
-  const question = missingPrerequisiteQuestions.find(item => !item.answered)
-  return question
-    ? {
-        href: `#${question.id}`,
-        requirement: question.requirementLabel ?? question.label,
-      }
-    : undefined
-})
 const publishMissingRequirement = $derived.by(() => {
   if (!showPublishStep || objective === 'mobile-embed') return undefined
 
@@ -1706,6 +1695,7 @@ const promptEditorIcon = $derived(
 )
 const llmPromptState = $derived.by(() => {
   return {
+    aiAccess,
     agentTool: selectedLlmOption?.label,
     agentToolValue: agentTool,
     basemapApiKey: llmBasemapApiKey,
@@ -1713,12 +1703,20 @@ const llmPromptState = $derived.by(() => {
     codeEditorValue: promptEditorValue,
     dataSource,
     dataSourceLabel: selectedDataSource?.label,
+    dataFormat,
+    dataFormatLabel: dataFormatChoices.find(choice => choice.value === dataFormat)
+      ?.label,
     hosting: selectedHosting?.label,
     hostingValue: hosting,
     mobileLibrary: selectedMobileLibrary?.label,
+    mobileLibraryValue: mobileLibrary,
     mobilePlatform: selectedMobilePlatform?.label,
     notebookLibrary: selectedNotebookLibrary?.label,
+    notebookLibraryValue: notebookLibrary,
     notebookRuntime: selectedNotebookRuntime?.label,
+    llm,
+    llmLabel: aiAccess === 'web' ? selectedLlmOption?.label : undefined,
+    llmMode,
     objective,
     objectiveLabel: selectedObjective?.label,
     operatingSystem: selectedOperatingSystem?.label,
@@ -1741,7 +1739,9 @@ const llmPromptState = $derived.by(() => {
     vpnAccess: isVpnRequired
       ? vpnAccessChoices.find(choice => choice.value === vpnAccess)?.label
       : undefined,
+    vpnAccessValue: vpnAccess,
     websitePlatform,
+    selectionQuery: getSelection(),
   } satisfies CreateAMapLlmPromptState
 })
 
@@ -1870,6 +1870,17 @@ const projectSetupContentReady = $derived(
         setupReady &&
         (aiAccess !== 'agentic' || isLlmReadinessComplete))),
 )
+const projectSetupMissingRequirement = $derived.by(() => {
+  if (projectSetupContentReady || llmMode === 'handover') return undefined
+
+  const question = missingPrerequisiteQuestions.find(item => !item.answered)
+  return question
+    ? {
+        href: `#${question.id}`,
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
 const selectedLlmChatUrl = $derived(getSelectedLlmChatUrl(llm))
 const rendererReference = $derived(
   getCreateAMapRendererReference(

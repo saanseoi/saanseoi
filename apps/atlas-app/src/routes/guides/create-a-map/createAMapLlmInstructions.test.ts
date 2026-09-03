@@ -7,8 +7,10 @@ import {
 } from './createAMapLlmInstructions'
 import {
   createAMapAgenticHandoverPrompt,
+  createAMapGuideHandbackUrl,
   createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapChatHandoverPrompt,
   createAMapChatDataStepPrompt,
   createAMapCustomDataPrompt,
   createAMapExistingDataPrompt,
@@ -268,6 +270,70 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
+    expect(instructions).toContain('## Decision matrix and order')
+    expect(instructions).toContain('If you are an agentic LLM')
+    expect(instructions).toContain('If you are a non-agentic LLM')
+    expect(instructions).toContain('https://saanseoi.hk/sign-up')
+    expect(instructions).toContain('https://saanseoi.hk/api-keys')
+    expect(instructions).toContain('do not rely on the guide UI to compose the iframe')
+  })
+
+  test('creates a handback URL from the known guide decisions', () => {
+    const url = createAMapGuideHandbackUrl(
+      {
+        preferredLocale: 'en',
+        selectionQuery: {
+          objective: 'web-embed',
+          aiAccess: 'web',
+          llm: 'chatgpt',
+          websitePlatform: 'wordpress',
+          hosting: 'cloudflare',
+          renderer: 'maplibre',
+          region: 'hk',
+          style: 'midnight',
+          dataSource: 'existing',
+          dataFormat: 'geojson',
+        },
+      },
+      'https://saanseoi.hk/guides/create-a-map',
+    )
+
+    expect(url).toContain('objective=web-embed')
+    expect(url).toContain('llm-mode=assisted')
+    expect(url).toContain('website=wordpress')
+    expect(url).toContain('data-format=geojson')
+    expect(url).not.toContain('agent-tool=')
+  })
+
+  test('makes full handover prompts mode-specific and multilingual', () => {
+    const agentPrompt = createAMapAgenticHandoverPrompt(
+      { preferredLocale: 'en' },
+      'https://saanseoi.hk/guides/create-a-map',
+      'https://saanseoi.hk/guides/create-a-map/llms.txt',
+    )
+    const chatPrompt = createAMapChatHandoverPrompt(
+      { preferredLocale: 'en' },
+      'https://saanseoi.hk/guides/create-a-map',
+      'https://saanseoi.hk/guides/create-a-map/llms.txt',
+    )
+
+    expect(agentPrompt).toContain('If you are an agentic LLM')
+    expect(agentPrompt).toContain('AI route: agentic')
+    expect(agentPrompt).toContain('ai-access=agentic')
+    expect(agentPrompt).not.toContain('If you are a non-agentic LLM')
+    expect(chatPrompt).toContain('If you are a non-agentic LLM')
+    expect(chatPrompt).toContain('AI route: web')
+    expect(chatPrompt).toContain('llm-mode=assisted')
+    expect(chatPrompt).not.toContain('If you are an agentic LLM, inspect')
+    for (const languageQuestion of [
+      'Which language would you prefer',
+      '你希望我們',
+      '你希望我们',
+    ]) {
+      expect(chatPrompt).toContain(languageQuestion)
+    }
+    expect(chatPrompt).toContain('https://saanseoi.hk/sign-up')
+    expect(chatPrompt).toContain('https://saanseoi.hk/api-keys')
   })
 
   test('provides the working agreement and setup instructions for assistance', () => {
