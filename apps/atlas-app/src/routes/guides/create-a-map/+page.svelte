@@ -63,6 +63,7 @@ import {
 } from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
+import type { GuideLlmPromptReference } from '#lib/bits/pages/guides/index.js'
 
 import { createCreateAMapGuideAdapter } from './createAMapGuideAdapter.svelte'
 import {
@@ -131,11 +132,14 @@ import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMa
 import GuideGeoJsonDataPreview from '#lib/bits/pages/guides/patterns/createAMap/guideGeoJsonDataPreview.svelte'
 import {
   createAMapAgenticHandoverPrompt,
+  createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapChatDataStepPrompt,
   createAMapChatHandoverPrompt,
   createAMapChatSectionPrompt,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
+  type CreateAMapDataPromptStep,
   type CreateAMapLlmPromptState,
 } from './createAMapLlmPrompt'
 
@@ -1529,10 +1533,14 @@ const selectedMapLibrary = $derived(
 )
 const outline = $derived(guideOutline)
 const projectOutline = $derived([
-  {
-    id: 'project-pre-check',
-    label: m.guide_data_urban_density_toc_pre_check(),
-  },
+  ...(llmGuidanceEnabled
+    ? []
+    : [
+        {
+          id: 'project-pre-check',
+          label: m.guide_data_urban_density_toc_pre_check(),
+        },
+      ]),
   {
     id: 'project-fetch-stats',
     label: m.guide_data_urban_density_toc_fetch_stats(),
@@ -1665,6 +1673,37 @@ const chatSectionPrompts = $derived({
 })
 const progressiveSectionPrompts = $derived(
   aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
+)
+const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapAgenticDataStepPrompt(llmPromptState, 'fetchStats'),
+  calculateDensity: createAMapAgenticDataStepPrompt(llmPromptState, 'calculateDensity'),
+  addStatsToMap: createAMapAgenticDataStepPrompt(llmPromptState, 'addStatsToMap'),
+  findUnliveableLand: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+  ),
+  calculateLiveableArea: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+  ),
+  finaliseMap: createAMapAgenticDataStepPrompt(llmPromptState, 'finaliseMap'),
+})
+const chatDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapChatDataStepPrompt(llmPromptState, 'fetchStats'),
+  calculateDensity: createAMapChatDataStepPrompt(llmPromptState, 'calculateDensity'),
+  addStatsToMap: createAMapChatDataStepPrompt(llmPromptState, 'addStatsToMap'),
+  findUnliveableLand: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+  ),
+  calculateLiveableArea: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+  ),
+  finaliseMap: createAMapChatDataStepPrompt(llmPromptState, 'finaliseMap'),
+})
+const progressiveDataStepPrompts = $derived(
+  aiAccess === 'agentic' ? agenticDataStepPrompts : chatDataStepPrompts,
 )
 
 const guideDecisions = $derived.by(() => {
@@ -2027,6 +2066,147 @@ const llmStyleReferences = $derived.by(() => {
     },
   ]
 })
+const llmUrbanDensityReferences = $derived.by(
+  (): {
+    calculation: GuideLlmPromptReference[]
+    final: GuideLlmPromptReference[]
+    liveable: GuideLlmPromptReference[]
+    map: GuideLlmPromptReference[]
+    metrics: GuideLlmPromptReference[]
+    stats: GuideLlmPromptReference[]
+  } => {
+    if (!guideRenderer || !selectedStyle) {
+      return {
+        calculation: [],
+        final: [],
+        liveable: [],
+        map: [],
+        metrics: [],
+        stats: [],
+      }
+    }
+
+    return {
+      stats: [
+        {
+          code: urbanDensityStatsCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_calculate_code(),
+          type: 'TS',
+        },
+      ],
+      calculation: [
+        {
+          code: urbanDensityCalculationCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_results_code(),
+          type: 'TS',
+        },
+      ],
+      map: [
+        {
+          code: urbanDensityMapCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_map_code(),
+          type: 'TS',
+        },
+      ],
+      metrics: [
+        {
+          code: createUrbanDensityMetricsCss(selectedStyle.appearance),
+          language: 'css',
+          path: rendererStylesheetPath,
+          title: m.guide_data_urban_density_metrics_css(),
+          type: 'CSS',
+        },
+        {
+          code: urbanDensityMetricsCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_results_map_code(),
+          type: 'TS',
+        },
+      ],
+      liveable: [
+        {
+          code: urbanDensityTurfInstallCode,
+          language: 'bash',
+          path: terminalProjectPath,
+          title: m.guide_data_urban_density_install_code(),
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityTurfInstallOutput,
+          language: 'text',
+          path: terminalProjectPath,
+          title: m.guide_data_urban_density_install_output(),
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityGeometryWorkerCode,
+          language: 'typescript',
+          path: 'src/land-analysis.worker.ts',
+          title: m.guide_data_urban_density_geometry_worker_code(),
+          type: 'TS',
+        },
+        {
+          code: createUrbanDensitySetupZ14TileFetcherCode(guideRenderer),
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_setup_z14_tile_fetcher_code(),
+          type: 'TS',
+        },
+        {
+          code: urbanDensitySetupZ14TileFetcherCss,
+          language: 'css',
+          path: rendererStylesheetPath,
+          title: m.guide_data_urban_density_setup_z14_tile_fetcher_css(),
+          type: 'CSS',
+        },
+        {
+          code: urbanDensityCollectNonLiveableLandCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_collect_non_liveable_land_code(),
+          type: 'TS',
+        },
+        {
+          code: urbanDensityLiveableAreaCss,
+          language: 'css',
+          path: rendererStylesheetPath,
+          title: m.guide_data_urban_density_liveable_area_css(),
+          type: 'CSS',
+        },
+        {
+          code: urbanDensityLiveableAreaCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_liveable_area_code(),
+          type: 'TS',
+        },
+      ],
+      final: [
+        {
+          code: urbanDensityLiveableMetricsCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_liveable_metrics_code(),
+          type: 'TS',
+        },
+        {
+          code: urbanDensityLiveableAreaMapCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_liveable_area_map_code(),
+          type: 'TS',
+        },
+      ],
+    }
+  },
+)
 const geoJsonImportOmittedLines = $derived(
   styleEditCode ? styleEditCode.split('\n').length : 0,
 )
@@ -3496,6 +3676,10 @@ const styleChoices = $derived.by(() =>
             setupZ14TileFetcherDisplayCode={createUrbanDensitySetupZ14TileFetcherDisplayCode(guideRenderer)}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
             liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
+            {llmGuidanceEnabled}
+            llmPromptIcon={selectedLlmOption?.icon}
+            llmPrompts={progressiveDataStepPrompts}
+            llmReferences={llmUrbanDensityReferences}
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
@@ -3543,14 +3727,6 @@ const styleChoices = $derived.by(() =>
               </GuideParagraph>
             {/if}
           </GuideCallout>
-        {/if}
-        {#if llmGuidanceEnabled && dataSource}
-          <div class="mt-8">
-            <GuidePromptBlock
-              code={progressiveSectionPrompts.data}
-              promptIcon={selectedLlmOption?.icon}
-            />
-          </div>
         {/if}
         {#if llmGuidanceEnabled && dataSource}
           <GuideReadinessPanel

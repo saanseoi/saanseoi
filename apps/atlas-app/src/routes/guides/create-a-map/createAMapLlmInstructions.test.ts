@@ -876,7 +876,7 @@ describe('Create a Map LLM instructions', () => {
 
   test('names the next section or confirms guide completion', () => {
     expect(createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'data')).toContain(
-      'The single next action is for you to continue with the “Publish” section of the guide. Read it until it provides you with a prompt to share with me again.”',
+      'The single next action is for you to continue with the “Calculate population density” section of the guide. Read it until it provides you with a prompt to share with me again.”',
     )
     expect(
       createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'publish'),
