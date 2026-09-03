@@ -32,6 +32,7 @@ import {
   GuideLlmPromptCard,
   GuideLlmPromptCardExplainer,
   GuideMapboxTokenReadiness,
+  GuideMissingSectionRequirement,
   GuideManualSetup,
   GuideMissingAnswerReminder,
   GuideParagraph,
@@ -1564,6 +1565,43 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     dataFormat,
   })
 })
+const projectSetupMissingRequirement = $derived.by(() => {
+  if (projectSetupContentReady || llmMode === 'handover') return undefined
+
+  const question = missingPrerequisiteQuestions.find(item => !item.answered)
+  return question
+    ? {
+        href: `#${question.id}`,
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
+const publishMissingRequirement = $derived.by(() => {
+  if (!showPublishStep || objective === 'mobile-embed') return undefined
+
+  const question = missingPrerequisiteQuestions.find(
+    item => item.id === 'platform' && !item.answered,
+  )
+  return question
+    ? {
+        href: '#platform',
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
+const embedMissingRequirement = $derived.by(() => {
+  if (objective !== 'web-embed' || (websitePlatform && hosting)) return undefined
+
+  const question = missingPrerequisiteQuestions.find(
+    item => item.id === 'platform' && !item.answered,
+  )
+  return question
+    ? {
+        href: '#platform',
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
 $effect(() => {
   const complete =
     Boolean(objective) &&
@@ -1824,6 +1862,13 @@ const setupReady = $derived(
     notebookLibrary,
     notebookRuntime,
   }),
+)
+const projectSetupContentReady = $derived(
+  guideUnlocked &&
+    ((llmMode === 'manual' && setupReady) ||
+      (llmMode === 'assisted' &&
+        setupReady &&
+        (aiAccess !== 'agentic' || isLlmReadinessComplete))),
 )
 const selectedLlmChatUrl = $derived(getSelectedLlmChatUrl(llm))
 const rendererReference = $derived(
@@ -2831,7 +2876,7 @@ const styleChoices = $derived.by(() =>
         eyebrow={m.guide_project_setup_eyebrow()}
         intro={projectSetupIntro}
       >
-        {#if guideUnlocked}
+        {#if projectSetupContentReady}
           {#if objective && llmMode === 'manual' && setupReady}
             <GuideManualSetup
               {bunInstallCode}
@@ -2991,6 +3036,12 @@ const styleChoices = $derived.by(() =>
               {/if}
             </div>
           {/if}
+        {:else if projectSetupMissingRequirement}
+          <GuideMissingSectionRequirement
+            action={m.guide_section_missing_project_setup_action()}
+            href={projectSetupMissingRequirement.href}
+            requirement={projectSetupMissingRequirement.requirement}
+          />
         {/if}
       </GuideSection>
 
@@ -3965,7 +4016,13 @@ const styleChoices = $derived.by(() =>
               ? m.guide_publish_mobile_description()
               : undefined}
         >
-          {#if objective === 'mobile-embed'}
+          {#if publishMissingRequirement}
+            <GuideMissingSectionRequirement
+              action={m.guide_section_missing_publish_action()}
+              href={publishMissingRequirement.href}
+              requirement={publishMissingRequirement.requirement}
+            />
+          {:else if objective === 'mobile-embed'}
             {#if mobileDocsUrl}
               <a
                 class="inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
@@ -4020,15 +4077,30 @@ const styleChoices = $derived.by(() =>
         </GuideSection>
       {/if}
 
-      {#if objective === 'web-embed' && websitePlatform && hosting}
-        <GuideCreateAMapEmbed
-          {hosting}
-          platform={websitePlatform}
-          platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
-          published={isMapAccessible}
-          {llmGuidanceEnabled}
-          llmPromptIcon={selectedLlmOption?.icon}
-        />
+      {#if objective === 'web-embed'}
+        {#if websitePlatform && hosting}
+          <GuideCreateAMapEmbed
+            {hosting}
+            platform={websitePlatform}
+            platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
+            published={isMapAccessible}
+            {llmGuidanceEnabled}
+            llmPromptIcon={selectedLlmOption?.icon}
+          />
+        {:else if embedMissingRequirement}
+          <GuideSection
+            id="embed"
+            number={8}
+            showBorder={false}
+            eyebrow={m.guide_step_embed()}
+          >
+            <GuideMissingSectionRequirement
+              action={m.guide_section_missing_embed_action()}
+              href={embedMissingRequirement.href}
+              requirement={embedMissingRequirement.requirement}
+            />
+          </GuideSection>
+        {/if}
       {/if}
 
       {#if dataSource}
