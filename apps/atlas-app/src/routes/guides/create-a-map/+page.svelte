@@ -2876,16 +2876,10 @@ const styleChoices = $derived.by(() =>
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
                 <div class="mt-14 w-full min-w-0 max-w-232">
-                  <p
-                    class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-                  >
-                    {@html m.guide_setup_llm_eyebrow()}
-                  </p>
-                  <h3
-                    class="mt-1 font-display text-headline-md leading-tight font-bold text-primary"
-                  >
-                    {@html m.guide_setup_llm_title()}
-                  </h3>
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_setup_llm_eyebrow()}
+                    title={m.guide_setup_llm_title()}
+                  />
                   <GuideParagraph>
                     {@html m.guide_setup_llm_instruction_before()}
                     {#if selectedLlmChatUrl}
