@@ -69,8 +69,12 @@ First check for Bun. Only run the installation command when \`bun --version\` re
 Bun is unavailable.
 
 \`\`\`bash
-# Run this only if Bun is not installed:
+# Check whether Bun is already available.
+bun --version
+
+# Run this only when the command above reports that Bun is unavailable:
 curl -fsSL https://bun.sh/install | bash
+# If your shell cannot find Bun afterwards, open a new terminal before continuing.
 
 # Run these only after confirming that saanseoi-project does not already exist.
 mkdir saanseoi-project
@@ -86,9 +90,28 @@ bun add -d wrangler
 
 #### macOS
 
-Use the Linux command sequence after inspecting the shell. Check \`bun --version\` first;
-skip the Bun installation command when it is already installed, and ask the user to open a
-new terminal after installation if their chosen shell requires it.
+First check for Bun. Only run the installation command when \`bun --version\` reports that
+Bun is unavailable. If your shell cannot find Bun after installation, open a new Terminal
+window before continuing.
+
+\`\`\`bash
+# Check whether Bun is already available.
+bun --version
+
+# Run this only when the command above reports that Bun is unavailable:
+curl -fsSL https://bun.sh/install | bash
+
+# Run these only after confirming that saanseoi-project does not already exist.
+mkdir saanseoi-project
+cd saanseoi-project
+pwd
+# If Vite says the directory is non-empty, select “Ignore files and continue”.
+# Never select “Remove existing files.”
+# The --no-immediate flag selects “No” for installing and starting now.
+${viteCreateCommand}
+bun install
+bun add -d wrangler
+\`\`\`
 
 #### Windows PowerShell
 
@@ -170,13 +193,9 @@ const developmentServerStart = projectSetupInstructions.indexOf(
 )
 
 const linuxInstructions = projectSetupInstructions.slice(linuxStart, macosStart).trim()
-const macosIntroduction = projectSetupInstructions
+const macosInstructions = projectSetupInstructions
   .slice(macosStart, windowsStart)
   .trim()
-const macosInstructions = [
-  macosIntroduction,
-  linuxInstructions.replace('#### Linux', '').trim(),
-].join('\n\n')
 const windowsInstructions = projectSetupInstructions
   .slice(windowsStart, bunFallbackStart)
   .trim()

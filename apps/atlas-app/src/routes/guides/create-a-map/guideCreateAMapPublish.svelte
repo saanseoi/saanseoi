@@ -3,6 +3,7 @@ import {
   GuideAdmonition,
   GuideCodeBlock,
   GuideInstructionCallout,
+  GuideLlmPromptCard,
   GuideScreenshot,
   GuideTextSubHeader,
 } from '#lib/bits/pages/guides/index.js'
@@ -32,6 +33,7 @@ import mapboxTokenUrlRestrictions from '#lib/assets/guides/mapbox-token-url-rest
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import { createDeploymentCode } from './snippets.js'
+import GuidePublishPreview from './guidePublishPreview.svelte'
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
 import GuidePublishHostingCallout from './guidePublishHostingCallout.svelte'
 import GuidePublishTerminalCommand from './guidePublishTerminalCommand.svelte'
@@ -46,6 +48,8 @@ type Props = {
   completedRequirements?: number[]
   hosting: Hosting
   llmMode?: CreateAMapSelectionQuery['llmMode']
+  llmPrompt?: string
+  llmPromptIcon?: string
   onCompletedRequirementsChange?: (requirements: number[]) => void
   onAccessibleChange?: (accessible: boolean) => void
   operatingSystem?: CreateAMapSelectionQuery['operatingSystem']
@@ -58,6 +62,8 @@ let {
   completedRequirements = [],
   hosting,
   llmMode,
+  llmPrompt,
+  llmPromptIcon,
   onCompletedRequirementsChange,
   onAccessibleChange,
   operatingSystem,
@@ -65,7 +71,9 @@ let {
   terminalProjectPath,
 }: Props = $props()
 
-const terminalLanguage = $derived(operatingSystem === 'windows' ? 'powershell' : 'bash')
+const terminalLanguage = $derived<'bash' | 'powershell'>(
+  operatingSystem === 'windows' ? 'powershell' : 'bash',
+)
 const host = $derived(
   hosting === 'cloudflare'
     ? m.guide_host_cloudflare()
@@ -538,6 +546,40 @@ const llmHelp = $derived(
       ? m.guide_publish_assistance_agentic()
       : m.guide_publish_assistance_chat(),
 )
+const llmReferences = $derived([
+  {
+    code: installCode,
+    language: terminalLanguage,
+    path: terminalProjectPath,
+    title: `Install ${client}`,
+    type: 'CLI' as const,
+  },
+  {
+    code: authenticationCode,
+    language: terminalLanguage,
+    path: terminalProjectPath,
+    title: `Authenticate ${host}`,
+    type: 'CLI' as const,
+  },
+  ...(hosting === 'cloudflare'
+    ? []
+    : [
+        {
+          code: configurationCode,
+          language: terminalLanguage,
+          path: terminalProjectPath,
+          title: `Create the ${host} project`,
+          type: 'CLI' as const,
+        },
+      ]),
+  {
+    code: deploymentCode,
+    language: terminalLanguage,
+    path: terminalProjectPath,
+    title: `Build and publish with ${host}`,
+    type: 'CLI' as const,
+  },
+])
 
 $effect(() => {
   onAccessibleChange?.(completedRequirements.includes(accessibilityRequirement))
@@ -632,6 +674,21 @@ const resetRequirement = (requirement: number) => {
       />
     </aside>
   </div>
+
+  {#if llmMode === 'assisted' && llmPrompt}
+    <div class="max-w-232">
+      <GuideLlmPromptCard
+        prompt={llmPrompt}
+        promptIcon={llmPromptIcon}
+        references={llmReferences}
+        title={m.guide_publish_deployment_title({ host })}
+      >
+        {#snippet preview()}
+          <GuidePublishPreview {hosting} {renderer} />
+        {/snippet}
+      </GuideLlmPromptCard>
+    </div>
+  {/if}
 
   {#if hasGitDependencies}
     <section aria-labelledby="publish-git-dependencies-title">

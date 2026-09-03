@@ -138,9 +138,13 @@ const createSectionCompletionInstruction = (section: CreateAMapLlmPromptSection)
 const promptValue = (label: string, value?: string) =>
   value ? `- ${label}: ${value}` : undefined
 
+const missingProjectContextInstruction =
+  'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.'
+
 const createSelections = (state: CreateAMapLlmPromptState) =>
   [
     promptValue('AI tool', state.agentTool),
+    promptValue('Operating system', state.operatingSystem),
     promptValue('Objective', state.objectiveLabel),
     promptValue('Platform', state.platform),
     promptValue('Terminal experience', state.terminalExperience),
@@ -236,6 +240,7 @@ export function createAMapProjectSetupPromptFragments(
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_project_setup_project_decisions({
         aiTool: promptDecision(state.agentTool),
+        operatingSystem: promptDecision(state.operatingSystem),
         objective: promptDecision(state.objectiveLabel),
         platform: promptDecision(state.platform),
         terminalExperience: promptDecision(state.terminalExperience),
@@ -390,7 +395,12 @@ const createSectionInstructions = (
   publish: [
     state.objective === 'mobile-embed'
       ? 'Prepare the selected mobile app for its platform’s build and release workflow. Keep secrets out of the app binary and explain each signing, store-account or release action that needs my involvement.'
-      : 'Prepare the project for the selected host. Configure `VITE_SAANSEOI_API_KEY` as a public build-time variable using that host’s environment-variable settings; it must be available to the browser build, but never committed. Build and validate a production artefact first, then stop before authentication, deployment, DNS, or any other external action that needs my account confirmation.',
+      : 'Use every displayed implementation reference in order: install the host CLI, authenticate with the host, create or link the host project, then deploy the built site and report the stable public URL. Configure `VITE_SAANSEOI_API_KEY` as a public build-time variable using the host’s settings; it must be available to the browser build, but never committed.',
+    'Before publishing, run a production build and smoke-test its output with a local preview. Confirm that the map, basemap, overlays, statistic cards, and assets work before sending the files to the host.',
+    'Explain any account confirmation or paid-plan choice before it happens, then guide the authentication and deployment rather than stopping at prepared local files. Clearly identify the stable public link that people can share, and help me open it in an incognito/private window to confirm it works without my account.',
+    state.hostingValue === 'github-pages'
+      ? 'For later changes, tell me to start a new project-context thread. If I use chat, I should attach `src/main.ts`, `src/land-analysis.worker.ts`, and `src/style.css`; after changes I must run `git add .`, commit, push, then run the displayed GitHub Pages build-and-publish command so the public site updates.'
+      : 'For later changes, tell me to start a new project-context thread. If I use chat, I should attach `src/main.ts`, `src/land-analysis.worker.ts`, and `src/style.css`; after changes I must run the displayed build-and-publish command for the selected host so the public site updates.',
     ...(state.objective === 'web-embed' && state.websitePlatform !== 'other'
       ? [
           'After a successful deployment, provide an accessible iframe integration for the selected website platform, using the real public URL and a meaningful title.',
@@ -442,16 +452,19 @@ const dataStepDetails: Record<
     heading: 'Calculate liveable area',
     next: 'Finalise map',
     instructions: [
-      'Implement the complete one-time land analysis using the supplied references: install the geospatial packages, add the geometry Worker, fetch and process z14 tiles, show progress, and save the compressed `land-analysis.json.gz` result.',
-      'Use the existing project and configured public API key. Keep the analysis in the browser and verify that the simulated progress and final download flow are understandable to the user.',
+      'Start by explaining why this is a separate, one-time calculation: the map must turn land-use polygons from many z14 tiles into District-level exclusions, then save the expensive result so visitors do not repeat it.',
+      'Offer the prepared result before the calculation: instruct me to download `land-analysis.json.gz` from the guide and place it at `src/land-analysis.json.gz`. It lets the final map load the same analysed result without downloading tiles or running geometry work again.',
+      'If the file is not present, implement the complete browser analysis in this order: install the geospatial packages, create the geometry Worker, add the result styles, then make one consolidated `src/main.ts` edit that fetches tiles, tracks progress, analyses District exclusions, and offers the compressed download.',
+      'For chat, stop after I report that the downloaded file is at the required path and confirm that with me before moving to Finalise map. For an agent, inspect for the file; if it is elsewhere, move it to `src/land-analysis.json.gz`, and skip the calculation-only code when the cached result is available.',
+      'Use the existing project and configured public API key. Keep the analysis in the browser, explain what each file does for the user, and invite me to inspect the completed result and download action in the browser.',
     ],
   },
   finaliseMap: {
     heading: 'Finalise map',
     instructions: [
-      'Load the cached `land-analysis.json.gz` result, aggregate each District’s excluded land by Area, and calculate the revised population density using the remaining liveable land.',
-      'Replace the basemap-based land-exclusion highlighter with the saved District layers and revised Area density, so the map uses the cached result instead of repeating the tile calculation.',
-      'Use both supplied TypeScript references and verify the final map and conclusion data in the browser.',
+      'First confirm that `src/land-analysis.json.gz` exists. For an agent, find it and move it there if necessary; when it is available, skip all calculation-only code.',
+      'Make one consolidated `src/main.ts` modification that loads the cached result, aggregates each District’s excluded land by Area, calculates revised population density from remaining liveable land, and replaces the earlier basemap exclusion highlighter with the saved District layers, overlays, and statistic cards.',
+      'Verify the final overlays and all three statistic cards in the browser. Congratulate me on completing the guide; if my objective includes publishing, direct me to Publish the map, otherwise invite me to ask for any changes I would like to make to the map.',
     ],
   },
 }
@@ -515,11 +528,17 @@ export const createAMapDataStepPrompt = (
   const details = dataStepDetails[step]
   const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
   const nextInstruction = details.next
-    ? `Once this step is verified, summarise what changed and tell me: “The single next action is for you to continue with the “${details.next}” section of the guide. Read it until it provides you with a prompt to share with me again.”`
-    : 'Once this final step is verified, summarise what changed, how you verified it, and the single next action for me.'
+    ? `Once this step is verified, summarise what changed and how you verified it. Then tell me: “The single next action is for you to continue with the “${details.next}” section of the guide. Read it until it provides you with a prompt to share with me again.”`
+    : state.objective === 'web' || state.objective === 'web-embed'
+      ? 'Once this final step is verified, summarise what changed and how you verified it. Congratulate me on completing the guide, then tell me: “The single next action is for you to continue with the “Publish the map” section of the guide. Read it until it provides you with a prompt to share with me again.” Remain available for any other map changes I would like to make.'
+      : 'Once this final step is verified, summarise what changed and how you verified it. Congratulate me on completing the guide and remain available for any other map changes I would like to make.'
 
   return [
     `## ${details.heading}`,
+    '',
+    `Continue the “${details.heading}” section of my SaanSeoi map project.`,
+    '',
+    missingProjectContextInstruction,
     ...(localeInstruction ? ['', localeInstruction] : []),
     ...(step === 'fetchStats' && includeProjectDecision
       ? [
@@ -530,6 +549,8 @@ export const createAMapDataStepPrompt = (
         ]
       : []),
     '',
+    '### Scope',
+
     'This step:',
     ...details.instructions.map(instruction => `- ${instruction}`),
     '',
@@ -564,7 +585,7 @@ const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     createAMapRendererStyleCode(state.renderer, state.styleUrl, state.tilejsonUrl),
     '```',
     '',
-    'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup. Do not expose or log the public key.',
+    'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup.',
   ]
 }
 
@@ -572,14 +593,20 @@ const createAMapStylePrompt = (state: CreateAMapLlmPromptState) =>
   [
     '## Style Section',
     '',
-    'Complete only the “Pick your styles” section of my SaanSeoi map project.',
+    'Continue the “Pick your styles” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
     '',
     ...(state.rendererLabel
       ? [`- Selected mapping library: ${state.rendererLabel}`]
       : []),
     ...(state.styleLabel ? [`- Selected style: ${state.styleLabel}`] : []),
     '',
+    '### Scope',
+    '',
     ...createPromptInstructionLines(createSectionInstructions(state).style),
+    '',
+    createSectionCompletionInstruction('style'),
   ].join('\n')
 
 const createPromptInstructionLines = (instructions: string[]) => {
@@ -794,8 +821,15 @@ const createAMapProgressivePrompt = (
 
   if (section === 'basemap') {
     return [
+      '## Basemap Section',
+      '',
+      'Continue the “Add the SaanSeoi basemap” section of my SaanSeoi map project.',
+      '',
+      missingProjectContextInstruction,
+      '',
       createAMapBasemapPrompt(state, mode),
       ...(localeInstruction ? [localeInstruction] : []),
+      createSectionCompletionInstruction('basemap'),
     ]
       .filter(Boolean)
       .join('\n\n')
@@ -819,6 +853,8 @@ const createAMapProgressivePrompt = (
     `## ${sectionLabel(section)} Section`,
     '',
     `Continue the “${sectionLabel(section)}” section of my SaanSeoi map project.`,
+    '',
+    missingProjectContextInstruction,
     '',
     ...createAMapLlmAssistanceModeInstructions(mode),
     ...(localeInstruction ? ['', localeInstruction] : []),

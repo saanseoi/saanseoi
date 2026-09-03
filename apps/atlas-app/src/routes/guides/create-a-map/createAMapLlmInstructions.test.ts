@@ -149,7 +149,7 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('type DistrictProperties')
     expect(stats).toContain('type DistrictProperties')
     expect(stats).toContain(
-      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
+      "const savedResultUrl = new URL('./land-analysis.json.gz', import.meta.url)",
     )
     expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
     expect(stats).toContain(
@@ -347,7 +347,7 @@ describe('Create a Map LLM instructions', () => {
       )
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
-      expect(prompt).not.toContain('- Operating system:')
+      expect(prompt).toContain('- Operating system: Linux')
       expect(prompt).toContain('### Working agreement')
       expect(prompt).toContain('## Project setup')
       expect(prompt).toContain('### Verification')
@@ -560,13 +560,14 @@ describe('Create a Map LLM instructions', () => {
       'Remove-Item -Recurse -Force .bun-tmp, .bun-install',
     )
     expect(macosPrompt).toContain('#### macOS')
+    expect(macosPrompt).toContain('bun --version')
     expect(macosPrompt).toContain(
+      'Run this only when the command above reports that Bun is unavailable',
+    )
+    expect(macosPrompt).toContain('open a new Terminal\nwindow before continuing')
+    expect(macosPrompt).not.toContain(
       'Use the Linux command sequence after inspecting the shell.',
     )
-    expect(macosPrompt).toContain('skip the Bun installation command')
-    expect(
-      macosPrompt.indexOf('Use the Linux command sequence after inspecting the shell.'),
-    ).toBeLessThan(macosPrompt.indexOf('curl -fsSL https://bun.sh/install | bash'))
   })
 
   test('uses explicit setup commands and stops at visual Vite verification', () => {
@@ -781,7 +782,9 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('src\\main.ts')
       expect(prompt).toContain('A blank map is expected')
       expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
-      expect(prompt).not.toContain('The single next action')
+      expect(prompt).toContain(
+        'The single next action is for you to continue with the “Style” section',
+      )
     }
 
     expect(agentPrompt).toBe(chatPrompt)
@@ -894,7 +897,12 @@ describe('Create a Map LLM instructions', () => {
       const chatPrompt = createAMapChatDataStepPrompt(state, step, references[step])
       const agentPrompt = createAMapAgenticDataStepPrompt(state, step, references[step])
 
-      expect(chatPrompt).not.toContain('Continue the “')
+      expect(chatPrompt).toContain(
+        `Continue the “${step === 'fetchStats' ? 'Data Section' : step === 'calculateDensity' ? 'Calculate population density' : step === 'addStatsToMap' ? 'Put the stats on the map' : 'Identifying land without human habitats'}” section`,
+      )
+      expect(chatPrompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
       expect(chatPrompt).not.toContain('As a web chat')
       const workedExampleDecision =
         '- Data source: User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
@@ -1028,8 +1036,10 @@ describe('Create a Map LLM instructions', () => {
         expect(prompt).not.toContain(`- ${importLine}`)
         expect(prompt).not.toContain('### Project decisions')
         expect(prompt).not.toContain('collaborative assistance session')
-        expect(prompt).not.toContain('The single next action')
-        expect(prompt).not.toContain('Data” section')
+        expect(prompt).toContain(
+          'The single next action is for you to continue with the “Data” section',
+        )
+        expect(prompt).toContain('“Data” section of the guide')
       }
     }
   })

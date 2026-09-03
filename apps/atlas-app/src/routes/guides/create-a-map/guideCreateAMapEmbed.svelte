@@ -4,6 +4,7 @@ import {
   GuideAdmonition,
   GuideChoiceGroup,
   GuideInstructionCallout,
+  GuideLlmPromptCard,
   GuideParagraph,
   GuideSection,
   GuideSubSectionHeader,
@@ -28,9 +29,18 @@ type Props = {
   platform: Platform
   platformLabel: string
   published: boolean
+  llmGuidanceEnabled?: boolean
+  llmPromptIcon?: string
 }
 
-let { hosting, platform, platformLabel, published }: Props = $props()
+let {
+  hosting,
+  platform,
+  platformLabel,
+  published,
+  llmGuidanceEnabled = false,
+  llmPromptIcon,
+}: Props = $props()
 
 let mapUrl = $state('')
 let mapTitle = $state('')
@@ -115,6 +125,31 @@ const height = $derived<EmbedHeight>(
 )
 const iframeCode = $derived(
   createMapIframeCode({ height, title: mapTitle, url: mapUrl }),
+)
+const llmIframeReference = $derived([
+  {
+    code: iframeCode,
+    language: 'text' as const,
+    path: `${platformLabel} page editor`,
+    title: m.guide_embed_llm_iframe_reference(),
+    type: 'TS' as const,
+  },
+])
+const llmPlacementPrompt = $derived(
+  [
+    `## Embed the map in ${platformLabel}`,
+    '',
+    `Continue the “Place the code in ${platformLabel}” section of my SaanSeoi map project.`,
+    '',
+    'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.',
+    '',
+    'Use the iframe supplied as the implementation reference. Look up the latest official documentation for the selected site editor, then guide me one small step at a time to add it, preview it, and publish or update the page. Explain where I should paste the code, actively ask me to report progress after each important step, and remain available for troubleshooting.',
+    platform === 'wordpress'
+      ? 'Ask which WordPress I use if it is not already clear. Warn that WordPress.com on a free plan may not allow iframe embeds; use the official WordPress guidance for the plan and editor I have.'
+      : platform === 'other'
+        ? 'First ask which site editor I use. Then consult that editor’s latest official embedding documentation before telling me where to paste the iframe.'
+        : `Use the current official ${platformLabel} documentation for its embedding element.`,
+  ].join('\n'),
 )
 const elementName = $derived(embedElementName(platform))
 const previewHeight = $derived(height.mode === 'fixed' ? `${height.pixels}px` : '70dvh')
@@ -365,6 +400,11 @@ $effect(() => () => clearPreviewTimer())
     {/if}
     <div class="mt-10 max-w-5xl">
       <GuideParagraph>{m.guide_embed_code_description()}</GuideParagraph>
+      {#if llmGuidanceEnabled}
+        <GuideParagraph class="mt-4"
+          >{m.guide_embed_llm_handoff_description()}</GuideParagraph
+        >
+      {/if}
       <div class="mt-5">
         <GuideCodeBlock
           label={m.guide_embed_code_label({ platform: platformLabel })}
@@ -382,50 +422,62 @@ $effect(() => () => clearPreviewTimer())
       requirement={placementRequirement}
       title={m.guide_embed_placement_title({ platform: platformLabel })}
     />
-    <GuideParagraph class="mt-3">
-      {platform === 'wordpress'
-        ? m.guide_embed_placement_wordpress()
-        : platform === 'squarespace'
-          ? m.guide_embed_placement_squarespace()
-          : platform === 'wix'
-            ? m.guide_embed_placement_wix()
-            : platform === 'webflow'
-              ? m.guide_embed_placement_webflow()
-              : m.guide_embed_placement_other()}
-    </GuideParagraph>
-    <div class="mt-5 max-w-232 border border-border-card bg-background p-5">
-      <p
-        class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-      >
-        {m.guide_embed_flow_label({ platform: platformLabel })}
-      </p>
-      <ol
-        class="mt-4 flex flex-wrap justify-center gap-3 font-body text-body-md font-semibold text-primary"
-      >
-        {#each placementSteps as step, index}
-          <li
-            class="flex w-full min-w-0 flex-col items-center justify-center gap-3 border border-border-card bg-background-alt p-4 text-center sm:w-[min(100%,13.5rem)]"
-          >
-            <span
-              class="grid size-7 shrink-0 place-items-center rounded-full bg-secondary-container text-secondary"
+    {#if llmGuidanceEnabled}
+      <div class="mt-5 max-w-232">
+        <GuideLlmPromptCard
+          prompt={llmPlacementPrompt}
+          promptIcon={llmPromptIcon}
+          references={llmIframeReference}
+          title={m.guide_embed_placement_title({ platform: platformLabel })}
+        />
+      </div>
+    {:else}
+      <GuideParagraph class="mt-3">
+        {platform === 'wordpress'
+          ? m.guide_embed_placement_wordpress()
+          : platform === 'squarespace'
+            ? m.guide_embed_placement_squarespace()
+            : platform === 'wix'
+              ? m.guide_embed_placement_wix()
+              : platform === 'webflow'
+                ? m.guide_embed_placement_webflow()
+                : m.guide_embed_placement_other()}
+      </GuideParagraph>
+      <div class="mt-5 max-w-232 border border-border-card bg-background p-5">
+        <p
+          class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
+        >
+          {m.guide_embed_flow_label({ platform: platformLabel })}
+        </p>
+        <ol
+          class="mt-4 flex flex-wrap justify-center gap-3 font-body text-body-md font-semibold text-primary"
+        >
+          {#each placementSteps as step, index}
+            <li
+              class="flex w-full min-w-0 flex-col items-center justify-center gap-3 border border-border-card bg-background-alt p-4 text-center sm:w-[min(100%,13.5rem)]"
             >
-              {index + 1}
-            </span>
-            <span>{step}</span>
-          </li>
-        {/each}
-      </ol>
-    </div>
+              <span
+                class="grid size-7 shrink-0 place-items-center rounded-full bg-secondary-container text-secondary"
+              >
+                {index + 1}
+              </span>
+              <span>{step}</span>
+            </li>
+          {/each}
+        </ol>
+      </div>
+    {/if}
   </section>
 
-  <section
-    class="mt-10 grid gap-5 md:grid-cols-2"
-    aria-label={m.guide_embed_troubleshooting_title()}
-  >
-    <GuideInstructionCallout
-      label={m.guide_embed_map_host_label()}
-      title={m.guide_embed_map_host_title()}
-      description={hosting === 'cloudflare'
+  {#if !llmGuidanceEnabled}
+    <section
+      class="mt-10 grid gap-5 md:grid-cols-2"
+      aria-label={m.guide_embed_troubleshooting_title()}
+    >
+      <GuideInstructionCallout
+        label={m.guide_embed_map_host_label()}
+        title={m.guide_embed_map_host_title()}
+        description={hosting === 'cloudflare'
         ? m.guide_embed_host_cloudflare_help()
         : hosting === 'github-pages'
           ? m.guide_embed_host_github_help()
@@ -434,27 +486,28 @@ $effect(() => () => clearPreviewTimer())
             : hosting === 'netlify'
               ? m.guide_embed_host_netlify_help()
               : m.guide_embed_host_other_help()}
-    />
-    <GuideInstructionCallout
-      label={m.guide_embed_site_builder_label()}
-      title={m.guide_embed_site_builder_title({ platform: platformLabel })}
-      description={siteBuilderHelp}
-    />
-  </section>
+      />
+      <GuideInstructionCallout
+        label={m.guide_embed_site_builder_label()}
+        title={m.guide_embed_site_builder_title({ platform: platformLabel })}
+        description={siteBuilderHelp}
+      />
+    </section>
 
-  <section class="mt-10 max-w-232" aria-labelledby="embed-limits-title">
-    <h3
-      id="embed-limits-title"
-      class="font-display text-headline-sm font-bold text-primary"
-    >
-      {m.guide_embed_limits_title()}
-    </h3>
-    <ul
-      class="mt-4 list-disc space-y-3 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-    >
-      <li>{m.guide_embed_limit_responsive()}</li>
-      <li>{m.guide_embed_limit_performance()}</li>
-      <li>{m.guide_embed_limit_privacy()}</li>
-    </ul>
-  </section>
+    <section class="mt-10 max-w-232" aria-labelledby="embed-limits-title">
+      <h3
+        id="embed-limits-title"
+        class="font-display text-headline-sm font-bold text-primary"
+      >
+        {m.guide_embed_limits_title()}
+      </h3>
+      <ul
+        class="mt-4 list-disc space-y-3 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+      >
+        <li>{m.guide_embed_limit_responsive()}</li>
+        <li>{m.guide_embed_limit_performance()}</li>
+        <li>{m.guide_embed_limit_privacy()}</li>
+      </ul>
+    </section>
+  {/if}
 </GuideSection>
