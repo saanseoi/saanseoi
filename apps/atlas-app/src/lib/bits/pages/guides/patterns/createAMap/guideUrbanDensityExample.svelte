@@ -952,7 +952,21 @@ const liveableAreaMapComments = [
                 m.guide_data_urban_density_liveable_approach_subtract(),
                 m.guide_data_urban_density_liveable_approach_display(),
               ]}
-            />
+            >
+              {#snippet children()}
+                <GuideUrbanDensityResourceDownload
+                  closeLabel={m.common_close()}
+                  downloadInstructions={m.guide_data_urban_density_resource_download_instructions({
+                    path: landAnalysisFilePath,
+                  })}
+                  downloadInstructionsTitle={m.guide_data_urban_density_resource_download_instructions_title()}
+                  downloadLabel={m.guide_data_urban_density_resource_download_json_result()}
+                  explanation={m.guide_data_urban_density_resource_explanation()}
+                  skipLabel={m.guide_data_urban_density_resource_skip_section()}
+                  title={m.guide_data_urban_density_resource_title()}
+                />
+              {/snippet}
+            </GuideUrbanDensityLiveableLandInputs>
             <GuideCodeBlock
               label={m.guide_setup_terminal_label({
                 action: m.guide_data_urban_density_install_code(),
@@ -997,6 +1011,17 @@ const liveableAreaMapComments = [
           <GuideSubSectionBody
             content={m.guide_data_urban_density_setup_z14_tile_fetcher_description()}
           >
+            <aside
+              class="mt-6 min-w-0 max-w-full overflow-hidden rounded-sm bg-[repeating-linear-gradient(135deg,var(--secondary)_0_7px,var(--surface-container-high)_7px_14px)] p-3"
+            >
+              <div
+                class="bg-surface-container-low px-6 py-5 font-body text-body-lg leading-8 text-foreground-alt sm:px-10"
+              >
+                <p>
+                  {@html m.guide_data_urban_density_analysis_loading_warning()}
+                </p>
+              </div>
+            </aside>
             <div
               class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start min-[1000px]:gap-0"
             >
@@ -1056,17 +1081,6 @@ const liveableAreaMapComments = [
             class="mt-6"
             content={m.guide_data_urban_density_collect_non_liveable_land_description()}
           >
-            <GuideUrbanDensityResourceDownload
-              closeLabel={m.common_close()}
-              downloadInstructions={m.guide_data_urban_density_resource_download_instructions({
-                path: landAnalysisFilePath,
-              })}
-              downloadInstructionsTitle={m.guide_data_urban_density_resource_download_instructions_title()}
-              downloadLabel={m.guide_data_urban_density_resource_download_json_result()}
-              explanation={m.guide_data_urban_density_resource_explanation()}
-              skipLabel={m.guide_data_urban_density_resource_skip_section()}
-              title={m.guide_data_urban_density_resource_title()}
-            />
             <div
               class="grid gap-6 min-[1000px]:-mr-56 min-[1000px]:w-[calc(100%+14rem)] min-[1000px]:grid-cols-[minmax(0,64ch)_minmax(0,1fr)] min-[1000px]:items-start"
             >
