@@ -1965,6 +1965,7 @@
   "guide_data_urban_density_resource_download_instructions_title": "使用已下载的结果",
   "guide_data_urban_density_resource_download_instructions": "将 <code>land-analysis.json.gz</code> 放在 <code>{path}</code>。下次重新加载时，程序会使用此文件，而不会再次执行土地分析。",
   "guide_data_urban_density_resource_skip_section": "跳过此节",
+  "guide_data_urban_density_analysis_loading_warning": "稍后保存分析代码片段时，浏览器在加载分析工具库的约一分钟内可能会暂时没有响应，特别是在只有 8 GB RAM 或使用较旧 CPU 的电脑上。请稍候，分析循环很快就会开始。",
   "guide_data_urban_density_turf_explanation": "PostGIS 和 Shapely 背后的几何引擎 <code>GEOS</code> 会通过 <code>geos-wasm</code> 在浏览器内运行。它把所有叠加运算对齐同一个已声明的精度网格、移除图块缓冲区，并在 <code>Turf</code> 量度最终 WGS84 分区形状前消除重叠。",
   "guide_data_urban_density_liveable_approach_features": "<strong>找出</strong>覆盖每个分区的 z14 地图图块。",
   "guide_data_urban_density_liveable_approach_download": "<strong>解码</strong>每个图块、合并重叠类别，再裁剪至该图块自身的范围，排除其重叠边界。",

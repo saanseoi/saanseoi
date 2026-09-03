@@ -32,11 +32,13 @@ types, which are materialised as separate resource releases from the same upstre
 layer.
 
 The backfill reads the mirrored publisher SHP ZIP directly with its `.dbf` and `.prj`
-members; converted CSDI GeoJSON is not a runtime input. Historical TPU packages contain
-repeated planning-cell keys (and the 2001 package contains one all-zero sentinel). The
-adapter rejects incomplete keys, discards only that sentinel, and retains repeated cells
-for canonical union. Feature-key coverage is regression-tested against the checked-in
-historical GeoJSON baseline before either the division or area release is published.
+members; converted CSDI GeoJSON is not a runtime input. The original historical TPU
+packages contain repeated planning-cell keys (and the 2001 package contains one all-zero
+sentinel); later CSDI repackages omit those rows. The adapter accepts either observed
+package shape, rejects incomplete keys, discards the original sentinel, and retains
+repeated cells for canonical union. Feature-key coverage is regression-tested against
+the checked-in historical GeoJSON baseline before either the division or area release is
+published.
 
 The backfill validates finite coordinates, ring closure, non-zero area, and ring
 self-intersections before materialising a geometry release. The self-intersection check
