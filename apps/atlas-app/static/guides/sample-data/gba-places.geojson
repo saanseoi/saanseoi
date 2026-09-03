@@ -1,12 +1,12 @@
 {"type":"FeatureCollection","features":[
 {"type":"Feature","properties":{"name":"Canton Tower"},"geometry":{"type":"Point","coordinates":[113.3247,23.1065]}},
 {"type":"Feature","properties":{"name":"Chen Clan Ancestral Hall"},"geometry":{"type":"Point","coordinates":[113.2400,23.1247]}},
-{"type":"Feature","properties":{"name":"Shamian Island"},"geometry":{"type":"Point","coordinates":[113.2354,23.1100]}},
-{"type":"Feature","properties":{"name":"Chimelong Paradise"},"geometry":{"type":"Point","coordinates":[113.3271,22.9988]}},
-{"type":"Feature","properties":{"name":"Lianhuashan"},"geometry":{"type":"Point","coordinates":[113.5114,22.9563]}},
-{"type":"Feature","properties":{"name":"Baiyun Mountain"},"geometry":{"type":"Point","coordinates":[113.2991,23.1914]}},
-{"type":"Feature","properties":{"name":"Yuexiu Park"},"geometry":{"type":"Point","coordinates":[113.2646,23.1444]}},
-{"type":"Feature","properties":{"name":"Guangdong Museum"},"geometry":{"type":"Point","coordinates":[113.3316,23.1158]}},
-{"type":"Feature","properties":{"name":"Beijing Road"},"geometry":{"type":"Point","coordinates":[113.2695,23.1210]}},
-{"type":"Feature","properties":{"name":"Haixinsha"},"geometry":{"type":"Point","coordinates":[113.3223,23.1113]}}
+{"type":"Feature","properties":{"name":"Ancestral Temple of Foshan"},"geometry":{"type":"Point","coordinates":[113.1168,23.0288]}},
+{"type":"Feature","properties":{"name":"Kaiping Diaolou and Villages"},"geometry":{"type":"Point","coordinates":[112.6780,22.2880]}},
+{"type":"Feature","properties":{"name":"Victoria Peak"},"geometry":{"type":"Point","coordinates":[114.1499,22.2759]}},
+{"type":"Feature","properties":{"name":"Ruins of St Paul's"},"geometry":{"type":"Point","coordinates":[113.5392,22.1977]}},
+{"type":"Feature","properties":{"name":"Window of the World"},"geometry":{"type":"Point","coordinates":[113.9730,22.5340]}},
+{"type":"Feature","properties":{"name":"Zhuhai Lovers' Road"},"geometry":{"type":"Point","coordinates":[113.5767,22.2647]}},
+{"type":"Feature","properties":{"name":"Opium War Museum"},"geometry":{"type":"Point","coordinates":[113.6735,22.8150]}},
+{"type":"Feature","properties":{"name":"Sun Yat-sen Former Residence"},"geometry":{"type":"Point","coordinates":[113.3900,22.5160]}}
 ]}
