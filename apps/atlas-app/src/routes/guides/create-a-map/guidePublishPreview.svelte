@@ -39,10 +39,10 @@ const badge = $derived(
   class="relative h-full min-h-64 overflow-hidden bg-[#e9f0e8] font-body text-[#13261f]"
 >
   <div
-    class="absolute inset-0 opacity-80 [background-image:linear-gradient(28deg,transparent_47%,#a7c3af_48%,transparent_49%),linear-gradient(118deg,transparent_45%,#b7d1b7_46%,transparent_47%),radial-gradient(circle_at_63%_48%,#75b89f_0_9%,transparent_9.5%)]"
+    class="absolute inset-0 opacity-80 bg-[linear-gradient(28deg,transparent_47%,#a7c3af_48%,transparent_49%),linear-gradient(118deg,transparent_45%,#b7d1b7_46%,transparent_47%),radial-gradient(circle_at_63%_48%,#75b89f_0_9%,transparent_9.5%)]"
   ></div>
   <div
-    class="absolute inset-x-0 top-[42%] h-8 -rotate-6 bg-[#5d9cc9]/70 shadow-[0_0_0_8px_rgb(255_255_255_/_18%)]"
+    class="absolute inset-x-0 top-[42%] h-8 -rotate-6 bg-[#5d9cc9]/70 shadow-[0_0_0_8px_rgb(255_255_255/18%)]"
   ></div>
   <header
     class="absolute inset-x-0 top-0 flex items-center justify-between border-b border-[#13261f]/15 bg-white/92 px-4 py-3 text-xs font-semibold backdrop-blur"
@@ -64,7 +64,7 @@ const badge = $derived(
     {/each}
   </section>
   <span
-    class="absolute right-3 bottom-[7rem] rounded bg-white/95 px-2 py-1 text-[0.65rem] font-bold shadow-sm"
+    class="absolute right-3 bottom-28 rounded bg-white/95 px-2 py-1 text-[0.65rem] font-bold shadow-sm"
   >
     {badge}
   </span>
