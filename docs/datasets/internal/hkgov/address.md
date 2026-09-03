@@ -221,8 +221,12 @@ with the dropped field and its prior value; other identity changes remain subjec
 review.
 
 If the only changed component is that ALS has withdrawn a previously populated building
-name, the importer automatically retains the existing ID. Building-name additions and
-replacements still require review.
+name, the importer automatically retains the existing ID when that name does not
+identify a qualified site part. Dropping a qualified `BLOCK`, `TOWER`, `HOUSE`, `VILLA`,
+`HALL`, or equivalent numbered/positional site part produces a new ID unless the part is
+transferred into structured block fields or the estate name. Building-name additions and
+replacements still require review unless they match one of the automatic site-part or
+descriptive-detail rules below.
 
 The importer also retains the existing ID when an identical name is reassigned between
 the building-name and estate-name fields, with every other premise component unchanged.
@@ -246,8 +250,11 @@ facility detail remains manual. Separate `3A` and `3B` premises receive new IDs,
 one aggregate `3A/3B` description retains its ID. Adding a recognised location,
 `CENTRAL`, a branch or campus description, or a legal name suffix such as `LIMITED`
 retains the ID when the street address is unchanged. Sponsorship wording remains a
-manual decision. Written block or building numbers are converted to the family's
-established Roman-numeral style in the same scoped way as Arabic numbers.
+manual decision. A `BLOCK`, `TOWER`, `HOUSE`, `HALL`, `SECTION`, `STAGE`, `WING`, or
+`PHASE` without a sequence or positional member is not by itself a site-part decision;
+it remains manual unless it is a recognised descriptive addition. Written block or
+building numbers are converted to the family's established Roman-numeral style in the
+same scoped way as Arabic numbers.
 
 Identity history is evaluated as a release chain. When several earlier releases share a
 continuity anchor, the latest earlier release is the canonical predecessor for the next

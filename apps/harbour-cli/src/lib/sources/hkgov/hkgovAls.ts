@@ -868,6 +868,11 @@ export function buildHkgovAlsProcessingActions(input: {
       'als_building_name_detail_matched',
       'Retained an ALS ID after a non-material building-name detail was added.',
     ],
+    [
+      'als-building-site-part-reassignment',
+      'als_building_site_part_reassignment_matched',
+      'Retained an ALS ID after a site-part qualifier moved into structured fields.',
+    ],
   ] as const) {
     const matchedRows = input.resolvedRows.filter(
       row => row.identityMatchMethod === matchMethod,
