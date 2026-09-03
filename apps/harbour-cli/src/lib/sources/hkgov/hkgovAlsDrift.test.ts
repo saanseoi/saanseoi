@@ -338,7 +338,22 @@ describe('HKGov ALS identity drift', () => {
     expect(result.resolvedIds.has(current.identityKey)).toBe(false)
   })
 
-  test.each(['OLD BUILDING (NO. 7) INDUSTRIAL BUILDING', 'OLD BUILDING (CENTRAL)'])(
+  test('automatically retains the ID for a CENTRAL building-name addition', () => {
+    const current = renamedBuilding('OLD BUILDING (CENTRAL)')
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(current.identityKey)).toBe(previous.id)
+  })
+
+  test.each(['OLD BUILDING (NO. 7) INDUSTRIAL BUILDING'])(
     'still requires review for a non-site-part building rename: %s',
     buildingName => {
       const current = renamedBuilding(buildingName)
@@ -354,6 +369,57 @@ describe('HKGov ALS identity drift', () => {
       expect(result.candidates).toEqual([{ current, previous }])
     },
   )
+
+  test.each([
+    ['OLD BUILDING (STAGE I/II)', true],
+    ['OLD BUILDING (PHASE 1)', true],
+    ['OLD BUILDING (PHASE II/III)', false],
+    ['OLD BUILDING (STAGE B/C)', false],
+    ['OLD BUILDING (3A/3B)', true],
+    ['OLD BUILDING (3A)', false],
+    ['OLD BUILDING (3B)', false],
+    ['OLD BUILDING (NEW WING)', false],
+    ['OLD BUILDING (PRIMARY SECTION)', false],
+    ['OLD BUILDING (HALL 16)', false],
+    ['OLD BUILDING (KOWLOON)', true],
+    ['OLD BUILDING (SECOND CAMPUS)', true],
+    ['OLD BUILDING (HK) LIMITED', true],
+  ] as const)(
+    'applies the confirmed building-name rule: %s',
+    (buildingName, retains) => {
+      const current = renamedBuilding(buildingName)
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previous,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(retains)
+    },
+  )
+
+  test('creates a new ID for a material site part added to an unnamed premise', () => {
+    const current = renamedBuilding('NEW BUILDING (HALL BLOCK)')
+    const unnamedPrevious = {
+      ...previous,
+      summary: { ...previous.summary, buildingName: null },
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      unnamedPrevious,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+  })
 
   test('does not infer continuity when several historic premises share an anchor', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
