@@ -1720,6 +1720,7 @@
   "guide_basemap_mo_description": "MO 的 OSM 擷取與 Protomaps 圖層。",
   "guide_basemap_gba_description": "OSM 提取了 9 個大陸城市以及香港和密蘇裡州的原型地圖圖層。",
   "guide_style_eyebrow": "選擇您的風格",
+  "guide_style_setup_title": "設定地圖樣式",
   "guide_basemap_editor_description": "您的公鑰可讓您的地圖向 SaanSeoi 詢問您選擇的底圖。下面的程式碼使用它來載入您自己的資料下的道路、地名和其他地理詳細資料。",
   "guide_basemap_leaflet_bridge_description": "Leaflet 可以承載 MapLibre 地圖，所以我們會用它的 MapLibre bridge 繪製 SaanSeoi 的向量圖磚。這就是這個 Leaflet 範例會出現 MapLibre 匯入和設定的原因：最後仍由 Leaflet 負責渲染你的地圖。",
   "guide_basemap_env_file_structure_description_windows": "在 PowerShell 中執行 <code>Get-ChildItem -Force</code> 以取得詳細檢視。<code>.env</code> 檔案應與 <code>package.json</code> 和 <code>src</code> 並列：",
