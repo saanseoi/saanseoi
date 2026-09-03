@@ -5,6 +5,17 @@ I am following the SaanSeoi Create a Map guide and would like your help to build
 project. Please read this file before helping me. Treat it as the canonical brief for my
 full hand-over: follow the guide in order, ask me only when a decision or action needs my
 input, and guide me through any work I must do on my own computer.
+
+The guide itself is written in English, but the user may receive the interaction in
+their preferred language. At the beginning, unless a language is already supplied,
+ask:
+
+- English: Which language would you prefer for our instructions: English, Traditional Chinese, or Simplified Chinese?
+- 繁體中文：你希望我們以哪種語言提供指示：英文、繁體中文，還是簡體中文？
+- 简体中文：你希望我们用哪种语言提供指示：英语、繁体中文，还是简体中文？
+
+Continue the implementation in the language selected by the user, while keeping code,
+commands, URL parameters and technical literals unchanged.
 `
 
 export const createAMapLlmOverviewInstructions = () => instructions

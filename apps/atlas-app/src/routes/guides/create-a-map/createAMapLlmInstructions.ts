@@ -8,6 +8,7 @@ import {
   createAMapLlmPrerequisitesInstructions,
 } from './createAMapLlmPrerequisitesInstructions'
 import { createAMapLlmLaterSectionInstructions } from './createAMapLlmLaterSectionInstructions'
+import { createAMapLlmDecisionMatrixInstructions } from './createAMapLlmDecisionMatrix'
 
 const joinInstructions = (sections: string[]) =>
   sections.map(section => section.trim()).join('\n\n')
@@ -18,6 +19,7 @@ export const createAMapLlmInstructions = () =>
     createAMapLlmOverviewInstructions(),
     createAMapLlmWorkingAgreementInstructions(),
     createAMapLlmInteractionModeInstructions(),
+    createAMapLlmDecisionMatrixInstructions(),
     createAMapLlmPrerequisitesInstructions(),
     createAMapLlmLaterSectionInstructions(),
   ])

@@ -1,5 +1,6 @@
 import { m } from '@repo/i18n/messages'
 import {
+  createAMapSelectionQueryKeys,
   getCreateAMapOpeningPosition,
   type CreateAMapSelectionQuery,
 } from '#lib/guides/createAMapSelections.js'
@@ -45,6 +46,7 @@ export type CreateAMapDataPromptReferences = Partial<
 >
 
 export type CreateAMapLlmPromptState = {
+  aiAccess?: string
   agentTool?: string
   agentToolValue?: string
   basemapApiKey?: string
@@ -52,12 +54,19 @@ export type CreateAMapLlmPromptState = {
   codeEditorValue?: string
   dataSource?: string
   dataSourceLabel?: string
+  dataFormat?: string
+  dataFormatLabel?: string
   hosting?: string
   hostingValue?: string
   mobileLibrary?: string
+  mobileLibraryValue?: string
   mobilePlatform?: string
   notebookLibrary?: string
+  notebookLibraryValue?: string
   notebookRuntime?: string
+  llm?: string
+  llmLabel?: string
+  llmMode?: string
   objective?: string
   objectiveLabel?: string
   operatingSystem?: string
@@ -75,7 +84,9 @@ export type CreateAMapLlmPromptState = {
   terminalExperienceValue?: string
   tilejsonUrl?: string
   vpnAccess?: string
+  vpnAccessValue?: string
   websitePlatform?: string
+  selectionQuery?: CreateAMapSelectionQuery
 }
 
 type PromptMode = 'agentic' | 'chat'
@@ -143,7 +154,13 @@ const missingProjectContextInstruction =
 
 const createSelections = (state: CreateAMapLlmPromptState) =>
   [
-    promptValue('AI tool', state.agentTool),
+    promptValue('Involvement', state.llmMode),
+    promptValue('AI route', state.aiAccess),
+    promptValue('AI tool', state.aiAccess === 'agentic' ? state.agentTool : undefined),
+    promptValue(
+      'Chat AI service',
+      state.aiAccess === 'web' ? state.llmLabel : undefined,
+    ),
     promptValue('Operating system', state.operatingSystem),
     promptValue('Objective', state.objectiveLabel),
     promptValue('Platform', state.platform),
@@ -157,6 +174,7 @@ const createSelections = (state: CreateAMapLlmPromptState) =>
     promptValue('Basemap coverage', state.regionLabel),
     promptValue('Style', state.styleLabel),
     promptValue('Data source', state.dataSourceLabel),
+    promptValue('Data format', state.dataFormatLabel),
     promptValue('Hosting', state.hosting),
     promptValue('Website platform', state.websitePlatform),
     promptValue('Mobile platform', state.mobilePlatform),
@@ -325,25 +343,168 @@ const createAMapProjectSetupPrompt = (
   return [...fragments.map(fragment => fragment.text)].join('\n\n')
 }
 
+const handbackDecisionKeys = [
+  ['objective', 'objective'],
+  ['operatingSystem', 'operatingSystem'],
+  ['terminalExperience', 'terminalExperience'],
+  ['codeEditor', 'codeEditor'],
+  ['aiAccess', 'aiAccess'],
+  ['vpnAccess', 'vpnAccess'],
+  ['agentTool', 'agentTool'],
+  ['llm', 'llm'],
+  ['hosting', 'hosting'],
+  ['websitePlatform', 'websitePlatform'],
+  ['mobileLibrary', 'mobileLibrary'],
+  ['mobilePlatform', 'mobilePlatform'],
+  ['notebookLibrary', 'notebookLibrary'],
+  ['notebookRuntime', 'notebookRuntime'],
+  ['renderer', 'renderer'],
+  ['region', 'region'],
+  ['style', 'style'],
+  ['dataSource', 'dataSource'],
+  ['dataFormat', 'dataFormat'],
+] as const satisfies ReadonlyArray<
+  readonly [keyof CreateAMapSelectionQuery, keyof typeof createAMapSelectionQueryKeys]
+>
+
+const createGuideHandbackSelection = (state: CreateAMapLlmPromptState) =>
+  state.selectionQuery ?? {
+    objective: state.objective as CreateAMapSelectionQuery['objective'],
+    operatingSystem:
+      state.operatingSystemValue as CreateAMapSelectionQuery['operatingSystem'],
+    terminalExperience:
+      state.terminalExperienceValue as CreateAMapSelectionQuery['terminalExperience'],
+    codeEditor: state.codeEditorValue as CreateAMapSelectionQuery['codeEditor'],
+    aiAccess: state.aiAccess as CreateAMapSelectionQuery['aiAccess'],
+    vpnAccess: state.vpnAccessValue as CreateAMapSelectionQuery['vpnAccess'],
+    agentTool: state.agentToolValue as CreateAMapSelectionQuery['agentTool'],
+    llm: state.llm as CreateAMapSelectionQuery['llm'],
+    hosting: state.hostingValue as CreateAMapSelectionQuery['hosting'],
+    websitePlatform:
+      state.websitePlatform as CreateAMapSelectionQuery['websitePlatform'],
+    mobileLibrary:
+      state.mobileLibraryValue as CreateAMapSelectionQuery['mobileLibrary'],
+    mobilePlatform: state.mobilePlatform as CreateAMapSelectionQuery['mobilePlatform'],
+    notebookLibrary:
+      state.notebookLibraryValue as CreateAMapSelectionQuery['notebookLibrary'],
+    notebookRuntime:
+      state.notebookRuntime as CreateAMapSelectionQuery['notebookRuntime'],
+    renderer: state.renderer as CreateAMapSelectionQuery['renderer'],
+    region: state.region as CreateAMapSelectionQuery['region'],
+    style: state.style as CreateAMapSelectionQuery['style'],
+    dataSource: state.dataSource as CreateAMapSelectionQuery['dataSource'],
+    dataFormat: state.dataFormat as CreateAMapSelectionQuery['dataFormat'],
+  }
+
+/** Create a guide URL that preserves the decisions known to the LLM. */
+export const createAMapGuideHandbackUrl = (
+  state: CreateAMapLlmPromptState,
+  guideUrl: string,
+) => {
+  const url = new URL(guideUrl)
+  const selection = createGuideHandbackSelection(state)
+
+  for (const [selectionKey, queryKey] of handbackDecisionKeys) {
+    const value = selection[selectionKey]
+    if (!value) continue
+    if (selectionKey === 'llm' && selection.aiAccess !== 'web') continue
+    if (selectionKey === 'agentTool' && selection.aiAccess !== 'agentic') continue
+    if (selectionKey === 'dataFormat' && selection.dataSource !== 'existing') continue
+    if (
+      ['hosting', 'websitePlatform'].includes(selectionKey) &&
+      !['web', 'web-embed'].includes(selection.objective ?? '')
+    ) {
+      continue
+    }
+    if (
+      ['mobileLibrary', 'mobilePlatform'].includes(selectionKey) &&
+      selection.objective !== 'mobile-embed'
+    ) {
+      continue
+    }
+    if (
+      ['notebookLibrary', 'notebookRuntime'].includes(selectionKey) &&
+      selection.objective !== 'notebook-embed'
+    ) {
+      continue
+    }
+    url.searchParams.set(createAMapSelectionQueryKeys[queryKey], value)
+  }
+
+  // Returning to the guide should preserve the choices without reopening handover.
+  url.searchParams.set(createAMapSelectionQueryKeys.llmMode, 'assisted')
+  return url.toString()
+}
+
+const createGuideDecisionQueryLines = (state: CreateAMapLlmPromptState) => {
+  const selection = createGuideHandbackSelection(state)
+
+  return handbackDecisionKeys.flatMap(([selectionKey, queryKey]) => {
+    const value = selection[selectionKey]
+    if (!value) return []
+    if (selectionKey === 'llm' && selection.aiAccess !== 'web') return []
+    if (selectionKey === 'agentTool' && selection.aiAccess !== 'agentic') return []
+    if (selectionKey === 'dataFormat' && selection.dataSource !== 'existing') return []
+
+    return [`- ${createAMapSelectionQueryKeys[queryKey]}=${value}`]
+  })
+}
+
+const createHandoverLanguageQuestion = (preferredLocale: string) =>
+  [
+    'The LLM-friendly guide is written in English, but I can give you instructions in your preferred language. Unless a language is already supplied in the project decisions, ask this first:',
+    'English: Which language would you prefer for our instructions: English, Traditional Chinese, or Simplified Chinese?',
+    '繁體中文：你希望我們以哪種語言提供指示：英文、繁體中文，還是簡體中文？',
+    '简体中文：你希望我们用哪种语言提供指示：英语、繁体中文，还是简体中文？',
+    `The guide currently supplies locale \`${preferredLocale}\`; use it as the default unless the user chooses another language.`,
+  ].join('\n')
+
 const createAMapFullHandoverPrompt = (
   state: CreateAMapLlmPromptState,
   guideUrl: string,
   instructionsUrl: string,
+  mode: PromptMode,
   completionInstruction: string,
-) =>
-  [
+) => {
+  const handoverAiAccess: CreateAMapSelectionQuery['aiAccess'] =
+    state.aiAccess === 'agentic' || state.aiAccess === 'web'
+      ? state.aiAccess
+      : mode === 'agentic'
+        ? 'agentic'
+        : 'web'
+  const handoverState: CreateAMapLlmPromptState = {
+    ...state,
+    aiAccess: handoverAiAccess,
+    selectionQuery: {
+      ...state.selectionQuery,
+      aiAccess: state.selectionQuery?.aiAccess ?? handoverAiAccess,
+    },
+  }
+
+  return [
     [
       `I am following the “Making a digital map” guide at ${guideUrl}.`,
       'I want you to take full ownership of implementing the SaanSeoi map project as detailed in that guide.',
       `First read the LLM-friendly version at ${instructionsUrl}, then proceed to follow the guide from prerequisites through rendering, basemap, style, data and, where relevant, publishing.`,
-      completionInstruction,
     ].join(' '),
+    mode === 'agentic'
+      ? 'If you are an agentic LLM, inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Ask before credentials, paid actions, account-linked actions, deployment or other consequential external changes.'
+      : 'If you are a non-agentic LLM, guide me through the work on my computer one safe action at a time. Name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.',
+    createHandoverLanguageQuestion(state.preferredLocale),
+    'When a SaanSeoi account is needed, send me to https://saanseoi.hk/sign-up. When the public API key is needed, send me to https://saanseoi.hk/api-keys, ask me to bring the resulting `pk.` key back to you, and remind me if I have not provided it. Use it to configure `VITE_SAANSEOI_API_KEY`; never log or commit it.',
+    completionInstruction,
     ...optionalInstruction(createLocaleInstruction(state.preferredLocale, 'my')),
     '',
     'The following entries are my supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when helping me.',
     'Known project decisions:',
-    ...createSelections(state),
+    ...createSelections(handoverState),
+    'Known guide URL decisions:',
+    ...createGuideDecisionQueryLines(handoverState),
+    '',
+    'If I ask to continue in the guide, update the decision ledger first and give me a link to the guide with the known decision query parameters applied. Use `llm-mode=assisted` for that link so the handover dialog does not reopen.',
+    `Current guide handback URL: ${createAMapGuideHandbackUrl(handoverState, guideUrl)}`,
   ].join('\n')
+}
 
 /** Full hand-over for a coding agent that can work directly in the project. */
 export function createAMapAgenticHandoverPrompt(
@@ -355,6 +516,7 @@ export function createAMapAgenticHandoverPrompt(
     state,
     guideUrl,
     instructionsUrl,
+    'agentic',
     'Resolve missing decisions by asking concise questions before continuing.',
   )
 }
@@ -369,6 +531,7 @@ export function createAMapChatHandoverPrompt(
     state,
     guideUrl,
     instructionsUrl,
+    'chat',
     'Resolve missing decisions by asking concise questions before continuing, and assist me in performing the required actions on my computer. Always confirm the steps have been completed by describing the expected result and asking me to report what happened if the result differs.',
   )
 }
