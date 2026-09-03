@@ -1,7 +1,11 @@
+import { readFile } from 'node:fs/promises'
+
 import { describe, expect, test } from 'bun:test'
 
+import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
 import {
   formatSourceDuplicateSummary,
+  HKGOV_ALS_IDENTITY_CURATION_PATH,
   inferAlsSourceVersionFromPath,
   resolveAlsReleaseVersions,
   selectAlsDivisionCohort,
@@ -110,5 +114,16 @@ describe('ALS historical backfills', () => {
   test('keeps normal ingestion resume behaviour unchanged', () => {
     expect(shouldIncludeSupersededAlsSourceVersions({})).toBe(false)
     expect(shouldIncludeSupersededAlsSourceVersions({ continue: true })).toBe(true)
+  })
+})
+
+describe('ALS curation fixture', () => {
+  test('loads the checked-in DPO identity decisions by default', async () => {
+    const decisions = parseHkgovAlsIdentityDecisions(
+      JSON.parse(await readFile(HKGOV_ALS_IDENTITY_CURATION_PATH, 'utf8')),
+    )
+
+    expect(decisions.authority).toBe('hkgov-dpo')
+    expect(decisions.decisions.length).toBeGreaterThan(0)
   })
 })

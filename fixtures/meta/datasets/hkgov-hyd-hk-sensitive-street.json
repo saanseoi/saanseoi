@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:e4bc2b5971193231cf89b9240931b9017b8bf57c46238222a8217d0baa9bd828",
+  "versionHash": "sha256:482656b4fd3e055ff744b8a0d88c66196d6396b265f657ad576329cc9e50509b",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-sensitive-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361314743_27775",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ],
+        "discoveries": ["new-release"],
         "includeInitialDownload": true
       }
     },
@@ -49,6 +45,12 @@
     "scheme": "quarterly",
     "correctionSuffixSource": "generated"
   },
+  "releases": [
+    {
+      "sourceVersion": "2025-Q1",
+      "sourceUrl": "https://static.csdi.gov.hk/csdi-webpage/download/common/ed9727f15d77a5515fbac4217a32b3901e911af1d4fc8d97ca3beeabbf9f93d0?a=1"
+    }
+  ],
   "sourceLayer": "sensitive",
   "category": "transportation",
   "i18n": [

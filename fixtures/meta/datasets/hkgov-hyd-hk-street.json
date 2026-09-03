@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:35f7e9be59dfd62080e99b0050acfafbc89e45d5442cb13e1b1c4189fdb065c8",
+  "versionHash": "sha256:f8332896b02872d44d05eef75a0a94e58729e245877a3bf05858635c4fcf6b0e",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ],
+        "discoveries": ["new-release"],
         "includeInitialDownload": true
       }
     },
@@ -49,6 +45,12 @@
     "scheme": "quarterly",
     "correctionSuffixSource": "generated"
   },
+  "releases": [
+    {
+      "sourceVersion": "2026-Q2",
+      "sourceUrl": "https://static.csdi.gov.hk/csdi-webpage/download/common/7c3ee70e341a9a338aac7f8081916413af041bed1a3a61a5008eede345301cfa?a=1"
+    }
+  ],
   "sourceLayer": "SNP",
   "category": "transportation",
   "i18n": [

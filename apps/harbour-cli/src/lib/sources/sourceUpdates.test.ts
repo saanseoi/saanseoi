@@ -22,6 +22,8 @@ import {
   assertCsdiArchiveUrl,
   datasetCorrectionSuffixSources,
   datasetName,
+  findCsdiDatasetRelease,
+  formatHkgovAlsReviewCommand,
   getDueUpdatePhases,
   isNewUpdate,
   isUpdateCheckDue,
@@ -179,6 +181,46 @@ describe('dataset update registry', () => {
         target: { environment: 'dev', remote: false },
       }),
     ).toContain('--yes')
+  })
+
+  test('prints the exact interactive DPO review command in the updater summary', () => {
+    expect(
+      formatHkgovAlsReviewCommand({
+        target: { environment: 'dev', remote: false },
+        version: '2026-08-19.0',
+      }),
+    ).toBe(
+      'bun run dataops -- hkgov-dpo:ingest data/hkgov/dpo/ALS --target local --cohort-key 2026-08-19.0 --from-source-version 2026-08-19.0',
+    )
+  })
+
+  test('uses direct CSDI publisher-download URLs as release metadata for archive slots', async () => {
+    const datasets = await loadDatasetFixtures()
+    const expectedReleases = [
+      ['ds-hk-hkgov-hyd-pedestrian-street', '2026-Q1'],
+      ['ds-hk-hkgov-hyd-sensitive-street', '2025-Q1'],
+      ['ds-hk-hkgov-hyd-strategic-street', '2025-Q1'],
+      ['ds-hk-hkgov-hyd-street', '2026-Q2'],
+      ['ds-hk-hkgov-landsd-road-centreline', '2026-Q2'],
+    ] as const
+
+    for (const [datasetCode, sourceVersion] of expectedReleases) {
+      const dataset = datasets.find(candidate => candidate.code === datasetCode)
+      if (!dataset?.sourceUrl) throw new Error(`Missing fixture for ${datasetCode}.`)
+
+      const release = findCsdiDatasetRelease(
+        dataset,
+        dataset.sourceUrl,
+        sourceVersion,
+        'sha256:unrelated-archive-object',
+      )
+      expect(release).toMatchObject({
+        sourceUrl: expect.stringMatching(
+          /^https:\/\/static\.csdi\.gov\.hk\/csdi-webpage\/download\/common\//,
+        ),
+        sourceVersion,
+      })
+    }
   })
 
   test('starts PlanD native archive intake with the mirrored source package', () => {

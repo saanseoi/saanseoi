@@ -2008,7 +2008,7 @@ function resolveCsdiArchiveDatasetVersion(
   return `${base}.${previousCorrection + 1}`
 }
 
-function findCsdiDatasetRelease(
+export function findCsdiDatasetRelease(
   dataset: DatasetFixture,
   archiveSourceUrl: string,
   releaseSlot: string,
@@ -2016,7 +2016,13 @@ function findCsdiDatasetRelease(
 ) {
   const releases = dataset.releases ?? []
   const matchingReleases = releases.filter(
-    release => !release.sourceUrl || release.sourceUrl === archiveSourceUrl,
+    release =>
+      !release.sourceUrl ||
+      release.sourceUrl === archiveSourceUrl ||
+      // Direct CSDI publisher-download URLs identify an individual release,
+      // not a catalogue. They must remain eligible for its slot from the
+      // dataset's primary CSDI catalogue.
+      !readDatasetId(release.sourceUrl),
   )
   const archiveMatch = matchingReleases.find(release =>
     release.archiveSlots?.some(
@@ -2572,9 +2578,30 @@ async function ingestDataGovHkAlsRelease({
   )
   if ((await dataops.exited) !== 0) {
     throw new Error(
-      `DPO ALS intake stopped for ${version}; resolve the release-specific instruction in the preceding output.`,
+      [
+        `DPO ALS intake stopped for ${version}; resolve the release-specific instruction in the preceding output.`,
+        'Run interactively with:',
+        formatHkgovAlsReviewCommand({ target, version }),
+      ].join('\n'),
     )
   }
+}
+
+/** The updater's non-interactive ALS intake may require premise decisions. */
+export function formatHkgovAlsReviewCommand(input: {
+  target: import('../cli/options.ts').UploadTarget
+  version: string
+}) {
+  return [
+    'bun run dataops -- hkgov-dpo:ingest',
+    'data/hkgov/dpo/ALS',
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--cohort-key',
+    input.version,
+    '--from-source-version',
+    input.version,
+  ].join(' ')
 }
 
 export function buildHkgovAlsIngestCommand(input: {

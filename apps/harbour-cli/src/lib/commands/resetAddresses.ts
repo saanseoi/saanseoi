@@ -26,10 +26,6 @@ import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/init-runs')
 const HISTORY_FILE = resolve(REPO_ROOT, '.local/hkgov-dpo/als-identity-history.json')
-const DECISIONS_FILE = resolve(
-  REPO_ROOT,
-  '.local/hkgov-dpo/als-identity-decisions.json',
-)
 const PREPARED_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/prepared')
 const RELEASE_ARTEFACT_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 const DATASET_CODE = 'ds-hk-hkgov-dpo-address'
@@ -43,7 +39,7 @@ export type OfficialAddressInitManifest = {
   baseline: { currentDivisionSnapshotIds: string[]; docs: DocsState }
   completedAt?: string
   createdAt: string
-  identityFiles: { decisions: FileBeforeImage; history: FileBeforeImage }
+  identityFiles: { history: FileBeforeImage }
   owned?: {
     apiReleaseSetIds: string[]
     assetIds: Array<{ assetKey: string; id: string; releaseId: string | null }>
@@ -112,7 +108,6 @@ export async function beginOfficialAddressInitialisation(
       },
       createdAt: new Date().toISOString(),
       identityFiles: {
-        decisions: await readBeforeImage(DECISIONS_FILE),
         history: await readBeforeImage(HISTORY_FILE),
       },
       runId: crypto.randomUUID(),
@@ -270,7 +265,6 @@ export async function runResetOfficialAddressesCommand(
       }
     }
     await restoreBeforeImage(HISTORY_FILE, manifest.identityFiles.history)
-    await restoreBeforeImage(DECISIONS_FILE, manifest.identityFiles.decisions)
     if (!keepCache) await removeRunCache(manifest, target)
     await rm(path, { force: true })
     outro('Official address initialisation reset complete')
@@ -394,7 +388,6 @@ async function adoptFailedAddressResetState(
     createdAt: new Date().toISOString(),
     documentationAfter: docs,
     identityFiles: {
-      decisions: await readBeforeImage(DECISIONS_FILE),
       history: await readBeforeImage(HISTORY_FILE),
     },
     owned: await collectOwnedRecords(context),
