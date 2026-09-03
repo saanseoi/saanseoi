@@ -111,6 +111,23 @@ describe('normaliseHkgovAlsBuildingNameRomanNumeral', () => {
       }),
     ).toBeNull()
   })
+
+  test('canonicalises written building numbers in a Roman-styled family', () => {
+    const romanNumeralFamilies = collectHkgovAlsRomanNumeralBuildingNameFamilies([
+      'EXAMPLE BUILDING II',
+    ])
+
+    expect(
+      normaliseHkgovAlsBuildingNameRomanNumeral({
+        buildingName: 'EXAMPLE BUILDING ONE',
+        romanNumeralFamilies,
+      }),
+    ).toEqual({
+      from: 'EXAMPLE BUILDING ONE',
+      reference: 'EXAMPLE BUILDING II',
+      to: 'EXAMPLE BUILDING I',
+    })
+  })
 })
 
 describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
@@ -206,5 +223,28 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
         romanNumeralFamilies,
       }),
     ).toBeNull()
+  })
+
+  test('canonicalises written block numbers in a Roman-styled family', () => {
+    const romanNumeralFamilies = collectHkgovAlsRomanNumeralPremiseNumberFamilies([
+      {
+        blockDescriptor: 'BLK',
+        blockNumber: 'II',
+        buildingName: null,
+        estateName: 'EXAMPLE ESTATE',
+      },
+    ])
+
+    expect(
+      normaliseHkgovAlsPremiseNumberRomanNumeral({
+        premise: {
+          blockDescriptor: 'BLK',
+          blockNumber: 'TWO',
+          buildingName: null,
+          estateName: 'EXAMPLE ESTATE',
+        },
+        romanNumeralFamilies,
+      }),
+    ).toEqual({ from: 'TWO', reference: 'BLK II', to: 'II' })
   })
 })

@@ -122,6 +122,15 @@ export function resolveHkgovAlsIdentityDrift(
     // A site-part qualifier is a material address distinction, including for
     // older reviews recorded before this rule existed.
     if (isBuildingSitePartQualification(prior, record)) continue
+    // These descriptive additions do not identify a different premise when the
+    // street address and continuity anchor remain unchanged. This also takes
+    // precedence over an older explicit new-id decision.
+    if (isBuildingNameDetailRetention(prior, record)) {
+      resolvedIds.set(record.identityKey, prior.id)
+      resolvedMatchMethods.set(record.identityKey, 'als-building-name-detail')
+      resolvedPreviousRecords.set(record.identityKey, prior)
+      continue
+    }
     const decision = decisionByPair.get(
       `${prior.identityKey}\u0000${record.identityKey}`,
     )
@@ -237,18 +246,56 @@ function isBuildingSitePartQualification(
   previous: HkgovAlsIdentityRecord,
   current: HkgovAlsIdentityRecord,
 ) {
-  if (!hasOnlyChangedBuildingName(previous, current)) return false
-
   const previousBuildingName = previous.summary.buildingName
   const currentBuildingName = current.summary.buildingName
-  if (!previousBuildingName || !currentBuildingName) return false
+  if (!currentBuildingName || !hasOnlyChangedBuildingName(previous, current)) {
+    return false
+  }
+  if (!previousBuildingName) {
+    return containsMaterialSitePartQualifier(currentBuildingName)
+  }
 
   const previousName = normaliseBuildingName(previousBuildingName)
   const currentName = normaliseBuildingName(currentBuildingName)
   if (!currentName.startsWith(`${previousName} `)) return false
 
   const suffix = currentName.slice(previousName.length).trim()
-  return SITE_PART_BUILDING_SUFFIX.test(suffix)
+  const rawSuffix = buildingNameSuffix(previousBuildingName, currentBuildingName)
+  if (!suffix || isFirstPhaseOrStageDetail(rawSuffix)) return false
+  if (isAggregateAlphaNumericDetail(rawSuffix)) return false
+
+  return (
+    SITE_PART_BUILDING_SUFFIX.test(suffix) ||
+    containsMaterialSitePartQualifier(rawSuffix) ||
+    isStandaloneAlphaNumericSitePart(suffix)
+  )
+}
+
+/**
+ * Retains an ID for a descriptive building-name addition which does not name a
+ * separate physical site part. The continuity key has already established that
+ * the street address, number and point are unchanged.
+ */
+function isBuildingNameDetailRetention(
+  previous: HkgovAlsIdentityRecord,
+  current: HkgovAlsIdentityRecord,
+) {
+  if (!hasOnlyChangedBuildingName(previous, current)) return false
+
+  const previousBuildingName = previous.summary.buildingName
+  const currentBuildingName = current.summary.buildingName
+  if (!previousBuildingName || !currentBuildingName) return false
+
+  const suffix = buildingNameSuffix(previousBuildingName, currentBuildingName)
+  if (!suffix) return false
+  if (isAggregateAlphaNumericDetail(suffix)) return true
+  if (isFirstPhaseOrStageDetail(suffix)) return true
+
+  const detail = normaliseBuildingName(suffix)
+  if (/\bCENTRAL\b/.test(detail)) return true
+  if (/\b(?:BRANCH|CAMPUS)\b/.test(detail)) return true
+  if (isLegalNameAddition(detail)) return true
+  return isKnownLocationDetail(suffix)
 }
 
 function hasOnlyChangedBuildingName(
@@ -273,11 +320,58 @@ function normaliseBuildingName(value: string) {
 }
 
 const SITE_PART_QUALIFIER =
-  '(?:NORTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|SOUTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|EAST|WEST|NE|NW|SE|SW|N|S|E|W|HIGH|LOW|CENTER|CENTRE|MIDDLE|[A-Z]\\d+|\\d+[A-Z]|\\d+|[IVXLCDM]+|[A-Z])'
-const SITE_PART_DESCRIPTOR = '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE)'
+  '(?:NORTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|SOUTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|EAST|WEST|NE|NW|SE|SW|N|S|E|W|HIGH|LOW|CENTER|CENTRE|MIDDLE|ONE|TWO|THREE|[A-Z]\\d+|\\d+[A-Z]|\\d+|[IVXLCDM]+|[A-Z])'
+const SITE_PART_DESCRIPTOR =
+  '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE)'
 const SITE_PART_BUILDING_SUFFIX = new RegExp(
   `^(?:${SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}(?:\\s+(?:AND\\s+)?${SITE_PART_QUALIFIER})*|${SITE_PART_QUALIFIER}\\s+${SITE_PART_DESCRIPTOR})$`,
 )
+
+function buildingNameSuffix(previous: string, current: string) {
+  const previousName = normaliseName(previous)
+  const currentName = normaliseName(current)
+  if (!currentName.startsWith(`${previousName} `)) return ''
+  return currentName.slice(previousName.length).trim()
+}
+
+function isFirstPhaseOrStageDetail(suffix: string) {
+  const value = unwrapBuildingSuffix(suffix)
+  return /^(?:PHASE|STAGE)\s+(?:I|1|A)(?:\s*\/\s*(?:[A-Z0-9]+))?$/i.test(value)
+}
+
+function isAggregateAlphaNumericDetail(suffix: string) {
+  const value = unwrapBuildingSuffix(suffix)
+  return /^(?:[A-Z]\d+|\d+[A-Z])\s*\/\s*(?:[A-Z]\d+|\d+[A-Z])$/i.test(value)
+}
+
+function isStandaloneAlphaNumericSitePart(suffix: string) {
+  const value = unwrapBuildingSuffix(suffix)
+  return /^(?:[A-Z]\d+|\d+[A-Z])$/i.test(value)
+}
+
+function containsMaterialSitePartQualifier(suffix: string) {
+  const value = normaliseBuildingName(suffix)
+  return /\b(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE)\b/.test(
+    value,
+  )
+}
+
+function unwrapBuildingSuffix(value: string) {
+  return value.replace(/^\(\s*|\s*\)$/g, '').trim()
+}
+
+function isLegalNameAddition(detail: string) {
+  return /\b(?:LTD|LIMITED|COMPANY\s+LIMITED)\b/.test(detail)
+}
+
+function isKnownLocationDetail(suffix: string) {
+  const value = normaliseName(suffix)
+  const location = value.match(/\(([^)]+)\)/)?.[1] ?? unwrapBuildingSuffix(value)
+  if (!location || !/^[A-Z][A-Z .'-]*$/.test(location)) return false
+  return /\b(?:CHAI WAN|CHEUNG SHA WAN|HONG KONG|KOWLOON(?: EAST| CITY| TONG)?|KWAI CHUNG|KWAI FONG|LAI MUK SHUE|LEI MUK SHUE|MA ON SHAN|MORRISON HILL|NEW TERRITORIES|NORTH POINT|POK HONG|SHA TIN(?: WAI)?|SHEUNG SHUI|SIU SAI WAN|SOUTH HORIZONS|TIN SHUI WAI|TSING YI|TSUEN WAN|TUEN MUN|TSEUNG KWAN O|YUEN LONG)\b/.test(
+    location,
+  )
+}
 
 function droppedAddressComponent(
   previous: HkgovAlsIdentityRecord,
