@@ -24,6 +24,14 @@ const renamed: HkgovAlsIdentityRecord = {
   summary: { buildingName: 'NEW BUILDING', routeName: 'EXAMPLE ROAD' },
 }
 
+const renamedAgain: HkgovAlsIdentityRecord = {
+  continuityKey: 'same-premise-anchor',
+  id: 'ss-newer',
+  identityKey: 'newer-building-name',
+  sourceVersion: '2025-03-26.0',
+  summary: { buildingName: 'NEWER BUILDING', routeName: 'EXAMPLE ROAD' },
+}
+
 const withdrawnBuildingName: HkgovAlsIdentityRecord = {
   ...previous,
   id: 'ss-new',
@@ -140,6 +148,68 @@ describe('HKGov ALS identity drift', () => {
     expect(result.resolvedIds.get(renamed.identityKey)).toBe(previous.id)
   })
 
+  test('uses the latest canonical predecessor for a sequential identity chain', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+      { ...renamed, id: previous.id },
+    ])
+    const result = resolveHkgovAlsIdentityDrift([renamedAgain], history, {
+      authority: 'hkgov-dpo',
+      decisions: [
+        {
+          currentIdentityKey: renamedAgain.identityKey,
+          previousIdentityKey: renamed.identityKey,
+          resolution: 'keep-existing-id',
+        },
+      ],
+      version: 1,
+    })
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(renamedAgain.identityKey)).toBe(previous.id)
+    expect(result.resolvedPreviousRecords.get(renamedAgain.identityKey)).toEqual({
+      ...renamed,
+      id: previous.id,
+    })
+  })
+
+  test('reuses a canonical ID when a later release repeats the latest identity', () => {
+    const repeatedIdentity = {
+      ...renamed,
+      id: 'ss-generated-from-renamed-identity',
+      sourceVersion: '2025-03-26.0',
+    }
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+      { ...renamed, id: previous.id },
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [repeatedIdentity],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(repeatedIdentity.identityKey)).toBe(previous.id)
+    expect(result.resolvedMatchMethods.get(repeatedIdentity.identityKey)).toBe(
+      'als-identity-history',
+    )
+  })
+
+  test('does not choose a predecessor from a later release', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      { ...renamed, sourceVersion: '2025-03-26.0' },
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [renamedAgain],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.size).toBe(0)
+  })
+
   test('automatically keeps the ID when ALS only withdraws a building name', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
       previous,
@@ -219,10 +289,16 @@ describe('HKGov ALS identity drift', () => {
     'OLD BUILDING (BLOCK 12)',
     'OLD BUILDING (BLK A)',
     'OLD BUILDING (TWR A1)',
+    'OLD BUILDING (TWR 1A)',
     'OLD BUILDING (VILLA II)',
     'OLD BUILDING (HOUSE B)',
     'OLD BUILDING (HSE C1)',
     'OLD BUILDING (BLKS C1 & C2)',
+    'OLD BUILDING (EAST TOWER)',
+    'OLD BUILDING (NORTH-WEST TWR)',
+    'OLD BUILDING (SOUTHEAST TOWER)',
+    'OLD BUILDING (HIGH BLK)',
+    'OLD BUILDING (CENTRE TOWER)',
   ])(
     'automatically creates a new ID for a newly qualified site part: %s',
     buildingName => {
@@ -241,23 +317,43 @@ describe('HKGov ALS identity drift', () => {
     },
   )
 
-  test.each([
-    'OLD BUILDING (HIGH BLK)',
-    'OLD BUILDING (NO. 7) INDUSTRIAL BUILDING',
-    'OLD BUILDING (CENTRAL)',
-  ])('still requires review for a non-site-part building rename: %s', buildingName => {
-    const current = renamedBuilding(buildingName)
+  test('does not let an earlier keep decision collapse a newly qualified site part', () => {
+    const current = renamedBuilding('OLD BUILDING (TOWER 3)')
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
       previous,
     ])
-    const result = resolveHkgovAlsIdentityDrift(
-      [current],
-      history,
-      emptyHkgovAlsIdentityDecisions(),
-    )
+    const result = resolveHkgovAlsIdentityDrift([current], history, {
+      authority: 'hkgov-dpo',
+      decisions: [
+        {
+          currentIdentityKey: current.identityKey,
+          previousIdentityKey: previous.identityKey,
+          resolution: 'keep-existing-id',
+        },
+      ],
+      version: 1,
+    })
 
-    expect(result.candidates).toEqual([{ current, previous }])
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.has(current.identityKey)).toBe(false)
   })
+
+  test.each(['OLD BUILDING (NO. 7) INDUSTRIAL BUILDING', 'OLD BUILDING (CENTRAL)'])(
+    'still requires review for a non-site-part building rename: %s',
+    buildingName => {
+      const current = renamedBuilding(buildingName)
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previous,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([{ current, previous }])
+    },
+  )
 
   test('does not infer continuity when several historic premises share an anchor', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
@@ -266,6 +362,21 @@ describe('HKGov ALS identity drift', () => {
     ])
     const result = resolveHkgovAlsIdentityDrift(
       [renamed],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.size).toBe(0)
+  })
+
+  test('does not choose between a same-release historical split', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      { ...previous, identityKey: 'split-a', sourceVersion: '2025-02-25.0' },
+      { ...previous, identityKey: 'split-b', sourceVersion: '2025-02-25.0' },
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [renamedAgain],
       history,
       emptyHkgovAlsIdentityDecisions(),
     )
