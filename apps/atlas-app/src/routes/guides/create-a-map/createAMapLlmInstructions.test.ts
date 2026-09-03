@@ -10,6 +10,7 @@ import {
   createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
   createAMapChatDataStepPrompt,
+  createAMapCustomDataPrompt,
   createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
   createAMapRenderPromptFragments,
@@ -808,6 +809,51 @@ describe('Create a Map LLM instructions', () => {
     expect(
       createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'basemap'),
     ).toStartWith('## Basemap')
+  })
+
+  test('guides chat and agents through adding custom GeoJSON data', () => {
+    const state = {
+      hosting: 'Cloudflare Pages',
+      preferredLocale: 'en',
+      regionLabel: 'Hong Kong',
+    }
+    const chatPrompt = createAMapCustomDataPrompt(state, 'chat')
+    const agentPrompt = createAMapCustomDataPrompt(state, 'agentic')
+
+    for (const prompt of [chatPrompt, agentPrompt]) {
+      expect(prompt).toContain('Continue the “Craft a custom map” section')
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('Hong Kong basemap')
+      expect(prompt).toContain('valid GeoJSON')
+      expect(prompt).toContain('attributes, data source, and desired interaction')
+      expect(prompt).toContain('clarify the rest as we go along')
+      expect(prompt).toContain('I selected Cloudflare Pages for hosting')
+      expect(prompt).toContain('current static-asset size limits')
+      expect(prompt).toContain('simplification, splitting, tiling, or hosted data')
+      expect(prompt).toContain(
+        'build, smoke-test, and prepare the map for Cloudflare Pages',
+      )
+      expect(prompt).toContain('ready to publish to Cloudflare Pages')
+    }
+
+    expect(chatPrompt).toContain('Ask me for the GeoJSON asset’s actual size')
+    expect(agentPrompt).toContain('inspect its actual size yourself')
+    expect(agentPrompt).not.toContain('Ask me for the GeoJSON asset’s actual size')
+    expect(chatPrompt).toContain('Guide me one small action at a time')
+    expect(chatPrompt).toContain('exactly which file or terminal command')
+    expect(agentPrompt).toContain('Inspect the project first')
+    expect(agentPrompt).not.toContain('Guide me one small action at a time')
+
+    const localPrompt = createAMapCustomDataPrompt(
+      { preferredLocale: 'en', regionLabel: 'Macau' },
+      'chat',
+    )
+    expect(localPrompt).toContain('Macau basemap')
+    expect(localPrompt).not.toContain('Prepare for selected hosting')
+    expect(localPrompt).not.toContain('static-asset size limits')
+    expect(localPrompt).not.toContain('ready to publish')
   })
 
   test('keeps urban-density data hand-offs self-contained and scoped', () => {

@@ -571,6 +571,54 @@ export const createAMapChatDataStepPrompt = (
   references?: CreateAMapDataPromptReference[],
 ) => createAMapDataStepPrompt(state, step, 'chat', references)
 
+/** Progressive prompt for a reader who wants the LLM to shape a new GeoJSON dataset. */
+export const createAMapCustomDataPrompt = (
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+) => {
+  const region = state.regionLabel ?? 'selected SaanSeoi basemap coverage'
+  const assetSizeInstruction =
+    mode === 'agentic'
+      ? 'When the GeoJSON asset exists, inspect its actual size yourself, compare it with the applicable limit, and explain a safe alternative such as simplification, splitting, tiling, or hosted data before adding an oversized file.'
+      : 'Ask me for the GeoJSON asset’s actual size, compare it with the applicable limit, and explain a safe alternative such as simplification, splitting, tiling, or hosted data before adding an oversized file.'
+  const deploymentInstructions = state.hosting
+    ? [
+        '',
+        '### Prepare for selected hosting',
+        '',
+        `I selected ${state.hosting} for hosting. Look up its current static-asset size limits. ${assetSizeInstruction} Then build, smoke-test, and prepare the map for ${state.hosting} without exposing private credentials.`,
+      ]
+    : []
+  const completionInstruction = state.hosting
+    ? `Once the data layer is visibly verified, summarise what changed, how you verified it, and whether the project is ready to publish to ${state.hosting}. Remain available for further map edits.`
+    : 'Once the data layer is visibly verified, summarise what changed and how you verified it. Remain available for further map edits.'
+  const interaction =
+    mode === 'agentic'
+      ? 'Inspect the project first, then make the smallest appropriate changes once I have answered. Do not invent features, coordinates, licences, or data values.'
+      : 'Guide me one small action at a time and wait for my answer before giving the next action. Tell me exactly which file or terminal command I should use.'
+
+  return [
+    '## Craft a custom map',
+    '',
+    'Continue the “Craft a custom map” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
+    '',
+    '### First, understand the map I want to make',
+    '',
+    `Ask me what I want to show or help people do with the ${region} basemap. Establish the story, audience, locations or areas, geometry types, attributes, data source, and desired interaction before proposing any data. Tell me that I can answer any of these, and that you'll use that as a starting point to clarify the rest as we go along to refine the implementation.`,
+    '',
+    interaction,
+    '',
+    '### Create and add GeoJSON',
+    '',
+    'Help me obtain, create, or convert the agreed data to valid GeoJSON. Validate its coordinates and properties, place it in the project, and add it to the selected mapping library as a clear, accessible layer with any necessary legend, popup, or controls. Explain what each change does and verify it visibly in the running browser map.',
+    ...deploymentInstructions,
+    '',
+    completionInstruction,
+  ].join('\n')
+}
+
 const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer) || !state.styleUrl || !state.tilejsonUrl) {
     return []
