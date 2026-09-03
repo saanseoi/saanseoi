@@ -36,7 +36,7 @@ const tableRows = (
   {#if table}
     <div class="min-h-0 flex-1 overflow-auto p-4">
       <table
-        class="w-full min-w-[36rem] border-collapse text-left text-xs leading-5 text-white/75"
+        class="w-full min-w-xl border-collapse text-left text-xs leading-5 text-white/75"
       >
         <caption
           class="mb-3 text-left text-xs font-semibold tracking-[0.08em] text-[#a5d6ff] uppercase"
