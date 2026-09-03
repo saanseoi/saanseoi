@@ -1,4 +1,6 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
+
 import analysisDissolve from '#lib/assets/guides/urban-density-analysis/dissolve.png'
 import analysisFindDecode from '#lib/assets/guides/urban-density-analysis/find-decode.png'
 import analysisIntersect from '#lib/assets/guides/urban-density-analysis/intersect.png'
@@ -11,6 +13,7 @@ import GuideTextSubHeader from '../../components/shared/guideTextSubHeader.svelt
 
 type Props = {
   approachSteps: string[]
+  children?: Snippet
   description: string
   geospatialToolsTitle: string
   introduction: string
@@ -25,6 +28,7 @@ type Props = {
 
 let {
   approachSteps,
+  children,
   description,
   geospatialToolsTitle,
   introduction,
@@ -52,6 +56,7 @@ const approachIllustrations = [
   <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html introduction}
   </p>
+  {@render children?.()}
   <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html description}
   </p>
