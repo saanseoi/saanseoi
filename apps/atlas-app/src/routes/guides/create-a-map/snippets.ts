@@ -343,6 +343,8 @@ export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
     ].join('\n')
   }
 
+  const popup = renderer === 'mapbox' ? 'mapboxgl.Popup' : 'maplibregl.Popup'
+
   return [
     "const places = await fetch('/features.geojson').then(response => response.json())",
     '',
@@ -351,6 +353,11 @@ export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
     "  map.addLayer({ id: 'places', type: 'circle', source: 'places',",
     "    paint: { 'circle-radius': 7, 'circle-color': '#2dd4bf',",
     "      'circle-stroke-width': 2, 'circle-stroke-color': '#0f766e' },",
+    '  })',
+    "  map.on('click', 'places', event => {",
+    '    const name = event.features?.[0]?.properties?.name',
+    '    if (!name) return',
+    `    new ${popup}().setLngLat(event.lngLat).setText(String(name)).addTo(map)`,
     '  })',
     '}',
     '',

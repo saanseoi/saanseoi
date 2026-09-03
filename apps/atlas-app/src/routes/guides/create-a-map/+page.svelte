@@ -1202,6 +1202,20 @@ const geojsonImportScreenshot = $derived(
       ? geojsonIoImportGba
       : geojsonIoImportHongKong,
 )
+const dataPublicDirectory = $derived(
+  operatingSystem === 'windows'
+    ? 'C:\\Users\\YourName\\saanseoi-project\\public'
+    : '~/saanseoi-project/public',
+)
+const geoJsonConversionTarget = $derived(
+  guideRenderer === 'leaflet'
+    ? m.guide_data_convert_target_leaflet()
+    : guideRenderer
+      ? m.guide_data_convert_target_map({
+          library: selectedRenderer?.label ?? guideRenderer,
+        })
+      : '',
+)
 const dataImportLimit = $derived.by(() => {
   locale
   if (hosting === 'cloudflare') return m.guide_data_import_limit_cloudflare()
@@ -2280,7 +2294,8 @@ const geoJsonImportComments = $derived.by(() => {
     { line: 4, text: m.guide_data_import_comment_source() },
     { line: 5, text: m.guide_data_import_comment_layer() },
     { line: 6, text: m.guide_data_import_comment_marker() },
-    { line: 11, text: m.guide_data_import_comment_loaded() },
+    { line: 9, text: m.guide_data_import_comment_popup() },
+    { line: 16, text: m.guide_data_import_comment_loaded() },
   ]
 })
 const styleEditDimmedLines = $derived(
@@ -3531,24 +3546,41 @@ const styleChoices = $derived.by(() =>
                   ? m.guide_data_geojson_title()
                   : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
-              <GuideAttachedLayout primaryWidth="shortCard" class="mt-6">
-                <GuideSubSectionBody class="mt-0">
+              <GuideAttachedLayout primaryWidth="shortCard" class="mt-3">
+                <GuideSubSectionBody spacing="none">
                   {#if dataFormat !== 'geojson'}
                     <GuideParagraph>
-                      {@html m.guide_data_convert_description({ format: selectedDataFormat.label })}
+                      {@html m.guide_data_convert_description({
+                        fallback:
+                          dataFormat === 'other' ? m.guide_data_convert_other() : '',
+                        format: selectedDataFormat.label,
+                        target: geoJsonConversionTarget,
+                      })}
                     </GuideParagraph>
-                    <ol
-                      class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-                    >
-                      <li>{@html m.guide_data_convert_step_open()}</li>
-                      <li>{@html m.guide_data_convert_step_import()}</li>
-                      {#if dataFormat === 'csv'}
-                        <li>{@html m.guide_data_convert_step_columns()}</li>
-                      {/if}
-                    </ol>
                   {/if}
+                  {#if dataFormat === 'geojson'}
+                    <GuideParagraph>
+                      {@html m.guide_data_geojson_editor_optional()}
+                      {#if dataImportLimit}
+                        <br><br>
+                        {@html dataImportLimit}
+                      {/if}
+                    </GuideParagraph>
+                  {/if}
+                  <ol
+                    class={`${dataFormat === 'geojson' ? 'mt-0' : 'mt-4'} list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt`}
+                  >
+                    <li>{@html m.guide_data_convert_step_open()}</li>
+                    <li>{@html m.guide_data_convert_step_import()}</li>
+                    {#if dataFormat === 'csv'}
+                      <li>{@html m.guide_data_convert_step_columns()}</li>
+                    {/if}
+                  </ol>
                   {#if dataFormat === 'csv'}
-                    <GuideAttachedLayout primaryWidth="shortCard">
+                    <GuideAttachedLayout
+                      primaryWidth="shortCard"
+                      class="xl:!w-[calc(100%+28rem)]"
+                    >
                       <GuideScreenshot
                         src={geojsonIoCsvColumns}
                         alt={m.guide_data_csv_columns_screenshot_alt()}
@@ -3571,7 +3603,6 @@ const styleChoices = $derived.by(() =>
                       {/snippet}
                     </GuideAttachedLayout>
                   {/if}
-                  <GuideParagraph>{@html m.guide_data_geojson_editor()}</GuideParagraph>
                   <GuideScreenshot
                     class="mt-6"
                     src={geojsonImportScreenshot}
@@ -3622,9 +3653,9 @@ const styleChoices = $derived.by(() =>
                   title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}
                 />
                 <GuideSubSectionBody>
-                  <GuideParagraph
-                    >{@html m.guide_data_import_description()}</GuideParagraph
-                  >
+                  <GuideParagraph>
+                    {@html m.guide_data_import_description({ path: dataPublicDirectory })}
+                  </GuideParagraph>
                   <div class="mt-5">
                     <GuidePreviewCodeBlock
                       label={m.guide_data_import_code_label()}
@@ -3656,11 +3687,6 @@ const styleChoices = $derived.by(() =>
                   <GuideParagraph class="mt-5">
                     {@html m.guide_data_import_inspect()}
                   </GuideParagraph>
-                  {#if dataImportLimit}
-                    <GuideParagraph class="mt-4">
-                      {@html dataImportLimit}
-                    </GuideParagraph>
-                  {/if}
                 </GuideSubSectionBody>
               </div>
             {:else}
