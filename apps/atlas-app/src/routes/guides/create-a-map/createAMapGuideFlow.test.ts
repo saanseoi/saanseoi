@@ -51,7 +51,6 @@ describe('create-a-map embedded website hosting flow', () => {
       hosting: 'github-pages',
       isBasemapAccountReady: true,
       isBasemapApiKeyReady: true,
-      isDataStepComplete: true,
       isEditorReadinessComplete: true,
       isLlmReadinessComplete: true,
       isMapAccessible: false,

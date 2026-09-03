@@ -1,3 +1,7 @@
+import type { MultiPolygon, Polygon } from 'geojson'
+
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
+
 type DivisionAttributes = {
   level: number
   type: 'district'
@@ -6,6 +10,7 @@ type DivisionAttributes = {
 }
 
 type Division = {
+  id: string
   attributes: DivisionAttributes
   relationships: {
     hierarchy: {
@@ -29,7 +34,19 @@ type IncludedDivision = {
   }
 }
 
-type DivisionsResponse = { data: Division[]; included: IncludedDivision[] }
+type IncludedDivisionArea = {
+  type: 'division-areas'
+  id: string
+  attributes: {
+    divisionId: string
+    divisionCode: string
+    geometry: Polygon | MultiPolygon
+  }
+}
+
+type IncludedResource = IncludedDivision | IncludedDivisionArea
+
+type DivisionsResponse = { data: Division[]; included: IncludedResource[] }
 
 const areas = {
   'Hong Kong Island': {
@@ -73,6 +90,7 @@ const hongKongId = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
 export const urbanDensityDivisionsResponse: DivisionsResponse = {
   data: Object.entries(areas).flatMap(([name, area]) =>
     area.codes.map(divisionCode => ({
+      id: `${area.id}-${divisionCode}`,
       attributes: {
         level: 2,
         type: 'district',
@@ -113,6 +131,28 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
         i18n: { en: { name } },
       },
     })),
+    ...Object.entries(areas).flatMap(([, area]) =>
+      area.codes.map(divisionCode => {
+        const feature = urbanDensityCensusDistricts.features.find(
+          item =>
+            item.properties.divisionCode === divisionCode ||
+            (divisionCode === 'KC' && item.properties.divisionCode === 'KTS'),
+        )
+
+        if (!feature) throw new Error(`No preview geometry for ${divisionCode}`)
+
+        const divisionId = `${area.id}-${divisionCode}`
+        return {
+          type: 'division-areas' as const,
+          id: `${divisionId}-geometry`,
+          attributes: {
+            divisionId,
+            divisionCode,
+            geometry: feature.geometry,
+          },
+        }
+      }),
+    ),
   ],
 }
 

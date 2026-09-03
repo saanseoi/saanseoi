@@ -15,15 +15,15 @@ type Props = {
   approachSteps: string[]
   children?: Snippet
   description: string
-  geospatialToolsTitle: string
-  introduction: string
+  geospatialToolsTitle?: string
+  introduction?: string
   landClippedGeometry: string
   nonLiveableLand: string
   explanation: string
   tileZoomCalloutDescription: string
   tileZoomCalloutLabel: string
   tileZoomCalloutTitle: string
-  turfExplanation: string
+  turfExplanation?: string
 }
 
 let {
@@ -53,9 +53,11 @@ const approachIllustrations = [
 </script>
 
 <div class="space-y-5">
-  <p class="font-body text-body-lg leading-8 text-foreground-alt">
-    {@html introduction}
-  </p>
+  {#if introduction}
+    <p class="font-body text-body-lg leading-8 text-foreground-alt">
+      {@html introduction}
+    </p>
+  {/if}
   {@render children?.()}
   <p class="font-body text-body-lg leading-8 text-foreground-alt">
     {@html description}
@@ -121,7 +123,7 @@ const approachIllustrations = [
       </ol>
     </div>
     <aside
-      class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      class="min-[1000px]:mt-12 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
     >
       <GuideInstructionCallout
         label={tileZoomCalloutLabel}
@@ -130,12 +132,14 @@ const approachIllustrations = [
       />
     </aside>
   </div>
-  <div class="space-y-3">
-    <GuideTextSubHeader title={geospatialToolsTitle} />
-    <p
-      class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
-    >
-      {@html turfExplanation}
-    </p>
-  </div>
+  {#if geospatialToolsTitle && turfExplanation}
+    <div class="space-y-3">
+      <GuideTextSubHeader title={geospatialToolsTitle} />
+      <p
+        class="font-body text-body-lg leading-8 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+      >
+        {@html turfExplanation}
+      </p>
+    </div>
+  {/if}
 </div>
