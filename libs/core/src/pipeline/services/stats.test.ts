@@ -108,6 +108,12 @@ describe('stats rows', () => {
       districtLinkedCount: 10,
       areaLinkedCount: 10,
       missingStreetCount: 3,
+      quality: {
+        ambiguous_area_count: 1,
+        ambiguous_district_count: 0,
+        unmatched_area_count: 2,
+        unmatched_district_count: 4,
+      },
       streetLinkedCount: 0,
       churn: {
         address2d: churnCounts,
@@ -179,6 +185,13 @@ describe('stats rows', () => {
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
+        dimension: 'ambiguous_area_count',
+        metric: 'quality',
+        value: 1,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
         dimension: 'added_count',
         groupBy: 'table',
         groupValue: 'address2d',
@@ -198,6 +211,12 @@ describe('stats rows', () => {
       localeCounts: { en: 10 },
       localisedRows: 18,
       processedRows: 10,
+      quality: {
+        ambiguous_area_count: 1,
+        ambiguous_district_count: 2,
+        unmatched_area_count: 3,
+        unmatched_district_count: 4,
+      },
       recordedRows: 10,
       unchangedRows: 5,
     })
@@ -247,6 +266,13 @@ describe('stats rows', () => {
         groupValue: 'district',
         metric: 'distribution',
         value: 10,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'unmatched_district_count',
+        metric: 'quality',
+        value: 4,
       }),
     )
   })

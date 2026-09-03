@@ -22,6 +22,7 @@ import {
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
 } from '@repo/core/db/metaRegistry'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/stats'
 import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
@@ -108,6 +109,7 @@ export async function runUploadCommand(
     /** Keep a multi-resource source release open until its final resource. */
     deferSourcePublish?: boolean
     processingActions?: ReleaseProcessingAction[]
+    quality?: AddressDivisionQualityCounts
     quiet?: boolean
     /** Interactive command to offer when a non-interactive run lacks release notes. */
     releaseNotesRetryCommand?: string
@@ -488,6 +490,7 @@ ${mutedBar}  `)
           {
             deferApiReleaseSet: options.deferApiReleaseSet,
             processingActions: options.processingActions,
+            quality: options.quality,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )

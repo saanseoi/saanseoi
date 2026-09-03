@@ -4,6 +4,7 @@ import {
   buildAddressApiReleaseSetStatsRows,
   buildDivisionApiReleaseSetStatsRows,
   createLocaleStatsAccumulator,
+  type AddressDivisionQualityCounts,
   type StatsLocaleGroup,
 } from '@repo/core/pipeline/services/stats'
 import { resolveDistrictId } from '@repo/core/pipeline/services/division'
@@ -58,6 +59,7 @@ type CalculateApiReleaseSetStatsOptions = {
   releaseCode?: string
   releaseId: string
   target: ApiReleaseSetStatsTarget
+  addressQuality?: AddressDivisionQualityCounts
 }
 
 type GroupCountRow = {
@@ -110,7 +112,11 @@ export async function calculateAndStoreApiReleaseSetStats(
   try {
     const rows =
       options.family === 'address'
-        ? await buildAddressApiReleaseSetStatsForSnapshot(options.currentDb, snapshotId)
+        ? await buildAddressApiReleaseSetStatsForSnapshot(
+            options.currentDb,
+            snapshotId,
+            options.addressQuality,
+          )
         : await buildDivisionStatsRows(options.currentDb, snapshotId)
 
     options.progress.update(1, {
@@ -184,6 +190,7 @@ export async function calculateAndStoreApiReleaseSetStats(
 export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
+  quality?: AddressDivisionQualityCounts,
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
   const [
     address2dCount,
@@ -195,6 +202,8 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     areaLinkedCount,
     componentCounts,
     byDistrict,
+    unmatchedAreaCount,
+    unmatchedDistrictCount,
   ] = await Promise.all([
     countRows(
       db,
@@ -252,6 +261,22 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       snapshotId,
       currentSchema.address2d.districtId,
     ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.areaId} IS NULL`,
+      ),
+    ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.districtId} IS NULL`,
+      ),
+    ),
   ])
   const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
 
@@ -266,6 +291,12 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     districtLinkedCount,
     localeStats,
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
+    quality: quality ?? {
+      ambiguous_area_count: 0,
+      ambiguous_district_count: 0,
+      unmatched_area_count: unmatchedAreaCount,
+      unmatched_district_count: unmatchedDistrictCount,
+    },
     streetLinkedCount,
   })
 }

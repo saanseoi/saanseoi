@@ -34,6 +34,13 @@ export type QualityCounts = {
   parent_changed_count: number
 }
 
+export type AddressDivisionQualityCounts = {
+  ambiguous_area_count: number
+  ambiguous_district_count: number
+  unmatched_area_count: number
+  unmatched_district_count: number
+}
+
 export type AddressApiReleaseSetStatsInput = {
   address2dCount: number
   address2dI18nCount: number
@@ -51,10 +58,7 @@ export type AddressApiReleaseSetStatsInput = {
     address3d?: ChurnCounts
     totals: ChurnCounts
   }
-  quality?: Pick<
-    QualityCounts,
-    'geometry_changed_count' | 'locale_regression_count' | 'name_regression_count'
-  >
+  quality?: Partial<QualityCounts> & Partial<AddressDivisionQualityCounts>
 }
 
 /**
@@ -73,6 +77,7 @@ export type AddressReleaseStatsInput = {
   processedRows: number
   recordedRows: number
   unchangedRows: number
+  quality?: AddressDivisionQualityCounts
 }
 
 export type DivisionApiReleaseSetStatsInput = {
@@ -501,7 +506,7 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
     unchanged_count: input.unchangedRows,
   }
 
-  return [
+  const rows = [
     ...buildChurnMetricRows(churn, createdAt, null),
     ...buildAddressLocaleStatsRows(input.localeCounts, recordedRows, createdAt),
     ...buildAddressComponentStatsRows(input.componentCounts, recordedRows, createdAt),
@@ -515,6 +520,41 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
       { groupBy: 'table', groupValue: 'address2dI18n' },
     ),
   ]
+
+  if (input.quality) {
+    rows.push(
+      buildReleaseStatsRow(
+        'unmatched_area_count',
+        'quality',
+        'count',
+        input.quality.unmatched_area_count,
+        createdAt,
+      ),
+      buildReleaseStatsRow(
+        'unmatched_district_count',
+        'quality',
+        'count',
+        input.quality.unmatched_district_count,
+        createdAt,
+      ),
+      buildReleaseStatsRow(
+        'ambiguous_area_count',
+        'quality',
+        'count',
+        input.quality.ambiguous_area_count,
+        createdAt,
+      ),
+      buildReleaseStatsRow(
+        'ambiguous_district_count',
+        'quality',
+        'count',
+        input.quality.ambiguous_district_count,
+        createdAt,
+      ),
+    )
+  }
+
+  return rows
 }
 
 /**
@@ -719,29 +759,29 @@ export function buildAddressApiReleaseSetStatsRows(
   }
 
   if (input.quality) {
-    rows.push(
-      buildApiReleaseSetStatsRow(
-        'locale_regression_count',
-        'quality',
-        'count',
-        input.quality.locale_regression_count,
-        createdAt,
-      ),
-      buildApiReleaseSetStatsRow(
-        'name_regression_count',
-        'quality',
-        'count',
-        input.quality.name_regression_count,
-        createdAt,
-      ),
-      buildApiReleaseSetStatsRow(
-        'geometry_changed_count',
-        'quality',
-        'count',
-        input.quality.geometry_changed_count,
-        createdAt,
-      ),
-    )
+    for (const dimension of [
+      'locale_regression_count',
+      'name_regression_count',
+      'geometry_changed_count',
+    ] as const) {
+      const value = input.quality[dimension]
+      if (value === undefined) continue
+      rows.push(
+        buildApiReleaseSetStatsRow(dimension, 'quality', 'count', value, createdAt),
+      )
+    }
+    for (const dimension of [
+      'unmatched_area_count',
+      'unmatched_district_count',
+      'ambiguous_area_count',
+      'ambiguous_district_count',
+    ] as const) {
+      const value = input.quality[dimension]
+      if (value === undefined) continue
+      rows.push(
+        buildApiReleaseSetStatsRow(dimension, 'quality', 'count', value, createdAt),
+      )
+    }
   }
 
   return rows

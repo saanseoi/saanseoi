@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildHkgovAlsProcessingActions,
+  buildHkgovAlsDivisionQuality,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
   formatEnPremisesAddress,
@@ -289,6 +290,49 @@ describe('buildHkgovAlsProcessingActions', () => {
       }),
       mode: 'automatic',
       summary: 'Consolidated ALS variants with the same complete premise identity.',
+    })
+  })
+})
+
+describe('buildHkgovAlsDivisionQuality', () => {
+  test('counts and retains detailed unmatched and ambiguous rows', () => {
+    const result = buildHkgovAlsDivisionQuality([
+      {
+        areaMatchStatus: 'unmatched',
+        areaNameEn: 'UNKNOWN AREA',
+        areaNameZhHant: null,
+        districtMatchStatus: 'matched',
+        districtNameEn: 'CENTRAL AND WESTERN',
+        districtNameZhHant: null,
+        enFormattedAddress: '1 EXAMPLE STREET',
+        sourceFeatureIndexOneBased: 4,
+        sourceFile: 'central_district.geojson',
+        zhHantFormattedAddress: null,
+      },
+      {
+        areaMatchStatus: 'matched',
+        areaNameEn: 'HONG KONG ISLAND',
+        areaNameZhHant: null,
+        districtMatchStatus: 'ambiguous',
+        districtNameEn: 'DUPLICATE DISTRICT',
+        districtNameZhHant: null,
+        enFormattedAddress: '2 EXAMPLE STREET',
+        sourceFeatureIndexOneBased: 9,
+        sourceFile: 'central_district.geojson',
+        zhHantFormattedAddress: null,
+      },
+    ])
+
+    expect(result).toMatchObject({
+      ambiguous_area_count: 0,
+      ambiguous_district_count: 1,
+      unmatched_area_count: 1,
+      unmatched_district_count: 0,
+    })
+    expect(result.issues).toHaveLength(2)
+    expect(result.issues[0]).toMatchObject({
+      address: '1 EXAMPLE STREET',
+      areaStatus: 'unmatched',
     })
   })
 })
