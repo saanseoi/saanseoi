@@ -696,7 +696,7 @@ export const createUrbanDensityStatsCode = (
     '',
     ...savedResultComment.split('\n').map(line => `// ${line}`),
     'let savedResult: LandAnalysisResult | undefined',
-    "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
+    "const savedResultUrl = new URL('./land-analysis.json.gz', import.meta.url)",
     'try {',
     '  const savedResultResponse = await fetch(savedResultUrl)',
     '  if (savedResultResponse.ok && savedResultResponse.body) {',

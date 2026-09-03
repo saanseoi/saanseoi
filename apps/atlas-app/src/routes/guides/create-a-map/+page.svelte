@@ -44,7 +44,6 @@ import {
   GuideSubSectionHeader,
   GuideTerminalIntroduction,
   GuideUrbanDensityExample,
-  GuidePromptBlock,
 } from '#lib/bits/pages/guides/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -2095,54 +2094,34 @@ const llmUrbanDensityReferences = $derived.by(
           type: 'TS',
         },
         {
-          code: createUrbanDensitySetupZ14TileFetcherCode(guideRenderer),
-          language: 'typescript',
-          path: rendererEditorPath,
-          title: m.guide_data_urban_density_setup_z14_tile_fetcher_code(),
-          type: 'TS',
-        },
-        {
-          code: urbanDensitySetupZ14TileFetcherCss,
+          code: [urbanDensitySetupZ14TileFetcherCss, urbanDensityLiveableAreaCss].join(
+            '\n\n',
+          ),
           language: 'css',
           path: rendererStylesheetPath,
-          title: m.guide_data_urban_density_setup_z14_tile_fetcher_css(),
+          title: m.guide_data_urban_density_llm_analysis_styles(),
           type: 'CSS',
         },
         {
-          code: urbanDensityCollectNonLiveableLandCode,
+          code: [
+            createUrbanDensitySetupZ14TileFetcherCode(guideRenderer),
+            urbanDensityCollectNonLiveableLandCode,
+            urbanDensityLiveableAreaCode,
+          ].join('\n\n'),
           language: 'typescript',
           path: rendererEditorPath,
-          title: m.guide_data_urban_density_collect_non_liveable_land_code(),
-          type: 'TS',
-        },
-        {
-          code: urbanDensityLiveableAreaCss,
-          language: 'css',
-          path: rendererStylesheetPath,
-          title: m.guide_data_urban_density_liveable_area_css(),
-          type: 'CSS',
-        },
-        {
-          code: urbanDensityLiveableAreaCode,
-          language: 'typescript',
-          path: rendererEditorPath,
-          title: m.guide_data_urban_density_liveable_area_code(),
+          title: m.guide_data_urban_density_llm_analysis_main(),
           type: 'TS',
         },
       ],
       final: [
         {
-          code: urbanDensityLiveableMetricsCode,
+          code: [urbanDensityLiveableMetricsCode, urbanDensityLiveableAreaMapCode].join(
+            '\n\n',
+          ),
           language: 'typescript',
           path: rendererEditorPath,
-          title: m.guide_data_urban_density_liveable_metrics_code(),
-          type: 'TS',
-        },
-        {
-          code: urbanDensityLiveableAreaMapCode,
-          language: 'typescript',
-          path: rendererEditorPath,
-          title: m.guide_data_urban_density_liveable_area_map_code(),
+          title: m.guide_data_urban_density_llm_finalise_map(),
           type: 'TS',
         },
       ],
@@ -3778,12 +3757,6 @@ const styleChoices = $derived.by(() =>
               ? m.guide_publish_mobile_description()
               : undefined}
         >
-          {#if llmGuidanceEnabled}
-            <GuidePromptBlock
-              code={progressiveSectionPrompts.publish}
-              promptIcon={selectedLlmOption?.icon}
-            />
-          {/if}
           {#if objective === 'mobile-embed'}
             {#if mobileDocsUrl}
               <a
@@ -3814,6 +3787,8 @@ const styleChoices = $derived.by(() =>
                 completedRequirements={completedPublishRequirements}
                 {hosting}
                 {llmMode}
+                llmPrompt={progressiveSectionPrompts.publish}
+                llmPromptIcon={selectedLlmOption?.icon}
                 {operatingSystem}
                 {renderer}
                 {terminalProjectPath}
@@ -3824,6 +3799,9 @@ const styleChoices = $derived.by(() =>
             {:else if hosting === 'other'}
               <GuideCreateAMapPublishOther
                 completedRequirements={completedPublishRequirements}
+                {llmMode}
+                llmPrompt={progressiveSectionPrompts.publish}
+                llmPromptIcon={selectedLlmOption?.icon}
                 {terminalProjectPath}
                 onCompletedRequirementsChange={requirements =>
                   (completedPublishRequirements = requirements)}
@@ -3840,6 +3818,8 @@ const styleChoices = $derived.by(() =>
           platform={websitePlatform}
           platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
           published={isMapAccessible}
+          {llmGuidanceEnabled}
+          llmPromptIcon={selectedLlmOption?.icon}
         />
       {/if}
 

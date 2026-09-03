@@ -42,6 +42,7 @@ let promptPanel = $state<HTMLElement>()
 let promptHeight = $state<number>()
 
 const reference = $derived(references[referenceIndex])
+const hasPreview = $derived(Boolean(preview || previewImageSrc))
 
 const trackCopy = (outcome: 'success' | 'failure', entityId: string) =>
   trackClientProductUsage({
@@ -112,14 +113,16 @@ const previewHeight = $derived(
           />
           {m.guide_code_block_code()}
         </button>
-        <button
-          class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-          type="button"
-          onclick={showPreview}
-        >
-          <Icon icon="proicons:map" class="size-4" aria-hidden="true" />
-          {m.guide_code_block_preview()}
-        </button>
+        {#if hasPreview}
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={showPreview}
+          >
+            <Icon icon="proicons:map" class="size-4" aria-hidden="true" />
+            {m.guide_code_block_preview()}
+          </button>
+        {/if}
       {/snippet}
     </GuideCodeBlock>
   </section>
@@ -202,11 +205,12 @@ const previewHeight = $derived(
     {/if}
   </section>
 
-  <section
-    aria-label={m.guide_code_block_preview()}
-    aria-hidden={view !== 'preview'}
-    inert={view !== 'preview'}
-    class={`${
+  {#if hasPreview}
+    <section
+      aria-label={m.guide_code_block_preview()}
+      aria-hidden={view !== 'preview'}
+      inert={view !== 'preview'}
+      class={`${
       expanded
         ? 'top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
         : 'inset-0'
@@ -215,66 +219,67 @@ const previewHeight = $derived(
         ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
         : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
     }`}
-    style:position={expanded ? 'fixed' : undefined}
-    class:relative={!expanded && view === 'preview'}
-    class:h-full={!expanded && view === 'preview'}
-  >
-    <header
-      class="flex flex-wrap items-center justify-between gap-3 border-b border-[#596074] bg-[#202633] px-4 py-2.5"
+      style:position={expanded ? 'fixed' : undefined}
+      class:relative={!expanded && view === 'preview'}
+      class:h-full={!expanded && view === 'preview'}
     >
-      <span
-        class="min-w-0 flex-1 truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
-        >{m.guide_llm_prompt_card_explainer_preview_title()}</span
+      <header
+        class="flex flex-wrap items-center justify-between gap-3 border-b border-[#596074] bg-[#202633] px-4 py-2.5"
       >
-      <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-4">
-        <button
-          class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-          type="button"
-          onclick={() => (view = 'code')}
+        <span
+          class="min-w-0 flex-1 truncate font-mono text-label-sm font-semibold text-[#d6e4ff]"
+          >{m.guide_llm_prompt_card_explainer_preview_title()}</span
         >
-          <Icon
-            icon="material-symbols-light:code-rounded"
-            class="size-4"
-            aria-hidden="true"
-          />
-          {m.guide_code_block_code()}
-        </button>
-        <button
-          class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-          type="button"
-          onclick={() => (view = 'prompt')}
-        >
-          <Icon
-            icon="material-symbols-light:auto-awesome"
-            class="size-4"
-            aria-hidden="true"
-          />
-          {m.guide_llm_prompt_card_prompt()}
-        </button>
-        <button
-          class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-          type="button"
-          onclick={() => (expanded = !expanded)}
-        >
-          <Icon
-            icon={expanded ? 'ion:contract-outline' : 'ion:expand-outline'}
-            class="size-4"
-            aria-hidden="true"
-          />
-          {m.guide_code_block_expand()}
-        </button>
+        <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-4">
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={() => (view = 'code')}
+          >
+            <Icon
+              icon="material-symbols-light:code-rounded"
+              class="size-4"
+              aria-hidden="true"
+            />
+            {m.guide_code_block_code()}
+          </button>
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={() => (view = 'prompt')}
+          >
+            <Icon
+              icon="material-symbols-light:auto-awesome"
+              class="size-4"
+              aria-hidden="true"
+            />
+            {m.guide_llm_prompt_card_prompt()}
+          </button>
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={() => (expanded = !expanded)}
+          >
+            <Icon
+              icon={expanded ? 'ion:contract-outline' : 'ion:expand-outline'}
+              class="size-4"
+              aria-hidden="true"
+            />
+            {m.guide_code_block_expand()}
+          </button>
+        </div>
+      </header>
+      <div class="min-h-0 flex-1 overflow-auto bg-[#131722] p-4">
+        {#if preview}
+          {@render preview()}
+        {:else if previewImageSrc}
+          <img
+            class="h-full w-full object-contain"
+            src={previewImageSrc}
+            alt={previewAlt ?? ''}
+          >
+        {/if}
       </div>
-    </header>
-    <div class="min-h-0 flex-1 overflow-auto bg-[#131722] p-4">
-      {#if preview}
-        {@render preview()}
-      {:else if previewImageSrc}
-        <img
-          class="h-full w-full object-contain"
-          src={previewImageSrc}
-          alt={previewAlt ?? ''}
-        >
-      {/if}
-    </div>
-  </section>
+    </section>
+  {/if}
 </div>
