@@ -402,6 +402,21 @@ describe('HKGov ALS identity drift', () => {
     },
   )
 
+  test('leaves a first-phase facility addition for manual review', () => {
+    const current = renamedBuilding('OLD BUILDING (PHASE 1) LATRINE')
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [current],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([{ current, previous }])
+    expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+  })
+
   test('creates a new ID for a material site part added to an unnamed premise', () => {
     const current = renamedBuilding('NEW BUILDING (HALL BLOCK)')
     const unnamedPrevious = {

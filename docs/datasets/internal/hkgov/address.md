@@ -237,6 +237,18 @@ building or estate and receives a new ID. This rule takes precedence over older
 retention decisions recorded before the distinction was automated. Other building-name
 changes still require review.
 
+The site-part rule also covers `STAGE`, `WING`, `SECTION`, `HALL`, and written block
+numbers such as `ONE` and `TWO`. A first phase or stage (`I`, `1`, or `A`), including a
+range beginning with that member, is treated as additional specification and retains the
+ID when it is the complete added qualifier; a later range such as `PHASE II/III`
+receives a new ID. A first-phase/stage qualifier combined with an otherwise unclassified
+facility detail remains manual. Separate `3A` and `3B` premises receive new IDs, while
+one aggregate `3A/3B` description retains its ID. Adding a recognised location,
+`CENTRAL`, a branch or campus description, or a legal name suffix such as `LIMITED`
+retains the ID when the street address is unchanged. Sponsorship wording remains a
+manual decision. Written block or building numbers are converted to the family's
+established Roman-numeral style in the same scoped way as Arabic numbers.
+
 Identity history is evaluated as a release chain. When several earlier releases share a
 continuity anchor, the latest earlier release is the canonical predecessor for the next
 unambiguous change, so a reviewed `keep-existing-id` decision carries the same canonical
