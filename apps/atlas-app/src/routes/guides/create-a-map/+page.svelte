@@ -24,7 +24,6 @@ import {
   GuideChoiceGroup,
   GuideCodeBlock,
   GuideCreateAMapVersionNotice,
-  GuideDataReadiness,
   GuideEditorCardExplainer,
   GuideEditorProjectSetupSection,
   GuideEditorReadiness,
@@ -128,6 +127,7 @@ import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 import GuideCreateAMapEmbed from './guideCreateAMapEmbed.svelte'
 import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideCreateAMapPublishOther from './guideCreateAMapPublishOther.svelte'
+import GuidePublishRequirement from './guidePublishRequirement.svelte'
 import GuideRendererBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideRendererBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import GuideGeoJsonDataPreview from '#lib/bits/pages/guides/patterns/createAMap/guideGeoJsonDataPreview.svelte'
@@ -139,6 +139,7 @@ import {
   createAMapChatHandoverPrompt,
   createAMapChatSectionPrompt,
   createAMapCustomDataPrompt,
+  createAMapExistingDataPrompt,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
   type CreateAMapDataPromptStep,
@@ -362,7 +363,6 @@ let isDataPrepared = $derived(
 let isDataAdded = $derived(
   Boolean(dataReadinessKey) && completedDataKey === dataReadinessKey,
 )
-let isDataStepComplete = $derived(isDataPrepared && isDataAdded)
 let isEditorReadinessComplete = $derived(
   completedEditorReadinessKey === editorReadinessKey,
 )
@@ -1541,7 +1541,8 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     isLlmReadinessComplete,
     isBasemapAccountReady: Boolean(page.data.user),
     isBasemapApiKeyReady: hasBasemapApiKey,
-    isDataStepComplete,
+    isDataAdded,
+    isDataPrepared,
     isMapAccessible,
     isMapboxTokenConfigured: mapboxTokenConfigured,
     isPaymentConfirmed,
@@ -1586,6 +1587,13 @@ const selectedMapLibrary = $derived(
       : selectedRenderer,
 )
 const outline = $derived(guideOutline)
+const basemapDecisionTarget = $derived(
+  isBasemapReady
+    ? 'basemap-choice'
+    : page.data.user
+      ? 'basemap-api-key-requirement'
+      : 'basemap',
+)
 const projectOutline = $derived([
   ...(llmGuidanceEnabled
     ? []
@@ -1739,7 +1747,7 @@ const guideDecisions = $derived.by(() => {
       selection: selectedMapLibrary?.label,
     },
     {
-      id: 'basemap-choice',
+      id: basemapDecisionTarget,
       label: m.guide_decision_basemap(),
       selection: selectedRegion?.label,
     },
@@ -2230,6 +2238,26 @@ const llmCustomDataPrompt = $derived(
   createAMapCustomDataPrompt(
     llmPromptState,
     aiAccess === 'agentic' ? 'agentic' : 'chat',
+  ),
+)
+const llmGeoJsonImportReferences = $derived<GuideLlmPromptReference[]>(
+  guideRenderer
+    ? [
+        {
+          code: geoJsonImportCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_import_code_label(),
+          type: 'TS',
+        },
+      ]
+    : [],
+)
+const llmExistingDataPrompt = $derived(
+  createAMapExistingDataPrompt(
+    llmPromptState,
+    aiAccess === 'agentic' ? 'agentic' : 'chat',
+    llmGeoJsonImportReferences,
   ),
 )
 const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
@@ -3580,195 +3608,235 @@ const styleChoices = $derived.by(() =>
                     ? m.guide_data_geojson_title()
                     : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
-              <GuideAttachedLayout primaryWidth="shortCard" class="mt-3">
-                <GuideSubSectionBody spacing="none">
-                  {#if dataFormat !== 'geojson'}
-                    <GuideParagraph>
-                      {@html m.guide_data_convert_description({
+              <GuidePublishRequirement
+                complete={isDataPrepared}
+                completeAction={m.guide_data_preparation_done()}
+                description={m.guide_data_preparation_complete_description()}
+                eyebrow={m.guide_data_preparation_complete_eyebrow()}
+                id="data-preparation-readiness"
+                onComplete={completeDataPreparation}
+                onReset={resetDataPreparation}
+                resetDescription={m.guide_data_preparation_reset_description()}
+                resetLabel={m.guide_readiness_reset()}
+                scrollTargetId="data-preparation-readiness"
+                titleId="data-preparation-readiness-title"
+              >
+                <GuideAttachedLayout primaryWidth="shortCard" class="mt-3">
+                  <GuideSubSectionBody spacing="none">
+                    {#if dataFormat !== 'geojson'}
+                      <GuideParagraph>
+                        {@html m.guide_data_convert_description({
                         fallback:
                           dataFormat === 'other' ? m.guide_data_convert_other() : '',
                         format: selectedDataFormat.label,
                         target: geoJsonConversionTarget,
                       })}
-                    </GuideParagraph>
-                  {/if}
-                  {#if dataFormat === 'geojson'}
-                    <GuideParagraph>
-                      {@html m.guide_data_geojson_editor_optional({
+                      </GuideParagraph>
+                    {/if}
+                    {#if dataFormat === 'geojson'}
+                      <GuideParagraph>
+                        {@html m.guide_data_geojson_editor_optional({
                         assetLimit: dataImportLimit ? `<br><br>${dataImportLimit}` : '',
                       })}
-                    </GuideParagraph>
-                  {/if}
-                  <ol
-                    class={`${dataFormat === 'geojson' ? 'mt-0' : 'mt-4'} list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt`}
-                  >
-                    <li>{@html m.guide_data_convert_step_open()}</li>
-                    <li>{@html m.guide_data_convert_step_import()}</li>
-                    {#if dataFormat === 'csv'}
-                      <li>{@html m.guide_data_convert_step_columns()}</li>
-                    {:else if dataFormat === 'xlsx'}
-                      <li>{@html m.guide_data_convert_step_spreadsheet()}</li>
+                      </GuideParagraph>
                     {/if}
-                  </ol>
-                  {#if dataFormat === 'csv'}
-                    <GuideAttachedLayout
-                      primaryWidth="shortCard"
-                      class="xl:!w-[calc(100%+28rem)]"
+                    <ol
+                      class={`${dataFormat === 'geojson' ? 'mt-0' : 'mt-4'} list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt`}
                     >
-                      <div class="space-y-4">
+                      <li>{@html m.guide_data_convert_step_open()}</li>
+                      <li>{@html m.guide_data_convert_step_import()}</li>
+                      {#if dataFormat === 'csv'}
+                        <li>{@html m.guide_data_convert_step_columns()}</li>
+                      {:else if dataFormat === 'xlsx'}
+                        <li>{@html m.guide_data_convert_step_spreadsheet()}</li>
+                      {/if}
+                    </ol>
+                    {#if dataFormat === 'csv'}
+                      <GuideAttachedLayout
+                        primaryWidth="shortCard"
+                        class="xl:!w-[calc(100%+28rem)]"
+                      >
+                        <div class="space-y-4">
+                          <GuideScreenshot
+                            src={geojsonIoCsvImportDialog}
+                            alt={m.guide_data_csv_dialog_screenshot_alt()}
+                            caption={m.guide_data_csv_dialog_screenshot_caption()}
+                            width="content"
+                          />
+                        </div>
+                        {#snippet aside()}
+                          <GuideInstructionCallout
+                            title={m.guide_data_csv_kind_title()}
+                            description={m.guide_data_csv_kind_coordinates()}
+                          >
+                            <ul
+                              class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                            >
+                              <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                              <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                              <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                            </ul>
+                          </GuideInstructionCallout>
+                        {/snippet}
+                      </GuideAttachedLayout>
+                    {:else if dataFormat === 'xlsx'}
+                      <GuideAttachedLayout
+                        primaryWidth="shortCard"
+                        class="xl:!w-[calc(100%+28rem)]"
+                      >
                         <GuideScreenshot
-                          src={geojsonIoCsvImportDialog}
-                          alt={m.guide_data_csv_dialog_screenshot_alt()}
-                          caption={m.guide_data_csv_dialog_screenshot_caption()}
+                          src={geojsonIoXlsxImportDialog}
+                          alt={m.guide_data_xlsx_dialog_screenshot_alt()}
+                          caption={m.guide_data_xlsx_dialog_screenshot_caption()}
                           width="content"
                         />
-                      </div>
-                      {#snippet aside()}
-                        <GuideInstructionCallout
-                          title={m.guide_data_csv_kind_title()}
-                          description={m.guide_data_csv_kind_coordinates()}
-                        >
-                          <ul
-                            class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                        {#snippet aside()}
+                          <GuideInstructionCallout
+                            title={m.guide_data_csv_kind_title()}
+                            description={m.guide_data_csv_kind_coordinates()}
                           >
-                            <li>{@html m.guide_data_csv_kind_wkt()}</li>
-                            <li>{@html m.guide_data_csv_kind_geojson()}</li>
-                            <li>{@html m.guide_data_csv_kind_polyline()}</li>
-                          </ul>
-                        </GuideInstructionCallout>
-                      {/snippet}
-                    </GuideAttachedLayout>
-                  {:else if dataFormat === 'xlsx'}
-                    <GuideAttachedLayout
-                      primaryWidth="shortCard"
-                      class="xl:!w-[calc(100%+28rem)]"
+                            <ul
+                              class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                            >
+                              <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                              <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                              <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                            </ul>
+                          </GuideInstructionCallout>
+                        {/snippet}
+                      </GuideAttachedLayout>
+                    {/if}
+                    <GuideScreenshot
+                      class="mt-6"
+                      src={geojsonImportScreenshot}
+                      alt={m.guide_data_geojson_imported_screenshot_alt({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                      caption={m.guide_data_geojson_imported_screenshot_caption({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                      width="content"
+                    />
+                    <ol
+                      class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
                     >
-                      <GuideScreenshot
-                        src={geojsonIoXlsxImportDialog}
-                        alt={m.guide_data_xlsx_dialog_screenshot_alt()}
-                        caption={m.guide_data_xlsx_dialog_screenshot_caption()}
-                        width="content"
-                      />
-                      {#snippet aside()}
-                        <GuideInstructionCallout
-                          title={m.guide_data_csv_kind_title()}
-                          description={m.guide_data_csv_kind_coordinates()}
-                        >
-                          <ul
-                            class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
-                          >
-                            <li>{@html m.guide_data_csv_kind_wkt()}</li>
-                            <li>{@html m.guide_data_csv_kind_geojson()}</li>
-                            <li>{@html m.guide_data_csv_kind_polyline()}</li>
-                          </ul>
-                        </GuideInstructionCallout>
-                      {/snippet}
-                    </GuideAttachedLayout>
-                  {/if}
-                  <GuideScreenshot
-                    class="mt-6"
-                    src={geojsonImportScreenshot}
-                    alt={m.guide_data_geojson_imported_screenshot_alt({
-                      region: selectedRegion?.label ?? '',
-                    })}
-                    caption={m.guide_data_geojson_imported_screenshot_caption({
-                      region: selectedRegion?.label ?? '',
-                    })}
-                    width="content"
-                  />
-                  <ol
-                    class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-                  >
-                    <li>{@html m.guide_data_geojson_step_properties()}</li>
-                    <li>{@html m.guide_data_geojson_step_geometry()}</li>
-                    <li>{@html m.guide_data_geojson_step_export()}</li>
-                  </ol>
-                </GuideSubSectionBody>
-                {#snippet aside()}
-                  <GuideInstructionCallout
-                    title={m.guide_data_geojson_callout_title()}
-                    description={m.guide_data_geojson_description()}
-                  />
-                {/snippet}
-              </GuideAttachedLayout>
-              <GuideDataReadiness
-                complete={isDataPrepared}
-                completeDescription={m.guide_data_preparation_complete_description()}
-                completeEyebrow={m.guide_data_preparation_complete_eyebrow()}
-                doneLabel={m.guide_data_preparation_done()}
-                id="data-preparation-readiness"
-                incompleteDescription={m.guide_data_preparation_readiness_description()}
-                incompleteEyebrow={m.guide_data_preparation_readiness_eyebrow()}
-                onComplete={completeDataPreparation}
-                onReset={resetDataPreparation}
-                titleId="data-preparation-readiness-title"
-              />
+                      <li>{@html m.guide_data_geojson_step_properties()}</li>
+                      <li>{@html m.guide_data_geojson_step_geometry()}</li>
+                      <li>{@html m.guide_data_geojson_step_export()}</li>
+                    </ol>
+                  </GuideSubSectionBody>
+                  {#snippet aside()}
+                    <GuideInstructionCallout
+                      title={m.guide_data_geojson_callout_title()}
+                      description={m.guide_data_geojson_description()}
+                    />
+                  {/snippet}
+                </GuideAttachedLayout>
+              </GuidePublishRequirement>
+            </div>
 
-              {#if renderer && selectedStyle}
-                <div class="mt-10 max-w-232">
+            {#if renderer && selectedStyle}
+              <div class="mt-10 max-w-232">
+                {#if llmGuidanceEnabled}
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_data_import_llm_eyebrow()}
+                    title={m.guide_data_import_llm_title()}
+                  />
+                {:else}
                   <GuideSubSectionHeader
                     eyebrow={m.guide_data_import_eyebrow()}
                     title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}
                   />
-                  <GuideSubSectionBody>
-                    <GuideParagraph
-                      class="[&_code]:rounded-sm [&_code]:border [&_code]:border-black [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
-                    >
-                      {@html m.guide_data_import_description({ path: dataPublicDirectory })}
-                    </GuideParagraph>
-                    <div class="mt-5">
-                      <GuidePreviewCodeBlock
-                        label={m.guide_data_import_code_label()}
-                        code={geoJsonImportCode}
-                        comments={geoJsonImportComments}
-                        editorIcon={selectedCodeEditor?.icon}
-                        language="typescript"
-                        variant="editor"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                        previewLabel={m.guide_code_block_preview()}
-                        showCodeLabel={m.guide_code_block_code()}
-                        expandable
-                        expandLabel={m.guide_code_block_expand()}
-                        closeLabel={m.common_close()}
-                      >
-                        {#snippet preview()}
-                          <GuideGeoJsonDataPreview
-                            label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
-                            renderer={guideRenderer ?? 'maplibre'}
-                            {openingPosition}
-                            popupAppearance={selectedStyle?.appearance ?? 'light'}
-                            {sampleDataUrl}
-                            {styleUrl}
-                            {tilejsonUrl}
-                          />
-                        {/snippet}
-                      </GuidePreviewCodeBlock>
-                    </div>
-                    <GuideParagraph class="mt-5">
-                      {@html m.guide_data_import_inspect()}
-                    </GuideParagraph>
-                  </GuideSubSectionBody>
-                </div>
-              {:else}
-                <GuideCallout class="mt-8" size="generous">
-                  <GuideParagraph
-                    >{@html m.guide_data_import_missing_preferences()}</GuideParagraph
-                  >
-                </GuideCallout>
-              {/if}
-              <GuideDataReadiness
+                {/if}
+              </div>
+            {/if}
+            <div class={renderer && selectedStyle ? 'max-w-232' : ''}>
+              <GuidePublishRequirement
                 complete={isDataAdded}
-                completeDescription={m.guide_data_readiness_complete_description()}
-                completeEyebrow={m.guide_data_readiness_complete_eyebrow()}
-                doneLabel={m.guide_data_readiness_done()}
+                completeAction={m.guide_data_readiness_done()}
+                description={m.guide_data_readiness_complete_description()}
+                eyebrow={m.guide_data_readiness_complete_eyebrow()}
                 id="data-addition-readiness"
-                incompleteDescription={m.guide_data_addition_readiness_description()}
-                incompleteEyebrow={m.guide_data_addition_readiness_eyebrow()}
                 onComplete={completeDataStep}
                 onReset={resetDataStep}
+                resetDescription={m.guide_data_readiness_reset_description()}
+                resetLabel={m.guide_readiness_reset()}
+                scrollTargetId="data-addition-readiness"
                 titleId="data-addition-readiness-title"
-              />
+              >
+                {#if renderer && selectedStyle}
+                  <div class="max-w-232">
+                    {#if llmGuidanceEnabled}
+                      <div class="mt-6">
+                        <GuideLlmPromptCard
+                          prompt={llmExistingDataPrompt}
+                          promptIcon={selectedLlmOption?.icon}
+                          references={llmGeoJsonImportReferences}
+                          title={m.guide_data_import_llm_title()}
+                        >
+                          {#snippet preview()}
+                            <GuideGeoJsonDataPreview
+                              label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                              renderer={guideRenderer ?? 'maplibre'}
+                              {openingPosition}
+                              popupAppearance={selectedStyle?.appearance ?? 'light'}
+                              {sampleDataUrl}
+                              {styleUrl}
+                              {tilejsonUrl}
+                            />
+                          {/snippet}
+                        </GuideLlmPromptCard>
+                      </div>
+                    {:else}
+                      <GuideSubSectionBody>
+                        <GuideParagraph
+                          class="[&_code]:rounded-sm [&_code]:border [&_code]:border-black [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+                        >
+                          {@html m.guide_data_import_description({ path: dataPublicDirectory })}
+                        </GuideParagraph>
+                        <div class="mt-5">
+                          <GuidePreviewCodeBlock
+                            label={m.guide_data_import_code_label()}
+                            code={geoJsonImportCode}
+                            comments={geoJsonImportComments}
+                            editorIcon={selectedCodeEditor?.icon}
+                            language="typescript"
+                            variant="editor"
+                            copyLabel={m.common_copy()}
+                            copiedLabel={m.common_copied()}
+                            previewLabel={m.guide_code_block_preview()}
+                            showCodeLabel={m.guide_code_block_code()}
+                            expandable
+                            expandLabel={m.guide_code_block_expand()}
+                            closeLabel={m.common_close()}
+                          >
+                            {#snippet preview()}
+                              <GuideGeoJsonDataPreview
+                                label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                                renderer={guideRenderer ?? 'maplibre'}
+                                {openingPosition}
+                                popupAppearance={selectedStyle?.appearance ?? 'light'}
+                                {sampleDataUrl}
+                                {styleUrl}
+                                {tilejsonUrl}
+                              />
+                            {/snippet}
+                          </GuidePreviewCodeBlock>
+                        </div>
+                        <GuideParagraph class="mt-5">
+                          {@html m.guide_data_import_inspect()}
+                        </GuideParagraph>
+                      </GuideSubSectionBody>
+                    {/if}
+                  </div>
+                {:else}
+                  <GuideCallout class="mt-8" size="generous">
+                    <GuideParagraph
+                      >{@html m.guide_data_import_missing_preferences()}</GuideParagraph
+                    >
+                  </GuideCallout>
+                {/if}
+              </GuidePublishRequirement>
             </div>
           {/if}
         {:else if dataSource === 'llm' && llmGuidanceEnabled}
@@ -3963,7 +4031,7 @@ const styleChoices = $derived.by(() =>
         />
       {/if}
 
-      {#if showPublishStep && dataSource}
+      {#if dataSource}
         <GuideSection
           id="keep-exploring"
           showBorder={false}

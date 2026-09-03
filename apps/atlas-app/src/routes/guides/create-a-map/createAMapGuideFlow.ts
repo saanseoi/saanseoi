@@ -19,7 +19,8 @@ type PrerequisiteStepInput = Pick<
 type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
   isBasemapAccountReady: boolean
   isBasemapApiKeyReady: boolean
-  isDataStepComplete: boolean
+  isDataAdded: boolean
+  isDataPrepared: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
   isMapAccessible: boolean
@@ -82,7 +83,8 @@ export function createMissingPrerequisiteQuestions({
   hosting,
   isBasemapAccountReady,
   isBasemapApiKeyReady,
-  isDataStepComplete,
+  isDataAdded,
+  isDataPrepared,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
   isMapAccessible,
@@ -91,7 +93,6 @@ export function createMissingPrerequisiteQuestions({
   isPaymentConfirmationRequired,
   isVpnRequired,
   isZedSetupGuideProvided,
-  llmGuidanceEnabled,
   llmMode,
   mobilePlatform,
   notebookLibrary,
@@ -243,10 +244,17 @@ export function createMissingPrerequisiteQuestions({
       answered: dataSource !== 'existing' || Boolean(dataFormat),
     },
     {
-      id: 'geojson',
-      label: m.guide_data_readiness_eyebrow(),
-      reminderTitle: m.guide_missing_confirmation(),
-      answered: dataSource !== 'existing' || !dataFormat || isDataStepComplete,
+      id: 'data-preparation-readiness',
+      label: m.guide_data_missing_preparation(),
+      reminderTitle: m.guide_data_preparation_reminder_title(),
+      answered: dataSource !== 'existing' || !dataFormat || isDataPrepared,
+    },
+    {
+      id: 'data-addition-readiness',
+      label: m.guide_data_missing_addition(),
+      reminderTitle: m.guide_data_addition_reminder_title(),
+      answered:
+        dataSource !== 'existing' || !dataFormat || !isDataPrepared || isDataAdded,
     },
     {
       id:

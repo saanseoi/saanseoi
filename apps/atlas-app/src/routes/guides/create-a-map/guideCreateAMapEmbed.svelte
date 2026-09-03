@@ -143,7 +143,12 @@ const llmPlacementPrompt = $derived(
     '',
     'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.',
     '',
-    'Use the iframe supplied as the implementation reference. Look up the latest official documentation for the selected site editor, then guide me one small step at a time to add it, preview it, and publish or update the page. Explain where I should paste the code, actively ask me to report progress after each important step, and remain available for troubleshooting.',
+    'Use the generated iframe below as the implementation reference. Preserve its URL, title, dimensions and attributes unless the selected platform requires a documented adjustment. Look up the latest official documentation for the selected site editor, then guide me one small step at a time to add it, preview it, and publish or update the page. Explain where I should paste the code, actively ask me to report progress after each important step, and remain available for troubleshooting.',
+    '',
+    '```html',
+    iframeCode,
+    '```',
+    '',
     platform === 'wordpress'
       ? 'Ask which WordPress I use if it is not already clear. Warn that WordPress.com on a free plan may not allow iframe embeds; use the official WordPress guidance for the plan and editor I have.'
       : platform === 'other'
