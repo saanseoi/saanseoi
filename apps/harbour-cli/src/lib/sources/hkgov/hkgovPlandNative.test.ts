@@ -25,13 +25,19 @@ const TPU_ARCHIVES = {
   '2021': 'pland_rcd_1634022783366_65050',
 } as const
 
+const TPU_ARCHIVE_SLOTS = ['2023-Q4', '2024-Q3', '2025-Q3'] as const
+
+const ORIGINAL_NATIVE_FEATURE_COUNTS = {
+  '2001': 4814,
+  '2006': 4977,
+  '2011': 4993,
+  '2016': 5034,
+  '2021': 5088,
+} as const
+
 describe('Planning Department native TPU SHP intake', () => {
-  test('matches historical GeoJSON planning-cell coverage after publisher duplicate removal', async () => {
+  test('accepts original and repackaged archives with equivalent planning-cell coverage', async () => {
     for (const [year, datasetId] of Object.entries(TPU_ARCHIVES)) {
-      const native = await readHkgovPlandTpuNativeShpZip(
-        resolve(REPO_ROOT, 'data/hkgov/csdi/archive', datasetId, '2023-Q4/source.zip'),
-        year,
-      )
       const baseline = JSON.parse(
         await readFile(
           resolve(
@@ -41,9 +47,6 @@ describe('Planning Department native TPU SHP intake', () => {
           'utf8',
         ),
       ) as { features: Array<{ properties: Record<string, unknown> }> }
-      const nativeFeatures = native.features as Array<{
-        properties: Record<string, unknown>
-      }>
       const key = (feature: { properties: Record<string, unknown> }) =>
         [
           feature.properties.PPU,
@@ -52,12 +55,28 @@ describe('Planning Department native TPU SHP intake', () => {
           year === '2021' ? feature.properties.Subunit : feature.properties.SB_VC,
         ].join(':')
 
-      expect(nativeFeatures.length).toBeGreaterThanOrEqual(baseline.features.length)
-      expect(new Set(nativeFeatures.map(key))).toEqual(
-        new Set(baseline.features.map(key)),
-      )
+      for (const slot of TPU_ARCHIVE_SLOTS) {
+        const native = await readHkgovPlandTpuNativeShpZip(
+          resolve(REPO_ROOT, 'data/hkgov/csdi/archive', datasetId, slot, 'source.zip'),
+          year,
+        )
+        const nativeFeatures = native.features as Array<{
+          properties: Record<string, unknown>
+        }>
+
+        expect(nativeFeatures).toHaveLength(
+          slot === '2023-Q4'
+            ? ORIGINAL_NATIVE_FEATURE_COUNTS[
+                year as keyof typeof ORIGINAL_NATIVE_FEATURE_COUNTS
+              ]
+            : baseline.features.length,
+        )
+        expect(new Set(nativeFeatures.map(key))).toEqual(
+          new Set(baseline.features.map(key)),
+        )
+      }
     }
-  })
+  }, 30_000)
 
   test('canonicalises native 2021 non-noded aggregate boundaries', async () => {
     const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-pland-2021-'))

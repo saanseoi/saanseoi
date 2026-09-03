@@ -36,24 +36,26 @@ const EXPECTED_SOURCE_FEATURE_COUNTS: Record<string, number> = {
   '2021': 4916,
 }
 const EXPECTED_NATIVE_SOURCE_FEATURE_COUNTS: Record<string, readonly number[]> = {
-  '2001': [4815],
-  '2006': [4977],
-  '2011': [4993],
-  '2016': [5034],
-  // The archived 2021 package carries duplicate cells; current source
-  // packages already omit them.
+  // CSDI republished every historical native SHP package without its duplicate
+  // cells after the first archived slot. Both deliveries carry the same
+  // provider-cell key coverage and are valid publisher artefacts.
+  '2001': [4636, 4815],
+  '2006': [4800, 4977],
+  '2011': [4815, 4993],
+  '2016': [4863, 5034],
   '2021': [4916, 5088],
 }
 const EXPECTED_NATIVE_NORMALISED_SOURCE_FEATURE_COUNTS: Record<
   string,
   readonly number[]
 > = {
-  // 2001 has one all-zero polygon sentinel; the remaining duplicate cells are
-  // intentionally retained for geometry union at their planning level.
-  '2001': [4814],
-  '2006': [4977],
-  '2011': [4993],
-  '2016': [5034],
+  // The original 2001 package has one all-zero polygon sentinel; repeated
+  // cells remain intentionally retained for geometry union at their planning
+  // level. Later repackaged artefacts have already removed both kinds of row.
+  '2001': [4636, 4814],
+  '2006': [4800, 4977],
+  '2011': [4815, 4993],
+  '2016': [4863, 5034],
   '2021': [4916, 5088],
 }
 
