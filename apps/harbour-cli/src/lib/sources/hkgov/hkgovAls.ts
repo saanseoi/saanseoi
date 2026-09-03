@@ -38,6 +38,7 @@ import {
   normaliseHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
 } from './hkgovAlsPremiseNormalisation.ts'
+import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/stats'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../../../harbour-api/wrangler.jsonc',
@@ -87,9 +88,13 @@ type PrepareHkgovAlsOptions = {
 type DivisionLookupMaps = {
   areaByEn: Map<string, string>
   areaByZh: Map<string, string>
+  ambiguousAreaEn: Set<string>
+  ambiguousAreaZh: Set<string>
   countryId: string | null
   districtByEn: Map<string, string>
   districtByZh: Map<string, string>
+  ambiguousDistrictEn: Set<string>
+  ambiguousDistrictZh: Set<string>
   snapshotId: string
 }
 
@@ -212,7 +217,9 @@ type PreparedHkgovAlsRow = {
   sources: string
   divisionSnapshotId: string
   areaId: string | null
+  areaMatchStatus: HkgovAlsDivisionMatchStatus
   districtId: string | null
+  districtMatchStatus: HkgovAlsDivisionMatchStatus
   countryId: string | null
   areaNameEn: string | null
   areaNameZhHant: string | null
@@ -287,6 +294,23 @@ type PreparedHkgovAlsResult = {
   processingActions: ReleaseProcessingAction[]
   sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   sourceFileCount: number
+  divisionQuality: HkgovAlsDivisionQuality
+}
+
+export type HkgovAlsDivisionMatchStatus = 'ambiguous' | 'matched' | 'unmatched'
+
+export type HkgovAlsDivisionQualityIssue = {
+  address: string
+  areaName: string | null
+  areaStatus: HkgovAlsDivisionMatchStatus
+  districtName: string | null
+  districtStatus: HkgovAlsDivisionMatchStatus
+  sourceFeatureIndexOneBased: number
+  sourceFile: string
+}
+
+export type HkgovAlsDivisionQuality = AddressDivisionQualityCounts & {
+  issues: HkgovAlsDivisionQualityIssue[]
 }
 
 type DivisionLookupSource =
@@ -436,6 +460,7 @@ export async function prepareHkgovAlsAddressParquet(
   const resolvedIdDistinctRows = consolidateRowsSharingResolvedId(rows)
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
   assertUniquePreparedRowIds(rows)
+  const divisionQuality = buildHkgovAlsDivisionQuality(rows)
 
   await mkdir(dirname(outputFile), { recursive: true })
   if (options.writeOutput !== false)
@@ -700,6 +725,7 @@ export async function prepareHkgovAlsAddressParquet(
     }),
     sourceDuplicateFeatureGroups,
     sourceFileCount: inputFiles.length,
+    divisionQuality,
   }
 }
 
@@ -1181,6 +1207,56 @@ function assertUniquePreparedRowIds(rows: PreparedHkgovAlsRow[]) {
   }
 }
 
+export function buildHkgovAlsDivisionQuality(
+  rows: readonly Pick<
+    PreparedHkgovAlsRow,
+    | 'areaMatchStatus'
+    | 'areaNameEn'
+    | 'areaNameZhHant'
+    | 'districtMatchStatus'
+    | 'districtNameEn'
+    | 'districtNameZhHant'
+    | 'enFormattedAddress'
+    | 'sourceFeatureIndexOneBased'
+    | 'sourceFile'
+    | 'zhHantFormattedAddress'
+  >[],
+): HkgovAlsDivisionQuality {
+  const quality: HkgovAlsDivisionQuality = {
+    ambiguous_area_count: 0,
+    ambiguous_district_count: 0,
+    unmatched_area_count: 0,
+    unmatched_district_count: 0,
+    issues: [],
+  }
+
+  for (const row of rows) {
+    if (row.areaMatchStatus === 'ambiguous') quality.ambiguous_area_count += 1
+    if (row.areaMatchStatus === 'unmatched') quality.unmatched_area_count += 1
+    if (row.districtMatchStatus === 'ambiguous') quality.ambiguous_district_count += 1
+    if (row.districtMatchStatus === 'unmatched') quality.unmatched_district_count += 1
+
+    if (row.areaMatchStatus === 'matched' && row.districtMatchStatus === 'matched') {
+      continue
+    }
+
+    quality.issues.push({
+      address:
+        row.enFormattedAddress ??
+        row.zhHantFormattedAddress ??
+        'Unformatted ALS address',
+      areaName: row.areaNameEn ?? row.areaNameZhHant,
+      areaStatus: row.areaMatchStatus,
+      districtName: row.districtNameEn ?? row.districtNameZhHant,
+      districtStatus: row.districtMatchStatus,
+      sourceFeatureIndexOneBased: row.sourceFeatureIndexOneBased,
+      sourceFile: row.sourceFile,
+    })
+  }
+
+  return quality
+}
+
 function normaliseHkgovAlsFeature(
   feature: HkgovAlsFeature,
   sourceFile: string,
@@ -1289,12 +1365,24 @@ function normaliseHkgovAlsFeature(
   const areaNameZhHant = resolveAreaNameZh(zh.Region)
   const districtNameEn = asOptionalString(en.EngDistrict)
   const districtNameZhHant = asOptionalString(zh.ChiDistrict)
-  const areaId =
-    resolveMappedId(divisionMaps.areaByEn, areaNameEn) ??
-    resolveMappedId(divisionMaps.areaByZh, areaNameZhHant)
-  const districtId =
-    resolveMappedId(divisionMaps.districtByEn, districtNameEn) ??
-    resolveMappedId(divisionMaps.districtByZh, districtNameZhHant)
+  const areaMatch = resolveMappedDivision({
+    byEn: divisionMaps.areaByEn,
+    byZh: divisionMaps.areaByZh,
+    ambiguousEn: divisionMaps.ambiguousAreaEn,
+    ambiguousZh: divisionMaps.ambiguousAreaZh,
+    en: areaNameEn,
+    zh: areaNameZhHant,
+  })
+  const districtMatch = resolveMappedDivision({
+    byEn: divisionMaps.districtByEn,
+    byZh: divisionMaps.districtByZh,
+    ambiguousEn: divisionMaps.ambiguousDistrictEn,
+    ambiguousZh: divisionMaps.ambiguousDistrictZh,
+    en: districtNameEn,
+    zh: districtNameZhHant,
+  })
+  const areaId = areaMatch.id
+  const districtId = districtMatch.id
   const coordinates =
     feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)
       ? feature.geometry.coordinates
@@ -1382,7 +1470,9 @@ function normaliseHkgovAlsFeature(
     sources,
     divisionSnapshotId: divisionMaps.snapshotId,
     areaId,
+    areaMatchStatus: areaMatch.status,
     districtId,
+    districtMatchStatus: districtMatch.status,
     countryId: divisionMaps.countryId,
     areaNameEn,
     areaNameZhHant,
@@ -1819,8 +1909,12 @@ type DivisionLookupRow = {
 function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookupMaps {
   const areaByEn = new Map<string, string>()
   const areaByZh = new Map<string, string>()
+  const ambiguousAreaEn = new Set<string>()
+  const ambiguousAreaZh = new Set<string>()
   const districtByEn = new Map<string, string>()
   const districtByZh = new Map<string, string>()
+  const ambiguousDistrictEn = new Set<string>()
+  const ambiguousDistrictZh = new Set<string>()
   let countryId: string | null = null
   const snapshotId = rows[0]?.snapshotId ?? null
 
@@ -1835,21 +1929,41 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
 
     if (row.level === 1 || row.type === 'area') {
       if (row.locale === 'en') {
-        areaByEn.set(normaliseEnKey(row.name), row.id)
+        addDivisionLookupEntry(
+          areaByEn,
+          ambiguousAreaEn,
+          normaliseEnKey(row.name),
+          row.id,
+        )
       }
 
       if (row.locale === 'zh-hant') {
-        areaByZh.set(normaliseZhKey(row.name), row.id)
+        addDivisionLookupEntry(
+          areaByZh,
+          ambiguousAreaZh,
+          normaliseZhKey(row.name),
+          row.id,
+        )
       }
     }
 
     if (row.level === 2 || row.type === 'district') {
       if (row.locale === 'en') {
-        districtByEn.set(normaliseEnKey(row.name), row.id)
+        addDivisionLookupEntry(
+          districtByEn,
+          ambiguousDistrictEn,
+          normaliseEnKey(row.name),
+          row.id,
+        )
       }
 
       if (row.locale === 'zh-hant') {
-        districtByZh.set(normaliseZhKey(row.name), row.id)
+        addDivisionLookupEntry(
+          districtByZh,
+          ambiguousDistrictZh,
+          normaliseZhKey(row.name),
+          row.id,
+        )
       }
     }
 
@@ -1865,19 +1979,67 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   return {
     areaByEn,
     areaByZh,
+    ambiguousAreaEn,
+    ambiguousAreaZh,
     countryId,
     districtByEn,
     districtByZh,
+    ambiguousDistrictEn,
+    ambiguousDistrictZh,
     snapshotId,
   }
 }
 
-function resolveMappedId(map: Map<string, string>, name: string | null) {
-  if (!name) {
-    return null
+function addDivisionLookupEntry(
+  map: Map<string, string>,
+  ambiguousKeys: Set<string>,
+  key: string,
+  id: string,
+) {
+  if (ambiguousKeys.has(key)) return
+  const existingId = map.get(key)
+  if (existingId && existingId !== id) {
+    map.delete(key)
+    ambiguousKeys.add(key)
+    return
+  }
+  map.set(key, id)
+}
+
+function resolveMappedDivision(input: {
+  ambiguousEn: Set<string>
+  ambiguousZh: Set<string>
+  byEn: Map<string, string>
+  byZh: Map<string, string>
+  en: string | null
+  zh: string | null
+}) {
+  const ids = new Set<string>()
+  let ambiguous = false
+
+  if (input.en) {
+    const key = normaliseEnKey(input.en)
+    const id = input.byEn.get(key)
+    if (id) ids.add(id)
+    if (input.ambiguousEn.has(key)) ambiguous = true
+  }
+  if (input.zh) {
+    const key = normaliseZhKey(input.zh)
+    const id = input.byZh.get(key)
+    if (id) ids.add(id)
+    if (input.ambiguousZh.has(key)) ambiguous = true
   }
 
-  return map.get(normaliseEnKey(name)) ?? map.get(normaliseZhKey(name)) ?? null
+  if (ids.size > 1 || ambiguous) {
+    // Do not let one language silently choose a row when another language or
+    // the snapshot itself indicates that the label is ambiguous.
+    return { id: null, status: 'ambiguous' as const }
+  }
+
+  const id = ids.values().next().value ?? null
+  return id
+    ? { id, status: 'matched' as const }
+    : { id: null, status: 'unmatched' as const }
 }
 
 function resolveAreaNameEn(value: unknown) {

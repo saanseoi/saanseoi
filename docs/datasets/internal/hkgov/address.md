@@ -117,6 +117,20 @@ separate coverage measures: village-addressed premises do not imply that a stree
 was supplied. The district counts are keyed by canonical division ID so Atlas can join
 them to the selected HAD district-area geometry without relying on display names.
 
+Division linkage quality is also recorded under the release `quality` metric. The
+`unmatched_area_count` and `unmatched_district_count` rows identify ALS premises whose
+English or Traditional Chinese labels did not resolve in the selected Overture snapshot.
+`ambiguous_area_count` and `ambiguous_district_count` identify labels that matched
+multiple canonical IDs; those links are left null rather than guessed. The preflight
+review prints every affected premise with its source file, feature number, label, and
+match status. API release-set stats derive the unmatched counts from null canonical
+links when source-level diagnostics are not available.
+
+The ALS adapter currently links only country, area, and district. Although the canonical
+address schema supports town, macrohood, neighbourhood, village, hamlet, and microhood
+references, ALS does not currently provide those divisions as canonical links. A village
+or location name in the formatted address is an address component, not a division link.
+
 At an annual history-shard boundary, lifecycle churn is compared with the current
 records from earlier shards as well as the new shard. The first release of a year
 therefore reports changes from the prior release rather than treating the whole source

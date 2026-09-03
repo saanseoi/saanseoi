@@ -19,7 +19,10 @@ import {
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
-import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
+import {
+  prepareHkgovAlsAddressParquet,
+  type HkgovAlsDivisionQuality,
+} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import type {
@@ -78,6 +81,13 @@ export async function runHkgovAlsPrepCommand(
     sourceVersion,
     target,
   })
+
+  if (result.divisionQuality.issues.length > 0) {
+    note(
+      formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
+      'ALS DIVISION LINKAGE ISSUES',
+    )
+  }
 
   if (result.sourceDuplicateFeatureGroups.length > 0) {
     note(
@@ -315,6 +325,7 @@ export async function runHkgovAlsIngestCommand(
         forceUpload: Boolean(args.options.force),
         invocationCwd: INVOCATION_CWD,
         processingActions: result.processingActions,
+        quality: result.divisionQuality,
         printUsage,
         skipConfirm: true,
         skipSnapshotCleanup: Boolean(args.options['skip-cleanup']),
@@ -627,6 +638,12 @@ async function reviewHkgovAlsIngest(args: {
       target: args.target,
       writeOutput: false,
     })
+    if (result.divisionQuality.issues.length > 0) {
+      note(
+        formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
+        'ALS DIVISION LINKAGE ISSUES',
+      )
+    }
     for (const candidate of result.driftCandidates) {
       const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
       driftCandidates.add(key)
@@ -1018,6 +1035,27 @@ export function formatSourceDuplicateSummary(
     formatField('sourceFeaturesInvolved', String(sourceFeatures)),
     formatField('sourceFeaturesRemoved', String(sourceFeatures - groups.length)),
     formatField('sourceFilesInvolved', String(sourceFiles.size)),
+  ].join('\n')
+}
+
+function formatAlsDivisionQualitySummary(
+  sourceVersion: string,
+  quality: HkgovAlsDivisionQuality,
+) {
+  const issues = quality.issues.map(issue => {
+    const area = `${issue.areaStatus}: ${issue.areaName ?? '—'}`
+    const district = `${issue.districtStatus}: ${issue.districtName ?? '—'}`
+    return `- ${issue.address} | area ${area} | district ${district} | ${issue.sourceFile} #${issue.sourceFeatureIndexOneBased}`
+  })
+
+  return [
+    `\u001B[31m${sourceVersion}\u001B[39m`,
+    formatField('unmatchedArea', String(quality.unmatched_area_count)),
+    formatField('ambiguousArea', String(quality.ambiguous_area_count)),
+    formatField('unmatchedDistrict', String(quality.unmatched_district_count)),
+    formatField('ambiguousDistrict', String(quality.ambiguous_district_count)),
+    '',
+    ...issues,
   ].join('\n')
 }
 

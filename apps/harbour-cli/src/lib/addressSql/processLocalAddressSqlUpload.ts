@@ -38,7 +38,10 @@ import {
   EMPTY_ADDRESS_PIPELINE_STATS,
   type AddressPipelineMessage,
 } from '@repo/core/pipeline/services/addressPipeline/types'
-import { buildAddressReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+import {
+  buildAddressReleaseStatsRows,
+  type AddressDivisionQualityCounts,
+} from '@repo/core/pipeline/services/stats'
 import {
   buildAddressBaseHashInput,
   buildMatchKey,
@@ -126,6 +129,7 @@ export async function processLocalAddressSqlUpload(
   options: {
     /** Publish source data and snapshots, but leave the API release set draft. */
     deferApiReleaseSet?: boolean
+    quality?: AddressDivisionQualityCounts
     processingActions?: ReleaseProcessingAction[]
     skipSnapshotCleanup?: boolean
   } = {},
@@ -553,7 +557,7 @@ export async function processLocalAddressSqlUpload(
     await replaceDatasetStats(
       dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
       releaseId,
-      buildAddressReleaseStatsRows(addressStats),
+      buildAddressReleaseStatsRows({ ...addressStats, quality: options.quality }),
     )
     const finalMessageWithMeta = await writeAddressReleaseMetaSqlFile(
       dbContext.metaDb,
@@ -600,6 +604,7 @@ export async function processLocalAddressSqlUpload(
         releaseCode,
         releaseId,
         target: resolveApiReleaseSetStatsTarget(publishResult),
+        addressQuality: options.quality,
       })
     }
     await writeAddressCurrentLookupCache(
