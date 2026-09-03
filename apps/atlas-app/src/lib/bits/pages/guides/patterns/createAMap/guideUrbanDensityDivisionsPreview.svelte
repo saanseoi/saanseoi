@@ -6,6 +6,11 @@ import { urbanDensityDivisionsResponse } from './urbanDensityExampleData.ts'
 const divisions = urbanDensityDivisionsResponse.data
 const included = urbanDensityDivisionsResponse.included
 
+type Geometry = Extract<
+  (typeof included)[number],
+  { type: 'division-areas' }
+>['attributes']['geometry']
+
 let selectedDivisionCode = $state(divisions[0]?.attributes.divisionCode ?? '')
 let selectedIncludedId = $state(included[0]?.id ?? '')
 
@@ -20,8 +25,53 @@ const areaName = (division: (typeof divisions)[number]) =>
   division.relationships.hierarchy.data.find(item => item.meta.subType === 'area')?.meta
     .name ?? '—'
 
+const isGeometryResource = (
+  resource: (typeof included)[number],
+): resource is Extract<(typeof included)[number], { type: 'division-areas' }> =>
+  resource.type === 'division-areas'
+
+const divisionName = (code: string) =>
+  divisions.find(division => division.attributes.divisionCode === code)?.attributes.i18n
+    .en.name ?? code
+
 const includedLabel = (resource: (typeof included)[number]) =>
-  resource.attributes.divisionCode ?? resource.attributes.type.toUpperCase()
+  isGeometryResource(resource)
+    ? resource.attributes.divisionCode
+    : (resource.attributes.divisionCode ?? resource.attributes.type.toUpperCase())
+
+const geometryPath = (geometry: Geometry) => {
+  const rings =
+    geometry.type === 'Polygon' ? geometry.coordinates : geometry.coordinates.flat()
+  const positions = rings.flat()
+  const longitudes = positions.map(position => position[0])
+  const latitudes = positions.map(position => position[1])
+  const minLongitude = Math.min(...longitudes)
+  const maxLongitude = Math.max(...longitudes)
+  const minLatitude = Math.min(...latitudes)
+  const maxLatitude = Math.max(...latitudes)
+  const width = 72
+  const height = 42
+  const padding = 4
+  const scale = Math.min(
+    (width - padding * 2) / Math.max(maxLongitude - minLongitude, 0.000001),
+    (height - padding * 2) / Math.max(maxLatitude - minLatitude, 0.000001),
+  )
+  const offsetX = (width - (maxLongitude - minLongitude) * scale) / 2
+  const offsetY = (height - (maxLatitude - minLatitude) * scale) / 2
+
+  return rings
+    .map(
+      ring =>
+        `${ring
+          .map(([longitude, latitude], index) => {
+            const x = offsetX + (longitude - minLongitude) * scale
+            const y = offsetY + (maxLatitude - latitude) * scale
+            return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`
+          })
+          .join(' ')} Z`,
+    )
+    .join(' ')
+}
 </script>
 
 <div
@@ -134,6 +184,8 @@ const includedLabel = (resource: (typeof included)[number]) =>
               <dd>{selectedDivision.attributes.divisionCode}</dd>
               <dt class="text-white/40">i18n.en.name</dt>
               <dd>{selectedDivision.attributes.i18n.en.name}</dd>
+              <dt class="text-white/40">parent division</dt>
+              <dd>{areaName(selectedDivision)}</dd>
             </dl>
           </article>
         {/if}
@@ -161,16 +213,35 @@ const includedLabel = (resource: (typeof included)[number]) =>
               class="border px-2 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-[#80e7c7] focus-visible:outline-none {selectedIncludedId === resource.id
                 ? 'border-[#80e7c7] bg-[#80e7c7] text-[#10151a]'
                 : 'border-white/15 bg-black/15 text-white/75 hover:border-[#80e7c7]/70 hover:text-[#80e7c7]'}"
-              aria-label={`${resource.attributes.i18n.en.name} (${includedLabel(resource)})`}
+              aria-label={`${isGeometryResource(resource) ? divisionName(resource.attributes.divisionCode) : resource.attributes.i18n.en.name} (${includedLabel(resource)})`}
               aria-pressed={selectedIncludedId === resource.id}
               onclick={() => (selectedIncludedId = resource.id)}
             >
+              {#if isGeometryResource(resource)}
+                <svg
+                  class="mx-auto mb-2 h-10 w-full max-w-[4.5rem]"
+                  viewBox="0 0 72 42"
+                  role="img"
+                  aria-label={`${divisionName(resource.attributes.divisionCode)} geometry`}
+                >
+                  <path
+                    d={geometryPath(resource.attributes.geometry)}
+                    fill="currentColor"
+                    fill-opacity="0.32"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              {/if}
               <span class="block font-semibold tracking-[0.08em]"
                 >{includedLabel(resource)}</span
               >
-              <span class="mt-1 block truncate text-[10px] opacity-65"
-                >{resource.attributes.i18n.en.name}</span
-              >
+              <span class="mt-1 block truncate text-[10px] opacity-65">
+                {isGeometryResource(resource)
+                  ? divisionName(resource.attributes.divisionCode)
+                  : resource.attributes.i18n.en.name}
+              </span>
             </button>
           {/each}
         </div>
@@ -188,7 +259,9 @@ const includedLabel = (resource: (typeof included)[number]) =>
                   {includedLabel(selectedIncluded)}
                 </p>
                 <p class="mt-1 text-white/55">
-                  {selectedIncluded.attributes.i18n.en.name}
+                  {isGeometryResource(selectedIncluded)
+                    ? divisionName(selectedIncluded.attributes.divisionCode)
+                    : selectedIncluded.attributes.i18n.en.name}
                 </p>
               </div>
               <span class="text-[10px] tracking-[0.08em] text-white/45 uppercase"
@@ -196,17 +269,41 @@ const includedLabel = (resource: (typeof included)[number]) =>
               >
             </div>
             <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-              <dt class="text-white/40">level</dt>
-              <dd>{selectedIncluded.attributes.level}</dd>
-              <dt class="text-white/40">type</dt>
-              <dd>{selectedIncluded.attributes.type}</dd>
-              {#if selectedIncluded.attributes.divisionCode}
-                <dt class="text-white/40">divisionCode</dt>
-                <dd>{selectedIncluded.attributes.divisionCode}</dd>
+              {#if isGeometryResource(selectedIncluded)}
+                <dt class="text-white/40">geometry</dt>
+                <dd>{selectedIncluded.attributes.geometry.type}</dd>
+                <dt class="text-white/40">divisionId</dt>
+                <dd>{selectedIncluded.attributes.divisionId}</dd>
+              {:else}
+                <dt class="text-white/40">level</dt>
+                <dd>{selectedIncluded.attributes.level}</dd>
+                <dt class="text-white/40">type</dt>
+                <dd>{selectedIncluded.attributes.type}</dd>
+                {#if selectedIncluded.attributes.divisionCode}
+                  <dt class="text-white/40">divisionCode</dt>
+                  <dd>{selectedIncluded.attributes.divisionCode}</dd>
+                {/if}
+                <dt class="text-white/40">i18n.en.name</dt>
+                <dd>{selectedIncluded.attributes.i18n.en.name}</dd>
               {/if}
-              <dt class="text-white/40">i18n.en.name</dt>
-              <dd>{selectedIncluded.attributes.i18n.en.name}</dd>
             </dl>
+            {#if isGeometryResource(selectedIncluded)}
+              <svg
+                class="mt-3 h-20 w-full"
+                viewBox="0 0 72 42"
+                role="img"
+                aria-label={`${divisionName(selectedIncluded.attributes.divisionCode)} geometry`}
+              >
+                <path
+                  d={geometryPath(selectedIncluded.attributes.geometry)}
+                  fill="#80e7c7"
+                  fill-opacity="0.32"
+                  stroke="#80e7c7"
+                  stroke-width="1.2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            {/if}
           </article>
         {/if}
       </section>

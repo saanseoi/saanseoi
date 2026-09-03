@@ -36,7 +36,6 @@ import {
   GuidePaymentWarning,
   GuidePlatformSelection,
   GuidePreviewCodeBlock,
-  GuideReadinessPanel,
   GuideReference,
   GuideRoot,
   GuideScreenshot,
@@ -140,6 +139,7 @@ import {
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
   type CreateAMapDataPromptStep,
+  type CreateAMapDataPromptReferences,
   type CreateAMapLlmPromptState,
 } from './createAMapLlmPrompt'
 
@@ -409,10 +409,6 @@ $effect(() => {
     usingExistingBasemapApiKey = false
   }
 })
-
-const resetDataStep = () => {
-  completedDataKey = undefined
-}
 
 const completeLlmReadiness = () => {
   if (!llmReadinessKey) return
@@ -1487,7 +1483,6 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     isLlmReadinessComplete,
     isBasemapAccountReady: Boolean(page.data.user),
     isBasemapApiKeyReady: hasBasemapApiKey,
-    isDataStepComplete,
     isMapAccessible,
     isMapboxTokenConfigured: mapboxTokenConfigured,
     isPaymentConfirmed,
@@ -1653,59 +1648,6 @@ const agenticHandoverPrompt = $derived(
 const chatHandoverPrompt = $derived(
   createAMapChatHandoverPrompt(llmPromptState, guideUrl, guideLlmInstructionsUrl),
 )
-// 3. Progressive prompts for a coding agent as the guide advances.
-const agenticSectionPrompts = $derived({
-  prerequisites: createAMapAgenticSectionPrompt(llmPromptState, 'prerequisites'),
-  render: createAMapAgenticSectionPrompt(llmPromptState, 'render'),
-  basemap: createAMapAgenticSectionPrompt(llmPromptState, 'basemap'),
-  style: createAMapAgenticSectionPrompt(llmPromptState, 'style'),
-  data: createAMapAgenticSectionPrompt(llmPromptState, 'data'),
-  publish: createAMapAgenticSectionPrompt(llmPromptState, 'publish'),
-})
-// 4. Progressive prompts for a web chat as the guide advances.
-const chatSectionPrompts = $derived({
-  prerequisites: createAMapChatSectionPrompt(llmPromptState, 'prerequisites'),
-  render: createAMapChatSectionPrompt(llmPromptState, 'render'),
-  basemap: createAMapChatSectionPrompt(llmPromptState, 'basemap'),
-  style: createAMapChatSectionPrompt(llmPromptState, 'style'),
-  data: createAMapChatSectionPrompt(llmPromptState, 'data'),
-  publish: createAMapChatSectionPrompt(llmPromptState, 'publish'),
-})
-const progressiveSectionPrompts = $derived(
-  aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
-)
-const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
-  fetchStats: createAMapAgenticDataStepPrompt(llmPromptState, 'fetchStats'),
-  calculateDensity: createAMapAgenticDataStepPrompt(llmPromptState, 'calculateDensity'),
-  addStatsToMap: createAMapAgenticDataStepPrompt(llmPromptState, 'addStatsToMap'),
-  findUnliveableLand: createAMapAgenticDataStepPrompt(
-    llmPromptState,
-    'findUnliveableLand',
-  ),
-  calculateLiveableArea: createAMapAgenticDataStepPrompt(
-    llmPromptState,
-    'calculateLiveableArea',
-  ),
-  finaliseMap: createAMapAgenticDataStepPrompt(llmPromptState, 'finaliseMap'),
-})
-const chatDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
-  fetchStats: createAMapChatDataStepPrompt(llmPromptState, 'fetchStats'),
-  calculateDensity: createAMapChatDataStepPrompt(llmPromptState, 'calculateDensity'),
-  addStatsToMap: createAMapChatDataStepPrompt(llmPromptState, 'addStatsToMap'),
-  findUnliveableLand: createAMapChatDataStepPrompt(
-    llmPromptState,
-    'findUnliveableLand',
-  ),
-  calculateLiveableArea: createAMapChatDataStepPrompt(
-    llmPromptState,
-    'calculateLiveableArea',
-  ),
-  finaliseMap: createAMapChatDataStepPrompt(llmPromptState, 'finaliseMap'),
-})
-const progressiveDataStepPrompts = $derived(
-  aiAccess === 'agentic' ? agenticDataStepPrompts : chatDataStepPrompts,
-)
-
 const guideDecisions = $derived.by(() => {
   locale
   return [
@@ -2207,6 +2149,112 @@ const llmUrbanDensityReferences = $derived.by(
     }
   },
 )
+const llmUrbanDensityDataStepReferences = $derived<CreateAMapDataPromptReferences>({
+  fetchStats: llmUrbanDensityReferences.stats,
+  calculateDensity: llmUrbanDensityReferences.calculation,
+  addStatsToMap: llmUrbanDensityReferences.metrics,
+  findUnliveableLand: llmUrbanDensityReferences.map,
+  calculateLiveableArea: llmUrbanDensityReferences.liveable,
+  finaliseMap: llmUrbanDensityReferences.final,
+})
+
+// 3. Progressive prompts for a coding agent as the guide advances.
+const agenticSectionPrompts = $derived({
+  prerequisites: createAMapAgenticSectionPrompt(llmPromptState, 'prerequisites'),
+  render: createAMapAgenticSectionPrompt(llmPromptState, 'render'),
+  basemap: createAMapAgenticSectionPrompt(llmPromptState, 'basemap'),
+  style: createAMapAgenticSectionPrompt(llmPromptState, 'style'),
+  data: createAMapAgenticSectionPrompt(
+    llmPromptState,
+    'data',
+    llmUrbanDensityDataStepReferences,
+  ),
+  publish: createAMapAgenticSectionPrompt(llmPromptState, 'publish'),
+})
+// 4. Progressive prompts for a web chat as the guide advances.
+const chatSectionPrompts = $derived({
+  prerequisites: createAMapChatSectionPrompt(llmPromptState, 'prerequisites'),
+  render: createAMapChatSectionPrompt(llmPromptState, 'render'),
+  basemap: createAMapChatSectionPrompt(llmPromptState, 'basemap'),
+  style: createAMapChatSectionPrompt(llmPromptState, 'style'),
+  data: createAMapChatSectionPrompt(
+    llmPromptState,
+    'data',
+    llmUrbanDensityDataStepReferences,
+  ),
+  publish: createAMapChatSectionPrompt(llmPromptState, 'publish'),
+})
+const progressiveSectionPrompts = $derived(
+  aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
+)
+const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'fetchStats',
+    llmUrbanDensityDataStepReferences.fetchStats,
+  ),
+  calculateDensity: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'calculateDensity',
+    llmUrbanDensityDataStepReferences.calculateDensity,
+  ),
+  addStatsToMap: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'addStatsToMap',
+    llmUrbanDensityDataStepReferences.addStatsToMap,
+  ),
+  findUnliveableLand: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+    llmUrbanDensityDataStepReferences.findUnliveableLand,
+  ),
+  calculateLiveableArea: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+    llmUrbanDensityDataStepReferences.calculateLiveableArea,
+  ),
+  finaliseMap: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'finaliseMap',
+    llmUrbanDensityDataStepReferences.finaliseMap,
+  ),
+})
+const chatDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'fetchStats',
+    llmUrbanDensityDataStepReferences.fetchStats,
+  ),
+  calculateDensity: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'calculateDensity',
+    llmUrbanDensityDataStepReferences.calculateDensity,
+  ),
+  addStatsToMap: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'addStatsToMap',
+    llmUrbanDensityDataStepReferences.addStatsToMap,
+  ),
+  findUnliveableLand: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+    llmUrbanDensityDataStepReferences.findUnliveableLand,
+  ),
+  calculateLiveableArea: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+    llmUrbanDensityDataStepReferences.calculateLiveableArea,
+  ),
+  finaliseMap: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'finaliseMap',
+    llmUrbanDensityDataStepReferences.finaliseMap,
+  ),
+})
+const progressiveDataStepPrompts = $derived(
+  aiAccess === 'agentic' ? agenticDataStepPrompts : chatDataStepPrompts,
+)
+
 const geoJsonImportOmittedLines = $derived(
   styleEditCode ? styleEditCode.split('\n').length : 0,
 )
@@ -3414,18 +3462,14 @@ const styleChoices = $derived.by(() =>
           <div class="mt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_setup_llm_eyebrow()}
-              title={m.guide_renderer_setup_title({
-                library: selectedMapLibrary?.label ?? '',
-              })}
+              title={m.guide_style_setup_title()}
             />
             <div class="mt-6 max-w-232">
               <GuideLlmPromptCard
                 prompt={progressiveSectionPrompts.style}
                 promptIcon={selectedLlmOption?.icon}
                 references={llmStyleReferences}
-                title={m.guide_renderer_setup_title({
-                  library: selectedMapLibrary?.label ?? '',
-                })}
+                title={m.guide_style_setup_title()}
               >
                 {#snippet preview()}
                   <GuideMapLibreStylePreview
@@ -3728,65 +3772,6 @@ const styleChoices = $derived.by(() =>
             {/if}
           </GuideCallout>
         {/if}
-        {#if llmGuidanceEnabled && dataSource}
-          <GuideReadinessPanel
-            id="data-step-readiness"
-            complete={isDataStepComplete}
-            titleId="data-step-readiness-title"
-          >
-            <div class="flex items-start gap-3">
-              <Icon
-                icon={isDataStepComplete
-                  ? 'material-symbols-light:check-circle-rounded'
-                  : 'material-symbols-light:warning-rounded'}
-                class={`mt-0.5 size-5 shrink-0 ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ef8b88]'}`}
-                aria-hidden="true"
-              />
-              <div class="min-w-0 flex-1">
-                <p
-                  id="data-step-readiness-title"
-                  class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ffb4b1]'}`}
-                >
-                  {@html isDataStepComplete
-                    ? m.guide_data_readiness_complete_eyebrow()
-                    : m.guide_data_readiness_eyebrow()}
-                </p>
-                <p
-                  class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                >
-                  {@html isDataStepComplete
-                    ? m.guide_data_readiness_complete_description()
-                    : m.guide_data_readiness_description()}
-                </p>
-                <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-                  {#if isDataStepComplete}
-                    <Button size="compact" variant="secondary" onclick={resetDataStep}>
-                      <Icon
-                        icon="material-symbols-light:restart-alt-rounded"
-                        class="size-5"
-                        aria-hidden="true"
-                      />
-                      {@html m.guide_readiness_reset()}
-                    </Button>
-                  {:else}
-                    <Button
-                      class="bg-secondary text-on-secondary hover:bg-secondary/85"
-                      size="compact"
-                      onclick={completeDataStep}
-                    >
-                      <Icon
-                        icon="material-symbols-light:check-rounded"
-                        class="size-5"
-                        aria-hidden="true"
-                      />
-                      {@html m.guide_data_readiness_done()}
-                    </Button>
-                  {/if}
-                </div>
-              </div>
-            </div>
-          </GuideReadinessPanel>
-        {/if}
       </GuideSection>
 
       {#if showPublishStep}
@@ -3799,7 +3784,7 @@ const styleChoices = $derived.by(() =>
               ? m.guide_publish_mobile_description()
               : undefined}
         >
-          {#if llmGuidanceEnabled && isDataStepComplete}
+          {#if llmGuidanceEnabled}
             <GuidePromptBlock
               code={progressiveSectionPrompts.publish}
               promptIcon={selectedLlmOption?.icon}

@@ -19,6 +19,7 @@ type Props = {
   promptIcon?: string
   preview?: Snippet
   previewAlt?: string
+  previewHeightMultiplier?: number
   previewImageSrc?: string
   references: GuideLlmPromptReference[]
   title: string
@@ -29,6 +30,7 @@ let {
   promptIcon,
   preview,
   previewAlt,
+  previewHeightMultiplier = 1,
   previewImageSrc,
   references,
   title,
@@ -58,12 +60,23 @@ const showPreview = () => {
   promptHeight = promptPanel?.getBoundingClientRect().height
   view = 'preview'
 }
+
+const previewHeight = $derived(
+  view === 'preview' && promptHeight
+    ? `${promptHeight * previewHeightMultiplier}px`
+    : undefined,
+)
 </script>
 
 <div
   data-guide-llm-prompt-card
   class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card"
-  style:height={view === 'preview' && promptHeight ? `${promptHeight}px` : undefined}
+  style:height={previewHeight}
+  style:max-height={expanded
+      ? undefined
+      : view === 'preview'
+        ? 'min(2160px, calc(200dvh - 4.5rem))'
+        : 'min(1080px, calc(100dvh - 4.5rem))'}
 >
   <section
     bind:this={promptPanel}

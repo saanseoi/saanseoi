@@ -677,9 +677,20 @@ const liveableAreaMapComments = [
 
 <section id="saanseoi-project" class="mt-10 scroll-mt-28">
   <header
-    class="relative isolate left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[radial-gradient(circle_at_90%_5%,color-mix(in_srgb,var(--color-secondary)_22%,transparent),transparent_38%),linear-gradient(135deg,color-mix(in_srgb,var(--color-secondary-container)_78%,transparent),transparent_64%)] px-6 pt-7 pb-14 shadow-card sm:px-9 sm:pt-9 sm:pb-16 min-[1000px]:left-[calc(50%+7.5rem)]"
+    class="relative isolate left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[radial-gradient(circle_at_90%_5%,color-mix(in_srgb,var(--color-secondary)_22%,transparent),transparent_38%),linear-gradient(135deg,color-mix(in_srgb,var(--color-secondary-container)_78%,transparent),transparent_64%)] px-6 pt-15 pb-20 sm:px-9 sm:pt-17 sm:pb-22 min-[1000px]:left-[calc(50%+7.5rem)]"
   >
-    <div class="relative mx-auto max-w-4xl min-[1000px]:-translate-x-30">
+    <svg
+      class="pointer-events-none absolute inset-x-0 top-0 z-0 h-10 w-full sm:h-12"
+      viewBox="0 0 1440 48"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        fill="var(--color-background)"
+        d="M0 0H1440V23c-57 1-84 10-143 6-62-4-83-16-144-13-63 3-84 17-144 15-60-2-87-15-146-17-59-2-89 14-147 16-60 2-92-8-147-13-58-5-87 10-144 10-60 0-84-14-143-14-58 0-87 16-144 17-54 1-85-7-128-4-40 3-72 6-108 4V0Z"
+      />
+    </svg>
+    <div class="relative z-10 mx-auto max-w-4xl min-[1000px]:-translate-x-30">
       <span
         class="inline-flex -rotate-1 items-center gap-2 rounded-full border border-secondary/30 bg-surface-container-low px-3 py-1 font-body text-label-sm font-bold tracking-[0.08em] text-secondary uppercase shadow-sm"
       >
@@ -703,17 +714,13 @@ const liveableAreaMapComments = [
     >
       <path
         fill="var(--color-background)"
-        d="M0 43C92 29 149 11 235 28c77 15 115 49 204 29 84-19 127-58 213-34 77 22 112 61 196 39 79-21 124-63 213-39 82 21 111 59 191 41 83-19 126-39 188-29V96H0Z"
-      />
-      <path
-        d="M0 43C92 29 149 11 235 28c77 15 115 49 204 29 84-19 127-58 213-34 77 22 112 61 196 39 79-21 124-63 213-39 82 21 111 59 191 41 83-19 126-39 188-29"
-        fill="none"
-        stroke="var(--color-secondary)"
-        stroke-width="2"
-        opacity="0.18"
-        vector-effect="non-scaling-stroke"
+        d="M0 49C70 44 106 29 163 33c63 4 88 24 148 25 65 1 91-22 148-30 52-8 77 4 118 20 49 19 82 31 136 20 56-11 83-39 137-37 50 2 77 24 121 31 54 9 86-8 126-25 45-19 77-17 119-2 53 19 73 40 129 42 52 2 81-17 95-28V96H0Z"
       />
     </svg>
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-px bg-background"
+      aria-hidden="true"
+    ></div>
   </header>
   {#if hongKongBasemapNote}
     <GuideCallout class="mt-6">
@@ -785,6 +792,7 @@ const liveableAreaMapComments = [
             <GuideLlmPromptCard
               prompt={llmPrompts.fetchStats}
               promptIcon={llmPromptIcon}
+              previewHeightMultiplier={2}
               references={llmReferences.stats}
               title={renumberGuideTitle(m.guide_data_urban_density_calculate_title(), 1)}
             >
@@ -852,6 +860,7 @@ const liveableAreaMapComments = [
                 <GuideLlmPromptCard
                   prompt={llmPrompts.calculateDensity}
                   promptIcon={llmPromptIcon}
+                  previewHeightMultiplier={2}
                   references={llmReferences.calculation}
                   title={renumberGuideTitle(m.guide_data_urban_density_results_title(), 2)}
                 >
@@ -1078,6 +1087,9 @@ const liveableAreaMapComments = [
           />
           {#if llmGuidanceEnabled}
             <GuideSubSectionBody>
+              <GuideParagraph>
+                {@html m.guide_data_urban_density_liveable_area_introduction()}
+              </GuideParagraph>
               <aside
                 class="min-w-0 max-w-full overflow-hidden rounded-sm bg-[repeating-linear-gradient(135deg,var(--secondary)_0_7px,var(--surface-container-high)_7px_14px)] p-3"
               >
@@ -1090,16 +1102,13 @@ const liveableAreaMapComments = [
                 </div>
               </aside>
               <GuideUrbanDensityLiveableLandInputs
-                introduction={m.guide_data_urban_density_liveable_area_introduction()}
                 description={m.guide_data_urban_density_install_description()}
                 nonLiveableLand={m.guide_data_urban_density_install_non_liveable_land()}
                 landClippedGeometry={m.guide_data_urban_density_install_land_clipped_geometry()}
                 explanation={m.guide_data_urban_density_install_explanation()}
-                geospatialToolsTitle={m.guide_data_urban_density_geospatial_tools_title()}
                 tileZoomCalloutLabel={m.guide_data_urban_density_tile_zoom_callout_label()}
                 tileZoomCalloutTitle={m.guide_data_urban_density_tile_zoom_callout_title()}
                 tileZoomCalloutDescription={m.guide_data_urban_density_tile_zoom_callout_description()}
-                turfExplanation={m.guide_data_urban_density_turf_explanation()}
                 approachSteps={[
                   m.guide_data_urban_density_liveable_approach_features(),
                   m.guide_data_urban_density_liveable_approach_download(),
@@ -1115,7 +1124,7 @@ const liveableAreaMapComments = [
                 title={m.guide_data_urban_density_geometry_repair_title()}
               />
               <GuideParagraph class="mt-3">
-                {@html m.guide_data_urban_density_geometry_worker_description()}
+                {@html m.guide_data_urban_density_geometry_repair_llm_description()}
               </GuideParagraph>
               <div class="mt-6 max-w-232">
                 <GuideLlmPromptCard

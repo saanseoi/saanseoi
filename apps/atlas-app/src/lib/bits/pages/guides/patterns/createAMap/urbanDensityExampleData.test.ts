@@ -45,6 +45,22 @@ test('groups Kwai Tsing with the New Territories', () => {
   })
 })
 
+test('includes geometry resources for every District', () => {
+  const geometryResources = urbanDensityDivisionsResponse.included.filter(
+    resource => resource.type === 'division-areas',
+  )
+
+  expect(geometryResources).toHaveLength(urbanDensityDivisionsResponse.data.length)
+  expect(geometryResources.map(resource => resource.attributes.divisionCode)).toEqual(
+    urbanDensityDivisionsResponse.data.map(
+      division => division.attributes.divisionCode,
+    ),
+  )
+  geometryResources.forEach(resource => {
+    expect(['Polygon', 'MultiPolygon']).toContain(resource.attributes.geometry.type)
+  })
+})
+
 test('ships the simplified land-clipped census districts used by the previews', () => {
   expect(urbanDensityCensusDistricts.features).toHaveLength(18)
   expect(

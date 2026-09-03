@@ -32,6 +32,18 @@ export type CreateAMapDataPromptStep =
   | 'calculateLiveableArea'
   | 'finaliseMap'
 
+export type CreateAMapDataPromptReference = {
+  code: string
+  language: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
+  path: string
+  title: string
+  type: 'CLI' | 'CSS' | 'TS'
+}
+
+export type CreateAMapDataPromptReferences = Partial<
+  Record<CreateAMapDataPromptStep, CreateAMapDataPromptReference[]>
+>
+
 export type CreateAMapLlmPromptState = {
   agentTool?: string
   agentToolValue?: string
@@ -389,11 +401,10 @@ const createSectionInstructions = (
 
 const dataStepDetails: Record<
   CreateAMapDataPromptStep,
-  { heading: string; label: string; next?: string; instructions: string[] }
+  { heading: string; next?: string; instructions: string[] }
 > = {
   fetchStats: {
     heading: 'Data Section',
-    label: 'Fetch population density statistics',
     next: 'Calculate population density',
     instructions: [
       'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`.',
@@ -403,7 +414,6 @@ const dataStepDetails: Record<
   },
   calculateDensity: {
     heading: 'Calculate population density',
-    label: 'Calculate population density',
     next: 'Put the stats on the map',
     instructions: [
       'Use the fetched District statistics and the divisions hierarchy to group the population and published land area by Area.',
@@ -413,17 +423,15 @@ const dataStepDetails: Record<
   },
   addStatsToMap: {
     heading: 'Put the stats on the map',
-    label: 'Put the stats on the map',
     next: 'Identifying land without human habitats',
     instructions: [
       'Add the calculated Area metrics to the map as the three summary cards and the supporting controls and legend.',
-      'Use the CSS and TypeScript references supplied with this prompt, and colour each Area label to match its District overlay colour.',
+      'Use the CSS and TypeScript references shown in this card, and colour each Area label to match its District overlay colour.',
       'Verify the cards and Area-coloured Districts in the running map before stopping.',
     ],
   },
   findUnliveableLand: {
     heading: 'Identifying land without human habitats',
-    label: 'Identifying land without human habitats',
     next: 'Calculate liveable area',
     instructions: [
       'Use the SaanSeoi basemap land-use data to show which land will be excluded from the density denominator.',
@@ -432,7 +440,6 @@ const dataStepDetails: Record<
   },
   calculateLiveableArea: {
     heading: 'Calculate liveable area',
-    label: 'Calculate liveable area',
     next: 'Finalise map',
     instructions: [
       'Implement the complete one-time land analysis using the supplied references: install the geospatial packages, add the geometry Worker, fetch and process z14 tiles, show progress, and save the compressed `land-analysis.json.gz` result.',
@@ -441,7 +448,6 @@ const dataStepDetails: Record<
   },
   finaliseMap: {
     heading: 'Finalise map',
-    label: 'Finalise map',
     instructions: [
       'Load the cached `land-analysis.json.gz` result, aggregate each District’s excluded land by Area, and calculate the revised population density using the remaining liveable land.',
       'Replace the basemap-based land-exclusion highlighter with the saved District layers and revised Area density, so the map uses the cached result instead of repeating the tile calculation.',
@@ -450,15 +456,61 @@ const dataStepDetails: Record<
   },
 }
 
-const createDataStepModeInstruction = (mode: PromptMode) =>
-  mode === 'agentic'
-    ? 'As a coding agent, make only the changes for this step in the existing project. Use the supplied references as implementation guidance, verify the running map, and stop when this step is complete.'
-    : 'As a web chat, guide me through this step one action at a time. Name the exact file or terminal target, tell me whether to create, replace, or append, wait for my confirmation, and stop when this step is complete.'
+const promptCodeLanguage = (language: CreateAMapDataPromptReference['language']) =>
+  language === 'typescript' ? 'ts' : language
+
+const createChatReferenceInstruction = (reference: CreateAMapDataPromptReference) => {
+  if (reference.language === 'bash') {
+    return `In the terminal at \`${reference.path}\`, run this command and wait for it to finish before continuing.`
+  }
+
+  if (reference.language === 'text') {
+    return `In the terminal at \`${reference.path}\`, compare the result with this expected output before continuing.`
+  }
+
+  if (reference.path.endsWith('.worker.ts')) {
+    return `Create \`${reference.path}\` with this code, then save the file before continuing.`
+  }
+
+  return `Open \`${reference.path}\`, go to the end of its existing code, append this code, then save the file before continuing.`
+}
+
+const createDataStepReferences = (
+  mode: PromptMode,
+  references: CreateAMapDataPromptReference[],
+) => {
+  if (references.length === 0) return []
+
+  return [
+    '### Implementation references',
+    '',
+    mode === 'agentic'
+      ? 'Apply the following references to their named targets in the displayed order. They are the source of truth for this step; preserve the working project setup around them.'
+      : 'Work through the following references in the displayed order. Follow the target-specific instruction before each snippet; the references are the source of truth for this step.',
+    '',
+    ...references.flatMap(reference => [
+      `#### ${reference.title}`,
+      '',
+      `Target: \`${reference.path}\``,
+      '',
+      ...(mode === 'chat' ? [createChatReferenceInstruction(reference), ''] : []),
+      `\`\`\`${promptCodeLanguage(reference.language)}`,
+      reference.code,
+      '```',
+      '',
+    ]),
+  ]
+}
+
+const urbanDensityWorkedExampleDecision =
+  'User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
 
 export const createAMapDataStepPrompt = (
   state: CreateAMapLlmPromptState,
   step: CreateAMapDataPromptStep,
   mode: PromptMode,
+  references: CreateAMapDataPromptReference[] = [],
+  includeProjectDecision = true,
 ) => {
   const details = dataStepDetails[step]
   const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
@@ -466,28 +518,22 @@ export const createAMapDataStepPrompt = (
     ? `Once this step is verified, summarise what changed and tell me: “The single next action is for you to continue with the “${details.next}” section of the guide. Read it until it provides you with a prompt to share with me again.”`
     : 'Once this final step is verified, summarise what changed, how you verified it, and the single next action for me.'
 
-  const newDecisionLines =
-    step === 'fetchStats'
+  return [
+    `## ${details.heading}`,
+    ...(localeInstruction ? ['', localeInstruction] : []),
+    ...(step === 'fetchStats' && includeProjectDecision
       ? [
           '',
           '### Project decisions',
           '',
-          `- Data source: ${state.dataSourceLabel ?? 'SaanSeoi Statistics API'}`,
+          `- Data source: ${urbanDensityWorkedExampleDecision}`,
         ]
-      : []
-
-  return [
-    `## ${details.heading}`,
-    '',
-    `Continue the “${details.label}” section of my SaanSeoi map project.`,
-    '',
-    createDataStepModeInstruction(mode),
-    ...(localeInstruction ? ['', localeInstruction] : []),
-    ...newDecisionLines,
+      : []),
     '',
     'This step:',
     ...details.instructions.map(instruction => `- ${instruction}`),
     '',
+    ...createDataStepReferences(mode, references),
     nextInstruction,
   ].join('\n')
 }
@@ -495,12 +541,14 @@ export const createAMapDataStepPrompt = (
 export const createAMapAgenticDataStepPrompt = (
   state: CreateAMapLlmPromptState,
   step: CreateAMapDataPromptStep,
-) => createAMapDataStepPrompt(state, step, 'agentic')
+  references?: CreateAMapDataPromptReference[],
+) => createAMapDataStepPrompt(state, step, 'agentic', references)
 
 export const createAMapChatDataStepPrompt = (
   state: CreateAMapLlmPromptState,
   step: CreateAMapDataPromptStep,
-) => createAMapDataStepPrompt(state, step, 'chat')
+  references?: CreateAMapDataPromptReference[],
+) => createAMapDataStepPrompt(state, step, 'chat', references)
 
 const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer) || !state.styleUrl || !state.tilejsonUrl) {
@@ -531,8 +579,22 @@ const createAMapStylePrompt = (state: CreateAMapLlmPromptState) =>
       : []),
     ...(state.styleLabel ? [`- Selected style: ${state.styleLabel}`] : []),
     '',
-    ...createSectionInstructions(state).style.map(instruction => `- ${instruction}`),
+    ...createPromptInstructionLines(createSectionInstructions(state).style),
   ].join('\n')
+
+const createPromptInstructionLines = (instructions: string[]) => {
+  let inCodeBlock = false
+
+  return instructions.flatMap(instruction =>
+    instruction.split('\n').map(line => {
+      const trimmedLine = line.trim()
+      const isFence = trimmedLine.startsWith('```')
+      const output = inCodeBlock || isFence || !trimmedLine ? line : `- ${line}`
+      if (isFence) inCodeBlock = !inCodeBlock
+      return output
+    }),
+  )
+}
 
 const createPromptRegion = (region?: string): CreateAMapSelectionQuery['region'] =>
   region === 'hk' || region === 'mo' || region === 'gba' ? region : undefined
@@ -708,6 +770,7 @@ const createAMapProgressivePrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
   mode: PromptMode,
+  dataStepReferences?: CreateAMapDataPromptReferences,
 ) => {
   const isPrerequisites = section === 'prerequisites'
   const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
@@ -743,7 +806,13 @@ const createAMapProgressivePrompt = (
   }
 
   if (section === 'data') {
-    return createAMapDataStepPrompt(state, 'fetchStats', mode)
+    return createAMapDataStepPrompt(
+      state,
+      'fetchStats',
+      mode,
+      dataStepReferences?.fetchStats,
+      false,
+    )
   }
 
   return [
@@ -768,10 +837,12 @@ const createAMapProgressivePrompt = (
 export const createAMapAgenticSectionPrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
-) => createAMapProgressivePrompt(state, section, 'agentic')
+  dataStepReferences?: CreateAMapDataPromptReferences,
+) => createAMapProgressivePrompt(state, section, 'agentic', dataStepReferences)
 
 /** Progressive hand-off for a web chat as the reader advances through the guide. */
 export const createAMapChatSectionPrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
-) => createAMapProgressivePrompt(state, section, 'chat')
+  dataStepReferences?: CreateAMapDataPromptReferences,
+) => createAMapProgressivePrompt(state, section, 'chat', dataStepReferences)

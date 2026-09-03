@@ -7,13 +7,16 @@ import {
 } from './createAMapLlmInstructions'
 import {
   createAMapAgenticHandoverPrompt,
+  createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapChatDataStepPrompt,
   createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
   createAMapRenderPromptFragments,
   createAMapProjectSetupPromptFragments,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
+  type CreateAMapDataPromptReferences,
 } from './createAMapLlmPrompt'
 import {
   createAMapRendererBasemapCode,
@@ -28,7 +31,11 @@ import {
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaMapCode,
   urbanDensityLiveableMetricsCode,
+  urbanDensityMapCode,
+  urbanDensityMetricsCode,
   urbanDensitySetupZ14TileFetcherCode,
+  urbanDensityTurfInstallCode,
+  urbanDensityTurfInstallOutput,
 } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
@@ -800,6 +807,156 @@ describe('Create a Map LLM instructions', () => {
     ).toStartWith('## Basemap')
   })
 
+  test('keeps urban-density data hand-offs self-contained and scoped', () => {
+    const state = {
+      dataSource: 'api',
+      dataSourceLabel: 'No, use SaanSeoi',
+      preferredLocale: 'en',
+    }
+    const references = {
+      fetchStats: [
+        {
+          code: createUrbanDensityStatsCode('https://api.example', 'saved result'),
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Fetch District statistics',
+          type: 'TS',
+        },
+      ],
+      calculateDensity: [
+        {
+          code: urbanDensityCalculationCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Calculate Area density',
+          type: 'TS',
+        },
+      ],
+      addStatsToMap: [
+        {
+          code: urbanDensityMetricsCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Show Area metrics',
+          type: 'TS',
+        },
+      ],
+      findUnliveableLand: [
+        {
+          code: urbanDensityMapCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Highlight excluded land',
+          type: 'TS',
+        },
+      ],
+      calculateLiveableArea: [
+        {
+          code: urbanDensityTurfInstallCode,
+          language: 'bash',
+          path: 'saanseoi-project',
+          title: 'Install geospatial tools',
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityTurfInstallOutput,
+          language: 'text',
+          path: 'saanseoi-project',
+          title: 'Expected installation output',
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityGeometryWorkerCode,
+          language: 'typescript',
+          path: 'src/land-analysis.worker.ts',
+          title: 'Analyse land geometry',
+          type: 'TS',
+        },
+      ],
+      finaliseMap: [
+        {
+          code: urbanDensityLiveableMetricsCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Show revised Area metrics',
+          type: 'TS',
+        },
+      ],
+    } satisfies CreateAMapDataPromptReferences
+    const steps = [
+      ['fetchStats', 'Calculate population density'],
+      ['calculateDensity', 'Put the stats on the map'],
+      ['addStatsToMap', 'Identifying land without human habitats'],
+      ['findUnliveableLand', 'Calculate liveable area'],
+    ] as const
+
+    for (const [step, next] of steps) {
+      const chatPrompt = createAMapChatDataStepPrompt(state, step, references[step])
+      const agentPrompt = createAMapAgenticDataStepPrompt(state, step, references[step])
+
+      expect(chatPrompt).not.toContain('Continue the “')
+      expect(chatPrompt).not.toContain('As a web chat')
+      const workedExampleDecision =
+        '- Data source: User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
+      if (step === 'fetchStats') {
+        expect(chatPrompt).toContain('### Project decisions')
+        expect(chatPrompt).toContain(workedExampleDecision)
+      } else {
+        expect(chatPrompt).not.toContain('### Project decisions')
+        expect(chatPrompt).not.toContain(workedExampleDecision)
+      }
+      expect(chatPrompt).toContain('### Implementation references')
+      expect(chatPrompt).toContain(`Target: \`${references[step]?.[0]?.path}\``)
+      expect(chatPrompt).toContain(
+        `Open \`${references[step]?.[0]?.path}\`, go to the end of its existing code, append this code, then save the file before continuing.`,
+      )
+      expect(chatPrompt).toContain(references[step]?.[0]?.code ?? '')
+      expect(chatPrompt).toContain(`“${next}” section of the guide`)
+      expect(agentPrompt).toContain(
+        'Apply the following references to their named targets in the displayed order.',
+      )
+      expect(agentPrompt).not.toContain('go to the end of its existing code')
+      expect(agentPrompt).not.toContain('As a coding agent')
+      expect(agentPrompt).not.toContain('As a web chat')
+    }
+
+    const fetchPrompt = createAMapChatDataStepPrompt(
+      state,
+      'fetchStats',
+      references.fetchStats,
+    )
+    expect(fetchPrompt).toContain("url.searchParams.set('cohort', '2024')")
+    expect(fetchPrompt).toContain(
+      "url.searchParams.set('filter[referencePeriod]', '2024')",
+    )
+    expect(fetchPrompt).toContain('x-api-key')
+
+    const dataSectionPrompt = createAMapChatSectionPrompt(state, 'data', references)
+    expect(dataSectionPrompt).not.toContain('### Project decisions')
+    expect(dataSectionPrompt).not.toContain('Data source: User has opted')
+
+    for (const step of ['calculateLiveableArea', 'finaliseMap'] as const) {
+      const prompt = createAMapChatDataStepPrompt(state, step, references[step])
+      expect(prompt).not.toContain('### Project decisions')
+      expect(prompt).not.toContain('Data source: User has opted')
+      expect(prompt).toContain(`Target: \`${references[step]?.[0]?.path}\``)
+      expect(prompt).toContain(
+        step === 'calculateLiveableArea'
+          ? 'In the terminal at `saanseoi-project`, run this command and wait for it to finish before continuing.'
+          : 'Open `src/main.ts`, go to the end of its existing code, append this code, then save the file before continuing.',
+      )
+      if (step === 'calculateLiveableArea') {
+        expect(prompt).toContain(
+          'In the terminal at `saanseoi-project`, compare the result with this expected output before continuing.',
+        )
+        expect(prompt).toContain(
+          'Create `src/land-analysis.worker.ts` with this code, then save the file before continuing.',
+        )
+      }
+      expect(prompt).toContain(references[step]?.[0]?.code ?? '')
+    }
+  })
+
   test('guides both LLM modes through local Mapbox token setup without exposing it', () => {
     const state = {
       preferredLocale: 'en',
@@ -866,6 +1023,9 @@ describe('Create a Map LLM instructions', () => {
         expect(prompt).toContain(importLine)
         expect(prompt).toContain(expectedCode)
         expect(prompt).toContain('Make only the style-related changes')
+        expect(prompt).toContain('\n```ts\n')
+        expect(prompt).not.toContain('- ```ts')
+        expect(prompt).not.toContain(`- ${importLine}`)
         expect(prompt).not.toContain('### Project decisions')
         expect(prompt).not.toContain('collaborative assistance session')
         expect(prompt).not.toContain('The single next action')
