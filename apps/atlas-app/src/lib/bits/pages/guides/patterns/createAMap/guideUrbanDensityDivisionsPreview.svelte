@@ -219,7 +219,7 @@ const geometryPath = (geometry: Geometry) => {
             >
               {#if isGeometryResource(resource)}
                 <svg
-                  class="mx-auto mb-2 h-10 w-full max-w-[4.5rem]"
+                  class="mx-auto mb-2 h-10 w-full max-w-18"
                   viewBox="0 0 72 42"
                   role="img"
                   aria-label={`${divisionName(resource.attributes.divisionCode)} geometry`}
