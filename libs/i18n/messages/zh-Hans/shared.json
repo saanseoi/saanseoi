@@ -1801,7 +1801,6 @@
   "guide_data_geojson_title": "编辑并预览 GeoJSON",
   "guide_data_geojson_callout_title": "什么是 GeoJSON？",
   "guide_data_geojson_description": "GeoJSON 是存放地理要素的纯 JSON 格式。一个要素可以是 <b>Point</b>、<b>LineString</b>、<b>Polygon</b>，或这些形状的集合，并可附上名称、类别或营业时间等属性。",
-  "guide_data_geojson_editor": "在 geojson.io 选取一个要素以使用功能编辑器：修改名称、添加或更改属性，并在 JSON 面板查看相应条目。",
   "guide_data_geojson_editor_optional": "<b><i>如果 GeoJSON 已经正确，这一步可跳过。</i></b> 不过，如果您仍想在添加到地图前查看或编辑数据，<code>geojson.io</code> 提供网页编辑器。您可以更改名称、添加标记或绘制形状来添加到地图。",
   "guide_data_geojson_step_properties": "在功能编辑器中为每个地点提供清晰的 <code>name</code>，并添加稍后需要显示的属性。",
   "guide_data_geojson_step_geometry": "使用标记、线和多边形工具添加几何；拖动形状或顶点来调整。",

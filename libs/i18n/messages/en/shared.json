@@ -1794,7 +1794,6 @@
   "guide_data_geojson_title": "Edit and preview your GeoJSON",
   "guide_data_geojson_callout_title": "What is GeoJSON?",
   "guide_data_geojson_description": "GeoJSON is a plain JSON format for geographic features. A feature can be a <b>Point</b>, <b>LineString</b>, <b>Polygon</b>, or a collection of those shapes, with properties such as a name, category or opening hours attached to each one.",
-  "guide_data_geojson_editor": "In geojson.io, select a feature to use the feature editor: change its name, add or amend properties, and see the matching entry in the JSON panel.",
   "guide_data_geojson_editor_optional": "<b><i>This is optional when your GeoJSON is already correct.</i></b> However, if you still want to review or edit your data before adding it to the map, <code>geojson.io</code> offers a web-based editor. You can change the titles, add markers or draw shapes to add to the map.",
   "guide_data_geojson_step_properties": "Use the feature editor to give each place a clear <code>name</code> and add any properties you want to show later.",
   "guide_data_geojson_step_geometry": "Use the marker, line and polygon tools to add geometry; drag a shape or its vertices to refine it.",
