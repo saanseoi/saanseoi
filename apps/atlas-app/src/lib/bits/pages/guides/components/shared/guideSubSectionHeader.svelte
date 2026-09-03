@@ -30,7 +30,7 @@ let { actions, eyebrow, id, requirement, title }: Props = $props()
     {/if}
   </p>
 {/if}
-<div class="mt-1 flex flex-wrap items-center justify-between gap-3">
+<div class="mt-1 mb-1.5 flex flex-wrap items-center justify-between gap-3">
   <GuideTextHeader as="h3" {id} {title} />
   {#if actions}
     <div class="shrink-0">{@render actions()}</div>
