@@ -263,6 +263,17 @@ function isBuildingSitePartQualification(
   const rawSuffix = buildingNameSuffix(previousBuildingName, currentBuildingName)
   if (!suffix || isFirstPhaseOrStageDetail(rawSuffix)) return false
   if (isAggregateAlphaNumericDetail(rawSuffix)) return false
+  if (
+    hasFirstPhaseOrStageMember(rawSuffix) &&
+    !containsMaterialSitePartQualifier(
+      rawSuffix.replace(
+        /^\(?(?:PHASE|STAGE)\s+(?:I|1|A)(?:\s*\/\s*[A-Z0-9]+)?\)?/i,
+        '',
+      ),
+    )
+  ) {
+    return false
+  }
 
   return (
     SITE_PART_BUILDING_SUFFIX.test(suffix) ||
@@ -280,10 +291,27 @@ function isBuildingNameDetailRetention(
   previous: HkgovAlsIdentityRecord,
   current: HkgovAlsIdentityRecord,
 ) {
-  if (!hasOnlyChangedBuildingName(previous, current)) return false
+  if (
+    !hasOnlyChangedBuildingName(previous, current) &&
+    !hasOnlyChangedNameAndEstate(previous, current)
+  ) {
+    return false
+  }
 
   const previousBuildingName = previous.summary.buildingName
   const currentBuildingName = current.summary.buildingName
+  if (
+    hasOnlyChangedNameAndEstate(previous, current) &&
+    (isEstateLocationAddition(
+      previous.summary.estateName,
+      current.summary.estateName,
+    ) ||
+      (previous.summary.estateName == null &&
+        current.summary.estateName != null &&
+        isKnownLocationDetail(current.summary.estateName)))
+  ) {
+    return true
+  }
   if (!previousBuildingName || !currentBuildingName) return false
 
   const suffix = buildingNameSuffix(previousBuildingName, currentBuildingName)
@@ -313,6 +341,33 @@ function hasOnlyChangedBuildingName(
   )
 }
 
+function hasOnlyChangedNameAndEstate(
+  previous: HkgovAlsIdentityRecord,
+  current: HkgovAlsIdentityRecord,
+) {
+  const fields = new Set([
+    ...Object.keys(previous.summary),
+    ...Object.keys(current.summary),
+  ])
+  return [...fields].every(
+    field =>
+      field === 'buildingName' ||
+      field === 'estateName' ||
+      (previous.summary[field] ?? null) === (current.summary[field] ?? null),
+  )
+}
+
+function isEstateLocationAddition(
+  previous: string | null | undefined,
+  current: string | null | undefined,
+) {
+  if (!previous || !current) return false
+  const previousName = normaliseName(previous)
+  const currentName = normaliseName(current)
+  if (!currentName.startsWith(`${previousName} `)) return false
+  return isKnownLocationDetail(currentName.slice(previousName.length).trim())
+}
+
 function normaliseBuildingName(value: string) {
   return normaliseName(value)
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
@@ -337,6 +392,11 @@ function buildingNameSuffix(previous: string, current: string) {
 function isFirstPhaseOrStageDetail(suffix: string) {
   const value = unwrapBuildingSuffix(suffix)
   return /^(?:PHASE|STAGE)\s+(?:I|1|A)(?:\s*\/\s*(?:[A-Z0-9]+))?$/i.test(value)
+}
+
+function hasFirstPhaseOrStageMember(suffix: string) {
+  const value = unwrapBuildingSuffix(suffix)
+  return /^(?:PHASE|STAGE)\s+(?:I|1|A)(?:\s*\/\s*[A-Z0-9]+)?\b/i.test(value)
 }
 
 function isAggregateAlphaNumericDetail(suffix: string) {
@@ -368,7 +428,7 @@ function isKnownLocationDetail(suffix: string) {
   const value = normaliseName(suffix)
   const location = value.match(/\(([^)]+)\)/)?.[1] ?? unwrapBuildingSuffix(value)
   if (!location || !/^[A-Z][A-Z .'-]*$/.test(location)) return false
-  return /\b(?:CHAI WAN|CHEUNG SHA WAN|HONG KONG|KOWLOON(?: EAST| CITY| TONG)?|KWAI CHUNG|KWAI FONG|LAI MUK SHUE|LEI MUK SHUE|MA ON SHAN|MORRISON HILL|NEW TERRITORIES|NORTH POINT|POK HONG|SHA TIN(?: WAI)?|SHEUNG SHUI|SIU SAI WAN|SOUTH HORIZONS|TIN SHUI WAI|TSING YI|TSUEN WAN|TUEN MUN|TSEUNG KWAN O|YUEN LONG)\b/.test(
+  return /\b(?:CHAI WAN|CHEUNG SHA WAN|CONSTELLATION COVE|FU SHAN|HONG KONG|KOWLOON(?: EAST| CITY| TONG)?|KWAI CHUNG|KWAI FONG|LAI MUK SHUE|LEI MUK SHUE|MA ON SHAN|MORRISON HILL|NEW TERRITORIES|NORTH POINT|PLOVER COVE|POK HONG|SHA TIN(?: WAI)?|SHEUNG SHUI|SIU SAI WAN|SOUTH|SOUTH HORIZONS|TIN SHUI WAI|TSING YI|TSUEN WAN|TUEN MUN|TSEUNG KWAN O|TUNG SHING|WEST|YAUMATI|YUEN LONG)\b/.test(
     location,
   )
 }
