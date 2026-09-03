@@ -21,7 +21,7 @@ type Props = {
   previewAlt?: string
   previewHeightMultiplier?: number
   previewImageSrc?: string
-  references: GuideLlmPromptReference[]
+  references?: GuideLlmPromptReference[]
   title: string
 }
 
@@ -32,7 +32,7 @@ let {
   previewAlt,
   previewHeightMultiplier = 1,
   previewImageSrc,
-  references,
+  references = [],
   title,
 }: Props = $props()
 let view = $state<'code' | 'preview' | 'prompt'>('prompt')
@@ -101,18 +101,20 @@ const previewHeight = $derived(
       copiedLabel={m.common_copied()}
     >
       {#snippet actions()}
-        <button
-          class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-          type="button"
-          onclick={() => (view = 'code')}
-        >
-          <Icon
-            icon="material-symbols-light:code-rounded"
-            class="size-4"
-            aria-hidden="true"
-          />
-          {m.guide_code_block_code()}
-        </button>
+        {#if reference}
+          <button
+            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+            type="button"
+            onclick={() => (view = 'code')}
+          >
+            <Icon
+              icon="material-symbols-light:code-rounded"
+              class="size-4"
+              aria-hidden="true"
+            />
+            {m.guide_code_block_code()}
+          </button>
+        {/if}
         {#if hasPreview}
           <button
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
@@ -231,18 +233,20 @@ const previewHeight = $derived(
           >{m.guide_llm_prompt_card_explainer_preview_title()}</span
         >
         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-4">
-          <button
-            class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
-            type="button"
-            onclick={() => (view = 'code')}
-          >
-            <Icon
-              icon="material-symbols-light:code-rounded"
-              class="size-4"
-              aria-hidden="true"
-            />
-            {m.guide_code_block_code()}
-          </button>
+          {#if reference}
+            <button
+              class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
+              type="button"
+              onclick={() => (view = 'code')}
+            >
+              <Icon
+                icon="material-symbols-light:code-rounded"
+                class="size-4"
+                aria-hidden="true"
+              />
+              {m.guide_code_block_code()}
+            </button>
+          {/if}
           <button
             class="inline-flex items-center gap-1.5 font-body text-label-sm font-semibold text-white/75 hover:text-white"
             type="button"
