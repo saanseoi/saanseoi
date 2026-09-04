@@ -19,6 +19,7 @@ type QueryResult<TResult> = {
 
 type SelectGroupedQuery<TResult> = QueryResult<TResult> & {
   innerJoin(source: unknown, on: unknown): SelectGroupedQuery<TResult>
+  leftJoin(source: unknown, on: unknown): SelectGroupedQuery<TResult>
   limit(count: number): SelectGroupedQuery<TResult>
   orderBy(...values: unknown[]): SelectGroupedQuery<TResult>
   where(condition: unknown): SelectGroupedQuery<TResult>
@@ -27,6 +28,7 @@ type SelectGroupedQuery<TResult> = QueryResult<TResult> & {
 type SelectQuery<TResult> = QueryResult<TResult> & {
   groupBy(...values: unknown[]): SelectGroupedQuery<TResult>
   innerJoin(source: unknown, on: unknown): SelectQuery<TResult>
+  leftJoin(source: unknown, on: unknown): SelectQuery<TResult>
   limit(count: number): SelectQuery<TResult>
   orderBy(...values: unknown[]): SelectQuery<TResult>
   where(condition: unknown): SelectQuery<TResult>

@@ -15,6 +15,7 @@ import {
   overtureHongKongAreaForDistrictName,
   overtureHongKongAreas,
   overtureHongKongAreaDivisionId,
+  hasAllOvertureHongKongAreaDivisions,
 } from './overtureHongKongAreas'
 
 const hierarchyLookup: DivisionHierarchyLookup = new Map([
@@ -303,6 +304,18 @@ describe('missingOvertureHongKongAreaRows', () => {
       names: { primary: 'Kowloon' },
       wikidata: 'Q239143',
     })
+  })
+})
+
+describe('complete Overture Hong Kong Area identities', () => {
+  test('requires all canonical area identities in a complete snapshot', () => {
+    const areaIds = overtureHongKongAreas.map(area =>
+      overtureHongKongAreaDivisionId(area.code),
+    )
+    const presentAreaIds = areaIds.filter((id): id is string => id !== null)
+
+    expect(hasAllOvertureHongKongAreaDivisions(presentAreaIds)).toBe(true)
+    expect(hasAllOvertureHongKongAreaDivisions(presentAreaIds.slice(1))).toBe(false)
   })
 })
 

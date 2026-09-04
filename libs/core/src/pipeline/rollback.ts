@@ -71,6 +71,7 @@ export function describeLatestReleaseRollbackPlan(
 
 type RollbackCurrentTable = {
   table: string
+  snapshotColumn?: string
 }
 
 type RollbackHistoryTable = {
@@ -126,6 +127,17 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       'hkgov-dpo': ['hkgovAlsAddresses2d'],
     },
   },
+  place: {
+    currentTables: [
+      { table: 'placesCells' },
+      { table: 'placesDivision', snapshotColumn: 'placeSnapshotId' },
+      { table: 'placesI18n' },
+      { table: 'placesFts' },
+      { table: 'places' },
+    ],
+    historyTables: [{ table: 'placesI18n' }, { table: 'places' }],
+    sources: { overture: ['overturePlaces'] },
+  },
 }
 
 function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
@@ -180,8 +192,8 @@ function buildCurrentRollbackSql(
 ) {
   return joinStatements(
     plan.currentTables.map(
-      ({ table }) =>
-        `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)};`,
+      ({ table, snapshotColumn }) =>
+        `DELETE FROM ${table} WHERE ${snapshotColumn ?? 'snapshotId'} = ${literal(input.snapshotId)};`,
     ),
   )
 }

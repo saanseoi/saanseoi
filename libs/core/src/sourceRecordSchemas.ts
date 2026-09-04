@@ -23,6 +23,33 @@ export type SourceRecordSchema = {
  */
 export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
+    id: 'overture-place-v2025-09-24.0',
+    source: 'overture',
+    type: 'place',
+    validFromRelease: '2025-09-24.0',
+    fields: [
+      { name: 'id', type: 'utf8', nullable: true },
+      { name: 'geometry', type: 'type', nullable: true },
+      { name: 'bbox', type: 'struct', nullable: true },
+      { name: 'version', type: 'int_32', nullable: true },
+      { name: 'sources', type: 'list', nullable: true },
+      { name: 'names', type: 'struct', nullable: true },
+      { name: 'categories', type: 'struct', nullable: true },
+      { name: 'confidence', type: 'double', nullable: true },
+      { name: 'websites', type: 'list', nullable: true },
+      { name: 'socials', type: 'list', nullable: true },
+      { name: 'emails', type: 'list', nullable: true },
+      { name: 'phones', type: 'list', nullable: true },
+      { name: 'brand', type: 'struct', nullable: true },
+      { name: 'addresses', type: 'list', nullable: true },
+      { name: 'operating_status', type: 'utf8', nullable: true },
+      { name: 'basic_category', type: 'utf8', nullable: true },
+      { name: 'taxonomy', type: 'struct', nullable: true },
+      { name: 'theme', type: 'utf8', nullable: true },
+      { name: 'type', type: 'utf8', nullable: true },
+    ],
+  },
+  {
     id: 'overture-division-v2025-09-24.0',
     source: 'overture',
     type: 'division',

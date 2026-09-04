@@ -128,6 +128,36 @@ describe('latest release rollback SQL', () => {
     )
   })
 
+  test('rolls back Places children before the parent and restores source rows', () => {
+    const sql = buildLatestReleaseRollbackSql({
+      apiReleaseSetId: 'places-release-set-new',
+      previousApiReleaseSetId: 'places-release-set-old',
+      previousReleaseId: 'places-release-old',
+      releaseId: 'places-release-new',
+      snapshotId: 'places-snapshot-new',
+      source: 'overture',
+      sourceVersion: '2026-08-19.0',
+      type: 'place',
+    })
+
+    const placesDelete = 'DELETE FROM places WHERE'
+    expect(sql.current.indexOf('DELETE FROM placesCells')).toBeLessThan(
+      sql.current.indexOf(placesDelete),
+    )
+    expect(sql.current).toContain(
+      "DELETE FROM placesDivision WHERE placeSnapshotId = 'places-snapshot-new';",
+    )
+    expect(sql.current).toContain(
+      "DELETE FROM placesFts WHERE snapshotId = 'places-snapshot-new';",
+    )
+    expect(sql.history).toContain(
+      "UPDATE places SET isCurrent = 0 WHERE snapshotId = 'places-snapshot-new';",
+    )
+    expect(sql.source).toContain(
+      'UPDATE overturePlaces\nSET isCurrent = 1,\n  validToRelease = NULL,',
+    )
+  })
+
   test('rejects unsupported source/type combinations', () => {
     expect(() =>
       buildLatestReleaseRollbackSql({
