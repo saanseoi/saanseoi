@@ -63,7 +63,7 @@ And it writes release-level stats rows in meta:
 
 The division resourceType does not itself populate:
 
-- `placesDivision`
+- current-only `placesDivision` Place projection
 
 That join table belongs to the place pipeline, but it references canonical division IDs
 and snapshots.
@@ -230,7 +230,9 @@ Implemented Atlas routes now include:
 The standalone Atlas divisions routes are public now, and the division resourceType is
 also a live dependency elsewhere:
 
-- place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
+- current place detail responses join the current-only `placesDivision` projection to
+  `divisions` and `divisionsI18n`; historical Place reads traverse the recorded
+  historical address snapshot instead
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`
 - HKGov ALS address preparation also resolves division IDs from the current divisions
   database
