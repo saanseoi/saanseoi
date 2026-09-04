@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2ec81be60b9695cecbd6de2fe432acf613b9d4d4cae71f4e7e20b1bf10b294ce",
+  "versionHash": "sha256:3614366e2dfcd6f6defd4574e21182484441b8159911faecdbe44f1fffd18965",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -36,6 +36,16 @@
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
+          "ingestDependencies": [
+            {
+              "resourceType": "address",
+              "variant": "default"
+            },
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ],
           "priority": 0
         },
         {
@@ -43,7 +53,7 @@
           "variant": "default",
           "role": "supporting",
           "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
+          "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "place",
           "priority": 10
         },
@@ -52,7 +62,7 @@
           "variant": "overture",
           "role": "supporting",
           "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
+          "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "address",
           "priority": 20
         }
