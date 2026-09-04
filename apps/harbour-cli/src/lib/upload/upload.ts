@@ -11,6 +11,7 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type { CliUploadOptions, UploadTarget } from '../cli/options.ts'
+import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -37,7 +38,7 @@ export type ReconcileDraftReleaseSetsResponse = {
   publishedReleaseSetStatsTargets: Array<{
     apiReleaseSetId: string
     cohortKey: string
-    family: 'address' | 'division'
+    family: 'address' | 'division' | 'place'
     releaseCode: string
     releaseId: string
     snapshotId: string
@@ -138,16 +139,7 @@ async function registerUploadLocally(
     previewResult.plan.regionCode,
     shardYear,
     {
-      cacheTableProfile:
-        previewResult.plan.type === 'division'
-          ? 'division'
-          : previewResult.plan.type === 'divisionArea' ||
-              previewResult.plan.type === 'divisionBoundary'
-            ? previewResult.plan.source === 'hkgov-pland-pu' ||
-              previewResult.plan.source === 'hkgov-pland-new-town'
-              ? 'planningDivisionGeometry'
-              : 'divisionGeometry'
-            : 'address',
+      cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
     },
   )
 

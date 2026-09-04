@@ -401,7 +401,7 @@ export const ReconcileDraftReleaseSetsResponseSchema = z
       z.object({
         apiReleaseSetId: z.string().uuid(),
         cohortKey: z.string(),
-        family: z.enum(['address', 'division']),
+        family: z.enum(['address', 'division', 'place']),
         releaseCode: ReleaseCodeSchema,
         releaseId: ReleaseIdSchema,
         snapshotId: z.string().uuid(),
