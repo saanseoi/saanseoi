@@ -33,10 +33,17 @@ completed family at the end:
 ```
 
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
-rebuildable `placesFts` index, while address and division relationships retain the
-reference snapshot that supplied them. Place history uses the source payload plus
-resolved reference relationships as its version boundary; unchanged places do not create
-a new history version.
+rebuildable `placesFts` index. `placesDivision` and `placesCells` are current-only
+projections and are rebuilt for the active Place snapshot; they are not copied into
+history. The division projection is derived from the selected address snapshot's
+`divisionSnapshotId` and division IDs.
+
+Place history records the address snapshot and address ID selected for each version.
+Historical reads must follow that recorded address snapshot into historical addresses
+and then use the address entry's division IDs. They must not join a historical Place to
+the latest address or division projection. Place history uses the source payload plus
+the resolved address reference as its version boundary; unchanged places do not create a
+new history version.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a
