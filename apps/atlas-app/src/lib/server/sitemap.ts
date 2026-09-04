@@ -5,7 +5,7 @@ export type SitemapEntry = {
 
 export function escapeXml(value: string) {
   return value.replace(
-    /[<>&'\"]/g,
+    /[<>&'"]/g,
     character =>
       ({
         '&': '&amp;',

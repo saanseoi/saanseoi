@@ -8,9 +8,7 @@
   "theme": "divisions",
   "subType": "district",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Home Affairs Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218",
@@ -34,9 +32,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ]
+        "discoveries": ["new-release"]
       }
     },
     "archives": {
