@@ -58,19 +58,19 @@ and publication progress.
 
 ## Local pipeline initialisation
 
-Initialise one API family and composition domain at a time. For a clean local Divisions
-and Statistics rebuild, use `./bin/saanseoi init:local`. It resets local databases, runs
-every Divisions initialiser followed by the official Statistics initialiser, and prints
-one final initialisation summary. Address initialisation is not yet part of this
-command.
+Initialise one API family and composition domain at a time. For a clean local Divisions,
+Addresses, Places and Statistics rebuild, use `./bin/saanseoi init:local`. It resets
+local databases, runs the initialisers in dependency order, and prints one final
+initialisation summary. Places run after the official Addresses initialiser because its
+address member is resolved from the latest compatible reference snapshot.
 
 ## Production pipeline initialisation
 
 For a clean production baseline, use `./bin/saanseoi init:production`. This
 destructively resets every production D1 database, reapplies its migrations and metadata
 registry, re-exports the production D1 cache, then runs the same Geographic Divisions,
-LandsD Divisions and official Statistics initialisers as `init:local`. Planning Unit,
-New Town and Addresses remain dedicated initialisers.
+LandsD Divisions, official Addresses, Overture Places and official Statistics
+initialisers as `init:local`.
 
 To reset local databases before a focused run, then use the command for the domain under
 review:

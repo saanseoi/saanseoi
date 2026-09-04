@@ -26,7 +26,9 @@ SaanSeoi unwrap Overture's nested <black>hierarchies</black> payload into a sing
 - For a district, and for every division that has a district ancestor, SaanSeoi inserts
   Hong Kong Island, Kowloon, or the New Territories immediately after Hong Kong SAR. The
   release audit records one automatic action for each area with its assigned division
-  count.
+  count. Every complete Overture cohort snapshot therefore contains the three canonical
+  area identities; immutable history may carry an unchanged identity forward from its
+  parent rather than repeating it in the cohort delta.
 
 ### ZH-HANT
 
@@ -45,7 +47,8 @@ SaanSeoi 會將 Overture 巢狀的 <black>hierarchies</black> 資料解包為只
   祖先是例外：由於層級資料省略了用來區分 city、town、village 和 hamlet 的
   <black>class</black>，因此必須有查找資料列。如果缺少該資料列，正規化會因明確的錯誤而失敗。
 - 原始 Overture 資料會保留在 <black>overture.hierarchies</black> 下。
-- 對於地區，以及層級中有地區祖先的每個區劃，SaanSeoi 會在香港特別行政區之後立即加入香港島、九龍或新界。發布審計會為每個地區記錄一項自動操作及其獲指派的區劃數目。
+- 對於地區，以及層級中有地區祖先的每個區劃，SaanSeoi 會在香港特別行政區之後立即加入香港島、九龍或新界。發布審計會為每個地區記錄一項自動操作及其獲指派的區劃數目。因此，每個完整的 Overture
+  cohort 快照都包含這三個標準地區身份；不可變歷史可能會從其父項繼承未變更的身份，而不會在 cohort 增量中重複記錄。
 
 ### ZH-HANS
 
@@ -64,4 +67,5 @@ SaanSeoi 会将 Overture 嵌套的 <black>hierarchies</black> 数据解包为只
   祖先是例外：由于层级数据省略了用于区分 city、town、village 和 hamlet 的
   <black>class</black>，因此必须有查找数据行。如果缺少该数据行，规范化会因明确的错误而失败。
 - 原始 Overture 数据会保留在 <black>overture.hierarchies</black> 下。
-- 对于地区，以及层级中有地区祖先的每个区划，SaanSeoi 会在香港特别行政区之后立即加入香港岛、九龙或新界。发布审计会为每个地区记录一项自动操作及其获指派的区划数目。
+- 对于地区，以及层级中有地区祖先的每个区划，SaanSeoi 会在香港特别行政区之后立即加入香港岛、九龙或新界。发布审计会为每个地区记录一项自动操作及其获指派的区划数目。因此，每个完整的 Overture
+  cohort 快照都包含这三个标准地区身份；不可变历史可能会从其父项继承未变更的身份，而不会在 cohort 增量中重复记录。
