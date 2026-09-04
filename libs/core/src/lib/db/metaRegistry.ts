@@ -3045,9 +3045,7 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
           eq(metaSnapshots.cohortKey, cohortKey),
           eq(metaDatasets.regionCode, regionCode),
           eq(metaSnapshotSources.role, 'primary'),
-          options.variant
-            ? eq(metaSnapshotLineages.variant, options.variant)
-            : undefined,
+          snapshotVariantCondition(options.variant, resourceType, regionCode),
         ),
       )
       .orderBy(
@@ -3062,6 +3060,30 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
   )
 }
 
+function snapshotVariantCondition(
+  variant: string | undefined,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+) {
+  if (!variant) return undefined
+  const lineageVariant = sql`EXISTS (
+    SELECT 1
+    FROM snapshotLineages AS variant_lineage
+    WHERE variant_lineage.id = ${metaSnapshots.snapshotLineageId}
+      AND variant_lineage.variant = ${variant}
+  )`
+  if (variant === 'overture') {
+    return or(
+      lineageVariant,
+      and(
+        isNull(metaSnapshots.snapshotLineageId),
+        eq(metaDatasets.code, buildDatasetCode(regionCode, 'overture', resourceType)),
+      ),
+    )
+  }
+  return lineageVariant
+}
+
 /**
  * Lists published canonical snapshots on or after a source cohort in chronological
  * order. Callers which need a particular referenced identity can inspect later
@@ -3072,7 +3094,7 @@ export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohort
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { datasetCode?: string; publisherCode?: string } = {},
+  options: { datasetCode?: string; publisherCode?: string; variant?: string } = {},
 ) {
   return db
     .select({
@@ -3100,6 +3122,7 @@ export async function listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohort
           ? eq(metaPublishers.code, options.publisherCode)
           : undefined,
         options.datasetCode ? eq(metaDatasets.code, options.datasetCode) : undefined,
+        snapshotVariantCondition(options.variant, resourceType, regionCode),
       ),
     )
     .orderBy(
@@ -3120,7 +3143,7 @@ export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrA
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { datasetCode?: string; publisherCode?: string } = {},
+  options: { datasetCode?: string; publisherCode?: string; variant?: string } = {},
 ) {
   const [snapshot] =
     await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
@@ -3144,7 +3167,7 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBef
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { publisherCode?: string } = {},
+  options: { publisherCode?: string; variant?: string } = {},
 ) {
   return (
     (await db
@@ -3172,6 +3195,7 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBef
           options.publisherCode
             ? eq(metaPublishers.code, options.publisherCode)
             : undefined,
+          snapshotVariantCondition(options.variant, resourceType, regionCode),
         ),
       )
       .orderBy(
@@ -3214,10 +3238,6 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
     )
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .innerJoin(
-      metaSnapshotLineages,
-      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
-    )
     .where(
       and(
         eq(metaSnapshots.resourceType, resourceType),
@@ -3228,8 +3248,8 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
         options.publisherCode
           ? eq(metaPublishers.code, options.publisherCode)
           : undefined,
+        snapshotVariantCondition(options.variant, resourceType, regionCode),
         options.datasetCode ? eq(metaDatasets.code, options.datasetCode) : undefined,
-        options.variant ? eq(metaSnapshotLineages.variant, options.variant) : undefined,
       ),
     )
     .orderBy(

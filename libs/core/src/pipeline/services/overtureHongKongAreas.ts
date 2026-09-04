@@ -76,6 +76,14 @@ export function overtureHongKongAreaDivisionId(code: string) {
   )
 }
 
+export function hasAllOvertureHongKongAreaDivisions(ids: Iterable<string>) {
+  const presentIds = new Set(ids)
+  return overtureHongKongAreas.every(area => {
+    const id = overtureHongKongAreaDivisionId(area.code)
+    return id !== null && presentIds.has(id)
+  })
+}
+
 export function overtureHongKongAreaForCenstatdCode(code: string) {
   return (
     overtureHongKongAreas.find(candidate => candidate.censtatdCode === code) ?? null
