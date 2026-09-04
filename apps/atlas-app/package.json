@@ -68,8 +68,8 @@
     "typescript": "^6.0.2",
     "vite": "^8.2.2",
     "vitest": "^5.0.0",
-    "vitest-browser-svelte": "^3.0.0",
-    "wrangler": "^4.128.0",
+    "vitest-browser-svelte": "^3.1.0",
+    "wrangler": "^4.129.0",
     "xlsx": "^0.18.5"
   },
   "imports": {

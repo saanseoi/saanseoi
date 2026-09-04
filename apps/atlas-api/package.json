@@ -21,15 +21,15 @@
     "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun-types": "^1.4.0",
+    "@types/bun": "1.4.1",
+    "bun-types": "^1.4.1",
     "drizzle-kit": "^0.31.10",
     "typescript": "^6.0.3",
     "vitest": "^5.0.0",
-    "wrangler": "^4.128.0"
+    "wrangler": "^4.129.0"
   },
   "dependencies": {
-    "@hono/zod-openapi": "^1.6.2",
+    "@hono/zod-openapi": "^1.6.3",
     "@repo/auth": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
