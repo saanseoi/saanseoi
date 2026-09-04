@@ -43,7 +43,13 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
 })
 
 test('includes the Places full-text index in the current cache profile', () => {
-  expect(resolveCacheTablesForBinding('DB_CURRENT', 'places')).toContain('placesFts')
+  const tables = resolveCacheTablesForBinding('DB_CURRENT', 'places')
+  expect(tables).toContain('placesFts')
+  expect(tables).toContain('placesDivision')
+  expect(tables).toContain('placesCells')
+  const historyTables = resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'places')
+  expect(historyTables).not.toContain('placesDivision')
+  expect(historyTables).not.toContain('placesCells')
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {

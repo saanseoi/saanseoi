@@ -1568,9 +1568,74 @@ describe('control service', () => {
         )
       }
 
+      const carriedSnapshots =
+        datasetType === 'place'
+          ? (() => {
+              const addressSnapshotId = seedSnapshot(sqlite, {
+                code: 'ss-hk-address-historical-selection',
+                cohortKey: '2026-01',
+                datasetId: 'hkgov-dpo-hk-address',
+                releaseId,
+                resourceType: 'address',
+                snapshotId: 'snapshot-address-historical-selection',
+                status: 'published',
+              })
+              const divisionSnapshotId = seedSnapshot(sqlite, {
+                code: 'ss-hk-division-historical-selection',
+                cohortKey: '2026-01',
+                releaseId,
+                resourceType: 'division',
+                snapshotId: 'snapshot-division-historical-selection',
+                status: 'published',
+              })
+              return [
+                { resourceType: 'address' as const, snapshotId: addressSnapshotId },
+                {
+                  resourceType: 'division' as const,
+                  snapshotId: divisionSnapshotId,
+                  variant: 'overture',
+                },
+              ]
+            })()
+          : undefined
+
       const result = await handlePublishDataset(db, {
+        ...(carriedSnapshots ? { carriedSnapshots } : {}),
+        ...(datasetType === 'place' ? { deferApiReleaseSet: true } : {}),
         releaseId,
       })
+
+      if (datasetType === 'place') {
+        // Reconciliation must retain the exact historical references already
+        // stored on the draft, even when newer compatible snapshots exist.
+        seedSnapshot(sqlite, {
+          code: 'ss-hk-address-newer-selection',
+          cohortKey: '2026-07',
+          datasetId: 'hkgov-dpo-hk-address',
+          releaseId,
+          resourceType: 'address',
+          snapshotId: 'snapshot-address-newer-selection',
+          status: 'published',
+        })
+        seedSnapshot(sqlite, {
+          code: 'ss-hk-division-newer-selection',
+          cohortKey: '2026-07',
+          releaseId,
+          resourceType: 'division',
+          snapshotId: 'snapshot-division-newer-selection',
+          status: 'published',
+        })
+        const reconciliation = await handleReconcileDraftReleaseSets(db, {
+          apiFamily: 'places',
+          regionCode: 'hk',
+        })
+        if (!result.apiReleaseSetCode) {
+          throw new Error('Expected a draft Places release-set code.')
+        }
+        expect(reconciliation.publishedReleaseSetCodes).toContain(
+          result.apiReleaseSetCode,
+        )
+      }
 
       const releaseRow = sqlite
         .query('SELECT status FROM releases WHERE id = ?')
@@ -1647,7 +1712,10 @@ describe('control service', () => {
       expect(supportingSnapshots).toEqual(
         datasetType === 'address'
           ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
-          : [],
+          : [
+              { code: 'ss-hk-address-historical-selection', role: 'supporting' },
+              { code: 'ss-hk-division-historical-selection', role: 'supporting' },
+            ],
       )
     }
   })
