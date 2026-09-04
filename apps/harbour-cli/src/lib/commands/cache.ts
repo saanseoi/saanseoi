@@ -29,7 +29,8 @@ export async function runCacheRebuildCommand(
     ) ||
     (cacheTableProfile !== undefined &&
       cacheTableProfile !== 'divisionGeometry' &&
-      cacheTableProfile !== 'planningDivisionGeometry') ||
+      cacheTableProfile !== 'planningDivisionGeometry' &&
+      cacheTableProfile !== 'places') ||
     (cohortKey !== undefined &&
       (typeof cohortKey !== 'string' || !/^\d{4}$/.test(cohortKey))) ||
     (cohortKey !== undefined && cacheTableProfile !== 'planningDivisionGeometry') ||
@@ -37,7 +38,7 @@ export async function runCacheRebuildCommand(
   ) {
     printUsage()
     throw new Error(
-      '`cache:rebuild` accepts `--target preview|production`, optional `--table-profile divisionGeometry|planningDivisionGeometry`, and `--cohort-key YYYY` with the Planning profile.',
+      '`cache:rebuild` accepts `--target preview|production`, optional `--table-profile divisionGeometry|planningDivisionGeometry|places`, and `--cohort-key YYYY` with the Planning profile.',
     )
   }
 
@@ -123,12 +124,13 @@ export async function runCacheCompletedReleasesCommand(
       key => key !== 'target' && key !== 'table-profile',
     ) ||
     (cacheTableProfile !== undefined &&
-      cacheTableProfile !== 'planningDivisionGeometry') ||
+      cacheTableProfile !== 'planningDivisionGeometry' &&
+      cacheTableProfile !== 'places') ||
     !target.remote
   ) {
     printUsage()
     throw new Error(
-      '`cache:completed-releases` accepts `--target preview|production` and optional `--table-profile planningDivisionGeometry`.',
+      '`cache:completed-releases` accepts `--target preview|production` and optional `--table-profile planningDivisionGeometry|places`.',
     )
   }
 

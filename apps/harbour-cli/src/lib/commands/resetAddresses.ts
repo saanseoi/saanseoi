@@ -16,11 +16,11 @@ import {
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
-  resolveLocalAddressDbContext,
-  invalidateRemoteDbCache,
-} from '../dbCache/localDbCache.ts'
-import { executeSqlText } from '../localPipeline/sqlImport.ts'
+  executeResetSqlArtefacts,
+  validateResetArguments,
+} from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
@@ -137,10 +137,10 @@ export async function completeOfficialAddressInitialisation(target: UploadTarget
     requireExistingRemoteCache: target.remote,
   })
   try {
-    manifest.owned = await collectOwnedRecords(context)
-    manifest.owned.materialisedDivisionSnapshotIds = (
-      await readCurrentDivisionSnapshotIds(context)
-    ).filter(id => !(manifest.baseline.currentDivisionSnapshotIds ?? []).includes(id))
+    manifest.owned = await collectOwnedRecords(
+      context,
+      manifest.baseline.currentDivisionSnapshotIds ?? [],
+    )
     manifest.completedAt = new Date().toISOString()
     manifest.documentationAfter = await readDocsState(context)
     manifest.status = 'complete'
@@ -161,26 +161,14 @@ export async function runResetOfficialAddressesCommand(
   const discardChangedDocs = args.options['discard-changed-docs'] === true
   const adoptFailed = args.options['adopt-failed'] === true
   const yes = args.options.yes === true
-  if (
-    args.positionals.length ||
-    Object.keys(args.options).some(
-      key =>
-        ![
-          'target',
-          'keep-cache',
-          'dry-run',
-          'yes',
-          'discard-abandoned-staged',
-          'discard-changed-docs',
-          'adopt-failed',
-        ].includes(key),
-    )
-  ) {
-    options.printUsage()
-    throw new Error(
-      '`reset:addresses:official` accepts only --target, --dry-run, --yes, --keep-cache, --discard-abandoned-staged, --discard-changed-docs, and --adopt-failed.',
-    )
-  }
+  validateResetArguments(args, options.printUsage, 'reset:addresses:official', [
+    'keep-cache',
+    'dry-run',
+    'yes',
+    'discard-abandoned-staged',
+    'discard-changed-docs',
+    'adopt-failed',
+  ])
   const path = manifestPath(target)
   let manifest = await readManifest(path).catch(error => {
     if (adoptFailed) return null
@@ -219,7 +207,10 @@ export async function runResetOfficialAddressesCommand(
           'Refusing reset of an incomplete initialisation after documentation changed; complete the manifest first.',
         )
       }
-      manifest.owned = await collectOwnedRecords(context)
+      manifest.owned = await collectOwnedRecords(
+        context,
+        manifest.baseline.currentDivisionSnapshotIds ?? [],
+      )
     }
     if (discardAbandonedStaged) {
       await absorbAbandonedStagedAddressReleases(context, manifest)
@@ -251,30 +242,17 @@ export async function runResetOfficialAddressesCommand(
     // Remove the object while its release association still proves ownership.
     for (const asset of owned.assetIds) await deleteManagedSourceAsset(target, asset)
     const artefacts = buildResetSql(context, manifest)
-    const importOptions = {
-      isLocal: !target.remote,
-      accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
-      apiToken: process.env.CLOUDFLARE_D1_TOKEN,
-    }
-    for (const artefact of artefacts)
-      await executeSqlText(artefact.target, artefact.sql, importOptions)
-    if (target.remote) {
-      try {
-        for (const artefact of artefacts)
-          await executeSqlText(artefact.target, artefact.sql, { isLocal: true })
-      } catch (error) {
-        await invalidateRemoteDbCache(
-          targetName(target) as 'preview' | 'production',
-          context.state.dbCacheDir,
-          `official address reset cache replay failed: ${error instanceof Error ? error.message : String(error)}`,
-        )
-        throw new Error(
-          'Remote reset succeeded but its local cache could not be updated; the cache was invalidated.',
-        )
-      }
-    }
+    await executeResetSqlArtefacts({
+      artefacts,
+      cacheReleaseCodes: owned.releaseCodes,
+      cacheRoot: RELEASE_ARTEFACT_ROOT,
+      context,
+      extraCachePaths: [PREPARED_ROOT],
+      keepCache,
+      remoteCacheErrorMessage: 'Official address reset cache replay failed',
+      target,
+    })
     await restoreBeforeImage(HISTORY_FILE, manifest.identityFiles.history)
-    if (!keepCache) await removeRunCache(manifest, target)
     await rm(path, { force: true })
     outro('Official address initialisation reset complete')
   } finally {
@@ -388,9 +366,11 @@ async function adoptFailedAddressResetState(
     )
   }
   const docs = await readDocsState(context)
+  const baselineCurrentDivisionSnapshotIds =
+    await readCurrentDivisionSnapshotIds(context)
   const manifest: OfficialAddressInitManifest = {
     baseline: {
-      currentDivisionSnapshotIds: await readCurrentDivisionSnapshotIds(context),
+      currentDivisionSnapshotIds: baselineCurrentDivisionSnapshotIds,
       docs,
     },
     completedAt: new Date().toISOString(),
@@ -399,7 +379,7 @@ async function adoptFailedAddressResetState(
     identityFiles: {
       history: await readBeforeImage(HISTORY_FILE),
     },
-    owned: await collectOwnedRecords(context),
+    owned: await collectOwnedRecords(context, baselineCurrentDivisionSnapshotIds),
     runId: crypto.randomUUID(),
     status: 'complete',
     target: targetName(target),
@@ -414,6 +394,7 @@ async function adoptFailedAddressResetState(
 
 async function collectOwnedRecords(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  baselineCurrentDivisionSnapshotIds: string[],
 ) {
   const releases = await context.metaDb
     .select({
@@ -454,15 +435,26 @@ async function collectOwnedRecords(
     .from(metaSchema.metaAssets)
     .where(inArray(metaSchema.metaAssets.releaseId, releaseIds))
     .all()
+  const currentDivisionSnapshotIds = await readCurrentDivisionSnapshotIds(context)
   return {
     apiReleaseSetIds: [...new Set(apiRows.map(row => row.id))],
     assetIds: assets,
-    materialisedDivisionSnapshotIds: [],
+    materialisedDivisionSnapshotIds: resolveOwnedMaterialisedDivisionSnapshotIds(
+      currentDivisionSnapshotIds,
+      baselineCurrentDivisionSnapshotIds,
+    ),
     releaseCodes: releases.map(row => row.code),
     releaseIds,
     snapshotIds,
     sourceReleaseIds: [...new Set(releases.map(row => row.sourceReleaseId))],
   }
+}
+
+export function resolveOwnedMaterialisedDivisionSnapshotIds(
+  currentSnapshotIds: string[],
+  baselineSnapshotIds: string[],
+) {
+  return currentSnapshotIds.filter(id => !baselineSnapshotIds.includes(id))
 }
 
 async function assertResetStillSafe(
@@ -866,16 +858,4 @@ function selectDocsForInitialisation(state: DocsState, baseline: DocsState): Doc
 }
 function byId<T extends { id: string }>(a: T, b: T) {
   return a.id.localeCompare(b.id)
-}
-async function removeRunCache(
-  manifest: OfficialAddressInitManifest,
-  target: UploadTarget,
-) {
-  await rm(PREPARED_ROOT, { force: true, recursive: true })
-  for (const directory of target.remote ? [target.environment, 'remote'] : ['local'])
-    for (const code of manifest.owned?.releaseCodes ?? [])
-      await rm(resolve(RELEASE_ARTEFACT_ROOT, directory, code), {
-        force: true,
-        recursive: true,
-      })
 }

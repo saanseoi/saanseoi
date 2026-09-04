@@ -60,6 +60,11 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:places:overture': {
+    script: 'scripts/init/places-overture.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:streets:hkgov-landsd': {
     script: 'scripts/init/streets-hkgov-landsd.fish',
     supportsContinue: true,

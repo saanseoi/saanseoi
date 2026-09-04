@@ -61,6 +61,11 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
+    expect(resolveInitialisationCommand('init:places:overture')).toEqual({
+      script: 'scripts/init/places-overture.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
   })
 
   test('does not resolve an unsupported family and domain', () => {

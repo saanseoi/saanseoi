@@ -1,5 +1,3 @@
-import { emitKeypressEvents } from 'node:readline'
-
 type InterruptCleanup = (signal: 'SIGINT' | 'SIGTERM') => void
 
 const interruptCleanups = new Set<InterruptCleanup>()
@@ -37,15 +35,15 @@ type InterruptInput = {
       key: { ctrl?: boolean; name?: string; sequence?: string },
     ) => void,
   ): unknown
-  pause?(): unknown
 }
 
 /**
  * Exit a command when its terminal sends an interrupt.
  *
  * Clack prompts switch stdin into raw mode while a progress control is active.
- * In raw mode Ctrl-C arrives as a keypress instead of SIGINT, so listen for
- * both forms before a control is created.
+ * In raw mode Ctrl-C arrives as a keypress instead of SIGINT. Observe Clack's
+ * keypress events without installing a second decoder; a data listener here
+ * would consume input from an interactive child process sharing the terminal.
  */
 export function installInterruptHandler(
   processRef: InterruptProcess = process,
@@ -80,7 +78,6 @@ export function installInterruptHandler(
     }
   }
 
-  if (inputRef === process.stdin) emitKeypressEvents(process.stdin)
   const interruptOnSigint = () => interrupt('SIGINT')
   const interruptOnSigterm = () => interrupt('SIGTERM')
   processRef.on('SIGINT', interruptOnSigint)
@@ -91,9 +88,5 @@ export function installInterruptHandler(
     processRef.off('SIGINT', interruptOnSigint)
     processRef.off('SIGTERM', interruptOnSigterm)
     inputRef.off('keypress', interruptOnKeypress)
-    // emitKeypressEvents resumes the real terminal stream. Removing its
-    // listener alone leaves Bun's event loop alive after a non-interactive
-    // command (for example, a nested initialiser reconciliation) has finished.
-    if (inputRef === process.stdin) inputRef.pause?.()
   }
 }

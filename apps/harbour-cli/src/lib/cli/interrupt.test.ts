@@ -27,22 +27,10 @@ test('exits once with the conventional interrupt status', () => {
   }
 
   const inputRef = {
-    off(
-      _event: 'keypress',
-      _listener: (
-        character: string,
-        key: { ctrl?: boolean; name?: string; sequence?: string },
-      ) => void,
-    ) {
+    off() {
       return inputRef
     },
-    on(
-      _event: 'keypress',
-      _listener: (
-        character: string,
-        key: { ctrl?: boolean; name?: string; sequence?: string },
-      ) => void,
-    ) {
+    on() {
       return inputRef
     },
   }
@@ -97,6 +85,37 @@ test('runs registered cleanup before exiting on an interrupt', () => {
   expect(cleanupSignals).toEqual(['SIGTERM'])
 })
 
+test('observes Clack keypresses without installing a raw input reader', () => {
+  const events: string[] = []
+  const processRef = {
+    exit() {
+      return undefined as never
+    },
+    off() {
+      return processRef
+    },
+    on(signal: 'SIGINT' | 'SIGTERM' | string) {
+      if (signal !== 'SIGINT' && signal !== 'SIGTERM') events.push(signal)
+      return processRef
+    },
+  }
+  const inputRef = {
+    off(event: 'keypress') {
+      events.push(`off:${event}`)
+      return inputRef
+    },
+    on(event: 'keypress') {
+      events.push(event)
+      return inputRef
+    },
+  }
+
+  const dispose = installInterruptHandler(processRef, inputRef)
+
+  expect(events).toEqual(['keypress'])
+  dispose()
+})
+
 test('removes its interrupt listeners when disposed', () => {
   const listeners = new Map<string, () => void>()
   const keypressListeners = new Set<
@@ -105,7 +124,6 @@ test('removes its interrupt listeners when disposed', () => {
       key: { ctrl?: boolean; name?: string; sequence?: string },
     ) => void
   >()
-  let pauseCalls = 0
   const processRef: {
     exit(code?: number): never
     off(signal: 'SIGINT' | 'SIGTERM', listener: () => void): unknown
@@ -145,10 +163,6 @@ test('removes its interrupt listeners when disposed', () => {
       keypressListeners.add(listener)
       return inputRef
     },
-    pause() {
-      pauseCalls += 1
-      return inputRef
-    },
   }
 
   const dispose = installInterruptHandler(processRef, inputRef)
@@ -156,7 +170,6 @@ test('removes its interrupt listeners when disposed', () => {
 
   expect(listeners.size).toBe(0)
   expect(keypressListeners.size).toBe(0)
-  expect(pauseCalls).toBe(0)
 })
 
 test('exits when raw-mode Ctrl-C is received as a keypress', () => {
