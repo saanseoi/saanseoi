@@ -1,4 +1,5 @@
 import { normaliseBaseUrl } from '@repo/core'
+import type { ResourceType } from '@repo/core'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
@@ -13,6 +14,11 @@ type StagePayload = {
 }
 
 type PublishPayload = {
+  carriedSnapshots?: Array<{
+    resourceType: ResourceType
+    snapshotId: string
+    variant?: string
+  }>
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
@@ -30,6 +36,11 @@ export function createHarbourControlClient(target: UploadTarget) {
       releaseId: string,
       releaseCode?: string,
       publishOptions: {
+        carriedSnapshots?: Array<{
+          resourceType: ResourceType
+          snapshotId: string
+          variant?: string
+        }>
         deferApiReleaseSet?: boolean
         deferStatsReleaseSet?: boolean
         deferSourcePublish?: boolean
@@ -43,6 +54,9 @@ export function createHarbourControlClient(target: UploadTarget) {
         {
           releaseCode,
           releaseId,
+          ...(publishOptions.carriedSnapshots
+            ? { carriedSnapshots: publishOptions.carriedSnapshots }
+            : {}),
           ...(publishOptions.deferApiReleaseSet ? { deferApiReleaseSet: true } : {}),
           ...(publishOptions.deferStatsReleaseSet
             ? { deferStatsReleaseSet: true }

@@ -66,6 +66,11 @@ type StageRequest = {
 }
 
 type PublishRequest = {
+  carriedSnapshots?: Array<{
+    resourceType: ResourceType
+    snapshotId: string
+    variant?: string
+  }>
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
@@ -582,10 +587,23 @@ export async function handlePublishDataset(
           .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
       )
       const satisfiedRequiredMembers = new Set<string>()
+      const explicitlyCarriedMemberKeys = new Set(
+        (request.carriedSnapshots ?? []).map(snapshot =>
+          releaseSetMemberKey(snapshot.resourceType, snapshot.variant ?? 'default'),
+        ),
+      )
 
       for (const member of domainMembers) {
         const memberKey = releaseSetMemberKey(member.resourceType, member.variant)
         if (member.resourceType === datasetType && member.variant === datasetVariant) {
+          if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+          continue
+        }
+
+        // Family processors may have selected an exact reference snapshot from
+        // the data they materialised. Preserve that choice instead of replacing
+        // it with an independently resolved cohort match.
+        if (explicitlyCarriedMemberKeys.has(memberKey)) {
           if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
           continue
         }
@@ -607,6 +625,32 @@ export async function handlePublishDataset(
             variant: member.variant,
           })
         }
+      }
+
+      for (const carriedSnapshot of request.carriedSnapshots ?? []) {
+        const snapshot = await db
+          .select({
+            id: metaSnapshots.id,
+            resourceType: metaSnapshots.resourceType,
+            status: metaSnapshots.status,
+          })
+          .from(metaSnapshots)
+          .where(eq(metaSnapshots.id, carriedSnapshot.snapshotId))
+          .limit(1)
+          .get()
+        if (
+          !snapshot ||
+          snapshot.status !== 'published' ||
+          snapshot.resourceType !== carriedSnapshot.resourceType
+        ) {
+          throw new ControlRequestError(
+            `Carried ${carriedSnapshot.resourceType} snapshot ${carriedSnapshot.snapshotId} is not a published matching snapshot.`,
+          )
+        }
+        carriedSnapshots.push({
+          ...carriedSnapshot,
+          variant: carriedSnapshot.variant ?? 'default',
+        })
       }
 
       const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
@@ -868,9 +912,25 @@ export async function handleReconcileDraftReleaseSets(
         continue
       }
 
+      // A draft release set already contains the exact supporting snapshots
+      // selected when its primary dataset was materialised. Keep those
+      // selections during reconciliation; resolving them again by cohort can
+      // silently replace a historical Place's recorded address snapshot.
+      const carriedSnapshots = (await listApiReleaseSetSnapshots(db, releaseSet.id))
+        .filter(snapshot => snapshot.role !== 'primary')
+        .map(snapshot => ({
+          resourceType: snapshot.snapshotResourceType,
+          snapshotId: snapshot.snapshotId,
+          variant: snapshot.variant,
+        }))
+
       const result = await handlePublishDataset(
         db,
-        { releaseId: primaryRelease.releaseId, skipSnapshotCleanup: true },
+        {
+          carriedSnapshots,
+          releaseId: primaryRelease.releaseId,
+          skipSnapshotCleanup: true,
+        },
         undefined,
         { reconcileDraftReleaseSet: true, releaseSet },
       )
