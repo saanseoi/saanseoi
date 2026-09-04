@@ -51,7 +51,7 @@ export type ApiReleaseSetStatsTarget = {
 
 type CalculateApiReleaseSetStatsOptions = {
   currentDb: HarbourReadableDb
-  family: 'address' | 'division'
+  family: 'address' | 'division' | 'place'
   harbourClient: HarbourClient
   importOptions: ApiReleaseSetStatsImportOptions
   metaDb: HarbourReadableDb & HarbourWritableDb
@@ -117,7 +117,9 @@ export async function calculateAndStoreApiReleaseSetStats(
             snapshotId,
             options.addressQuality,
           )
-        : await buildDivisionStatsRows(options.currentDb, snapshotId)
+        : options.family === 'division'
+          ? await buildDivisionStatsRows(options.currentDb, snapshotId)
+          : await buildPlaceStatsRows(options.currentDb, snapshotId)
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),
@@ -401,6 +403,81 @@ async function buildDivisionStatsRows(
     divisionI18nCount,
     localeStats,
   })
+}
+
+async function buildPlaceStatsRows(
+  db: HarbourReadableDb,
+  snapshotId: string,
+): Promise<ApiReleaseSetScopedStatsRow[]> {
+  const [placeCount, i18nCount, addressLinkedCount, divisionLinkCount, localeCounts] =
+    await Promise.all([
+      countRows(db, currentSchema.places, currentSchema.places.snapshotId, snapshotId),
+      countRows(
+        db,
+        currentSchema.placesI18n,
+        currentSchema.placesI18n.snapshotId,
+        snapshotId,
+      ),
+      countWhere(
+        db,
+        currentSchema.places,
+        and(
+          eq(currentSchema.places.snapshotId, snapshotId),
+          sql`${currentSchema.places.address2dId} IS NOT NULL OR ${currentSchema.places.address3dId} IS NOT NULL`,
+        ),
+      ),
+      countRows(
+        db,
+        currentSchema.placesDivision,
+        currentSchema.placesDivision.placeSnapshotId,
+        snapshotId,
+      ),
+      countGrouped(
+        db,
+        currentSchema.placesI18n,
+        currentSchema.placesI18n.snapshotId,
+        snapshotId,
+        currentSchema.placesI18n.locale,
+      ),
+    ])
+
+  const timestamp = new Date().toISOString()
+  const rows: ApiReleaseSetScopedStatsRow[] = [
+    placeStatsRow('records', 'count', 'count', placeCount, timestamp),
+    placeStatsRow('localised_records', 'count', 'count', i18nCount, timestamp),
+    placeStatsRow('address_links', 'count', 'count', addressLinkedCount, timestamp),
+    placeStatsRow('division_links', 'count', 'count', divisionLinkCount, timestamp),
+  ]
+  for (const [locale, count] of localeCounts) {
+    rows.push(
+      placeStatsRow('localised_records', 'count', 'count', count, timestamp, {
+        groupBy: 'locale',
+        groupValue: locale,
+      }),
+    )
+  }
+  return rows
+}
+
+function placeStatsRow(
+  dimension: string,
+  metric: string,
+  metricUnit: string,
+  value: number,
+  timestamp: string,
+  grouping?: { groupBy: string; groupValue: string },
+): ApiReleaseSetScopedStatsRow {
+  return {
+    createdAt: timestamp,
+    dimension,
+    groupBy: grouping?.groupBy ?? null,
+    groupValue: grouping?.groupValue ?? null,
+    metric,
+    metricUnit,
+    type: 'apiReleaseSet',
+    updatedAt: timestamp,
+    value,
+  }
 }
 
 async function buildAddressLocaleStats(
