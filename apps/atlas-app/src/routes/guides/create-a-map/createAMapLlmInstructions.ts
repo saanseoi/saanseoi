@@ -9,6 +9,7 @@ import {
 } from './createAMapLlmPrerequisitesInstructions'
 import { createAMapLlmLaterSectionInstructions } from './createAMapLlmLaterSectionInstructions'
 import { createAMapLlmDecisionMatrixInstructions } from './createAMapLlmDecisionMatrix'
+import { createAMapLlmReferenceInstructions } from './createAMapLlmReferenceInstructions'
 
 const joinInstructions = (sections: string[]) =>
   sections.map(section => section.trim()).join('\n\n')
@@ -22,6 +23,7 @@ export const createAMapLlmInstructions = () =>
     createAMapLlmDecisionMatrixInstructions(),
     createAMapLlmPrerequisitesInstructions(),
     createAMapLlmLaterSectionInstructions(),
+    createAMapLlmReferenceInstructions(),
   ])
 
 /** Shared setup material included in the first collaborative assistance prompt. */
