@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
+import { inspectParquetFile } from '@repo/core/parquetInspectorNode'
 import type { UploadInspection, UploadPlan } from '@repo/core'
+import { resolve } from 'node:path'
 
 import { validateOvertureSchema } from './overture.ts'
 
@@ -94,6 +96,21 @@ function makePlan(sourceVersion: string): UploadPlan {
   }
 }
 
+function makePlacePlan(sourceVersion: string): UploadPlan {
+  return {
+    ...makePlan(sourceVersion),
+    cohortKey: sourceVersion.slice(0, 7),
+    datasetCode: 'ds-hk-overture-place',
+    releaseCode: `overture-hk-${sourceVersion}-place`,
+    theme: 'places',
+    type: 'place',
+    datasetId: `overture-hk-${sourceVersion}-place`,
+    filePath: '/tmp/place.parquet',
+    fileName: 'place.parquet',
+    originalFileName: 'place.parquet',
+  }
+}
+
 function makeDivisionAreaPlan(sourceVersion: string): UploadPlan {
   return {
     ...makePlan(sourceVersion),
@@ -132,6 +149,18 @@ function makeInspection(schema: UploadInspection['schema']): UploadInspection {
 }
 
 describe('validateOvertureSchema', () => {
+  test('accepts the checked-in Overture Places reference fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2026-08-19.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2026-08-19.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-09-24.0')
+  })
+
   test('accepts the pre-admin_level division schema before 2026-02-18.0', () => {
     const result = validateOvertureSchema(
       makePlan('2026-02-17.0'),

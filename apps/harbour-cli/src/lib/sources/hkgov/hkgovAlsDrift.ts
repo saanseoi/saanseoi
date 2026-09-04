@@ -260,9 +260,9 @@ function hasStructuredBlock(record: HkgovAlsIdentityRecord) {
 }
 
 /**
- * A new trailing block, tower, villa, house, or house-number qualifier narrows
- * a whole-building name to a particular part of that address site. It is a new
- * premise even when ALS has not placed the qualifier in structured block fields.
+ * A new trailing site-part qualifier narrows a whole-building name to a
+ * particular part of that address site. It is a new premise even when ALS has
+ * not placed the qualifier in structured block fields.
  */
 function isBuildingSitePartQualification(
   previous: HkgovAlsIdentityRecord,
@@ -462,9 +462,11 @@ function normaliseSitePart(value: string) {
 const SITE_PART_QUALIFIER =
   '(?:NORTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|SOUTH(?:EAST|WEST|[ -]EAST|[ -]WEST)?|EAST|WEST|NE|NW|SE|SW|N|S|E|W|HIGH|LOW|CENTER|CENTRE|MIDDLE|ONE|TWO|THREE|[A-Z]\\d+|\\d+[A-Z]|\\d+|[IVXLCDM]+|[A-Z])'
 const SITE_PART_DESCRIPTOR =
-  '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE)'
+  '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE|PORTION)'
+const WING_SITE_PART_DESCRIPTOR =
+  '(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|PHASE)'
 const SITE_PART_BUILDING_SUFFIX = new RegExp(
-  `^(?:${SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}(?:\\s+(?:AND\\s+)?${SITE_PART_QUALIFIER})*|${SITE_PART_QUALIFIER}\\s+${SITE_PART_DESCRIPTOR})$`,
+  `^(?:${SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}(?:\\s+(?:AND\\s+)?${SITE_PART_QUALIFIER})*|${SITE_PART_QUALIFIER}\\s+${SITE_PART_DESCRIPTOR}|${WING_SITE_PART_DESCRIPTOR}\\s+${SITE_PART_QUALIFIER}\\s+[LR]\\s+WING)$`,
 )
 
 function buildingNameSuffix(previous: string, current: string) {
@@ -496,7 +498,7 @@ function isStandaloneAlphaNumericSitePart(suffix: string) {
 
 function containsMaterialSitePartQualifier(suffix: string) {
   const value = normaliseBuildingName(suffix)
-  return /\b(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE)\b/.test(
+  return /\b(?:BLOCK|BLKS?|TOWER|TWR|VILLA|HOUSE|HSE|HALLS?|SECTION|STAGE|WING|PHASE|PORTION)\b/.test(
     value,
   )
 }

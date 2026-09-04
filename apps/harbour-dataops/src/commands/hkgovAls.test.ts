@@ -5,6 +5,7 @@ import { describe, expect, test } from 'bun:test'
 import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
 import {
   formatAlsDivisionQualitySummary,
+  filterDivisionI18nToKnownDivisions,
   formatSourceDuplicateSummary,
   HKGOV_ALS_IDENTITY_CURATION_PATH,
   inferAlsSourceVersionFromPath,
@@ -46,6 +47,20 @@ describe('formatAlsDivisionQualitySummary', () => {
     expect(summary).toContain('district ambiguous: NORTH DISTRICT / TAI PO')
     expect(summary).not.toContain('district matched: NORTH DISTRICT')
     expect(summary).not.toContain('area matched: KOWLOON')
+  })
+})
+
+describe('replayed division translations', () => {
+  test('does not copy translations whose division was deleted from the snapshot', () => {
+    const rows = filterDivisionI18nToKnownDivisions(
+      [
+        { divisionId: 'retained', locale: 'en' },
+        { divisionId: 'deleted', locale: 'en' },
+      ],
+      new Set(['retained']),
+    )
+
+    expect(rows).toEqual([{ divisionId: 'retained', locale: 'en' }])
   })
 })
 
