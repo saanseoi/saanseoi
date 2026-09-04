@@ -568,7 +568,7 @@ const createSectionInstructions = (
   data: [
     state.dataSource === 'api'
       ? 'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`, then present the returned District data in a readable table for inspection. Keep source releases and reference years explicit, calculate defensively, and keep source data separate from derived data.'
-      : 'Ask me for the schema, source and licence of my existing data before integrating it. Then add the smallest robust loading, validation and map-display path for that data.',
+      : 'Ask me for the schema and source of my existing data before integrating it. Then add the smallest robust loading, validation and map-display path for that data.',
     'Do not assume unavailable fields or silently fabricate values.',
   ],
   publish: [
@@ -827,7 +827,7 @@ export const createAMapCustomDataPrompt = (
     : 'Once the data layer is visibly verified, summarise what changed and how you verified it. Remain available for further map edits.'
   const interaction =
     mode === 'agentic'
-      ? 'Inspect the project first, then make the smallest appropriate changes once I have answered. Do not invent features, coordinates, licences, or data values.'
+      ? 'Inspect the project first, then make the smallest appropriate changes once I have answered. Do not invent features, coordinates, or data values.'
       : 'Guide me one small action at a time and wait for my answer before giving the next action. Tell me exactly which file or terminal command I should use.'
 
   return [

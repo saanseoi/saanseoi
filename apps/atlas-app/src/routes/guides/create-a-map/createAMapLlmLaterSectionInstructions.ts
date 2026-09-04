@@ -89,21 +89,33 @@ Tell me that I am at a crossroads: the basemap works, and I can now make it my o
 Offer these three paths and begin only the one I choose:
 
 1. **SaanSeoi Population Density Project** — follow the guided District statistics and
-   liveable-area example, with reproducible source years, overlays and summary cards.
+   liveable-area example, with reproducible source years, overlays and summary cards. For
+   this path, use the District-level 2024 \`populationMidYear\` and \`landArea\` values
+   from \`/stats/v0.1/geographies\`, show the returned data for inspection, aggregate by
+   Area, calculate density defensively, add the three summary cards and coloured District
+   overlays, identify excluded land-use polygons, calculate liveable land once in a
+   geometry Worker, save \`src/land-analysis.json.gz\`, and finish with the cached
+   liveable-density overlays and cards. Keep source values separate from derived values
+   and record releases and reference years.
+
+   The liveable-area calculation is deliberately a prompt/response cycle. First offer the
+   prepared \`land-analysis.json.gz\` download. If it is absent, explain the one-time
+   calculation, install the geospatial packages, create the Worker, add the styles and
+   analysis code, then ask me to inspect the download. A chat LLM waits for me to place the
+   file and confirm it; an agentic LLM may inspect the workspace and move an existing file
+   into place, but must not silently replace its contents.
 2. **Data I already have** — let me upload a dataset here (or, for an agentic LLM, place
    it in the project root), inspect its format and schema, convert it to valid GeoJSON,
    and add an accessible layer with a useful legend or popup.
 3. **Craft a custom map** — ask what I want to show on the selected Hong Kong, Macau or
-   GBA basemap, review suitable data sources and licences with me, obtain or create the
+   GBA basemap, review suitable data sources with me, obtain or create the
    agreed data, convert it to GeoJSON, and add and style the layer. Establish the story,
    audience, locations, geometry, attributes, source and interaction before creating
    anything; never fabricate data.
 
-For the worked urban-density example, make the computation reproducible: record source
-releases and reference years, separate input from derived data, calculate area and
-density defensively, and display both the overlay and the metrics. If publishing is part
-of my selected objective, check the selected host’s current asset-size limit before adding
-an oversized custom file. Never fabricate unavailable values or silently assume fields.
+If publishing is part of my selected objective, check the selected host’s current
+asset-size limit before adding an oversized custom file. Never fabricate unavailable
+values or silently assume fields.
 
 ### Data I already have
 
@@ -112,7 +124,7 @@ adding it to the map:
 
 1. Ask me to upload the file to this chat. An agentic LLM may instead ask me to put it in
    the project root and inspect it there. Identify its format, schema, coordinate
-   reference system, source and licence from the file; do not make me choose a format in
+   reference system and source from the file; do not make me choose a format in
    advance or overwrite the original. Supported starting formats include GeoJSON(L),
    KML/KMZ, CSV/TSV, TopoJSON, Shapefile ZIP, FlatGeobuf, WKT, XLS/XLSX, OSM and other
    spatial files.
@@ -125,7 +137,7 @@ adding it to the map:
    worksheet first and then the matching geometry kind. Coordinates must be WGS84;
    convert projected coordinates first. For KML/KMZ, TopoJSON, Shapefile ZIP, FlatGeobuf,
    WKT, OSM or another format, use geojson.io when it supports the file or a trusted
-   converter that preserves geometry, properties, source and licence.
+   converter that preserves geometry, properties and source.
 3. Review the imported data. Use the feature editor to give places a clear \`name\` and
    add useful properties, and use the marker, line and polygon tools to add or refine
    geometry. If geojson.io does not recognise the file, export GeoJSON from the source
@@ -172,7 +184,7 @@ ${nestedReferences(createAMapLlmExistingDataReferences())}
 
 Ask me what the map should help people understand, who it is for, which places or area it
 covers, and what interaction I want. Review possible authoritative sources with me before
-obtaining data, explain licensing and attribution, and ask me to approve the source and
+obtaining data, explain the source and attribution, and ask me to approve the source and
 the proposed fields. Convert the approved data to valid \`features.geojson\`, preserve the
 source and provenance, and then use the renderer-specific existing-data reference above
 to add it. If publishing is selected, check that host’s current static-asset limit against

@@ -18,7 +18,6 @@ import {
   urbanDensityMetricsCode,
   urbanDensitySetupZ14TileFetcherCss,
   urbanDensityTurfInstallCode,
-  urbanDensityTurfInstallOutput,
   createUrbanDensityMetricsCss,
 } from './snippets'
 import { createMapIframeCode } from './createAMapEmbed'
@@ -125,12 +124,6 @@ const createUrbanDensityReferences = (
     'saanseoi-project',
     'bash',
     urbanDensityTurfInstallCode,
-  ),
-  reference(
-    'Expected dependency output',
-    'saanseoi-project',
-    'text',
-    urbanDensityTurfInstallOutput,
   ),
   reference(
     'Create the geometry Worker',
