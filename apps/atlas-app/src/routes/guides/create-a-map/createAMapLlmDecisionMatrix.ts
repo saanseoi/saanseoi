@@ -10,6 +10,12 @@ import {
   createAMapLlmUrbanDensityReferences,
 } from './createAMapLlmReferenceInstructions'
 
+const guideFlowReferences = (references: string) =>
+  references.replace(/^#### /gm, '##### ').replace(/^### /gm, '#### ')
+
+const guideFlowNestedReferences = (references: string) =>
+  references.replace(/^#### /gm, '###### ').replace(/^### /gm, '##### ')
+
 const styleOptions = ['custom', ...mapStyleDefinitions.map(style => style.id)].join(
   ', ',
 )
@@ -130,83 +136,90 @@ implement adjacent sections when no user decision is needed, but must explain an
 each one. A non-agentic LLM must provide one safe action at a time, name its exact
 terminal or editor target, wait for the user’s report, and only then continue.
 
-### Prerequisites and project setup
+## Prerequisites and project setup
 
-#### Section Goal
+### Section Goal
 
 Create a safe Bun + TypeScript Vite foundation in \`/path/to/saanseoi-project\` and
 visually verify the default Vite page before introducing map code or credentials.
 
-#### Section Guidance
+### Section Guidance
 
-The clean baseline gives us a known-good browser and build environment. Inspect the OS,
-shell and workspace first, preserve hidden folders, check Bun before installing it, and
-never overwrite an existing project. The browser check matters because a successful
-command or HTTP response does not prove that the page is visible. Only after that baseline
-works should the user create a SaanSeoi account and public API key.
+We start with a small, empty project so every later map step has a dependable home. First
+we open that starter page and make sure it works; once it does, we can safely add SaanSeoi
+and the map features without having to untangle several changes at once.
 
-#### Code References
+### Code References
 
 ${createAMapLlmProjectSetupReferences()}
 
-### Render the map
+## Render the map
 
-#### Section Goal
+### Section Goal
 
 Install only the selected mapping library, create a responsive blank map at the selected
 region’s opening position, and confirm that it renders in the browser.
 
-#### Section Guidance
+### Section Guidance
 
-Starting with a blank map isolates renderer and dependency problems before authentication,
-tiles or data are introduced. Keep the selected renderer’s existing project conventions,
-use Mapbox’s \`VITE_MAPBOX_TOKEN\` only when Mapbox GL JS is selected, and verify the
-visible map rather than treating a build as proof.
+An empty map gives us a clear first look at the mapping library we chose. We can confirm
+that the map appears and responds before adding real places, colours or data, so it is easy
+to tell which part needs attention if something looks wrong.
 
-#### Code References
+### Code References
 
-${createAMapLlmRendererReferences()}
+${guideFlowReferences(createAMapLlmRendererReferences())}
 
-### Add the SaanSeoi basemap
+## Add the SaanSeoi basemap
 
-#### Section Goal
+### Section Goal
 
 Connect the selected regional SaanSeoi vector TileJSON to the working renderer with the
 URL-encoded public \`pk.\` key and verify that the basemap loads.
 
-#### Section Guidance
+### Section Guidance
 
-The renderer is now ready for real geography. SaanSeoi’s public key is intentionally
-available to browser code, so send it directly as \`access_token\` on API and tile
-requests; do not introduce a proxy, refresh utility or server lookup. Confirm the
-basemap visually before moving to styling.
+Now we give the empty map its real geography. The SaanSeoi key lets the browser request the
+map tiles, and the finished basemap gives us the Hong Kong, Macau or GBA context on which
+our own information will sit. We check that it loads before changing its appearance.
 
-#### Code References
+### Code References
 
-${createAMapLlmBasemapReferences()}
+${guideFlowReferences(createAMapLlmBasemapReferences())}
 
-### Pick a style
+## Choose a style
 
-#### Section Goal
+### Section Goal
 
 Apply the selected SaanSeoi style, or implement the user’s visual direction as a valid
 custom style, while keeping the vector-tile source compatible with the renderer.
 
-#### Section Guidance
+### Section Guidance
 
-Style is where the basemap becomes the visual language of the project. Show the available
-preview images, recommend \`midnight\` while accepting another built-in style or a custom
-direction, and preserve the SaanSeoi source named \`basemap\`. Verify sources, layers and
-the visible result after the change.
+This is where the map starts to feel like yours. We look at the available previews,
+recommend **midnight** as a strong starting point, or shape a custom look from your visual
+direction. We then check the finished map so the colours and labels remain easy to read.
 
-#### Code References
+### Code References
 
-${createAMapLlmStyleReferences()}
+${guideFlowReferences(createAMapLlmStyleReferences())}
 
-### Add data
+## Add data
 
-Tell me that the working basemap is now a crossroads: I can choose one of three explicit
-paths, and the prompts for each path should begin only when I choose it:
+### Section Goal
+
+Turn the working basemap into a purposeful map by taking exactly one of three explicit
+paths: the SaanSeoi Population Density Project, Data I already have, or Craft a custom
+map. Do not begin a path’s prompts until the user selects it.
+
+### Section Guidance
+
+This is the crossroads where the basemap becomes your map. You can follow the population-
+density story, bring a dataset you already have, or describe the data you would like and
+let the LLM help find and prepare it. Whichever path you choose, we keep the source of the
+information clear and explain any one-time analysis so you know what the map is showing.
+
+Offer these paths using the guide’s labels and begin only the selected path:
 
 1. **SaanSeoi Population Density Project** (\`data=api\`) — follow the guided example,
    using the SaanSeoi District statistics and the liveable-area analysis to build the
@@ -240,30 +253,81 @@ analysis code, then ask the user to inspect the download. A chat LLM waits for t
 to place the file and confirm it; an agentic LLM may inspect the workspace and move an
 existing file into place, but must not silently replace its contents.
 
-### Publish and embed
+### Code References
 
-Only publish when the destination requires it. Build and smoke-test locally first, then
-install/authenticate the selected host, configure the public SaanSeoi key in build
-settings, deploy and verify the stable public URL in a private window. Stop before
-account-linked, paid, DNS, signing or deployment actions until the user confirms.
+Use only the references for the selected data path and mapping library.
 
-For an embedded site, do not rely on the guide UI to compose the iframe. Ask the user
-for the real public HTTPS map URL, an accessible title, and either a fixed height in
-pixels or a parent-fill height. Return the complete iframe, explain its attributes, and
-guide the user through this response cycle:
+#### SaanSeoi Population Density Project
 
-1. confirm the URL opens publicly and the map can be used;
-2. provide the iframe with \`width=100%\`, the chosen height, \`loading=lazy\`,
-   \`allowfullscreen\`, and the accessible title;
-3. ask the user to place it in the platform’s element, preview and report what they see;
-4. troubleshoot using the platform’s current official documentation, then ask the user
-   to publish or update the page and confirm the public result.
+${guideFlowNestedReferences(createAMapLlmUrbanDensityReferences())}
 
-Use a Custom HTML block for self-hosted WordPress or the appropriate WordPress.com
-editor, a Code Block for Squarespace, an Embed HTML element for Wix, and a Code Embed
-element for Webflow. For another platform, ask which editor it uses before giving
-placement instructions. Explain that cross-origin iframes cannot be restyled by the
-surrounding site and that fixed height or an explicitly sized parent is required.
+#### Data I already have
+
+${guideFlowNestedReferences(createAMapLlmExistingDataReferences())}
+
+#### Craft a custom map
+
+The custom path begins by establishing the story, audience, geography, attributes,
+sources, licence and interaction. Create or obtain the agreed data as valid GeoJSON and
+adapt the existing-data renderer reference only after those decisions are confirmed.
+
+##### MapLibre
+
+Use the MapLibre existing-data reference after the custom source is approved.
+
+##### Mapbox GL JS
+
+Use the Mapbox GL JS existing-data reference after the custom source is approved.
+
+##### Leaflet
+
+Use the Leaflet existing-data reference after the custom source is approved.
+
+## Publish the map
+
+### Section Goal
+
+Produce a browser-ready static build, configure the selected host, deploy it, and verify
+the stable public URL in a private window before calling the map public.
+
+### Section Guidance
+
+When the map is ready, we prepare a shareable version that your chosen hosting service can
+show to anyone. We check the finished map privately first, then send it to the host and
+find the stable link you can share. You remain in control of account, payment and
+publishing decisions throughout. Enter this section only when my destination is online or
+an embedded site; for a local destination, congratulate me on the finished map and stop
+before asking about a host.
+
+### Code References
+
+Use only the references for the selected host and operating system. Host commands shown
+without a nested OS heading are cross-platform Bun commands; GitHub Pages has explicit
+Linux, macOS and Windows PowerShell installation subsections, so use only the one matching
+my system.
+
+${guideFlowReferences(createAMapLlmHostingReferences())}
+
+## Embed the map
+
+### Section Goal
+
+Place the published map inside the selected site editor with an accessible, responsive
+iframe, then preview and publish the containing page.
+
+### Section Guidance
+
+Once the map has a public link, we can place it inside your chosen website. The map remains
+its own interactive page, so we give it a clear title and a comfortable height, preview it
+in the site editor, and then publish the page. The surrounding site cannot directly change
+the map’s colours, but it can display it reliably through the iframe. Enter this section
+only when my destination is an embedded site; do not ask embedding questions for a local
+or link-only destination. The hand-off rule is:
+do not rely on the guide UI to compose the iframe; use the generated code reference below.
+
+### Code References
+
+${createAMapLlmIframeReference()}
 `
 
 export const createAMapLlmDecisionMatrixInstructions = () => instructions

@@ -99,7 +99,9 @@ const geoJsonReferences = (['maplibre', 'mapbox', 'leaflet'] as const).map(rende
   ].join('\n'),
 )
 
-const urbanDensityReferences = [
+const createUrbanDensityReferences = (
+  renderer: 'maplibre' | 'mapbox' | 'leaflet' = 'maplibre',
+) => [
   reference(
     'Fetch District statistics',
     'src/main.ts',
@@ -147,7 +149,7 @@ const urbanDensityReferences = [
     'src/main.ts',
     'ts',
     [
-      createUrbanDensitySetupZ14TileFetcherCode('maplibre'),
+      createUrbanDensitySetupZ14TileFetcherCode(renderer),
       urbanDensityCollectNonLiveableLandCode,
       urbanDensityLiveableAreaCode,
     ].join('\n\n'),
@@ -164,6 +166,16 @@ const hostingReferences = (
   ['cloudflare', 'github-pages', 'vercel', 'netlify', 'other'] as const
 ).map(hosting =>
   (() => {
+    const hostingLabel =
+      hosting === 'cloudflare'
+        ? 'Cloudflare Pages'
+        : hosting === 'github-pages'
+          ? 'GitHub Pages'
+          : hosting === 'vercel'
+            ? 'Vercel'
+            : hosting === 'netlify'
+              ? 'Netlify'
+              : 'Another host'
     const accountUrl =
       hosting === 'cloudflare'
         ? 'https://dash.cloudflare.com/sign-up/workers-and-pages'
@@ -174,11 +186,11 @@ const hostingReferences = (
             : hosting === 'netlify'
               ? 'https://app.netlify.com/signup'
               : undefined
-    const sections = [`### ${hosting}`, '']
+    const sections = [`### ${hostingLabel} (\`hosting=${hosting}\`)`, '']
 
     if (accountUrl) {
       sections.push(
-        `Create or sign in to the ${hosting} account first: ${accountUrl}. Keep passwords, recovery codes and private credentials out of chat and source control.`,
+        `Create or sign in to the ${hostingLabel} account first: ${accountUrl}. Keep passwords, recovery codes and private credentials out of chat and source control.`,
         '',
       )
     } else {
@@ -384,16 +396,114 @@ const hostingReferences = (
 )
 
 const projectSetupReferences = [
+  '#### Linux',
+  '',
+  reference('Check Bun', '~', 'bash', 'bun --version'),
+  '',
+  reference(
+    'Install Bun only when unavailable',
+    '~',
+    'bash',
+    'curl -fsSL https://bun.sh/install | bash',
+  ),
+  '',
   reference('Create the project directory', '~', 'bash', 'mkdir saanseoi-project'),
+  '',
   reference('Enter the project directory', '~', 'bash', 'cd saanseoi-project'),
+  '',
   reference(
     'Create the Vite project',
     '~/saanseoi-project',
     'bash',
     'bun create vite . --template vanilla-ts --no-immediate --interactive',
   ),
+  '',
   reference('Install project packages', '~/saanseoi-project', 'bash', 'bun install'),
-].join('\n\n')
+  '',
+  '#### macOS',
+  '',
+  reference('Check Bun', '~', 'bash', 'bun --version'),
+  '',
+  reference(
+    'Install Bun only when unavailable',
+    '~',
+    'bash',
+    'curl -fsSL https://bun.sh/install | bash',
+  ),
+  '',
+  reference('Create the project directory', '~', 'bash', 'mkdir saanseoi-project'),
+  '',
+  reference('Enter the project directory', '~', 'bash', 'cd saanseoi-project'),
+  '',
+  reference(
+    'Create the Vite project',
+    '~/saanseoi-project',
+    'bash',
+    'bun create vite . --template vanilla-ts --no-immediate --interactive',
+  ),
+  '',
+  reference('Install project packages', '~/saanseoi-project', 'bash', 'bun install'),
+  '',
+  '#### Windows PowerShell',
+  '',
+  reference('Check Bun', '~', 'powershell', 'bun --version'),
+  '',
+  reference(
+    'Install Bun only when unavailable',
+    '~',
+    'powershell',
+    'irm bun.sh/install.ps1 | iex',
+  ),
+  '',
+  reference(
+    'Create and enter the project directory',
+    '~',
+    'powershell',
+    [
+      'New-Item -ItemType Directory -Name saanseoi-project',
+      'Set-Location saanseoi-project',
+    ].join('\n'),
+  ),
+  '',
+  reference(
+    'Create the Vite project',
+    '~\\saanseoi-project',
+    'powershell',
+    'bun create vite . --template vanilla-ts --no-immediate --interactive',
+  ),
+  '',
+  reference(
+    'Install project packages',
+    '~\\saanseoi-project',
+    'powershell',
+    'bun install',
+  ),
+  '',
+  '#### Start the development server',
+  '',
+  '##### Linux',
+  '',
+  reference('Start Vite', '~/saanseoi-project', 'bash', 'bun dev -- --host 0.0.0.0'),
+  '',
+  '##### macOS',
+  '',
+  reference('Start Vite', '~/saanseoi-project', 'bash', 'bun dev -- --host 0.0.0.0'),
+  '',
+  '##### Windows PowerShell',
+  '',
+  reference(
+    'Start Vite',
+    '~\\saanseoi-project',
+    'powershell',
+    'bun dev -- --host 0.0.0.0',
+  ),
+]
+  .join('\n\n')
+  .replace(
+    /^#### (?!Linux$|macOS$|Windows PowerShell$|Start the development server)/gm,
+    '##### ',
+  )
+  .replace(/^##### Start Vite$/gm, '###### Start Vite')
 
 /** Inline code references used by the corresponding guide sections. */
 export const createAMapLlmRendererReferences = () => rendererReferences.join('\n\n')
@@ -401,8 +511,20 @@ export const createAMapLlmBasemapReferences = () =>
   basemapReferences.map(references => references.join('\n')).join('\n\n')
 export const createAMapLlmStyleReferences = () => styleReferences.join('\n\n')
 export const createAMapLlmExistingDataReferences = () => geoJsonReferences.join('\n\n')
-export const createAMapLlmUrbanDensityReferences = () =>
-  urbanDensityReferences.join('\n\n')
+export const createAMapLlmUrbanDensityReferences = (
+  renderer?: 'maplibre' | 'mapbox' | 'leaflet',
+) => {
+  const renderers = renderer ? [renderer] : (['maplibre', 'mapbox', 'leaflet'] as const)
+  return renderers
+    .map(selectedRenderer =>
+      [
+        `### ${getCreateAMapRendererReference(selectedRenderer).label}`,
+        '',
+        createUrbanDensityReferences(selectedRenderer).join('\n\n'),
+      ].join('\n'),
+    )
+    .join('\n\n')
+}
 export const createAMapLlmHostingReferences = () => hostingReferences.join('\n\n')
 export const createAMapLlmProjectSetupReferences = () => projectSetupReferences
 export const createAMapLlmIframeReference = () =>
@@ -418,17 +540,36 @@ export const createAMapLlmIframeReference = () =>
     '3. Ask whether the frame should have a fixed height or fill its parent. For a fixed height, use 240–1600 pixels. For fill height, remind me that the destination page must give the parent an explicit height or the iframe can collapse.',
     '4. Preview the published map, pan and zoom it, and only then copy the complete iframe below. The width follows its container, lazy loading avoids downloading an off-screen map immediately, and fullscreen permission enables a fullscreen control.',
     '',
-    reference('Iframe template', 'website page editor', 'html', iframeReferenceCode),
+    reference(
+      'Iframe template',
+      'website page editor',
+      'html',
+      iframeReferenceCode,
+    ).replace('#### Iframe template', '##### Iframe template'),
     '',
     'The template keeps the map responsive, lazy-loads it, permits fullscreen, and uses a strict cross-origin referrer policy. Preserve the URL, title, dimensions and attributes unless the selected editor requires a documented adjustment.',
     '',
     '#### Website editor options',
     '',
-    '- **WordPress:** ask whether this is self-hosted WordPress or WordPress.com. Use a **Custom HTML** block and consult https://wordpress.com/support/wordpress-editor/blocks/custom-html-block/. Warn that WordPress.com on the free plan may not allow iframe embeds; check the current plan restrictions before troubleshooting the code.',
-    '- **Squarespace:** add a **Code Block**, paste the iframe, preview the page, then publish; consult https://support.squarespace.com/hc/en-us/articles/206543167-Code-blocks.',
-    '- **Wix:** add an **Embed HTML element**, paste the iframe, resize it to the chosen height, preview and publish; consult https://support.wix.com/en/article/wix-editor-embedding-a-site-or-a-widget.',
-    '- **Webflow:** add a **Code Embed element**, paste the iframe, save, preview and publish; consult https://help.webflow.com/hc/en-us/articles/33961234953107-Custom-code-embed.',
-    '- **Other:** ask me which site editor I use, then look up its latest official HTML/embed instructions before telling me where to paste the iframe.',
+    '##### WordPress',
+    '',
+    'Ask whether this is self-hosted WordPress or WordPress.com. Use a **Custom HTML** block and consult https://wordpress.com/support/wordpress-editor/blocks/custom-html-block/. Warn that WordPress.com on the free plan may not allow iframe embeds; check the current plan restrictions before troubleshooting the code.',
+    '',
+    '##### Squarespace',
+    '',
+    'Add a **Code Block**, paste the iframe, preview the page, then publish; consult https://support.squarespace.com/hc/en-us/articles/206543167-Code-blocks.',
+    '',
+    '##### Wix',
+    '',
+    'Add an **Embed HTML element**, paste the iframe, resize it to the chosen height, preview and publish; consult https://support.wix.com/en/article/wix-editor-embedding-a-site-or-a-widget.',
+    '',
+    '##### Webflow',
+    '',
+    'Add a **Code Embed element**, paste the iframe, save, preview and publish; consult https://help.webflow.com/hc/en-us/articles/33961234953107-Custom-code-embed.',
+    '',
+    '##### Other',
+    '',
+    'Ask me which site editor I use, then look up its latest official HTML/embed instructions before telling me where to paste the iframe.',
     '',
     '#### Placement and verification',
     '',
@@ -450,17 +591,7 @@ replacing unrelated code.
 
 ### Project setup references
 
-${[
-  reference('Create the project directory', '~', 'bash', 'mkdir saanseoi-project'),
-  reference('Enter the project directory', '~', 'bash', 'cd saanseoi-project'),
-  reference(
-    'Create the Vite project',
-    '~/saanseoi-project',
-    'bash',
-    'bun create vite . --template vanilla-ts --no-immediate --interactive',
-  ),
-  reference('Install project packages', '~/saanseoi-project', 'bash', 'bun install'),
-].join('\n\n')}
+${projectSetupReferences}
 
 ## Renderer references
 
@@ -487,7 +618,7 @@ the source, schema and coordinates. Do not invent missing values.
 
 ## Urban-density references
 
-${urbanDensityReferences.join('\n\n')}
+${createAMapLlmUrbanDensityReferences()}
 
 Apply the urban-density references in this order: fetch and inspect source statistics;
 calculate Area metrics; add the metrics and District overlays; add the exclusion

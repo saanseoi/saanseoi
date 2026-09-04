@@ -11,14 +11,19 @@ import {
   createAMapLlmUrbanDensityReferences,
 } from './createAMapLlmReferenceInstructions'
 
+// References are authored as standalone sections; nest them beneath the section
+// that is currently being described so conditional choices remain obvious in llms.txt.
+const nestedReferences = (references: string) =>
+  references.replace(/^#### /gm, '##### ').replace(/^### /gm, '#### ')
+
 const renderReferences = (['maplibre', 'mapbox', 'leaflet'] as const)
   .map(renderer => {
     const { label } = getCreateAMapRendererReference(renderer)
 
     return [
-      `### ${label}`,
+      `#### ${label}`,
       '',
-      createAMapRendererReferenceInstructions(renderer, 4),
+      createAMapRendererReferenceInstructions(renderer, 5),
     ].join('\n')
   })
   .join('\n\n')
@@ -64,7 +69,7 @@ ${renderReferences}
 
 Use only the reference matching the selected mapping library.
 
-${createAMapLlmBasemapReferences()}
+${nestedReferences(createAMapLlmBasemapReferences())}
 
 ## Choose a style
 
@@ -76,19 +81,29 @@ ${createAMapLlmBasemapReferences()}
 
 Use only the reference matching the selected mapping library.
 
-${createAMapLlmStyleReferences()}
+${nestedReferences(createAMapLlmStyleReferences())}
 
 ## Add data
 
-- Tell me that I am at a crossroads: I have a working basemap, and now need to make it
-  my own. I can follow the guided population-density example, add an existing dataset,
-  or describe the data sources I want; review the available possibilities with me and
-  add the best option for my map.
-- For existing data, first establish its schema, source, and intended display.
-- For the urban-density example, make the computation reproducible: record source
-  releases and reference years, separate input from derived data, calculate area and
-  density defensively, and display both the overlay and the metrics.
-- Never fabricate unavailable values or silently assume fields.
+Tell me that I am at a crossroads: the basemap works, and I can now make it my own.
+Offer these three paths and begin only the one I choose:
+
+1. **SaanSeoi Population Density Project** — follow the guided District statistics and
+   liveable-area example, with reproducible source years, overlays and summary cards.
+2. **Data I already have** — let me upload a dataset here (or, for an agentic LLM, place
+   it in the project root), inspect its format and schema, convert it to valid GeoJSON,
+   and add an accessible layer with a useful legend or popup.
+3. **Craft a custom map** — ask what I want to show on the selected Hong Kong, Macau or
+   GBA basemap, review suitable data sources and licences with me, obtain or create the
+   agreed data, convert it to GeoJSON, and add and style the layer. Establish the story,
+   audience, locations, geometry, attributes, source and interaction before creating
+   anything; never fabricate data.
+
+For the worked urban-density example, make the computation reproducible: record source
+releases and reference years, separate input from derived data, calculate area and
+density defensively, and display both the overlay and the metrics. If publishing is part
+of my selected objective, check the selected host’s current asset-size limit before adding
+an oversized custom file. Never fabricate unavailable values or silently assume fields.
 
 ### Data I already have
 
@@ -145,15 +160,28 @@ on if it is not showing as intended.
 
 Use only the reference matching the selected mapping library.
 
-${createAMapLlmUrbanDensityReferences()}
+${nestedReferences(createAMapLlmUrbanDensityReferences())}
 
 ### Existing-data renderer references
 
 Use only the reference matching the selected mapping library.
 
-${createAMapLlmExistingDataReferences()}
+${nestedReferences(createAMapLlmExistingDataReferences())}
 
-## Publish
+### Craft a custom map
+
+Ask me what the map should help people understand, who it is for, which places or area it
+covers, and what interaction I want. Review possible authoritative sources with me before
+obtaining data, explain licensing and attribution, and ask me to approve the source and
+the proposed fields. Convert the approved data to valid \`features.geojson\`, preserve the
+source and provenance, and then use the renderer-specific existing-data reference above
+to add it. If publishing is selected, check that host’s current static-asset limit against
+the actual file before adding it, then build, smoke-test and prepare the selected host.
+
+## Publish the map
+
+Enter this section only when the destination is online or an embedded site. For a local
+destination, congratulate me on completing the map and do not ask about a host.
 
 - Build and validate a production artefact before any deployment step.
 - Keep private credentials out of the output artefact and source repository. Configure
@@ -163,14 +191,20 @@ ${createAMapLlmExistingDataReferences()}
 - For a website embed, provide an accessible iframe only after a real public map URL is
   available.
 
-### Hosting references
+### Hosting platform references
 
-Use only the reference matching the selected host and operating system. Adapt the shell
-syntax where necessary, and run every command from the project directory.
+Use only the reference matching the selected host and operating system. Host commands
+without a nested OS heading are cross-platform Bun commands; GitHub Pages has explicit
+Linux, macOS and Windows PowerShell installation subsections. Adapt shell syntax where
+necessary, use only the subsection matching my system, and run every command from the
+project directory.
 
-${createAMapLlmHostingReferences()}
+${nestedReferences(createAMapLlmHostingReferences())}
 
-### Embed reference
+### Code References
+
+Enter this section only when the destination is an embedded site. Wait until the map has
+a real public HTTPS URL, then use the selected website editor instructions below.
 
 ${createAMapLlmIframeReference()}
 `
