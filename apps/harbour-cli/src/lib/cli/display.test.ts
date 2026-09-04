@@ -97,8 +97,7 @@ describe('formatSummary', () => {
 
   test('includes the declared schema specification in the upload plan', () => {
     const lines = formatSummary(previewResult, localTarget, {
-      schemaURL:
-        'https://static.csdi.gov.hk/csdi-webpage/view/common/test',
+      schemaURL: 'https://static.csdi.gov.hk/csdi-webpage/view/common/test',
     })
 
     expect(lines).toHaveLength(6)

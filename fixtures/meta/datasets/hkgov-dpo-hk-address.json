@@ -6,9 +6,7 @@
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "addresses",
-  "resourceTypes": [
-    "address"
-  ],
+  "resourceTypes": ["address"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
