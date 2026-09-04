@@ -13,6 +13,7 @@ import {
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
   resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolveLatestReleaseSetForTypeDomainCohort,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
@@ -129,7 +130,7 @@ export type ReconcileDraftReleaseSetsResult = {
   publishedReleaseSetStatsTargets: Array<{
     apiReleaseSetId: string
     cohortKey: string
-    family: 'address' | 'division'
+    family: 'address' | 'division' | 'place'
     releaseCode: string
     releaseId: string
     snapshotId: string
@@ -883,12 +884,19 @@ export async function handleReconcileDraftReleaseSets(
           result.apiReleaseSetId &&
           result.snapshotId &&
           releaseSet.cohortKey &&
-          (request.apiFamily === 'divisions' || request.apiFamily === 'addresses')
+          (request.apiFamily === 'divisions' ||
+            request.apiFamily === 'addresses' ||
+            request.apiFamily === 'places')
         ) {
           publishedReleaseSetStatsTargets.push({
             apiReleaseSetId: result.apiReleaseSetId,
             cohortKey: releaseSet.cohortKey,
-            family: request.apiFamily === 'addresses' ? 'address' : 'division',
+            family:
+              request.apiFamily === 'addresses'
+                ? 'address'
+                : request.apiFamily === 'divisions'
+                  ? 'division'
+                  : 'place',
             releaseCode: result.releaseCode,
             releaseId: result.releaseId,
             snapshotId: result.snapshotId,
@@ -927,7 +935,11 @@ async function listCurrentReleaseSetStatsTargets(
   db: HarbourReadableDb,
   request: ReconcileDraftReleaseSetsRequest,
 ) {
-  if (request.apiFamily !== 'addresses' && request.apiFamily !== 'divisions') {
+  if (
+    request.apiFamily !== 'addresses' &&
+    request.apiFamily !== 'divisions' &&
+    request.apiFamily !== 'places'
+  ) {
     return []
   }
 
@@ -961,7 +973,11 @@ async function listCurrentReleaseSetStatsTargets(
         eq(metaApiReleaseSets.status, 'current'),
         eq(
           metaApiVersions.familyType,
-          request.apiFamily === 'addresses' ? 'addresses' : 'divisions',
+          request.apiFamily === 'addresses'
+            ? 'addresses'
+            : request.apiFamily === 'divisions'
+              ? 'divisions'
+              : 'places',
         ),
         request.regionCode
           ? eq(metaApiReleaseSets.regionCode, request.regionCode)
@@ -990,7 +1006,12 @@ async function listCurrentReleaseSetStatsTargets(
     targets.push({
       apiReleaseSetId: row.apiReleaseSetId,
       cohortKey: row.cohortKey,
-      family: request.apiFamily === 'addresses' ? 'address' : 'division',
+      family:
+        request.apiFamily === 'addresses'
+          ? 'address'
+          : request.apiFamily === 'divisions'
+            ? 'division'
+            : 'place',
       releaseCode: row.releaseCode,
       releaseId: row.releaseId,
       snapshotId: row.snapshotId,
@@ -1244,6 +1265,43 @@ async function resolveSupportingSnapshotsForMember(
         },
       )
 
+    if (member.variant === 'overture' && snapshots.length === 0) {
+      // Older fixture and repaired metadata rows can still lack a lineage.
+      // Overture's canonical dataset is an adequate identity fallback, as it
+      // is for exact cohort resolution below.
+      const canonicalSnapshot =
+        await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+          db,
+          member.resourceType,
+          regionCode,
+          cohortKey,
+          { publisherCode: 'overture', variant: 'overture' },
+        )
+      if (
+        canonicalSnapshot &&
+        (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset' ||
+          member.cohortMatchingMode ===
+            'latest_at_or_before_or_earliest_after_cohort' ||
+          canonicalSnapshot.cohortKey === cohortKey)
+      ) {
+        return [canonicalSnapshot]
+      }
+
+      if (
+        member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort'
+      ) {
+        const nextSnapshot =
+          await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+            db,
+            member.resourceType,
+            regionCode,
+            cohortKey,
+            { publisherCode: 'overture', variant: 'overture' },
+          )
+        return nextSnapshot ? [nextSnapshot] : []
+      }
+    }
+
     if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
       return snapshots
     }
@@ -1257,12 +1315,39 @@ async function resolveSupportingSnapshotsForMember(
           member.resourceType,
           regionCode,
           cohortKey,
-          { datasetCode, publisherCode },
+          { datasetCode, publisherCode, variant: member.variant },
         )
       return nextSnapshot ? [nextSnapshot] : []
     }
 
     return snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
+  }
+
+  if (
+    member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset' ||
+    member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort'
+  ) {
+    const snapshots =
+      await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db,
+        member.resourceType,
+        regionCode,
+        cohortKey,
+        { variant: member.variant },
+      )
+    if (snapshots.length > 0) return snapshots
+
+    if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
+      const nextSnapshot =
+        await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+          db,
+          member.resourceType,
+          regionCode,
+          cohortKey,
+          { variant: member.variant },
+        )
+      return nextSnapshot ? [nextSnapshot] : []
+    }
   }
 
   const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(

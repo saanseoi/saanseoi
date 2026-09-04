@@ -1745,7 +1745,7 @@ async function resolveDivisionReferenceLookup(
         'division',
         plan.regionCode,
         plan.cohortKey,
-        { publisherCode: 'overture' },
+        { publisherCode: 'overture', variant: 'overture' },
       )
     const laterSnapshots =
       await listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey(
@@ -1753,7 +1753,7 @@ async function resolveDivisionReferenceLookup(
         'division',
         plan.regionCode,
         plan.cohortKey,
-        { publisherCode: 'overture' },
+        { publisherCode: 'overture', variant: 'overture' },
       )
     const snapshots = [prior, ...laterSnapshots].filter(
       (snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot),

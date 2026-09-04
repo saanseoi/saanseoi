@@ -26,6 +26,11 @@ import {
   runResetOfficialAddressesCommand,
 } from './lib/commands/resetAddresses.ts'
 import {
+  beginOverturePlacesInitialisation,
+  completeOverturePlacesInitialisation,
+  runResetOverturePlacesCommand,
+} from './lib/commands/resetPlaces.ts'
+import {
   runTilesImportCommand,
   runTilesRebuildCommand,
   runTilesRetractCommand,
@@ -116,6 +121,9 @@ async function main() {
     case 'reset:addresses:official':
       await runResetOfficialAddressesCommand(args, target, { printUsage })
       return
+    case 'reset:places:overture':
+      await runResetOverturePlacesCommand(args, target, { printUsage })
+      return
     case 'init:addresses:official:begin':
       await beginOfficialAddressInitialisation(target, {
         continue: args.options.continue === true,
@@ -123,6 +131,14 @@ async function main() {
       return
     case 'init:addresses:official:complete':
       await completeOfficialAddressInitialisation(target)
+      return
+    case 'init:places:overture:begin':
+      await beginOverturePlacesInitialisation(target, {
+        continue: args.options.continue === true,
+      })
+      return
+    case 'init:places:overture:complete':
+      await completeOverturePlacesInitialisation(target)
       return
     case 'version:bump':
       await runVersionBumpCommand(args)
@@ -160,6 +176,7 @@ async function main() {
     case 'init:divisions:hkgov-pland-pu':
     case 'init:divisions:hkgov-landsd':
     case 'init:divisions:geographic':
+    case 'init:places:overture':
     case 'init:streets:hkgov-landsd':
       await runInitialisationCommand(args, printUsage)
       return

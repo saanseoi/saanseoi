@@ -188,6 +188,7 @@ export type CacheTableProfile =
   | 'division'
   | 'divisionGeometry'
   | 'divisionStatistic'
+  | 'places'
   | 'statistics'
   | 'planningDivisionGeometry'
   | 'nativeSource'
@@ -229,6 +230,9 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
+  'overturePlaces',
+  'places',
+  'placesI18n',
 ])
 
 function resolveRemoteCacheDir(
@@ -1965,7 +1969,7 @@ async function refreshRemoteCacheTables(
           throw new Error(`Cache manifest is missing ${targetRecord.bindingName}.`)
         }
 
-        const tables = resolveMirrorTablesForBinding(
+        const tables = resolveCacheTablesForBinding(
           targetRecord.bindingName,
           options.cacheTableProfile,
         )
@@ -2212,7 +2216,7 @@ async function mirrorRemoteTargetToLocal(
       REMOTE_CACHE_BINDING_CONCURRENCY,
       async targetRecord => {
         await removeRemoteCachePartialCheckpoint(cacheDir, targetRecord.bindingName)
-        const tables = resolveMirrorTablesForBinding(
+        const tables = resolveCacheTablesForBinding(
           targetRecord.bindingName,
           options.cacheTableProfile,
         )
@@ -2386,7 +2390,7 @@ function countRemoteCacheWorkUnits(
   cacheTableProfile?: CacheTableProfile,
 ) {
   return targets.reduce((total, target) => {
-    const tables = resolveMirrorTablesForBinding(target.bindingName, cacheTableProfile)
+    const tables = resolveCacheTablesForBinding(target.bindingName, cacheTableProfile)
 
     return total + Math.max(tables.length, 1) + 2
   }, 0)
@@ -2397,13 +2401,13 @@ function countRemoteCacheRefreshWorkUnits(
   cacheTableProfile?: CacheTableProfile,
 ) {
   return targets.reduce((total, target) => {
-    const tables = resolveMirrorTablesForBinding(target.bindingName, cacheTableProfile)
+    const tables = resolveCacheTablesForBinding(target.bindingName, cacheTableProfile)
 
     return total + (tables.length === 0 ? 2 : tables.length + 1)
   }, 0)
 }
 
-function resolveMirrorTablesForBinding(
+export function resolveCacheTablesForBinding(
   bindingName: string,
   cacheTableProfile?: CacheTableProfile,
 ) {
@@ -2440,6 +2444,25 @@ function resolveMirrorTablesForBinding(
 
     if (cacheTableProfile === 'division') {
       return ['divisions', 'divisionsI18n']
+    }
+
+    if (cacheTableProfile === 'places') {
+      return [
+        'divisions',
+        'divisionsI18n',
+        'streets',
+        'streetsI18n',
+        'streetsAddress',
+        'address2d',
+        'address2dI18n',
+        'address3d',
+        'address3dI18n',
+        'places',
+        'placesI18n',
+        'placesDivision',
+        'placesCells',
+        'placesFts',
+      ]
     }
 
     if (
@@ -2499,6 +2522,16 @@ function resolveMirrorTablesForBinding(
 
     if (cacheTableProfile === 'division') {
       return ['divisions', 'divisionsI18n', 'snapshotVersionChanges']
+    }
+
+    if (cacheTableProfile === 'places') {
+      return [
+        'places',
+        'placesI18n',
+        'placesDivision',
+        'placesCells',
+        'snapshotVersionChanges',
+      ]
     }
 
     if (
@@ -2569,6 +2602,10 @@ function resolveMirrorTablesForBinding(
       return ['overtureDivisions', 'hkgovPlandPlanningCells', 'hkgovPlandNewTowns']
     }
 
+    if (cacheTableProfile === 'places') {
+      return ['overturePlaces']
+    }
+
     if (cacheTableProfile === 'divisionGeometry') {
       return [
         'overtureDivisions',
@@ -2632,7 +2669,7 @@ function resolveExpectedTablesForBinding(
     ]
   }
 
-  return resolveMirrorTablesForBinding(bindingName, cacheTableProfile)
+  return resolveCacheTablesForBinding(bindingName, cacheTableProfile)
 }
 
 async function hasExpectedTables(

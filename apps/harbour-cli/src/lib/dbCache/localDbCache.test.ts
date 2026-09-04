@@ -9,6 +9,7 @@ import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtu
 import {
   applyPublishMetadataDeltaToRemoteCache,
   resolveCachePruneOperation,
+  resolveCacheTablesForBinding,
   resolveShardBindingName,
 } from './localDbCache.ts'
 
@@ -39,6 +40,23 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
   })
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'divisions')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
+})
+
+test('includes the Places full-text index in the current cache profile', () => {
+  expect(resolveCacheTablesForBinding('DB_CURRENT', 'places')).toContain('placesFts')
+})
+
+test('prunes superseded Places history and source rows from annual shards', () => {
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'places')).toEqual({
+    retainedRowsWhereSql: '"isCurrent" = 1',
+    tableName: 'places',
+    whereSql: '"isCurrent" <> 1',
+  })
+  expect(resolveCachePruneOperation('DB_SOURCE_HK_2025', 'overturePlaces')).toEqual({
+    retainedRowsWhereSql: '"isCurrent" = 1',
+    tableName: 'overturePlaces',
+    whereSql: '"isCurrent" <> 1',
+  })
 })
 
 afterEach(() => {
