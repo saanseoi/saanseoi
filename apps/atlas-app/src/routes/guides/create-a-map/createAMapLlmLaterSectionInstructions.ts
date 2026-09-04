@@ -2,6 +2,14 @@ import {
   createAMapRendererReferenceInstructions,
   getCreateAMapRendererReference,
 } from './snippets'
+import {
+  createAMapLlmBasemapReferences,
+  createAMapLlmExistingDataReferences,
+  createAMapLlmHostingReferences,
+  createAMapLlmIframeReference,
+  createAMapLlmStyleReferences,
+  createAMapLlmUrbanDensityReferences,
+} from './createAMapLlmReferenceInstructions'
 
 const renderReferences = (['maplibre', 'mapbox', 'leaflet'] as const)
   .map(renderer => {
@@ -26,9 +34,15 @@ const instructions = `
 - Choose current dependency versions compatible with the project ecosystem. The
   following starter snippets are references only: adapt them to the files, framework,
   package manager and conventions actually present in the workspace.
-- If Mapbox GL JS is selected, use the public Mapbox token only through
-  \`VITE_MAPBOX_TOKEN\`. Do not ask for, print, commit, or otherwise expose its value;
-  confirm that \`.env\` is excluded from version control.
+- Before adding the SaanSeoi basemap, send me to https://saanseoi.hk/sign-up to create or
+  sign in to my SaanSeoi account, then to https://saanseoi.hk/api-keys to create a public
+  API key. Ask me to paste the resulting key beginning with \`pk.\` into this chat. After I
+  provide it, configure it locally as \`VITE_SAANSEOI_API_KEY\` in \`.env\`; it is intended
+  for the browser build, but must never be committed or logged.
+- If Mapbox GL JS is selected, guide me through creating a public Mapbox token before
+  installing it, then use that token only through \`VITE_MAPBOX_TOKEN\`. Do not ask for,
+  print, commit, or otherwise expose its value; confirm that \`.env\` is excluded from
+  version control.
 
 ### Library-specific starter references
 
@@ -46,19 +60,98 @@ ${renderReferences}
 - Request the key only when the application is ready for it, then verify the selected
   basemap loads after it has been configured.
 
+### Renderer-specific basemap references
+
+Use only the reference matching the selected mapping library.
+
+${createAMapLlmBasemapReferences()}
+
 ## Choose a style
 
 - Use the chosen SaanSeoi style URL, or ask for the completed custom style source.
 - Keep the style compatible with the selected renderer and SaanSeoi vector tiles.
 - Verify sources and layers render correctly after changing style configuration.
 
+### Renderer-specific style references
+
+Use only the reference matching the selected mapping library.
+
+${createAMapLlmStyleReferences()}
+
 ## Add data
 
-- For existing data, first establish its schema, source, licence and intended display.
+- Tell me that I am at a crossroads: I have a working basemap, and now need to make it
+  my own. I can follow the guided population-density example, add an existing dataset,
+  or describe the data sources I want; review the available possibilities with me and
+  add the best option for my map.
+- For existing data, first establish its schema, source, and intended display.
 - For the urban-density example, make the computation reproducible: record source
   releases and reference years, separate input from derived data, calculate area and
   density defensively, and display both the overlay and the metrics.
 - Never fabricate unavailable values or silently assume fields.
+
+### Data I already have
+
+When I choose an existing dataset, guide me through the complete preparation flow before
+adding it to the map:
+
+1. Ask me to upload the file to this chat. An agentic LLM may instead ask me to put it in
+   the project root and inspect it there. Identify its format, schema, coordinate
+   reference system, source and licence from the file; do not make me choose a format in
+   advance or overwrite the original. Supported starting formats include GeoJSON(L),
+   KML/KMZ, CSV/TSV, TopoJSON, Shapefile ZIP, FlatGeobuf, WKT, XLS/XLSX, OSM and other
+   spatial files.
+2. If the file is already valid GeoJSON and its properties and geometry are correct, the
+   geojson.io editing pass is optional. Otherwise open https://geojson.io in a new tab,
+   choose **Import**, select the file, and check that its features appear in the right
+   place. For CSV or TSV, choose the matching **Kind**; for separate longitude and
+   latitude columns, choose **Coordinates**, select the latitude and longitude headings,
+   and import. For TSV choose **Tab** as the delimiter. For XLS or XLSX, choose the
+   worksheet first and then the matching geometry kind. Coordinates must be WGS84;
+   convert projected coordinates first. For KML/KMZ, TopoJSON, Shapefile ZIP, FlatGeobuf,
+   WKT, OSM or another format, use geojson.io when it supports the file or a trusted
+   converter that preserves geometry, properties, source and licence.
+3. Review the imported data. Use the feature editor to give places a clear \`name\` and
+   add useful properties, and use the marker, line and polygon tools to add or refine
+   geometry. If geojson.io does not recognise the file, export GeoJSON from the source
+   application or use a trusted converter, working from a copy if the original contains
+   anything private.
+4. When it looks right, choose **Export**, leave GeoJSON selected, and save the file as
+   \`features.geojson\`. Put it in the project’s \`public\` folder so it is served at
+   \`/features.geojson\`; an agentic LLM should confirm the file is there, while a web chat
+   should wait for me to confirm the placement.
+### What is GeoJSON?
+
+GeoJSON is a plain JSON format for geographic features. A feature can be a **Point**,
+**LineString**, **Polygon**, or a collection of those shapes, with properties such as a
+name, category or opening hours attached to each one. It is the data format used by the
+renderer-specific loading references below. For MapLibre and Mapbox it is the native
+format for dynamic datasets; for Leaflet, MapLibre is the compatibility layer used to
+render the vector data, so GeoJSON is the format we target.
+
+Before applying the renderer reference, ask me to confirm: “Have you prepared a
+\`features.geojson\`?” Do not continue until I confirm it is in the project’s public
+folder (an agentic LLM should inspect and confirm this itself).
+5. Use the renderer-specific reference below to load the file, then verify the running
+   preview: the features should be in the right place, names should appear in the
+   interactive popups, and the layer should match the selected map style. If publishing
+   is selected, check the selected host’s static-asset limit before adding an oversized
+   file.
+After the map change, ask me to confirm: “Was your data added to the map?” Keep the
+existing map visible while I check the layer and popups, and troubleshoot before moving
+on if it is not showing as intended.
+
+### SaanSeoi Popoulation Density Project
+
+Use only the reference matching the selected mapping library.
+
+${createAMapLlmUrbanDensityReferences()}
+
+### Existing-data renderer references
+
+Use only the reference matching the selected mapping library.
+
+${createAMapLlmExistingDataReferences()}
 
 ## Publish
 
@@ -69,6 +162,17 @@ ${renderReferences}
   user confirms.
 - For a website embed, provide an accessible iframe only after a real public map URL is
   available.
+
+### Hosting references
+
+Use only the reference matching the selected host and operating system. Adapt the shell
+syntax where necessary, and run every command from the project directory.
+
+${createAMapLlmHostingReferences()}
+
+### Embed reference
+
+${createAMapLlmIframeReference()}
 `
 
 export const createAMapLlmLaterSectionInstructions = () => instructions

@@ -1,4 +1,14 @@
 import { mapStyleDefinitions } from '@repo/basemap'
+import {
+  createAMapLlmBasemapReferences,
+  createAMapLlmExistingDataReferences,
+  createAMapLlmHostingReferences,
+  createAMapLlmIframeReference,
+  createAMapLlmProjectSetupReferences,
+  createAMapLlmRendererReferences,
+  createAMapLlmStyleReferences,
+  createAMapLlmUrbanDensityReferences,
+} from './createAMapLlmReferenceInstructions'
 
 const styleOptions = ['custom', ...mapStyleDefinitions.map(style => style.id)].join(
   ', ',
@@ -10,7 +20,10 @@ const instructions = `
 Keep a decision ledger throughout the interaction. Record the human-readable choice,
 its machine value and its guide URL parameter. Do not ask again for a decision that is
 already present in the initial prompt or ledger. Ask one decision at a time, in this
-order, and only ask conditional questions when their parent choice requires them.
+order, and only ask conditional questions when their parent choice requires them. Use
+this matrix as a lookup for the relevant point in the guide, not as a questionnaire to
+complete all at once: ask each decision only when its section needs it, and do not ask
+about later sections early.
 
 ### 1. Destination
 
@@ -21,12 +34,6 @@ Ask: “Where do you want your map to be available?”
 | On my computer — a private prototype or local setup | \`local\` | \`objective=local\` |
 | Online with a link — a map people can visit in a browser | \`web\` | \`objective=web\` |
 | Embedded in a site — a map inside an existing site or web app | \`web-embed\` | \`objective=web-embed\` |
-| Embedded in a mobile app — a native Android or iOS mapping experience | \`mobile-embed\` | \`objective=mobile-embed\` |
-| In a Jupyter Notebook — an interactive map alongside analysis | \`notebook-embed\` | \`objective=notebook-embed\` |
-
-The mobile and notebook choices are currently marked “Coming soon” in the guide. Do not
-silently substitute the browser workflow for them; explain the limitation and ask
-whether the user wants to stop or continue with an explicitly agreed alternative.
 
 ### 2. Infer the handover mode
 
@@ -45,10 +52,7 @@ Infer the AI route from the environment in which you are running:
   You are the chat guide; do not ask the user to choose a Chat AI service or VPN. Ask
   only for the environment decisions needed to give accurate local instructions.
 
-The agent or chat service identity is not a new user decision in a full handover. If an
-account or paid plan for the current LLM is needed, send the user to that service’s
-official setup page and stop for confirmation before a paid action. For SaanSeoi account
-creation, send the user to https://saanseoi.hk/sign-up.
+The agent or chat service identity is not a new user decision in a full handover.
 
 ### 3. Working environment
 
@@ -79,12 +83,6 @@ Ask only the branch that matches the destination:
   (\`website=wix\`), Webflow (\`website=webflow\`), or Another platform
   (\`website=other\`). Then ask the hosting question above. Another platform has no
   built-in iframe recipe; consult its current official documentation.
-- For Embedded in a mobile app, ask for MapLibre Native (\`mobile-library=maplibre-native\`)
-  and then Android (\`mobile-platform=android\`), iOS (\`mobile-platform=ios\`), or
-  Other (\`mobile-platform=other\`).
-- For a Jupyter Notebook, ask for MapLibre Jupyter (\`notebook-library=maplibre-jupyter\`)
-  or Folium (\`notebook-library=folium\`), then Local (\`notebook-runtime=local\`),
-  Colab (\`notebook-runtime=colab\`), or JupyterHub (\`notebook-runtime=jupyterhub\`).
 
 ### 5. Map foundations
 
@@ -96,69 +94,135 @@ After the project route is known, ask in this order:
 2. SaanSeoi basemap coverage: Hong Kong (\`region=hk\`), Macau (\`region=mo\`), or
    Greater Bay Area (\`region=gba\`).
 3. Style: Custom (\`style=custom\`) or one of the current SaanSeoi style IDs
-   (\`${styleOptions}\`). For a custom style, ask for the desired visual direction and
-   completed style source or URL.
-4. Data source: Existing data (\`data=existing\`), SaanSeoi API data
-   (\`data=api\`), or LLM-shaped data (\`data=llm\`). The LLM option is available in
-   the guide’s LLM-assisted routes.
-5. If Existing data is selected, ask for its format: GeoJSON(L) (\`data-format=geojson\`),
-   KML/KMZ (\`kml\`), CSV/TSV (\`csv\`), TopoJSON (\`topojson\`), Shapefile
-   (\`shapefile\`), FlatGeobuf (\`flatgeobuf\`), WKT (\`wkt\`), XLS/XLSX
-   (\`xlsx\`), OSM (\`osm\`), or Other (\`other\`).
+   (\`${styleOptions}\`). Recommend \`midnight\`, but accept a different style or a
+   visual direction for a custom style. Show the preview images before asking me to
+   choose: use the guide’s image URL pattern
+   \`https://tiles.saanseoi.hk/render/{region}/{tileset}-latest-{style}-{viewpoint}-z16.webp\`,
+   substituting \`hk\`, \`mo\` or \`gba\` for the region; \`hongkong\`, \`macau\` or
+   \`gba\` for the tileset; and \`central\`, \`senado-square\` or \`canton-tower\` for
+   the matching viewpoint. For each built-in style, render its preview as an image the
+   user can see (for example,
+   \`https://tiles.saanseoi.hk/render/hk/hongkong-latest-midnight-central-z16.webp\`).
+   If I give a visual direction, treat it as the custom option: create or adapt a valid
+   MapLibre style in the project, keep the SaanSeoi source named \`basemap\`, and verify
+   the result visually. An agentic LLM should implement the style changes; a web chat
+   should provide the exact file changes for me to apply.
+4. Data source: ask which of these three paths I want, using the guide’s labels and
+   descriptions: SaanSeoi Population Density Project — the guided SaanSeoi API example
+   (\`data=api\`); Data I already have — upload my own dataset for conversion and mapping
+   (\`data=existing\`); or Craft a custom map — review and source data with the LLM before
+   creating a layer (\`data=llm\`). The custom-map option is available in the guide’s
+   LLM-assisted routes.
+5. If Existing data is selected, ask me to upload the file to this chat. An agentic LLM
+   may instead ask me to place it in the project root and then inspect it there. Identify
+   the format, schema, coordinate reference system and other relevant details from the
+   file itself before choosing a conversion path; preserve the original and do not
+   invent missing values.
 
 Once a decision is recorded, use its value consistently in code, explanations and any
 handback URL. Do not invent a choice that is not in this matrix.
 
-## Section goals
+## Guide Flow
 
-Follow these sections in order. An agentic LLM may implement several adjacent sections
-when none requires a user decision, but it must still explain the purpose and verify
-the goal of each section. A non-agentic LLM must turn each implementation step into a
-small prompt/response cycle and wait for the user’s result.
-
-If you are an agentic LLM, inspect the project, make the local edits and run the safe
-commands needed for the current section, while stopping for the user’s external account,
-credential, payment, publishing and website-editor actions.
-
-If you are a non-agentic LLM, explain the next action, identify its exact terminal or
-editor target, provide the needed code or command, wait for the user’s report, and only
-then continue to the next action.
+Follow these sections in order. Use the decision matrix only at the point where a
+section needs a choice; do not ask later-section questions early. An agentic LLM may
+implement adjacent sections when no user decision is needed, but must explain and verify
+each one. A non-agentic LLM must provide one safe action at a time, name its exact
+terminal or editor target, wait for the user’s report, and only then continue.
 
 ### Prerequisites and project setup
 
-Create a safe Bun + TypeScript Vite project in \`/path/to/saanseoi-project\`, preserving
-hidden folders and never overwriting an existing project. Inspect the OS and shell,
-check Bun before installing it, start the development server, and visually verify the
-default Vite page. Do not add map code yet. For a SaanSeoi account, direct the user to
-https://saanseoi.hk/sign-up. For the SaanSeoi public API key, direct the user to
-https://saanseoi.hk/api-keys, ask them to bring the resulting \`pk.\` key back to the
-conversation, and configure it as \`VITE_SAANSEOI_API_KEY\` without committing or
-logging it.
+#### Section Goal
+
+Create a safe Bun + TypeScript Vite foundation in \`/path/to/saanseoi-project\` and
+visually verify the default Vite page before introducing map code or credentials.
+
+#### Section Guidance
+
+The clean baseline gives us a known-good browser and build environment. Inspect the OS,
+shell and workspace first, preserve hidden folders, check Bun before installing it, and
+never overwrite an existing project. The browser check matters because a successful
+command or HTTP response does not prove that the page is visible. Only after that baseline
+works should the user create a SaanSeoi account and public API key.
+
+#### Code References
+
+${createAMapLlmProjectSetupReferences()}
 
 ### Render the map
 
-Install and configure only the selected mapping library. Create a responsive map
-container and visually verify a blank map view. Use the selected region’s opening
-position. Mapbox GL JS also requires \`VITE_MAPBOX_TOKEN\`; never print or commit it.
+#### Section Goal
+
+Install only the selected mapping library, create a responsive blank map at the selected
+region’s opening position, and confirm that it renders in the browser.
+
+#### Section Guidance
+
+Starting with a blank map isolates renderer and dependency problems before authentication,
+tiles or data are introduced. Keep the selected renderer’s existing project conventions,
+use Mapbox’s \`VITE_MAPBOX_TOKEN\` only when Mapbox GL JS is selected, and verify the
+visible map rather than treating a build as proof.
+
+#### Code References
+
+${createAMapLlmRendererReferences()}
 
 ### Add the SaanSeoi basemap
 
-Use the selected region’s TileJSON endpoint and pass the URL-encoded public SaanSeoi key
-as the \`access_token\` query parameter. Keep the public key in the browser build, do
-not create a proxy or token-refresh path, and verify that the basemap loads.
+#### Section Goal
+
+Connect the selected regional SaanSeoi vector TileJSON to the working renderer with the
+URL-encoded public \`pk.\` key and verify that the basemap loads.
+
+#### Section Guidance
+
+The renderer is now ready for real geography. SaanSeoi’s public key is intentionally
+available to browser code, so send it directly as \`access_token\` on API and tile
+requests; do not introduce a proxy, refresh utility or server lookup. Confirm the
+basemap visually before moving to styling.
+
+#### Code References
+
+${createAMapLlmBasemapReferences()}
 
 ### Pick a style
 
-Apply the selected SaanSeoi style to the selected renderer and replace its basemap source
-with the SaanSeoi vector tiles. For a custom style, obtain and validate the user’s
-completed style source. Verify sources, layers and the visible map before continuing.
+#### Section Goal
+
+Apply the selected SaanSeoi style, or implement the user’s visual direction as a valid
+custom style, while keeping the vector-tile source compatible with the renderer.
+
+#### Section Guidance
+
+Style is where the basemap becomes the visual language of the project. Show the available
+preview images, recommend \`midnight\` while accepting another built-in style or a custom
+direction, and preserve the SaanSeoi source named \`basemap\`. Verify sources, layers and
+the visible result after the change.
+
+#### Code References
+
+${createAMapLlmStyleReferences()}
 
 ### Add data
 
-For Existing data, establish schema, source, licence and intended display, convert to
-valid GeoJSON when needed, and add a clear accessible layer with an appropriate legend
-or popup. For LLM-shaped data, establish the story, audience, locations, geometry,
-attributes, source and interaction before creating anything; never fabricate data.
+Tell me that the working basemap is now a crossroads: I can choose one of three explicit
+paths, and the prompts for each path should begin only when I choose it:
+
+1. **SaanSeoi Population Density Project** (\`data=api\`) — follow the guided example,
+   using the SaanSeoi District statistics and the liveable-area analysis to build the
+   explanatory overlays, metrics and cards.
+2. **Data I already have** (\`data=existing\`) — upload the file to the chat, or (for an
+   agentic LLM) place it in the project root for inspection. Establish its schema, source,
+   coordinate reference system and intended display, convert it to valid GeoJSON when
+   needed, and add a clear accessible layer with an appropriate legend or popup.
+3. **Craft a custom map** (\`data=llm\`) — tell me what I want to show with the selected
+   Hong Kong, Macau or GBA basemap and which data sources I am considering. Review the
+   available sources with me, help locate or obtain suitable data, check its licence and
+   format, convert or create valid GeoJSON, and then add and style the layer. Establish
+   the story, audience, locations, geometry, attributes, source and interaction before
+   creating anything; never fabricate data. If publishing is part of my selected
+   objective, check the selected host’s current asset-size limit before adding the file
+   and prepare it for that host only after I confirm the result.
 
 For the worked urban-density example, use the District-level 2024
 \`populationMidYear\` and \`landArea\` values from \`/stats/v0.1/geographies\`, show the

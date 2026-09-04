@@ -14,6 +14,7 @@ export { default as GuideAttachedLayout } from './components/shared/guideAttache
 export { default as GuideAdmonition } from './components/shared/guideAdmonition.svelte'
 export { default as GuideMissingAnswerReminder } from './components/shared/guideMissingAnswerReminder.svelte'
 export { default as GuideMissingSectionRequirement } from './components/shared/guideMissingSectionRequirement.svelte'
+export { default as GuidePrerequisiteBlocker } from './components/shared/guidePrerequisiteBlocker.svelte'
 export { default as GuideEyebrow } from './components/shared/guideEyebrow.svelte'
 export { default as GuideLayout } from './components/shared/guideLayout.svelte'
 export { default as GuideParagraph } from './components/shared/guideParagraph.svelte'

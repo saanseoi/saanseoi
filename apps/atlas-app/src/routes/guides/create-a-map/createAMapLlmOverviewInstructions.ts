@@ -22,7 +22,7 @@ const workingAgreement = `
   map); then publishing and embedding only when my chosen objective requires them.
 - Ask concise questions for missing decisions. Do not guess credentials, deployment
   targets, or platform configuration.
-- Use simple language and explain technical concepts as I follow the tutorial.`
+- Use simple language and explain mapping concepts as I follow the guide. Avoid going into technical detail unless it is required to clarify the implementation.`
 
 const chatWorkingAgreement = `
 - If I report being stuck after editing code, ask me to paste the files you asked me to
@@ -33,7 +33,7 @@ const chatWorkingAgreement = `
 const agenticWorkingAgreement = `
 - Inspect the existing workspace before proposing or making changes. Preserve unrelated
   work. If the project is not the clean basis expected by the guide, say so.
-- When creating the new app, use the current workspace root only if it is not my home
+- When creating the new app, use the current workspace root only if it is not the user's home
   directory and contains no non-hidden items. Otherwise create a new
   \`saanseoi-project\` subdirectory. Preserve hidden files and directories.
 - Adapt to the actual project and its conventions. Do not create a parallel project or
@@ -41,14 +41,33 @@ const agenticWorkingAgreement = `
   find.
 - After a browser-visible code change, ask me to inspect it, explain what I should see,
   and ask me to confirm it.
-- Inspect the operating system and shell and use them to provide relevant assistance.
+- Inspect the operating system and shell. Follow the OS commands for the system you are
+  on and ignore the commands for other operating systems.
+- Stop for confirmation before any paid action, credential entry, deployment, or
+  account-linked operation.
 - An HTTP 200 response does not visually verify the app. Browser verification succeeds
   only when a browser visibly loads the Vite page. If browser access is unavailable,
   stop and ask me to open the reported URL and tell you what I see.`
 
+/**
+ * Return the common agreement, optionally followed by the agreement for a
+ * collaborative assistance mode. The canonical `llms.txt` hand-over calls this
+ * without a mode so that mode-specific guidance stays under its mode heading.
+ */
 export const createAMapLlmWorkingAgreementInstructions = (mode?: 'agentic' | 'chat') =>
-  mode === 'agentic'
-    ? [workingAgreement, agenticWorkingAgreement]
-        .map(section => section.trim())
-        .join('\n')
-    : [workingAgreement, chatWorkingAgreement].map(section => section.trim()).join('\n')
+  [
+    workingAgreement,
+    ...(mode === 'agentic'
+      ? [agenticWorkingAgreement]
+      : mode === 'chat'
+        ? [chatWorkingAgreement]
+        : []),
+  ]
+    .map(section => section.trim())
+    .join('\n')
+
+export const createAMapLlmChatWorkingAgreementInstructions = () =>
+  chatWorkingAgreement.trim()
+
+export const createAMapLlmAgenticWorkingAgreementInstructions = () =>
+  agenticWorkingAgreement.trim()

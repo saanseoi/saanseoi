@@ -262,7 +262,9 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('bun add mapbox-gl')
     expect(instructions).toContain('bun add leaflet')
     expect(instructions).toContain('## Publish')
-    expect(instructions.toLowerCase()).toContain('do not ask the user to identify')
+    expect(instructions.toLowerCase()).toMatch(
+      /follow the os commands for the system you are\s+on and ignore the commands for other operating systems/,
+    )
     expect(instructions).not.toContain('What operating system are you using')
     expect(instructions).toContain('current workspace root only if it is not the')
     expect(instructions).toContain(
@@ -281,7 +283,11 @@ describe('Create a Map LLM instructions', () => {
   test('includes the guide code references in the canonical handover guide', () => {
     const instructions = createAMapLlmInstructions()
 
-    expect(instructions).toContain('## Code and command references')
+    expect(instructions).toContain('## Render the map')
+    expect(instructions).toContain('## Add the SaanSeoi basemap')
+    expect(instructions).toContain('## Choose a style')
+    expect(instructions).toContain('## Add data')
+    expect(instructions).toContain('## Publish')
     expect(instructions).toContain('bun create vite . --template vanilla-ts')
     expect(instructions).toContain("import * as maplibregl from 'maplibre-gl'")
     expect(instructions).toContain('const basemapUrl = ')
@@ -292,8 +298,10 @@ describe('Create a Map LLM instructions', () => {
       'bun add @turf/turf @mapbox/vector-tile pbf geos-wasm',
     )
     expect(instructions).toContain('bunx wrangler deploy')
-    expect(instructions).toContain('from maplibre import Map, MapOptions')
     expect(instructions).toContain('<iframe')
+    expect(instructions).not.toContain('mobile-embed')
+    expect(instructions).not.toContain('notebook-embed')
+    expect(instructions).not.toContain('MapLibre Jupyter')
   })
 
   test('creates a handback URL from the known guide decisions', () => {
