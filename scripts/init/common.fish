@@ -8,6 +8,20 @@ function init_run_step
     or exit $status
 end
 
+# The clean local and production coordinators reset their databases before
+# starting. Their family manifests are therefore stale by definition and must
+# not block the next clean run. Focused initialisers deliberately do not call
+# this helper: their manifest is the ownership boundary used by reset.
+function init_clear_clean_run_manifests
+    set -l target $argv[1]
+    if test -z "$target"
+        set target $saanseoi_init_target
+    end
+    rm -f \
+        "$saanseoi_init_repo/.local/hkgov-dpo/init-runs/$target.json" \
+        "$saanseoi_init_repo/.local/overture-places/init-runs/$target.json"
+end
+
 set -g saanseoi_init_continue 0
 set -g saanseoi_init_cache_artefacts 0
 set -g saanseoi_init_target local
@@ -194,7 +208,11 @@ function init_reconcile_draft_release_sets
     # Deferred uploads keep the local mirror current with small publish deltas.
     # Reconciliation is the validation boundary for the whole domain.
     if test "$saanseoi_init_target" != local
-        init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
+        set -l cache_profile_args
+        if set -q saanseoi_init_cache_table_profile
+            set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
+        end
+        init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target $cache_profile_args
     end
 
     set -l published_after (init_published_api_release_set_count)
