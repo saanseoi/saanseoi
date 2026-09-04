@@ -180,6 +180,7 @@
         "fast-xml-parser": "5.11.1",
         "fflate": "0.8.3",
         "fgdb": "1.0.0",
+        "h3-js": "^4.5.0",
         "hyparquet": "^1.29.2",
         "hyparquet-compressors": "^1.1.1",
         "hyparquet-writer": "^0.16.9",
@@ -1630,6 +1631,8 @@
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
     "guess-json-indent": ["guess-json-indent@3.0.1", "", {}, "sha512-LWZ3Vr8BG7DHE3TzPYFqkhjNRw4vYgFSsv2nfMuHklAlOfiy54/EwiDQuQfFVLxENCVv20wpbjfTayooQHrEhQ=="],
+
+    "h3-js": ["h3-js@4.5.0", "", {}, "sha512-uKmdPc+DuarnR+XqZxEuWOMw7KzzKROrx3MLeJpFnMOs78S9M5eZ+X5RieS9UcSFQqbeXzbfWuX/W9Pyajinqw=="],
 
     "harbour-api": ["harbour-api@workspace:apps/harbour-api"],
 
