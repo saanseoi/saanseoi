@@ -4,6 +4,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
 import {
+  formatAlsDivisionQualitySummary,
   formatSourceDuplicateSummary,
   HKGOV_ALS_IDENTITY_CURATION_PATH,
   inferAlsSourceVersionFromPath,
@@ -11,6 +12,42 @@ import {
   selectAlsDivisionCohort,
   shouldIncludeSupersededAlsSourceVersions,
 } from './hkgovAls.ts'
+
+describe('formatAlsDivisionQualitySummary', () => {
+  test('prints only unmatched or ambiguous divisions for each issue', () => {
+    const summary = formatAlsDivisionQualitySummary('2026-07-26.0', {
+      ambiguous_area_count: 0,
+      ambiguous_district_count: 1,
+      unmatched_area_count: 1,
+      unmatched_district_count: 0,
+      issues: [
+        {
+          address: '1 EXAMPLE STREET',
+          areaName: 'NEW TERRITORIES',
+          areaStatus: 'unmatched',
+          districtName: 'NORTH DISTRICT',
+          districtStatus: 'matched',
+          sourceFeatureIndexOneBased: 16590,
+          sourceFile: 'als_addresses_(north_district).geojson',
+        },
+        {
+          address: '2 EXAMPLE STREET',
+          areaName: 'KOWLOON',
+          areaStatus: 'matched',
+          districtName: 'NORTH DISTRICT / TAI PO',
+          districtStatus: 'ambiguous',
+          sourceFeatureIndexOneBased: 9,
+          sourceFile: 'central_district.geojson',
+        },
+      ],
+    })
+
+    expect(summary).toContain('area unmatched: NEW TERRITORIES')
+    expect(summary).toContain('district ambiguous: NORTH DISTRICT / TAI PO')
+    expect(summary).not.toContain('district matched: NORTH DISTRICT')
+    expect(summary).not.toContain('area matched: KOWLOON')
+  })
+})
 
 describe('formatSourceDuplicateSummary', () => {
   test('reports aggregate duplicate statistics without source-record JSON', () => {

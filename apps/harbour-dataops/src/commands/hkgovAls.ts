@@ -1038,14 +1038,21 @@ export function formatSourceDuplicateSummary(
   ].join('\n')
 }
 
-function formatAlsDivisionQualitySummary(
+export function formatAlsDivisionQualitySummary(
   sourceVersion: string,
   quality: HkgovAlsDivisionQuality,
 ) {
   const issues = quality.issues.map(issue => {
-    const area = `${issue.areaStatus}: ${issue.areaName ?? '—'}`
-    const district = `${issue.districtStatus}: ${issue.districtName ?? '—'}`
-    return `- ${issue.address} | area ${area} | district ${district} | ${issue.sourceFile} #${issue.sourceFeatureIndexOneBased}`
+    const divisions = [
+      issue.areaStatus !== 'matched'
+        ? `area ${issue.areaStatus}: ${issue.areaName ?? '—'}`
+        : null,
+      issue.districtStatus !== 'matched'
+        ? `district ${issue.districtStatus}: ${issue.districtName ?? '—'}`
+        : null,
+    ].filter((division): division is string => division !== null)
+
+    return `- ${issue.address} | ${divisions.join(' | ')} | ${issue.sourceFile} #${issue.sourceFeatureIndexOneBased}`
   })
 
   return [
