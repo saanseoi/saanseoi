@@ -3717,7 +3717,7 @@ const styleChoices = $derived.by(() =>
                     {#if dataFormat === 'csv'}
                       <GuideAttachedLayout
                         primaryWidth="shortCard"
-                        class="xl:!w-[calc(100%+28rem)]"
+                        class="xl:w-[calc(100%+28rem)]!"
                       >
                         <div class="space-y-4">
                           <GuideScreenshot
@@ -3745,7 +3745,7 @@ const styleChoices = $derived.by(() =>
                     {:else if dataFormat === 'xlsx'}
                       <GuideAttachedLayout
                         primaryWidth="shortCard"
-                        class="xl:!w-[calc(100%+28rem)]"
+                        class="xl:w-[calc(100%+28rem)]!"
                       >
                         <GuideScreenshot
                           src={geojsonIoXlsxImportDialog}
