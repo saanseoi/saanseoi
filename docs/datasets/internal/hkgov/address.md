@@ -250,25 +250,27 @@ different address from an otherwise unqualified premise.
 The same distinction applies when ALS adds an unstructured trailing site-part qualifier
 to a building name: a numeric, alphabetic, alphanumeric, or Roman-numeral qualifier; a
 cardinal or intercardinal direction; or `HIGH`, `LOW`, `CENTER`, `CENTRE`, or `MIDDLE`
-with a block, tower, villa, house, or HSE identifies a part of the previously whole
-building or estate and receives a new ID. This rule takes precedence over older
-retention decisions recorded before the distinction was automated. Other building-name
-changes still require review.
+with a recognised site-part descriptor identifies a part of the previously whole
+building or estate and receives a new ID. This includes `BLOCK`, `TOWER`, `VILLA`,
+`HOUSE`, `HSE`, and `PORTION`. This rule takes precedence over older retention decisions
+recorded before the distinction was automated. Other building-name changes still require
+review.
 
-The site-part rule also covers `STAGE`, `WING`, `SECTION`, `HALL`, and written block
-numbers such as `ONE` and `TWO`. A first phase or stage (`I`, `1`, or `A`), including a
-range beginning with that member, is treated as additional specification and retains the
-ID when it is the complete added qualifier; a later range such as `PHASE II/III`
-receives a new ID. A first-phase/stage qualifier combined with an otherwise unclassified
-facility detail remains manual. Separate `3A` and `3B` premises receive new IDs, while
-one aggregate `3A/3B` description retains its ID. Adding a recognised location,
-`CENTRAL`, a branch or campus description, or a legal name suffix such as `LIMITED`
-retains the ID when the street address is unchanged. Sponsorship wording remains a
-manual decision. A `BLOCK`, `TOWER`, `HOUSE`, `HALL`, `SECTION`, `STAGE`, `WING`, or
-`PHASE` without a sequence or positional member is not by itself a site-part decision;
-it remains manual unless it is a recognised descriptive addition. Written block or
-building numbers are converted to the family's established Roman-numeral style in the
-same scoped way as Arabic numbers.
+The site-part rule also covers `STAGE`, `WING`, `SECTION`, `HALL`, `PORTION`, and
+written block numbers such as `ONE` and `TWO`. Compound tower-wing specifications such
+as `TOWER 1 - L WING` and `TOWER 1 - R WING` are treated as material site parts. A first
+phase or stage (`I`, `1`, or `A`), including a range beginning with that member, is
+treated as additional specification and retains the ID when it is the complete added
+qualifier; a later range such as `PHASE II/III` receives a new ID. A first-phase/stage
+qualifier combined with an otherwise unclassified facility detail remains manual.
+Separate `3A` and `3B` premises receive new IDs, while one aggregate `3A/3B` description
+retains its ID. Adding a recognised location, `CENTRAL`, a branch or campus description,
+or a legal name suffix such as `LIMITED` retains the ID when the street address is
+unchanged. Sponsorship wording remains a manual decision. A `BLOCK`, `TOWER`, `HOUSE`,
+`HALL`, `SECTION`, `STAGE`, `WING`, `PHASE`, or `PORTION` without a sequence or
+positional member is not by itself a site-part decision; it remains manual unless it is
+a recognised descriptive addition. Written block or building numbers are converted to
+the family's established Roman-numeral style in the same scoped way as Arabic numbers.
 
 Identity history is evaluated as a release chain. When several earlier releases share a
 continuity anchor, the latest earlier release is the canonical predecessor for the next

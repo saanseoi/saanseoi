@@ -45,16 +45,17 @@ from the configured district members. Every one of those recognised areas receiv
 derived Overture `divisionArea` union when Overture omits its own area geometry, even if
 Overture does provide the division identity itself. Those reviewed identities retain
 their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
-New Territories (`Q596660`). Kowloon reuses Overture's historic division ID
-`17009785-57fd-4e5b-af86-2d27352e4718`; it is never assigned a SaanSeoi replacement. Lok
-Ma Chau Loop (`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a
-district: the correction keeps level 2 to the 18 statutory districts, retains raw
-Overture taxonomy as provenance, and is recorded in each affected source release's
-processing actions. C&SD Permanent Living Quarters geometry then references those
-Overture identities rather than creating parallel divisions. The separate
-`hkgov-censtatd-hma` domain publishes C&SD's 173 polygonal Housing Market Areas.
-Building Groups are not divisions: their source centroids remain source history for a
-future buildings projection.
+New Territories (`Q596660`). This rule is applied independently to every Overture
+cohort, so a missing area is not limited to the newest release. Kowloon reuses
+Overture's historic division ID `17009785-57fd-4e5b-af86-2d27352e4718`; it is never
+assigned a SaanSeoi replacement. Lok Ma Chau Loop
+(`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a district: the
+correction keeps level 2 to the 18 statutory districts, retains raw Overture taxonomy as
+provenance, and is recorded in each affected source release's processing actions. C&SD
+Permanent Living Quarters geometry then references those Overture identities rather than
+creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's
+173 polygonal Housing Market Areas. Building Groups are not divisions: their source
+centroids remain source history for a future buildings projection.
 
 The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
 those stable Overture area identities. Its Area/type polygons join the same
