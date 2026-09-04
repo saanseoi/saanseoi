@@ -22,6 +22,7 @@ for command in \
     init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
     init:addresses:official \
+    init:places:overture \
     init:stats:official
     ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_args
