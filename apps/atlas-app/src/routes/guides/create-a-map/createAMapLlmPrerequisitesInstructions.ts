@@ -2,37 +2,17 @@ const prerequisiteHeading = '## Prerequisites'
 
 const discoveryInstructions = `${prerequisiteHeading}
 
-### Ask these questions first
+### Resolve the project decisions
 
-Ask only for decisions that are not already supplied in the accompanying user prompt.
-Ask the questions in this order, waiting for each answer before asking the next one.
-
-1. **Use case:** “Where do you want your map to be available?” Offer these options:
-   - **On my computer** — a private prototype or local setup.
-   - **Online with a link** — a map people can visit in a browser.
-   - **Embedded in a site** — a map inside an existing site or web app.
-2. **Build environment:** inspect the workspace to determine the operating system and
-   shell. The Linux commands below are the baseline; adapt them to the environment you
-   find. Do not ask the user to identify their operating system.
-3. **Destination details:** ask the follow-up question that matches the chosen use case.
-   - For **Online with a link**, ask: “Where will you host the map?” Offer:
-     - **Cloudflare — Recommended:** global coverage and a generous free tier; the
-       default choice unless the user already prefers GitHub.
-     - **GitHub Pages — Recommended:** static hosting from a GitHub repository, with
-       simple version-controlled updates; recommend it when the user already has, or
-       wants to use, GitHub.
-     - **Another host:** a provider the user already knows or has an account with.
-   - For **Embedded in a site**, ask: “What is the map embedded in?” Offer:
-     - **WordPress:** use a Custom HTML block for the published map’s iframe.
-     - **Squarespace:** use a Code Block for the published map’s iframe.
-     - **Wix:** use an Embed HTML element for the published map’s iframe.
-     - **Webflow:** use a Code Embed element for the published map’s iframe.
-     - **Another platform:** this guide has no iframe recipe; build and publish the map
-       first, then consult that platform’s integration documentation.
-   - After selecting a supported site platform, ask the same hosting question and offer
-     the same hosting options. Prefer **Cloudflare — Recommended**, unless the user
-     already has or wants to use GitHub, in which case prefer **GitHub Pages —
-     Recommended**.
+Use the preceding **Decision matrix and order** as the authoritative list of questions,
+choices, conditional branches and URL parameters. Ask only for decisions that are not
+already supplied in the handover prompt or decision ledger, and wait for each answer
+before asking the next question. In particular, preserve the matrix’s order: destination;
+for a non-agentic LLM, operating system, terminal experience and editor; destination
+details; then mapping library, coverage, style and data choices. An agentic LLM inspects
+the operating system and does not ask for terminal experience or editor setup. Do not
+reintroduce the guide’s involvement, AI-access, provider, VPN or editor questions that
+the full-handover instructions explicitly omit.
 `
 
 const projectSetupSafetyInstructions =

@@ -28,41 +28,31 @@ The mobile and notebook choices are currently marked “Coming soon” in the gu
 silently substitute the browser workflow for them; explain the limitation and ask
 whether the user wants to stop or continue with an explicitly agreed alternative.
 
-### 2. Involvement and AI route
+### 2. Infer the handover mode
 
-The guide has three involvement values: \`manual\` (“I’ll be hands on”), \`assisted\`
-(“Build it with me”), and \`handover\` (“Set it up for me”). A full-handover prompt
-already supplies \`llm-mode=handover\`; do not ask the user to choose it again.
+This document is reached from the full-handover route, so \`llm-mode=handover\` is
+already established. Do not ask the user to choose between “I’ll be hands on”, “Build
+it with me” and “Set it up for me”.
 
-For assisted work, ask how the user wants to use an LLM:
+Infer the AI route from the environment in which you are running:
 
-| Choice | Value | URL parameter |
-| --- | --- | --- |
-| Agentic AI — an installed agent can execute instructions and edit files | \`agentic\` | \`ai-access=agentic\` |
-| Chat AI — the user copies and pastes between a browser and their project | \`web\` | \`ai-access=web\` |
+- If you are an agentic LLM with permission to inspect and edit project files, record
+  \`ai-access=agentic\`. You are the working agent; do not ask the user to choose an
+  agent tool, VPN access, terminal experience, or code editor. Inspect the operating
+  system and shell only when needed to adapt commands. The user is expected to read and
+  manipulate files through the agent interface.
+- If you are a non-agentic LLM without project-file access, record \`ai-access=web\`.
+  You are the chat guide; do not ask the user to choose a Chat AI service or VPN. Ask
+  only for the environment decisions needed to give accurate local instructions.
 
-If the guide has detected that the user’s region needs a VPN for some US AI services,
-ask whether they have VPN access: Yes is \`vpn-access=yes\`; No is
-\`vpn-access=no\`. Do not ask this irrelevant question when the guide does not require
-it. Apply the same availability filtering as the guide:
-
-- Agentic tools: Codex app (\`codex-app\`), Codex CLI (\`codex-cli\`), Claude Cowork
-  (\`claude-cowork\`), Claude Code (\`claude-code\`), Cursor (\`cursor\`), OpenCode
-  (\`opencode\`), Pi (\`pi\`), Qwen Code (\`qwen-code\`), Zed (\`zed\`), or Other
-  (\`other\`). Hide terminal-based tools when terminal experience is “None”, and hide
-  region-blocked tools when VPN access is “No”.
-- Chat AI services: ChatGPT (\`chatgpt\`), Claude (\`claude\`), DeepSeek
-  (\`deepseek\`), Kimi (\`kimi\`), Gemini (\`gemini\`), or another service
-  (\`other\`). Hide region-blocked services when VPN access is “No”.
-
-These choices use the \`agent-tool\` or \`llm\` URL parameter respectively. If the
-selected service requires an account or paid plan, send the user to its official setup
-page and stop for confirmation before a paid action. For SaanSeoi account creation,
-send the user to https://saanseoi.hk/sign-up.
+The agent or chat service identity is not a new user decision in a full handover. If an
+account or paid plan for the current LLM is needed, send the user to that service’s
+official setup page and stop for confirmation before a paid action. For SaanSeoi account
+creation, send the user to https://saanseoi.hk/sign-up.
 
 ### 3. Working environment
 
-For manual work, or for Chat AI assistance, establish these in order:
+For a non-agentic LLM, establish these in order:
 
 1. Operating system: Windows (\`os=windows\`), macOS (\`os=macos\`), or Linux
    (\`os=linux\`). An agent should inspect this rather than ask the user to identify it.
@@ -71,10 +61,10 @@ For manual work, or for Chat AI assistance, establish these in order:
 3. Code editor: Zed (\`editor=zed\`), VS Code (\`editor=vscode\`), Sublime Text
    (\`editor=sublime-text\`), Cursor (\`editor=cursor\`), or Other (\`editor=other\`).
 
-For an installed agent, ask terminal experience before choosing the agent tool, then
-use the selected tool’s own workspace capability. The agent still needs to establish
-the operating system when commands depend on it; it may omit editor setup where the
-selected tool does not use one of the guide’s editor workflows.
+For an agentic LLM, inspect the operating system and shell when commands depend on them,
+but do not ask for terminal experience or code-editor selection. The user is expected to
+read and manipulate files through the agent interface, so editor setup is not part of
+the agentic handover.
 
 ### 4. Destination-specific platform
 

@@ -477,7 +477,7 @@ const createAMapFullHandoverPrompt = (
     aiAccess: handoverAiAccess,
     selectionQuery: {
       ...state.selectionQuery,
-      aiAccess: state.selectionQuery?.aiAccess ?? handoverAiAccess,
+      aiAccess: handoverAiAccess,
     },
   }
 
@@ -488,8 +488,8 @@ const createAMapFullHandoverPrompt = (
       `First read the LLM-friendly version at ${instructionsUrl}, then proceed to follow the guide from prerequisites through rendering, basemap, style, data and, where relevant, publishing.`,
     ].join(' '),
     mode === 'agentic'
-      ? 'If you are an agentic LLM, inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Ask before credentials, paid actions, account-linked actions, deployment or other consequential external changes.'
-      : 'If you are a non-agentic LLM, guide me through the work on my computer one safe action at a time. Name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.',
+      ? 'If you are an agentic LLM, infer `ai-access=agentic` from your workspace access. Inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Do not ask me to choose an AI tool, VPN, terminal experience, or editor. Ask before credentials, paid actions, account-linked actions, deployment or other consequential external changes.'
+      : 'If you are a non-agentic LLM, infer `ai-access=web` from your chat-only access. Do not ask me to choose a Chat AI service or VPN. Guide me through the work on my computer one safe action at a time. Ask only for the environment decisions needed to give accurate instructions; name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.',
     createHandoverLanguageQuestion(state.preferredLocale),
     'When a SaanSeoi account is needed, send me to https://saanseoi.hk/sign-up. When the public API key is needed, send me to https://saanseoi.hk/api-keys, ask me to bring the resulting `pk.` key back to you, and remind me if I have not provided it. Use it to configure `VITE_SAANSEOI_API_KEY`; never log or commit it.',
     completionInstruction,

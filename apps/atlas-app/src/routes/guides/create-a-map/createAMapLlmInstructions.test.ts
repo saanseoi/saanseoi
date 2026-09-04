@@ -262,20 +262,37 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('bun add mapbox-gl')
     expect(instructions).toContain('bun add leaflet')
     expect(instructions).toContain('## Publish')
-    expect(instructions).toContain(
-      'Do not ask the user to identify their operating system.',
-    )
+    expect(instructions.toLowerCase()).toContain('do not ask the user to identify')
     expect(instructions).not.toContain('What operating system are you using')
     expect(instructions).toContain('current workspace root only if it is not the')
     expect(instructions).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
     expect(instructions).toContain('## Decision matrix and order')
+    expect(instructions).toContain('Use the preceding **Decision matrix and order**')
     expect(instructions).toContain('If you are an agentic LLM')
     expect(instructions).toContain('If you are a non-agentic LLM')
     expect(instructions).toContain('https://saanseoi.hk/sign-up')
     expect(instructions).toContain('https://saanseoi.hk/api-keys')
     expect(instructions).toContain('do not rely on the guide UI to compose the iframe')
+  })
+
+  test('includes the guide code references in the canonical handover guide', () => {
+    const instructions = createAMapLlmInstructions()
+
+    expect(instructions).toContain('## Code and command references')
+    expect(instructions).toContain('bun create vite . --template vanilla-ts')
+    expect(instructions).toContain("import * as maplibregl from 'maplibre-gl'")
+    expect(instructions).toContain('const basemapUrl = ')
+    expect(instructions).toContain('access_token=')
+    expect(instructions).toContain("const places = await fetch('/features.geojson')")
+    expect(instructions).toContain('const nonLiveableLandUse = [')
+    expect(instructions).toContain(
+      'bun add @turf/turf @mapbox/vector-tile pbf geos-wasm',
+    )
+    expect(instructions).toContain('bunx wrangler deploy')
+    expect(instructions).toContain('from maplibre import Map, MapOptions')
+    expect(instructions).toContain('<iframe')
   })
 
   test('creates a handback URL from the known guide decisions', () => {
