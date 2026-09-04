@@ -124,13 +124,21 @@ const wrapLlmsText = (markdown: string) => {
     }
 
     if (
-      trimmed === '' ||
       /^#{1,6}\s/.test(trimmed) ||
       /^\|/.test(trimmed) ||
       /^Target:\s/.test(trimmed)
     ) {
       flushBuffer()
       wrapped.push(line)
+      continue
+    }
+
+    if (trimmed === '') {
+      flushBuffer()
+      // Interpolated reference blocks often contribute their own surrounding blank
+      // lines. Keep a single separator between Markdown blocks, but leave blank lines
+      // inside code fences untouched.
+      if (wrapped.at(-1) !== '') wrapped.push('')
       continue
     }
 
