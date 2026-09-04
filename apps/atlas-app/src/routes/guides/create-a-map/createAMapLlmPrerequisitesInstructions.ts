@@ -95,12 +95,16 @@ bun add -d wrangler
 
 #### Windows PowerShell
 
-First check for Bun with \`Get-Command bun -ErrorAction SilentlyContinue\`. Only run the
-installation command when it is unavailable.
+First check for Bun with \`bun --version\`. Only run the installation command when it is
+unavailable. Open a new PowerShell window after installation if the command is not found.
 
 \`\`\`powershell
+# Check whether Bun is already available.
+bun --version
+
 # Run this only if Bun is not installed:
 irm bun.sh/install.ps1 | iex
+# If PowerShell cannot find Bun afterwards, open a new PowerShell window before continuing.
 
 # Run these only after confirming that saanseoi-project does not already exist.
 mkdir saanseoi-project
