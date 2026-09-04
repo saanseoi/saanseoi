@@ -51,6 +51,7 @@ import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processL
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
 import { processLocalHkgovCenstatdDistrictStatisticSqlUpload } from '../statisticsSql/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts'
 import { processLocalHkgovCenstatdStatisticSqlUpload } from '../statisticsSql/processLocalHkgovCenstatdStatisticSqlUpload.ts'
+import { processLocalPlaceSqlUpload } from '../placeSql/processLocalPlaceSqlUpload.ts'
 import {
   buildRegisterOptions,
   type ParsedArgs,
@@ -83,6 +84,7 @@ import {
   discardDerivedReleaseArtefacts,
   shouldCacheArtefacts,
 } from '../localPipeline/releaseArtefacts.ts'
+import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
 
 const API_DOMAIN_RELEASE_WIDTH = 120
 
@@ -248,10 +250,11 @@ ${mutedBar}  `)
     if (
       options.deferApiReleaseSet &&
       previewResult.plan.theme !== 'addresses' &&
-      previewResult.plan.theme !== 'divisions'
+      previewResult.plan.theme !== 'divisions' &&
+      previewResult.plan.theme !== 'places'
     ) {
       throw new Error(
-        '--defer-api-release-set requires an Addresses or Divisions upload.',
+        '--defer-api-release-set requires an Addresses, Divisions, or Places upload.',
       )
     }
 
@@ -320,14 +323,7 @@ ${mutedBar}  `)
                   completeOnReuse: false,
                 })
               },
-              cacheTableProfile:
-                previewResult.plan.type === 'divisionArea' ||
-                previewResult.plan.type === 'divisionBoundary'
-                  ? previewResult.plan.source === 'hkgov-pland-pu' ||
-                    previewResult.plan.source === 'hkgov-pland-new-town'
-                    ? 'planningDivisionGeometry'
-                    : 'divisionGeometry'
-                  : undefined,
+              cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
               includePreviousShardYears: true,
             },
           )
@@ -507,6 +503,53 @@ ${mutedBar}  `)
             processingResult.publishResult?.apiReleaseSetCode,
             releaseSetReadiness.divisionCohortKey,
           ),
+        )
+        await logApiReleaseSetPublication(
+          processingResult.publishResult,
+          revisionDraft(),
+          target,
+        )
+        await discardSuccessfulReleaseArtefacts(
+          cacheArtefacts,
+          target,
+          previewResult.plan.releaseCode,
+        )
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      if (processingStrategy.mode === 'local-place-sql') {
+        if (
+          previewResult.plan.type !== 'place' ||
+          previewResult.plan.theme !== 'places' ||
+          previewResult.plan.source !== 'overture'
+        ) {
+          throw new Error(
+            'Local Places SQL processing requires an Overture place dataset.',
+          )
+        }
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+        const processingResult = await processLocalPlaceSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            datasetCode: previewResult.plan.datasetCode,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: 'overture',
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: 'places',
+            type: 'place',
+          },
+          uploadResult,
+          preparedUploadFile,
+          {
+            deferApiReleaseSet: options.deferApiReleaseSet,
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+          },
         )
         await logApiReleaseSetPublication(
           processingResult.publishResult,
@@ -1098,6 +1141,14 @@ function resolveUploadProcessingStrategy(
     return {
       mode: 'local-address-sql' as const,
     }
+  }
+
+  if (
+    previewResult.plan.type === 'place' &&
+    previewResult.plan.theme === 'places' &&
+    previewResult.plan.source === 'overture'
+  ) {
+    return { mode: 'local-place-sql' as const }
   }
 
   if (
@@ -1753,14 +1804,14 @@ async function resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
       'division',
       plan.regionCode,
       plan.cohortKey,
-      { publisherCode: 'overture' },
+      { publisherCode: 'overture', variant: 'overture' },
     )) ??
     (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
       db,
       'division',
       plan.regionCode,
       plan.cohortKey,
-      { publisherCode: 'overture' },
+      { publisherCode: 'overture', variant: 'overture' },
     ))
   )
 }

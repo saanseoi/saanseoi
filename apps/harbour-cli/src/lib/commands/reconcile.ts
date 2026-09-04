@@ -10,6 +10,11 @@ import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import {
+  isApiFamily,
+  resolveApiFamilyCacheProfile,
+  type ApiFamily,
+} from '../pipeline/apiFamilyLifecycle.ts'
 
 export async function runReconcileDraftReleaseSetsCommand(
   args: ParsedArgs,
@@ -23,6 +28,7 @@ export async function runReconcileDraftReleaseSetsCommand(
 
   const apiFamily = optionApiFamily(args.options['api-family'])
   const regionCode = optionRegionCode(args.options.region)
+  const cacheTableProfile = resolveApiFamilyCacheProfile(apiFamily)
   const unsupportedOptions = Object.keys(args.options).filter(
     key => key !== 'api-family' && key !== 'region' && key !== 'target',
   )
@@ -42,7 +48,7 @@ export async function runReconcileDraftReleaseSetsCommand(
       regionCode ?? 'hk',
       firstTarget.cohortKey.slice(0, 4),
       {
-        cacheTableProfile: undefined,
+        cacheTableProfile,
         includePreviousShardYears: true,
         requireExistingRemoteCache: target.remote,
       },
@@ -101,17 +107,9 @@ export async function runReconcileDraftReleaseSetsCommand(
   outro('Harbour draft release-set reconciliation complete')
 }
 
-function optionApiFamily(
-  value: string | boolean | undefined,
-): 'addresses' | 'divisions' | 'places' | 'stats' | 'streets' | undefined {
+function optionApiFamily(value: string | boolean | undefined): ApiFamily | undefined {
   if (value === undefined) return undefined
-  if (
-    value === 'addresses' ||
-    value === 'divisions' ||
-    value === 'places' ||
-    value === 'stats' ||
-    value === 'streets'
-  ) {
+  if (isApiFamily(value)) {
     return value
   }
   throw new Error(

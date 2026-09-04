@@ -2,9 +2,9 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 
 export function printUsage() {
   console.log(`  Usage:
-  saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry] [--cohort-key YYYY]
+  saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry|places] [--cohort-key YYYY]
   saanseoi cache:seed-reset --target preview|production
-  saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry]
+  saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry|places]
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--defer-api-release-set] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:local [--cacheArtefacts]
@@ -14,6 +14,9 @@ export function printUsage() {
   saanseoi init:divisions:hkgov-pland-pu [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:divisions:hkgov-pland-new-town [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:divisions:hkgov-landsd [--target local|preview|production] [--continue] [--cacheArtefacts]
+  saanseoi init:places:overture [--target local|preview|production] [--continue] [--cacheArtefacts]
+  saanseoi init:places:overture:begin [--target local|preview|production] [--continue]
+  saanseoi init:places:overture:complete [--target local|preview|production]
   saanseoi init:streets:hkgov-landsd [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
   saanseoi tiles:import --region gba|hk|mo --date YYYY-MM-DD --file PATH --boundary PATH [--dry-run]
@@ -24,6 +27,7 @@ export function printUsage() {
   saanseoi schedule [--dry-run]
   saanseoi init:addresses:official [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi reset:addresses:official [--target local|preview|production] [--dry-run] [--yes] [--keep-cache] [--discard-abandoned-staged] [--discard-changed-docs] [--adopt-failed]
+  saanseoi reset:places:overture [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--with-dependencies] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--defer-stats-release-set] [--yes]
     --dataset selects exactly the named datasets; add --with-dependencies to include composition providers.
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]

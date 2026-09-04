@@ -659,7 +659,11 @@ async function countCurrentRollbackRows(
   for (const tableName of input.tables.currentTables) {
     const table = resolveCurrentTable(tableName)
 
-    total += await countRows(db, table, eq(table.snapshotId, input.snapshotId))
+    total += await countRows(
+      db,
+      table,
+      eq(resolveCurrentSnapshotColumn(tableName, table), input.snapshotId),
+    )
   }
 
   return total
@@ -886,6 +890,15 @@ async function countRows(
   return Number(row?.count ?? 0)
 }
 
+function resolveCurrentSnapshotColumn(
+  tableName: string,
+  table: { placeSnapshotId?: unknown; snapshotId?: unknown },
+) {
+  return (
+    tableName === 'placesDivision' ? table.placeSnapshotId : table.snapshotId
+  ) as typeof currentSchema.places.snapshotId
+}
+
 function resolveCurrentTable(tableName: string) {
   switch (tableName) {
     case 'address2d':
@@ -900,6 +913,16 @@ function resolveCurrentTable(tableName: string) {
       return currentSchema.divisions
     case 'divisionsI18n':
       return currentSchema.divisionsI18n
+    case 'places':
+      return currentSchema.places
+    case 'placesI18n':
+      return currentSchema.placesI18n
+    case 'placesDivision':
+      return currentSchema.placesDivision
+    case 'placesCells':
+      return currentSchema.placesCells
+    case 'placesFts':
+      return currentSchema.placesFts
     default:
       throw new Error(`Unsupported rollback current table: ${tableName}`)
   }
@@ -919,6 +942,10 @@ function resolveHistoryTable(tableName: string) {
       return historySchema.divisions
     case 'divisionsI18n':
       return historySchema.divisionsI18n
+    case 'places':
+      return historySchema.places
+    case 'placesI18n':
+      return historySchema.placesI18n
     default:
       throw new Error(`Unsupported rollback history table: ${tableName}`)
   }
@@ -934,6 +961,8 @@ function resolveSourceTable(tableName: string) {
       return sourceSchema.sourceHkgovPlandPlanningCells
     case 'hkgovPlandNewTowns':
       return sourceSchema.sourceHkgovPlandNewTowns
+    case 'overturePlaces':
+      return sourceSchema.sourceOverturePlaces
     default:
       throw new Error(`Unsupported rollback source table: ${tableName}`)
   }
@@ -1089,7 +1118,11 @@ async function countPurgeCurrentRows(
 
   for (const tableName of input.tables.currentTables) {
     const table = resolveCurrentTable(tableName)
-    total += await countRows(db, table, eq(table.snapshotId, input.snapshotId))
+    total += await countRows(
+      db,
+      table,
+      eq(resolveCurrentSnapshotColumn(tableName, table), input.snapshotId),
+    )
   }
 
   return total
