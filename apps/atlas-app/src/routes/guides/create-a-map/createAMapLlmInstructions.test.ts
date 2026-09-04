@@ -272,6 +272,7 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('Use the preceding **Decision matrix and order**')
     expect(instructions).toContain('If you are an agentic LLM')
     expect(instructions).toContain('If you are a non-agentic LLM')
+    expect(instructions).not.toContain('Which language would you prefer')
     expect(instructions).toContain('https://saanseoi.hk/sign-up')
     expect(instructions).toContain('https://saanseoi.hk/api-keys')
     expect(instructions).toContain('do not rely on the guide UI to compose the iframe')
@@ -322,14 +323,14 @@ describe('Create a Map LLM instructions', () => {
     expect(url).not.toContain('agent-tool=')
   })
 
-  test('makes full handover prompts mode-specific and multilingual', () => {
+  test('makes full handover prompts mode-specific and uses the site-selected locale', () => {
     const agentPrompt = createAMapAgenticHandoverPrompt(
-      { preferredLocale: 'en' },
+      { preferredLocale: 'zh-Hant' },
       'https://saanseoi.hk/guides/create-a-map',
       'https://saanseoi.hk/guides/create-a-map/llms.txt',
     )
     const chatPrompt = createAMapChatHandoverPrompt(
-      { preferredLocale: 'en' },
+      { preferredLocale: 'zh-Hans' },
       'https://saanseoi.hk/guides/create-a-map',
       'https://saanseoi.hk/guides/create-a-map/llms.txt',
     )
@@ -342,15 +343,22 @@ describe('Create a Map LLM instructions', () => {
     expect(chatPrompt).toContain('AI route: web')
     expect(chatPrompt).toContain('llm-mode=assisted')
     expect(chatPrompt).not.toContain('If you are an agentic LLM, inspect')
-    for (const languageQuestion of [
-      'Which language would you prefer',
-      '你希望我們',
-      '你希望我们',
-    ]) {
-      expect(chatPrompt).toContain(languageQuestion)
+    expect(agentPrompt).toContain('The site-selected user locale is `zh-Hant`')
+    expect(chatPrompt).toContain('The site-selected user locale is `zh-Hans`')
+    expect(agentPrompt).toStartWith('# Full handover: SaanSeoi Create a Map')
+    expect(agentPrompt).toContain('## Purpose')
+    expect(agentPrompt).toContain('## How to work')
+    expect(agentPrompt).toContain('## Supplied project decisions')
+    expect(agentPrompt).toContain('### Guide URL parameters')
+    expect(agentPrompt).toContain('## Returning to the guide')
+    expect(agentPrompt).toContain(
+      'Respond to me in this locale throughout the interaction',
+    )
+    expect(chatPrompt).not.toContain('Which language would you prefer')
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).not.toContain('https://saanseoi.hk/sign-up')
+      expect(prompt).not.toContain('https://saanseoi.hk/api-keys')
     }
-    expect(chatPrompt).toContain('https://saanseoi.hk/sign-up')
-    expect(chatPrompt).toContain('https://saanseoi.hk/api-keys')
   })
 
   test('provides the working agreement and setup instructions for assistance', () => {

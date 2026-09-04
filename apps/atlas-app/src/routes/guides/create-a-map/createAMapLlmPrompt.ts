@@ -186,8 +186,6 @@ const createLocaleInstruction = (preferredLocale: string, subject: string) =>
     ? undefined
     : `Respond in ${subject} preferred locale (${preferredLocale}) throughout the interaction, even when this prompt or the guide uses another language.`
 
-const optionalInstruction = (instruction?: string) => (instruction ? [instruction] : [])
-
 const promptDecision = (value?: string) => value ?? 'TBD'
 
 const createProjectSetupUseCase = (objective?: string) => {
@@ -450,15 +448,6 @@ const createGuideDecisionQueryLines = (state: CreateAMapLlmPromptState) => {
   })
 }
 
-const createHandoverLanguageQuestion = (preferredLocale: string) =>
-  [
-    'The LLM-friendly guide is written in English, but I can give you instructions in your preferred language. Unless a language is already supplied in the project decisions, ask this first:',
-    'English: Which language would you prefer for our instructions: English, Traditional Chinese, or Simplified Chinese?',
-    '繁體中文：你希望我們以哪種語言提供指示：英文、繁體中文，還是簡體中文？',
-    '简体中文：你希望我们用哪种语言提供指示：英语、繁体中文，还是简体中文？',
-    `The guide currently supplies locale \`${preferredLocale}\`; use it as the default unless the user chooses another language.`,
-  ].join('\n')
-
 const createAMapFullHandoverPrompt = (
   state: CreateAMapLlmPromptState,
   guideUrl: string,
@@ -481,27 +470,53 @@ const createAMapFullHandoverPrompt = (
     },
   }
 
-  return [
-    [
-      `I am following the “Making a digital map” guide at ${guideUrl}.`,
-      'I want you to take full ownership of implementing the SaanSeoi map project as detailed in that guide.',
-      `First read the LLM-friendly version at ${instructionsUrl}, then proceed to follow the guide from prerequisites through rendering, basemap, style, data and, where relevant, publishing.`,
-    ].join(' '),
+  const modeInstruction =
     mode === 'agentic'
-      ? 'If you are an agentic LLM, infer `ai-access=agentic` from your workspace access. Inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Do not ask me to choose an AI tool, VPN, terminal experience, or editor. Ask before credentials, paid actions, account-linked actions, deployment or other consequential external changes.'
-      : 'If you are a non-agentic LLM, infer `ai-access=web` from your chat-only access. Do not ask me to choose a Chat AI service or VPN. Guide me through the work on my computer one safe action at a time. Ask only for the environment decisions needed to give accurate instructions; name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.',
-    createHandoverLanguageQuestion(state.preferredLocale),
-    'When a SaanSeoi account is needed, send me to https://saanseoi.hk/sign-up. When the public API key is needed, send me to https://saanseoi.hk/api-keys, ask me to bring the resulting `pk.` key back to you, and remind me if I have not provided it. Use it to configure `VITE_SAANSEOI_API_KEY`; never log or commit it.',
-    completionInstruction,
-    ...optionalInstruction(createLocaleInstruction(state.preferredLocale, 'my')),
+      ? 'If you are an agentic LLM, inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Do not ask me to choose an AI tool, VPN, terminal experience, or editor. Ask before paid actions, account-linked actions, deployment or other consequential external changes.'
+      : 'If you are a non-agentic LLM, do not ask me to choose a Chat AI service or VPN. Guide me through the work on my computer one safe action at a time. Ask only for the environment decisions needed to give accurate instructions; name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.'
+
+  return [
+    '# Full handover: SaanSeoi Create a Map',
     '',
-    'The following entries are my supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when helping me.',
-    'Known project decisions:',
+    '## Purpose',
+    '',
+    '- Goal: take full ownership of implementing my SaanSeoi map project as detailed in the guide.',
+    '- Guide: “Making a digital map”',
+    `- Guide URL: ${guideUrl}`,
+    '',
+    '## How to work',
+    '',
+    `1. Read the LLM-friendly guide: ${instructionsUrl}`,
+    '2. Follow it from prerequisites through rendering, basemap, style, data and, where relevant, publishing and embedding.',
+    `3. ${modeInstruction}`,
+    "4. Although you are responsible for the implementation, I still need to know what you are doing and why you are doing it. Draw from each guide section's explanations to guide the user through your implementation steps.",
+    '',
+    '## Language',
+    '',
+    '- The LLM-friendly guide is written in English. Keep reading and applying it in English.',
+    `- The site-selected user locale is \`${state.preferredLocale}\`. Respond to me in this locale throughout the interaction, including explanations, questions and confirmations. Keep code, commands, URL parameters and technical literals unchanged.`,
+    '',
+    '## Completion',
+    '',
+    `- ${completionInstruction}`,
+    '- Ask the questions as they become relevant to your implementation in the guide. Do not ask all the possible questions up front.',
+    '',
+    '## Supplied project decisions',
+    '',
+    'Treat these entries as requirements. Do not ask again about a listed decision, and use every applicable one when helping me.',
+    '',
+    '### Decisions',
+    '',
     ...createSelections(handoverState),
-    'Known guide URL decisions:',
+    '',
+    '### Guide URL parameters',
+    '',
     ...createGuideDecisionQueryLines(handoverState),
     '',
-    'If I ask to continue in the guide, update the decision ledger first and give me a link to the guide with the known decision query parameters applied. Use `llm-mode=assisted` for that link so the handover dialog does not reopen.',
+    '## Returning to the guide',
+    '',
+    'If I ask to continue in the guide, update the decision ledger first and give me a link with the known decision query parameters applied. Use `llm-mode=assisted` for that link so the handover dialog does not reopen.',
+    '',
     `Current guide handback URL: ${createAMapGuideHandbackUrl(handoverState, guideUrl)}`,
   ].join('\n')
 }
