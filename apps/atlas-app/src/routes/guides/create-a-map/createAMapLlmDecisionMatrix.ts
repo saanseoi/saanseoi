@@ -107,7 +107,7 @@ After the project route is known, ask in this order:
    substituting \`hk\`, \`mo\` or \`gba\` for the region; \`hongkong\`, \`macau\` or
    \`gba\` for the tileset; and \`central\`, \`senado-square\` or \`canton-tower\` for
    the matching viewpoint. For each built-in style, render its preview as an image the
-   user can see (for example,
+   I can see (for example,
    \`https://tiles.saanseoi.hk/render/hk/hongkong-latest-midnight-central-z16.webp\`).
    If I give a visual direction, treat it as the custom option: create or adapt a valid
    MapLibre style in the project, keep the SaanSeoi source named \`basemap\`, and verify
@@ -162,9 +162,30 @@ region’s opening position, and confirm that it renders in the browser.
 
 ### Section Guidance
 
-An empty map gives us a clear first look at the mapping library we chose. We can confirm
-that the map appears and responds before adding real places, colours or data, so it is easy
-to tell which part needs attention if something looks wrong.
+Before I choose, explain that the mapping library is the foundation for everything that
+follows: it draws the geography, receives our data layers and controls how people pan,
+zoom and interact with the map. Explain the two common source types in plain language:
+raster tiles are ready-made pictures that are simple to display but difficult to restyle,
+while vector tiles are shape data that stay sharp and can be restyled, animated and made
+interactive.
+
+Then explain the trade-offs between the three choices in the guide:
+
+- **MapLibre** is the recommended open-source option for this project. It is designed for
+  vector tiles, gives me full control over SaanSeoi data and visual style, and has a strong
+  community and broad plugin ecosystem. It is the best fit for a styled analysis map.
+- **Mapbox GL JS** is closely related to MapLibre and also works with vector tiles. It adds
+  polished managed services such as hosted basemaps and geocoding, but requires a Mapbox
+  account and public access token and ties some features to Mapbox’s service and pricing
+  rules.
+- **Leaflet** is lightweight and straightforward, with a wide plugin ecosystem and a
+  natural fit for raster tiles or simple GeoJSON maps. It offers less built-in control for
+  SaanSeoi vector styling, so this guide uses its MapLibre compatibility layer when Leaflet
+  is selected.
+
+Recommend MapLibre, but ask me which library I want and respect my choice. Start with an
+empty map so I can confirm the foundation works before we add the SaanSeoi basemap, style,
+places or analysis data.
 
 ### Code References
 
@@ -179,9 +200,20 @@ URL-encoded public \`pk.\` key and verify that the basemap loads.
 
 ### Section Guidance
 
-Now we give the empty map its real geography. The SaanSeoi key lets the browser request the
-map tiles, and the finished basemap gives us the Hong Kong, Macau or GBA context on which
-our own information will sit. We check that it loads before changing its appearance.
+Explain that a basemap gives people their bearings: roads, place names and boundaries
+provide the recognisable setting beneath the information we add. SaanSeoi supplies this
+as vector data, so the map can stay sharp at different zoom levels and we can change its
+style later rather than being locked to a ready-made image.
+
+Ask which coverage fits my story. **Hong Kong** is the focused city view, **Macau** is the
+dedicated Macao view, and **Greater Bay Area** combines Hong Kong and Macau with the nine
+mainland municipalities for a wider regional map. Explain that the selected coverage
+changes the geography and opening view, not the rest of the project.
+
+Then explain that a SaanSeoi account and public API key are needed so the service can make
+the free tile access accountable. The key is designed to be used by browser code, so we
+will place it in the local environment and pass it with tile requests; we must never log
+or commit it. Verify that the chosen basemap loads before changing its appearance.
 
 ### Code References
 
@@ -196,9 +228,21 @@ custom style, while keeping the vector-tile source compatible with the renderer.
 
 ### Section Guidance
 
-This is where the map starts to feel like yours. We look at the available previews,
-recommend **midnight** as a strong starting point, or shape a custom look from your visual
-direction. We then check the finished map so the colours and labels remain easy to read.
+Explain that a style is the set of visual rules that turns the basemap’s data into a
+readable hierarchy: it decides which roads, labels and boundaries stand out, how layers
+are ordered, and what mood the map has. The same places can therefore support a quiet
+data-visualisation style or a more atmospheric narrative style without changing the data.
+
+Show the available preview images before asking me to choose. The built-in **Light** and
+**Dark** styles are dependable general-purpose choices; **White**, **Grayscale** and
+**Black** are calmer data-visualisation options; and **Midnight** is the recommended
+narrative style with a dark, distinctive SaanSeoi look. A built-in style is quick and
+already compatible with the basemap. **Custom** gives me the most control, but requires a
+clear visual direction and a completed MapLibre style source or URL that can be checked
+for readable labels and the \`basemap\` source.
+
+Recommend **Midnight**, while respecting my choice. After applying it, show me the map so
+I can check contrast, labels and the overall feel before we add data.
 
 ### Code References
 
@@ -214,44 +258,48 @@ map. Do not begin a path’s prompts until the user selects it.
 
 ### Section Guidance
 
-This is the crossroads where the basemap becomes your map. You can follow the population-
-density story, bring a dataset you already have, or describe the data you would like and
-let the LLM help find and prepare it. Whichever path you choose, we keep the source of the
-information clear and explain any one-time analysis so you know what the map is showing.
+This is the crossroads where the basemap becomes my map. I can follow the population
+density story, bring a dataset I already have, or describe the data I would like and let
+the LLM help find and prepare it. Whichever path I choose, keep the source of the
+information clear and explain any one-time analysis so I know what the map is showing.
+
+Explain the trade-offs before I choose: the guided SaanSeoi project is the most structured
+route and demonstrates a complete, reproducible analysis; existing data is the quickest
+way to map information I already trust, but it may need checking or conversion; and the
+custom route is best when I know the story or sources I want but need help finding or
+shaping the data first.
 
 Offer these paths using the guide’s labels and begin only the selected path:
 
 1. **SaanSeoi Population Density Project** (\`data=api\`) — follow the guided example,
    using the SaanSeoi District statistics and the liveable-area analysis to build the
-   explanatory overlays, metrics and cards.
+   explanatory overlays, metrics and cards. Use the District-level 2024
+   \`populationMidYear\` and \`landArea\` values from \`/stats/v0.1/geographies\`, show
+   the returned data for inspection, aggregate by Area, calculate density defensively,
+   add the three summary cards and coloured District overlays, identify excluded land-use
+   polygons, calculate liveable land once in a geometry Worker, save
+   \`src/land-analysis.json.gz\`, and finish with the cached liveable-density overlays and
+   cards. Keep source values separate from derived values and record releases and reference
+   years.
+
+   The liveable-area calculation is deliberately a prompt/response cycle. First offer the
+   prepared \`land-analysis.json.gz\` download. If it is absent, explain the one-time
+   calculation, install the geospatial packages, create the Worker, add the styles and
+   analysis code, then ask me to inspect the download. A chat LLM waits for me to place the
+   file and confirm it; an agentic LLM may inspect the workspace and move an
+   existing file into place, but must not silently replace its contents.
 2. **Data I already have** (\`data=existing\`) — upload the file to the chat, or (for an
    agentic LLM) place it in the project root for inspection. Establish its schema, source,
    coordinate reference system and intended display, convert it to valid GeoJSON when
    needed, and add a clear accessible layer with an appropriate legend or popup.
 3. **Craft a custom map** (\`data=llm\`) — tell me what I want to show with the selected
    Hong Kong, Macau or GBA basemap and which data sources I am considering. Review the
-   available sources with me, help locate or obtain suitable data, check its licence and
+   available sources with me, help locate or obtain suitable data, check its
    format, convert or create valid GeoJSON, and then add and style the layer. Establish
    the story, audience, locations, geometry, attributes, source and interaction before
    creating anything; never fabricate data. If publishing is part of my selected
    objective, check the selected host’s current asset-size limit before adding the file
    and prepare it for that host only after I confirm the result.
-
-For the worked urban-density example, use the District-level 2024
-\`populationMidYear\` and \`landArea\` values from \`/stats/v0.1/geographies\`, show the
-returned data for inspection, aggregate by Area, calculate density defensively, add
-the three summary cards and coloured District overlays, identify excluded land-use
-polygons, calculate liveable land once in a geometry Worker, save
-\`src/land-analysis.json.gz\`, and finish with the cached liveable-density overlays and
-cards. Keep source values separate from derived values and record releases and reference
-years.
-
-The liveable-area calculation is deliberately a prompt/response cycle. First offer the
-prepared \`land-analysis.json.gz\` download. If it is absent, explain the one-time
-calculation, install the geospatial packages, create the Worker, add the styles and
-analysis code, then ask the user to inspect the download. A chat LLM waits for the user
-to place the file and confirm it; an agentic LLM may inspect the workspace and move an
-existing file into place, but must not silently replace its contents.
 
 ### Code References
 
@@ -268,7 +316,7 @@ ${guideFlowNestedReferences(createAMapLlmExistingDataReferences())}
 #### Craft a custom map
 
 The custom path begins by establishing the story, audience, geography, attributes,
-sources, licence and interaction. Create or obtain the agreed data as valid GeoJSON and
+sources and interaction. Create or obtain the agreed data as valid GeoJSON and
 adapt the existing-data renderer reference only after those decisions are confirmed.
 
 ##### MapLibre
@@ -292,12 +340,24 @@ the stable public URL in a private window before calling the map public.
 
 ### Section Guidance
 
-When the map is ready, we prepare a shareable version that your chosen hosting service can
+When the map is ready, we prepare a shareable version that my chosen hosting service can
 show to anyone. We check the finished map privately first, then send it to the host and
-find the stable link you can share. You remain in control of account, payment and
+find the stable link I can share. I remain in control of account, payment and
 publishing decisions throughout. Enter this section only when my destination is online or
 an embedded site; for a local destination, congratulate me on the finished map and stop
 before asking about a host.
+
+Explain that publishing turns the browser-ready \`dist\` files into a public static site.
+This project does not need a back-end server, which keeps the setup lightweight and makes
+services such as Cloudflare Pages, GitHub Pages, Vercel and Netlify practical. Cloudflare
+is the simplest default for static assets; GitHub Pages is useful when the project should
+live with a GitHub repository but needs a repository base path and a separate build branch;
+Vercel and Netlify provide managed deployment workflows; another host is fine when I
+already have one, but its current documentation and asset limits must be checked.
+
+Build and smoke-test the finished map before any account-linked command. Keep credentials
+private, configure only the public SaanSeoi build variable on the selected host, and use
+the stable production URL—not a temporary deployment address—as the link people share.
 
 ### Code References
 
@@ -317,13 +377,26 @@ iframe, then preview and publish the containing page.
 
 ### Section Guidance
 
-Once the map has a public link, we can place it inside your chosen website. The map remains
+Once the map has a public link, we can place it inside my chosen website. The map remains
 its own interactive page, so we give it a clear title and a comfortable height, preview it
 in the site editor, and then publish the page. The surrounding site cannot directly change
 the map’s colours, but it can display it reliably through the iframe. Enter this section
 only when my destination is an embedded site; do not ask embedding questions for a local
 or link-only destination. The hand-off rule is:
-do not rely on the guide UI to compose the iframe; use the generated code reference below.
+
+do not rely on the guide UI to compose the iframe.
+
+Explain that an iframe is the portable option: it lets an existing site display the
+published map without rebuilding the map inside that site, while keeping the map’s own
+controls and styles intact. The trade-off is that a cross-origin iframe cannot be restyled
+or directly controlled by the surrounding page, so the public map must already be usable
+on its own. Ask which site editor I use before giving placement instructions; WordPress,
+Squarespace, Wix and Webflow each provide a different HTML or embed element, and another
+platform requires its current official documentation. For WordPress, check whether the
+site is self-hosted or WordPress.com and warn that the free WordPress.com plan may block
+iframe HTML. Preview the published URL in the editor before asking me to publish the page.
+
+Use the generated code reference below.
 
 ### Code References
 
