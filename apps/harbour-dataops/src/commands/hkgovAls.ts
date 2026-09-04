@@ -25,6 +25,17 @@ import {
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import {
+  groupResolvedVersionsByShard,
+  resolveSnapshotVersionState,
+  type ResolvedSnapshotVersion,
+} from '@repo/core/pipeline/db/snapshotReplay'
+import {
+  hasAllOvertureHongKongAreaDivisions,
+  overtureHongKongAreas,
+  overtureHongKongAreaDivisionId,
+} from '@repo/core/pipeline/services/overtureHongKongAreas'
 import type {
   ParsedArgs,
   UploadTarget,
@@ -183,6 +194,11 @@ export async function runHkgovAlsIngestCommand(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
+  for (const divisionCohortKey of new Set(
+    sourceReleases.map(release => release.divisionCohortKey),
+  )) {
+    await materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey)
+  }
   const completedSourceVersions = await listTargetCompletedAlsSourceVersions(
     target,
     sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
@@ -298,7 +314,6 @@ export async function runHkgovAlsIngestCommand(
         'CONSOLIDATION',
       )
     }
-    await materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey)
     await runUploadCommand(
       {
         command: 'upload',
@@ -466,8 +481,10 @@ async function prepareHkgovAlsRelease(args: {
 /**
  * Address rows retain the exact division snapshot selected for their cohort.
  * Current storage may evict an older projection, while immutable history keeps
- * it; restore that projection before the address SQL introduces its foreign
- * keys. This is deliberately done only after review/preparation succeeds.
+ * it; restore that projection before ALS preparation builds its division lookup
+ * and before address SQL introduces its foreign keys. History is a delta journal,
+ * so replay the complete parent-to-target snapshot rather than reading one
+ * snapshot's history rows in isolation.
  */
 async function materialiseDivisionSnapshotForAddressRelease(
   target: UploadTarget,
@@ -479,6 +496,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
     cohortKey.slice(0, 4),
     {
       cacheTableProfile: 'address',
+      includeAllHistoryShardYears: true,
     },
   )
   try {
@@ -507,70 +525,105 @@ async function materialiseDivisionSnapshotForAddressRelease(
         `No published Overture division snapshot found for cohort ${cohortKey}.`,
       )
     }
-    const [presentDivision, presentI18n] = await Promise.all([
+    const [presentDivisions, presentI18n] = await Promise.all([
       context.currentDb
         .select({ id: currentSchema.divisions.id })
         .from(currentSchema.divisions)
         .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
-        .limit(1)
-        .get(),
+        .all(),
       context.currentDb
-        .select({ divisionId: currentSchema.divisionsI18n.divisionId })
+        .select({
+          divisionId: currentSchema.divisionsI18n.divisionId,
+          locale: currentSchema.divisionsI18n.locale,
+        })
         .from(currentSchema.divisionsI18n)
         .where(eq(currentSchema.divisionsI18n.snapshotId, snapshot.id))
-        .limit(1)
-        .get(),
+        .all(),
     ])
-    if (presentDivision && presentI18n) return
-
+    const historyShards = new Map(
+      context.historyTargets.map(target => [
+        target.bindingName,
+        {
+          bindingName: target.bindingName,
+          db: target.db as never,
+        },
+      ]),
+    )
+    const replayPlan = await resolveSnapshotReplayPlan(
+      context.metaDb as never,
+      snapshot.id,
+    )
+    const replayedVersions = await resolveSnapshotVersionState(
+      replayPlan,
+      historyShards,
+      ['division', 'divisionI18n'],
+    )
+    const divisionVersions = [...replayedVersions.values()].filter(
+      version => version.recordType === 'division',
+    )
+    const i18nVersions = [...replayedVersions.values()].filter(
+      version => version.recordType === 'divisionI18n',
+    )
     const [divisions, i18n] = await Promise.all([
-      context.historyDb
-        .select({
-          bbox: historySchema.divisions.bbox,
-          cartography: historySchema.divisions.cartography,
-          divisionCode: historySchema.divisions.divisionCode,
-          geometry: historySchema.divisions.geometry,
-          hierarchy: historySchema.divisions.hierarchy,
-          id: historySchema.divisions.id,
-          identifiers: historySchema.divisions.identifiers,
-          level: historySchema.divisions.level,
-          sourceKeys: historySchema.divisions.sourceKeys,
-          sources: historySchema.divisions.sources,
-          type: historySchema.divisions.type,
-          wikidata: historySchema.divisions.wikidata,
-        })
-        .from(historySchema.divisions)
-        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
-        .all(),
-      context.historyDb
-        .select({
-          divisionId: historySchema.divisionsI18n.divisionId,
-          isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
-          locale: historySchema.divisionsI18n.locale,
-          name: historySchema.divisionsI18n.name,
-          nameAlts: historySchema.divisionsI18n.nameAlts,
-          nameRules: historySchema.divisionsI18n.nameRules,
-          nameVariant: historySchema.divisionsI18n.nameVariant,
-        })
-        .from(historySchema.divisionsI18n)
-        .innerJoin(
-          historySchema.divisions,
-          and(
-            eq(historySchema.divisions.id, historySchema.divisionsI18n.divisionId),
-            eq(
-              historySchema.divisions.versionHash,
-              historySchema.divisionsI18n.versionHash,
-            ),
-          ),
-        )
-        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
-        .all(),
+      loadReplayedDivisionRows(divisionVersions),
+      loadReplayedDivisionI18nRows(i18nVersions),
     ])
     if (divisions.length === 0) {
       throw new Error(
         `Division snapshot ${snapshot.id} is absent from both current storage and immutable history.`,
       )
     }
+    if (!hasAllOvertureHongKongAreaDivisions(divisions.map(row => row.id))) {
+      const areaNames = overtureHongKongAreas
+        .filter(
+          area =>
+            !divisions.some(
+              row => row.id === overtureHongKongAreaDivisionId(area.code),
+            ),
+        )
+        .map(area => area.names.en)
+        .join(', ')
+      throw new Error(
+        `Replayed division snapshot ${snapshot.id} is missing canonical Hong Kong Area rows (${areaNames}).`,
+      )
+    }
+    const materialisedI18n = filterDivisionI18nToKnownDivisions(
+      i18n,
+      new Set(divisions.map(row => row.id)),
+    )
+    if (
+      !hasAllOvertureHongKongAreaDivisions(materialisedI18n.map(row => row.divisionId))
+    ) {
+      const areaNames = overtureHongKongAreas
+        .filter(
+          area =>
+            !materialisedI18n.some(
+              row => row.divisionId === overtureHongKongAreaDivisionId(area.code),
+            ),
+        )
+        .map(area => area.names.en)
+        .join(', ')
+      throw new Error(
+        `Replayed division snapshot ${snapshot.id} is missing Hong Kong Area translations (${areaNames}).`,
+      )
+    }
+    const expectedDivisionIds = new Set(divisions.map(row => row.id))
+    const presentDivisionIds = new Set(presentDivisions.map(row => row.id))
+    const expectedI18nKeys = new Set(
+      materialisedI18n.map(row => `${row.divisionId}\u0000${row.locale}`),
+    )
+    const presentI18nKeys = new Set(
+      presentI18n.map(row => `${row.divisionId}\u0000${row.locale}`),
+    )
+    if (
+      expectedDivisionIds.size === presentDivisionIds.size &&
+      [...expectedDivisionIds].every(id => presentDivisionIds.has(id)) &&
+      expectedI18nKeys.size === presentI18nKeys.size &&
+      [...expectedI18nKeys].every(key => presentI18nKeys.has(key))
+    ) {
+      return
+    }
+
     const now = toIsoTimestamp()
     for (const rows of chunk(divisions, 8)) {
       await context.currentDb
@@ -586,7 +639,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
         .onConflictDoNothing()
         .run()
     }
-    for (const rows of chunk(i18n, 8)) {
+    for (const rows of chunk(materialisedI18n, 8)) {
       await context.currentDb
         .insert(currentSchema.divisionsI18n)
         .values(
@@ -603,6 +656,112 @@ async function materialiseDivisionSnapshotForAddressRelease(
   } finally {
     context.cleanup()
   }
+}
+
+const SNAPSHOT_REPLAY_QUERY_BATCH_SIZE = 80
+
+export function filterDivisionI18nToKnownDivisions<T extends { divisionId: string }>(
+  rows: readonly T[],
+  divisionIds: ReadonlySet<string>,
+) {
+  return rows.filter(row => divisionIds.has(row.divisionId))
+}
+
+async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
+  const rows: Array<
+    Omit<
+      typeof currentSchema.divisions.$inferSelect,
+      'snapshotId' | 'createdAt' | 'updatedAt'
+    > & { versionHash: string }
+  > = []
+
+  for (const shardVersions of groupResolvedVersionsByShard(versions).values()) {
+    const expected = new Set(
+      shardVersions.map(version => `${version.recordId}\u0000${version.versionHash}`),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
+      const versionHashes = [
+        ...new Set(versionBatch.map(version => version.versionHash)),
+      ]
+      const batchRows = await db
+        .select({
+          bbox: historySchema.divisions.bbox,
+          cartography: historySchema.divisions.cartography,
+          divisionCode: historySchema.divisions.divisionCode,
+          geometry: historySchema.divisions.geometry,
+          hierarchy: historySchema.divisions.hierarchy,
+          id: historySchema.divisions.id,
+          identifiers: historySchema.divisions.identifiers,
+          level: historySchema.divisions.level,
+          sourceKeys: historySchema.divisions.sourceKeys,
+          sources: historySchema.divisions.sources,
+          type: historySchema.divisions.type,
+          versionHash: historySchema.divisions.versionHash,
+          wikidata: historySchema.divisions.wikidata,
+        })
+        .from(historySchema.divisions)
+        .where(inArray(historySchema.divisions.versionHash, versionHashes))
+        .all()
+
+      rows.push(
+        ...batchRows.filter(row => expected.has(`${row.id}\u0000${row.versionHash}`)),
+      )
+    }
+  }
+
+  return rows.map(({ versionHash: _versionHash, ...row }) => row)
+}
+
+async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[]) {
+  const rows: Array<
+    Omit<
+      typeof currentSchema.divisionsI18n.$inferSelect,
+      'snapshotId' | 'createdAt' | 'updatedAt'
+    > & { versionHash: string }
+  > = []
+
+  for (const shardVersions of groupResolvedVersionsByShard(versions).values()) {
+    const expected = new Set(
+      shardVersions.map(
+        version =>
+          `${version.recordId}\u0000${version.versionHash}\u0000${version.locale}`,
+      ),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
+      const versionHashes = [
+        ...new Set(versionBatch.map(version => version.versionHash)),
+      ]
+      const batchRows = await db
+        .select({
+          divisionId: historySchema.divisionsI18n.divisionId,
+          isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
+          locale: historySchema.divisionsI18n.locale,
+          name: historySchema.divisionsI18n.name,
+          nameAlts: historySchema.divisionsI18n.nameAlts,
+          nameProvenance: historySchema.divisionsI18n.nameProvenance,
+          nameRules: historySchema.divisionsI18n.nameRules,
+          nameVariant: historySchema.divisionsI18n.nameVariant,
+          versionHash: historySchema.divisionsI18n.versionHash,
+        })
+        .from(historySchema.divisionsI18n)
+        .where(inArray(historySchema.divisionsI18n.versionHash, versionHashes))
+        .all()
+
+      rows.push(
+        ...batchRows.filter(row =>
+          expected.has(`${row.divisionId}\u0000${row.versionHash}\u0000${row.locale}`),
+        ),
+      )
+    }
+  }
+
+  return rows.map(({ versionHash: _versionHash, ...row }) => row)
 }
 
 function* chunk<T>(rows: T[], size: number) {

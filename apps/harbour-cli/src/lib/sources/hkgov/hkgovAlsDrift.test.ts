@@ -453,12 +453,47 @@ describe('HKGov ALS identity drift', () => {
     'OLD BUILDING (SOUTHEAST TOWER)',
     'OLD BUILDING (HIGH BLK)',
     'OLD BUILDING (CENTRE TOWER)',
+    'OLD BUILDING (CENTRE PORTION)',
+    'OLD BUILDING (CENTER PORTION)',
+    'OLD BUILDING (PORTION 1)',
   ])(
     'automatically creates a new ID for a newly qualified site part: %s',
     buildingName => {
       const current = renamedBuilding(buildingName)
       const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
         previous,
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([])
+      expect(result.resolvedIds.has(current.identityKey)).toBe(false)
+    },
+  )
+
+  test.each(['L', 'R'])(
+    'automatically creates a new ID for a tower wing specification: %s WING',
+    wing => {
+      const buildingName = `OLD BUILDING (TOWER 1 - ${wing} WING)`
+      const previousWithTower = {
+        ...previous,
+        summary: {
+          ...previous.summary,
+          blockDescriptor: 'TOWER',
+          blockNumber: '1',
+        },
+      }
+      const current = renamedBuilding(buildingName)
+      current.summary = {
+        ...current.summary,
+        blockDescriptor: 'TOWER',
+        blockNumber: '1',
+      }
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        previousWithTower,
       ])
       const result = resolveHkgovAlsIdentityDrift(
         [current],
