@@ -40,7 +40,7 @@ import {
 import { createHash } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, metaSchema } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
-import { eq } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import { latLngToCell } from 'h3-js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -188,6 +188,7 @@ export async function processLocalPlaceSqlUpload(
     await client.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
     const snapshots = await resolvePlaceSnapshots(
       metaDb,
+      dbContext.currentDb as unknown as HarbourReadableDb,
       previewPlan,
       datasetId,
       releaseId,
@@ -274,6 +275,18 @@ export async function processLocalPlaceSqlUpload(
       releaseCode,
     )
     publishResult = (await client.publishDataset(releaseId, releaseCode, {
+      carriedSnapshots: [
+        {
+          resourceType: 'address',
+          snapshotId: snapshots.addressSnapshotId,
+          variant: 'default',
+        },
+        {
+          resourceType: 'division',
+          snapshotId: snapshots.divisionSnapshotId,
+          variant: 'overture',
+        },
+      ],
       deferApiReleaseSet: options.deferApiReleaseSet,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })) as PublishDatasetResult | void
@@ -369,6 +382,7 @@ export async function processLocalPlaceSqlUpload(
 
 async function resolvePlaceSnapshots(
   metaDb: HarbourReadableDb & HarbourWritableDb,
+  currentDb: HarbourReadableDb,
   plan: PlaceUploadPlan,
   datasetId: string,
   releaseId: string,
@@ -399,24 +413,59 @@ async function resolvePlaceSnapshots(
       plan.cohortKey,
       { variant: 'default' },
     ))
-  const division =
-    (await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
-      metaDb,
-      'division',
-      plan.regionCode,
-      plan.cohortKey,
-      { publisherCode: 'overture', variant: 'overture' },
-    )) ??
-    (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
-      metaDb,
-      'division',
-      plan.regionCode,
-      plan.cohortKey,
-      { publisherCode: 'overture', variant: 'overture' },
-    ))
   if (!address) throw new Error('Places require a published address snapshot.')
-  if (!division)
-    throw new Error('Places require a published Overture division snapshot.')
+
+  const addressRow = await currentDb
+    .select({
+      divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
+    })
+    .from(currentSchema.address2d)
+    .where(eq(currentSchema.address2d.snapshotId, address.id))
+    .limit(1)
+    .get()
+  if (!addressRow?.divisionSnapshotId) {
+    throw new Error(
+      `Selected Places address snapshot ${address.id} has no division snapshot from which to derive Place divisions.`,
+    )
+  }
+
+  const inconsistentAddress = await currentDb
+    .select({ id: currentSchema.address2d.id })
+    .from(currentSchema.address2d)
+    .where(
+      and(
+        eq(currentSchema.address2d.snapshotId, address.id),
+        ne(currentSchema.address2d.divisionSnapshotId, addressRow.divisionSnapshotId),
+      ),
+    )
+    .limit(1)
+    .get()
+  if (inconsistentAddress) {
+    throw new Error(
+      `Selected Places address snapshot ${address.id} contains multiple division snapshots; refusing to build an ambiguous Place index.`,
+    )
+  }
+
+  const division = await metaDb
+    .select({
+      id: metaSchema.metaSnapshots.id,
+      status: metaSchema.metaSnapshots.status,
+    })
+    .from(metaSchema.metaSnapshots)
+    .where(
+      and(
+        eq(metaSchema.metaSnapshots.id, addressRow.divisionSnapshotId),
+        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshots.status, 'published'),
+      ),
+    )
+    .limit(1)
+    .get()
+  if (!division) {
+    throw new Error(
+      `Places require the published division snapshot ${addressRow.divisionSnapshotId} selected by address snapshot ${address.id}.`,
+    )
+  }
   return {
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,
@@ -873,18 +922,21 @@ async function upsertPlaceMetadata(
       sourceVersion: plan.sourceVersion,
     },
   })
-  for (const lookupSnapshotId of [
-    snapshots.addressSnapshotId,
-    snapshots.divisionSnapshotId,
-  ]) {
-    await recordSnapshotLookupDependency(metaDb, {
-      anchorReleaseId: releaseId,
-      lookupSnapshotId,
-      selectedByRule: 'places.reference_data.latest_compatible',
-      selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
-      snapshotId: snapshots.snapshotId,
-    })
-  }
+  await recordSnapshotLookupDependency(metaDb, {
+    anchorReleaseId: releaseId,
+    lookupSnapshotId: snapshots.addressSnapshotId,
+    selectedByRule: 'api-composition:places/overture:place/default->address/default',
+    selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
+    snapshotId: snapshots.snapshotId,
+  })
+  await recordSnapshotLookupDependency(metaDb, {
+    anchorReleaseId: releaseId,
+    lookupSnapshotId: snapshots.divisionSnapshotId,
+    selectedByRule:
+      'api-composition:places/overture:address/default->division/overture',
+    selectionMode: 'address_snapshot_reference',
+    snapshotId: snapshots.snapshotId,
+  })
   const environment = resolvePipelineEnvironment(target)
   const currentShard = await resolveShardForTypeRegionYear(
     metaDb,

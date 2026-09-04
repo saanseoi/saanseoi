@@ -348,6 +348,15 @@ export const ControlStageRequestSchema = z
 
 export const PublishDatasetRequestSchema = z
   .object({
+    carriedSnapshots: z
+      .array(
+        z.object({
+          resourceType: ResourceTypeSchema,
+          snapshotId: z.string().min(1),
+          variant: z.string().min(1).optional(),
+        }),
+      )
+      .optional(),
     deferApiReleaseSet: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
     deferSourcePublish: z.boolean().optional(),

@@ -2525,13 +2525,7 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'places') {
-      return [
-        'places',
-        'placesI18n',
-        'placesDivision',
-        'placesCells',
-        'snapshotVersionChanges',
-      ]
+      return ['places', 'placesI18n', 'snapshotVersionChanges']
     }
 
     if (
