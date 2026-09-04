@@ -33,6 +33,7 @@ import {
   GuideLlmPromptCardExplainer,
   GuideMapboxTokenReadiness,
   GuideMissingSectionRequirement,
+  GuidePrerequisiteBlocker,
   GuideManualSetup,
   GuideMissingAnswerReminder,
   GuideParagraph,
@@ -3973,47 +3974,32 @@ const styleChoices = $derived.by(() =>
             turfInstallOutput={urbanDensityTurfInstallOutput}
           />
         {:else if dataSource === 'api' && (!renderer || !selectedStyle)}
-          <GuideCallout class="mt-8" size="generous">
+          <GuidePrerequisiteBlocker class="mt-8">
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_data_urban_density_preferences_title()}
             </h3>
             <GuideParagraph class="mt-3">
               {@html m.guide_data_urban_density_missing_preferences_intro()}
             </GuideParagraph>
-            <ul
-              class="mt-3 list-disc space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-            >
-              {#if !renderer}
-                <li>
-                  <a
-                    class="font-semibold text-secondary underline underline-offset-4"
-                    href="#map-library"
-                    onclick={event => scrollToGuideChoice(event, 'map-library')}
-                  >
-                    {@html m.guide_data_urban_density_missing_renderer()}
-                  </a>
-                </li>
-              {/if}
-              {#if !selectedStyle}
-                <li>
-                  <a
-                    class="font-semibold text-secondary underline underline-offset-4"
-                    href="#style-choice"
-                    onclick={event => scrollToGuideChoice(event, 'style-choice')}
-                  >
-                    {@html m.guide_data_urban_density_missing_style()}
-                  </a>
-                </li>
-              {/if}
-            </ul>
+            <div class="mt-5 flex justify-end">
+              <a
+                class="inline-flex items-center border border-error bg-error px-4 py-2 font-body text-label-md font-semibold text-on-error transition-colors hover:bg-error/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                href={renderer ? '#style-choice' : '#map-library'}
+                onclick={event => scrollToGuideChoice(event, renderer ? 'style-choice' : 'map-library')}
+              >
+                {@html renderer
+                    ? m.guide_data_urban_density_missing_style()
+                    : m.guide_data_urban_density_missing_renderer()}
+              </a>
+            </div>
             {#if region && region !== 'hk'}
               <GuideParagraph class="mt-4">
                 {@html m.guide_data_urban_density_missing_preferences_region({
-                  region: selectedRegion?.label ?? '',
-                })}
+                    region: selectedRegion?.label ?? '',
+                  })}
               </GuideParagraph>
             {/if}
-          </GuideCallout>
+          </GuidePrerequisiteBlocker>
         {/if}
       </GuideSection>
 

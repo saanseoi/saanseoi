@@ -1,3 +1,8 @@
+import {
+  createAMapLlmAgenticWorkingAgreementInstructions,
+  createAMapLlmChatWorkingAgreementInstructions,
+} from './createAMapLlmOverviewInstructions'
+
 export type CreateAMapLlmMode = 'agentic' | 'chat'
 
 const chatInstructions = [
@@ -34,26 +39,11 @@ Based on whether you are a coding agent or a web chat, follow the respective set
 
 ### Coding agent
 
-- Inspect the existing workspace before proposing or making changes. Preserve unrelated
-  work. If the project is not the clean basis expected by the guide, say so.
-- When creating the new app, use the current workspace root only if it is not the
-  user's home directory and it contains no non-hidden items. Otherwise create a new
-  \`saanseoi-project\` subdirectory. Preserve any hidden files and directories.
-- For Project setup, the instructions below override this: never create the Vite app in
-  an existing workspace root. Use a new /path/to/saanseoi-project directory only after
-  checking whether it already exists and asking the user if it does.
-- Adapt to the actual project and its conventions. Do not create a parallel project or
-  use the guide’s code snippets verbatim; implement the equivalent solution for the
-  workspace you find.
-- Inspect the operating system and shell. Treat the Linux commands in this guide as a
-  baseline and adapt them to the environment you find; do not ask the user to identify
-  their operating system.
-- Stop for confirmation before any paid action, credential entry, deployment, or
-  account-linked operation.
-- An HTTP 200 response does not visually verify the app. Browser verification succeeds
-  only when a browser visibly loads the Vite page. If browser access is unavailable,
-  stop and ask the user to open the reported URL and tell you what they see.
+${createAMapLlmAgenticWorkingAgreementInstructions()}
 
 ### Web chat
 
-${chatInstructions.map(instruction => `- ${instruction}`).join('\n')}`
+${[
+  ...chatInstructions.map(instruction => `- ${instruction}`),
+  createAMapLlmChatWorkingAgreementInstructions(),
+].join('\n')}`

@@ -107,8 +107,13 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
   mapbox: {
     label: 'Mapbox GL JS',
     installCommand: 'bun add mapbox-gl',
-    setupInstruction:
-      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`. Do not ask for or reveal its value.',
+    setupInstruction: [
+      'Before installing Mapbox, guide me through creating or signing in to a Mapbox account at https://account.mapbox.com/auth/signup/.',
+      'Then open the Access Tokens dashboard at https://console.mapbox.com/account/access-tokens/ and select Create a token with the default public scopes.',
+      'I will complete sign-in, password confirmation and other account actions myself; stop for my confirmation before sending me to an account-linked action.',
+      'Tell me to copy only the new public token beginning with `pk.` — never a secret token beginning with `sk.` — and put it locally in `.env` as `VITE_MAPBOX_TOKEN=...`.',
+      'Do not ask me to paste or reveal the token in chat, output it, log it, commit it or add a server-side access-token exchange. Continue only after I confirm it is in `.env`.',
+    ].join(' '),
     code: [
       "import mapboxgl from 'mapbox-gl'",
       "import 'mapbox-gl/dist/mapbox-gl.css'",
@@ -326,6 +331,39 @@ export const createAMapRendererStyleCode = (
       ].join('\n')
 }
 
+/**
+ * The style step follows the basemap step. This intentionally contains only the
+ * style-specific replacement so the canonical LLM guide does not repeat the full
+ * basemap setup in a second reference block.
+ */
+export const createAMapRendererStyleUpdateCode = (
+  renderer: CreateAMapRenderer,
+  styleUrl: string,
+) =>
+  renderer === 'leaflet'
+    ? [
+        `const styleUrl = '${styleUrl}'`,
+        'const style = await fetch(styleUrl).then(response => response.json())',
+        'style.sources = {',
+        "  basemap: { type: 'vector', url: basemapUrl },",
+        '}',
+        '',
+        '// Replace the existing maplibreGL style block with:',
+        'maplibreGL({',
+        '  style,',
+        '}).addTo(map)',
+      ].join('\n')
+    : [
+        `const styleUrl = '${styleUrl}'`,
+        'const style = await fetch(styleUrl).then(response => response.json())',
+        'style.sources = {',
+        "  basemap: { type: 'vector', url: basemapUrl },",
+        '}',
+        '',
+        '// In the existing map constructor, replace the inline style object with:',
+        'style,',
+      ].join('\n')
+
 export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
   if (renderer === 'leaflet') {
     return [
@@ -376,12 +414,12 @@ export const createAMapRendererReferenceInstructions = (
   return [
     `${heading} Setup`,
     '',
+    ...(reference.setupInstruction ? [reference.setupInstruction, ''] : []),
     `Install the latest version of ${reference.label} with:`,
     '',
     '```bash',
     reference.installCommand,
     '```',
-    ...(reference.setupInstruction ? ['', reference.setupInstruction] : []),
     '',
     `${heading} Code edits`,
     '',
