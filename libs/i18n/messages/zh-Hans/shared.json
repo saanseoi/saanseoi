@@ -2320,7 +2320,7 @@
   "guide_data_urban_density_map_preview_label": "香港 · {style}",
   "guide_data_urban_density_preferences_title": "告诉我们你所有的偏好选项",
   "guide_data_urban_density_missing_preferences_intro": "完成以下尚未选择的项目，即可继续实作示例：",
-  "guide_data_urban_density_missing_renderer": "前往第 3 节选择地图库",
+  "guide_data_urban_density_missing_renderer": "选择地图库",
   "guide_data_urban_density_missing_style": "前往第 5 节选择一个提供的 SaanSeoi 地图风格",
   "guide_data_urban_density_missing_preferences_region": "你选择了 {region}。实作示例使用香港专用数据，因此指南会把底图切换到香港。回到自己的项目时，你可以还原 {region}。",
   "guide_decision_operating_system": "开发操作系统",

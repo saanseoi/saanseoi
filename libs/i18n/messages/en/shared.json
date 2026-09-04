@@ -2312,7 +2312,7 @@
   "guide_data_urban_density_map_preview_label": "Hong Kong · {style}",
   "guide_data_urban_density_preferences_title": "Tell us all your preferred options",
   "guide_data_urban_density_missing_preferences_intro": "Complete the remaining choices to continue with the worked example:",
-  "guide_data_urban_density_missing_renderer": "Choose a Mapping Library in section 3",
+  "guide_data_urban_density_missing_renderer": "Choose a Mapping Library",
   "guide_data_urban_density_missing_style": "Choose a map style",
   "guide_data_urban_density_missing_preferences_region": "You selected {region}. The worked example uses Hong Kong-specific data, so the guide will switch its basemap to Hong Kong. You can restore {region} when you return to your own project.",
   "guide_decisions_title": "Project",
