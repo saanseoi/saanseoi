@@ -483,6 +483,7 @@ const createAMapFullHandoverPrompt = (
     '- Goal: take full ownership of implementing my SaanSeoi map project as detailed in the guide.',
     '- Guide: “Making a digital map”',
     `- Guide URL: ${guideUrl}`,
+    '- Mode: Light-touch pedagical. Focus on what motivates each step of the implementation and what it enables. Do not go into the technical aspects, beyond the explicit topics of each section.',
     '',
     '## How to work',
     '',
