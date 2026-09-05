@@ -269,7 +269,7 @@ CREATE TABLE `places` (
 	`taxonomyPrimary` text,
 	`taxonomyHierarchy` text,
 	`taxonomyAlternates` text,
-	`brandWikidata` text,
+	`wikidataId` text,
 	`websites` text,
 	`socials` text,
 	`emails` text,

@@ -79,7 +79,7 @@ CREATE TABLE `overturePlaces` (
 	`taxonomyPrimary` text,
 	`taxonomyHierarchy` text,
 	`taxonomyAlternates` text,
-	`brandWikidata` text,
+	`wikidataId` text,
 	`brandNames` text,
 	`websites` text,
 	`socials` text,
