@@ -23,6 +23,13 @@ to the one you need.
 
 {{apiKeyNote:en}}
 
+To inspect the original Overture object behind this release, use the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+with the required `sourceRelease` query parameter. The response returns the retained
+object under `rawProperties`. The canonical `attributes.hierarchy` is a normalised
+relationship. The original Overture hierarchy is available in the source-record response
+under `rawProperties.hierarchies`.
+
 ## Requesting Data
 
 {{experimentalApiWarning:en}}
@@ -302,6 +309,12 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 {{apiKeyNote:zh-Hant}}
 
+如要查看此版本背後的原始 Overture 物件，請使用
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，並提供必要的
+`sourceRelease` 查詢參數。回應會在 `rawProperties` 下返回獲保留的物件。canonical
+`attributes.hierarchy` 是標準化的關係；原始 Overture hierarchy 可在來源記錄回應的
+`rawProperties.hierarchies` 中取得。
+
 ## 要求資料
 
 {{experimentalApiWarning:zh-Hant}}
@@ -561,6 +574,12 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 和[响应示例](?tab=samples)。各节均可独立阅读，请直接前往所需内容。
 
 {{apiKeyNote:zh-Hans}}
+
+如要查看此版本背后的原始 Overture 对象，请使用
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，并提供必要的
+`sourceRelease` 查询参数。响应会在 `rawProperties` 下返回保留的对象。canonical
+`attributes.hierarchy` 是标准化的关系；原始 Overture hierarchy 可在源记录响应的
+`rawProperties.hierarchies` 中取得。
 
 ## 请求数据
 
