@@ -21,7 +21,8 @@ export function createLocalParquetBuffer(contents: Uint8Array) {
 /**
  * Builds the reviewable Places fixture in source-row batches. The input is a
  * retained Overture Places parquet file; no database rows are created by this
- * inspection helper. Translation generation is intentionally explicit.
+ * inspection helper. Place machine translation is currently disabled, so the
+ * helper reads and normalises the source without calling Azure or changing a fixture.
  */
 export async function buildPlaceTranslationFixtureFromParquet(input: {
   inputPath: string

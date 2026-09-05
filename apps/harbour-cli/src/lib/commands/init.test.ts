@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import {
   formatInitialisationSummary,
   interruptInitialisationProcess,
@@ -8,6 +11,8 @@ import {
 import { parseInitialisationSummaryEvents } from './initialisationSummary.ts'
 
 describe('initialisation commands', () => {
+  const repoRoot = resolve(import.meta.dir, '../../../../..')
+
   test('maps each supported family and domain to a dedicated script', () => {
     expect(resolveInitialisationCommand('init')).toEqual({
       script: 'scripts/init/all.fish',
@@ -70,6 +75,30 @@ describe('initialisation commands', () => {
 
   test('does not resolve an unsupported family and domain', () => {
     expect(resolveInitialisationCommand('init:divisions:unknown')).toBeUndefined()
+  })
+
+  test('stops umbrella initialisation at the first failed dependency', () => {
+    for (const script of ['all.fish', 'local.fish', 'production.fish']) {
+      const source = readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8')
+
+      expect(source).toContain('init_run_step ./bin/saanseoi $command')
+      expect(source).not.toContain('or set failed 1')
+    }
+  })
+
+  test('does not finalise Places after a failed cohort upload', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/places-overture.fish'),
+      'utf8',
+    )
+
+    expect(source).toContain('init_run_step init_run_upload')
+    expect(source.indexOf('init_complete')).toBeLessThan(
+      source.indexOf('init_reconcile_draft_release_sets'),
+    )
+    expect(source.indexOf('init_complete')).toBeLessThan(
+      source.indexOf('init:places:overture:complete'),
+    )
   })
 
   test('interrupts the complete detached initialisation process group', () => {
