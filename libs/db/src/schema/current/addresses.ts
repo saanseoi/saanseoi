@@ -148,6 +148,26 @@ export const address2dBuildingNumberLookup = sqliteTable(
   ],
 )
 
+/**
+ * TypeScript query mapping for the Address FTS5 virtual table. The virtual
+ * table itself is rebuilt from the immutable address snapshot by
+ * `rebuild-addresses-fts.sql`; it is deliberately not a Drizzle migration.
+ */
+export const addressesFts = sqliteTable('addressesFts', {
+  snapshotId: text('snapshotId').notNull(),
+  addressId: text('addressId').notNull(),
+  locale: text('locale').notNull(),
+  formattedAddress: text('formattedAddress'),
+  buildingName: text('buildingName'),
+  buildingNumber: text('buildingNumber'),
+  blockExpression: text('blockExpression'),
+  phaseExpression: text('phaseExpression'),
+  estateName: text('estateName'),
+  streetName: text('streetName'),
+})
+
+export const addressesFtsMatch = (query: string) => sql`${addressesFts} MATCH ${query}`
+
 export const address3d = sqliteTable(
   'address3d',
   {

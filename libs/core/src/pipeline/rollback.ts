@@ -112,6 +112,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
   },
   address: {
     currentTables: [
+      { table: 'addressesFts' },
       { table: 'address3dI18n' },
       { table: 'address3d' },
       { table: 'address2dI18n' },

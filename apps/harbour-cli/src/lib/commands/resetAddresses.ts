@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
@@ -680,7 +680,7 @@ function buildResetSql(
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE releaseId IN (${ids});`
   const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`
   const divisionSnapshots = sqlList(owned.materialisedDivisionSnapshotIds)
-  const currentSql = `DELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});`
+  const currentSql = `DELETE FROM addressesFts WHERE snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});\n${readFileSync(resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'), 'utf8')}`
   const docsSql = [
     ...manifest.baseline.docs.apiReleaseSets.map(
       row =>

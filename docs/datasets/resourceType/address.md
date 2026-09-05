@@ -49,10 +49,12 @@ The importer projects each locale's block descriptor and block number to `blockT
 textual `blockRef`, `blockExpression`, and `blockTypeBeforeNumber`; phase name and
 number to `phaseName`, `phaseRef`, and `phaseExpression`; and street or village number
 endpoints to `buildingNumberFrom`, `buildingNumberTo`, and `buildingNumberExpression`.
-`buildingNumberConnector` is `null` because ALS supplies no range connector, and `bbox`
-is derived from the retained geometry. `blockRef` is text, so alphanumeric and Roman
-values are preserved exactly. The original bilingual ALS object remains available in
-`rawProperties` as the evidence for these projections.
+Phase references remain textual, so Roman and alphanumeric values are preserved; a
+duplicated Arabic or Roman suffix is removed from `phaseName` before the expression is
+built. `buildingNumberConnector` is `null` because ALS supplies no range connector, and
+`bbox` is derived from the retained geometry. `blockRef` is text, so alphanumeric and
+Roman values are preserved exactly. The original bilingual ALS object remains available
+in `rawProperties` as the evidence for these projections.
 
 ## API support
 
@@ -61,6 +63,7 @@ The registry declares the address endpoints in
 
 - `GET /addresses/v0`
 - `GET /addresses/v0/{id}`
+- `GET /addresses/v0/search`
 
 The SaanSeoi API implements these as JSON:API list and detail resources. The address
 composition uses the `official` domain, with an address snapshot as the primary member
@@ -71,6 +74,16 @@ available canonical containment levels: `country`, `area`, `district`, `town`,
 `macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not join
 division data by default; `include=hierarchy` returns deduplicated Division resources in
 JSON:API `included` using bounded D1 batches.
+
+`GET /addresses/v0/search` requires a declared `match` mode, so callers can make the
+precision/recall trade-off visible in their request. `exact` searches only published
+building-number aliases; `range` also accepts the importer’s auditable derived range
+members. A bare numeric stem therefore does not match a suffixed range. `prefix` and
+`full-text` search the rebuilt bilingual address index, while `component` requires one
+of `formatted`, `building`, `number`, `block`, `phase`, `estate`, or `street` and
+searches only that indexed component. The response records the query and mode in
+document metadata. The index is rebuilt whenever the address snapshot changes and is not
+an independent source of canonical data.
 
 The `compact` and `default` profiles return localised formatted addresses, `map` adds
 point geometry and bounding boxes, and `full` adds identifiers, source attribution, and

@@ -409,6 +409,8 @@ export const addressBlockTypes = [
   'other',
 ] as const
 
+export type AddressBlockType = (typeof addressBlockTypes)[number]
+
 export const addressUnitTypes = [
   'flat',
   'room',

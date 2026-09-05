@@ -10,6 +10,10 @@ import {
   countAddressRecordsCurrent,
   getAddressRecordCurrent,
   listAddressRecordsCurrent,
+  listAddressRecordsCurrentByIds,
+  searchAddressIdsCurrent,
+  type AddressSearchComponent,
+  type AddressSearchMode,
   type AddressLocaleValue,
   type AddressRecord,
 } from '../db/addresses'
@@ -97,7 +101,12 @@ type AddressDocumentMeta = ApiVersionMetadata & {
   profile: AddressProfile
   locales: ApiDocumentLocales
   filters?: AddressFilters
-  page?: { limit: number; offset: number; total: number }
+  page?: { limit: number; offset: number; total?: number }
+  search?: {
+    component?: AddressSearchComponent
+    mode: AddressSearchMode
+    query: string
+  }
 }
 
 type AddressListDocument = {
@@ -174,6 +183,12 @@ export type AddressListQuery = {
   include?: 'hierarchy'
 }
 
+export type AddressSearchQuery = AddressListQuery & {
+  component?: AddressSearchComponent
+  match: AddressSearchMode
+  q: string
+}
+
 export type AddressDetailQuery = Omit<
   AddressListQuery,
   | 'page[limit]'
@@ -197,6 +212,19 @@ export type AddressDetailResult =
   | { status: 200; body: AddressDetailDocument }
   | { status: 404; body: AddressNotFoundResponse }
   | { status: 503; body: SnapshotNotReadyResponse<'address'> }
+
+type AddressSearchUnavailableResponse = {
+  httpStatus: 503
+  error: 'fts_not_ready'
+  message: 'FTS index is not initialised. Rebuild addressesFts before using search.'
+}
+
+export type AddressSearchResult =
+  | { status: 200; body: AddressListDocument }
+  | {
+      status: 503
+      body: AddressSearchUnavailableResponse | SnapshotNotReadyResponse<'address'>
+    }
 
 function parseAddressProfile(value?: string): AddressProfile {
   if (value === 'compact' || value === 'full' || value === 'map') return value
@@ -319,7 +347,8 @@ function buildMetadata(args: {
   routeState: AddressRouteState
   activeSnapshot: ActiveAddressSnapshot
   filters?: AddressFilters
-  page?: { limit: number; offset: number; total: number }
+  page?: { limit: number; offset: number; total?: number }
+  search?: AddressDocumentMeta['search']
 }): AddressDocumentMeta {
   return {
     ...buildApiVersionMetadata({
@@ -339,6 +368,7 @@ function buildMetadata(args: {
     locales: resolveApiMetaLocales(args.routeState.localeSelection),
     ...(args.filters ? { filters: args.filters } : {}),
     ...(args.page ? { page: args.page } : {}),
+    ...(args.search ? { search: args.search } : {}),
   }
 }
 
@@ -510,6 +540,128 @@ export async function listAddresses(args: {
     }),
   })
 
+  return { status: 200, body }
+}
+
+export async function searchAddresses(args: {
+  currentDb: AppEnv['Variables']['currentDb']
+  metaDb: AppEnv['Variables']['metaDb']
+  requestUrl: string
+  requestedVersionPath: RequestedAddressVersion
+  requestedApiVersion: RequestedAddressApiVersion
+  resolvedApiVersion: ResolvedAddressApiVersion
+  query: AddressSearchQuery
+  onResolved?: (attribution: AccessAttribution) => void
+}): Promise<AddressSearchResult> {
+  const routeState = buildAddressRouteState(args)
+  const activeSnapshot = await getActiveAddressSnapshot(args.metaDb, args.query)
+  if (!activeSnapshot) {
+    return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  }
+  if (args.onResolved) {
+    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+      resolveApiReleaseSetAccessAttribution(
+        args.metaDb.$client,
+        activeSnapshot.apiReleaseSet,
+      ),
+    )
+    if (accessAttribution) args.onResolved(accessAttribution)
+  }
+
+  const limit = args.query['page[limit]'] ?? 25
+  const offset = args.query['page[offset]'] ?? 0
+  const filters = {
+    ...(args.query['filter[country]']
+      ? { country: args.query['filter[country]'] }
+      : {}),
+    ...(args.query['filter[area]'] ? { area: args.query['filter[area]'] } : {}),
+    ...(args.query['filter[district]']
+      ? { district: args.query['filter[district]'] }
+      : {}),
+  }
+
+  let search: { addressIds: string[]; total: number }
+  try {
+    search = await runWithD1ReadRetry(() =>
+      searchAddressIdsCurrent(args.currentDb, {
+        snapshotId: activeSnapshot.snapshotId,
+        countryId: filters.country,
+        areaId: filters.area,
+        districtId: filters.district,
+        component: args.query.component,
+        limit,
+        mode: args.query.match,
+        offset,
+        query: args.query.q,
+      }),
+    )
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('FTS index is not initialised')
+    ) {
+      return {
+        status: 503,
+        body: {
+          httpStatus: 503,
+          error: 'fts_not_ready',
+          message:
+            'FTS index is not initialised. Rebuild addressesFts before using search.',
+        },
+      }
+    }
+    throw error
+  }
+
+  const records = await runWithD1ReadRetry(() =>
+    listAddressRecordsCurrentByIds(args.currentDb, {
+      snapshotId: activeSnapshot.snapshotId,
+      addressIds: search.addressIds,
+      countryId: filters.country,
+      areaId: filters.area,
+      districtId: filters.district,
+      localeSelection: routeState.localeSelection,
+    }),
+  )
+  const url = new URL(args.requestUrl)
+  const included = await runWithD1ReadRetry(() =>
+    loadIncludedAddressHierarchy({
+      currentDb: args.currentDb,
+      records,
+      snapshotId: activeSnapshot.divisionSnapshotId,
+      routeState,
+      include: args.query.include,
+      baseUrl: url.origin,
+    }),
+  )
+  const body = buildJsonApiListDocument({
+    url,
+    data: records.map(record =>
+      createAddressResource({ baseUrl: url.origin, routeState, record }),
+    ),
+    limit,
+    offset,
+    total: search.total,
+    included: included.length > 0 ? included : undefined,
+    meta: buildMetadata({
+      routeState,
+      activeSnapshot,
+      filters,
+      page: { limit, offset, total: search.total },
+      search: {
+        ...(args.query.component ? { component: args.query.component } : {}),
+        mode: args.query.match,
+        query: args.query.q,
+      },
+    }),
+    permalink: buildAddressPermalink({
+      url,
+      routeState,
+      activeSnapshot,
+      limit,
+      offset,
+    }),
+  })
   return { status: 200, body }
 }
 

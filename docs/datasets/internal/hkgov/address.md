@@ -369,7 +369,12 @@ address:
   `EngVillage`/`ChiVillage` endpoints are used. These endpoints form
   `buildingNumberExpression`.
 - `EngPhase.PhaseName`/`PhaseNo` and `ChiPhase.PhaseName`/`PhaseNo` provide `phaseName`
-  and `phaseRef`. The phase object is formatted as `phaseExpression`.
+  and `phaseRef`. The parser keeps `PhaseNo` as text, including Roman and alphanumeric
+  references. When a phase name ends with the same standalone Arabic or Roman reference,
+  that suffix is removed from `phaseName` so it is not repeated in `phaseExpression`;
+  for example, `PHASE 2` becomes `phaseName: PHASE`, `phaseRef: 2`, and
+  `phaseExpression: PHASE 2`. Ambiguous single-letter labels such as `PHASE C` are not
+  inferred as Roman references.
 - `buildingNumberConnector` remains `null` because ALS supplies no range connector. A
   hyphen in a formatted English range is presentation syntax, not evidence of an
   interior numeric range.

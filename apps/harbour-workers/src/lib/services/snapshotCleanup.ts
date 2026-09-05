@@ -146,6 +146,9 @@ async function deletePlaceSnapshot(db: AtomicWritableDb, snapshotId: string) {
 async function deleteAddressSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
     db
+      .delete(currentSchema.addressesFts)
+      .where(eq(currentSchema.addressesFts.snapshotId, snapshotId)),
+    db
       .delete(currentSchema.address3dI18n)
       .where(eq(currentSchema.address3dI18n.snapshotId, snapshotId)),
     db

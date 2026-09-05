@@ -307,6 +307,23 @@ const AddressDocumentMetaSchema = z
         total: z.number().int().optional(),
       })
       .optional(),
+    search: z
+      .object({
+        query: z.string(),
+        mode: z.enum(['exact', 'range', 'prefix', 'component', 'full-text']),
+        component: z
+          .enum([
+            'formatted',
+            'building',
+            'number',
+            'block',
+            'phase',
+            'estate',
+            'street',
+          ])
+          .optional(),
+      })
+      .optional(),
   })
   .extend(ApiVersionMetadataSchema.shape)
   .openapi('AddressDocumentMeta')
@@ -342,6 +359,48 @@ export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
 export const AddressDetailQuerySchema = AddressSelectionQuerySchema.extend({
   include: z.enum(['hierarchy']).optional(),
 }).openapi('AddressDetailQuery')
+
+export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({
+  q: z
+    .string()
+    .min(1)
+    .max(200)
+    .openapi({
+      description: openApiText('openapi_addresses_search_query_description'),
+    }),
+  match: z.enum(['exact', 'range', 'prefix', 'component', 'full-text']).openapi({
+    description: openApiText('openapi_addresses_search_match_description'),
+  }),
+  component: z
+    .enum(['formatted', 'building', 'number', 'block', 'phase', 'estate', 'street'])
+    .optional()
+    .openapi({
+      description: openApiText('openapi_addresses_search_component_description'),
+    }),
+  'page[limit]': z.coerce.number().int().min(1).max(50).optional(),
+  'page[offset]': z.coerce.number().int().min(0).max(1000).optional(),
+  'filter[country]': IdSchema.optional(),
+  'filter[area]': IdSchema.optional(),
+  'filter[district]': IdSchema.optional(),
+  include: z.enum(['hierarchy']).optional(),
+})
+  .superRefine((value, ctx) => {
+    if (value.match === 'component' && !value.component) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'component is required when match=component.',
+        path: ['component'],
+      })
+    }
+    if (value.match !== 'component' && value.component) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'component is only available when match=component.',
+        path: ['component'],
+      })
+    }
+  })
+  .openapi('AddressSearchQuery')
 
 export const AddressDetailParamsSchema = z
   .object({ id: IdSchema })
