@@ -4,6 +4,8 @@ import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFi
 import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
 import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
 import apiAddressesV01FixtureOfficialLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
+import apiPlacesV01FixtureOverture112To118 from '../../../fixtures/meta/apiFields/api-places-v0.1@overture-1.12-to-1.18.json'
+import apiStatisticsV01FixtureCenstatd from '../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
 import { computeVersionHash } from './versioning'
@@ -126,6 +128,8 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
   apiAddressesV01FixtureOfficialLineage as ApiFieldFixture,
+  apiPlacesV01FixtureOverture112To118 as ApiFieldFixture,
+  apiStatisticsV01FixtureCenstatd as unknown as ApiFieldFixture,
 ]
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
