@@ -102,14 +102,56 @@ type ParseCase = {
   address3dParts?: ParsedAddress3dPart[]
   buildingNumberExpression: string | null
   buildingNumbers: string[]
+  definitions?: PlaceAddressDefinition[]
   disposition: 'premise-candidate' | 'street-only' | 'unrecognised'
+  matchedAddressId?: string | null
   name: string
+  recognised2dComponents?: Array<{
+    kind: 'buildingName' | 'estateName' | 'blockExpression' | 'phaseExpression'
+    name: string
+    normalisedName: string
+  }>
   source: string
   streetName: string | null
   unclassified2dText: string | null
 }
 
 const sourceParseCases: ParseCase[] = [
+  {
+    name: 'stall-only shopping centre address has no 2D premise',
+    source:
+      'Stall No. 89 & 91, G/F., Yat Tung Market, Yat Tung Estate, Tung Chung , Hong Kong',
+    address2dText: 'Yat Tung Market, Yat Tung Estate, Tung Chung , Hong Kong',
+    address3dParts: [
+      unit('Stall No. 89 & 91', '89 & 91', 'stall'),
+      floor('G/F.', 'G', 'ground_floor'),
+    ],
+    buildingNumberExpression: null,
+    buildingNumbers: [],
+    disposition: 'unrecognised',
+    streetName: null,
+    unclassified2dText: 'YAT TUNG MARKET YAT TUNG ESTATE TUNG CHUNG HONG KONG',
+  },
+  {
+    name: 'building name without a street remains unmatched when ambiguous',
+    source: '46 Ming Fai Building',
+    address2dText: '46 Ming Fai Building',
+    buildingNumberExpression: null,
+    buildingNumbers: [],
+    disposition: 'unrecognised',
+    streetName: null,
+    unclassified2dText: '46 MING FAI BUILDING',
+  },
+  {
+    name: 'short street abbreviation absent from canonical Streets',
+    source: '8 Kin Sang Ln',
+    address2dText: '8 Kin Sang Ln',
+    buildingNumberExpression: null,
+    buildingNumbers: [],
+    disposition: 'unrecognised',
+    streetName: null,
+    unclassified2dText: '8 KIN SANG LANE',
+  },
   {
     name: 'English suffix abbreviation and alphanumeric premise number',
     source: '19b Ap Lei Chau Praya Rd',
@@ -165,15 +207,15 @@ const sourceParseCases: ParseCase[] = [
     unclassified2dText: 'TECHNOLOGY PARK',
   },
   {
-    name: 'several flat identifiers do not turn a building ordinal into a premise',
+    name: 'several flat identifiers are extracted as one unit series',
     source: 'Flat A,M,N, 16/F, Kings Wing Plaza 1',
-    address2dText: 'M,N, Kings Wing Plaza 1',
-    address3dParts: [unit('Flat A', 'A', 'flat'), floor('16/F', '16')],
+    address2dText: 'Kings Wing Plaza 1',
+    address3dParts: [unit('Flat A,M,N', 'A,M,N', 'flat'), floor('16/F', '16')],
     buildingNumberExpression: null,
     buildingNumbers: [],
     disposition: 'unrecognised',
     streetName: null,
-    unclassified2dText: 'M N KINGS WING PLAZA 1',
+    unclassified2dText: 'KINGS WING PLAZA 1',
   },
   {
     name: 'shop range plus building and numbered street',
@@ -218,6 +260,42 @@ const sourceParseCases: ParseCase[] = [
     disposition: 'premise-candidate',
     streetName: '安耀街',
     unclassified2dText: '石門 W LUXE',
+  },
+  {
+    name: 'Traditional Chinese definitions provide canonical building evidence',
+    source: '石門安耀街5號W LUXE 16樓S10',
+    address2dText: '石門安耀街5號W LUXE',
+    address3dParts: [floor('16樓', '16'), unit('S10', 'S10', 'other')],
+    buildingNumberExpression: '5',
+    buildingNumbers: ['5'],
+    definitions: [
+      definition('w-luxe', {
+        locale: 'zh-hant',
+        buildingName: 'W LUXE',
+        buildingNumberExpression: '5',
+        buildingNumberFrom: '5',
+        formattedAddress: 'W LUXE5安耀街沙田區新界',
+        streetName: '安耀街',
+      }),
+      definition('generic-on-yiu-5', {
+        locale: 'zh-hant',
+        buildingNumberExpression: '5',
+        buildingNumberFrom: '5',
+        formattedAddress: '5安耀街沙田區新界',
+        streetName: '安耀街',
+      }),
+    ],
+    disposition: 'premise-candidate',
+    matchedAddressId: 'w-luxe',
+    recognised2dComponents: [
+      {
+        kind: 'buildingName',
+        name: 'W LUXE',
+        normalisedName: 'W LUXE',
+      },
+    ],
+    streetName: '安耀街',
+    unclassified2dText: '石門',
   },
   {
     name: 'Chinese numerals for street, phase, floor and shop',
@@ -434,7 +512,7 @@ const sourceParseCases: ParseCase[] = [
     buildingNumbers: ['2'],
     disposition: 'premise-candidate',
     streetName: 'CHUNG YAT STREET',
-    unclassified2dText: 'YMCA OF HONG KONG CHRISTIAN COLLEGE YHKCC MAIN HALL ON',
+    unclassified2dText: 'YMCA OF HONG KONG CHRISTIAN COLLEGE YHKCC MAIN HALL',
   },
   {
     name: 'shop, ground floor, shopping centre and estate before numbered street',
@@ -510,7 +588,10 @@ const sourceParseCases: ParseCase[] = [
 describe('Overture Place address parsing', () => {
   for (const sourceCase of sourceParseCases) {
     test(sourceCase.name, () => {
-      const parsed = parsePlaceAddress(sourceCase.source, sourceMatcher)
+      const matcher = sourceCase.definitions
+        ? createPlaceAddressMatcher(sourceCase.definitions, landsdStreets)
+        : sourceMatcher
+      const parsed = parsePlaceAddress(sourceCase.source, matcher)
       expect(parsed).toEqual({
         address2dText: sourceCase.address2dText,
         address3dParts: sourceCase.address3dParts ?? [],
@@ -518,12 +599,18 @@ describe('Overture Place address parsing', () => {
         buildingNumbers: sourceCase.buildingNumbers,
         disposition: sourceCase.disposition,
         normalisedAddress2dText: normalised(sourceCase.address2dText),
+        recognised2dComponents: sourceCase.recognised2dComponents ?? [],
         street:
           sourceCase.streetName === null
             ? null
             : expect.objectContaining({ name: sourceCase.streetName }),
         unclassified2dText: sourceCase.unclassified2dText,
       })
+      if (sourceCase.matchedAddressId !== undefined) {
+        expect(matchPlaceAddressTexts([sourceCase.source], matcher)).toBe(
+          sourceCase.matchedAddressId,
+        )
+      }
     })
   }
 
@@ -542,28 +629,6 @@ describe('Overture Place address parsing', () => {
 
 describe('Overture Place first-cohort uncovered address shapes', () => {
   const cases = [
-    {
-      name: 'stall-only shopping centre address has no 2D premise',
-      source:
-        'Stall No. 89 & 91, G/F., Yat Tung Market, Yat Tung Estate, Tung Chung , Hong Kong',
-      disposition: 'unrecognised',
-      street: null,
-      parts: ['Stall No. 89 & 91', 'G/F.'],
-    },
-    {
-      name: 'building name without a street',
-      source: '46 Ming Fai Building',
-      disposition: 'unrecognised',
-      street: null,
-      parts: [],
-    },
-    {
-      name: 'short street abbreviation absent from canonical Streets',
-      source: '8 Kin Sang Ln',
-      disposition: 'unrecognised',
-      street: null,
-      parts: [],
-    },
     {
       name: 'venue with romanised street variant absent from the baseline',
       source: 'Tung Chung Health Centre, 6 Fu DongJie',
@@ -733,6 +798,71 @@ describe('Overture Place first-cohort uncovered address shapes', () => {
 })
 
 describe('Overture Place address matching', () => {
+  test('recognises ALS building and estate names as canonical 2D evidence', () => {
+    const matcher = createPlaceAddressMatcher([
+      definition('smithfield-court', {
+        buildingNumberExpression: '43',
+        buildingNumberFrom: '43',
+        estateName: 'SMITHFIELD COURT',
+        streetName: 'SMITHFIELD',
+      }),
+      definition('technology-park', {
+        buildingName: 'TECHNOLOGY PARK',
+        buildingNumberExpression: '18',
+        buildingNumberFrom: '18',
+        streetName: 'ON LAI STREET',
+      }),
+      definition('yat-tung-shopping-centre', {
+        buildingName: 'YAT TUNG SHOPPING CENTRE',
+        buildingNumberExpression: '8',
+        buildingNumberFrom: '8',
+        estateName: 'YAT TUNG ESTATE',
+        streetName: 'YAT TUNG STREET',
+      }),
+    ])
+
+    expect(
+      parsePlaceAddress('Shop 18, G/F, Smithfield Court, 43 Smithfield', matcher),
+    ).toMatchObject({
+      recognised2dComponents: [
+        {
+          kind: 'estateName',
+          name: 'SMITHFIELD COURT',
+        },
+      ],
+      unclassified2dText: null,
+    })
+    expect(
+      parsePlaceAddress('Room 1107, Technology Park, On Lai St', matcher),
+    ).toMatchObject({
+      recognised2dComponents: [
+        {
+          kind: 'buildingName',
+          name: 'TECHNOLOGY PARK',
+        },
+      ],
+      unclassified2dText: null,
+    })
+    expect(
+      parsePlaceAddress(
+        'Shop 8, G/F, Yat Tung Shopping Centre, Yat Tung Estate, 8 Yat Tung St',
+        matcher,
+      ),
+    ).toMatchObject({
+      recognised2dComponents: [
+        { kind: 'buildingName', name: 'YAT TUNG SHOPPING CENTRE' },
+        { kind: 'estateName', name: 'YAT TUNG ESTATE' },
+      ],
+      unclassified2dText: null,
+    })
+    expect(
+      matchPlaceAddressTexts(
+        ['Shop 8, G/F, Yat Tung Shopping Centre, Yat Tung Estate, 8 Yat Tung St'],
+        matcher,
+      ),
+    ).toBe('yat-tung-shopping-centre')
+  })
+
   test('matches a unique ALS premise after stripping its typed 3D parts', () => {
     const matcher = createPlaceAddressMatcher([
       definition('kings-wing-plaza-1', {
@@ -747,30 +877,6 @@ describe('Overture Place address matching', () => {
         matcher,
       ),
     ).toBe('kings-wing-plaza-1')
-  })
-
-  test('uses Traditional Chinese definitions and building evidence', () => {
-    const matcher = createPlaceAddressMatcher([
-      definition('w-luxe', {
-        locale: 'zh-hant',
-        buildingName: 'W LUXE',
-        buildingNumberExpression: '5',
-        buildingNumberFrom: '5',
-        formattedAddress: 'W LUXE5安耀街沙田區新界',
-        streetName: '安耀街',
-      }),
-      definition('generic-on-yiu-5', {
-        locale: 'zh-hant',
-        buildingNumberExpression: '5',
-        buildingNumberFrom: '5',
-        formattedAddress: '5安耀街沙田區新界',
-        streetName: '安耀街',
-      }),
-    ])
-
-    expect(matchPlaceAddressTexts(['石門安耀街5號W LUXE 16樓S10'], matcher)).toBe(
-      'w-luxe',
-    )
   })
 
   test('normalises Chinese building and phase numbers from the source data', () => {
@@ -859,6 +965,10 @@ function normalised(value: string) {
     .replaceAll(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
     .split(/\s+/)
-    .map(token => ({ RD: 'ROAD', ST: 'STREET' })[token as 'RD' | 'ST'] ?? token)
+    .map(
+      token =>
+        ({ LN: 'LANE', RD: 'ROAD', ST: 'STREET' })[token as 'LN' | 'RD' | 'ST'] ??
+        token,
+    )
     .join(' ')
 }
