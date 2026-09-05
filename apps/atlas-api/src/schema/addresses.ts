@@ -1,6 +1,8 @@
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
+import { addressBlockTypes } from '@repo/db'
 
+import { openApiText } from '../lib/openapi-i18n'
 import {
   ApiVersionMetadataSchema,
   BBoxSchema,
@@ -14,40 +16,236 @@ import {
 
 const AddressI18nAttributesSchema = z
   .object({
-    formattedAddress: z.string(),
-    buildingName: z.string().nullable().optional(),
-    buildingNumberExpression: z.string().nullable().optional(),
-    buildingNumberFrom: z.string().nullable().optional(),
-    buildingNumberTo: z.string().nullable().optional(),
-    buildingNumberConnector: z.string().nullable().optional(),
-    blockExpression: z.string().nullable().optional(),
-    blockType: z.string().nullable().optional(),
-    blockRef: z.string().nullable().optional(),
-    blockTypeBeforeNumber: z.boolean().nullable().optional(),
-    phaseExpression: z.string().nullable().optional(),
-    phaseName: z.string().nullable().optional(),
-    phaseRef: z.string().nullable().optional(),
-    estateName: z.string().nullable().optional(),
-    streetName: z.string().nullable().optional(),
+    formattedAddress: z.string().openapi({
+      description: openApiText('openapi_addresses_formatted_address_description'),
+      examples: [
+        "BLK A, PEARL COURT, 13 BELCHER'S STREET, CENTRAL & WESTERN DISTRICT, HK",
+        'TOWER 1, ISLAND CREST, 8 FIRST STREET, CENTRAL & WESTERN DISTRICT, HK',
+        'HOUSE 2, 35 BARKER ROAD, CENTRAL & WESTERN DISTRICT, HK',
+        "ON NING BUILDING, 427 KING'S ROAD, EASTERN DISTRICT, HK",
+      ],
+    }),
+    buildingName: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_building_name_description'),
+        examples: [
+          'FU TOR LOY SHOPPING CENTRE',
+          'ON NING BUILDING',
+          'GOLDEN MANSION',
+          'LUCKY BUILDING',
+          'WING WAH BUILDING',
+        ],
+      }),
+    buildingNumberExpression: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText(
+          'openapi_addresses_building_number_expression_description',
+        ),
+        examples: ['1', '8', '1A', '19B', '1000A'],
+      }),
+    buildingNumberFrom: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_building_number_from_description'),
+        examples: ['1', '6'],
+      }),
+    buildingNumberTo: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_building_number_to_description'),
+        examples: ['3', '6A'],
+      }),
+    buildingNumberConnector: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText(
+          'openapi_addresses_building_number_connector_description',
+        ),
+        examples: [null],
+      }),
+    blockExpression: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_block_expression_description'),
+        examples: [
+          'BLK A',
+          'BLK B',
+          'TOWER 1',
+          'HOUSE 2',
+          'APT D1',
+          'FLAT A',
+          'MANSION A',
+          'GARAGE A',
+          'COMMERCIAL CENTRE',
+          'TOWERS 1&2',
+        ],
+      }),
+    blockType: z
+      .enum(addressBlockTypes)
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_block_type_description'),
+        examples: [...addressBlockTypes],
+      }),
+    blockRef: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_block_ref_description'),
+        examples: ['A', 'B', '1', 'D1', '1&2'],
+      }),
+    blockTypeBeforeNumber: z
+      .boolean()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText(
+          'openapi_addresses_block_type_before_number_description',
+        ),
+        examples: [true, null],
+      }),
+    phaseExpression: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_phase_expression_description'),
+        examples: [
+          'PHASE I',
+          'PHASE 2',
+          'PHASE IIIB',
+          'THE HIGHLAND',
+          'CHONG CHIEN COURT',
+          null,
+        ],
+      }),
+    phaseName: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_phase_name_description'),
+        examples: ['PHASE', 'THE HIGHLAND', 'STAGE', null],
+      }),
+    phaseRef: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_phase_ref_description'),
+        examples: ['I', 'II', 'IIIB', '3', null],
+      }),
+    estateName: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_estate_name_description'),
+        examples: [
+          'FAIRVIEW PARK',
+          'HONG LOK YUEN',
+          'PALM SPRINGS',
+          'DISCOVERY BAY',
+          'MARINA COVE',
+          'WHAMPOA ESTATE',
+        ],
+      }),
+    streetName: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_street_name_description'),
+        examples: [
+          'CASTLE PEAK ROAD',
+          "KING'S ROAD",
+          'NATHAN ROAD',
+          'CANTON ROAD',
+          "QUEEN'S ROAD WEST",
+          'LAI CHI KOK ROAD',
+        ],
+      }),
   })
-  .openapi('AddressI18nAttributes')
+  .openapi('AddressI18nAttributes', {
+    description: openApiText('openapi_addresses_i18n_attributes_description'),
+  })
 
 const AddressI18nSchema = z
   .record(z.string(), AddressI18nAttributesSchema)
-  .openapi('AddressI18n')
+  .openapi('AddressI18n', {
+    description: openApiText('openapi_addresses_i18n_description'),
+    'x-recordKeyName': openApiText('openapi_addresses_i18n_locale_label'),
+  })
 
 const AddressAttributesSchema = z
   .object({
-    snapshotId: z.string().optional(),
-    geometry: z.union([GeometrySchema, z.null()]).optional(),
-    bbox: z.union([BBoxSchema, z.null()]).optional(),
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-    identifiers: z.unknown().optional(),
-    sources: z.unknown().optional(),
-    i18n: AddressI18nSchema.optional(),
+    snapshotId: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_snapshot_id_description'),
+        examples: ['ss-hk-address-2026-08-19.0'],
+      }),
+    geometry: z
+      .union([GeometrySchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_geometry_description'),
+      }),
+    bbox: z
+      .union([BBoxSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_bbox_description'),
+        examples: [[114.132, 22.28566, 114.132, 22.28566]],
+      }),
+    createdAt: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_created_at_description'),
+      }),
+    updatedAt: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_updated_at_description'),
+      }),
+    identifiers: z
+      .unknown()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_identifiers_description'),
+      }),
+    sources: z
+      .unknown()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_addresses_sources_description'),
+      }),
+    i18n: AddressI18nSchema.optional().openapi({
+      description: openApiText('openapi_addresses_i18n_field_description'),
+    }),
   })
-  .openapi('AddressAttributes')
+  .openapi('AddressAttributes', {
+    description: openApiText('openapi_addresses_attributes_description'),
+  })
 
 const AddressDivisionRelationshipSchema = z
   .object({
@@ -70,7 +268,9 @@ const AddressRelationshipsSchema = z
       data: z.array(z.object({ type: z.literal('divisions'), id: IdSchema })),
     }),
   })
-  .openapi('AddressRelationships')
+  .openapi('AddressRelationships', {
+    description: openApiText('openapi_addresses_relationships_description'),
+  })
 
 const AddressResourceSchema = z
   .object({
@@ -78,7 +278,9 @@ const AddressResourceSchema = z
     id: IdSchema,
     attributes: AddressAttributesSchema,
     relationships: AddressRelationshipsSchema,
-    links: JsonApiLinkMapSchema.optional(),
+    links: JsonApiLinkMapSchema.optional().openapi({
+      description: openApiText('openapi_addresses_links_description'),
+    }),
     meta: z.object({}).loose().optional(),
   })
   .openapi('Address')

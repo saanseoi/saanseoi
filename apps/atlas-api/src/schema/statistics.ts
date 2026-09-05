@@ -21,60 +21,197 @@ import { DivisionGeometryResourceSchema, DivisionResourceSchema } from './divisi
 
 const StatisticResourceSchema = z
   .object({
-    type: z.literal('statistics'),
-    id: IdSchema,
-    attributes: z.object({
-      datasetCode: z.string(),
-      referencePeriod: z.object({
-        code: z.string(),
-        start: z.string().nullable(),
-        end: z.string().nullable(),
-        endYear: z.string(),
-        granularity: z.string(),
-      }),
-      geography: z.object({
-        kind: z.string(),
-        code: z.string(),
-        class: z.string().optional(),
-        areaCompanion: z
+    type: z.literal('statistics').openapi({
+      description: openApiText('openapi_statistics_resource_type_description'),
+    }),
+    id: IdSchema.openapi({
+      description: openApiText('openapi_statistics_id_description'),
+    }),
+    attributes: z
+      .object({
+        datasetCode: z.string().openapi({
+          description: openApiText('openapi_statistics_dataset_code_description'),
+        }),
+        referencePeriod: z
           .object({
-            cohortKey: z.string(),
-            domainCode: z.string(),
-            variant: z.string(),
+            code: z.string().openapi({
+              description: openApiText(
+                'openapi_statistics_reference_period_code_description',
+              ),
+            }),
+            start: z
+              .string()
+              .nullable()
+              .openapi({
+                description: openApiText(
+                  'openapi_statistics_reference_period_start_description',
+                ),
+              }),
+            end: z
+              .string()
+              .nullable()
+              .openapi({
+                description: openApiText(
+                  'openapi_statistics_reference_period_end_description',
+                ),
+              }),
+            endYear: z.string().openapi({
+              description: openApiText(
+                'openapi_statistics_reference_period_end_year_description',
+              ),
+            }),
+            granularity: z.string().openapi({
+              description: openApiText(
+                'openapi_statistics_reference_period_granularity_description',
+              ),
+            }),
           })
-          .optional(),
-      }),
-      dimensions: z.record(z.string(), z.string()),
-      values: z.record(z.string(), z.string()),
-      comparability: z
-        .record(
-          z.string(),
-          z.object({
-            affectedReferencePeriods: z.array(z.string().regex(/^\d{4}$/)).min(1),
-            reason: z.enum(statsFieldComparabilityReasons),
-            status: z.enum(statsFieldComparabilityStatuses),
+          .openapi({
+            description: openApiText('openapi_statistics_reference_period_description'),
           }),
-        )
-        .optional(),
-      sourceReleaseId: z.string().optional(),
-      sourceFeatureRef: z.string().optional(),
-      createdAt: z.string().optional(),
-      updatedAt: z.string().optional(),
-    }),
-    relationships: z.object({
-      division: z.object({
-        data: z.object({ type: z.literal('divisions'), id: IdSchema }).nullable(),
+        geography: z
+          .object({
+            kind: z.string().openapi({
+              description: openApiText('openapi_statistics_geography_kind_description'),
+            }),
+            code: z.string().openapi({
+              description: openApiText('openapi_statistics_geography_code_description'),
+            }),
+            class: z
+              .string()
+              .optional()
+              .openapi({
+                description: openApiText(
+                  'openapi_statistics_geography_class_description',
+                ),
+              }),
+            areaCompanion: z
+              .object({
+                cohortKey: z.string().openapi({
+                  description: openApiText(
+                    'openapi_statistics_area_companion_cohort_description',
+                  ),
+                }),
+                domainCode: z.string().openapi({
+                  description: openApiText(
+                    'openapi_statistics_area_companion_domain_description',
+                  ),
+                }),
+                variant: z.string().openapi({
+                  description: openApiText(
+                    'openapi_statistics_area_companion_variant_description',
+                  ),
+                }),
+              })
+              .optional()
+              .openapi({
+                description: openApiText(
+                  'openapi_statistics_area_companion_description',
+                ),
+              }),
+          })
+          .openapi({
+            description: openApiText('openapi_statistics_geography_description'),
+          }),
+        dimensions: z.record(z.string(), z.string()).openapi({
+          description: openApiText('openapi_statistics_dimensions_description'),
+        }),
+        values: z.record(z.string(), z.string()).openapi({
+          description: openApiText('openapi_statistics_values_description'),
+        }),
+        comparability: z
+          .record(
+            z.string(),
+            z.object({
+              affectedReferencePeriods: z
+                .array(z.string().regex(/^\d{4}$/))
+                .min(1)
+                .openapi({
+                  description: openApiText(
+                    'openapi_statistics_comparability_affected_periods_description',
+                  ),
+                }),
+              reason: z.enum(statsFieldComparabilityReasons).openapi({
+                description: openApiText(
+                  'openapi_statistics_comparability_reason_description',
+                ),
+              }),
+              status: z.enum(statsFieldComparabilityStatuses).openapi({
+                description: openApiText(
+                  'openapi_statistics_comparability_status_description',
+                ),
+              }),
+            }),
+          )
+          .optional()
+          .openapi({
+            description: openApiText('openapi_statistics_comparability_description'),
+          }),
+        sourceReleaseId: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_source_release_id_description',
+            ),
+          }),
+        sourceFeatureRef: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_source_feature_ref_description',
+            ),
+          }),
+        createdAt: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText('openapi_statistics_created_at_description'),
+          }),
+        updatedAt: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText('openapi_statistics_updated_at_description'),
+          }),
+      })
+      .openapi({
+        description: openApiText('openapi_statistics_attributes_description'),
       }),
+    relationships: z
+      .object({
+        division: z.object({
+          data: z
+            .object({ type: z.literal('divisions'), id: IdSchema })
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_division_relationship_description',
+              ),
+            }),
+        }),
+      })
+      .openapi({
+        description: openApiText('openapi_statistics_relationships_description'),
+      }),
+    links: JsonApiLinkMapSchema.optional().openapi({
+      description: openApiText('openapi_statistics_links_description'),
     }),
-    links: JsonApiLinkMapSchema.optional(),
   })
-  .openapi('Statistic')
+  .openapi('Statistic', {
+    description: openApiText('openapi_statistics_record_description'),
+  })
 
 const RequestedLocalesQuerySchema = z
   .string()
   .superRefine((value: string, ctx: z.RefinementCtx<string>) => {
     const error = getRequestedApiLocalesValidationError(value)
     if (error) ctx.addIssue({ code: 'custom', message: error })
+  })
+  .openapi({
+    description: openApiText('openapi_statistics_locales_description'),
+    examples: ['en,zh-hant', '*', 'null'],
   })
 
 const IncludeSchema = z
@@ -88,13 +225,48 @@ const IncludeSchema = z
   })
 
 const CommonQueryShape = {
-  catalogRevision: z.string().min(1).optional(),
-  cohort: z.string().min(1).optional(),
-  domain: z.literal('official').optional(),
-  effectiveAt: z.iso.datetime().optional(),
-  knownAt: z.iso.datetime().optional(),
-  releaseSet: z.string().min(1).optional(),
-  profile: ProfileName.optional(),
+  catalogRevision: z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_catalog_revision_description'),
+    }),
+  cohort: z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_cohort_description'),
+    }),
+  domain: z
+    .literal('official')
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_domain_description'),
+    }),
+  effectiveAt: z.iso
+    .datetime()
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_effective_at_description'),
+    }),
+  knownAt: z.iso
+    .datetime()
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_known_at_description'),
+    }),
+  releaseSet: z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_release_set_description'),
+    }),
+  profile: ProfileName.optional().openapi({
+    description: openApiText('openapi_statistics_profile_description'),
+  }),
   locales: RequestedLocalesQuerySchema.optional(),
   include: IncludeSchema,
 }
@@ -102,12 +274,49 @@ const CommonQueryShape = {
 export const StatisticsListQuerySchema = z
   .object({
     ...CommonQueryShape,
-    'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
-    'page[offset]': z.coerce.number().int().min(0).optional(),
-    'filter[dataset]': z.string().min(1).optional(),
-    'filter[division]': IdSchema.optional(),
-    'filter[referencePeriod]': z.string().min(1).optional(),
-    'filter[field]': z.string().min(1).optional(),
+    'page[limit]': z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_page_limit_description'),
+      }),
+    'page[offset]': z.coerce
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_page_offset_description'),
+      }),
+    'filter[dataset]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_dataset_filter_description'),
+      }),
+    'filter[division]': IdSchema.optional().openapi({
+      description: openApiText('openapi_statistics_division_filter_description'),
+    }),
+    'filter[referencePeriod]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText(
+          'openapi_statistics_reference_period_filter_description',
+        ),
+      }),
+    'filter[field]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_field_filter_description'),
+      }),
   })
   .openapi('StatisticsListQuery')
 
@@ -121,25 +330,82 @@ export const StatisticDetailQuerySchema = z
 
 const StatisticsDocumentMetaSchema = z
   .object({
-    apiCatalogRevision: z.string(),
-    catalogPublishedAt: z.string(),
-    cohort: z.string(),
-    domain: z.literal('official'),
-    profile: ProfileName,
-    locales: RequestedLocalesMetadataSchema,
+    apiCatalogRevision: z.string().openapi({
+      description: openApiText('openapi_statistics_meta_catalog_revision_description'),
+    }),
+    catalogPublishedAt: z.string().openapi({
+      description: openApiText(
+        'openapi_statistics_meta_catalog_published_at_description',
+      ),
+    }),
+    cohort: z.string().openapi({
+      description: openApiText('openapi_statistics_meta_cohort_description'),
+    }),
+    domain: z.literal('official').openapi({
+      description: openApiText('openapi_statistics_meta_domain_description'),
+    }),
+    profile: ProfileName.openapi({
+      description: openApiText('openapi_statistics_meta_profile_description'),
+    }),
+    locales: RequestedLocalesMetadataSchema.openapi({
+      description: openApiText('openapi_statistics_meta_locales_description'),
+    }),
     filters: z
       .object({
-        dataset: z.string().optional(),
-        division: z.string().optional(),
-        referencePeriod: z.string().optional(),
-        field: z.string().optional(),
+        dataset: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_meta_filter_dataset_description',
+            ),
+          }),
+        division: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_meta_filter_division_description',
+            ),
+          }),
+        referencePeriod: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_meta_filter_reference_period_description',
+            ),
+          }),
+        field: z
+          .string()
+          .optional()
+          .openapi({
+            description: openApiText(
+              'openapi_statistics_meta_filter_field_description',
+            ),
+          }),
       })
       .optional(),
     page: z
       .object({
-        limit: z.number().int(),
-        offset: z.number().int(),
-        total: z.number().int(),
+        limit: z
+          .number()
+          .int()
+          .openapi({
+            description: openApiText('openapi_statistics_meta_page_limit_description'),
+          }),
+        offset: z
+          .number()
+          .int()
+          .openapi({
+            description: openApiText('openapi_statistics_meta_page_offset_description'),
+          }),
+        total: z
+          .number()
+          .int()
+          .openapi({
+            description: openApiText('openapi_statistics_meta_page_total_description'),
+          }),
       })
       .optional(),
   })
@@ -149,40 +415,144 @@ const StatisticsDocumentMetaSchema = z
 const IncludedStatisticResourceSchema = z.union([
   DivisionResourceSchema,
   DivisionGeometryResourceSchema,
-  z.object({
-    type: z.literal('statistic-fields'),
-    id: IdSchema,
-    attributes: z.object({
-      datasetCode: z.string(),
-      fieldName: z.string(),
-      measureCode: z.string(),
-      sourceField: z.string(),
-      dimensions: z.record(z.string(), z.string()),
-      sourceNullOption: z.string().nullable(),
-      statisticKind: z.string(),
-      aggregation: z.string(),
-      aggregationPercentile: z.number().nullable(),
-      periodicity: z.enum(statsPeriodicities).nullable(),
-      comparability: z
+  z
+    .object({
+      type: z.literal('statistic-fields').openapi({
+        description: openApiText('openapi_statistics_field_resource_type_description'),
+      }),
+      id: IdSchema.openapi({
+        description: openApiText('openapi_statistics_field_id_description'),
+      }),
+      attributes: z
         .object({
-          affectedReferencePeriods: z.array(z.string()),
-          reason: z.enum(statsFieldComparabilityReasons),
-          status: z.enum(statsFieldComparabilityStatuses),
+          datasetCode: z.string().openapi({
+            description: openApiText(
+              'openapi_statistics_field_dataset_code_description',
+            ),
+          }),
+          fieldName: z.string().openapi({
+            description: openApiText('openapi_statistics_field_name_description'),
+          }),
+          measureCode: z.string().openapi({
+            description: openApiText(
+              'openapi_statistics_field_measure_code_description',
+            ),
+          }),
+          sourceField: z.string().openapi({
+            description: openApiText(
+              'openapi_statistics_field_source_field_description',
+            ),
+          }),
+          dimensions: z.record(z.string(), z.string()).openapi({
+            description: openApiText('openapi_statistics_field_dimensions_description'),
+          }),
+          sourceNullOption: z
+            .string()
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_field_source_null_option_description',
+              ),
+            }),
+          statisticKind: z.string().openapi({
+            description: openApiText(
+              'openapi_statistics_field_statistic_kind_description',
+            ),
+          }),
+          aggregation: z.string().openapi({
+            description: openApiText(
+              'openapi_statistics_field_aggregation_description',
+            ),
+          }),
+          aggregationPercentile: z
+            .number()
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_field_aggregation_percentile_description',
+              ),
+            }),
+          periodicity: z
+            .enum(statsPeriodicities)
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_field_periodicity_description',
+              ),
+            }),
+          comparability: z
+            .object({
+              affectedReferencePeriods: z.array(z.string()).openapi({
+                description: openApiText(
+                  'openapi_statistics_comparability_affected_periods_description',
+                ),
+              }),
+              reason: z.enum(statsFieldComparabilityReasons).openapi({
+                description: openApiText(
+                  'openapi_statistics_comparability_reason_description',
+                ),
+              }),
+              status: z.enum(statsFieldComparabilityStatuses).openapi({
+                description: openApiText(
+                  'openapi_statistics_comparability_status_description',
+                ),
+              }),
+            })
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_field_comparability_description',
+              ),
+            }),
+          denominatorFieldName: z
+            .string()
+            .nullable()
+            .openapi({
+              description: openApiText(
+                'openapi_statistics_field_denominator_description',
+              ),
+            }),
+          valueKind: z.string().openapi({
+            description: openApiText('openapi_statistics_field_value_kind_description'),
+          }),
+          unitCode: z.string().openapi({
+            description: openApiText('openapi_statistics_field_unit_code_description'),
+          }),
+          i18n: z
+            .record(
+              z.string(),
+              z.object({
+                name: z.string().openapi({
+                  description: openApiText(
+                    'openapi_statistics_field_i18n_name_description',
+                  ),
+                }),
+                description: z
+                  .string()
+                  .nullable()
+                  .openapi({
+                    description: openApiText(
+                      'openapi_statistics_field_i18n_description_description',
+                    ),
+                  }),
+                isTranslationVerified: z.boolean().openapi({
+                  description: openApiText(
+                    'openapi_statistics_field_i18n_verified_description',
+                  ),
+                }),
+              }),
+            )
+            .openapi({
+              description: openApiText('openapi_statistics_field_i18n_description'),
+            }),
         })
-        .nullable(),
-      denominatorFieldName: z.string().nullable(),
-      valueKind: z.string(),
-      unitCode: z.string(),
-      i18n: z.record(
-        z.string(),
-        z.object({
-          name: z.string(),
-          description: z.string().nullable(),
-          isTranslationVerified: z.boolean(),
+        .openapi({
+          description: openApiText('openapi_statistics_field_attributes_description'),
         }),
-      ),
+    })
+    .openapi('StatisticField', {
+      description: openApiText('openapi_statistics_field_record_description'),
     }),
-  }),
 ])
 
 export const StatisticsListResponseSchema = z
@@ -193,7 +563,9 @@ export const StatisticsListResponseSchema = z
     included: z.array(IncludedStatisticResourceSchema).optional(),
     meta: StatisticsDocumentMetaSchema,
   })
-  .openapi('StatisticsListResponse')
+  .openapi('StatisticsListResponse', {
+    description: openApiText('openapi_statistics_list_response_description'),
+  })
 
 export const StatisticDetailResponseSchema = z
   .object({
@@ -203,7 +575,9 @@ export const StatisticDetailResponseSchema = z
     included: z.array(IncludedStatisticResourceSchema).optional(),
     meta: StatisticsDocumentMetaSchema,
   })
-  .openapi('StatisticDetailResponse')
+  .openapi('StatisticDetailResponse', {
+    description: openApiText('openapi_statistics_get_response_description'),
+  })
 
 export const StatisticSnapshotNotReadyErrorResponseSchema = z
   .object({
@@ -222,18 +596,48 @@ const GeographyAggregateQueryShape = {
     .openapi({
       description: openApiText('openapi_statistics_dataset_filter_description'),
     }),
-  'filter[field]': z.string().min(1),
+  'filter[field]': z
+    .string()
+    .min(1)
+    .openapi({
+      description: openApiText('openapi_statistics_field_filter_description'),
+    }),
   'filter[geographyKind]': z
     .enum(['division', 'buildingGroup', 'majorHousingEstate'])
-    .optional(),
-  'filter[geographyLevel]': z.coerce.number().int().min(0).optional(),
-  'filter[geographyDomain]': z.string().min(1).optional(),
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_geography_kind_filter_description'),
+    }),
+  'filter[geographyLevel]': z.coerce
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_geography_level_filter_description'),
+    }),
+  'filter[geographyDomain]': z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText(
+        'openapi_statistics_geography_domain_filter_description',
+      ),
+    }),
 }
 
 export const StatisticsGeographiesQuerySchema = z
   .object({
     ...GeographyAggregateQueryShape,
-    'filter[referencePeriod]': z.string().min(1),
+    'filter[referencePeriod]': z
+      .string()
+      .min(1)
+      .openapi({
+        description: openApiText(
+          'openapi_statistics_reference_period_filter_description',
+        ),
+      }),
   })
   .openapi('StatisticsGeographiesQuery')
 
@@ -242,15 +646,34 @@ export const StatisticsSeriesQuerySchema = z
   .openapi('StatisticsSeriesQuery')
 
 const GeographyDimensionSchema = z.object({
-  kind: z.enum(['division', 'buildingGroup', 'majorHousingEstate']),
-  codeAttribute: z.enum(['divisionCode', 'geographyCode']),
-  domainCode: z.string().optional(),
-  level: z.number().int().optional(),
+  kind: z.enum(['division', 'buildingGroup', 'majorHousingEstate']).openapi({
+    description: openApiText('openapi_statistics_geography_kind_description'),
+  }),
+  codeAttribute: z.enum(['divisionCode', 'geographyCode']).openapi({
+    description: openApiText('openapi_statistics_geography_code_attribute_description'),
+  }),
+  domainCode: z
+    .string()
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_geography_domain_description'),
+    }),
+  level: z
+    .number()
+    .int()
+    .optional()
+    .openapi({
+      description: openApiText('openapi_statistics_geography_level_description'),
+    }),
 })
 
 const StatisticMeasureCandidateSchema = z.object({
-  datasetCode: z.string(),
-  geography: GeographyDimensionSchema,
+  datasetCode: z.string().openapi({
+    description: openApiText('openapi_statistics_dataset_code_description'),
+  }),
+  geography: GeographyDimensionSchema.openapi({
+    description: openApiText('openapi_statistics_geography_description'),
+  }),
 })
 
 export const StatisticAmbiguousMeasureErrorResponseSchema = z
@@ -268,26 +691,59 @@ export const StatisticAggregateConflictErrorResponseSchema = z
 
 const GeographyAggregateMetaSchema = z
   .object({
-    measure: z.object({
-      datasetCode: z.string(),
-      fieldName: z.string(),
-      unitCode: z.string(),
+    measure: z
+      .object({
+        datasetCode: z.string().openapi({
+          description: openApiText('openapi_statistics_dataset_code_description'),
+        }),
+        fieldName: z.string().openapi({
+          description: openApiText('openapi_statistics_field_name_description'),
+        }),
+        unitCode: z.string().openapi({
+          description: openApiText('openapi_statistics_field_unit_code_description'),
+        }),
+      })
+      .openapi({
+        description: openApiText('openapi_statistics_measure_description'),
+      }),
+    geography: GeographyDimensionSchema.openapi({
+      description: openApiText('openapi_statistics_geography_description'),
     }),
-    geography: GeographyDimensionSchema,
-    dimensions: z.record(z.string(), z.string()),
+    dimensions: z.record(z.string(), z.string()).openapi({
+      description: openApiText('openapi_statistics_dimensions_description'),
+    }),
   })
   .extend(ApiVersionMetadataSchema.shape)
+  .openapi({
+    description: openApiText('openapi_statistics_aggregate_meta_description'),
+  })
 
 export const StatisticsGeographiesResponseSchema = z
   .object({
-    meta: GeographyAggregateMetaSchema.extend({ referencePeriod: z.string() }),
-    values: z.record(z.string(), z.string()),
+    meta: GeographyAggregateMetaSchema.extend({
+      referencePeriod: z.string().openapi({
+        description: openApiText(
+          'openapi_statistics_reference_period_code_description',
+        ),
+      }),
+    }).openapi({
+      description: openApiText('openapi_statistics_aggregate_meta_description'),
+    }),
+    values: z.record(z.string(), z.string()).openapi({
+      description: openApiText('openapi_statistics_aggregate_values_description'),
+    }),
   })
   .openapi('StatisticsGeographiesResponse')
 
 export const StatisticsSeriesResponseSchema = z
   .object({
-    meta: GeographyAggregateMetaSchema,
-    valuesByReferencePeriod: z.record(z.string(), z.record(z.string(), z.string())),
+    meta: GeographyAggregateMetaSchema.openapi({
+      description: openApiText('openapi_statistics_aggregate_meta_description'),
+    }),
+    valuesByReferencePeriod: z
+      .record(z.string(), z.record(z.string(), z.string()))
+      .openapi({
+        description: openApiText('openapi_statistics_series_values_description'),
+      }),
   })
   .openapi('StatisticsSeriesResponse')

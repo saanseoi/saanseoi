@@ -202,9 +202,24 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_geometry_field_description'),
       }),
-    bbox: z.union([BBoxSchema, z.null()]).optional(),
-    cartography: z.union([CartographicHintsSchema, z.null()]).optional(),
-    wikidataId: z.union([WikidataIdSchema, z.null()]).optional(),
+    bbox: z
+      .union([BBoxSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_bbox_field_description'),
+      }),
+    cartography: z
+      .union([CartographicHintsSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_cartography_field_description'),
+      }),
+    wikidataId: z
+      .union([WikidataIdSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_wikidata_id_field_description'),
+      }),
     createdAt: z
       .string()
       .optional()
@@ -217,7 +232,12 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_updated_at_field_description'),
       }),
-    sources: z.union([SourcesSchema, z.null()]).optional(),
+    sources: z
+      .union([SourcesSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_sources_field_description'),
+      }),
     identifiers: z
       .unknown()
       .optional()
@@ -251,18 +271,64 @@ const DivisionRelationshipsSchema = z
 export const DivisionGeometryResourceSchema = z
   .object({
     type: z.union([z.literal('division-areas'), z.literal('division-boundaries')]),
-    id: IdSchema,
+    id: IdSchema.openapi({
+      description: openApiText('openapi_divisions_geometry_resource_id_description'),
+    }),
     attributes: z.object({
-      divisionId: IdSchema.optional(),
-      leftDivisionId: IdSchema.optional(),
-      rightDivisionId: IdSchema.optional(),
-      geometry: z.union([GeometrySchema, z.null()]),
-      bbox: z.union([BBoxSchema, z.null()]),
-      type: z.string(),
-      isLand: z.boolean().nullable(),
-      isTerritorial: z.boolean().nullable(),
-      variant: z.string().optional(),
-      sources: z.union([SourcesSchema, z.null()]).optional(),
+      divisionId: IdSchema.optional().openapi({
+        description: openApiText('openapi_divisions_geometry_division_id_description'),
+      }),
+      leftDivisionId: IdSchema.optional().openapi({
+        description: openApiText(
+          'openapi_divisions_geometry_left_division_id_description',
+        ),
+      }),
+      rightDivisionId: IdSchema.optional().openapi({
+        description: openApiText(
+          'openapi_divisions_geometry_right_division_id_description',
+        ),
+      }),
+      geometry: z.union([GeometrySchema, z.null()]).openapi({
+        description: openApiText(
+          'openapi_divisions_geometry_resource_geometry_description',
+        ),
+      }),
+      bbox: z.union([BBoxSchema, z.null()]).openapi({
+        description: openApiText(
+          'openapi_divisions_geometry_resource_bbox_description',
+        ),
+      }),
+      type: z.string().openapi({
+        description: openApiText(
+          'openapi_divisions_geometry_resource_type_description',
+        ),
+      }),
+      isLand: z
+        .boolean()
+        .nullable()
+        .openapi({
+          description: openApiText('openapi_divisions_geometry_is_land_description'),
+        }),
+      isTerritorial: z
+        .boolean()
+        .nullable()
+        .openapi({
+          description: openApiText(
+            'openapi_divisions_geometry_is_territorial_description',
+          ),
+        }),
+      variant: z
+        .string()
+        .optional()
+        .openapi({
+          description: openApiText('openapi_divisions_geometry_variant_description'),
+        }),
+      sources: z
+        .union([SourcesSchema, z.null()])
+        .optional()
+        .openapi({
+          description: openApiText('openapi_divisions_geometry_sources_description'),
+        }),
       identifiers: z
         .unknown()
         .optional()
