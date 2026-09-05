@@ -62,23 +62,19 @@ Fields reorganized for storage, query, or API response shaping:
 - `class` - normalised to canonical <black>type</black> (<black>land</black>,
   <black>maritime</black>, or <black>mixed</black> when both coverage flags are true)
 
-### Compatibility Fields
+### Source fields
 
-Fields which are retained through <black>overture</black> compatibility keys:
-
-- `version` - available as <black>overture.version</black>
-- `subtype` - available as <black>overture.subtype</black>
-- `class` - available as <black>overture.class</black>
-
-These are available in any API responses which include this geometry at
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black>
+The original `version`, `subtype`, and `class` values are available in the retained
+source record under `rawProperties`. They are not duplicated in the canonical geometry
+resource.
 
 ### Dropped Fields
 
 Fields which are not exposed as part of [DivisionArea](/docs#models/DivisionArea):
 
-A future Overture compatibility API will make these available in the future
-<orange>FORTHCOMING</orange>.
+The original source value remains available in the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+under `rawProperties`, where the source record is retained.
 
 #### Due to zero variance
 
@@ -150,13 +146,15 @@ schema（`{{sourceSchemaVersion}}`）。
 - `class` - 可於 <black>overture.class</black> 取得
 
 這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
 
 ### 不公開欄位
 
 以下欄位不會作為 [DivisionArea](/docs#models/DivisionArea) 的一部分公開：
 
-未來的 Overture 兼容 API 會提供這些欄位 <orange>即將推出</orange>。
+原始來源值會在來源記錄獲保留時，透過
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`rawProperties` 提供。
 
 #### 因為沒有變異
 
@@ -226,13 +224,15 @@ schema（`{{sourceSchemaVersion}}`）。
 - `class` - 可在 <black>overture.class</black> 取得
 
 这些字段可在任何包含此几何的 API 响应中，通过
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
 
 ### 不公开字段
 
 以下字段不会作为 [DivisionArea](/docs#models/DivisionArea) 的一部分公开：
 
-未来的 Overture 兼容 API 会提供这些字段 <orange>即将推出</orange>。
+原始来源值会在源记录得到保留时，通过
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`rawProperties` 提供。
 
 #### 因为没有变化
 
