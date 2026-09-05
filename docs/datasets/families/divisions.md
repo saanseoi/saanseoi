@@ -1,10 +1,10 @@
 # Divisions dataset family
 
 The Divisions API family combines canonical divisions with geometry companions. Geometry
-variants are source-specific assertions and are not merged. The family currently
-requires canonical `division`, Overture `divisionArea`, Overture `divisionBoundary`, and
-the latest published HAD and C&SD district-area snapshots at or before the set cohort.
-The boundary requirement remains exact-cohort Overture. This keeps the two authoritative
+variants are source-specific records and are not merged. The family currently requires
+canonical `division`, Overture `divisionArea`, Overture `divisionBoundary`, and the
+latest published HAD and C&SD district-area snapshots at or before the set cohort. The
+boundary requirement remains exact-cohort Overture. This keeps the two authoritative
 district-area sources in every Overture release without selecting future data.
 
 When Divisions release-set publication is deferred, every nested source upload retains
@@ -135,12 +135,12 @@ taxonomy.
 
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
 normalised geometry. Canonical geometry and bbox are persisted only in history and
-current; source assertions retain publisher evidence, while named source derivatives
+current; source records include publisher evidence, while named source derivatives
 retain their explicit transform output. Upstream bbox fields are not trusted as
 persisted geometry extents.
 
 Source-specific aggregate geometry canonicalisation is permitted only when its provider
-profile documents the triggering topology condition and the source assertions remain
+profile documents the triggering topology condition and the source records remain
 unchanged. The Planning Department 2021 TPU aggregate uses this policy for coincident
 geometry fragments and boundaries that a pairwise overlay cannot node.
 
@@ -183,10 +183,9 @@ duplicate.
 For API-field provenance, Population and Household Statistics is the canonical C&SD
 district relationship whenever it is available. Permanent Living Quarters may still
 contribute geometry to that companion. District Land Area, Population and Density
-remains a retained source and can seed an earlier companion, but becomes redundant for
-the API-field signature once either canonical C&SD source is present. The redundant
-source is reported with the release-set lookup rather than becoming a competing field
-mapping.
+remains a source and can seed an earlier companion, but becomes redundant for the
+API-field signature once either canonical C&SD source is present. The redundant source
+is reported with the release-set lookup rather than becoming a competing field mapping.
 
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when

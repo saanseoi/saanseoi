@@ -31,7 +31,7 @@ the Places API family, rather than in the administrative division hierarchy.
 `hkgov-landsd:place-name` reads the locally mirrored FileGDB ZIP directly. It verifies
 the updater-supplied archive key and SHA-256, joins `GEO_PLACE_NAME` to `PLACE_NAME`,
 and writes the complete 2,706-record source ledger through the SQLite/D1 SQL pipeline.
-Each source assertion retains its native `PLACE_NAME` relationship as paired English and
+Each source record includes its native `PLACE_NAME` relationship as paired English and
 Traditional Chinese labels with the publisher's `Official` or `Alias` status; it does
 not create locale-normalised source child rows. There is no GeoJSON or Parquet
 preparation/upload boundary.

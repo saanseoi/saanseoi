@@ -121,15 +121,15 @@ perform preflight, register or resume the staged release, seed the raw object an
 one processing strategy. The request to Harbour creates the source release; it does not
 make that release published.
 
-## 4. Write the source assertion
+## 4. Write the source record
 
 The local processor belongs under the relevant resource directory in
 `apps/harbour-cli/src/lib/`, for example `divisionSql/`, `streetSql/`, `statisticsSql/`
 or `localPipeline/`. Keep the top-level processor linear and move only genuinely reused
 mechanics into shared helpers.
 
-The first database mutation retains the publisher assertion in the source shard. A new
-source shape normally requires:
+The first database mutation retains the publisher source record in the source shard. A
+new source shape normally requires:
 
 - tables and indexes in `libs/db/src/schema/source/` and its `index.ts`;
 - a generated source migration;
@@ -148,8 +148,8 @@ Never select production shard metadata merely because a target is remote.
 
 ## 5. Canonicalise into history and current
 
-Canonicalisation turns the retained assertion into the public resource model. Keep it as
-pure transformation code in `libs/core/src/pipeline/services/` where practical; the CLI
+Canonicalisation turns the source record into the public resource model. Keep it as pure
+transformation code in `libs/core/src/pipeline/services/` where practical; the CLI
 processor coordinates it and writes the resulting SQL.
 
 The expected order is:

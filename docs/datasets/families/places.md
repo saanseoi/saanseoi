@@ -2,7 +2,7 @@
 
 The Places API family publishes Overture `place` records for the selected region. Each
 Overture release is processed as a complete replacement snapshot and retains the raw
-publisher assertion in the source database.
+publisher source record in the source database.
 
 Places has two required reference members:
 
@@ -37,9 +37,9 @@ The initialiser retains the upstream Places schema at each release boundary. The
 present from 2025-10-22.0, and `taxonomy` is present from 2025-12-17.0. These are
 source-schema transitions only; the canonical Places shape remains stable.
 
-Publisher address data is retained in the source assertion. Canonical `addresses`
-contains only the non-empty publisher `freeform` strings; the retained Overture source
-record exposes `address.freeform`, `address.locality`, `address.country`,
+Publisher address data is included in the source record. Public Places expose localised
+`freeformAddress` through PlaceI18n rather than an `addresses` field; the Overture
+source record exposes `address.freeform`, `address.locality`, `address.country`,
 `address.region`, and `address.postcode` as observational values. They must not be used
 as authoritative inputs for canonical address or division relationships. Places with
 `CN` or `MO` address country codes are excluded from the Hong Kong projection;
@@ -49,7 +49,7 @@ address, pending a reconsideration of the Place-to-address implementation.
 
 Overture Division and Place IDs are checked against the Overture GERS Registry by the
 local cache command. The command reports the exact GERS-backed and unmatched cohorts
-used by the retained source files; UUID format alone is not accepted as evidence of GERS
+used by the source files; UUID format alone is not accepted as evidence of GERS
 membership.
 
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
@@ -65,6 +65,12 @@ the latest address or division projection. Place history uses the source payload
 the resolved address reference as its version boundary; unchanged places do not create a
 new history version.
 
+Place localisation resolves explicit language and script evidence independently for
+names, brand names, and free-form addresses. Missing locale information is inferred and
+audited; mixed-script source values remain intact. Translation is optional and uses the
+dataset-scoped `ds-hk-overture-place` fixture in batches of 50 only when an existing
+target PlaceI18n row is missing a translatable field. Brand names are never translated.
+
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a
 dry-run and confirmation boundary:
@@ -75,3 +81,17 @@ dry-run and confirmation boundary:
 
 The generic `rollback:release` command remains available for an individual latest
 published Places release.
+
+## ZH-HANT
+
+Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開 Place 使用 PlaceI18n 的
+`freeformAddress`，不提供
+`addresses`。翻譯是可選的，只在已有目標列時填補名稱或地址，品牌不會翻譯；`referenceName`
+是不計入語言覆蓋率的衍生投影。
+
+## ZH-HANS
+
+Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开 Place 使用 PlaceI18n 的
+`freeformAddress`，不提供
+`addresses`。翻译是可选的，只在已有目标列时填补名称或地址，品牌不会翻译；`referenceName`
+是不计入语言覆盖率的派生投影。

@@ -25,7 +25,7 @@ Dataset package and does not use the CSDI GeoJSON file API as input.
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its File
 Geodatabase `DCD` layer is required to contain 18 Polygon district features with
 `AREA_ID`, `AREA_CODE`, and `AREA_TYPE`. The mirrored archive's managed key and SHA-256
-are retained in every source assertion's `sources` provenance and carried into canonical
+are included in every source record's `sources` provenance and carried into canonical
 geometry provenance; the importer reads that local archive rather than the converted
 GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved
 through the versioned `identifierBridges` fixture/table for resource type `division`,
@@ -51,7 +51,7 @@ capitalisation, in both source columns and canonical geometry `identifiers`:
 The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
-projected fields. The source assertion retains the publisher's original attribute object
+projected fields. The source record includes the publisher's original attribute object
 in `rawProperties` and its native geometry in `sourceGeometry`; normalised delivery
 fields and the redundant GeoJSON feature wrapper are not persisted.
 

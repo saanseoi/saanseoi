@@ -60,10 +60,10 @@ For geometry, use `divisionArea` for an area associated with one division and
 `divisionBoundary` for a border between two divisions. A catalogue title such as
 “Boundary” does not decide the resource type; inspect the geometry and relationships.
 
-Register a stable provider/variant code. The variant is an assertion, not an enrichment
-operation: retain separate source, history and current rows and select the assertion at
-API read time. State the default variant and whether the family requires this snapshot
-for publication in the family document.
+Register a stable provider/variant code. The variant is a source record, not an
+enrichment operation: retain separate source, history and current rows and select the
+source record at API read time. State the default variant and whether the family
+requires this snapshot for publication in the family document.
 
 ## 3. Define identity, domains and time
 

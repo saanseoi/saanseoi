@@ -25,12 +25,12 @@ Street). It retains `OBJECTID`, timing, native geometry, and the three publisher
 descriptions; calculated shape area and length are not treated as source facts. CSDI
 converted GeoJSON is only a historical regression fixture, never an intake dependency.
 
-Native ingestion writes those source assertions directly to the source SQLite shard: one
+Native ingestion writes those source records directly to the source SQLite shard: one
 table each for name plates, sensitive streets, strategic streets, and pedestrian
-streets. Pedestrian descriptions remain alongside their publisher assertion as
+streets. Pedestrian descriptions remain alongside their publisher source record as
 `descriptionEn`, `descriptionZhHant`, and `descriptionZhHans`; the unmodified native
 fields are also retained in `rawProperties`. The mirrored archive object key and SHA-256
-are retained in every assertion's provenance. The local source DB cache is updated
+are included in every source record's provenance. The local source DB cache is updated
 before the same SQL is imported to preview or production D1; the archive is never
 reloaded from managed storage during intake.
 

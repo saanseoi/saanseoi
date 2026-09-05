@@ -2,8 +2,8 @@
 
 `divisionArea` and `divisionBoundary` are geometry companions to the `division` API
 family. They are logical resource types with provider-specific variants; each provider
-assertion has its own source snapshot and canonical history/current rows. Geometry is
-never merged implicitly across providers.
+source record has its own source snapshot and canonical history/current rows. Geometry
+is never merged implicitly across providers.
 
 The normative contract is in
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). Provider facts and

@@ -140,11 +140,11 @@ Lifecycle churn excludes release-specific provenance and ingestion bookkeeping,
 including the release cohort, input file path and position, resolved identity metadata,
 and selected division snapshot. Those values remain stored for audit, but a new delivery
 does not count as a changed address solely because it has a new release context. The
-source assertion hash still includes the publisher address representation, coordinates,
+source record hash still includes the publisher address representation, coordinates,
 identifiers, and projected address fields, so an actual ALS record change creates a new
 version.
 
-The source assertion keeps the original bilingual ALS properties unchanged in
+The source record includes the original bilingual ALS properties unchanged in
 `rawProperties`. Its paired `addressEn` and `addressZhHant` fields record the
 reproducible address-component projection for that exact evidence; only canonical
 address snapshots materialise locale-keyed rows.

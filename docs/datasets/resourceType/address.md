@@ -24,7 +24,7 @@ The local SQL workflow processes parquet in chunks through `normalise`, `sql-sou
 normalised source payload with the persistent local mirror of the source D1 shard. It
 imports full staging rows only for changed assertions; unchanged assertions are sent as
 compact source-record IDs in `stagingAddresses2dReleaseRows` so their release lifecycle
-can still advance. The source assertion hash excludes release and ingestion bookkeeping
+can still advance. The source record hash excludes release and ingestion bookkeeping
 (including the source version and file, resolved identity metadata, and division
 snapshot) while retaining the publisher address assertion. History, current, and meta
 SQL are then imported into their respective D1 databases.
