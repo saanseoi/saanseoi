@@ -6,6 +6,7 @@ import {
   buildAddressBuildingNumberLookupRows,
   buildHkgovAlsSourceHashInput,
   isUnchangedHkgovAlsSourcePayload,
+  normaliseAddressRowForPipeline,
 } from './normalisation'
 
 const buildBase = (sources: unknown) =>
@@ -170,6 +171,68 @@ test('derives only justified members of explicit building-number ranges', () => 
       numericStem: '58',
       evidence: 'derived_member',
       derivation: 'integer_alternating',
+    },
+  ])
+})
+
+test('splits phase references from phase names without duplicating the reference', () => {
+  const cases = [
+    { name: 'PHASE 2', ref: '2', phaseName: 'PHASE', phaseRef: '2' },
+    { name: 'PHASE II', ref: null, phaseName: 'PHASE', phaseRef: 'II' },
+    { name: 'VALAIS II', ref: null, phaseName: 'VALAIS', phaseRef: 'II' },
+    { name: 'PHASE IIIB', ref: 'IIIB', phaseName: 'PHASE', phaseRef: 'IIIB' },
+    { name: 'PHASE C', ref: null, phaseName: 'PHASE C', phaseRef: null },
+  ]
+
+  for (const phase of cases) {
+    const result = normaliseAddressRowForPipeline({
+      canonicalId: 'address-1',
+      divisionSnapshotId: 'division-1',
+      enFormattedAddress: '1 Example Road, Hong Kong',
+      enPhaseName: phase.name,
+      enPhaseRef: phase.ref,
+      id: 'address-1',
+    })
+    const english = result.i18n.find(row => row.locale === 'en')
+
+    expect(english).toMatchObject({
+      phaseExpression:
+        phase.phaseRef == null
+          ? phase.phaseName
+          : `${phase.phaseName} ${phase.phaseRef}`,
+      phaseName: phase.phaseName,
+      phaseRef: phase.phaseRef,
+    })
+  }
+})
+
+test('reads phase fields from retained ALS JSON when older prepared rows lack columns', () => {
+  const result = normaliseAddressRowForPipeline({
+    canonicalId: 'address-1',
+    chiPremisesAddressJson: JSON.stringify({
+      ChiEstate: { ChiPhase: { PhaseName: '第二期', PhaseNo: 2 } },
+    }),
+    divisionSnapshotId: 'division-1',
+    enFormattedAddress: '1 Example Road, Hong Kong',
+    engPremisesAddressJson: JSON.stringify({
+      EngEstate: { EngPhase: { PhaseName: 'PHASE II', PhaseNo: null } },
+    }),
+    id: 'address-1',
+    zhHantFormattedAddress: '香港示例道1號',
+  })
+
+  expect(result.i18n).toMatchObject([
+    {
+      locale: 'en',
+      phaseExpression: 'PHASE II',
+      phaseName: 'PHASE',
+      phaseRef: 'II',
+    },
+    {
+      locale: 'zh-hant',
+      phaseExpression: '第二期 2',
+      phaseName: '第二期',
+      phaseRef: '2',
     },
   ])
 })

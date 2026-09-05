@@ -1,6 +1,6 @@
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 
-import { asNonEmptyString, createHash } from '../../utils'
+import { asNonEmptyString, asString, createHash } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
 
 export function normaliseAddressRowForPipeline(row: Record<string, unknown>) {
@@ -117,6 +117,8 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
   const zhHantBuildingNumber = getBuildingNumberComponents(row, 'zh-hant')
   const coverageComponents = new Set<string>()
   const i18n: AddressI18nPayload[] = []
+  const enPhase = getPreparedPhaseFields(row, 'en')
+  const zhHantPhase = getPreparedPhaseFields(row, 'zh-hant')
 
   if (asNonEmptyString(row.enFormattedAddress)) {
     i18n.push({
@@ -138,9 +140,7 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
         asNonEmptyString(row.enBlockDescriptor) && asNonEmptyString(row.enBlockNumber)
           ? true
           : null,
-      phaseExpression: buildPhaseExpression(row.enPhaseName, row.enPhaseRef),
-      phaseName: asNonEmptyString(row.enPhaseName),
-      phaseRef: asNonEmptyString(row.enPhaseRef),
+      ...normalisePhaseFields(enPhase.name, enPhase.ref),
       estateName: asNonEmptyString(row.enEstateName),
       streetName: asNonEmptyString(row.enStreetName),
     })
@@ -170,9 +170,7 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
         asNonEmptyString(row.zhHantBlockNumber)
           ? true
           : null,
-      phaseExpression: buildPhaseExpression(row.zhHantPhaseName, row.zhHantPhaseRef),
-      phaseName: asNonEmptyString(row.zhHantPhaseName),
-      phaseRef: asNonEmptyString(row.zhHantPhaseRef),
+      ...normalisePhaseFields(zhHantPhase.name, zhHantPhase.ref),
       estateName: asNonEmptyString(row.zhHantEstateName),
       streetName: asNonEmptyString(row.zhHantStreetName),
     })
@@ -517,10 +515,125 @@ function buildBlockExpression(descriptor: unknown, ref: unknown) {
   return [descriptorValue, refValue].filter(Boolean).join(' ') || null
 }
 
-function buildPhaseExpression(name: unknown, ref: unknown) {
+function getPreparedPhaseFields(
+  row: Record<string, unknown>,
+  locale: 'en' | 'zh-hant',
+) {
+  const isEnglish = locale === 'en'
+  const nameKey = isEnglish ? 'enPhaseName' : 'zhHantPhaseName'
+  const refKey = isEnglish ? 'enPhaseRef' : 'zhHantPhaseRef'
+  const rawKey = isEnglish ? 'engPremisesAddressJson' : 'chiPremisesAddressJson'
+  const estateKey = isEnglish ? 'EngEstate' : 'ChiEstate'
+  const phaseKey = isEnglish ? 'EngPhase' : 'ChiPhase'
+  const raw = asRecord(parseOptionalJson(row[rawKey]))
+  const estate = asRecord(raw?.[estateKey])
+  const phase = asRecord(estate?.[phaseKey])
+
+  return {
+    name: asNonEmptyString(row[nameKey]) ?? asString(phase?.PhaseName),
+    ref: asNonEmptyString(row[refKey]) ?? asString(phase?.PhaseNo),
+  }
+}
+
+function normalisePhaseFields(name: unknown, ref: unknown) {
   const nameValue = asNonEmptyString(name)
   const refValue = asNonEmptyString(ref)
-  return [nameValue, refValue].filter(Boolean).join(' ') || null
+  const split = nameValue ? splitPhaseNameReference(nameValue, refValue) : null
+  const phaseName = split?.name ?? nameValue
+  const phaseRef = split?.ref ?? refValue
+
+  return {
+    phaseExpression: [phaseName, phaseRef].filter(Boolean).join(' ') || null,
+    phaseName,
+    phaseRef,
+  }
+}
+
+function splitPhaseNameReference(name: string, ref: string | null) {
+  const match = /^(?<stem>.*?)(?:\s*)(?<token>[0-9]+[A-Z]?|[IVXLCDM]+[A-Z]?)$/i.exec(
+    name,
+  )
+  const stem = match?.groups?.stem?.trim()
+  const token = match?.groups?.token
+  if (!stem || !token || /(?:&|\bAND)$/i.test(stem)) return null
+
+  const tokenValue = parsePhaseReferenceToken(token)
+  if (!tokenValue) return null
+
+  const shouldSplit = ref
+    ? phaseReferenceTokensEqual(token, ref)
+    : canInferPhaseReference(token, tokenValue)
+  if (!shouldSplit) return null
+
+  return { name: stem, ref: ref ?? token }
+}
+
+function canInferPhaseReference(
+  token: string,
+  parsed: { number: number; suffix: string },
+) {
+  if (/^[0-9]/.test(token)) return true
+  if (parsed.suffix) return false
+  // C, D, L and M are common single-letter phase labels as well as Roman
+  // numerals. Treat only the unambiguous small ordinal forms as inferred refs.
+  return token.length > 1 || ['I', 'V', 'X'].includes(token.toUpperCase())
+}
+
+function phaseReferenceTokensEqual(left: string, right: string) {
+  if (left.toUpperCase() === right.toUpperCase()) return true
+  const leftValue = parsePhaseReferenceToken(left)
+  const rightValue = parsePhaseReferenceToken(right)
+  return Boolean(
+    leftValue &&
+      rightValue &&
+      leftValue.number === rightValue.number &&
+      leftValue.suffix.toUpperCase() === rightValue.suffix.toUpperCase(),
+  )
+}
+
+function parsePhaseReferenceToken(value: string) {
+  const token = value.toUpperCase()
+  const arabic = /^(?<number>[1-9]\d*)(?<suffix>[A-Z]?)$/.exec(token)
+  if (arabic?.groups?.number) {
+    return {
+      number: Number(arabic.groups.number),
+      suffix: arabic.groups.suffix ?? '',
+    }
+  }
+
+  const roman = /^(?<roman>[MDCLXVI]+)(?<suffix>[A-Z]?)$/.exec(token)
+  if (!roman?.groups?.roman) return null
+  const romanNumber = parseRomanNumeral(roman.groups.roman)
+  if (romanNumber == null) return null
+  return {
+    number: romanNumber,
+    suffix: roman.groups.suffix ?? '',
+  }
+}
+
+function parseRomanNumeral(value: string) {
+  const canonical =
+    /^(?=[MDCLXVI]+$)M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$/.test(
+      value,
+    )
+  if (!canonical) return null
+
+  const values: Record<string, number> = {
+    I: 1,
+    V: 5,
+    X: 10,
+    L: 50,
+    C: 100,
+    D: 500,
+    M: 1000,
+  }
+  let total = 0
+  for (let index = 0; index < value.length; index += 1) {
+    const current = values[value[index] ?? ''] ?? 0
+    const next = values[value[index + 1] ?? ''] ?? 0
+    total += current < next ? -current : current
+  }
+  return total
 }
 
 function normaliseBlockType(value: unknown): AddressI18nPayload['blockType'] {
@@ -552,6 +665,12 @@ function parseOptionalJson(value: unknown) {
   }
 
   return JSON.parse(text) as unknown
+}
+
+function asRecord(value: unknown) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
 }
 
 function requireText(value: unknown, message: string) {
