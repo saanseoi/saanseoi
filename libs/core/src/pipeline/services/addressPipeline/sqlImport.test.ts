@@ -90,7 +90,7 @@ describe('address SQL import staging cleanup', () => {
 })
 
 describe('HKGov ALS source SQL', () => {
-  test('stores paired source addresses on the assertion without a source i18n table', () => {
+  test('stores paired source addresses on the source record without a source i18n table', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(message, {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',

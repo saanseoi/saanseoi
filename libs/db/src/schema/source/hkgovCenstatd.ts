@@ -16,7 +16,7 @@ import {
 } from './shared'
 
 /**
- * C&SD District Council district assertions. `sourceGeometry` is retained as
+ * C&SD District Council source records. `sourceGeometry` remains as
  * a Brotli-compressed publisher-CRS BLOB. Current and history retain the
  * exact canonical geometry as a Brotli BLOB too, alongside the map-ready
  * EPSG:4326 display derivative.
@@ -75,7 +75,7 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
 )
 
 /**
- * Native CSDI feature assertions for C&SD's non-district-density statistical
+ * Native CSDI feature records for C&SD's non-district-density statistical
  * releases. Their measures differ by publisher layer, so they remain a
  * complete, queryable publisher property set rather than losing fields to a
  * premature shared measure schema.
@@ -105,7 +105,7 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
 )
 
 /**
- * Materialised geometry transforms of a C&SD district source assertion.
+ * Materialised geometry transforms of a C&SD district source record.
  *
  * A transform is deliberately not a second source record: `sourceRecordId`
  * and `inputVersionHash` identify the exact C&SD assertion it was derived

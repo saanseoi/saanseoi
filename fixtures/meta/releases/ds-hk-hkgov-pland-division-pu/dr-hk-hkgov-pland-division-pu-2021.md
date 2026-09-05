@@ -27,9 +27,9 @@ original publisher geometry remains retained.
 
 ## Compatibility
 
-This release is a Planning Department planning-domain assertion, independent of Overture
-administrative divisions. Provider codes form persistent Planning Department identifiers
-and hierarchy edges.
+This release is a Planning Department planning-domain source record, independent of
+Overture administrative divisions. Provider codes form persistent Planning Department
+identifiers and hierarchy edges.
 
 ### Directly Retained Fields
 

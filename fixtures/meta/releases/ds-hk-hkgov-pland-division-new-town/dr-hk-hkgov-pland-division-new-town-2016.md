@@ -27,8 +27,8 @@ original publisher geometry remains retained.
 
 ## Compatibility
 
-This release is a Planning Department planning-domain assertion, independent of Overture
-administrative divisions. A normalised English name within this cohort forms a
+This release is a Planning Department planning-domain source record, independent of
+Overture administrative divisions. A normalised English name within this cohort forms a
 cohort-scoped Planning Department identifier; no cross-cohort or Overture identity is
 inferred.
 

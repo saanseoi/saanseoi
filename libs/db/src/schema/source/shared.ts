@@ -2,7 +2,7 @@ import { index, integer, text } from 'drizzle-orm/sqlite-core'
 import { jsonText, timestamps } from '../shared'
 
 /**
- * A publisher or ingestion reference supporting a source assertion.
+ * A publisher or ingestion reference supporting a source record.
  *
  * `dataset` is the shared minimum. Source-specific keys preserve publisher
  * attribution and immutable ingestion evidence without a schema migration.
@@ -31,7 +31,7 @@ export function sourceVersionedRecordColumns() {
   }
 }
 
-/** A versioned publisher assertion with required source provenance. */
+/** A versioned publisher source record with required source provenance. */
 export function sourceVersionedAssertionColumns() {
   return {
     ...sourceVersionedRecordColumns(),
@@ -40,7 +40,7 @@ export function sourceVersionedAssertionColumns() {
 }
 
 /**
- * Columns shared by an immutable publisher-source assertion. Use this for
+ * Columns shared by an immutable publisher-source record. Use this for
  * tabular publisher records; source geometry is deliberately optional.
  */
 export function sourceAssertionColumns() {
@@ -53,7 +53,7 @@ export function sourceAssertionColumns() {
   }
 }
 
-/** Adds the required native geometry to a versioned source assertion. */
+/** Adds the required native geometry to a versioned source record. */
 export function sourceSpatialAssertionColumns() {
   return {
     ...sourceAssertionColumns(),
@@ -80,7 +80,7 @@ export function sourceReleaseRevisionRecordColumns() {
   }
 }
 
-/** A release-revision source assertion with required source provenance. */
+/** A release-revision source record with required source provenance. */
 export function sourceReleaseRevisionAssertionColumns() {
   return {
     ...sourceReleaseRevisionRecordColumns(),

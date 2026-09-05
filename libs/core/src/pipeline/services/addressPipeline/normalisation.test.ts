@@ -53,7 +53,7 @@ test('excludes release-specific source provenance from the address content hash'
   expect(await createHash(firstRelease)).toBe(await createHash(nextRelease))
 })
 
-test('excludes ALS release and ingestion bookkeeping from source assertion hashes', async () => {
+test('excludes ALS release and ingestion bookkeeping from source record hashes', async () => {
   const sourceAssertion = {
     easting: 836_000,
     enFormattedAddress: '1 Example Road, Hong Kong',
