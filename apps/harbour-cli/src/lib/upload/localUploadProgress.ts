@@ -10,6 +10,8 @@ type ProgressState = {
 }
 
 type LocalUploadProgressOptions = {
+  /** Keep one live status line across a multi-step pipeline. */
+  compact?: boolean
   /** Override terminal capability detection for an embedded CLI caller. */
   renderAnimated?: boolean
 }
@@ -18,14 +20,36 @@ export class LocalUploadProgress {
   private progressBar: ProgressRenderer | null = null
   private currentLabel: string | null = null
   private state: ProgressState | null = null
+  private readonly compact: boolean
   private readonly renderAnimated: boolean
   private staticPhaseActive = false
 
   constructor(options: LocalUploadProgressOptions = {}) {
+    this.compact = options.compact ?? false
     this.renderAnimated = options.renderAnimated ?? canRenderAnimatedProgress()
   }
 
   beginPhase(label: string, options: { current?: number; max?: number | null }) {
+    if (this.compact) {
+      this.currentLabel = label
+      this.state = {
+        current: Math.max(0, Math.floor(options.current ?? 0)),
+        max: null,
+      }
+      if (!this.renderAnimated) {
+        this.staticPhaseActive = true
+        return
+      }
+
+      if (!this.progressBar) {
+        this.progressBar = spinner({ withGuide: false })
+        this.progressBar.start(label)
+      } else {
+        this.progressBar.message(label)
+      }
+      return
+    }
+
     if (this.progressBar) {
       this.progressBar.stop(this.currentLabel ?? label)
     } else if (this.staticPhaseActive) {
@@ -64,6 +88,16 @@ export class LocalUploadProgress {
     options?: { label?: string; max?: number | null; reset?: boolean },
   ) {
     if (!this.state || !this.currentLabel) {
+      return
+    }
+
+    if (this.compact) {
+      this.state = {
+        current: Math.max(0, Math.floor(current)),
+        max: null,
+      }
+      this.currentLabel = options?.label ?? this.currentLabel
+      this.progressBar?.message(this.currentLabel)
       return
     }
 
@@ -141,6 +175,14 @@ export class LocalUploadProgress {
       return
     }
 
+    if (this.compact) {
+      if (message) {
+        this.currentLabel = message
+        this.progressBar?.message(message)
+      }
+      return
+    }
+
     const currentLabel = this.currentLabel
 
     if (this.progressBar) {
@@ -149,6 +191,27 @@ export class LocalUploadProgress {
       log.success(message ?? currentLabel)
     }
     this.progressBar = null
+    this.currentLabel = null
+    this.state = null
+    this.staticPhaseActive = false
+  }
+
+  /** Finish a compact pipeline and commit its one final status line. */
+  finish(message?: string) {
+    if (!this.compact) {
+      this.complete(message)
+      return
+    }
+
+    if (!this.currentLabel || !this.state) return
+
+    const finalLabel = message ?? this.currentLabel
+    if (this.progressBar) {
+      this.progressBar.stop(finalLabel)
+      this.progressBar = null
+    } else if (this.staticPhaseActive || !this.renderAnimated) {
+      log.success(finalLabel)
+    }
     this.currentLabel = null
     this.state = null
     this.staticPhaseActive = false
