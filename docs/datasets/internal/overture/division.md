@@ -21,7 +21,7 @@ Stored i18n fields mean:
 
 Current storage boundary:
 
-- source rows retain the publisher's `names` object unchanged; they do not create
+- source rows include the publisher's `names` object unchanged; they do not create
   locale-keyed rows or infer locales
 - canonical current/history tables create locale-keyed rows for API consumption,
   including the canonical API locales used by Atlas default responses

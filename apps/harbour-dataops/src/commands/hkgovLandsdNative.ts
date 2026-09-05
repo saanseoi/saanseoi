@@ -28,7 +28,7 @@ const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
 /**
  * Imports the complete native gazetteer ledger. Settlement is deliberately the
  * only class exposed by this dataset's divisions projection; other native
- * assertions remain available for future places work.
+ * source records remain available for future places work.
  */
 export async function runHkgovLandsdPlaceNameIngestCommand(
   args: ParsedArgs,

@@ -18,8 +18,8 @@ with the historic street version's `districtIds`. These derived IDs, the WGS84
 projection, bounding box, and any matched canonical street identity are transform
 outputs only; none is stored on a Road Centreline source row. Traditional Chinese names
 are publisher evidence, but are not an identity key. Segments without publisher names
-remain source-only assertions; unmatched or ambiguous named records must be represented
-in the versioned curation fixture before canonical publication.
+remain source-only records; unmatched or ambiguous named records must be represented in
+the versioned curation fixture before canonical publication.
 
 The original publisher archive is the CSDI Road Centreline package. The CSDI
 old-Street-Name archive link is descriptive provenance only and is never an input to

@@ -1,7 +1,7 @@
 # Places dataset family
 
 The Places API family publishes Overture `place` records for the selected region. Each
-Overture release is processed as a complete replacement snapshot and retains the raw
+Overture release is processed as a complete replacement snapshot and includes the raw
 publisher source record in the source database.
 
 Places has two required reference members:
@@ -24,15 +24,15 @@ The normal upload lifecycle is shared with the other API families:
 ```
 
 `update --api-family places` discovers and uploads new Overture releases using the same
-staged, resumable release lifecycle. The Places initialiser replays the retained
-Overture release list in cohort order, defers each API release set, and reconciles the
-completed family at the end:
+staged, resumable release lifecycle. The Places initialiser replays the stored Overture
+release list in cohort order, defers each API release set, and reconciles the completed
+family at the end:
 
 ```sh
 ./bin/saanseoi init:places:overture --target local
 ```
 
-The initialiser retains the upstream Places schema at each release boundary. The
+The initialiser uses the upstream Places schema at each release boundary. The
 2025-09-24.0 payload predates `basic_category` and `taxonomy`; `basic_category` is
 present from 2025-10-22.0, and `taxonomy` is present from 2025-12-17.0. These are
 source-schema transitions only; the canonical Places shape remains stable.

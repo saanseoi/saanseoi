@@ -3,7 +3,7 @@
 The Lands Department publishes a complete gazetted street-name list as a PDF and
 subsequent bilingual Government Notices and Gazette Plans. SaanSeoi treats
 `Gazetted_Street_Name.pdf` as the baseline street snapshot, not as an event log. Every
-later source row is retained as an immutable LandsD notice event, including a revised
+later source row is stored as an immutable LandsD notice event, including a revised
 publisher version when LandsD changes the source page.
 
 The source is
