@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.2",
   "bin": {
     "saanseoi": "./bin/saanseoi"
   },
@@ -126,7 +126,7 @@
   "dependencies": {
     "@inlang/paraglide-js": "^2.25.0",
     "bits-ui": "^2.19.0",
-    "bun-types": "^1.4.1",
+    "bun-types": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
     "tailwindcss": "^4.3.3"
   },

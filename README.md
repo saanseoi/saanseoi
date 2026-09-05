@@ -13,7 +13,7 @@
 
 This project is a monorepo managed by [Turborepo](https://turbo.build/).
 
-Install Bun 1.4.0 before running the development commands.
+Install Bun 1.4.2 before running the development commands.
 
 ```bash
 git clone git@github.com:saanseoi/saanseoi.git && cd saanseoi

@@ -24,7 +24,7 @@ Repo-local operating notes for Codex and similar agents.
 
 ## Tooling Conventions
 
-- Package manager/runtime: `bun` (`packageManager: bun@1.4.0`)
+- Package manager/runtime: `bun` (`packageManager: bun@1.4.2`)
 - Task runner: `turbo`
 - Formatter/linter: `biome`
 - Type checking: `tsc --noEmit` in package scripts

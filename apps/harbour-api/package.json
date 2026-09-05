@@ -20,20 +20,20 @@
   },
   "devDependencies": {
     "@types/bun": "1.4.1",
-    "bun-types": "^1.4.1",
+    "bun-types": "^1.4.2",
     "typescript": "^6.0.3",
     "vitest": "^5.0.0",
     "wrangler": "^4.129.0"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",
-    "@aws-sdk/client-s3": "^3.1126.0",
-    "@aws-sdk/s3-request-presigner": "^3.1126.0",
+    "@aws-sdk/client-s3": "^3.1127.0",
+    "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@scalar/hono-api-reference": "^0.12.0",
     "@scalar/openapi-to-markdown": "^0.5.43",
-    "hono": "^4.13.5",
+    "hono": "^4.13.7",
     "zod": "^4.5.4"
   }
 }
