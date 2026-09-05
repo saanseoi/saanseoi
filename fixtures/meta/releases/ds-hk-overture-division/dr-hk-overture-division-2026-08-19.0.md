@@ -117,7 +117,7 @@ Overture compatibility API will make these available in the future
 
 #### Due to quality issues
 
-- `local_type` appears to be sourced from <black>place=*</black> OSM data. It is not
+- `local_type` - appears to be sourced from <black>place=*</black> OSM data. It is not
   retained because the observed values are inconsistent, incomplete, and locally
   incongruous. Sample:
 
@@ -247,7 +247,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 #### 因為品質問題
 
-- `local_type` 看來源自 <black>place=*</black>
+- `local_type` - 看來源自 <black>place=*</black>
   OSM 資料。由於觀察到的值不一致、不完整，且不切合本地脈絡，因此不予保留。樣本：
 
 ```text
@@ -374,7 +374,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 #### 因为质量问题
 
-- `local_type` 看来源于 <black>place=*</black>
+- `local_type` - 看来源于 <black>place=*</black>
   OSM 数据。由于观察到的值不一致、不完整，且不符合本地语境，因此不予保留。样本：
 
 ```text
