@@ -37,7 +37,6 @@ const AddressI18nAttributesSchema = z
           'GOLDEN MANSION',
           'LUCKY BUILDING',
           'WING WAH BUILDING',
-          null,
         ],
       }),
     buildingNumberExpression: z
@@ -48,7 +47,7 @@ const AddressI18nAttributesSchema = z
         description: openApiText(
           'openapi_addresses_building_number_expression_description',
         ),
-        examples: ['1', '8', '1A', '19B', '1000A', null],
+        examples: ['1', '8', '1A', '19B', '1000A'],
       }),
     buildingNumberFrom: z
       .string()
@@ -56,7 +55,7 @@ const AddressI18nAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_building_number_from_description'),
-        examples: ['1', '6', '19', '51', null],
+        examples: ['1', '6'],
       }),
     buildingNumberTo: z
       .string()
@@ -64,7 +63,7 @@ const AddressI18nAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_building_number_to_description'),
-        examples: ['3', '8', '18', '21', '75', null],
+        examples: ['3', '6A'],
       }),
     buildingNumberConnector: z
       .string()
@@ -93,7 +92,6 @@ const AddressI18nAttributesSchema = z
           'GARAGE A',
           'COMMERCIAL CENTRE',
           'TWR 1&2',
-          null,
         ],
       }),
     blockType: z
@@ -110,7 +108,7 @@ const AddressI18nAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_block_ref_description'),
-        examples: ['A', 'B', '1', 'D1', '1&2', null],
+        examples: ['A', 'B', '1', 'D1', '1&2'],
       }),
     blockTypeBeforeNumber: z
       .boolean()
@@ -128,7 +126,14 @@ const AddressI18nAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_phase_expression_description'),
-        examples: ['PHASE I', 'PHASE II', 'PHASE IIIB', 'PHASE 3', null],
+        examples: [
+          'PHASE I',
+          'PHASE 2',
+          'PHASE IIIB',
+          'THE HIGHLAND',
+          'CHONG CHIEN COURT',
+          null,
+        ],
       }),
     phaseName: z
       .string()
@@ -136,7 +141,7 @@ const AddressI18nAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_phase_name_description'),
-        examples: ['PHASE', '期', null],
+        examples: ['PHASE', 'THE HIGHLAND', 'STAGE', null],
       }),
     phaseRef: z
       .string()
@@ -159,7 +164,6 @@ const AddressI18nAttributesSchema = z
           'DISCOVERY BAY',
           'MARINA COVE',
           'WHAMPOA ESTATE',
-          null,
         ],
       }),
     streetName: z
@@ -175,7 +179,6 @@ const AddressI18nAttributesSchema = z
           'CANTON ROAD',
           "QUEEN'S ROAD WEST",
           'LAI CHI KOK ROAD',
-          null,
         ],
       }),
   })

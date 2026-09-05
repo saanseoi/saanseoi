@@ -567,21 +567,15 @@ function splitPhaseNameReference(name: string, ref: string | null) {
 
   const shouldSplit = ref
     ? phaseReferenceTokensEqual(token, ref)
-    : canInferPhaseReference(token, tokenValue)
+    : canInferPhaseReference(tokenValue)
   if (!shouldSplit) return null
 
   return { name: stem, ref: ref ?? token }
 }
 
-function canInferPhaseReference(
-  token: string,
-  parsed: { number: number; suffix: string },
-) {
-  if (/^[0-9]/.test(token)) return true
+function canInferPhaseReference(parsed: { number: number; suffix: string }) {
   if (parsed.suffix) return false
-  // C, D, L and M are common single-letter phase labels as well as Roman
-  // numerals. Treat only the unambiguous small ordinal forms as inferred refs.
-  return token.length > 1 || ['I', 'V', 'X'].includes(token.toUpperCase())
+  return true
 }
 
 function phaseReferenceTokensEqual(left: string, right: string) {
