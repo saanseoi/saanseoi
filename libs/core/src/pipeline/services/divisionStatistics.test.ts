@@ -60,12 +60,6 @@ test('resolves C&SD DC only while creating the history observation', () => {
     districtCode: 'CW',
     divisionId: 'division-0',
     midYearPopulation: 2_500,
-    sourceKeys: {
-      hkgovCenstatd: {
-        districtCode: 1,
-        i18n: { en: { name: 'Central and Western' } },
-      },
-    },
   })
 })
 

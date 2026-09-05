@@ -21,14 +21,13 @@ export type NormalisedPlace = {
   taxonomyPrimary: string | null
   taxonomyHierarchy: unknown
   taxonomyAlternates: unknown
-  brandWikidata: string | null
+  wikidataId: string | null
   websites: unknown
   socials: unknown
   emails: unknown
   phones: unknown
-  addresses: unknown
+  addresses: string[] | null
   confidence: number | null
-  sourceKeys: string[]
   sources: unknown[]
   firstSeenMonth: string
   lastSeenMonth: string
@@ -69,18 +68,13 @@ export function normaliseOverturePlace(
     taxonomyPrimary,
     taxonomyHierarchy: jsonValue(taxonomy?.hierarchy),
     taxonomyAlternates: jsonValue(categories?.alternate ?? taxonomy?.alternate),
-    brandWikidata: asString(brand?.wikidata),
+    wikidataId: asString(brand?.wikidata),
     websites: jsonValue(row.websites),
     socials: jsonValue(row.socials),
     emails: jsonValue(row.emails),
     phones: jsonValue(row.phones),
-    addresses: jsonValue(row.addresses),
+    addresses: buildPlaceAddresses(row.addresses),
     confidence: asNumber(row.confidence),
-    sourceKeys: sourceValues.flatMap(value => {
-      const source = asRecord(value)
-      const key = asString(source?.dataset) ?? asString(source?.id)
-      return key ? [key] : []
-    }),
     sources: sourceValues,
     firstSeenMonth: month,
     lastSeenMonth: month,
@@ -100,7 +94,7 @@ export async function hashNormalisedPlace(place: NormalisedPlace) {
     taxonomyPrimary: place.taxonomyPrimary,
     taxonomyHierarchy: place.taxonomyHierarchy,
     taxonomyAlternates: place.taxonomyAlternates,
-    brandWikidata: place.brandWikidata,
+    wikidataId: place.wikidataId,
     websites: place.websites,
     socials: place.socials,
     emails: place.emails,
@@ -153,14 +147,47 @@ export function extractPlaceAddressReference(value: unknown): PlaceAddressRefere
     if (!object) continue
     const id = asString(object.id) ?? asString(object.address_id)
     if (id) ids.add(id)
-    for (const item of Object.values(object)) {
-      if (typeof item === 'string' && item.trim() && item !== id) {
-        texts.add(item.trim())
-      }
-    }
+    const freeform = asString(object.freeform)
+    if (freeform) texts.add(freeform)
   }
 
   return { ids: [...ids], texts: [...texts] }
+}
+
+/** Reads the publisher country used by the Hong Kong Places inclusion filter. */
+export function getPlaceAddressCountry(value: unknown): string | null {
+  const address = Array.isArray(value) ? asRecord(value[0]) : null
+  return asString(address?.country)
+}
+
+/** Retains only publisher free-form addresses in the canonical Place row. */
+export function buildPlaceAddresses(value: unknown): string[] | null {
+  const records = Array.isArray(value) ? value : [value]
+  const freeforms = records.flatMap(record => {
+    if (typeof record === 'string' && record.trim()) return [record.trim()]
+    const object = asRecord(record)
+    const freeform = asString(object?.freeform)
+    return freeform ? [freeform] : []
+  })
+  return freeforms.length > 0 ? freeforms : null
+}
+
+/** Stops ingestion before materialisation while the Place-to-address model is single-valued. */
+export function assertPlaceAddressCardinality(places: NormalisedPlace[]) {
+  const multipleAddressPlaces = places.filter(
+    place => Array.isArray(place.raw.addresses) && place.raw.addresses.length > 1,
+  )
+  if (multipleAddressPlaces.length === 0) return
+
+  const preview = multipleAddressPlaces
+    .slice(0, 10)
+    .map(place => place.id)
+    .join(', ')
+  const remaining =
+    multipleAddressPlaces.length - Math.min(10, multipleAddressPlaces.length)
+  throw new Error(
+    `WARNING: Overture Places ingestion stopped because ${multipleAddressPlaces.length} Place(s) contain more than one address. The current Place-to-address materialisation supports one canonical address. Reconsider the address <> place implementation before continuing. Affected Place IDs: ${preview}${remaining > 0 ? `, and ${remaining} more` : ''}.`,
+  )
 }
 
 export function normalisePlaceText(value: string) {

@@ -26,7 +26,7 @@ type GeometryBase = {
   id: string
   isLand: boolean | null
   isTerritorial: boolean | null
-  sourceKeys: Record<string, Record<string, unknown>>
+  identifiers: Record<string, Record<string, unknown>> | null
   sources: Record<string, unknown> | undefined
   type: 'land' | 'maritime' | 'mixed'
   variant: string
@@ -105,7 +105,7 @@ export function normaliseDivisionAreaGeometryRow(
     throw new Error('Division area row requires non-empty `id` and `division_id`.')
   }
 
-  const sourceKeys = buildSourceKeys(row, source)
+  const identifiers = buildIdentifiers(row, source)
   const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
@@ -113,7 +113,7 @@ export function normaliseDivisionAreaGeometryRow(
     id,
     isLand,
     isTerritorial,
-    sourceKeys,
+    identifiers,
     sources,
     type,
     variant: options.variant ?? source,
@@ -168,7 +168,7 @@ export function normaliseDivisionBoundaryGeometryRow(
     throw new Error(`Division boundary ${id} contains dropped perspectives data.`)
   }
 
-  const sourceKeys = buildSourceKeys(row, source)
+  const identifiers = buildIdentifiers(row, source)
   const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
@@ -176,7 +176,7 @@ export function normaliseDivisionBoundaryGeometryRow(
     id,
     isLand,
     isTerritorial,
-    sourceKeys,
+    identifiers,
     sources,
     type,
     variant: options.variant ?? source,
@@ -239,16 +239,15 @@ export function hashDivisionGeometrySourceRow(row: unknown) {
   return createHash(stableJsonStringify(row))
 }
 
-function buildSourceKeys(
+function buildIdentifiers(
   row: Record<string, unknown>,
   source: string,
-): Record<string, Record<string, unknown>> {
+): Record<string, Record<string, unknown>> | null {
   if (source === 'hkgov-had') {
     return {
       hkgov: {
         objectId: asOptionalInteger(row.object_id),
         cdsiAdminAreaId: asOptionalInteger(row.csdi_admin_area_id),
-        areaType: asNonEmptyString(row.area_type),
         areaId: asNonEmptyString(row.area_id),
         areaCode: asNonEmptyString(row.area_code),
       },
@@ -258,7 +257,6 @@ function buildSourceKeys(
   if (source === 'hkgov-pland-pu') {
     return {
       hkgovPland: {
-        planningLevel: asNonEmptyString(row.planning_level),
         ppu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:PPU')),
         spu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:SPU')),
         tpu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:TPU')),
@@ -280,18 +278,11 @@ function buildSourceKeys(
     return {
       hkgovPlandNewTown: {
         id: asNonEmptyString(row.newtown_id),
-        name: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:NEWTOWN')),
       },
     }
   }
 
-  return {
-    overture: {
-      version: asOptionalInteger(row.version),
-      subtype: asNonEmptyString(row.subtype),
-      class: asNonEmptyString(row.class),
-    },
-  }
+  return null
 }
 
 function normaliseSources(value: unknown, source: string) {

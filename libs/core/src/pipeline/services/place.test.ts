@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  assertPlaceAddressCardinality,
+  buildPlaceAddresses,
   extractPlaceAddressReference,
   hashPlaceMaterialisation,
   normaliseOverturePlace,
@@ -81,13 +83,68 @@ describe('Overture place normalisation', () => {
 test('extracts all address candidates without treating Overture IDs as ALS IDs', () => {
   expect(
     extractPlaceAddressReference([
-      { id: 'overture-address-1', freeform: '1 Example Road' },
+      {
+        id: 'overture-address-1',
+        freeform: '1 Example Road',
+        locality: 'Example Town',
+        country: 'HK',
+        region: 'HK',
+        postcode: '000000',
+      },
       '2 Example Road',
     ]),
   ).toEqual({
     ids: ['overture-address-1'],
     texts: ['1 Example Road', '2 Example Road'],
   })
+})
+
+test('unwraps free-form addresses into canonical strings only', () => {
+  expect(
+    buildPlaceAddresses([
+      {
+        freeform: '1 Example Road',
+        locality: 'Example Town',
+        country: 'HK',
+      },
+      { freeform: null, locality: 'Other Town' },
+      { freeform: '1 Example Road' },
+    ]),
+  ).toEqual(['1 Example Road', '1 Example Road'])
+  expect(buildPlaceAddresses([{ locality: 'Example Town' }])).toBeNull()
+})
+
+test('counts raw publisher addresses even when a free-form value is absent', () => {
+  const place = normaliseOverturePlace(
+    {
+      id: 'place-with-two-source-addresses',
+      geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+      addresses: [{ freeform: '1 Example Road' }, { locality: 'Example Town' }],
+    },
+    '2026-08-19.0',
+  )
+  if (!place) throw new Error('Expected a normalised place.')
+
+  expect(place.addresses).toEqual(['1 Example Road'])
+  expect(() => assertPlaceAddressCardinality([place])).toThrow(
+    'WARNING: Overture Places ingestion stopped',
+  )
+})
+
+test('stops Places ingestion when a Place has multiple addresses', () => {
+  const place = normaliseOverturePlace(
+    {
+      id: 'place-with-multiple-addresses',
+      geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+      addresses: [{ freeform: '1 Example Road' }, { freeform: '2 Example Road' }],
+    },
+    '2026-08-19.0',
+  )
+  if (!place) throw new Error('Expected a normalised place.')
+
+  expect(() => assertPlaceAddressCardinality([place])).toThrow(
+    'WARNING: Overture Places ingestion stopped',
+  )
 })
 
 test('normalises address join text consistently', () => {
