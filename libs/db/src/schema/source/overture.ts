@@ -82,7 +82,7 @@ export const sourceOverturePlaces = sqliteTable(
     taxonomyPrimary: text('taxonomyPrimary'),
     taxonomyHierarchy: jsonText('taxonomyHierarchy'),
     taxonomyAlternates: jsonText('taxonomyAlternates'),
-    brandWikidata: text('brandWikidata'),
+    wikidataId: text('wikidataId'),
     /** Exact publisher multilingual brand-name object, when supplied. */
     brandNames: jsonText('brandNames'),
     websites: jsonText('websites'),

@@ -155,7 +155,6 @@ export const canonicalDivision = {
   /** Canonical hierarchy level; absent for non-hierarchical geographies. */
   level: integer('level'),
   type: text('type').notNull(),
-  sourceKeys: jsonText('sourceKeys'),
   wikidata: text('wikidata'),
   hierarchy: jsonText('hierarchy'),
   cartography: jsonText('cartography'),
@@ -168,7 +167,7 @@ export const canonicalDivisionGeometry = {
   variant: text('variant').notNull().default('overture'),
   bbox: jsonText('bbox'),
   geometry: jsonTextOrBinary('geometry'),
-  sourceKeys: jsonText('sourceKeys'),
+  identifiers: jsonText('identifiers'),
   sources: jsonText('sources'),
   type: text('type').notNull(),
   isLand: integer('isLand', { mode: 'boolean' }),
@@ -200,7 +199,6 @@ export const canonicalDivisionStatistic = {
   landAreaSqKm: real('landAreaSqKm').notNull(),
   midYearPopulation: integer('midYearPopulation').notNull(),
   midYearPopulationDensityPerSqKm: integer('midYearPopulationDensityPerSqKm').notNull(),
-  sourceKeys: jsonText('sourceKeys').notNull(),
   sources: jsonText('sources').notNull(),
 }
 
@@ -516,14 +514,13 @@ export const canonicalPlace = {
   taxonomyPrimary: text('taxonomyPrimary'),
   taxonomyHierarchy: jsonText('taxonomyHierarchy'),
   taxonomyAlternates: jsonText('taxonomyAlternates'),
-  brandWikidata: text('brandWikidata'),
+  wikidataId: text('wikidataId'),
   websites: jsonText('websites'),
   socials: jsonText('socials'),
   emails: jsonText('emails'),
   phones: jsonText('phones'),
   addresses: jsonText('addresses'),
   confidence: real('confidence'),
-  sourceKeys: jsonText('sourceKeys'),
   sources: jsonText('sources'),
   firstSeenMonth: text('firstSeenMonth').notNull(),
   lastSeenMonth: text('lastSeenMonth').notNull(),
@@ -559,7 +556,8 @@ export const canonicalStreet = {
   noticeRefs: jsonText<string[]>('noticeRefs'),
   /** Government Notice PDFs and plans that establish the current street state. */
   evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
-  sourceKeys: jsonText('sourceKeys'),
+  /** Source-record references that establish the current street state. */
+  sources: jsonText('sources'),
 }
 
 export const canonicalStreetI18n = {
