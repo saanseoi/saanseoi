@@ -18,6 +18,10 @@ assembler reconciles the baseline against the complete notice ledger and publish
 immutable snapshot revision. The date boundary prevents a Government Notice from being
 replayed from both publishers.
 
+The focused Streets initialiser stages only the gazetted baseline and its canonical IDs.
+The two notice stages and final assembly are explicit follow-up commands because they
+may require reviewed lifecycle decisions. Road Centreline processing follows assembly.
+
 HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
 1842–1941 (except 1849–1852). They are retrieved and OCRed locally as high-recall
 street-name _candidates_. Local discovery ranks them into an auditable curator review

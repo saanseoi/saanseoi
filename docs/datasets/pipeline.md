@@ -85,6 +85,23 @@ bun run db:reset:local
 ./bin/saanseoi init:addresses:official
 ```
 
+The focused LandsD Streets initialiser stages only the gazetted baseline and its
+canonical street IDs. It does not enter historical Government Notice curation or publish
+an assembled Streets snapshot. Continue those stages explicitly after reviewing the
+source evidence:
+
+```sh
+bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target local
+bun run --silent dataops -- hkgov-landsd-streets:official-egazette --target local
+bun run --silent dataops -- hkgov-landsd-streets:assemble --target local
+./bin/saanseoi update --target local \
+  --dataset ds-hk-hkgov-landsd-road-centreline --check-now --yes
+```
+
+The notice and e-Gazette stages may require reviewed lifecycle decisions before
+assembly. Road Centreline is intentionally last because it matches source segments to
+the assembled LandsD street identities.
+
 The four focused division initialisers also accept a remote target. They process the
 same checked-in source cohorts in dependency order and publish to the selected Harbour
 environment:
