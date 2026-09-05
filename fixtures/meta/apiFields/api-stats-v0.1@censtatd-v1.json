@@ -1,0 +1,187 @@
+{
+  "versionHash": "sha256:013529e463c33ad36dee20346f5b85edc9845d47da1cbeae7a90d55ae15b52ef",
+  "apiVersion": "api-stats-v0.1",
+  "domainCode": "official",
+  "schemaVersion": "sv-statistics-v1",
+  "rulesetVersion": "rs-division-statistic-merge-v1",
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-new-towns": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-H2",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2026-Q2",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "apiField": "statistic.id",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "sourceRecordId",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.datasetCode",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "datasetCode",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.referencePeriod.code",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "reference_period_code",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.referencePeriod.start",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "reference_period_start",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.referencePeriod.end",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "reference_period_end",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.referencePeriod.endYear",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "reference_period_end_year",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.referencePeriod.granularity",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "reference_period_granularity",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.geography",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.dc, raw_properties.dc_class",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.dimensions",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.<dimension field>",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.values",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.<publisher measure field>",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.sourceReleaseId",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "releaseId",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.attributes.sourceFeatureRef",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "datasetCode, sourceVersion, layerName, featureId",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic.relationships.division",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.dc",
+      "resolverCode": "lookup_fk",
+      "contributionType": "enrichment",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic-field.attributes",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.<publisher measure field>",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "statistic-field.attributes.i18n",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "sourceFieldPath": "raw_properties.<publisher measure field>",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    }
+  ]
+}
