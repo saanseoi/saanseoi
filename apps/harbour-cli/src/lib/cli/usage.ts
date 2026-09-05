@@ -6,7 +6,7 @@ export function printUsage() {
   saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry|places] [--cohort-key YYYY]
   saanseoi cache:seed-reset --target preview|production
   saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry|places]
-  saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--defer-api-release-set] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
+  saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--defer-api-release-set] [--skip-cleanup] [--translate-places] [--generate-place-translation-fixtures] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:local [--cacheArtefacts]
   saanseoi init:production [--cacheArtefacts]

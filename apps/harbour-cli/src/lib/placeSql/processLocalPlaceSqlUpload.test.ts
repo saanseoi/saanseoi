@@ -99,7 +99,12 @@ describe('Places SQL materialisation', () => {
         confidence REAL, sources TEXT, firstSeenMonth TEXT,
         lastSeenMonth TEXT, createdAt TEXT, updatedAt TEXT, PRIMARY KEY (snapshotId, id)
       );
-      CREATE TABLE placesI18n (snapshotId TEXT, placeId TEXT, locale TEXT);
+      CREATE TABLE placesI18n (
+        snapshotId TEXT, placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT,
+        nameAlts TEXT, isLocaleInferred INTEGER, brandName TEXT,
+        brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT,
+        provenance TEXT, createdAt TEXT, updatedAt TEXT
+      );
       CREATE TABLE placesDivision (placeSnapshotId TEXT, placeId TEXT);
       CREATE TABLE placesCells (snapshotId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
     `)
@@ -121,6 +126,7 @@ describe('Places SQL materialisation', () => {
         isLocaleInferred INTEGER, brandName TEXT, brandNameVariant TEXT,
         brandNameAlts TEXT, versionHash TEXT, sourceReleaseId TEXT,
         snapshotId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT
+        , freeformAddress TEXT, provenance TEXT
       );
       CREATE TABLE snapshotVersionChanges (
         snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
@@ -183,7 +189,25 @@ describe('Places SQL materialisation', () => {
             sources: [{ dataset: 'openstreetmap' }],
             firstSeenMonth: '2026-08',
             lastSeenMonth: '2026-08',
-            i18n: [],
+            i18n: [
+              {
+                locale: 'en',
+                name: 'Example',
+                nameVariant: null,
+                nameAlts: null,
+                isLocaleInferred: false,
+                brandName: null,
+                brandNameVariant: null,
+                brandNameAlts: null,
+                freeformAddress: '1 Example Road',
+                provenance: {
+                  isMachineTranslated: [],
+                  isHumanVerified: [],
+                  isLocaleInferred: false,
+                  localeEvidence: [],
+                },
+              },
+            ],
             raw: {
               id: 'place-1',
               geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
@@ -212,7 +236,18 @@ describe('Places SQL materialisation', () => {
     })
     expect(
       history.query('SELECT COUNT(*) AS count FROM snapshotVersionChanges').get(),
-    ).toEqual({ count: 1 })
+    ).toEqual({ count: 2 })
+    expect(
+      sqlite.query('SELECT freeformAddress, provenance FROM placesI18n').get(),
+    ).toEqual({
+      freeformAddress: '1 Example Road',
+      provenance: JSON.stringify({
+        isMachineTranslated: [],
+        isHumanVerified: [],
+        isLocaleInferred: false,
+        localeEvidence: [],
+      }),
+    })
     expect(sqlite.query('SELECT rawProperties FROM overturePlaces').get()).toEqual({
       rawProperties: JSON.stringify({
         id: 'place-1',
