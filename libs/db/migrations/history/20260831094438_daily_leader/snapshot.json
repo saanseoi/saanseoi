@@ -2244,7 +2244,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "brandWikidata",
+      "name": "wikidataId",
       "entityType": "columns",
       "table": "places"
     },

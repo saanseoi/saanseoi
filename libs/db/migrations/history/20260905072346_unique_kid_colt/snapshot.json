@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "453e61ca-a413-450d-87f5-e74eeb72d818",
-  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "id": "eb7a6321-68e8-4361-8702-d4e4105e0e68",
+  "prevIds": ["befcb084-c2e7-4c2f-ab8f-ee298319cbc3"],
   "ddl": [
     {
       "name": "divisions",
@@ -41,10 +41,6 @@
       "entityType": "tables"
     },
     {
-      "name": "streetsAddress",
-      "entityType": "tables"
-    },
-    {
       "name": "streetsI18n",
       "entityType": "tables"
     },
@@ -69,18 +65,6 @@
       "entityType": "tables"
     },
     {
-      "name": "placesCells",
-      "entityType": "tables"
-    },
-    {
-      "name": "placesDivision",
-      "entityType": "tables"
-    },
-    {
-      "name": "placesFts",
-      "entityType": "tables"
-    },
-    {
       "name": "placesI18n",
       "entityType": "tables"
     },
@@ -90,6 +74,10 @@
     },
     {
       "name": "divisionBoundaries",
+      "entityType": "tables"
+    },
+    {
+      "name": "snapshotVersionChanges",
       "entityType": "tables"
     },
     {
@@ -119,16 +107,6 @@
     {
       "name": "statsValuesI18n",
       "entityType": "tables"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "divisions"
     },
     {
       "type": "text",
@@ -177,16 +155,6 @@
       "default": null,
       "generated": null,
       "name": "type",
-      "entityType": "columns",
-      "table": "divisions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceKeys",
       "entityType": "columns",
       "table": "divisions"
     },
@@ -254,6 +222,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -269,16 +277,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "divisions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "divisionsI18n"
     },
     {
       "type": "text",
@@ -364,6 +362,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -379,36 +417,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "divisionsI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address2d"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "divisionSnapshotId",
-      "entityType": "columns",
-      "table": "address2d"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "streetSnapshotId",
-      "entityType": "columns",
-      "table": "address2d"
     },
     {
       "type": "text",
@@ -564,6 +572,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -579,16 +627,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address2d"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address2dBuildingNumberLookup"
     },
     {
       "type": "text",
@@ -644,6 +682,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -659,16 +737,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address2dBuildingNumberLookup"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address2dI18n"
     },
     {
       "type": "text",
@@ -844,6 +912,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -859,16 +967,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address2dI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address3d"
     },
     {
       "type": "text",
@@ -904,6 +1002,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -919,16 +1057,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address3d"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address3dI18n"
     },
     {
       "type": "text",
@@ -1044,6 +1172,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -1059,16 +1227,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address3dI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "address3dUnitRefLookup"
     },
     {
       "type": "text",
@@ -1124,6 +1282,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address3dUnitRefLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address3dUnitRefLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3dUnitRefLookup"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address3dUnitRefLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -1139,16 +1337,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "address3dUnitRefLookup"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "streets"
     },
     {
       "type": "text",
@@ -1246,7 +1434,47 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceKeys",
+      "name": "sources",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "streets"
     },
@@ -1269,56 +1497,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "streets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "streetSnapshotId",
-      "entityType": "columns",
-      "table": "streetsAddress"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "streetId",
-      "entityType": "columns",
-      "table": "streetsAddress"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "addressSnapshotId",
-      "entityType": "columns",
-      "table": "streetsAddress"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "addressId",
-      "entityType": "columns",
-      "table": "streetsAddress"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "streetsI18n"
     },
     {
       "type": "text",
@@ -1414,6 +1592,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -1436,7 +1654,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "snapshotId",
+      "name": "streetId",
       "entityType": "columns",
       "table": "streetChangelog"
     },
@@ -1447,16 +1665,6 @@
       "default": null,
       "generated": null,
       "name": "recordKey",
-      "entityType": "columns",
-      "table": "streetChangelog"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "streetId",
       "entityType": "columns",
       "table": "streetChangelog"
     },
@@ -1516,16 +1724,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceReleaseId",
-      "entityType": "columns",
-      "table": "streetChangelog"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "noticeRef",
       "entityType": "columns",
       "table": "streetChangelog"
@@ -1537,6 +1735,46 @@
       "default": null,
       "generated": null,
       "name": "evidenceAssets",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "streetChangelog"
     },
@@ -1559,16 +1797,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "streetChangelog"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "streetNameChangeStreets"
     },
     {
       "type": "text",
@@ -1606,9 +1834,59 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
       "name": "snapshotId",
       "entityType": "columns",
-      "table": "streetNameChanges"
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
     },
     {
       "type": "text",
@@ -1674,6 +1952,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -1696,27 +2014,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "streetGeometry"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "streetId",
-      "entityType": "columns",
-      "table": "streetGeometry"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "streetGeometry"
     },
@@ -1744,6 +2042,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -1759,16 +2097,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "streetGeometry"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "places"
     },
     {
       "type": "text",
@@ -1976,16 +2304,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceKeys",
-      "entityType": "columns",
-      "table": "places"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "sources",
       "entityType": "columns",
       "table": "places"
@@ -2014,6 +2332,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2029,186 +2387,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "places"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "placesCells"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "placesCells"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "h3Level",
-      "entityType": "columns",
-      "table": "placesCells"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "h3Cell",
-      "entityType": "columns",
-      "table": "placesCells"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "placeSnapshotId",
-      "entityType": "columns",
-      "table": "placesDivision"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "placeId",
-      "entityType": "columns",
-      "table": "placesDivision"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "divisionSnapshotId",
-      "entityType": "columns",
-      "table": "placesDivision"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "divisionId",
-      "entityType": "columns",
-      "table": "placesDivision"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "placeId",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "locale",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "nameText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "brandText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "taxonomyText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "addressText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "divisionText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "streetText",
-      "entityType": "columns",
-      "table": "placesFts"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "placesI18n"
     },
     {
       "type": "text",
@@ -2304,6 +2482,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2319,16 +2537,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "placesI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "divisionAreas"
     },
     {
       "type": "text",
@@ -2376,7 +2584,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceKeys",
+      "name": "identifiers",
       "entityType": "columns",
       "table": "divisionAreas"
     },
@@ -2434,6 +2642,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2449,16 +2697,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "divisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
-      "entityType": "columns",
-      "table": "divisionBoundaries"
     },
     {
       "type": "text",
@@ -2506,7 +2744,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceKeys",
+      "name": "identifiers",
       "entityType": "columns",
       "table": "divisionBoundaries"
     },
@@ -2574,6 +2812,46 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2598,7 +2876,87 @@
       "generated": null,
       "name": "snapshotId",
       "entityType": "columns",
-      "table": "divisionStatistics"
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "recordType",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "recordId",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "snapshotVersionChanges"
     },
     {
       "type": "text",
@@ -2676,7 +3034,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceKeys",
+      "name": "sources",
       "entityType": "columns",
       "table": "divisionStatistics"
     },
@@ -2686,7 +3044,27 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionStatistics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionStatistics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "divisionStatistics"
     },
@@ -2854,6 +3232,36 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2934,6 +3342,36 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -2967,6 +3405,36 @@
       "default": null,
       "generated": null,
       "name": "measureCode",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "statsMeasures"
     },
@@ -3047,6 +3515,36 @@
       "default": "true",
       "generated": null,
       "name": "isTranslationVerified",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "statsMeasuresI18n"
     },
@@ -3204,6 +3702,26 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -3274,6 +3792,36 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -3291,497 +3839,223 @@
       "table": "statsValuesI18n"
     },
     {
-      "columns": ["snapshotId", "divisionId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "divisionsI18n_snapshotId_divisionId_divisions_fk",
-      "entityType": "fks",
-      "table": "divisionsI18n"
-    },
-    {
-      "columns": ["divisionSnapshotId", "countryId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_countryId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "areaId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_areaId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "districtId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_districtId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "townId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_townId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "macrohoodId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_macrohoodId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "villageId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_villageId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "neighbourhoodId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_neighbourhoodId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "hamletId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_hamletId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["divisionSnapshotId", "microhoodId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_divisionSnapshotId_microhoodId_divisions_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["streetSnapshotId", "streetId"],
-      "tableTo": "streets",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "address2d_streetSnapshotId_streetId_streets_fk",
-      "entityType": "fks",
-      "table": "address2d"
-    },
-    {
-      "columns": ["snapshotId", "addressId"],
-      "tableTo": "address2d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "address2dBuildingNumberLookup_snapshotId_addressId_address2d_fk",
-      "entityType": "fks",
-      "table": "address2dBuildingNumberLookup"
-    },
-    {
-      "columns": ["snapshotId", "addressId"],
-      "tableTo": "address2d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "address2dI18n_snapshotId_addressId_address2d_fk",
-      "entityType": "fks",
-      "table": "address2dI18n"
-    },
-    {
-      "columns": ["snapshotId", "address2dId"],
-      "tableTo": "address2d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "address3d_snapshotId_address2dId_address2d_fk",
-      "entityType": "fks",
-      "table": "address3d"
-    },
-    {
-      "columns": ["snapshotId", "address3dId"],
-      "tableTo": "address3d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "address3dI18n_snapshotId_address3dId_address3d_fk",
-      "entityType": "fks",
-      "table": "address3dI18n"
-    },
-    {
-      "columns": ["snapshotId", "address3dId"],
-      "tableTo": "address3d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "address3dUnitRefLookup_snapshotId_address3dId_address3d_fk",
-      "entityType": "fks",
-      "table": "address3dUnitRefLookup"
-    },
-    {
-      "columns": ["streetSnapshotId", "streetId"],
-      "tableTo": "streets",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "streetsAddress_streetSnapshotId_streetId_streets_fk",
-      "entityType": "fks",
-      "table": "streetsAddress"
-    },
-    {
-      "columns": ["addressSnapshotId", "addressId"],
-      "tableTo": "address2d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "streetsAddress_addressSnapshotId_addressId_address2d_fk",
-      "entityType": "fks",
-      "table": "streetsAddress"
-    },
-    {
-      "columns": ["snapshotId", "streetId"],
-      "tableTo": "streets",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "streetsI18n_snapshotId_streetId_streets_fk",
-      "entityType": "fks",
-      "table": "streetsI18n"
-    },
-    {
-      "columns": ["snapshotId", "nameChangeId"],
-      "tableTo": "streetNameChanges",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "streetNameChangeStreets_change_fk",
-      "entityType": "fks",
-      "table": "streetNameChangeStreets"
-    },
-    {
-      "columns": ["snapshotId", "streetId"],
-      "tableTo": "streets",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "streetNameChangeStreets_street_fk",
-      "entityType": "fks",
-      "table": "streetNameChangeStreets"
-    },
-    {
-      "columns": ["addressSnapshotId", "address2dId"],
-      "tableTo": "address2d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "places_addressSnapshotId_address2dId_address2d_fk",
-      "entityType": "fks",
-      "table": "places"
-    },
-    {
-      "columns": ["addressSnapshotId", "address3dId"],
-      "tableTo": "address3d",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "places_addressSnapshotId_address3dId_address3d_fk",
-      "entityType": "fks",
-      "table": "places"
-    },
-    {
-      "columns": ["snapshotId", "id"],
-      "tableTo": "places",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "placesCells_snapshotId_id_places_fk",
-      "entityType": "fks",
-      "table": "placesCells"
-    },
-    {
-      "columns": ["placeSnapshotId", "placeId"],
-      "tableTo": "places",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "placesDivision_placeSnapshotId_placeId_places_fk",
-      "entityType": "fks",
-      "table": "placesDivision"
-    },
-    {
-      "columns": ["divisionSnapshotId", "divisionId"],
-      "tableTo": "divisions",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": true,
-      "name": "placesDivision_divisionSnapshotId_divisionId_divisions_fk",
-      "entityType": "fks",
-      "table": "placesDivision"
-    },
-    {
-      "columns": ["snapshotId", "placeId"],
-      "tableTo": "places",
-      "columnsTo": ["snapshotId", "id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": true,
-      "name": "placesI18n_snapshotId_placeId_places_fk",
-      "entityType": "fks",
-      "table": "placesI18n"
-    },
-    {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "divisions_pk",
       "entityType": "pks",
       "table": "divisions"
     },
     {
-      "columns": ["snapshotId", "divisionId", "locale"],
+      "columns": ["divisionId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "divisionsI18n_pk",
       "entityType": "pks",
       "table": "divisionsI18n"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "address2d_pk",
       "entityType": "pks",
       "table": "address2d"
     },
     {
-      "columns": ["snapshotId", "addressId", "buildingNumber"],
+      "columns": ["addressId", "versionHash", "buildingNumber"],
       "nameExplicit": false,
       "name": "address2dBuildingNumberLookup_pk",
       "entityType": "pks",
       "table": "address2dBuildingNumberLookup"
     },
     {
-      "columns": ["snapshotId", "addressId", "locale"],
+      "columns": ["addressId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "address2dI18n_pk",
       "entityType": "pks",
       "table": "address2dI18n"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "address3d_pk",
       "entityType": "pks",
       "table": "address3d"
     },
     {
-      "columns": ["snapshotId", "address3dId", "locale"],
+      "columns": ["address3dId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "address3dI18n_pk",
       "entityType": "pks",
       "table": "address3dI18n"
     },
     {
-      "columns": ["snapshotId", "address3dId", "unitRef"],
+      "columns": ["address3dId", "versionHash", "unitRef"],
       "nameExplicit": false,
       "name": "address3dUnitRefLookup_pk",
       "entityType": "pks",
       "table": "address3dUnitRefLookup"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "streets_pk",
       "entityType": "pks",
       "table": "streets"
     },
     {
-      "columns": ["streetSnapshotId", "streetId", "addressSnapshotId", "addressId"],
-      "nameExplicit": false,
-      "name": "streetsAddress_pk",
-      "entityType": "pks",
-      "table": "streetsAddress"
-    },
-    {
-      "columns": ["snapshotId", "streetId", "locale"],
+      "columns": ["streetId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "streetsI18n_pk",
       "entityType": "pks",
       "table": "streetsI18n"
     },
     {
-      "columns": ["snapshotId", "recordKey", "streetId"],
+      "columns": ["streetId", "recordKey", "versionHash"],
       "nameExplicit": false,
       "name": "streetChangelog_pk",
       "entityType": "pks",
       "table": "streetChangelog"
     },
     {
-      "columns": ["snapshotId", "nameChangeId", "streetId", "role"],
+      "columns": ["nameChangeId", "versionHash", "streetId", "role"],
       "nameExplicit": false,
       "name": "streetNameChangeStreets_pk",
       "entityType": "pks",
       "table": "streetNameChangeStreets"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "streetNameChanges_pk",
       "entityType": "pks",
       "table": "streetNameChanges"
     },
     {
-      "columns": ["snapshotId", "streetId"],
+      "columns": ["streetId", "versionHash"],
       "nameExplicit": false,
       "name": "streetGeometry_pk",
       "entityType": "pks",
       "table": "streetGeometry"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "places_pk",
       "entityType": "pks",
       "table": "places"
     },
     {
-      "columns": ["snapshotId", "id", "h3Level", "h3Cell"],
-      "nameExplicit": false,
-      "name": "placesCells_pk",
-      "entityType": "pks",
-      "table": "placesCells"
-    },
-    {
-      "columns": ["placeSnapshotId", "placeId", "divisionSnapshotId", "divisionId"],
-      "nameExplicit": false,
-      "name": "placesDivision_pk",
-      "entityType": "pks",
-      "table": "placesDivision"
-    },
-    {
-      "columns": ["snapshotId", "placeId", "locale"],
+      "columns": ["placeId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "placesI18n_pk",
       "entityType": "pks",
       "table": "placesI18n"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "divisionAreas_pk",
       "entityType": "pks",
       "table": "divisionAreas"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "divisionBoundaries_pk",
       "entityType": "pks",
       "table": "divisionBoundaries"
     },
     {
-      "columns": ["snapshotId", "id"],
+      "columns": ["snapshotId", "recordType", "recordId", "locale"],
+      "nameExplicit": false,
+      "name": "snapshotVersionChanges_pk",
+      "entityType": "pks",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "divisionStatistics_pk",
       "entityType": "pks",
       "table": "divisionStatistics"
     },
     {
-      "columns": ["datasetCode", "fieldName"],
+      "columns": ["datasetCode", "fieldName", "sourceReleaseId", "versionHash"],
       "nameExplicit": false,
       "name": "statsFields_pk",
       "entityType": "pks",
       "table": "statsFields"
     },
     {
-      "columns": ["datasetCode", "fieldName", "locale"],
+      "columns": [
+        "datasetCode",
+        "fieldName",
+        "locale",
+        "sourceReleaseId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "statsFieldsI18n_pk",
       "entityType": "pks",
       "table": "statsFieldsI18n"
     },
     {
-      "columns": ["datasetCode", "measureCode"],
+      "columns": ["datasetCode", "measureCode", "sourceReleaseId", "versionHash"],
       "nameExplicit": false,
       "name": "statsMeasures_pk",
       "entityType": "pks",
       "table": "statsMeasures"
     },
     {
-      "columns": ["datasetCode", "measureCode", "locale"],
+      "columns": [
+        "datasetCode",
+        "measureCode",
+        "locale",
+        "sourceReleaseId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "statsMeasuresI18n_pk",
       "entityType": "pks",
       "table": "statsMeasuresI18n"
     },
     {
-      "columns": ["id"],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "statsRecords_pk",
       "entityType": "pks",
       "table": "statsRecords"
     },
     {
-      "columns": ["datasetCode", "dimensionCode", "valueCode", "locale"],
+      "columns": [
+        "datasetCode",
+        "dimensionCode",
+        "valueCode",
+        "locale",
+        "sourceReleaseId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "statsValuesI18n_pk",
       "entityType": "pks",
       "table": "statsValuesI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisions"
     },
     {
       "columns": [
@@ -3804,14 +4078,14 @@
     {
       "columns": [
         {
-          "value": "level",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "divisions_level_idx",
+      "name": "divisions_sourceReleaseId_idx",
       "entityType": "indexes",
       "table": "divisions"
     },
@@ -3820,7 +4094,17 @@
         {
           "value": "snapshotId",
           "isExpression": false
-        },
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
         {
           "value": "locale",
           "isExpression": false
@@ -3835,10 +4119,6 @@
     },
     {
       "columns": [
-        {
-          "value": "snapshotId",
-          "isExpression": false
-        },
         {
           "value": "locale",
           "isExpression": false
@@ -3858,56 +4138,68 @@
     {
       "columns": [
         {
-          "value": "streetId",
+          "value": "divisionId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address2d_streetId_idx",
+      "name": "divisionsI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_current_lookup_idx",
       "entityType": "indexes",
       "table": "address2d"
     },
     {
       "columns": [
         {
-          "value": "divisionSnapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "hamletId",
-          "isExpression": false
-        },
-        {
-          "value": "microhoodId",
-          "isExpression": false
-        },
-        {
-          "value": "villageId",
-          "isExpression": false
-        },
-        {
-          "value": "neighbourhoodId",
-          "isExpression": false
-        },
-        {
-          "value": "macrohoodId",
-          "isExpression": false
-        },
-        {
-          "value": "townId",
-          "isExpression": false
-        },
-        {
-          "value": "districtId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address2d_division_idx",
+      "name": "address2d_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_snapshotId_idx",
       "entityType": "indexes",
       "table": "address2d"
     },
@@ -3919,6 +4211,10 @@
         },
         {
           "value": "buildingNumber",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -3937,6 +4233,10 @@
         },
         {
           "value": "numericStem",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -3964,9 +4264,73 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
+          "value": "addressId",
           "isExpression": false
         },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2dI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address2dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
         {
           "value": "address2dId",
           "isExpression": false
@@ -3996,11 +4360,37 @@
     {
       "columns": [
         {
+          "value": "address3dId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3dI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address3dI18n"
+    },
+    {
+      "columns": [
+        {
           "value": "snapshotId",
           "isExpression": false
         },
         {
           "value": "unitRef",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -4020,6 +4410,10 @@
         {
           "value": "numericStem",
           "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
         }
       ],
       "isUnique": false,
@@ -4032,20 +4426,66 @@
     {
       "columns": [
         {
-          "value": "addressSnapshotId",
+          "value": "id",
           "isExpression": false
         },
         {
-          "value": "addressId",
+          "value": "version",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetsAddress_addressId_idx",
+      "name": "streets_id_version_idx",
       "entityType": "indexes",
-      "table": "streetsAddress"
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streets"
     },
     {
       "columns": [
@@ -4082,18 +4522,40 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
+          "value": "streetId",
           "isExpression": false
         },
         {
-          "value": "streetId",
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetChangelog_street_idx",
+      "name": "streetsI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_street_current_idx",
       "entityType": "indexes",
       "table": "streetChangelog"
     },
@@ -4116,9 +4578,23 @@
         {
           "value": "snapshotId",
           "isExpression": false
-        },
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": [
         {
           "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -4128,6 +4604,38 @@
       "name": "streetNameChangeStreets_streetId_idx",
       "entityType": "indexes",
       "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChangeStreets_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChanges_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streetNameChanges"
     },
     {
       "columns": [
@@ -4146,14 +4654,14 @@
     {
       "columns": [
         {
-          "value": "status",
+          "value": "snapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetNameChanges_status_idx",
+      "name": "streetNameChanges_snapshotId_idx",
       "entityType": "indexes",
       "table": "streetNameChanges"
     },
@@ -4162,12 +4670,16 @@
         {
           "value": "streetId",
           "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetGeometry_streetId_idx",
+      "name": "streetGeometry_current_lookup_idx",
       "entityType": "indexes",
       "table": "streetGeometry"
     },
@@ -4188,122 +4700,62 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "snapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "places_releaseId_idx",
+      "name": "streetGeometry_snapshotId_idx",
       "entityType": "indexes",
-      "table": "places"
+      "table": "streetGeometry"
     },
     {
       "columns": [
-        {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "basicCategory",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "places_category_idx",
-      "entityType": "indexes",
-      "table": "places"
-    },
-    {
-      "columns": [
-        {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "taxonomyPrimary",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "places_taxonomy_idx",
-      "entityType": "indexes",
-      "table": "places"
-    },
-    {
-      "columns": [
-        {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "operatingStatus",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "places_status_idx",
-      "entityType": "indexes",
-      "table": "places"
-    },
-    {
-      "columns": [
-        {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "h3Level",
-          "isExpression": false
-        },
-        {
-          "value": "h3Cell",
-          "isExpression": false
-        },
         {
           "value": "id",
           "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "placesCells_lookup_idx",
+      "name": "places_current_lookup_idx",
       "entityType": "indexes",
-      "table": "placesCells"
+      "table": "places"
     },
     {
       "columns": [
         {
-          "value": "divisionSnapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "divisionId",
-          "isExpression": false
-        },
-        {
-          "value": "placeSnapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "placeId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "placesDivision_divisionId_idx",
+      "name": "places_sourceReleaseId_idx",
       "entityType": "indexes",
-      "table": "placesDivision"
+      "table": "places"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "places"
     },
     {
       "columns": [
@@ -4340,11 +4792,51 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
+          "value": "placeId",
           "isExpression": false
         },
         {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "placesI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
           "value": "divisionId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -4358,18 +4850,14 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "type",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "divisionAreas_type_idx",
+      "name": "divisionAreas_sourceReleaseId_idx",
       "entityType": "indexes",
       "table": "divisionAreas"
     },
@@ -4378,9 +4866,41 @@
         {
           "value": "snapshotId",
           "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
         },
         {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
           "value": "leftDivisionId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -4394,11 +4914,11 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
+          "value": "rightDivisionId",
           "isExpression": false
         },
         {
-          "value": "rightDivisionId",
+          "value": "isCurrent",
           "isExpression": false
         }
       ],
@@ -4412,18 +4932,14 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
-          "isExpression": false
-        },
-        {
-          "value": "type",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "divisionBoundaries_type_idx",
+      "name": "divisionBoundaries_sourceReleaseId_idx",
       "entityType": "indexes",
       "table": "divisionBoundaries"
     },
@@ -4432,7 +4948,75 @@
         {
           "value": "snapshotId",
           "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "recordType",
+          "isExpression": false
         },
+        {
+          "value": "recordId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "snapshotVersionChanges_record_lookup_idx",
+      "entityType": "indexes",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "snapshotVersionChanges_snapshot_idx",
+      "entityType": "indexes",
+      "table": "snapshotVersionChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionStatistics_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionStatistics"
+    },
+    {
+      "columns": [
         {
           "value": "divisionId",
           "isExpression": false
@@ -4448,6 +5032,82 @@
       "name": "divisionStatistics_divisionId_referenceYear_idx",
       "entityType": "indexes",
       "table": "divisionStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionStatistics_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "divisionStatistics"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetCode",
+          "isExpression": false
+        },
+        {
+          "value": "fieldName",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsFields_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsFields"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetCode",
+          "isExpression": false
+        },
+        {
+          "value": "measureCode",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsMeasures_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsMeasures"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsRecords_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsRecords"
     },
     {
       "columns": [
@@ -4500,22 +5160,10 @@
       "table": "statsRecords"
     },
     {
-      "value": "(\"streetSnapshotId\" IS NULL) = (\"streetId\" IS NULL)",
-      "name": "address2d_street_reference_consistency_chk",
-      "entityType": "checks",
-      "table": "address2d"
-    },
-    {
       "value": "\"version\" > 0",
-      "name": "streets_version_positive",
+      "name": "history_streets_version_positive",
       "entityType": "checks",
       "table": "streets"
-    },
-    {
-      "value": "\"addressSnapshotId\" IS NOT NULL OR (\"address2dId\" IS NULL AND \"address3dId\" IS NULL)",
-      "name": "places_address_snapshot_required_chk",
-      "entityType": "checks",
-      "table": "places"
     }
   ],
   "renames": []
