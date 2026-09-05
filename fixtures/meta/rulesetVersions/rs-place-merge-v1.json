@@ -1,8 +1,45 @@
 {
-  "versionHash": "sha256:3e7cf36f4fd8aac0e1dc737909ce3e27856df8a6b41e491ccaed70aaf4e1fd69",
+  "versionHash": "sha256:51341c2b3b9db34778b1a3545565637e5757e949cea2af241a623672291da8e1",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
   "version": "1",
-  "notes": "Initial place merge ruleset."
+  "notes": "Excludes Overture Places with CN or MO address country codes, retains null-country Places, and records both cases for review.",
+  "mergeRules": [
+    {
+      "operationCode": "overture_place_country_review_required",
+      "type": "record",
+      "sourceFieldPath": "addresses[].country",
+      "targetFieldPath": "place",
+      "condition": "The publisher address country code is CN or MO, or is missing; exclude CN/MO Places, retain missing-country Places in the Hong Kong projection, and record both cases in the release audit for review.",
+      "mappings": [
+        {
+          "from": "addresses[].country = CN or MO",
+          "to": "exclude Place from the Hong Kong projection and record an excluded review action"
+        },
+        {
+          "from": "addresses[].country is null or blank",
+          "to": "retain Place in the Hong Kong projection and record an included review action"
+        },
+        {
+          "from": "excluded Place source record",
+          "to": "releaseProcessingActions evidence for review"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Reviews Overture Places with excluded CN/MO or missing publisher address country codes; CN/MO Places are excluded and missing-country Places are retained."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "審核發布者地址國家代碼為 CN 或 MO 或缺失的地點；CN/MO 地點排除在香港投影之外，缺失地點則予以保留。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "审核发布者地址国家代码为 CN 或 MO 或缺失的地点；CN/MO 地点排除在香港投影之外，缺失地点则予以保留。"
+        }
+      ]
+    }
+  ]
 }
