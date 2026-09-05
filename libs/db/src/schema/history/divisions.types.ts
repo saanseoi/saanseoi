@@ -16,7 +16,6 @@ export type CurrentDivisionVersionRow = Pick<
   | 'bbox'
   | 'cartography'
   | 'geometry'
-  | 'sourceKeys'
   | 'wikidata'
   | 'sources'
   | 'type'
