@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildHkgovAlsProcessingActions,
   buildHkgovAlsDivisionQuality,
+  collectHkgovAlsPhaseRomanNumeralEstateEvidence,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
   formatEnPremisesAddress,
@@ -45,6 +46,67 @@ describe('ALS premise address formatting', () => {
         EngVillage: { BuildingNoFrom: '9', VillageName: 'EXAMPLE VILLAGE' },
       }),
     ).toBe('1 EXAMPLE STREET')
+  })
+})
+
+describe('ALS phase Roman-numeral estate evidence', () => {
+  test('scopes numeric evidence to each locale estate', () => {
+    const evidence = collectHkgovAlsPhaseRomanNumeralEstateEvidence([
+      {
+        properties: {
+          Address: {
+            PremisesAddress: {
+              EngPremisesAddress: {
+                EngEstate: { EstateName: 'Example Estate' },
+                EngPhase: { PhaseName: 'PHASE 1', PhaseNo: null },
+              },
+              ChiPremisesAddress: {
+                ChiEstate: { EstateName: '示例屋苑' },
+                ChiPhase: { PhaseName: '第一期', PhaseNo: null },
+              },
+            },
+          },
+        },
+      },
+      {
+        properties: {
+          Address: {
+            PremisesAddress: {
+              EngPremisesAddress: {
+                EngEstate: { EstateName: 'Example Estate' },
+                EngPhase: { PhaseName: 'PHASE II', PhaseNo: null },
+              },
+              ChiPremisesAddress: {
+                ChiEstate: { EstateName: '另一屋苑' },
+                ChiPhase: { PhaseName: '第二期', PhaseNo: null },
+              },
+            },
+          },
+        },
+      },
+    ])
+
+    expect(evidence.en).toEqual(new Set(['EXAMPLE ESTATE']))
+    expect(evidence.zhHant).toEqual(new Set())
+  })
+
+  test('does not create evidence for a standalone Roman phase', () => {
+    const evidence = collectHkgovAlsPhaseRomanNumeralEstateEvidence([
+      {
+        properties: {
+          Address: {
+            PremisesAddress: {
+              EngPremisesAddress: {
+                EngEstate: { EstateName: 'Example Estate' },
+                EngPhase: { PhaseName: 'PHASE II', PhaseNo: null },
+              },
+            },
+          },
+        },
+      },
+    ])
+
+    expect(evidence.en).toEqual(new Set())
   })
 })
 

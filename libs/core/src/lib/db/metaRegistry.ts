@@ -4180,7 +4180,11 @@ export async function ensureDraftReleaseSetForRelease(
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
   const resourceCode = resourceTypeCodeSlug(type)
-  const schemaVersion = latestReleaseSet?.schemaVersion ?? `sv-${resourceCode}-v1`
+  // Statistics are materialised from `divisionStatistic` resources, while the
+  // public API contract deliberately uses the broader Statistics schema name.
+  const defaultSchemaVersion =
+    apiVersion.familyType === 'stats' ? 'sv-statistics-v1' : `sv-${resourceCode}-v1`
+  const schemaVersion = latestReleaseSet?.schemaVersion ?? defaultSchemaVersion
   const rulesetDomainSegment =
     domainCode === (composition?.defaultDomainCode ?? 'default') ? '' : `-${domainCode}`
   const rulesetVersion =

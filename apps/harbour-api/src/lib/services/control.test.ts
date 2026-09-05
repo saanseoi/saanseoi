@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
+import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
 import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
 import {
   insertFixtureRelease,
@@ -82,6 +83,15 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       'hk', 'static', 'yearly', 'stats', 'official-statistics',
       'vh-dataset-censtatd-density', 1761264000000, 1761264000000
     );
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'dataset-censtatd-population', 'publisher-hkgov-censtatd',
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      'hk', 'static', 'yearly', 'stats', 'official-statistics',
+      'vh-dataset-censtatd-population', 1761264000000, 1761264000000
+    );
     INSERT INTO datasetResourceTypes (datasetId, resourceType)
     VALUES ('dataset-censtatd-density', 'divisionStatistic');
     INSERT INTO apiVersions (
@@ -116,14 +126,14 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   const dataset = sqlite
     .query('SELECT id FROM datasets WHERE code = ?')
     .get(datasetCode) as { id: string }
-  const releaseId = 'release-hkgov-censtatd-district-statistic-2024'
+  const releaseId = 'release-hkgov-censtatd-district-statistic-2022'
   sqlite
     .query(
       `INSERT INTO sourceReleases
        (id, datasetId, code, sourceVersion, cohortKey, status)
        VALUES (?, ?, ?, ?, ?, ?)`,
     )
-    .run(releaseId, dataset.id, `sr-${releaseId}`, '2024', '2024', 'processing')
+    .run(releaseId, dataset.id, `sr-${releaseId}`, '2022', '2022', 'processing')
   sqlite
     .query(
       `INSERT INTO releases (
@@ -136,10 +146,10 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       releaseId,
       dataset.id,
       'divisionStatistic',
-      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024',
-      '2024',
-      '2024',
-      'hk/hkgov-censtatd/2024/division-statistic.parquet',
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
+      '2022',
+      '2022',
+      'hk/hkgov-censtatd/2022/division-statistic.parquet',
       'division-statistic.parquet',
       'processing',
       '2026-08-16T00:00:00.000Z',
@@ -147,7 +157,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       '2026-08-16T00:00:00.000Z',
     )
   const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
-    cohortKey: '2024/25',
+    cohortKey: '2022',
     datasetCode,
     datasetId: dataset.id,
     regionCode: 'hk',
@@ -165,7 +175,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     .get(releaseId) as { status: string }
 
   expect(result).toMatchObject({
-    apiReleaseSetCode: 'data-hk-stats-2024-25',
+    apiReleaseSetCode: 'data-hk-stats-2022',
     apiReleaseSetStatus: 'current',
     releaseId,
     snapshotId: snapshot.id,
@@ -185,7 +195,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     sqlite
       .query('SELECT cohortKey FROM apiReleaseSets WHERE id = ?')
       .get(result.apiReleaseSetId),
-  ).toEqual({ cohortKey: '2024/25' })
+  ).toEqual({ cohortKey: '2022' })
   expect(release.status).toBe('processing')
   sqlite.close()
 })
@@ -196,7 +206,6 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   const db = createLocalHarbourDb(sqlite)
   const datasetCodes = [
     'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
   ] as const
   const releaseIds: string[] = []
 
@@ -246,20 +255,20 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
-        '${releaseId}', '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2021',
-        '2021', '2021', 'hk/test/2021/${index}.parquet', '${index}.parquet',
+        '${releaseId}', '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2',
+        '2026-Q2', '2026-Q2', 'hk/test/2026-Q2/${index}.parquet', '${index}.parquet',
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
       );
       INSERT INTO sourceReleases
         (id, datasetId, code, sourceVersion, cohortKey, status)
       VALUES (
-        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2021', '2021',
+        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2026-Q2', '2026-Q2',
         'processing'
       );
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
-      cohortKey: '2021',
+      cohortKey: '2026-Q2',
       datasetCode,
       datasetId,
       regionCode: 'hk',
@@ -302,7 +311,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   // snapshot must still enter the cohort release set; the geometry snapshot
   // itself must not.
   const geometrySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
-    cohortKey: '2021',
+    cohortKey: '2026-Q2',
     datasetCode: datasetCodes[0],
     datasetId: 'dataset-0',
     regionCode: 'hk',
@@ -323,7 +332,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   expect(
     sqlite
       .query(
-        "SELECT count(*) AS count FROM apiReleaseSets WHERE code LIKE 'data-hk-stats-2021%'",
+        "SELECT count(*) AS count FROM apiReleaseSets WHERE code LIKE 'data-hk-stats-2026-q2%'",
       )
       .get(),
   ).toEqual({ count: 0 })
@@ -331,14 +340,14 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   const result = await handleBootstrapStatsReleaseSets(db)
 
   expect(result).toEqual({
-    createdReleaseSetCodes: ['data-hk-stats-2021'],
-    inspectedSnapshots: 2,
+    createdReleaseSetCodes: ['data-hk-stats-2026-q2'],
+    inspectedSnapshots: 1,
     skippedCohortKeys: [],
   })
   expect(
     sqlite
       .query(
-        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'`,
+        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2026-q2'`,
       )
       .get(),
   ).toEqual({ revision: 0, status: 'current' })
@@ -346,28 +355,28 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     sqlite
       .query(
         `SELECT count(*) AS count FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = (
-          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2021'
+          SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2026-q2'
         )`,
       )
       .get(),
-  ).toEqual({ count: 2 })
+  ).toEqual({ count: 1 })
   expect(
     sqlite
       .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
       .get(),
-  ).toEqual({ count: 2 })
+  ).toEqual({ count: 1 })
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
-    skippedCohortKeys: ['2021'],
+    inspectedSnapshots: 1,
+    skippedCohortKeys: ['2026-Q2'],
   })
   expect(
     sqlite
       .query(
         `SELECT count(*) AS count
          FROM apiReleaseSets
-         WHERE code LIKE 'data-hk-stats-2021%'`,
+         WHERE code LIKE 'data-hk-stats-2026-q2%'`,
       )
       .get(),
   ).toEqual({ count: 1 })
@@ -439,8 +448,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 2,
-    skippedCohortKeys: ['2021'],
+    inspectedSnapshots: 1,
+    skippedCohortKeys: ['2026-Q2'],
   })
   expect(
     sqlite.query(`SELECT status FROM releases WHERE id = 'legacy-release-2022'`).get(),
@@ -477,8 +486,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
-    inspectedSnapshots: 3,
-    skippedCohortKeys: ['2021', '2022'],
+    inspectedSnapshots: 2,
+    skippedCohortKeys: ['2022', '2026-Q2'],
   })
   expect(
     sqlite
@@ -1708,7 +1717,13 @@ describe('control service', () => {
       })
       expect(snapshotRow.status).toBe('published')
       expect(snapshotRow.publishedAt).not.toBeNull()
-      expect(provenanceCount.count).toBe(datasetType === 'address' ? 25 : 0)
+      expect(provenanceCount.count).toBe(
+        datasetType === 'address'
+          ? addressFixtureOfficialLineage.fields.filter(
+              field => field.sourceDatasetCode === 'ds-hk-hkgov-dpo-address',
+            ).length
+          : 0,
+      )
       expect(supportingSnapshots).toEqual(
         datasetType === 'address'
           ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
