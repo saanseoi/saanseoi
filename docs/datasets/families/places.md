@@ -68,9 +68,16 @@ new history version.
 Place localisation resolves explicit language and script evidence independently for
 names, brand names, and free-form addresses. Missing locale information is inferred;
 script conflicts are audited through release actions, and mixed-script source values
-remain intact. Translation is optional and uses the dataset-scoped
-`ds-hk-overture-place` fixture in batches of 50 only when an existing target PlaceI18n
-row is missing a translatable field. Brand names are never translated.
+remain intact. Machine translation of Place names and free-form addresses is disabled;
+missing PlaceI18n values remain missing.
+
+Place-to-address matching uses the selected ALS snapshot's English and Traditional
+Chinese address definitions. A match requires a known street and building number. Common
+English street abbreviations and Chinese number forms are normalised, while shop, unit,
+room, floor, and stall fragments are separated as prospective address3d components
+before matching address2d. Ambiguous matches remain unresolved. Known non-premise source
+values are listed with their Place context in
+`fixtures/review/overture-place-addresses.json` for review.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a
@@ -87,12 +94,12 @@ published Places release.
 
 Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開 Place 使用 PlaceI18n 的
 `freeformAddress`，不提供
-`addresses`。翻譯是可選的，只在已有目標列時填補名稱或地址，品牌不會翻譯；`referenceName`
+`addresses`。地點名稱、品牌及自由格式地址均不使用機器翻譯；`referenceName`
 是不計入語言覆蓋率的衍生投影。
 
 ## ZH-HANS
 
 Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开 Place 使用 PlaceI18n 的
 `freeformAddress`，不提供
-`addresses`。翻译是可选的，只在已有目标列时填补名称或地址，品牌不会翻译；`referenceName`
+`addresses`。地点名称、品牌及自由格式地址均不使用机器翻译；`referenceName`
 是不计入语言覆盖率的派生投影。

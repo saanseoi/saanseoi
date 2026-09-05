@@ -19,11 +19,11 @@ using source locale rows.
 ## Historic baseline version
 
 The historic source-version anchor for the gazetted baseline is **`2016-01-01.0`**. The
-initial local bootstrap runs `hkgov-landsd-streets:baseline` before
-`hkgov-landsd-streets:landsd-notices`, and stages the baseline payload at that version.
-It deliberately predates the LandsD notice-feed boundary of 22 January 2016. This is a
-source-version anchor for a present-state reconciliation list, not a claim that the
-publisher PDF itself was issued on 1 January 2016.
+focused Streets initialiser runs `hkgov-landsd-streets:baseline` first and stages the
+baseline payload with minted canonical IDs. It deliberately predates the LandsD
+notice-feed boundary of 22 January 2016. This is a source-version anchor for a
+present-state reconciliation list, not a claim that the publisher PDF itself was issued
+on 1 January 2016.
 
 `2026-08-14.0` is not a replacement baseline: it is the latest Government Notice date
 included in the current assembled release. When a complete notice ledger is present, the
@@ -95,6 +95,11 @@ parsed immutable records; none publishes a street snapshot. After the official e
 stage is complete, run `hkgov-landsd-streets:assemble` to reconcile baseline names
 against the complete notice ledger and publish one snapshot revision. This avoids
 treating a present-state baseline as an event that follows older notices.
+
+The focused Streets initialiser runs only the baseline stage. Run the two notice stages,
+review any lifecycle decisions, and then run `hkgov-landsd-streets:assemble` explicitly
+when the historical ledger is ready. Road Centreline processing follows assembly so that
+its source segments can be matched to assembled street identities.
 
 For `--target local`, immutable evidence and manifests are registered in the local
 metadata database and written to the local Wrangler R2 state. The resulting links use
