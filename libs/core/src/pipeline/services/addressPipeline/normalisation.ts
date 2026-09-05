@@ -133,13 +133,7 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
       buildingNumberFrom: enBuildingNumber.from,
       buildingNumberTo: enBuildingNumber.to,
       buildingNumberConnector: null,
-      blockExpression: buildBlockExpression(row.enBlockDescriptor, row.enBlockNumber),
-      blockType: normaliseBlockType(row.enBlockDescriptor),
-      blockRef: asNonEmptyString(row.enBlockNumber),
-      blockTypeBeforeNumber:
-        asNonEmptyString(row.enBlockDescriptor) && asNonEmptyString(row.enBlockNumber)
-          ? true
-          : null,
+      ...normaliseBlockFields(row.enBlockDescriptor, row.enBlockNumber, 'en'),
       ...normalisePhaseFields(enPhase.name, enPhase.ref),
       estateName: asNonEmptyString(row.enEstateName),
       streetName: asNonEmptyString(row.enStreetName),
@@ -159,17 +153,11 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
       buildingNumberFrom: zhHantBuildingNumber.from,
       buildingNumberTo: zhHantBuildingNumber.to,
       buildingNumberConnector: null,
-      blockExpression: buildBlockExpression(
+      ...normaliseBlockFields(
         row.zhHantBlockDescriptor,
         row.zhHantBlockNumber,
+        'zh-hant',
       ),
-      blockType: normaliseBlockType(row.zhHantBlockDescriptor),
-      blockRef: asNonEmptyString(row.zhHantBlockNumber),
-      blockTypeBeforeNumber:
-        asNonEmptyString(row.zhHantBlockDescriptor) &&
-        asNonEmptyString(row.zhHantBlockNumber)
-          ? true
-          : null,
       ...normalisePhaseFields(zhHantPhase.name, zhHantPhase.ref),
       estateName: asNonEmptyString(row.zhHantEstateName),
       streetName: asNonEmptyString(row.zhHantStreetName),
@@ -509,10 +497,27 @@ function getBuildingNumberComponents(
   }
 }
 
-function buildBlockExpression(descriptor: unknown, ref: unknown) {
+function normaliseBlockFields(
+  descriptor: unknown,
+  ref: unknown,
+  locale: 'en' | 'zh-hant',
+) {
   const descriptorValue = asNonEmptyString(descriptor)
   const refValue = asNonEmptyString(ref)
-  return [descriptorValue, refValue].filter(Boolean).join(' ') || null
+  const normalised = normaliseBlockDescriptor(descriptorValue)
+  const expressionDescriptor =
+    locale === 'en' ? (normalised.expression ?? descriptorValue) : descriptorValue
+  const blockExpression =
+    locale === 'en'
+      ? [expressionDescriptor, refValue].filter(Boolean).join(' ') || null
+      : [refValue, expressionDescriptor].filter(Boolean).join('') || null
+
+  return {
+    blockExpression,
+    blockType: normalised.type,
+    blockRef: refValue,
+    blockTypeBeforeNumber: descriptorValue && refValue ? locale === 'en' : null,
+  }
 }
 
 function getPreparedPhaseFields(
@@ -636,26 +641,86 @@ function parseRomanNumeral(value: string) {
   return total
 }
 
-function normaliseBlockType(value: unknown): AddressI18nPayload['blockType'] {
-  const descriptor = asNonEmptyString(value)?.toUpperCase()
-  if (!descriptor) return null
-  if (['BLK', 'BLKS', 'BLOCK', '座'].includes(descriptor)) return 'block'
-  if (['HSE', 'HSES', 'HOUSE', '洋房'].includes(descriptor)) return 'house'
-  if (descriptor === 'TOWER') return 'tower'
-  if (descriptor === 'PHASE' || descriptor === '期') return 'phase'
-  if (descriptor === 'VILLA') return 'villa'
-  if (descriptor === 'MANSION') return 'mansion'
-  if (['APT', 'APARTMENT'].includes(descriptor)) return 'apartment'
-  if (descriptor === 'FLAT') return 'flat'
-  if (descriptor === 'UNIT') return 'unit'
-  if (descriptor === 'QUARTERS') return 'quarters'
-  if (descriptor === 'STAGE') return 'stage'
-  if (descriptor.includes('CARPARK')) return 'parking'
-  if (descriptor === 'GARAGE') return 'garage'
-  if (descriptor.includes('SHOPPING') || descriptor.includes('MALL')) return 'retail'
-  if (descriptor.includes('COMMERCIAL')) return 'commercial'
-  return 'other'
+function normaliseBlockDescriptor(value: string | null) {
+  const descriptor = value?.toUpperCase()
+  if (!descriptor) return { expression: null, type: null }
+
+  const canonical = ENGLISH_BLOCK_DESCRIPTOR_NORMALISATIONS.get(descriptor)
+  if (canonical) return canonical
+
+  const chineseType = CHINESE_BLOCK_DESCRIPTOR_TYPES.get(descriptor)
+  if (chineseType) return { expression: null, type: chineseType }
+
+  if (descriptor.includes('CARPARK') || descriptor === '停車場') {
+    return { expression: null, type: 'parking' as const }
+  }
+  if (descriptor === 'GARAGE' || descriptor === '車房') {
+    return { expression: null, type: 'garage' as const }
+  }
+  if (
+    descriptor.includes('SHOPPING') ||
+    descriptor.includes('MALL') ||
+    descriptor === '商場'
+  ) {
+    return { expression: null, type: 'retail' as const }
+  }
+  if (descriptor.includes('COMMERCIAL')) {
+    return { expression: null, type: 'commercial' as const }
+  }
+  return { expression: null, type: 'other' as const }
 }
+
+const ENGLISH_BLOCK_DESCRIPTOR_NORMALISATIONS = new Map<
+  string,
+  { expression: string; type: NonNullable<AddressI18nPayload['blockType']> }
+>([
+  ['BLK', { expression: 'BLK', type: 'block' }],
+  ['BLKS', { expression: 'BLK', type: 'block' }],
+  ['BLOCK', { expression: 'BLK', type: 'block' }],
+  ['BLDG', { expression: 'BLDG', type: 'building' }],
+  ['BUILDING', { expression: 'BLDG', type: 'building' }],
+  ['TWR', { expression: 'TWR', type: 'tower' }],
+  ['TOWER', { expression: 'TWR', type: 'tower' }],
+  ['TOWERS', { expression: 'TWR', type: 'tower' }],
+  ['HSE', { expression: 'HSE', type: 'house' }],
+  ['HSES', { expression: 'HSE', type: 'house' }],
+  ['HOUSE', { expression: 'HSE', type: 'house' }],
+  ['APT', { expression: 'APT', type: 'apartment' }],
+  ['APARTMENT', { expression: 'APT', type: 'apartment' }],
+  ['PHASE', { expression: 'PHASE', type: 'phase' }],
+  ['VILLA', { expression: 'VILLA', type: 'villa' }],
+  ['MANSION', { expression: 'MANSION', type: 'mansion' }],
+  ['FLAT', { expression: 'FLAT', type: 'flat' }],
+  ['UNIT', { expression: 'UNIT', type: 'unit' }],
+  ['QUARTERS', { expression: 'QUARTERS', type: 'quarters' }],
+  ['STAGE', { expression: 'STAGE', type: 'stage' }],
+  ['GARAGE', { expression: 'GARAGE', type: 'garage' }],
+])
+
+const CHINESE_BLOCK_DESCRIPTOR_TYPES = new Map<
+  string,
+  NonNullable<AddressI18nPayload['blockType']>
+>([
+  ['座', 'block'],
+  ['前座', 'block'],
+  ['中座', 'block'],
+  ['後座', 'block'],
+  ['大廈', 'building'],
+  ['樓', 'building'],
+  ['房屋', 'building'],
+  ['低座', 'building'],
+  ['屋', 'house'],
+  ['洋房', 'house'],
+  ['村屋', 'house'],
+  ['石屋', 'house'],
+  ['住宅', 'house'],
+  ['期', 'phase'],
+  ['別墅', 'villa'],
+  ['室', 'flat'],
+  ['單位', 'unit'],
+  ['宿舍', 'quarters'],
+  ['牧師宿舍', 'quarters'],
+])
 
 function parseOptionalJson(value: unknown) {
   const text = asNonEmptyString(value)

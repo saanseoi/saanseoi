@@ -175,6 +175,50 @@ test('derives only justified members of explicit building-number ranges', () => 
   ])
 })
 
+test('canonicalises English block descriptors and uses locale-appropriate block order', () => {
+  const cases = [
+    { descriptor: 'BLOCK', expression: 'BLK A', ref: 'A', type: 'block' },
+    { descriptor: 'BLKS', expression: 'BLK B', ref: 'B', type: 'block' },
+    { descriptor: 'TOWER', expression: 'TWR 1', ref: '1', type: 'tower' },
+    { descriptor: 'TOWERS', expression: 'TWR 1&2', ref: '1&2', type: 'tower' },
+    { descriptor: 'HSES', expression: 'HSE 2', ref: '2', type: 'house' },
+    { descriptor: 'APARTMENT', expression: 'APT D1', ref: 'D1', type: 'apartment' },
+    { descriptor: 'BLDG', expression: 'BLDG E', ref: 'E', type: 'building' },
+  ] as const
+
+  for (const block of cases) {
+    const result = normaliseAddressRowForPipeline({
+      canonicalId: 'address-1',
+      divisionSnapshotId: 'division-1',
+      enBlockDescriptor: block.descriptor,
+      enBlockNumber: block.ref,
+      enFormattedAddress: '1 Example Road, Hong Kong',
+      id: 'address-1',
+    })
+    expect(result.i18n.find(row => row.locale === 'en')).toMatchObject({
+      blockExpression: block.expression,
+      blockRef: block.ref,
+      blockType: block.type,
+      blockTypeBeforeNumber: true,
+    })
+  }
+
+  const chinese = normaliseAddressRowForPipeline({
+    canonicalId: 'address-1',
+    divisionSnapshotId: 'division-1',
+    id: 'address-1',
+    zhHantBlockDescriptor: '座',
+    zhHantBlockNumber: 'A',
+    zhHantFormattedAddress: '香港示例道1號',
+  })
+  expect(chinese.i18n.find(row => row.locale === 'zh-hant')).toMatchObject({
+    blockExpression: 'A座',
+    blockRef: 'A',
+    blockType: 'block',
+    blockTypeBeforeNumber: false,
+  })
+})
+
 test('splits phase references from phase names without duplicating the reference', () => {
   const cases = [
     { name: 'PHASE 2', ref: '2', phaseName: 'PHASE', phaseRef: '2' },
