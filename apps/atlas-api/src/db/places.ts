@@ -1,6 +1,7 @@
 import type { CurrentDatabase } from '@repo/db'
-import { and, asc, eq } from '@repo/db'
+import { and, asc, eq, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
+import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 
 const {
@@ -37,6 +38,64 @@ type FtsLookup = {
   locale?: string
   query: string
   limit?: number
+}
+
+export type PlaceLocaleValue = {
+  name: string | null
+  nameVariant: string[] | null
+  nameAlts: string | null
+  brandName: string | null
+  brandNameVariant: string[] | null
+  brandNameAlts: string | null
+  freeformAddress: string | null
+  provenance: {
+    isMachineTranslated: string[]
+    isHumanVerified: string[]
+    isLocaleInferred: boolean
+  } | null
+}
+
+export type PlaceRecord = {
+  place: {
+    snapshotId: string
+    id: string
+    releaseId: string
+    addressSnapshotId: string | null
+    address2dId: string | null
+    address3dId: string | null
+    lng: number
+    lat: number
+    bbox: unknown
+    operatingStatus: string | null
+    basicCategory: string | null
+    taxonomyPrimary: string | null
+    taxonomyHierarchy: unknown
+    taxonomyAlternates: unknown
+    wikidataId: string | null
+    websites: unknown
+    socials: unknown
+    emails: unknown
+    phones: unknown
+    confidence: number | null
+    sources: unknown
+    firstSeenMonth: string
+    lastSeenMonth: string
+    createdAt: string
+    updatedAt: string
+  }
+  i18n: Record<string, PlaceLocaleValue>
+  divisionIds: string[]
+}
+
+type PlaceListLookup = {
+  snapshotId: string
+  limit?: number
+  offset?: number
+  basicCategory?: string
+  taxonomyPrimary?: string
+  operatingStatus?: string
+  divisionId?: string
+  localeSelection: RequestedApiLocaleSelection
 }
 
 export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
@@ -168,4 +227,222 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
 
     throw error
   }
+}
+
+function buildPlaceI18nCondition(localeSelection: RequestedApiLocaleSelection) {
+  return and(
+    eq(placesI18n.snapshotId, places.snapshotId),
+    eq(placesI18n.placeId, places.id),
+    localeSelection.mode === 'requested' && localeSelection.locales.length > 0
+      ? sql`${placesI18n.locale} in (
+          select value from json_each(${JSON.stringify(localeSelection.locales)})
+        )`
+      : undefined,
+  )
+}
+
+function buildPlaceI18nJsonSelection(localeSelection: RequestedApiLocaleSelection) {
+  if (localeSelection.mode === 'none') return sql<string>`'{}'`
+
+  return sql<string>`coalesce((
+    select json_group_object(
+      ${placesI18n.locale},
+      json_object(
+        'name', ${placesI18n.name},
+        'nameVariant', ${placesI18n.nameVariant},
+        'nameAlts', ${placesI18n.nameAlts},
+        'brandName', ${placesI18n.brandName},
+        'brandNameVariant', ${placesI18n.brandNameVariant},
+        'brandNameAlts', ${placesI18n.brandNameAlts},
+        'freeformAddress', ${placesI18n.freeformAddress},
+        'provenance', ${placesI18n.provenance}
+      )
+    )
+    from ${placesI18n}
+    where ${buildPlaceI18nCondition(localeSelection)}
+  ), '{}')`
+}
+
+function asNullableString(value: unknown) {
+  return typeof value === 'string' ? value : value === null ? null : null
+}
+
+function asNullableStringArray(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string')
+  }
+  if (typeof value !== 'string') return null
+
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : null
+  } catch {
+    return null
+  }
+}
+
+function asPlaceProvenance(value: unknown): PlaceLocaleValue['provenance'] {
+  const parsed =
+    typeof value === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(value) as unknown
+          } catch {
+            return null
+          }
+        })()
+      : value
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+
+  const record = parsed as Record<string, unknown>
+  return {
+    isMachineTranslated: asNullableStringArray(record.isMachineTranslated) ?? [],
+    isHumanVerified: asNullableStringArray(record.isHumanVerified) ?? [],
+    isLocaleInferred: record.isLocaleInferred === true,
+  }
+}
+
+function parsePlaceI18n(value: string): Record<string, PlaceLocaleValue> {
+  const parsed = JSON.parse(value) as Record<string, unknown>
+  return Object.fromEntries(
+    Object.entries(parsed).flatMap(([locale, raw]) => {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return []
+      const record = raw as Record<string, unknown>
+      return [
+        [
+          locale,
+          {
+            name: asNullableString(record.name),
+            nameVariant: asNullableStringArray(record.nameVariant),
+            nameAlts: asNullableString(record.nameAlts),
+            brandName: asNullableString(record.brandName),
+            brandNameVariant: asNullableStringArray(record.brandNameVariant),
+            brandNameAlts: asNullableString(record.brandNameAlts),
+            freeformAddress: asNullableString(record.freeformAddress),
+            provenance: asPlaceProvenance(record.provenance),
+          },
+        ],
+      ]
+    }),
+  )
+}
+
+function parseDivisionIds(value: string) {
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : []
+  } catch {
+    return []
+  }
+}
+
+function buildPlaceConditions(
+  lookup: Pick<
+    PlaceListLookup,
+    | 'snapshotId'
+    | 'basicCategory'
+    | 'taxonomyPrimary'
+    | 'operatingStatus'
+    | 'divisionId'
+  >,
+) {
+  return [
+    eq(places.snapshotId, lookup.snapshotId),
+    lookup.basicCategory ? eq(places.basicCategory, lookup.basicCategory) : undefined,
+    lookup.taxonomyPrimary
+      ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
+      : undefined,
+    lookup.operatingStatus
+      ? eq(places.operatingStatus, lookup.operatingStatus)
+      : undefined,
+    lookup.divisionId
+      ? sql`exists (
+          select 1
+          from ${placesDivision}
+          where ${placesDivision.placeSnapshotId} = ${places.snapshotId}
+            and ${placesDivision.placeId} = ${places.id}
+            and ${placesDivision.divisionId} = ${lookup.divisionId}
+        )`
+      : undefined,
+  ].filter(condition => condition !== undefined)
+}
+
+type PlaceListRow = PlaceRecord['place'] & { i18n: string; divisionIds: string }
+
+function mapPlaceRow(row: PlaceListRow): PlaceRecord {
+  const { divisionIds, i18n, ...place } = row
+  return {
+    place,
+    i18n: parsePlaceI18n(i18n),
+    divisionIds: parseDivisionIds(divisionIds),
+  }
+}
+
+export async function listPlaceRecordsCurrent(
+  db: CurrentDatabase,
+  lookup: PlaceListLookup,
+): Promise<PlaceRecord[]> {
+  const i18n = buildPlaceI18nJsonSelection(lookup.localeSelection)
+  const divisionIds = sql<string>`coalesce((
+    select json_group_array(${placesDivision.divisionId})
+    from ${placesDivision}
+    where ${placesDivision.placeSnapshotId} = ${places.snapshotId}
+      and ${placesDivision.placeId} = ${places.id}
+  ), '[]')`
+  const rows = await db
+    .select({
+      snapshotId: places.snapshotId,
+      id: places.id,
+      releaseId: places.releaseId,
+      addressSnapshotId: places.addressSnapshotId,
+      address2dId: places.address2dId,
+      address3dId: places.address3dId,
+      lng: places.lng,
+      lat: places.lat,
+      bbox: places.bbox,
+      operatingStatus: places.operatingStatus,
+      basicCategory: places.basicCategory,
+      taxonomyPrimary: places.taxonomyPrimary,
+      taxonomyHierarchy: places.taxonomyHierarchy,
+      taxonomyAlternates: places.taxonomyAlternates,
+      wikidataId: places.wikidataId,
+      websites: places.websites,
+      socials: places.socials,
+      emails: places.emails,
+      phones: places.phones,
+      confidence: places.confidence,
+      sources: places.sources,
+      firstSeenMonth: places.firstSeenMonth,
+      lastSeenMonth: places.lastSeenMonth,
+      createdAt: places.createdAt,
+      updatedAt: places.updatedAt,
+      i18n,
+      divisionIds,
+    })
+    .from(places)
+    .where(and(...buildPlaceConditions(lookup)))
+    .orderBy(asc(places.id))
+    .limit(lookup.limit ?? 25)
+    .offset(lookup.offset ?? 0)
+    .all()
+
+  return rows.map(row => mapPlaceRow(row as PlaceListRow))
+}
+
+export async function countPlaceRecordsCurrent(
+  db: CurrentDatabase,
+  lookup: Omit<PlaceListLookup, 'limit' | 'offset' | 'localeSelection'>,
+) {
+  const row = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(places)
+    .where(and(...buildPlaceConditions(lookup)))
+    .limit(1)
+    .get()
+
+  return Number(row?.count ?? 0)
 }

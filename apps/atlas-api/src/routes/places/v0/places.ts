@@ -1,5 +1,7 @@
-import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { derivePlaceReferenceName } from '@repo/core'
 import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
+import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 
 import {
   getPlaceCurrent,
@@ -8,6 +10,9 @@ import {
   listPlacesByH3Cell,
   searchPlacesFts,
 } from '../../../db/places'
+import { sanitiseResponseUrl } from '../../../lib/api'
+import { runWithD1ReadRetry } from '../../../lib/d1'
+import { openApiText } from '../../../lib/openapi-i18n'
 import {
   ErrorResponseSchema,
   PlaceQuerySchema,
@@ -15,20 +20,26 @@ import {
   PlacesByCellParamsSchema,
   PlacesByCellQuerySchema,
   PlacesByCellResponseSchema,
+  PlacesListParamsSchema,
+  PlacesListQuerySchema,
+  PlacesListResponseSchema,
   RegionPlaceParamsSchema,
   SearchParamsSchema,
   SearchQuerySchema,
   SearchResponseSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../../schema'
-import { runWithD1ReadRetry } from '../../../lib/d1'
 import {
   resolveApiReleaseSetAccessAttributionForSnapshot,
   resolveOptionalApiReleaseSetAccessAttribution,
 } from '../../../services/accessAnalytics'
+import {
+  listPlaces,
+  type RequestedPlaceApiVersion,
+  type RequestedPlaceVersion,
+  type ResolvedPlaceApiVersion,
+} from '../../../services/places'
 import type { AppEnv } from '../../../types'
-import { openApiText } from '../../../lib/openapi-i18n'
-import { derivePlaceReferenceName } from '@repo/core'
 
 type PlaceCoordinates = { lat: number; lng: number }
 type PlaceTaxonomy = {
@@ -36,6 +47,49 @@ type PlaceTaxonomy = {
   taxonomyHierarchy: unknown
   taxonomyAlternates: unknown
 }
+
+type PlaceRouteVariant = {
+  requestedVersionPath: RequestedPlaceVersion
+  requestedApiVersion: RequestedPlaceApiVersion
+  resolvedApiVersion: ResolvedPlaceApiVersion
+  listPath: string
+  detailPath: string
+  byCellPath: string
+  searchPath: string
+  listOperationId: string
+  detailOperationId: string
+  byCellOperationId: string
+  searchOperationId: string
+}
+
+const ROUTE_VARIANTS = [
+  {
+    requestedVersionPath: 'places/v0' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-places-v0.1' as const,
+    listPath: '/places/v0/{region}',
+    detailPath: '/places/v0/{region}/{id}',
+    byCellPath: '/places/v0/{region}/by-cell/{h3Level}/{h3Cell}',
+    searchPath: '/places/v0/{region}/search',
+    listOperationId: 'listPlacesV0',
+    detailOperationId: 'getPlaceByIdV0',
+    byCellOperationId: 'listPlacesByH3CellV0',
+    searchOperationId: 'searchPlacesV0',
+  },
+  {
+    requestedVersionPath: 'places/v0.1' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-places-v0.1' as const,
+    listPath: '/places/v0.1/{region}',
+    detailPath: '/places/v0.1/{region}/{id}',
+    byCellPath: '/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}',
+    searchPath: '/places/v0.1/{region}/search',
+    listOperationId: 'listPlacesV01',
+    detailOperationId: 'getPlaceByIdV01',
+    byCellOperationId: 'listPlacesByH3CellV01',
+    searchOperationId: 'searchPlacesV01',
+  },
+] as const satisfies PlaceRouteVariant[]
 
 export function placeGeometry({ lat, lng }: PlaceCoordinates) {
   return {
@@ -119,199 +173,203 @@ export function toPlaceApiRecord<
     : { ...projected, referenceName: referenceName ?? null }
 }
 
-const placeRouteConfig = createRoute({
-  method: 'get',
-  path: '/places/v0.1/{region}/{id}',
-  tags: ['Places'],
-  request: {
-    params: RegionPlaceParamsSchema,
-    query: PlaceQuerySchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: PlaceResponseSchema,
-        },
-      },
-      description: openApiText('openapi_places_get_response_description'),
+const placeListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
+  createRoute({
+    method: 'get',
+    path: routeVariant.listPath,
+    operationId: routeVariant.listOperationId,
+    tags: ['Places'],
+    request: {
+      params: PlacesListParamsSchema,
+      query: PlacesListQuerySchema,
     },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: PlacesListResponseSchema } },
+        description: openApiText('openapi_places_list_response_description'),
       },
-      description: openApiText('openapi_places_not_found_description'),
-    },
-    503: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
+      503: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_places_snapshot_not_ready_description'),
       },
-      description: openApiText('openapi_places_snapshot_not_ready_description'),
+      422: ValidationErrorOpenAPIResponse,
     },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
+  }),
+)
 
-const placesByCellRouteConfig = createRoute({
-  method: 'get',
-  path: '/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}',
-  tags: ['Places'],
-  request: {
-    params: PlacesByCellParamsSchema,
-    query: PlacesByCellQuerySchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: PlacesByCellResponseSchema,
-        },
-      },
-      description: openApiText('openapi_places_list_by_h3_response_description'),
+const placeDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
+  createRoute({
+    method: 'get',
+    path: routeVariant.detailPath,
+    operationId: routeVariant.detailOperationId,
+    tags: ['Places'],
+    request: {
+      params: RegionPlaceParamsSchema,
+      query: PlaceQuerySchema,
     },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: PlaceResponseSchema } },
+        description: openApiText('openapi_places_get_response_description'),
       },
-      description: openApiText('openapi_places_invalid_h3_level_description'),
-    },
-    503: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
+      404: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_places_not_found_description'),
       },
-      description: openApiText('openapi_places_snapshot_not_ready_description'),
+      503: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_places_snapshot_not_ready_description'),
+      },
+      422: ValidationErrorOpenAPIResponse,
     },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
+  }),
+)
 
-const searchRouteConfig = createRoute({
-  method: 'get',
-  path: '/places/v0.1/{region}/search',
-  tags: ['Places'],
-  request: {
-    params: SearchParamsSchema,
-    query: SearchQuerySchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: SearchResponseSchema,
-        },
-      },
-      description: openApiText('openapi_places_search_response_description'),
+const placesByCellRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
+  createRoute({
+    method: 'get',
+    path: routeVariant.byCellPath,
+    operationId: routeVariant.byCellOperationId,
+    tags: ['Places'],
+    request: {
+      params: PlacesByCellParamsSchema,
+      query: PlacesByCellQuerySchema,
     },
-    503: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-          examples: {
-            snapshotNotReady: {
-              value: {
-                httpStatus: 503,
-                error: 'snapshot_not_ready',
-                message: 'No active place snapshot is published.',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: PlacesByCellResponseSchema } },
+        description: openApiText('openapi_places_list_by_h3_response_description'),
+      },
+      400: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_places_invalid_h3_level_description'),
+      },
+      503: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_places_snapshot_not_ready_description'),
+      },
+      422: ValidationErrorOpenAPIResponse,
+    },
+  }),
+)
+
+const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
+  createRoute({
+    method: 'get',
+    path: routeVariant.searchPath,
+    operationId: routeVariant.searchOperationId,
+    tags: ['Places'],
+    request: {
+      params: SearchParamsSchema,
+      query: SearchQuerySchema,
+    },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: SearchResponseSchema } },
+        description: openApiText('openapi_places_search_response_description'),
+      },
+      503: {
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema,
+            examples: {
+              snapshotNotReady: {
+                value: {
+                  httpStatus: 503,
+                  error: 'snapshot_not_ready',
+                  message: 'No active place snapshot is published.',
+                },
               },
-            },
-            ftsNotReady: {
-              value: {
-                httpStatus: 503,
-                error: 'fts_not_ready',
-                message:
-                  'FTS index is not initialised. Rebuild placesFts before using search.',
+              ftsNotReady: {
+                value: {
+                  httpStatus: 503,
+                  error: 'fts_not_ready',
+                  message:
+                    'FTS index is not initialised. Rebuild placesFts before using search.',
+                },
               },
             },
           },
         },
+        description: openApiText('openapi_places_search_unavailable_description'),
       },
-      description: openApiText('openapi_places_search_unavailable_description'),
+      422: ValidationErrorOpenAPIResponse,
     },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
+  }),
+)
 
-export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
-  route: placeRouteConfig,
-  handler: async c => {
-    const { region: regionCode, id: placeId } = c.req.valid('param')
-    const { locale } = c.req.valid('query')
-    const db = c.var.currentDb
-    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
-        regionCode,
-      }),
-    )
+async function activePlaceSnapshot(c: Context<AppEnv>, regionCode: 'hk' | 'mo') {
+  return runWithD1ReadRetry(() =>
+    resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+      regionCode,
+    }),
+  )
+}
 
-    if (!activePlaceSnapshot) {
-      return c.json(
-        {
-          httpStatus: 503 as const,
-          error: 'snapshot_not_ready',
-          message: 'No active place snapshot is published.',
-        },
-        503,
-      )
-    }
-    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
-      resolveApiReleaseSetAccessAttributionForSnapshot(
-        c.var.metaDb.$client,
-        activePlaceSnapshot.snapshotId,
-      ),
-    )
-    if (accessAttribution) c.set('accessAttribution', accessAttribution)
+async function setActiveSnapshotAttribution(c: Context<AppEnv>, snapshotId: string) {
+  const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
+    resolveApiReleaseSetAccessAttributionForSnapshot(c.var.metaDb.$client, snapshotId),
+  )
+  if (accessAttribution) c.set('accessAttribution', accessAttribution)
+}
 
-    const place = await runWithD1ReadRetry(() =>
-      getPlaceCurrent(db, {
-        placeId,
-        snapshotId: activePlaceSnapshot.snapshotId,
-      }),
-    )
-
-    if (!place) {
-      return c.json(
-        {
-          httpStatus: 404,
-          error: 'not_found',
-          message: `No place found for ${regionCode}/${placeId}.`,
-        },
-        404,
-      )
-    }
-
-    const [i18n, divisions] = await runWithD1ReadRetry(() =>
-      Promise.all([
-        listPlaceI18n(db, {
-          placeId,
-          snapshotId: activePlaceSnapshot.snapshotId,
-          locale,
-        }),
-        listPlaceDivisions(db, {
-          placeId,
-          snapshotId: activePlaceSnapshot.snapshotId,
-          locale,
-        }),
-      ]),
-    )
-
+async function handlePlaceDetail(
+  c: Context<AppEnv>,
+  args: { regionCode: 'hk' | 'mo'; placeId: string; locale?: string },
+) {
+  const activeSnapshot = await activePlaceSnapshot(c, args.regionCode)
+  if (!activeSnapshot) {
     return c.json(
       {
-        place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
-        i18n: i18n.map(toPlaceI18nApiRecord),
-        divisions,
+        httpStatus: 503 as const,
+        error: 'snapshot_not_ready',
+        message: 'No active place snapshot is published.',
       },
-      200,
+      503,
     )
-  },
-})
+  }
+  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
+
+  const place = await runWithD1ReadRetry(() =>
+    getPlaceCurrent(c.var.currentDb, {
+      placeId: args.placeId,
+      snapshotId: activeSnapshot.snapshotId,
+    }),
+  )
+  if (!place) {
+    return c.json(
+      {
+        httpStatus: 404,
+        error: 'not_found',
+        message: `No place found for ${args.regionCode}/${args.placeId}.`,
+      },
+      404,
+    )
+  }
+
+  const [i18n, divisions] = await runWithD1ReadRetry(() =>
+    Promise.all([
+      listPlaceI18n(c.var.currentDb, {
+        placeId: args.placeId,
+        snapshotId: activeSnapshot.snapshotId,
+        locale: args.locale,
+      }),
+      listPlaceDivisions(c.var.currentDb, {
+        placeId: args.placeId,
+        snapshotId: activeSnapshot.snapshotId,
+        locale: args.locale,
+      }),
+    ]),
+  )
+  return c.json(
+    {
+      place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
+      i18n: i18n.map(toPlaceI18nApiRecord),
+      divisions,
+    },
+    200,
+  )
+}
 
 function stringArray(value: unknown) {
   return Array.isArray(value)
@@ -319,132 +377,142 @@ function stringArray(value: unknown) {
     : []
 }
 
-export const placesByCellRoute = defineOpenAPIRoute<
-  typeof placesByCellRouteConfig,
-  AppEnv
->({
-  route: placesByCellRouteConfig,
-  handler: async c => {
-    const params = c.req.valid('param')
-    const query = c.req.valid('query')
-    const h3Level = Number(params.h3Level)
-
-    if (!Number.isInteger(h3Level)) {
-      return c.json(
-        {
-          httpStatus: 400,
-          error: 'invalid_h3_level',
-          message: 'h3Level must be an integer.',
-        },
-        400,
-      )
-    }
-
-    const db = c.var.currentDb
-    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
-        regionCode: params.region,
-      }),
-    )
-
-    if (!activePlaceSnapshot) {
-      const response = {
-        httpStatus: 503,
-        error: 'snapshot_not_ready',
-        message: 'No active place snapshot is published.',
-      } as const
-
-      return c.json(response, 503)
-    }
-    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
-      resolveApiReleaseSetAccessAttributionForSnapshot(
-        c.var.metaDb.$client,
-        activePlaceSnapshot.snapshotId,
-      ),
-    )
-    if (accessAttribution) c.set('accessAttribution', accessAttribution)
-
-    const places = await runWithD1ReadRetry(() =>
-      listPlacesByH3Cell(db, {
-        snapshotId: activePlaceSnapshot.snapshotId,
-        h3Level,
-        h3Cell: params.h3Cell,
-        limit: query.limit,
-      }),
-    )
-
+async function handlePlacesByCell(
+  c: Context<AppEnv>,
+  args: { region: 'hk' | 'mo'; h3Level: string; h3Cell: string; limit?: number },
+) {
+  const h3Level = Number(args.h3Level)
+  if (!Number.isInteger(h3Level)) {
     return c.json(
       {
-        places: places.map(place => toPlaceApiRecord(place)),
+        httpStatus: 400,
+        error: 'invalid_h3_level',
+        message: 'h3Level must be an integer.',
       },
-      200,
+      400,
     )
-  },
-})
+  }
 
-export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>({
-  route: searchRouteConfig,
-  handler: async c => {
-    const params = c.req.valid('param')
-    const query = c.req.valid('query')
-    const db = c.var.currentDb
-    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
-        regionCode: params.region,
-      }),
-    )
-
-    if (!activePlaceSnapshot) {
-      const response = {
+  const activeSnapshot = await activePlaceSnapshot(c, args.region)
+  if (!activeSnapshot) {
+    return c.json(
+      {
         httpStatus: 503,
         error: 'snapshot_not_ready',
         message: 'No active place snapshot is published.',
-      } as const
-
-      return c.json(response, 503)
-    }
-    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
-      resolveApiReleaseSetAccessAttributionForSnapshot(
-        c.var.metaDb.$client,
-        activePlaceSnapshot.snapshotId,
-      ),
+      },
+      503,
     )
-    if (accessAttribution) c.set('accessAttribution', accessAttribution)
+  }
+  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
+  const places = await runWithD1ReadRetry(() =>
+    listPlacesByH3Cell(c.var.currentDb, {
+      snapshotId: activeSnapshot.snapshotId,
+      h3Level,
+      h3Cell: args.h3Cell,
+      limit: args.limit,
+    }),
+  )
+  return c.json({ places: places.map(place => toPlaceApiRecord(place)) }, 200)
+}
 
-    try {
-      const results = await runWithD1ReadRetry(() =>
-        searchPlacesFts(db, {
-          snapshotId: activePlaceSnapshot.snapshotId,
-          locale: query.locale,
-          query: query.q,
-          limit: query.limit,
-        }),
-      )
+async function handlePlaceSearch(
+  c: Context<AppEnv>,
+  args: { region: 'hk' | 'mo'; q: string; locale?: string; limit?: number },
+) {
+  const activeSnapshot = await activePlaceSnapshot(c, args.region)
+  if (!activeSnapshot) {
+    return c.json(
+      {
+        httpStatus: 503,
+        error: 'snapshot_not_ready',
+        message: 'No active place snapshot is published.',
+      },
+      503,
+    )
+  }
+  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
 
+  try {
+    const results = await runWithD1ReadRetry(() =>
+      searchPlacesFts(c.var.currentDb, {
+        snapshotId: activeSnapshot.snapshotId,
+        locale: args.locale,
+        query: args.q,
+        limit: args.limit,
+      }),
+    )
+    return c.json({ results }, 200)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('FTS index is not initialised')
+    ) {
       return c.json(
         {
-          results,
-        },
-        200,
-      )
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes('FTS index is not initialised')
-      ) {
-        const response = {
           httpStatus: 503,
           error: 'fts_not_ready',
           message:
             'FTS index is not initialised. Rebuild placesFts before using search.',
-        } as const
-
-        return c.json(response, 503)
-      }
-
-      throw error
+        },
+        503,
+      )
     }
-  },
-})
+    throw error
+  }
+}
 
-export const placeRoutes = [placesByCellRoute, searchRoute, placeRoute] as const
+export const placeRoutes = [
+  ...placeListRouteConfigs.map((routeConfig, index) =>
+    defineOpenAPIRoute<typeof routeConfig, AppEnv>({
+      route: routeConfig,
+      handler: async c => {
+        const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
+        const { region } = c.req.valid('param')
+        const result = await listPlaces({
+          currentDb: c.var.currentDb,
+          metaDb: c.var.metaDb,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
+          region,
+          requestedVersionPath: routeVariant.requestedVersionPath,
+          requestedApiVersion: routeVariant.requestedApiVersion,
+          resolvedApiVersion: routeVariant.resolvedApiVersion,
+          query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
+        })
+        if (result.status === 503) return c.json(result.body, 503)
+        return c.json(result.body as never, 200)
+      },
+    }),
+  ),
+  ...placesByCellRouteConfigs.map(routeConfig =>
+    defineOpenAPIRoute<typeof routeConfig, AppEnv>({
+      route: routeConfig,
+      handler: c => {
+        const params = c.req.valid('param')
+        const query = c.req.valid('query')
+        return handlePlacesByCell(c, { ...params, limit: query.limit })
+      },
+    }),
+  ),
+  ...searchRouteConfigs.map(routeConfig =>
+    defineOpenAPIRoute<typeof routeConfig, AppEnv>({
+      route: routeConfig,
+      handler: c => {
+        const params = c.req.valid('param')
+        const query = c.req.valid('query')
+        return handlePlaceSearch(c, { ...params, ...query })
+      },
+    }),
+  ),
+  ...placeDetailRouteConfigs.map(routeConfig =>
+    defineOpenAPIRoute<typeof routeConfig, AppEnv>({
+      route: routeConfig,
+      handler: c => {
+        const { region: regionCode, id: placeId } = c.req.valid('param')
+        const { locale } = c.req.valid('query')
+        return handlePlaceDetail(c, { regionCode, placeId, locale })
+      },
+    }),
+  ),
+] as const
