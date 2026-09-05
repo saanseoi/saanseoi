@@ -74,8 +74,12 @@ Fields reorganised for storage, lookup, or API response shaping:
   <black>buildingNumberConnector</black> is null for this release.
 - `EngBlock`/`ChiBlock` - normalised to <black>blockExpression</black>, canonical
   <black>blockType</black>, <black>blockRef</black>, and
-  <black>blockTypeBeforeNumber</black>. ALS <black>BlockNo</black> is not assumed to be
-  numeric: it may be a label such as <black>A</black> or <black>EAST</black>.
+  <black>blockTypeBeforeNumber</black>. Recognised English descriptor variants use
+  <black>BLK</black>, <black>BLDG</black>, <black>TWR</black>, <black>HSE</black>, or
+  <black>APT</black>; Traditional Chinese puts the reference before its descriptor. ALS
+  <black>BlockNo</black> is not assumed to be numeric: it may be a label such as
+  <black>A</black> or <black>EAST</black>. The original descriptor remains in the
+  retained premise object.
 - `EngPhase`/`ChiPhase` - normalised to <black>phaseExpression</black>,
   <black>phaseName</black>, and <black>phaseRef</black>; phase names and references
   remain distinct.
@@ -172,8 +176,11 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
   <black>buildingNumberConnector</black> 為 null。
 - `EngBlock`/`ChiBlock` - 正規化為 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
-  <black>blockTypeBeforeNumber</black>。ALS 的 <black>BlockNo</black>
-  不假定為數字，亦可為 <black>A</black> 或 <black>EAST</black> 等標籤。
+  <black>blockTypeBeforeNumber</black>。已識別的英文類型變體使用
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁體中文會把參考值放在類型之前。ALS 的 <black>BlockNo</black>
+  不假定為數字，亦可為 <black>A</black> 或 <black>EAST</black>
+  等標籤。原始類型保留於已保存的樓宇物件。
 - `EngPhase`/`ChiPhase` - 正規化為 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名稱及期數參考保持區分。
 - canonical 門牌 lookup row 不按 locale 區分。來源端點使用
@@ -262,8 +269,11 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
   <black>buildingNumberConnector</black> 为 null。
 - `EngBlock`/`ChiBlock` - 规范化为 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
-  <black>blockTypeBeforeNumber</black>。ALS 的 <black>BlockNo</black>
-  不假定为数字，亦可为 <black>A</black> 或 <black>EAST</black> 等标签。
+  <black>blockTypeBeforeNumber</black>。已识别的英文类型变体使用
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁体中文会把参考值放在类型之前。ALS 的 <black>BlockNo</black>
+  不假定为数字，亦可为 <black>A</black> 或 <black>EAST</black>
+  等标签。原始类型保留于已保存的楼宇对象。
 - `EngPhase`/`ChiPhase` - 规范化为 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名称及期数参考保持区分。
 - canonical 门牌 lookup row 不按 locale 区分。来源端点使用

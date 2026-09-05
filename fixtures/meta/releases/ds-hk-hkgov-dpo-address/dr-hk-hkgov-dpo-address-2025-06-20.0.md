@@ -43,6 +43,9 @@ Overture division snapshot.
 
 - Chinese and English address components - normalised into the canonical localized
   address structure.
+- `blockExpression` canonicalises recognised English descriptor variants to `BLK`,
+  `BLDG`, `TWR`, `HSE`, or `APT`; Traditional Chinese places the reference before its
+  descriptor. The original descriptor remains in the retained premise object.
 - A stable `ss-` UUIDv5 premise identity is derived from the complete premise
   representation. Reviewed identity-drift decisions may retain an earlier identity.
 - District and area aliases are resolved against the selected division snapshot.
@@ -85,6 +88,9 @@ Overture division snapshot.
 ### 正規化欄位
 
 - 中英文地址組成部分會正規化為標準本地化地址結構。
+- <black>blockExpression</black> 會把已識別的英文類型變體正規化為
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁體中文會把參考值放在類型之前。原始類型保留於已保存的樓宇物件。
 - 由完整樓宇表示法衍生穩定的 `ss-` UUIDv5 身份；經審核的身份漂移決定可保留較早身份。
 - 地區及區域別名會按所選區劃 snapshot 解析。
 
@@ -122,6 +128,9 @@ Overture division snapshot.
 ### 规范化字段
 
 - 中英文地址组成部分会规范化为标准本地化地址结构。
+- <black>blockExpression</black> 会把已识别的英文类型变体规范化为
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁体中文会把参考值放在类型之前。原始类型保留于已保存的楼宇对象。
 - 由完整楼宇表示法衍生稳定的 `ss-` UUIDv5 身份；经审核的身份漂移决定可保留较早身份。
 - 地区及区域别名会按所选区划 snapshot 解析。
 
