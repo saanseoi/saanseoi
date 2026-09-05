@@ -253,7 +253,7 @@ export function normaliseRoadCentrelineFeatures(input: {
 
 /**
  * The release audit records the deterministic automatic rule and every manual
- * exception. The individual retained source rows remain the complete audit
+ * exception. The individual source rows remain the complete audit
  * ledger for automatic matches.
  */
 export function buildRoadCentrelineMatchingActions(input: {

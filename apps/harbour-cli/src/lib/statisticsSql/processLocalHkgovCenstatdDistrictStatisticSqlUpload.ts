@@ -120,7 +120,7 @@ type HistoryStatisticRow = {
 }
 
 /**
- * Persists raw C&SD source assertions, then publishes their canonical
+ * Persists raw C&SD source records, then publishes their canonical
  * Division Statistics history observations. Source rows never contain a
  * canonical district code or division ID.
  */
@@ -594,7 +594,7 @@ function assertUniqueDistrictAssertions(rows: SourceStatisticRow[]) {
   const sourceRecordIds = new Set(rows.map(row => row.sourceRecordId))
   const districtCodes = new Set(rows.map(row => row.districtCode))
   if (sourceRecordIds.size !== rows.length || districtCodes.size !== rows.length) {
-    throw new Error('C&SD district statistic input contains duplicate DC assertions.')
+    throw new Error('C&SD district statistic input contains duplicate DC records.')
   }
 }
 

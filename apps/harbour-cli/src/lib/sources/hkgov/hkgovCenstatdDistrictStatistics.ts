@@ -40,7 +40,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     }
     return {
       district_code: districtCode,
-      // A publisher district assertion remains the same feature across source
+      // A publisher source record remains the same feature across source
       // releases; its reference year is a versioned property, not its identity.
       id: `CENSTATD:DENSITY:${districtCode}`,
       land_area_sq_km: number(properties.LA, 'LA', index),

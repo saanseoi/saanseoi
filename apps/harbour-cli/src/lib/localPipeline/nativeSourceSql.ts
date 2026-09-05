@@ -91,7 +91,7 @@ export async function processNativeSourceSqlRelease(
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
   // Native source tables are not part of the canonical street/division cache
-  // profiles. Mirror their source assertions into the local planning cache.
+  // profiles. Mirror their source records into the local planning cache.
   const context = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
     cacheTableProfile: 'nativeSource',
   })
@@ -306,7 +306,7 @@ function assertRelease(input: NativeSourceRelease) {
     if (table.provenance !== 'required') continue
     if (table.rows.some(row => !hasSourceReferences(row.sources))) {
       throw new Error(
-        `Source assertion table ${table.name} requires a non-empty sources array with a dataset on every reference.`,
+        `Source record table ${table.name} requires a non-empty sources array with a dataset on every reference.`,
       )
     }
   }

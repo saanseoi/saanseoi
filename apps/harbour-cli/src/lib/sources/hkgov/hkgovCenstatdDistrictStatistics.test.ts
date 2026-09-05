@@ -17,7 +17,7 @@ afterEach(async () => {
 })
 
 describe('C&SD district land-area statistics', () => {
-  test('requires and prepares the 18 native Density_2022 GML assertions', async () => {
+  test('requires and prepares the 18 native Density_2022 GML records', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'hkgov-censtatd-density-test-'))
     workDirs.push(dir)
     const inputFile = join(dir, 'Density_2022.gml')
@@ -51,7 +51,7 @@ describe('C&SD district land-area statistics', () => {
     ])
   })
 
-  test('rejects duplicate publisher DC assertions', async () => {
+  test('rejects duplicate publisher DC records', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'hkgov-censtatd-density-test-'))
     workDirs.push(dir)
     const inputFile = join(dir, 'Density_2022.gml')
