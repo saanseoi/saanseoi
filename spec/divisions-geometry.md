@@ -49,16 +49,16 @@ Source tables follow the family’s source schema conventions (`sourceRecordId`,
 versioning, raw properties, provenance and source version). Canonical history/current
 tables use the same ordering and version-management fragments as `division`.
 
-An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `sourceKeys`,
+An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `identifiers`,
 source provenance, normalised `type` (`land`, `maritime`, or `mixed`), and
 land/territorial flags. A boundary row contains an `id`, ordered `leftDivisionId` and
-`rightDivisionId`, `bbox`, canonical geometry, `sourceKeys`, source provenance,
+`rightDivisionId`, `bbox`, canonical geometry, `identifiers`, source provenance,
 normalised `type`, and the same flags. Providers may add source-specific keys, but
 canonical columns must not be silently overloaded.
 
-`sourceKeys` is the compatibility bridge to source versions, classifications and
-external identifiers. Canonical divisions should expose reverse identifiers in their
-`identifiers` object when a provider bridge exists.
+`identifiers` contains genuine provider identifiers where a provider bridge exists.
+Source versions, classifications, and other source-only fields remain available through
+the source-record API under `rawProperties`.
 
 ## Domains, identity and hierarchy
 

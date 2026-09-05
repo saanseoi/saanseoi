@@ -343,7 +343,7 @@ Fields:
 - `taxonomyPrimary`
 - `taxonomyHierarchy`
 - `taxonomyAlternates`
-- `brandWikidata`
+- `wikidataId`
 - `websites`
 - `socials`
 - `emails`
