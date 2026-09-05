@@ -104,12 +104,14 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_property_description'),
+        examples: [''],
       }),
     dataset: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_dataset_description'),
+        examples: ['meta', 'overture'],
       }),
     license: z
       .string()
@@ -117,6 +119,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_license_description'),
+        examples: ['CDLA-Permissive-2.0', null],
       }),
     record_id: z
       .string()
@@ -124,6 +127,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_record_id_description'),
+        examples: ['110864367186379', null],
       }),
     update_time: z
       .string()
@@ -131,6 +135,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_update_time_description'),
+        examples: ['2025-09-15T07:00:00.000Z', null],
       }),
     confidence: z
       .number()
@@ -140,6 +145,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_confidence_description'),
+        examples: [0.6096840190952489, 0.9563699245119883, null],
       }),
     provider: z
       .string()
@@ -147,6 +153,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_provider_description'),
+        examples: [null],
       }),
     resource: z
       .string()
@@ -154,6 +161,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_resource_description'),
+        examples: [null],
       }),
     version: z
       .string()
@@ -161,6 +169,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_version_description'),
+        examples: [null],
       }),
     between: z
       .tuple([z.number(), z.number()])
@@ -168,6 +177,7 @@ const PlaceSourceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_source_between_description'),
+        examples: [null],
       }),
   })
   .loose()

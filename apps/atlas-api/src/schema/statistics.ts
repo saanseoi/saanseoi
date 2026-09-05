@@ -95,11 +95,12 @@ const StatisticResourceSchema = z
               ),
               examples: ['2023', '2021'],
             }),
-            granularity: z.enum(statisticReferencePeriodGranularities).openapi({
+            granularity: z.string().openapi({
               description: openApiText(
                 'openapi_statistics_reference_period_granularity_description',
               ),
               examples: ['year', 'quarter'],
+              enum: [...statisticReferencePeriodGranularities],
             }),
           })
           .openapi({
@@ -107,22 +108,24 @@ const StatisticResourceSchema = z
           }),
         geography: z
           .object({
-            kind: z.enum(statisticGeographyKinds).openapi({
+            kind: z.string().openapi({
               description: openApiText('openapi_statistics_geography_kind_description'),
               examples: ['area', 'district', 'building-group', 'housing-estate'],
+              enum: [...statisticGeographyKinds],
             }),
             code: z.string().openapi({
               description: openApiText('openapi_statistics_geography_code_description'),
               examples: ['Hong Kong Island', 'CW', 'CW0001', '60047'],
             }),
             class: z
-              .enum(statisticGeographyClasses)
+              .string()
               .optional()
               .openapi({
                 description: openApiText(
                   'openapi_statistics_geography_class_description',
                 ),
                 examples: ['B', 'O'],
+                enum: [...statisticGeographyClasses],
               }),
             areaCompanion: z
               .object({
@@ -132,17 +135,19 @@ const StatisticResourceSchema = z
                   ),
                   examples: ['2023', '2021'],
                 }),
-                domainCode: z.enum(statisticAreaCompanionDomains).openapi({
+                domainCode: z.string().openapi({
                   description: openApiText(
                     'openapi_statistics_area_companion_domain_description',
                   ),
                   examples: ['geographic', 'hkgov-censtatd-hma'],
+                  enum: [...statisticAreaCompanionDomains],
                 }),
-                variant: z.enum(statisticAreaCompanionVariants).openapi({
+                variant: z.string().openapi({
                   description: openApiText(
                     'openapi_statistics_area_companion_variant_description',
                   ),
                   examples: ['hkgov-censtatd', 'hkgov-censtatd-hma'],
+                  enum: [...statisticAreaCompanionVariants],
                 }),
               })
               .optional()
