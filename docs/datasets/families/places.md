@@ -109,7 +109,9 @@ provenance. Candidates over its deterministic acceptance threshold can be record
 that curation; weaker partial matches must stop in the same review workflow used for
 address identity drift, while candidates without meaningful evidence remain for later
 processing. It requires its own dataset, composition variant/domain, and address
-materialisation path before Places can select it.
+materialisation path before Places can select it. The required matcher tiers, curation
+artefacts, provenance, materialisation order, and publication stops are specified in the
+[Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a

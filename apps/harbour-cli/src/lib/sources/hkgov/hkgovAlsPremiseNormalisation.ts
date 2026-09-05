@@ -19,6 +19,12 @@ export type HkgovAlsStructuredPremiseNumber = {
   estateName: string | null
 }
 
+export type HkgovAlsPhaseRomanNumeralNormalisation = {
+  from: string
+  reference: string
+  to: string
+}
+
 const ROMAN_NUMERAL_SUFFIX =
   /^(?<stem>.+?)\s+(?<numeral>(?=[MDCLXVI]+$)M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3}))$/i
 const ARABIC_NUMERAL_SUFFIX = /^(?<stem>.+?)\s+(?<numeral>[1-9]\d*)$/
@@ -116,6 +122,48 @@ export function normaliseHkgovAlsPremiseNumberRomanNumeral(input: {
   if (numericValue > 3999) return null
 
   return { from, reference, to: toRomanNumeral(numericValue) }
+}
+
+/** Returns an estate-scoped phase-series key, omitting a trailing phase number. */
+export function hkgovAlsPhaseFamily(
+  estateName: string | null,
+  phaseName: string | null,
+  phaseRef: string | null,
+) {
+  const estate = clean(estateName)
+  const name = clean(phaseName)
+  if (!estate || !name) return null
+
+  const suffix = name.match(ARABIC_NUMERAL_SUFFIX) ?? name.match(ROMAN_NUMERAL_SUFFIX)
+  const stem = phaseRef ? name : clean(suffix?.groups?.stem ?? null)
+  return stem
+    ? `${normaliseBuildingNameFamily(estate)}\u0000${normaliseBuildingNameFamily(stem)}`
+    : null
+}
+
+/**
+ * A numeric phase in the same estate and phase series establishes Arabic style.
+ * Canonicalise only an unambiguous trailing Roman numeral to that established style.
+ */
+export function normaliseHkgovAlsPhaseRomanNumeral(input: {
+  estateName: string | null
+  numericPhaseFamilies: ReadonlyMap<string, string>
+  phaseName: string | null
+  phaseRef: string | null
+}): HkgovAlsPhaseRomanNumeralNormalisation | null {
+  const from = clean(input.phaseName)
+  const match = from?.match(ROMAN_NUMERAL_SUFFIX)
+  const stem = clean(match?.groups?.stem ?? null)
+  const numeral = match?.groups?.numeral
+  const family = hkgovAlsPhaseFamily(input.estateName, from ?? null, input.phaseRef)
+  const reference = family ? input.numericPhaseFamilies.get(family) : null
+  if (!from || !stem || !numeral || !reference || !isUnambiguousRomanNumeral(numeral)) {
+    return null
+  }
+
+  const number = parseRomanNumeral(numeral)
+  if (number == null) return null
+  return { from, reference, to: `${stem} ${number}` }
 }
 
 /**
@@ -270,6 +318,31 @@ function parseNumeral(value: string) {
     TEN: 10,
   }
   return writtenNumerals[value.toUpperCase()] ?? null
+}
+
+function parseRomanNumeral(value: string) {
+  if (!ROMAN_NUMERAL.test(value)) return null
+  const values: Record<string, number> = {
+    C: 100,
+    D: 500,
+    I: 1,
+    L: 50,
+    M: 1000,
+    V: 5,
+    X: 10,
+  }
+  let total = 0
+  let previous = 0
+  for (const character of value.toUpperCase().split('').reverse()) {
+    const current = values[character]
+    if (!current) return null
+    if (current < previous) total -= current
+    else {
+      total += current
+      previous = current
+    }
+  }
+  return total
 }
 
 function toRomanNumeral(value: number) {

@@ -379,7 +379,12 @@ address:
   `phaseExpression: PHASE 2`. Roman references inferred from a name use the same
   unambiguous-suffix guard as premise numbers: single-letter Roman values are not
   inferred without an explicit `PhaseNo`. An explicit `PhaseNo: C` is still preserved as
-  `phaseRef: C` and removed from `PHASE C`.
+  `phaseRef: C` and removed from `PHASE C`. Before projection, an English phase with an
+  unambiguous trailing Roman reference is rendered in Arabic only when the same estate
+  and phase series has numeric evidence: `PHASE 1` makes `PHASE II` become `PHASE 2`.
+  Each such correction is recorded as an automatic `als_phase_roman_numeral_normalised`
+  processing action with the original value, normalised value, and numeric peer
+  reference.
 - `buildingNumberConnector` remains `null` because ALS supplies no range connector. A
   hyphen in a formatted English range is presentation syntax, not evidence of an
   interior numeric range.

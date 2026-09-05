@@ -3,7 +3,9 @@ import { describe, expect, test } from 'bun:test'
 import {
   collectHkgovAlsRomanNumeralBuildingNameFamilies,
   collectHkgovAlsRomanNumeralPremiseNumberFamilies,
+  hkgovAlsPhaseFamily,
   normaliseHkgovAlsBuildingNameRomanNumeral,
+  normaliseHkgovAlsPhaseRomanNumeral,
   normaliseHkgovAlsPremiseNumberRomanNumeral,
   normaliseHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
@@ -246,5 +248,32 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
         romanNumeralFamilies,
       }),
     ).toEqual({ from: 'TWO', reference: 'BLK II', to: 'II' })
+  })
+})
+
+describe('normaliseHkgovAlsPhaseRomanNumeral', () => {
+  test('uses an estate phase series to render a Roman suffix as Arabic', () => {
+    const family = hkgovAlsPhaseFamily('EXAMPLE ESTATE', 'PHASE 1', null)
+    if (!family) throw new Error('Expected a phase family.')
+
+    expect(
+      normaliseHkgovAlsPhaseRomanNumeral({
+        estateName: 'EXAMPLE ESTATE',
+        numericPhaseFamilies: new Map([[family, 'PHASE 1']]),
+        phaseName: 'PHASE II',
+        phaseRef: null,
+      }),
+    ).toEqual({ from: 'PHASE II', reference: 'PHASE 1', to: 'PHASE 2' })
+  })
+
+  test('does not change a Roman phase outside a numeric estate series', () => {
+    expect(
+      normaliseHkgovAlsPhaseRomanNumeral({
+        estateName: 'UNRELATED ESTATE',
+        numericPhaseFamilies: new Map(),
+        phaseName: 'PHASE II',
+        phaseRef: null,
+      }),
+    ).toBeNull()
   })
 })

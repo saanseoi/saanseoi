@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildHkgovAlsProcessingActions,
   buildHkgovAlsDivisionQuality,
-  collectHkgovAlsPhaseRomanNumeralEstateEvidence,
+  collectHkgovAlsNumericPhaseFamilies,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
   formatEnPremisesAddress,
@@ -49,9 +49,9 @@ describe('ALS premise address formatting', () => {
   })
 })
 
-describe('ALS phase Roman-numeral estate evidence', () => {
-  test('scopes numeric evidence to each locale estate', () => {
-    const evidence = collectHkgovAlsPhaseRomanNumeralEstateEvidence([
+describe('ALS numeric phase families', () => {
+  test('scopes numeric evidence to the English estate and phase series', () => {
+    const families = collectHkgovAlsNumericPhaseFamilies([
       {
         properties: {
           Address: {
@@ -86,12 +86,11 @@ describe('ALS phase Roman-numeral estate evidence', () => {
       },
     ])
 
-    expect(evidence.en).toEqual(new Set(['EXAMPLE ESTATE']))
-    expect(evidence.zhHant).toEqual(new Set())
+    expect([...families.values()]).toEqual(['PHASE 1'])
   })
 
-  test('does not create evidence for a standalone Roman phase', () => {
-    const evidence = collectHkgovAlsPhaseRomanNumeralEstateEvidence([
+  test('does not create a numeric family for a standalone Roman phase', () => {
+    const families = collectHkgovAlsNumericPhaseFamilies([
       {
         properties: {
           Address: {
@@ -106,7 +105,7 @@ describe('ALS phase Roman-numeral estate evidence', () => {
       },
     ])
 
-    expect(evidence.en).toEqual(new Set())
+    expect(families.size).toBe(0)
   })
 })
 
@@ -179,6 +178,11 @@ describe('buildHkgovAlsProcessingActions', () => {
       chiPremisesAddressJson: null,
       enBlockDescriptor: 'TOWER',
       enBlockNumberRomanNumeralNormalisation: { from: '1', reference: 'II', to: 'I' },
+      enPhaseRomanNumeralNormalisation: {
+        from: 'PHASE II',
+        reference: 'PHASE 1',
+        to: 'PHASE 2',
+      },
       enBuildingNameRomanNumeralNormalisation: {
         from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
         reference: 'II',
@@ -235,6 +239,24 @@ describe('buildHkgovAlsProcessingActions', () => {
       mode: 'automatic',
       summary:
         'Styled an ALS BLOCK, HOUSE or TOWER number as Roman numerals used by its premise family.',
+    })
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_phase_roman_numeral_normalised',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: expect.any(Object),
+        phaseName: { from: 'PHASE II', reference: 'PHASE 1', to: 'PHASE 2' },
+      },
+      mode: 'automatic',
+      summary:
+        'Styled an ALS phase name with the Arabic numbering used by its estate phase series.',
     })
   })
 
