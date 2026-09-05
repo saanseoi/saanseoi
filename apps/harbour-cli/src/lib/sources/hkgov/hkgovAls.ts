@@ -33,6 +33,8 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import {
   collectHkgovAlsRomanNumeralBuildingNameFamilies,
   collectHkgovAlsRomanNumeralPremiseNumberFamilies,
+  hkgovAlsPhaseFamily,
+  normaliseHkgovAlsPhaseRomanNumeral,
   normaliseHkgovAlsBuildingNameRomanNumeral,
   normaliseHkgovAlsPremiseNumberRomanNumeral,
   normaliseHkgovAlsPremiseStructure,
@@ -249,7 +251,6 @@ type PreparedHkgovAlsRow = {
   zhHantBlockNumber: string | null
   zhHantPhaseName: string | null
   zhHantPhaseRef: string | null
-  zhHantPhaseRomanNumeralEstateHasNumericEvidence: boolean
   zhHantStreetName: string | null
   zhHantStreetNumberFrom: string | null
   zhHantStreetNumberTo: string | null
@@ -279,7 +280,11 @@ type PreparedHkgovAlsRow = {
   enVillageNumberTo: string | null
   enPhaseName: string | null
   enPhaseRef: string | null
-  enPhaseRomanNumeralEstateHasNumericEvidence: boolean
+  enPhaseRomanNumeralNormalisation: {
+    from: string
+    reference: string
+    to: string
+  } | null
   easting: number | null
   northing: number | null
 }
@@ -299,55 +304,35 @@ type PreparedHkgovAlsResult = {
   divisionQuality: HkgovAlsDivisionQuality
 }
 
-type HkgovAlsPhaseRomanNumeralEstateEvidence = {
-  en: ReadonlySet<string>
-  zhHant: ReadonlySet<string>
-}
-
 export type HkgovAlsDivisionMatchStatus = 'ambiguous' | 'matched' | 'unmatched'
 
 /**
- * Finds estates where ALS supplies numeric phase evidence. This is retained as
- * row-level context because the import normaliser processes prepared Parquet in
- * chunks and cannot inspect the other premises in the estate at that point.
+ * Finds estate-scoped English phase families that ALS represents numerically.
+ * The preparation pass needs this release-wide context to repair Roman values
+ * before the chunked address normaliser projects phase fields.
  */
-export function collectHkgovAlsPhaseRomanNumeralEstateEvidence(
+export function collectHkgovAlsNumericPhaseFamilies(
   features: Iterable<HkgovAlsFeature>,
-): HkgovAlsPhaseRomanNumeralEstateEvidence {
-  const en = new Set<string>()
-  const zhHant = new Set<string>()
+): ReadonlyMap<string, string> {
+  const families = new Map<string, string>()
 
   for (const feature of features) {
     const premises = feature.properties?.Address?.PremisesAddress
     const english = premises?.EngPremisesAddress
-    const chinese = premises?.ChiPremisesAddress
     const englishEstateName = asOptionalString(english?.EngEstate?.EstateName)
-    const chineseEstateName = asOptionalString(chinese?.ChiEstate?.EstateName)
-
-    if (hasNumericPhaseEvidence(english?.EngPhase) && englishEstateName) {
-      en.add(normaliseEnKey(englishEstateName))
-    }
-    if (hasNumericPhaseEvidence(chinese?.ChiPhase) && chineseEstateName) {
-      zhHant.add(normaliseZhKey(chineseEstateName))
+    const phaseName = asOptionalString(english?.EngPhase?.PhaseName)
+    const phaseRef = asOptionalString(english?.EngPhase?.PhaseNo)
+    const family = hkgovAlsPhaseFamily(englishEstateName, phaseName, phaseRef)
+    if (family && phaseName && hasNumericPhaseEvidence(phaseName, phaseRef)) {
+      families.set(family, phaseName)
     }
   }
 
-  return { en, zhHant }
+  return families
 }
 
-function hasNumericPhaseEvidence(
-  phase:
-    | {
-        PhaseName?: string | null
-        PhaseNo?: string | number | null
-      }
-    | null
-    | undefined,
-) {
-  const phaseNumber = asOptionalString(phase?.PhaseNo)
+function hasNumericPhaseEvidence(phaseName: string | null, phaseNumber: string | null) {
   if (phaseNumber && /^[1-9]\d*[A-Z]?$/.test(phaseNumber)) return true
-
-  const phaseName = asOptionalString(phase?.PhaseName)
   return Boolean(phaseName && /(?:^|\s)[1-9]\d*[A-Z]?$/i.test(phaseName))
 }
 
@@ -459,10 +444,9 @@ export async function prepareHkgovAlsAddressParquet(
           }),
         )
       : new Map<string, string>()
-  const phaseRomanNumeralEstateEvidence =
-    collectHkgovAlsPhaseRomanNumeralEstateEvidence(
-      uniqueSourceFeatures.map(sourceFeature => sourceFeature.feature),
-    )
+  const numericPhaseFamilies = collectHkgovAlsNumericPhaseFamilies(
+    uniqueSourceFeatures.map(sourceFeature => sourceFeature.feature),
+  )
   const rows = uniqueSourceFeatures.map(sourceFeature =>
     normaliseHkgovAlsFeature(
       sourceFeature.feature,
@@ -474,7 +458,7 @@ export async function prepareHkgovAlsAddressParquet(
       options.postProcessPremiseStructure !== false,
       romanNumeralBuildingNameFamilies,
       romanNumeralPremiseNumberFamilies,
-      phaseRomanNumeralEstateEvidence,
+      numericPhaseFamilies,
     ),
   )
   const {
@@ -700,10 +684,6 @@ export async function prepareHkgovAlsAddressParquet(
           'zhHantPhaseRef',
           rows.map(row => row.zhHantPhaseRef),
         ),
-        booleanColumn(
-          'zhHantPhaseRomanNumeralEstateHasNumericEvidence',
-          rows.map(row => row.zhHantPhaseRomanNumeralEstateHasNumericEvidence),
-        ),
         stringColumn(
           'zhHantStreetName',
           rows.map(row => row.zhHantStreetName),
@@ -755,10 +735,6 @@ export async function prepareHkgovAlsAddressParquet(
         stringColumn(
           'enPhaseRef',
           rows.map(row => row.enPhaseRef),
-        ),
-        booleanColumn(
-          'enPhaseRomanNumeralEstateHasNumericEvidence',
-          rows.map(row => row.enPhaseRomanNumeralEstateHasNumericEvidence),
         ),
         stringColumn(
           'enStreetName',
@@ -1045,6 +1021,22 @@ export function buildHkgovAlsProcessingActions(input: {
       mode: 'automatic' as const,
       summary:
         'Styled an ALS BLOCK, HOUSE or TOWER number as Roman numerals used by its premise family.',
+    })
+  }
+
+  for (const row of input.resolvedRows) {
+    const phaseName = row.enPhaseRomanNumeralNormalisation
+    if (!phaseName) continue
+    actions.push({
+      action: 'als_phase_roman_numeral_normalised',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: summariseHkgovAlsProcessingRow(row),
+        phaseName,
+      },
+      mode: 'automatic' as const,
+      summary:
+        'Styled an ALS phase name with the Arabic numbering used by its estate phase series.',
     })
   }
 
@@ -1348,12 +1340,20 @@ function normaliseHkgovAlsFeature(
   postProcessPremiseStructure: boolean,
   romanNumeralBuildingNameFamilies: ReadonlyMap<string, string>,
   romanNumeralPremiseNumberFamilies: ReadonlyMap<string, string>,
-  phaseRomanNumeralEstateEvidence: HkgovAlsPhaseRomanNumeralEstateEvidence,
+  numericPhaseFamilies: ReadonlyMap<string, string>,
 ): PreparedHkgovAlsRow {
   const properties = feature.properties ?? {}
   const premises = properties.Address?.PremisesAddress ?? {}
   const rawZh = premises.ChiPremisesAddress ?? {}
   const rawEn = premises.EngPremisesAddress ?? {}
+  const enPhaseRomanNumeralNormalisation = postProcessPremiseStructure
+    ? normaliseHkgovAlsPhaseRomanNumeral({
+        estateName: asOptionalString(rawEn.EngEstate?.EstateName),
+        numericPhaseFamilies,
+        phaseName: asOptionalString(rawEn.EngPhase?.PhaseName),
+        phaseRef: asOptionalString(rawEn.EngPhase?.PhaseNo),
+      })
+    : null
   const enBuildingNameRomanNumeralNormalisation = postProcessPremiseStructure
     ? normaliseHkgovAlsBuildingNameRomanNumeral({
         buildingName: asOptionalString(rawEn.BuildingName),
@@ -1401,6 +1401,10 @@ function normaliseHkgovAlsFeature(
       BlockNo: enStructure.blockNumber,
     },
     EngEstate: { ...rawEn.EngEstate, EstateName: enStructure.estateName },
+    EngPhase: {
+      ...rawEn.EngPhase,
+      PhaseName: enPhaseRomanNumeralNormalisation?.to ?? rawEn.EngPhase?.PhaseName,
+    },
   }
   const zh: HkgovLocalisedPremisesAddress = {
     ...rawZh,
@@ -1531,6 +1535,7 @@ function normaliseHkgovAlsFeature(
           en: enStructure.normalisation,
           enBuildingNameRomanNumeral: enBuildingNameRomanNumeralNormalisation != null,
           enBlockNumberRomanNumeral: enBlockNumberRomanNumeralNormalisation != null,
+          enPhaseRomanNumeral: enPhaseRomanNumeralNormalisation != null,
           zhHant: zhStructure.normalisation,
         },
       },
@@ -1585,10 +1590,6 @@ function normaliseHkgovAlsFeature(
     zhHantBlockNumber: asOptionalString(zh.ChiBlock?.BlockNo),
     zhHantPhaseName: asOptionalString(zh.ChiPhase?.PhaseName),
     zhHantPhaseRef: asOptionalString(zh.ChiPhase?.PhaseNo),
-    zhHantPhaseRomanNumeralEstateHasNumericEvidence:
-      phaseRomanNumeralEstateEvidence.zhHant.has(
-        normaliseZhKey(asOptionalString(zh.ChiEstate?.EstateName) ?? ''),
-      ),
     zhHantStreetName: asOptionalString(zhStreet.StreetName),
     zhHantStreetNumberFrom: asOptionalString(zhStreet.BuildingNoFrom),
     zhHantStreetNumberTo: asOptionalString(zhStreet.BuildingNoTo),
@@ -1616,9 +1617,7 @@ function normaliseHkgovAlsFeature(
     enVillageNumberTo: asOptionalString(enVillage.BuildingNoTo),
     enPhaseName: asOptionalString(en.EngPhase?.PhaseName),
     enPhaseRef: asOptionalString(en.EngPhase?.PhaseNo),
-    enPhaseRomanNumeralEstateHasNumericEvidence: phaseRomanNumeralEstateEvidence.en.has(
-      normaliseEnKey(asOptionalString(en.EngEstate?.EstateName) ?? ''),
-    ),
+    enPhaseRomanNumeralNormalisation,
     easting: asOptionalInteger(properties.Easting),
     northing: asOptionalInteger(properties.Northing),
   }
