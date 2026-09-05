@@ -28,6 +28,7 @@ import {
 } from '../../../services/accessAnalytics'
 import type { AppEnv } from '../../../types'
 import { openApiText } from '../../../lib/openapi-i18n'
+import { derivePlaceReferenceName } from '@repo/core'
 
 type PlaceCoordinates = { lat: number; lng: number }
 type PlaceTaxonomy = {
@@ -43,12 +44,68 @@ export function placeGeometry({ lat, lng }: PlaceCoordinates) {
   }
 }
 
-export function toPlaceApiRecord<T extends PlaceCoordinates & PlaceTaxonomy>(
-  record: T,
-) {
-  const { lat, lng, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates, ...rest } =
-    record
+export function toPlaceI18nApiRecord<T extends { provenance?: unknown }>(record: T) {
+  const { provenance, ...rest } = record
+  if (!provenance || typeof provenance !== 'object') {
+    return { ...rest, provenance: null }
+  }
+  const value = provenance as Record<string, unknown>
   return {
+    ...rest,
+    provenance: {
+      isMachineTranslated: stringArray(value.isMachineTranslated),
+      isHumanVerified: stringArray(value.isHumanVerified),
+      isLocaleInferred: value.isLocaleInferred === true,
+    },
+  }
+}
+
+type PlaceApiRecord<T extends PlaceTaxonomy> = Omit<
+  T,
+  | 'lat'
+  | 'lng'
+  | 'taxonomyPrimary'
+  | 'taxonomyHierarchy'
+  | 'taxonomyAlternates'
+  | 'addresses'
+> & {
+  taxonomy: {
+    primary: T['taxonomyPrimary']
+    hierarchy: T['taxonomyHierarchy']
+    alternates: T['taxonomyAlternates']
+  }
+  geometry: ReturnType<typeof placeGeometry>
+}
+
+export function toPlaceApiRecord<
+  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+>(
+  record: T,
+  referenceName: string | null,
+): PlaceApiRecord<T> & {
+  referenceName: string | null
+}
+export function toPlaceApiRecord<
+  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+>(record: T): PlaceApiRecord<T>
+export function toPlaceApiRecord<
+  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+>(
+  record: T,
+  referenceName?: string | null,
+): PlaceApiRecord<T> & {
+  referenceName?: string | null
+} {
+  const {
+    lat,
+    lng,
+    taxonomyPrimary,
+    taxonomyHierarchy,
+    taxonomyAlternates,
+    addresses: _addresses,
+    ...rest
+  } = record
+  const projected = {
     ...rest,
     taxonomy: {
       primary: taxonomyPrimary,
@@ -57,6 +114,9 @@ export function toPlaceApiRecord<T extends PlaceCoordinates & PlaceTaxonomy>(
     },
     geometry: placeGeometry({ lat, lng }),
   }
+  return referenceName === undefined
+    ? projected
+    : { ...projected, referenceName: referenceName ?? null }
 }
 
 const placeRouteConfig = createRoute({
@@ -244,14 +304,20 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
 
     return c.json(
       {
-        place: toPlaceApiRecord(place),
-        i18n,
+        place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
+        i18n: i18n.map(toPlaceI18nApiRecord),
         divisions,
       },
       200,
     )
   },
 })
+
+function stringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : []
+}
 
 export const placesByCellRoute = defineOpenAPIRoute<
   typeof placesByCellRouteConfig,
@@ -309,7 +375,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     return c.json(
       {
-        places: places.map(toPlaceApiRecord),
+        places: places.map(place => toPlaceApiRecord(place)),
       },
       200,
     )

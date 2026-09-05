@@ -1,0 +1,1 @@
+ALTER TABLE `placesI18n` DROP COLUMN `isLocaleInferred`;

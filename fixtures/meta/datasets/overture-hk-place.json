@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3347d67f31f5161314411210c2d8b294804d184f54d16af4263af926c57c970b",
+  "versionHash": "sha256:c4689eede6629f55322ec8e05fb4bbbfa3d7d39bf1e4b2ff7a38cc5cf41a6145",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
@@ -48,7 +48,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-place-merge-v1",
-      "operationCodes": ["overture_place_country_review_required"]
+      "operationCodes": [
+        "overture_place_country_review_required",
+        "overture_place_locale_conflict"
+      ]
     }
   ],
   "i18n": [

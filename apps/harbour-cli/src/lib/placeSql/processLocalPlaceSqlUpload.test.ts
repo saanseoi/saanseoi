@@ -3,12 +3,54 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildPlaceCountryReviewProcessingActions,
+  buildPlaceLocaleConflictProcessingActions,
+  buildPlaceReleaseStatsRows,
   buildPlaceSql,
   isExcludedOverturePlace,
 } from './processLocalPlaceSqlUpload.ts'
 import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
 
 describe('Places SQL materialisation', () => {
+  test('builds field statistics against the Place denominator', () => {
+    const place = normaliseOverturePlace(
+      {
+        id: 'stats-place-1',
+        geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+        names: { en: 'Central' },
+      },
+      '2026-08-19.0',
+    )
+    if (!place) throw new Error('Expected a normalised place.')
+
+    const rows = buildPlaceReleaseStatsRows([
+      {
+        place,
+        address2dId: null,
+        address3dId: null,
+        divisionIds: [],
+        versionHash: 'version-hash',
+        sourcePayloadHash: 'source-hash',
+      },
+    ])
+
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ dimension: 'records', value: 1 }),
+        expect.objectContaining({
+          dimension: 'localisation_coverage',
+          groupValue: 'name:en',
+          value: 100,
+          metricUnit: 'percentage',
+        }),
+        expect.objectContaining({
+          dimension: 'localisation_missing_value_count',
+          groupValue: 'freeformAddress:zh-hant',
+          value: 1,
+        }),
+      ]),
+    )
+  })
+
   test('audits excluded and missing-country Places while retaining null-country Places', () => {
     const place = normaliseOverturePlace(
       {
@@ -77,6 +119,34 @@ describe('Places SQL materialisation', () => {
     ])
   })
 
+  test('audits locale/script conflicts with the original source value', () => {
+    const place = normaliseOverturePlace(
+      {
+        id: 'place-locale-conflict-1',
+        geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+        names: { language: 'en', value: '香港地點' },
+      },
+      '2026-08-19.0',
+    )
+    if (!place) throw new Error('Expected a normalised place.')
+
+    expect(buildPlaceLocaleConflictProcessingActions([place])).toEqual([
+      expect.objectContaining({
+        action: 'overture_place_locale_conflict',
+        evidence: {
+          placeId: 'place-locale-conflict-1',
+          field: 'name',
+          sourceLocale: 'en',
+          resolvedLocale: 'zh-hant',
+          script: 'han',
+          sourceText: '香港地點',
+          conflict: true,
+          reason: 'Han text was labelled en.',
+        },
+      }),
+    ])
+  })
+
   test('replays source, history, current, and version-change rows in SQLite', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`
@@ -101,7 +171,7 @@ describe('Places SQL materialisation', () => {
       );
       CREATE TABLE placesI18n (
         snapshotId TEXT, placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT,
-        nameAlts TEXT, isLocaleInferred INTEGER, brandName TEXT,
+        nameAlts TEXT, brandName TEXT,
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT,
         provenance TEXT, createdAt TEXT, updatedAt TEXT
       );
@@ -123,7 +193,7 @@ describe('Places SQL materialisation', () => {
       );
       CREATE TABLE placesI18n (
         placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT, nameAlts TEXT,
-        isLocaleInferred INTEGER, brandName TEXT, brandNameVariant TEXT,
+        brandName TEXT, brandNameVariant TEXT,
         brandNameAlts TEXT, versionHash TEXT, sourceReleaseId TEXT,
         snapshotId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT
         , freeformAddress TEXT, provenance TEXT
@@ -195,7 +265,6 @@ describe('Places SQL materialisation', () => {
                 name: 'Example',
                 nameVariant: null,
                 nameAlts: null,
-                isLocaleInferred: false,
                 brandName: null,
                 brandNameVariant: null,
                 brandNameAlts: null,
@@ -204,10 +273,10 @@ describe('Places SQL materialisation', () => {
                   isMachineTranslated: [],
                   isHumanVerified: [],
                   isLocaleInferred: false,
-                  localeEvidence: [],
                 },
               },
             ],
+            localeConflicts: [],
             raw: {
               id: 'place-1',
               geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
@@ -245,7 +314,6 @@ describe('Places SQL materialisation', () => {
         isMachineTranslated: [],
         isHumanVerified: [],
         isLocaleInferred: false,
-        localeEvidence: [],
       }),
     })
     expect(sqlite.query('SELECT rawProperties FROM overturePlaces').get()).toEqual({

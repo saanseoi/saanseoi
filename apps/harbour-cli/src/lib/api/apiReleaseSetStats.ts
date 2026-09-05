@@ -7,13 +7,18 @@ import {
   type AddressDivisionQualityCounts,
   type StatsLocaleGroup,
 } from '@repo/core/pipeline/services/stats'
+import {
+  buildPlaceLocalisationStatistics,
+  type PlaceLocaleConflict,
+  type PlaceI18nRecord,
+} from '@repo/core/pipeline/services/place'
 import { resolveDistrictId } from '@repo/core/pipeline/services/division'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createD1ImportClient } from '@repo/core/d1ImportApi'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
-import { and, currentSchema, eq, sql } from '@repo/db'
+import { and, currentSchema, eq, metaSchema, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { AnyColumn } from 'drizzle-orm'
 
@@ -119,7 +124,11 @@ export async function calculateAndStoreApiReleaseSetStats(
           )
         : options.family === 'division'
           ? await buildDivisionStatsRows(options.currentDb, snapshotId)
-          : await buildPlaceStatsRows(options.currentDb, snapshotId)
+          : await buildPlaceStatsRows(
+              options.currentDb,
+              snapshotId,
+              await readPlaceLocaleConflicts(options.metaDb, options.releaseId),
+            )
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),
@@ -408,16 +417,20 @@ async function buildDivisionStatsRows(
 async function buildPlaceStatsRows(
   db: HarbourReadableDb,
   snapshotId: string,
+  localeConflictsByPlace: Map<string, PlaceLocaleConflict[]> = new Map(),
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
-  const [placeCount, i18nCount, addressLinkedCount, divisionLinkCount, localeCounts] =
+  const [placeRows, i18nRows, addressLinkedCount, divisionLinkCount, localeCounts] =
     await Promise.all([
-      countRows(db, currentSchema.places, currentSchema.places.snapshotId, snapshotId),
-      countRows(
-        db,
-        currentSchema.placesI18n,
-        currentSchema.placesI18n.snapshotId,
-        snapshotId,
-      ),
+      db
+        .select({ id: currentSchema.places.id })
+        .from(currentSchema.places)
+        .where(eq(currentSchema.places.snapshotId, snapshotId))
+        .all(),
+      db
+        .select()
+        .from(currentSchema.placesI18n)
+        .where(eq(currentSchema.placesI18n.snapshotId, snapshotId))
+        .all(),
       countWhere(
         db,
         currentSchema.places,
@@ -442,9 +455,61 @@ async function buildPlaceStatsRows(
     ])
 
   const timestamp = new Date().toISOString()
+  const typedPlaceRows = placeRows as Array<{ id: string }>
+  const typedI18nRows = i18nRows as Array<{
+    placeId: string
+    locale: string
+    name: string | null
+    nameAlts: string | null
+    nameVariant: unknown
+    brandName: string | null
+    brandNameAlts: string | null
+    brandNameVariant: unknown
+    freeformAddress: string | null
+    provenance: unknown
+  }>
+  const placeCount = typedPlaceRows.length
+  const i18nCount = typedI18nRows.length
+  const i18nByPlace = new Map<string, typeof typedI18nRows>()
+  for (const row of typedI18nRows) {
+    const rows = i18nByPlace.get(row.placeId) ?? []
+    rows.push(row)
+    i18nByPlace.set(row.placeId, rows)
+  }
+  const localisationStats = buildPlaceLocalisationStatistics(
+    typedPlaceRows.map(place => ({
+      id: place.id,
+      localeConflicts: localeConflictsByPlace.get(place.id) ?? [],
+      i18n: (i18nByPlace.get(place.id) ?? []).map(row => ({
+        locale: row.locale,
+        name: row.name,
+        nameAlts: row.nameAlts,
+        nameVariant: row.nameVariant as string[] | null,
+        brandName: row.brandName,
+        brandNameAlts: row.brandNameAlts,
+        brandNameVariant: row.brandNameVariant as string[] | null,
+        freeformAddress: row.freeformAddress,
+        provenance: (row.provenance ?? {
+          isMachineTranslated: [],
+          isHumanVerified: [],
+          isLocaleInferred: false,
+        }) as PlaceI18nRecord['provenance'],
+      })),
+    })),
+  )
+  const localisedPlaceCount = typedPlaceRows.filter(
+    place => (i18nByPlace.get(place.id)?.length ?? 0) > 0,
+  ).length
   const rows: ApiReleaseSetScopedStatsRow[] = [
     placeStatsRow('records', 'count', 'count', placeCount, timestamp),
-    placeStatsRow('localised_records', 'count', 'count', i18nCount, timestamp),
+    placeStatsRow(
+      'localised_records',
+      'count',
+      'count',
+      localisedPlaceCount,
+      timestamp,
+    ),
+    placeStatsRow('localised_rows', 'count', 'count', i18nCount, timestamp),
     placeStatsRow('address_links', 'count', 'count', addressLinkedCount, timestamp),
     placeStatsRow('division_links', 'count', 'count', divisionLinkCount, timestamp),
   ]
@@ -456,7 +521,193 @@ async function buildPlaceStatsRows(
       }),
     )
   }
+  for (const [fieldLocale, stats] of localisationStats.fields) {
+    const [field, locale] = fieldLocale.split('\u0000')
+    const groupValue = `${field}:${locale}`
+    rows.push(
+      placeStatsRow(
+        'localisation_value_count',
+        'count',
+        'count',
+        stats.valueCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.valueCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_provided_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.providedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_inferred_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.inferredCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_ai_translated_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.aiTranslatedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_human_translated_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.humanTranslatedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_conflict_count',
+        'count',
+        'count',
+        stats.conflictCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_missing_value_count',
+        'count',
+        'count',
+        stats.missingCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+    )
+  }
+  rows.push(
+    placeStatsRow(
+      'reference_name_count',
+      'count',
+      'count',
+      localisationStats.referenceNameCount,
+      timestamp,
+    ),
+    placeStatsRow(
+      'reference_name_coverage',
+      'coverage',
+      'percentage',
+      percentage(localisationStats.referenceNameCount, placeCount),
+      timestamp,
+    ),
+    placeStatsRow(
+      'bilingual_reference_name_count',
+      'count',
+      'count',
+      localisationStats.bilingualReferenceNameCount,
+      timestamp,
+    ),
+    placeStatsRow(
+      'bilingual_reference_name_coverage',
+      'coverage',
+      'percentage',
+      percentage(localisationStats.bilingualReferenceNameCount, placeCount),
+      timestamp,
+    ),
+  )
   return rows
+}
+
+async function readPlaceLocaleConflicts(metaDb: HarbourReadableDb, releaseId: string) {
+  const rows = await metaDb
+    .select({ evidence: metaSchema.releaseProcessingActions.evidence })
+    .from(metaSchema.releaseProcessingActions)
+    .where(
+      and(
+        eq(metaSchema.releaseProcessingActions.releaseId, releaseId),
+        eq(
+          metaSchema.releaseProcessingActions.action,
+          'overture_place_locale_conflict',
+        ),
+      ),
+    )
+    .all()
+  const conflictsByPlace = new Map<string, PlaceLocaleConflict[]>()
+  for (const row of rows) {
+    const evidence = row.evidence
+    if (!evidence || typeof evidence !== 'object') continue
+    const value = evidence as Record<string, unknown>
+    const placeId = typeof value.placeId === 'string' ? value.placeId : null
+    const field =
+      value.field === 'brandName'
+        ? 'brand'
+        : value.field === 'name' || value.field === 'freeformAddress'
+          ? value.field
+          : null
+    const script =
+      value.script === 'han' ||
+      value.script === 'latin' ||
+      value.script === 'mixed' ||
+      value.script === 'other'
+        ? value.script
+        : null
+    if (
+      !placeId ||
+      !field ||
+      typeof value.resolvedLocale !== 'string' ||
+      !script ||
+      value.conflict !== true ||
+      typeof value.sourceText !== 'string'
+    )
+      continue
+    const conflict: PlaceLocaleConflict = {
+      field,
+      sourceLocale: typeof value.sourceLocale === 'string' ? value.sourceLocale : null,
+      resolvedLocale: value.resolvedLocale,
+      script,
+      conflict: true,
+      reason: typeof value.reason === 'string' ? value.reason : null,
+      sourceText: value.sourceText,
+    }
+    const existing = conflictsByPlace.get(placeId) ?? []
+    existing.push(conflict)
+    conflictsByPlace.set(placeId, existing)
+  }
+  return conflictsByPlace
+}
+
+function percentage(value: number, total: number) {
+  return total === 0 ? 0 : Number(((value / total) * 100).toFixed(2))
 }
 
 function placeStatsRow(

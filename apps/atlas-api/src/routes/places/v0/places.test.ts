@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { placeGeometry, toPlaceApiRecord } from './places'
+import { placeGeometry, toPlaceApiRecord, toPlaceI18nApiRecord } from './places'
 
 describe('Places API geometry projection', () => {
   test('projects stored latitude and longitude as a GeoJSON Point', () => {
@@ -36,5 +36,32 @@ describe('Places API geometry projection', () => {
     expect(result).not.toHaveProperty('taxonomyAlternates')
     expect(result).not.toHaveProperty('lat')
     expect(result).not.toHaveProperty('lng')
+  })
+})
+
+test('keeps public localisation provenance trust-oriented', () => {
+  const result = toPlaceI18nApiRecord({
+    placeId: 'place-1',
+    locale: 'zh-hant',
+    freeformAddress: '中環',
+    provenance: {
+      isMachineTranslated: ['name'],
+      isHumanVerified: [],
+      isLocaleInferred: true,
+    },
+  })
+
+  expect(result).toMatchObject({
+    freeformAddress: '中環',
+    provenance: {
+      isMachineTranslated: ['name'],
+      isHumanVerified: [],
+      isLocaleInferred: true,
+    },
+  })
+  expect(result.provenance).toEqual({
+    isMachineTranslated: ['name'],
+    isHumanVerified: [],
+    isLocaleInferred: true,
   })
 })
