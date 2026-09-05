@@ -51,15 +51,16 @@ These source values are converted before being returned through
 
 - `DC` - resolves from this C&SD numeric to the SaanSeoi canonical
   <black>divisionId</black> and <black>districtCode</black>. The raw C&SD number is
-  available through <black>sourceKeys.hkgovCenstatd.districtCode</black>.
+  available through canonical <black>districtCode</black>; the original C&SD value
+  remains in the source record under <black>rawProperties</black>.
 - `MYPOPN_LAND` - is expressed by C&SD in thousands. It is multiplied by
   <black>1,000</black> during ingestion, so <black>midYearPopulation</black> is the
   number of people.
 
-### Compatibility fields
+### Source fields
 
-- `DC_ENG` - is available as <black>sourceKeys.hkgovCenstatd.i18n.en.name</black>.
-- `DC_CHI` - is available as <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black>.
+- `DC_ENG` and `DC_CHI` remain available in the source record under
+  <black>rawProperties</black>.
 
 ## Measure mapping
 
@@ -104,15 +105,15 @@ release's C&SD
 以下來源值會先轉換，然後透過 <black>data.attributes.*</black> 傳回。
 
 - `DC` - 此 C&SD 數值代碼會對應至 SaanSeoi 標準的 <black>divisionId</black> 及
-  <black>districtCode</black>。原始 C&SD 數值可透過
-  <black>sourceKeys.hkgovCenstatd.districtCode</black> 取得。
+  <black>districtCode</black>。原始 C&SD 數值可透過 canonical
+  <black>districtCode</black> 取得；原始 C&SD 值則保留在來源記錄的
+  <black>rawProperties</black> 中。
 - `MYPOPN_LAND` - C&SD 以千為單位表示此值。資料擷取時會乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是實際人數。
 
 ### 相容性欄位
 
-- `DC_ENG` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
-- `DC_CHI` - 可透過 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
+- `DC_ENG` 及 `DC_CHI` 會保留在來源記錄的 <black>rawProperties</black> 中。
 
 ## 指標對應
 
@@ -157,15 +158,15 @@ release's C&SD
 以下来源值会先转换，然后通过 <black>data.attributes.*</black> 返回。
 
 - `DC` - 此 C&SD 数值代码会对应至 SaanSeoi 标准的 <black>divisionId</black> 及
-  <black>districtCode</black>。原始 C&SD 数值可通过
-  <black>sourceKeys.hkgovCenstatd.districtCode</black> 取得。
+  <black>districtCode</black>。原始 C&SD 数值可通过 canonical
+  <black>districtCode</black> 取得；原始 C&SD 值保留在源记录的
+  <black>rawProperties</black> 中。
 - `MYPOPN_LAND` - C&SD 以千为单位表示此值。数据摄取时会乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是实际人数。
 
 ### 兼容性字段
 
-- `DC_ENG` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.en.name</black> 取得。
-- `DC_CHI` - 可通过 <black>sourceKeys.hkgovCenstatd.i18n.zh-hant.name</black> 取得。
+- `DC_ENG` 及 `DC_CHI` 会保留在源记录的 <black>rawProperties</black> 中。
 
 ## 指标对应
 
