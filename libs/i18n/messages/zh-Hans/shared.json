@@ -2737,6 +2737,7 @@
   "openapi_statistics_record_description": "包含参考期、地理范围、维度及数值的已发布统计观测值。",
   "openapi_statistics_attributes_description": "此统计观测值的规范数据，不包括关系。",
   "openapi_statistics_dataset_code_description": "提供此观测值或定义的已注册数据集。",
+  "openapi_statistics_measure_code_description": "此路由所使用的不含维度度量的稳定代码。",
   "openapi_statistics_reference_period_description": "观测值所适用的统计期间。",
   "openapi_statistics_reference_period_code_description": "参考期的发布者或规范代码。",
   "openapi_statistics_reference_period_start_description": "参考期的开始时间（如有定义）。",
