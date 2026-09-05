@@ -10,6 +10,7 @@ import {
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import type { BBox } from '@repo/core/pipeline/geojson'
 
 import {
   listReplayedDivisionRecords,
@@ -135,7 +136,7 @@ type DivisionResourcePayload = {
     divisionCode?: string
     snapshotId?: string
     geometry?: DivisionGeometry | null
-    bbox?: [number, number, number, number] | null
+    bbox?: BBox | null
     cartography?: JsonObject | null
     wikidataId?: string | null
     createdAt?: string
@@ -165,7 +166,7 @@ type DivisionGeometryResourcePayload = {
     leftDivisionId?: string
     rightDivisionId?: string
     geometry: JsonObject | null
-    bbox: [number, number, number, number] | null
+    bbox: BBox | null
     type: 'land' | 'maritime' | 'mixed'
     isLand: boolean | null
     isTerritorial: boolean | null
@@ -565,7 +566,7 @@ function createDivisionResource(args: {
 
   if (isMapDivisionProfile(routeState.profile)) {
     attributes.geometry = asDivisionGeometry(division.geometry)
-    attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
+    attributes.bbox = (division.bbox as BBox | null) ?? null
     attributes.cartography = (division.cartography as JsonObject | null) ?? null
   }
 
@@ -1065,7 +1066,7 @@ export function createIncludedDivisionGeometryResource(args: {
             rightDivisionId: (record as DivisionBoundaryRecord).rightDivisionId,
           }),
       geometry: (record.geometry as JsonObject | null) ?? null,
-      bbox: (record.bbox as [number, number, number, number] | null) ?? null,
+      bbox: (record.bbox as BBox | null) ?? null,
       type: record.type,
       isLand: record.isLand,
       isTerritorial: record.isTerritorial,

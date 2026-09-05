@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import { normalisePlaceBbox } from '../../../db/places'
 import { placeGeometry, toPlaceApiRecord, toPlaceI18nApiRecord } from './places'
 
 describe('Places API geometry projection', () => {
@@ -64,4 +65,19 @@ test('keeps public localisation provenance trust-oriented', () => {
     isHumanVerified: [],
     isLocaleInferred: true,
   })
+})
+
+test('normalises the retained Overture bbox struct to the public tuple', () => {
+  expect(
+    normalisePlaceBbox({
+      xmin: 113.85128,
+      xmax: 113.851295,
+      ymin: 22.198448,
+      ymax: 22.19845,
+    }),
+  ).toEqual([113.85128, 22.198448, 113.851295, 22.19845])
+  expect(normalisePlaceBbox([114.155, 22.285, 114.156, 22.286])).toEqual([
+    114.155, 22.285, 114.156, 22.286,
+  ])
+  expect(normalisePlaceBbox(null)).toBeNull()
 })

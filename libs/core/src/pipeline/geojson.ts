@@ -2,6 +2,14 @@ export type GeoJsonPosition =
   | [longitude: number, latitude: number]
   | [longitude: number, latitude: number, elevation: number]
 
+/** A WGS84 `[minLng, minLat, maxLng, maxLat]` extent. */
+export type BBox = [
+  minLongitude: number,
+  minLatitude: number,
+  maxLongitude: number,
+  maxLatitude: number,
+]
+
 export type GeoJsonGeometry =
   | {
       type: 'Point'
@@ -25,9 +33,7 @@ export type GeoJsonGeometry =
     }
 
 /** Returns the WGS84 `[minLng, minLat, maxLng, maxLat]` extent of a geometry. */
-export function calculateGeoJsonBbox(
-  geometry: GeoJsonGeometry,
-): [number, number, number, number] {
+export function calculateGeoJsonBbox(geometry: GeoJsonGeometry): BBox {
   const positions: GeoJsonPosition[] = []
   collectPositions(geometry, positions)
   if (positions.length === 0) {
