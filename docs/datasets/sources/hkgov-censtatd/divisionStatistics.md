@@ -82,9 +82,9 @@ newer release. This keeps dictionary selection alongside the statistic records. 
 current shard contains the latest version of each feature and exact period across source
 compilations; the period's history shard retains superseded record revisions. A
 Population and Household compilation can therefore carry annual observations for
-2016–2025 without collapsing them to the compilation release period. Its raw assertions
-stay in the delivery-year source shard, while canonical history uses each row's period
-end year; periods before 2025 use `DB_HISTORY_HK_BEFORE`.
+2016–2025 without collapsing them to the compilation release period. Its raw source
+records stay in the delivery-year source shard, while canonical history uses each row's
+period end year; periods before 2025 use `DB_HISTORY_HK_BEFORE`.
 
 The `2026-Q2` Population and Household package also contains the corresponding
 publisher-labelled District Council geometry for those annual periods. Its source
@@ -290,7 +290,7 @@ versioned division merge ruleset. It is a versioned description of the determini
 bridge operation, while any record-specific exception remains a release processing
 action with its own evidence.
 
-Each source assertion retains its publisher labels directly as `districtEn` and
+Each source record includes its publisher labels directly as `districtEn` and
 `districtZhHant`; the source shard has no locale-keyed child table. Canonical/API
 localisation is materialised only when a consumer needs it.
 
@@ -307,15 +307,15 @@ The current CSDI simplified data specification is recorded in the dataset fixtur
 `schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
 passes that local prepared ZIP, its managed-asset key and its SHA-256 to the importer.
 The importer verifies the local ZIP against that hash before parsing it; it never
-reloads the ZIP from object storage. The source assertion retains both archive
-references while the target-aware SQL processor uses its local target-database cache to
-generate and publish the release for local, preview or production. That processor
-materialises release facts and audited processing actions locally, then replays the
-exact stored current and history statistic rows to preview or production before
-publication. It mirrors the identifier bridges, C&SD density assertions, and
-division-statistics history required for this dataset; its console progress identifies
-the cache and processing stage currently in progress. Publish through `saanseoi update`,
-or invoke the importer with the already-prepared archive:
+reloads the ZIP from object storage. The source record includes both archive references
+while the target-aware SQL processor uses its local target-database cache to generate
+and publish the release for local, preview or production. That processor materialises
+release facts and audited processing actions locally, then replays the exact stored
+current and history statistic rows to preview or production before publication. It
+mirrors the identifier bridges, C&SD density assertions, and division-statistics history
+required for this dataset; its console progress identifies the cache and processing
+stage currently in progress. Publish through `saanseoi update`, or invoke the importer
+with the already-prepared archive:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \

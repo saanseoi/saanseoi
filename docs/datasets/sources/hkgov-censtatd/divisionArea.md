@@ -70,7 +70,7 @@ Each release contains exactly 18 Polygon/MultiPolygon features. Required propert
 All publisher properties, including the subdivided-unit measures, remain in
 `rawProperties`; the geometry resource path does not publish them through the Division
 Statistics family. The shared C&SD statistics intake can publish the corresponding
-statistical records from the same archive. The source assertion also projects the
+statistical records from the same archive. The source record also projects the
 publisher-native `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it
 does not create locale-normalised source child rows. `dc_class` is bridged through a
 reviewed `hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
@@ -101,7 +101,7 @@ direct archive intake and `saanseoi update`.
 
 ## Display transformation
 
-Each source geometry is retained as published. For Hong Kong-wide preview maps, Saanseoi
+Each source geometry remains as published. For Hong Kong-wide preview maps, Saanseoi
 exposes a named geometry transformation for each companion snapshot, without clipping,
 unioning or otherwise changing its topology:
 
@@ -177,7 +177,7 @@ canonical record IDs, division references, land/territorial classification and e
 geometry hashes. When every incoming row is already present with the same materialised
 geometry (the companion can also contain non-overlapping rows), the source attaches to
 the existing snapshot with `selectionMode: verified_identical_geometry`; its archive and
-raw source assertion are still retained, but the canonical geometry rows are not written
+raw source records remain available, but the canonical geometry rows are not written
 again. A source that adds non-overlapping rows is marked `contributed_geometry`, and
 inherited rows are marked `carried_forward_companion`. This records where geometry was
 deliberately not republished because a second publisher release supplied the same

@@ -45,12 +45,12 @@ provenance, but Statistics and Divisions release-set publication remain separate
 `--defer-api-release-set` when the Divisions release set must also remain deferred.
 
 Publisher delivery and statistical reference time are separate storage concerns. Raw
-assertions remain in the source shard selected by the publisher release's delivery year.
-Canonical `statsRecords` history is split by `referencePeriodEndYear`; periods ending
-before 2025 use `DB_HISTORY_HK_BEFORE`. A period spanning more than one year uses its
-end year. For example, a 2026 compilation row for 2016 remains raw source evidence in
-the 2026 source shard while its canonical history record and snapshot belong to `BEFORE`
-and cohort `2016`.
+source records remain in the source shard selected by the publisher release's delivery
+year. Canonical `statsRecords` history is split by `referencePeriodEndYear`; periods
+ending before 2025 use `DB_HISTORY_HK_BEFORE`. A period spanning more than one year uses
+its end year. For example, a 2026 compilation row for 2016 remains raw source evidence
+in the 2026 source shard while its canonical history record and snapshot belong to
+`BEFORE` and cohort `2016`.
 
 The current shard materialises the latest version independently for each stable dataset,
 source feature, and exact `referencePeriodCode`. Replaying a later compilation updates

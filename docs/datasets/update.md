@@ -38,7 +38,7 @@ buckets. For example:
 saanseoi update --dataset ds-hk-hkgov-hyd-street --target preview
 ```
 
-Every CSDI source object is retained as an immutable ZIP in R2. Publisher ZIPs are
+Every CSDI source object remains available as an immutable ZIP in R2. Publisher ZIPs are
 copied byte-for-byte; a non-ZIP delivery is losslessly wrapped in a ZIP. The paired
 manifest records the source URL, CSDI release slot, original filename and digest,
 archive digest, package contents, and—when native parsing succeeds—schema and semantic
@@ -61,11 +61,11 @@ including after redirects, and use time and compressed-size limits. ZIP metadata
 validated for safe member names, entry count, expanded size, per-entry size and
 compression ratio before publisher members are decompressed.
 
-Each retained source object is registered as a managed source asset and Atlas API serves
-its public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
-Archives and retained source Parquet are publisher evidence, while SaanSeoi's
-database-backed datasets are the product. Processing intermediates remain local-only and
-transient. Schema fingerprints are retained in release ingest metadata.
+Each source object is registered as a managed source asset and Atlas API serves its
+public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
+Archives and source Parquet are publisher evidence, while SaanSeoi's database-backed
+datasets are the product. Processing intermediates remain local-only and transient.
+Schema fingerprints are retained in release ingest metadata.
 
 Mirroring an archive does not itself publish a SaanSeoi dataset release. The source
 release policy is to compare native schema and semantic fingerprints in release order:
@@ -80,7 +80,7 @@ then `.2`, and so on).
 
 The C&SD District Land Area, Population and Density dataset has an additional local
 ingestion stage after its mapped archive is available. It prepares the native
-`Density_2022.gml` or `Density_2024.gml`, writes the raw publisher assertion to the
+`Density_2022.gml` or `Density_2024.gml`, writes the raw publisher source record to the
 source shard, and writes the canonical Division Statistics observation to the history
 shard. Its source version remains the `PERIOD` reference year; the CSDI archive quarter
 is provenance only. Run either explicit release with:

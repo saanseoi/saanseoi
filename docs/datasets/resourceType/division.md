@@ -88,16 +88,16 @@ is straightforward:
 - `sources`: provider-keyed source attribution, currently `{ overture: ... }`
 
 The canonical `attributes.hierarchy` is a normalised API relationship. The source record
-API returns the retained source object, including fields which are not part of the
-canonical Division resource:
+API returns the source object, including fields which are not part of the canonical
+Division resource:
 [list Division source records](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
 The source release is selected with the required `sourceRelease` query parameter, and
 the original object is returned under `rawProperties`.
 
 Overture source-only fields, including the raw `hierarchies[][]` value and its names,
-are available only in `rawProperties` when the source record is retained. The canonical
-API representations of the hierarchy and classification remain `attributes.hierarchy`
-and the derived `attributes.type`/`attributes.level`.
+are available only in `rawProperties` when the source record remains available. The
+canonical API representations of the hierarchy and classification remain
+`attributes.hierarchy` and the derived `attributes.type`/`attributes.level`.
 
 `divisionsI18n` currently stores:
 

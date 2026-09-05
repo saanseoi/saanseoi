@@ -28,7 +28,7 @@ path. It is not a generic importer.
 ## Statistics source/history replay
 
 Statistics datasets keep publisher delivery time separate from observation time. A
-remote processor applies raw assertions to the source shard selected by the release
+remote processor applies raw source records to the source shard selected by the release
 year, groups canonical records by `referencePeriodEndYear`, and replays each group to
 its history shard. Years before 2025 resolve to the `BEFORE` shard. The current shard
 holds the latest dataset-scoped measure and localised value dictionaries, and each
@@ -178,8 +178,8 @@ fixture.
 
 ### Define audit processing rules
 
-Every source that normalises, maps, corrects or otherwise changes a publisher assertion
-must declare its audit rules before its processor is written.
+Every source that normalises, maps, corrects or otherwise changes a publisher source
+record must declare its audit rules before its processor is written.
 
 1. Add the complete rule definition to the applicable merge `rulesetVersions/` fixture.
    A rule has a stable `operationCode`, `type` and all three localised descriptions.

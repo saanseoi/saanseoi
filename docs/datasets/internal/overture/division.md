@@ -41,7 +41,7 @@ generated artefacts are:
 
 ## Source Retention
 
-Overture-specific source rows are retained in:
+Overture-specific source rows are stored in:
 
 - `overtureDivisions`
 
