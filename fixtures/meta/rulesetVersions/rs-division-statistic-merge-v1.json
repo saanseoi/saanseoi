@@ -9,12 +9,12 @@
       "operationCode": "normalise_censtatd_statistic_source_assertion",
       "type": "bulk",
       "sourceFieldPath": "feature_id, layer_name, reference_year, raw_properties, source_geometry",
-      "targetFieldPath": "source assertion: sourceRecordId, datasetCode, featureId, layerName, referenceYear, rawProperties, sourceGeometry, sources",
+      "targetFieldPath": "source record: sourceRecordId, datasetCode, featureId, layerName, referenceYear, rawProperties, sourceGeometry, sources",
       "condition": "Applies to every C&SD division-statistic feature read from a publisher-native CSDI GML archive.",
       "i18n": [
         {
           "locale": "en",
-          "description": "Normalises each C&SD statistic feature into a versioned source assertion while preserving its native properties and geometry."
+          "description": "Normalises each C&SD statistic feature into a versioned source record while preserving its native properties and geometry."
         },
         {
           "locale": "zh-hant",

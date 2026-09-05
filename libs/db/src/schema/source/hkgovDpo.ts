@@ -5,7 +5,7 @@ import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 /**
  * Publisher-supplied ALS address components in one language. These paired values
- * stay with their source assertion; locale-keyed records belong to canonical/API
+ * stay with their source record; locale-keyed records belong to canonical/API
  * address snapshots.
  */
 export type HkgovAlsAddress = {

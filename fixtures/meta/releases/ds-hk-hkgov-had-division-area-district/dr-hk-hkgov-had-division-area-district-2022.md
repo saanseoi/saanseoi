@@ -69,7 +69,7 @@ include both land and nautical divisions, and as such <black>isLand</black> and
 ### Dropped Fields
 
 These fields are not projected into compatibility columns or canonical attributes. They
-remain in <black>rawProperties</black> where the source row is retained for
+remain in <black>rawProperties</black> where the source row remains available for
 auditability:
 
 #### Due to redundancy

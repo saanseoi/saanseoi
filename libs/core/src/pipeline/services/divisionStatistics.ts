@@ -24,7 +24,7 @@ export type HkgovCenstatdDistrictStatisticSource = {
 
 /**
  * Builds the reviewed C&SD-number to canonical-district bridge used only by
- * the published statistics layer. Source assertions retain their raw `DC`.
+ * the published statistics layer. Source records include their raw `DC`.
  */
 export function createHkgovCenstatdDistrictResolution(
   censtatdRows: readonly DistrictIdentifierBridgeRow[],
@@ -83,7 +83,7 @@ export function createHkgovCenstatdDistrictResolution(
 }
 
 /**
- * Produces public Division Statistics attributes from one source assertion.
+ * Produces public Division Statistics attributes from one source record.
  * `MYPOPN_LAND` has already been converted from thousands to people upstream.
  */
 export function buildHkgovCenstatdDistrictStatisticHistoryRecord(

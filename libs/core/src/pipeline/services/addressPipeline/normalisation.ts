@@ -8,11 +8,11 @@ export function normaliseAddressRowForPipeline(row: Record<string, unknown>) {
 }
 
 /**
- * Returns the publisher assertion fields used to version an ALS source row.
+ * Returns the publisher source record fields used to version an ALS source row.
  *
  * Prepared ALS rows include release and ingestion bookkeeping alongside the
  * publisher data. Those values naturally change on every upload and must not
- * create a new source assertion when the address itself is unchanged.
+ * create a new source record when the address itself is unchanged.
  */
 export function buildHkgovAlsSourceHashInput(row: Record<string, unknown>) {
   return Object.fromEntries(
@@ -21,10 +21,10 @@ export function buildHkgovAlsSourceHashInput(row: Record<string, unknown>) {
 }
 
 /**
- * Compares a prepared row with a current source assertion.
+ * Compares a prepared row with a current source record.
  *
  * Existing rows may retain the earlier whole-row hash. Rehashing their stored
- * raw properties with the assertion-only input lets the new comparison take
+ * raw properties with the source record-only input lets the new comparison take
  * effect without first rewriting every source-row primary key.
  */
 export async function isUnchangedHkgovAlsSourcePayload(

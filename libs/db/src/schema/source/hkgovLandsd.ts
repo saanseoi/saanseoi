@@ -37,7 +37,7 @@ export const landsdStreetNoticeTypes = [
 export type LandsdStreetNoticeType = (typeof landsdStreetNoticeTypes)[number]
 
 /**
- * Complete native LandsD Place Name feature assertions.
+ * Complete native LandsD Place Name feature records.
  *
  * The divisions product selects only Settlement rows; Hydrographic and
  * Topographic records remain first-class publisher source data for a future
