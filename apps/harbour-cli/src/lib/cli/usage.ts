@@ -2,6 +2,7 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 
 export function printUsage() {
   console.log(`  Usage:
+  saanseoi cache:gers [--source-root PATH] [--cache-file PATH] [--refresh] [--require-gers]
   saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry|places] [--cohort-key YYYY]
   saanseoi cache:seed-reset --target preview|production
   saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry|places]
