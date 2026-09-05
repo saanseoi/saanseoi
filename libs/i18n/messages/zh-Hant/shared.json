@@ -2743,6 +2743,7 @@
   "openapi_statistics_record_description": "包含參考期、地理範圍、維度及數值的已發布統計觀測值。",
   "openapi_statistics_attributes_description": "此統計觀測值的標準資料，不包括關係。",
   "openapi_statistics_dataset_code_description": "提供此觀測值或定義的已註冊資料集。",
+  "openapi_statistics_measure_code_description": "此路由所使用的不含維度量度的穩定代碼。",
   "openapi_statistics_reference_period_description": "觀測值所適用的統計期間。",
   "openapi_statistics_reference_period_code_description": "參考期的發布者或標準代碼。",
   "openapi_statistics_reference_period_start_description": "參考期的開始時間（如有定義）。",

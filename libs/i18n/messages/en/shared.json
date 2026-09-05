@@ -2740,6 +2740,7 @@
   "openapi_statistics_record_description": "A published statistical observation with its period, geography, dimensions and values.",
   "openapi_statistics_attributes_description": "Canonical data for this statistical observation, excluding relationships.",
   "openapi_statistics_dataset_code_description": "The registered dataset that supplied this observation or definition.",
+  "openapi_statistics_measure_code_description": "The stable code of the dimension-free measure used by this route.",
   "openapi_statistics_reference_period_description": "The statistical period to which the observation applies.",
   "openapi_statistics_reference_period_code_description": "The publisher or canonical code for the reference period.",
   "openapi_statistics_reference_period_start_description": "The start of the reference period, when defined.",
