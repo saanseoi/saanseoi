@@ -1623,14 +1623,14 @@ describe('atlas-api', () => {
       blockExpression: [
         'BLK A',
         'BLK B',
-        'TWR 1',
-        'HSE 2',
+        'TOWER 1',
+        'HOUSE 2',
         'APT D1',
         'FLAT A',
         'MANSION A',
         'GARAGE A',
         'COMMERCIAL CENTRE',
-        'TWR 1&2',
+        'TOWERS 1&2',
         null,
       ],
       blockType: [
@@ -1718,6 +1718,35 @@ describe('atlas-api', () => {
     expect(divisionAttributes?.properties).not.toHaveProperty('overture')
     expect(divisionAttributes?.properties).toHaveProperty('wikidataId')
     expect(divisionAttributes?.properties).not.toHaveProperty('wikidata')
+    const divisionGeometrySchema = divisions.components?.schemas
+      ?.DivisionGeometryResource as
+      | {
+          properties?: Record<
+            string,
+            {
+              enum?: unknown[]
+              examples?: unknown[]
+              properties?: Record<string, { enum?: unknown[]; examples?: unknown[] }>
+            }
+          >
+        }
+      | undefined
+    expect(divisionAttributes?.properties?.wikidataId).toMatchObject({
+      examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
+    })
+    expect(
+      divisionGeometrySchema?.properties?.attributes?.properties?.type?.enum,
+    ).toEqual(['land', 'maritime', 'mixed'])
+    expect(
+      divisionGeometrySchema?.properties?.attributes?.properties?.variant?.enum,
+    ).toEqual([
+      'hkgov-censtatd',
+      'hkgov-censtatd-landclipped',
+      'hkgov-had',
+      'hkgov-pland-new-town',
+      'hkgov-pland-pu',
+      'overture',
+    ])
     expect(divisionResource?.properties).not.toHaveProperty('meta')
     expect(divisionAttributes?.description).toBe(
       'Canonical data for this resource, excluding its relationships.',
@@ -1843,7 +1872,9 @@ describe('atlas-api', () => {
 
     type OpenApiField = {
       description?: string
-      allOf?: Array<{ description?: string }>
+      allOf?: Array<{ description?: string; examples?: unknown[] }>
+      enum?: unknown[]
+      examples?: unknown[]
     }
     type OpenApiObjectSchema = {
       description?: string
@@ -1910,6 +1941,28 @@ describe('atlas-api', () => {
       'address2dId',
       'address3dId',
       'sources',
+    ])
+    expect(placeSchemas?.PlaceCollectionI18nValue?.properties?.name?.examples).toEqual([
+      "Ebeneezer's Kebabs & Pizzeria",
+      '百佳超級市場',
+      null,
+    ])
+    expect(
+      placeSchemas?.PlaceCollectionI18nValue?.properties?.freeformAddress?.examples,
+    ).toEqual(['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null])
+    expect(placeSchemas?.PlaceDivision?.properties?.level?.examples).toEqual([
+      0,
+      1,
+      2,
+      4,
+      6,
+      null,
+    ])
+    expect(placeSchemas?.PlaceDivision?.properties?.locale?.examples).toEqual([
+      'en',
+      'zh-hant',
+      'zh-hans',
+      null,
     ])
     for (const schemaName of [
       'Place',
@@ -1989,6 +2042,40 @@ describe('atlas-api', () => {
     ])
     expectStatisticFieldsDescribed('StatisticField', ['type', 'id', 'attributes'])
     const statisticAttributes = statisticSchemas?.Statistic?.properties?.attributes
+    const statisticId = statisticSchemas?.Statistic?.properties?.id
+    expect(
+      statisticId?.examples ??
+        statisticId?.allOf?.find(item => item.examples)?.examples,
+    ).toEqual([
+      'stats:2650b1e3a7fe8a269919d9b2e97e54304d0e3db607748f2c51e03ce1b2f0f5dd',
+      'stats:2e16ff6629a00669a571b4e514b3d6a9a6063b56964d6bec3981780dd4e219e4',
+    ])
+    expect(statisticAttributes?.properties?.datasetCode?.examples).toEqual([
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+    ])
+    const statisticFieldAttributes =
+      statisticSchemas?.StatisticField?.properties?.attributes
+    expect(statisticFieldAttributes?.properties?.statisticKind?.enum).toEqual([
+      'count',
+      'quantity',
+      'proportion',
+      'ratio',
+      'rate',
+      'density',
+      'index',
+      'unreviewed',
+    ])
+    expect(statisticFieldAttributes?.properties?.aggregation?.enum).toEqual([
+      'none',
+      'total',
+      'mean',
+      'median',
+      'minimum',
+      'maximum',
+      'percentile',
+      'unreviewed',
+    ])
     expect(statisticAttributes?.description).toBeTruthy()
     for (const field of [
       'datasetCode',

@@ -28,7 +28,6 @@ const divisionGeometryVariants = [
   'hkgov-pland-pu',
   'overture',
 ] as const
-
 const DivisionResourceIdentifierSchema = z
   .object({
     type: z.literal('divisions'),
@@ -317,6 +316,7 @@ export const DivisionGeometryResourceSchema = z
           'openapi_divisions_geometry_resource_type_description',
         ),
         examples: ['mixed', 'land', 'maritime'],
+        enum: [...divisionGeometryTypes],
       }),
       isLand: z
         .boolean()
@@ -345,6 +345,7 @@ export const DivisionGeometryResourceSchema = z
             'hkgov-pland-pu',
             'hkgov-pland-new-town',
           ],
+          enum: [...divisionGeometryVariants],
         }),
       sources: z
         .union([SourcesSchema, z.null()])
@@ -360,7 +361,7 @@ export const DivisionGeometryResourceSchema = z
         }),
     }),
   })
-  .openapi('DivisionGeometry')
+  .openapi('DivisionGeometryResource')
 
 const RequestedLocalesQuerySchema = z
   .string()
