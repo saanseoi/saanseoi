@@ -61,5 +61,20 @@ describe('LocalUploadProgress', () => {
       ['success', 'Normalise records (182,441) (7.32 s)'],
     ])
     expect(staticProgress.hasActivePhase()).toBe(false)
+
+    const compactLabelsStart = staticLabels.length
+    const compactProgress = new LocalUploadProgress({
+      compact: true,
+      renderAnimated: false,
+    })
+    compactProgress.beginPhase('Prepare workspace', {})
+    compactProgress.beginPhase('Read Places (0/10)', { current: 0, max: 10 })
+    compactProgress.update(10, { label: 'Read Places (10/10)' })
+    compactProgress.complete('Read Places complete')
+    compactProgress.finish('Places processing complete')
+
+    expect(staticLabels.slice(compactLabelsStart)).toEqual([
+      ['success', 'Places processing complete'],
+    ])
   })
 })
