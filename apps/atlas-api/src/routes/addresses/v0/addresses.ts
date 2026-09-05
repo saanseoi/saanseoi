@@ -5,6 +5,7 @@ import {
   AddressDetailQuerySchema,
   AddressDetailResponseSchema,
   AddressSnapshotNotReadyErrorResponseSchema,
+  AddressSearchQuerySchema,
   AddressesListQuerySchema,
   AddressesListResponseSchema,
   ErrorResponseSchema,
@@ -13,6 +14,7 @@ import {
 import {
   getAddressDetail,
   listAddresses,
+  searchAddresses,
   type RequestedAddressApiVersion,
   type RequestedAddressVersion,
   type ResolvedAddressApiVersion,
@@ -28,8 +30,10 @@ const ROUTE_VARIANTS = [
     resolvedApiVersion: 'api-addresses-v0.1' as const,
     listPath: '/addresses/v0',
     detailPath: '/addresses/v0/{id}',
+    searchPath: '/addresses/v0/search',
     listOperationId: 'listAddressesV0',
     detailOperationId: 'getAddressByIdV0',
+    searchOperationId: 'searchAddressesV0',
   },
   {
     requestedVersionPath: 'addresses/v0.1' as const,
@@ -37,8 +41,10 @@ const ROUTE_VARIANTS = [
     resolvedApiVersion: 'api-addresses-v0.1' as const,
     listPath: '/addresses/v0.1',
     detailPath: '/addresses/v0.1/{id}',
+    searchPath: '/addresses/v0.1/search',
     listOperationId: 'listAddressesV01',
     detailOperationId: 'getAddressByIdV01',
+    searchOperationId: 'searchAddressesV01',
   },
 ] as const satisfies Array<{
   requestedVersionPath: RequestedAddressVersion
@@ -46,8 +52,10 @@ const ROUTE_VARIANTS = [
   resolvedApiVersion: ResolvedAddressApiVersion
   listPath: string
   detailPath: string
+  searchPath: string
   listOperationId: string
   detailOperationId: string
+  searchOperationId: string
 }>
 
 const listRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
@@ -103,6 +111,27 @@ const detailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
   }),
 )
 
+const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
+  createRoute({
+    method: 'get',
+    path: routeVariant.searchPath,
+    operationId: routeVariant.searchOperationId,
+    tags: ['Addresses'],
+    request: { query: AddressSearchQuerySchema },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: AddressesListResponseSchema } },
+        description: openApiText('openapi_addresses_search_response_description'),
+      },
+      503: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: openApiText('openapi_addresses_search_unavailable_description'),
+      },
+      422: ValidationErrorOpenAPIResponse,
+    },
+  }),
+)
+
 export const addressRoutes = [
   ...listRouteConfigs.map((routeConfig, index) =>
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
@@ -110,6 +139,27 @@ export const addressRoutes = [
       handler: async c => {
         const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
         const result = await listAddresses({
+          currentDb: c.var.currentDb,
+          metaDb: c.var.metaDb,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
+          requestedVersionPath: routeVariant.requestedVersionPath,
+          requestedApiVersion: routeVariant.requestedApiVersion,
+          resolvedApiVersion: routeVariant.resolvedApiVersion,
+          query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
+        })
+
+        if (result.status === 503) return c.json(result.body, 503)
+        return c.json(result.body, 200)
+      },
+    }),
+  ),
+  ...searchRouteConfigs.map((routeConfig, index) =>
+    defineOpenAPIRoute<typeof routeConfig, AppEnv>({
+      route: routeConfig,
+      handler: async c => {
+        const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
+        const result = await searchAddresses({
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
           requestUrl: sanitiseResponseUrl(c.req.url).toString(),

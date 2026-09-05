@@ -1538,6 +1538,7 @@ describe('atlas-api', () => {
 
     expect(addressesRes.status).toBe(200)
     expect(addresses.paths['/addresses/v0.1']).toBeDefined()
+    expect(addresses.paths['/addresses/v0.1/search']).toBeDefined()
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')

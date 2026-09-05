@@ -636,6 +636,14 @@ export async function prepareHkgovAlsAddressParquet(
           rows.map(row => row.zhHantBlockNumber),
         ),
         stringColumn(
+          'zhHantPhaseName',
+          rows.map(row => row.zhHantPhaseName),
+        ),
+        stringColumn(
+          'zhHantPhaseRef',
+          rows.map(row => row.zhHantPhaseRef),
+        ),
+        stringColumn(
           'zhHantStreetName',
           rows.map(row => row.zhHantStreetName),
         ),
@@ -678,6 +686,14 @@ export async function prepareHkgovAlsAddressParquet(
         stringColumn(
           'enBlockNumber',
           rows.map(row => row.enBlockNumber),
+        ),
+        stringColumn(
+          'enPhaseName',
+          rows.map(row => row.enPhaseName),
+        ),
+        stringColumn(
+          'enPhaseRef',
+          rows.map(row => row.enPhaseRef),
         ),
         stringColumn(
           'enStreetName',

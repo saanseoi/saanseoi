@@ -2465,6 +2465,21 @@ export function resolveCacheTablesForBinding(
       ]
     }
 
+    if (cacheTableProfile === 'address') {
+      return [
+        'divisions',
+        'divisionsI18n',
+        'streets',
+        'streetsI18n',
+        'address2d',
+        'address2dI18n',
+        'address2dBuildingNumberLookup',
+        'address3d',
+        'address3dI18n',
+        'addressesFts',
+      ]
+    }
+
     if (
       cacheTableProfile === 'divisionGeometry' ||
       cacheTableProfile === 'planningDivisionGeometry'
