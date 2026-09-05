@@ -46,16 +46,14 @@ source identifiers are never treated as Overture UUIDs.
 
 - `geometry` - retained as canonical <black>EPSG:4326</black> GeoJSON
 
-### Compatibility Fields
+### Identifier fields
 
 These source fields are not directly exposed as <black>divisionArea</black> attributes.
-They are available through the <black>sourceKeys</black> compatibility layer, under the
-<black>hkgov<black> key, i.e. <black>included[].attributes.sourceKeys.hkgov</black>
-using our database capitalization:
+The genuine provider identifiers are available under the canonical
+<black>identifiers.hkgov</black> object using our database capitalization:
 
 - `OBJECTID` -> <black>hkgov.objectId</black>
 - `CSDI_ADMIN_AREA_ID` -> <black>hkgov.cdsiAdminAreaId</black>
-- `AREA_TYPE` -> <black>hkgov.areaType</black>
 - `AREA_ID` -> <black>hkgov.areaId</black>
 - `AREA_CODE` -> <black>hkgov.areaCode</black>
 
