@@ -27,4 +27,20 @@ describe('address search query preparation', () => {
       'harbour* AND view*',
     )
   })
+
+  test('expands canonical block abbreviations and their long forms symmetrically', () => {
+    expect(buildAddressFtsQuery({ mode: 'full-text', query: 'Tower 1' })).toBe(
+      '(twr OR tower OR towers) AND 1',
+    )
+    expect(buildAddressFtsQuery({ mode: 'prefix', query: 'apt' })).toBe(
+      '(apt* OR apts* OR apartment* OR apartments*)',
+    )
+    expect(
+      buildAddressFtsQuery({
+        mode: 'component',
+        component: 'block',
+        query: 'Houses A',
+      }),
+    ).toBe('blockExpression : ((hse OR hses OR house OR houses) AND a)')
+  })
 })

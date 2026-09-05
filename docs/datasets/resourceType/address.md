@@ -83,9 +83,11 @@ building-number aliases; `range` also accepts the importer’s auditable derived
 members. A bare numeric stem therefore does not match a suffixed range. `prefix` and
 `full-text` search the rebuilt bilingual address index, while `component` requires one
 of `formatted`, `building`, `number`, `block`, `phase`, `estate`, or `street` and
-searches only that indexed component. The response records the query and mode in
-document metadata. The index is rebuilt whenever the address snapshot changes and is not
-an independent source of canonical data.
+searches only that indexed component. Search treats canonical block abbreviations and
+their English long forms as equivalent: `BLK`/block, `BLDG`/building, `TWR`/tower,
+`HSE`/house, and `APT`/apartment (including plurals). The response records the query and
+mode in document metadata. The index is rebuilt whenever the address snapshot changes
+and is not an independent source of canonical data.
 
 The `compact` and `default` profiles return localised formatted addresses, `map` adds
 point geometry and bounding boxes, and `full` adds identifiers, source attribution, and

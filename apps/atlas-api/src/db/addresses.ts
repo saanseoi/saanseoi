@@ -79,6 +79,20 @@ export type AddressSearchComponent =
   | 'phase'
   | 'street'
 
+const ADDRESS_FTS_ALIAS_GROUPS = [
+  ['blk', 'blks', 'block', 'blocks'],
+  ['bldg', 'bldgs', 'building', 'buildings'],
+  ['twr', 'tower', 'towers'],
+  ['hse', 'hses', 'house', 'houses'],
+  ['apt', 'apts', 'apartment', 'apartments'],
+] as const
+
+const ADDRESS_FTS_TOKEN_ALIASES = new Map(
+  ADDRESS_FTS_ALIAS_GROUPS.flatMap(group =>
+    group.map(token => [token, group] as const),
+  ),
+)
+
 type AddressSearchLookup = Pick<
   AddressListLookup,
   'snapshotId' | 'countryId' | 'areaId' | 'districtId'
@@ -470,7 +484,12 @@ export function buildAddressFtsQuery(
     .filter(Boolean)
   if (tokens.length === 0) return null
 
-  const terms = tokens.map(token => `${token}${lookup.mode === 'prefix' ? '*' : ''}`)
+  const suffix = lookup.mode === 'prefix' ? '*' : ''
+  const terms = tokens.map(token => {
+    const aliases = ADDRESS_FTS_TOKEN_ALIASES.get(token) ?? [token]
+    const terms = aliases.map(alias => `${alias}${suffix}`)
+    return terms.length === 1 ? terms[0] : `(${terms.join(' OR ')})`
+  })
   const query = terms.join(' AND ')
   if (lookup.mode !== 'component') return query
 
