@@ -29,8 +29,8 @@ Overture division snapshot.
 ### Directly Retained Fields
 
 - `geometry` - retained as the source point geometry
-- Chinese and English premise-address components - retained in localized source records
-- `Easting` and `Northing` - retained with the source record
+- Chinese and English premise-address components - included in localized source records
+- `Easting` and `Northing` - included with the source record
 - `CsuId` and `GeoAddress` - retained as source identifiers and source evidence
 
 ### Enriched Fields

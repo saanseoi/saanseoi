@@ -54,12 +54,12 @@ and hierarchy edges.
 
 - `PPU`, `SPU`, `TPU`, and `Subunit` - available through the <black>hkgovPland</black>
   source profile
-- Repair status and source-cell evidence - retained with the source assertion
+- Repair status and source-cell evidence - with the source record
 
 ### Dropped Fields
 
-- Calculated source geometry is not substituted for retained source geometry. No
-  cross-cohort replacement or implicit geometry merge is performed.
+- Calculated source geometry is not substituted for source geometry. No cross-cohort
+  replacement or implicit geometry merge is performed.
 
 # ZH-HANT
 

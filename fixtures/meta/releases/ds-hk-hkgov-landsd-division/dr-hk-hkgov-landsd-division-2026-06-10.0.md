@@ -39,14 +39,14 @@ boundary.
 
 This release is a settlement-place-name collection, not an administrative hierarchy.
 Only records whose publisher class is <black>Settlement</black> enter this Divisions
-domain. Hydrographic and Topographic records remain complete native source assertions
-for a future Places projection; they are not silently recast as divisions.
+domain. Hydrographic and Topographic records remain complete native source records for a
+future Places projection; they are not silently recast as divisions.
 
 ### Directly Retained Fields
 
 - `geometry` - retained as canonical Point geometry
 - `GEO_NAME_ID` - retained as the persistent publisher identifier
-- `PLACE_CLASS`, `PLACE_TYPE`, and `DISTRICT` - retained with the source assertion
+- `PLACE_CLASS`, `PLACE_TYPE`, and `DISTRICT` - with the source record
 - Official and alias `PLACE_NAME` relationship rows - retained with their publisher
   status and bilingual labels
 
@@ -60,15 +60,14 @@ for a future Places projection; they are not silently recast as divisions.
 
 - `GEO_NAME_ID` - becomes the canonical identifier <black>LANDSD:{GEO_NAME_ID}</black>
 - Official English and Traditional Chinese names become locale-specific
-  [DivisionI18n](/docs#models/DivisionI18n) records; aliases remain source assertions
+  [DivisionI18n](/docs#models/DivisionI18n) records; aliases remain source records
 - Every published record has canonical <black>type=settlement</black> and
   <black>level=5</black>
 
 ### Source fields
 
-Publisher keys remain in the retained source record's <black>rawProperties</black>. The
-complete native feature and properties remain available through the source-record
-endpoint.
+Publisher keys remain in the source record's <black>rawProperties</black>. The complete
+native feature and properties remain available through the source-record endpoint.
 
 ### Dropped Fields
 

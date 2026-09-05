@@ -38,7 +38,7 @@ Fields that retain the ALS value directly:
 - `geometry` - [Geometry](/docs#models/Geometry) - the delivery point geometry
 - `CsuId` - retained as <black>identifiers.hkgovCsuId</black> when supplied
 - `GeoAddress` - retained as source evidence and an ALS identity anchor
-- `Easting` and `Northing` - retained in the source record as HK1980 Grid coordinates
+- `Easting` and `Northing` - included in the source record as HK1980 Grid coordinates
 
 ### Enriched Fields
 

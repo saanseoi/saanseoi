@@ -86,9 +86,9 @@ Fields reorganized for storage, query, or API response shaping:
 Fields which are not exposed as part of [Division](/docs#models/Division). The original
 source value remains available in the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
-under `rawProperties`, where the source record is retained. Of the fields listed below,
-all listed fields are available in the retained source record under `rawProperties`;
-they are not duplicated in the canonical Division resource.
+under `rawProperties`, where the source record remains available. Of the fields listed
+below, all listed fields are available in the source record under `rawProperties`; they
+are not duplicated in the canonical Division resource.
 
 #### Due to zero variance
 
@@ -141,8 +141,8 @@ village        195
 
 #### Due to source ownership
 
-- `version` - retained as source-record metadata and in the raw publisher assertion, but
-  not duplicated in the canonical Division response
+- `version` - source-record metadata and in the raw publisher source record, but not
+  duplicated in the canonical Division response
 
 ### Dropped Values
 
