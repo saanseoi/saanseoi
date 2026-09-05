@@ -25,7 +25,6 @@ const base = (id: string, name = `Place ${id}`) => {
     name: null,
     nameAlts: null,
     nameVariant: null,
-    isLocaleInferred: false,
     brandName: null,
     brandNameAlts: null,
     brandNameVariant: null,
@@ -34,7 +33,6 @@ const base = (id: string, name = `Place ${id}`) => {
       isMachineTranslated: [],
       isHumanVerified: [],
       isLocaleInferred: false,
-      localeEvidence: [],
     },
   })
   return place

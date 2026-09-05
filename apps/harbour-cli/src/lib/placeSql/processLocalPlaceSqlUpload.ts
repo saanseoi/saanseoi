@@ -230,11 +230,10 @@ export async function processLocalPlaceSqlUpload(
     }
     assertPlaceAddressCardinality(places)
     const excludedPlaces = places.filter(isExcludedOverturePlace)
-    await replaceReleaseProcessingActions(
-      metaDb,
-      releaseId,
-      buildPlaceCountryReviewProcessingActions(places),
-    )
+    await replaceReleaseProcessingActions(metaDb, releaseId, [
+      ...buildPlaceCountryReviewProcessingActions(places),
+      ...buildPlaceLocaleConflictProcessingActions(places),
+    ])
     const enriched = await enrichPlaces(
       dbContext.currentDb as unknown as HarbourReadableDb,
       snapshots,
@@ -453,6 +452,34 @@ export function buildPlaceCountryReviewProcessingActions(
       },
     ]
   })
+}
+
+/**
+ * Preserves locale/script conflicts as release audit evidence without adding
+ * resolver diagnostics to the public PlaceI18n record.
+ */
+export function buildPlaceLocaleConflictProcessingActions(
+  places: NormalisedPlace[],
+): ReleaseProcessingAction[] {
+  return places.flatMap(place =>
+    place.localeConflicts.map(conflict => ({
+      action: 'overture_place_locale_conflict',
+      affectedRecordCount: 1,
+      evidence: {
+        placeId: place.id,
+        field: conflict.field === 'brand' ? 'brandName' : conflict.field,
+        sourceLocale: conflict.sourceLocale,
+        resolvedLocale: conflict.resolvedLocale,
+        script: conflict.script,
+        sourceText: conflict.sourceText,
+        conflict: conflict.conflict,
+        reason: conflict.reason,
+      },
+      mode: 'automatic',
+      summary:
+        'Resolved a Place localisation from script evidence and retained the source value and locale conflict for review.',
+    })),
+  )
 }
 
 export function isExcludedOverturePlace(place: NormalisedPlace) {
@@ -795,7 +822,6 @@ export async function buildPlaceSql(input: {
           name: localised.name,
           nameVariant: localised.nameVariant,
           nameAlts: localised.nameAlts,
-          isLocaleInferred: localised.isLocaleInferred ? 1 : 0,
           brandName: localised.brandName,
           brandNameVariant: localised.brandNameVariant,
           brandNameAlts: localised.brandNameAlts,
@@ -885,7 +911,6 @@ export async function buildPlaceSql(input: {
             name: localised.name,
             nameVariant: localised.nameVariant,
             nameAlts: localised.nameAlts,
-            isLocaleInferred: localised.isLocaleInferred ? 1 : 0,
             brandName: localised.brandName,
             brandNameVariant: localised.brandNameVariant,
             brandNameAlts: localised.brandNameAlts,
@@ -1202,9 +1227,10 @@ export function buildPlaceReleaseStatsRows(
   const localisationStats = buildPlaceLocalisationStatistics(
     places.map(({ place }) => place),
   )
+  const localisedPlaceCount = places.filter(place => place.place.i18n.length > 0).length
   const statsRows: ReleaseScopedStatsRow[] = [
     row('records', places.length),
-    row('localised_records', places.length),
+    row('localised_records', localisedPlaceCount),
     row(
       'localised_rows',
       places.reduce((count, place) => count + place.place.i18n.length, 0),

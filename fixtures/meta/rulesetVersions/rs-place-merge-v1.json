@@ -1,11 +1,38 @@
 {
-  "versionHash": "sha256:51341c2b3b9db34778b1a3545565637e5757e949cea2af241a623672291da8e1",
+  "versionHash": "sha256:5e1f4d5da058aea5f129f0943e3a0a9934f902f949bba8a86e2ebf1c1d2dfd9d",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
   "version": "1",
-  "notes": "Excludes Overture Places with CN or MO address country codes, retains null-country Places, and records both cases for review.",
+  "notes": "Resolves Overture Place localisation from script evidence, excludes CN or MO address country codes, retains null-country Places, and records review evidence.",
   "mergeRules": [
+    {
+      "operationCode": "overture_place_locale_conflict",
+      "type": "record",
+      "sourceFieldPath": "names, brand.names, addresses[].freeform",
+      "targetFieldPath": "placesI18n.locale",
+      "condition": "Explicit publisher locale metadata conflicts with strong script evidence; resolve the value from the text and retain the original value and evidence in the release audit.",
+      "mappings": [
+        {
+          "from": "publisher locale metadata conflicts with strong script evidence",
+          "to": "resolve the locale from the text and record the source locale, resolved locale, script, reason, and source value"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records Place localisation values whose publisher locale metadata conflicts with strong script evidence."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄發布者語言環境資料與強烈文字系統證據不一致的地點本地化值。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录发布者语言环境资料与强烈文字系统证据不一致的地点本地化值。"
+        }
+      ]
+    },
     {
       "operationCode": "overture_place_country_review_required",
       "type": "record",

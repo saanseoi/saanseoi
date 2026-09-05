@@ -1648,6 +1648,9 @@ describe('atlas-api', () => {
     expect(places.components?.schemas).not.toHaveProperty('PlaceSourceKeys')
     expect(places.components?.schemas).not.toHaveProperty('OverturePlaceSourceKeys')
     expect(places.components?.schemas).toHaveProperty('PlaceI18n')
+    expect(JSON.stringify(places.components?.schemas?.PlaceI18n)).toContain(
+      'freeformAddress',
+    )
     expect(places.components?.schemas).toHaveProperty('PlaceSource')
     expect(places.components?.schemas).toHaveProperty('PlaceDivision')
     expect(places.components?.schemas).toHaveProperty('PlaceCellResult')
@@ -1686,8 +1689,8 @@ describe('atlas-api', () => {
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
       'The basic level category of a place.',
     )
-    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
-      'The non-empty free-form address strings associated with the place.',
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      '"addresses":',
     )
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain('sources')
 

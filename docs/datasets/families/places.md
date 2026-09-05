@@ -66,10 +66,11 @@ the resolved address reference as its version boundary; unchanged places do not 
 new history version.
 
 Place localisation resolves explicit language and script evidence independently for
-names, brand names, and free-form addresses. Missing locale information is inferred and
-audited; mixed-script source values remain intact. Translation is optional and uses the
-dataset-scoped `ds-hk-overture-place` fixture in batches of 50 only when an existing
-target PlaceI18n row is missing a translatable field. Brand names are never translated.
+names, brand names, and free-form addresses. Missing locale information is inferred;
+script conflicts are audited through release actions, and mixed-script source values
+remain intact. Translation is optional and uses the dataset-scoped
+`ds-hk-overture-place` fixture in batches of 50 only when an existing target PlaceI18n
+row is missing a translatable field. Brand names are never translated.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a

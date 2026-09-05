@@ -5,10 +5,52 @@ export type PlaceI18nRecord = {
   name: string | null
   nameAlts: string | null
   nameVariant: string[] | null
-  isLocaleInferred: boolean
   brandName: string | null
   brandNameAlts: string | null
   brandNameVariant: string[] | null
+  freeformAddress: string | null
+  provenance: PlaceI18nProvenance
+}
+
+export type PlaceI18nField = 'name' | 'brand' | 'freeformAddress'
+
+export type PlaceLocaleEvidence = {
+  field?: PlaceI18nField
+  sourceLocale: string | null
+  resolvedLocale: string
+  script: 'han' | 'latin' | 'mixed' | 'other'
+  conflict: boolean
+  reason: string | null
+}
+
+export type PlaceI18nProvenance = {
+  isMachineTranslated: PlaceI18nField[]
+  isHumanVerified: PlaceI18nField[]
+  isLocaleInferred: boolean
+}
+
+export type PlaceLocaleConflict = PlaceLocaleEvidence & {
+  field: PlaceI18nField
+  sourceText: string
+}
+
+export type PlaceLocalisationField = 'name' | 'brandName' | 'freeformAddress'
+
+export type PlaceFieldLocaleStatistics = {
+  valueCount: number
+  providedCount: number
+  inferredCount: number
+  aiTranslatedCount: number
+  humanTranslatedCount: number
+  conflictCount: number
+  missingCount: number
+}
+
+export type PlaceLocalisationStatistics = {
+  totalPlaces: number
+  fields: Map<string, PlaceFieldLocaleStatistics>
+  referenceNameCount: number
+  bilingualReferenceNameCount: number
 }
 
 export type NormalisedPlace = {
@@ -32,13 +74,12 @@ export type NormalisedPlace = {
   firstSeenMonth: string
   lastSeenMonth: string
   i18n: PlaceI18nRecord[]
+  /** Transient resolver evidence; persisted through release audit actions only. */
+  localeConflicts: PlaceLocaleConflict[]
   raw: Record<string, unknown>
 }
 
-export type PlaceAddressReference = {
-  ids: string[]
-  texts: string[]
-}
+export type PlaceAddressTexts = string[]
 
 export function normaliseOverturePlace(
   row: Record<string, unknown>,
@@ -51,6 +92,18 @@ export function normaliseOverturePlace(
   const names = namedValues(row.names)
   const brand = asRecord(row.brand)
   const brandNames = namedValues(brand?.names)
+  const addressNames = addressNamedValues(row.addresses)
+  const localeConflicts = [
+    ...names.map(value => ({ ...value, field: 'name' as const })),
+    ...brandNames.map(value => ({ ...value, field: 'brand' as const })),
+    ...addressNames.map(value => ({ ...value, field: 'freeformAddress' as const })),
+  ]
+    .filter(value => value.evidence.conflict)
+    .map(value => ({
+      ...value.evidence,
+      field: value.field,
+      sourceText: value.value,
+    }))
   const categories = asRecord(row.categories)
   const taxonomy = asRecord(row.taxonomy)
   const taxonomyPrimary = asString(taxonomy?.primary) ?? asString(categories?.primary)
@@ -78,7 +131,8 @@ export function normaliseOverturePlace(
     sources: sourceValues,
     firstSeenMonth: month,
     lastSeenMonth: month,
-    i18n: mergePlaceI18n(names, brandNames),
+    i18n: mergePlaceI18n(names, brandNames, addressNames),
+    localeConflicts,
     raw: row,
   }
 }
@@ -129,13 +183,12 @@ export async function hashPlaceMaterialisation(
   })
 }
 
-/** Extracts publisher address references without assuming the Overture address
- * identifiers are SaanSeoi address identifiers. ALS remains the canonical
- * address source, so callers may use the textual values as a best-effort join.
+/** Extracts publisher free-form address text for a best-effort ALS match.
+ * Publisher identifiers are deliberately ignored: Overture does not provide
+ * the SaanSeoi ALS premise identities used by the canonical Address tables.
  */
-export function extractPlaceAddressReference(value: unknown): PlaceAddressReference {
+export function extractPlaceAddressTexts(value: unknown): PlaceAddressTexts {
   const records = Array.isArray(value) ? value : [value]
-  const ids = new Set<string>()
   const texts = new Set<string>()
 
   for (const record of records) {
@@ -145,13 +198,11 @@ export function extractPlaceAddressReference(value: unknown): PlaceAddressRefere
     }
     const object = asRecord(record)
     if (!object) continue
-    const id = asString(object.id) ?? asString(object.address_id)
-    if (id) ids.add(id)
     const freeform = asString(object.freeform)
     if (freeform) texts.add(freeform)
   }
 
-  return { ids: [...ids], texts: [...texts] }
+  return [...texts]
 }
 
 /** Reads the publisher country used by the Hong Kong Places inclusion filter. */
@@ -186,12 +237,126 @@ export function assertPlaceAddressCardinality(places: NormalisedPlace[]) {
   const remaining =
     multipleAddressPlaces.length - Math.min(10, multipleAddressPlaces.length)
   throw new Error(
-    `WARNING: Overture Places ingestion stopped because ${multipleAddressPlaces.length} Place(s) contain more than one address. The current Place-to-address materialisation supports one canonical address. Reconsider the address <> place implementation before continuing. Affected Place IDs: ${preview}${remaining > 0 ? `, and ${remaining} more` : ''}.`,
+    `WARNING: Overture Places ingestion stopped because ${multipleAddressPlaces.length} Place(s) contain more than one publisher address or localised address value. The current Place-to-address materialisation supports one canonical address. Reconsider the address <> place implementation before continuing. Affected Place IDs: ${preview}${remaining > 0 ? `, and ${remaining} more` : ''}.`,
   )
 }
 
 export function normalisePlaceText(value: string) {
   return value.normalize('NFKC').toLocaleLowerCase('en').replaceAll(/\s+/g, ' ').trim()
+}
+
+/**
+ * Builds a convenient display label without inventing a locale or changing the
+ * stable Place identifier.  This is deliberately a projection over i18n rows.
+ */
+export function derivePlaceReferenceName(
+  localisations: Array<Pick<PlaceI18nRecord, 'locale' | 'name'>>,
+) {
+  const nonEmpty = localisations.filter(
+    localised => typeof localised.name === 'string' && localised.name.trim(),
+  )
+  const traditional = nonEmpty.find(localised => localised.locale === 'zh-hant')
+  const english = nonEmpty.find(localised => localised.locale === 'en')
+  if (traditional?.name) {
+    if (
+      english?.name &&
+      normalisePlaceText(traditional.name) !== normalisePlaceText(english.name) &&
+      /\p{Script=Han}/u.test(traditional.name) &&
+      !/\p{Script=Han}/u.test(english.name)
+    ) {
+      return `${traditional.name} ${english.name}`
+    }
+    return traditional.name
+  }
+  if (english?.name) return english.name
+  return nonEmpty[0]?.name ?? null
+}
+
+export function buildPlaceLocalisationStatistics(
+  places: Array<
+    Pick<NormalisedPlace, 'id' | 'i18n'> &
+      Partial<Pick<NormalisedPlace, 'localeConflicts'>>
+  >,
+): PlaceLocalisationStatistics {
+  const fields = new Map<string, PlaceFieldLocaleStatistics>()
+  const fieldNames: PlaceLocalisationField[] = ['name', 'brandName', 'freeformAddress']
+  const ensure = (field: PlaceLocalisationField, locale: string) => {
+    const key = `${field}\u0000${locale}`
+    const existing = fields.get(key)
+    if (existing) return existing
+    const created = {
+      valueCount: 0,
+      providedCount: 0,
+      inferredCount: 0,
+      aiTranslatedCount: 0,
+      humanTranslatedCount: 0,
+      conflictCount: 0,
+      missingCount: 0,
+    }
+    fields.set(key, created)
+    return created
+  }
+
+  let referenceNameCount = 0
+  let bilingualReferenceNameCount = 0
+  for (const place of places) {
+    const referenceName = derivePlaceReferenceName(place.i18n)
+    if (referenceName) referenceNameCount += 1
+    const hasTraditional = place.i18n.some(
+      row => row.locale === 'zh-hant' && Boolean(row.name),
+    )
+    const hasEnglish = place.i18n.some(row => row.locale === 'en' && Boolean(row.name))
+    const traditionalName = place.i18n.find(
+      row => row.locale === 'zh-hant' && Boolean(row.name),
+    )?.name
+    const englishName = place.i18n.find(
+      row => row.locale === 'en' && Boolean(row.name),
+    )?.name
+    const isBilingualReferenceName =
+      hasTraditional &&
+      hasEnglish &&
+      Boolean(traditionalName && englishName) &&
+      referenceName === `${traditionalName} ${englishName}`
+    if (isBilingualReferenceName) bilingualReferenceNameCount += 1
+
+    for (const field of fieldNames) {
+      for (const row of place.i18n) {
+        const value = row[field]
+        const stats = ensure(field, row.locale)
+        if (!value) continue
+        stats.valueCount += 1
+        const provenanceField: PlaceI18nField = field === 'brandName' ? 'brand' : field
+        const isMachineTranslated =
+          row.provenance.isMachineTranslated.includes(provenanceField)
+        const isHumanVerified = row.provenance.isHumanVerified.includes(provenanceField)
+        if (isMachineTranslated) stats.aiTranslatedCount += 1
+        if (isHumanVerified) stats.humanTranslatedCount += 1
+        if (!isMachineTranslated && !isHumanVerified) {
+          if (row.provenance.isLocaleInferred) stats.inferredCount += 1
+          else stats.providedCount += 1
+        }
+        if (
+          place.localeConflicts?.some(
+            evidence =>
+              evidence.resolvedLocale === row.locale &&
+              evidence.field === provenanceField,
+          )
+        )
+          stats.conflictCount += 1
+      }
+    }
+  }
+  for (const field of fieldNames) {
+    for (const locale of ['en', 'zh-hant', 'zh-hans']) ensure(field, locale)
+  }
+  for (const stats of fields.values())
+    stats.missingCount = places.length - stats.valueCount
+  return {
+    totalPlaces: places.length,
+    fields,
+    referenceNameCount,
+    bilingualReferenceNameCount,
+  }
 }
 
 export function pointCoordinates(value: unknown): [number, number] | null {
@@ -207,30 +372,48 @@ export function pointCoordinates(value: unknown): [number, number] | null {
 function mergePlaceI18n(
   names: NamedValue[],
   brandNames: NamedValue[],
+  addressNames: NamedValue[],
 ): PlaceI18nRecord[] {
-  const locales = new Set([...names, ...brandNames].map(value => value.locale))
+  const locales = new Set(
+    [...names, ...brandNames, ...addressNames].map(value => value.locale),
+  )
   return [...locales].sort().map(locale => {
     const name = names.filter(value => value.locale === locale)
     const brand = brandNames.filter(value => value.locale === locale)
+    const addresses = addressNames.filter(value => value.locale === locale)
+    const values = [...name, ...brand, ...addresses]
     return {
       locale,
       name: name[0]?.value ?? null,
       nameAlts: joinAlternates(name),
       nameVariant: name.length > 1 ? name.slice(1).map(value => value.value) : null,
-      isLocaleInferred: name.some(value => value.inferred),
       brandName: brand[0]?.value ?? null,
       brandNameAlts: joinAlternates(brand),
       brandNameVariant:
         brand.length > 1 ? brand.slice(1).map(value => value.value) : null,
+      freeformAddress: addresses[0]?.value ?? null,
+      provenance: {
+        isMachineTranslated: [],
+        isHumanVerified: [],
+        isLocaleInferred: values.some(value => value.inferred),
+      },
     }
   })
 }
 
-type NamedValue = { locale: string; value: string; inferred: boolean }
+export type NamedValue = {
+  locale: string
+  value: string
+  inferred: boolean
+  evidence: PlaceLocaleEvidence
+}
 
-function namedValues(value: unknown): NamedValue[] {
+export function namedValues(
+  value: unknown,
+  options: { defaultHanLocale?: 'zh-hant' | 'zh-hans' } = {},
+): NamedValue[] {
   const output: NamedValue[] = []
-  visitNamedValue(value, output, 'en', true)
+  visitNamedValue(value, output, null, false, options.defaultHanLocale ?? 'zh-hant')
   const deduped = new Map<string, NamedValue>()
   for (const item of output) {
     const key = `${item.locale}\u0000${item.value}`
@@ -242,36 +425,136 @@ function namedValues(value: unknown): NamedValue[] {
 function visitNamedValue(
   value: unknown,
   output: NamedValue[],
-  inheritedLocale: string,
-  inherited: boolean,
+  inheritedLocale: string | null,
+  inheritedExplicit: boolean,
+  defaultHanLocale: 'zh-hant' | 'zh-hans',
 ) {
   if (typeof value === 'string' && value.trim()) {
-    output.push({ locale: inheritedLocale, value: value.trim(), inferred: inherited })
+    output.push(
+      resolveNamedValue(value, inheritedLocale, inheritedExplicit, defaultHanLocale),
+    )
     return
   }
   if (Array.isArray(value)) {
-    for (const item of value) visitNamedValue(item, output, inheritedLocale, inherited)
+    for (const item of value)
+      visitNamedValue(
+        item,
+        output,
+        inheritedLocale,
+        inheritedExplicit,
+        defaultHanLocale,
+      )
     return
   }
   const record = asRecord(value)
   if (!record) return
-  const locale = normaliseLocale(
-    asString(record.language) ?? asString(record.lang) ?? inheritedLocale,
-  )
+  const explicitLocaleValue = asString(record.language) ?? asString(record.lang)
+  const explicitLocale = explicitLocaleValue
+    ? normaliseLocale(explicitLocaleValue)
+    : inheritedLocale
+  const explicit = Boolean(explicitLocaleValue) || inheritedExplicit
   const explicitValue = asString(record.value) ?? asString(record.name)
   if (explicitValue) {
-    output.push({
-      locale,
-      value: explicitValue,
-      inferred: !record.language && !record.lang,
-    })
+    output.push(
+      resolveNamedValue(explicitValue, explicitLocale, explicit, defaultHanLocale),
+    )
   }
   for (const [key, nested] of Object.entries(record)) {
     if (key === 'value' || key === 'name' || key === 'language' || key === 'lang')
       continue
-    const nestedLocale = localeFromKey(key) ?? locale
-    visitNamedValue(nested, output, nestedLocale, !localeFromKey(key))
+    const keyLocale = localeFromKey(key)
+    visitNamedValue(
+      nested,
+      output,
+      keyLocale ?? explicitLocale,
+      Boolean(keyLocale) || explicit,
+      defaultHanLocale,
+    )
   }
+}
+
+function resolveNamedValue(
+  text: string,
+  explicitLocale: string | null,
+  hasExplicitLocale: boolean,
+  defaultHanLocale: 'zh-hant' | 'zh-hans',
+): NamedValue {
+  const script = scriptOf(text)
+  const strongLatin =
+    script === 'latin' || (script === 'other' && /[\p{L}\p{N}]/u.test(text))
+  let locale = explicitLocale
+  let conflict = false
+  let reason: string | null = null
+
+  if (script === 'han') {
+    if (explicitLocale === 'en') {
+      locale = defaultHanLocale
+      conflict = hasExplicitLocale
+      reason = 'Han text was labelled en.'
+    } else if (explicitLocale === 'zh') {
+      locale = defaultHanLocale
+    } else if (!explicitLocale || explicitLocale === 'und') {
+      locale = defaultHanLocale
+    }
+  } else if (script === 'mixed' && (!explicitLocale || explicitLocale === 'zh')) {
+    locale = defaultHanLocale
+  } else if (
+    strongLatin &&
+    (explicitLocale === 'zh' || explicitLocale?.startsWith('zh-'))
+  ) {
+    locale = 'en'
+    conflict = hasExplicitLocale
+    reason = 'Strong Latin or alphanumeric text was labelled Chinese.'
+  } else if (!locale && strongLatin) {
+    locale = 'en'
+  }
+
+  locale ??= explicitLocale ?? 'und'
+  return {
+    locale,
+    value: text.trim(),
+    inferred:
+      !hasExplicitLocale ||
+      conflict ||
+      (explicitLocale === 'zh' && (script === 'han' || script === 'mixed')),
+    evidence: {
+      sourceLocale: explicitLocale,
+      resolvedLocale: locale,
+      script,
+      conflict,
+      reason,
+    },
+  }
+}
+
+function addressNamedValues(value: unknown) {
+  const output: NamedValue[] = []
+  const records = Array.isArray(value) ? value : [value]
+  for (const item of records) {
+    if (typeof item === 'string') {
+      output.push(...namedValues(item))
+      continue
+    }
+    const record = asRecord(item)
+    if (!record) continue
+    const freeform = record.freeform
+    const locale = asString(record.language) ?? asString(record.lang)
+    if (locale && typeof freeform === 'string') {
+      output.push(...namedValues({ value: freeform, language: locale }))
+    } else {
+      output.push(...namedValues(freeform))
+    }
+  }
+  return output
+}
+
+function scriptOf(value: string): PlaceLocaleEvidence['script'] {
+  const hasHan = /\p{Script=Han}/u.test(value)
+  const hasLatin = /\p{Script=Latin}/u.test(value)
+  if (hasHan && hasLatin) return 'mixed'
+  if (hasHan) return 'han'
+  if (hasLatin) return 'latin'
+  return 'other'
 }
 
 function joinAlternates(values: NamedValue[]) {
@@ -281,7 +564,7 @@ function joinAlternates(values: NamedValue[]) {
 
 function localeFromKey(value: string) {
   const normalised = normaliseLocale(value)
-  return /^(?:en|zh(?:-hans|-hant)?|ja|ko|fr|de|es|pt|it|ru|ar)$/.test(normalised)
+  return /^(?:en|zh|zh(?:-hans|-hant)?|ja|ko|fr|de|es|pt|it|ru|ar)$/.test(normalised)
     ? normalised
     : null
 }
@@ -289,9 +572,20 @@ function localeFromKey(value: string) {
 function normaliseLocale(value: string) {
   const lower = value.trim().toLowerCase().replaceAll('_', '-')
   if (lower === 'eng' || lower === 'english') return 'en'
-  if (lower === 'zho' || lower === 'chi' || lower === 'cmn') return 'zh-hans'
-  if (lower === 'yue' || lower === 'zh-hk') return 'zh-hant'
-  return lower || 'en'
+  if (lower === 'zho' || lower === 'chi' || lower === 'cmn') return 'zh'
+  if (
+    lower === 'yue' ||
+    lower === 'zh-hk' ||
+    lower === 'zh-mo' ||
+    lower === 'zh-tw' ||
+    lower.startsWith('zh-hant')
+  )
+    return 'zh-hant'
+  if (lower === 'zh-cn' || lower === 'zh-sg' || lower.startsWith('zh-hans'))
+    return 'zh-hans'
+  if (lower === 'en-us' || lower === 'en-gb' || lower.startsWith('en-')) return 'en'
+  if (lower === 'zh') return 'zh'
+  return lower || 'und'
 }
 
 function jsonValue(value: unknown) {

@@ -107,14 +107,6 @@ const PlaceSourceArraySchema = z
     description: openApiText('openapi_places_sources_description'),
   }) as z.ZodType<unknown>
 
-const PlaceAddressArraySchema = z
-  .array(z.string())
-  .min(1)
-  .nullable()
-  .openapi({
-    description: openApiText('openapi_places_addresses_description'),
-  }) as z.ZodType<unknown>
-
 const PlaceTaxonomyHierarchySchema = z
   .array(z.string())
   .nullable()
@@ -199,7 +191,6 @@ const PlaceI18nSchema = z
       .openapi({
         description: openApiText('openapi_places_name_alts_description'),
       }),
-    isLocaleInferred: z.boolean(),
     brandName: z
       .string()
       .nullable()
@@ -217,6 +208,22 @@ const PlaceI18nSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_brand_name_alts_description'),
+      }),
+    freeformAddress: z
+      .string()
+      .nullable()
+      .openapi({
+        description: openApiText('openapi_places_address_freeform_description'),
+      }),
+    provenance: z
+      .object({
+        isMachineTranslated: z.array(z.string()),
+        isHumanVerified: z.array(z.string()),
+        isLocaleInferred: z.boolean(),
+      })
+      .nullable()
+      .openapi({
+        description: openApiText('openapi_places_provenance_description'),
       }),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
@@ -236,6 +243,12 @@ const PlaceSchema = z
     releaseId: z.string().openapi({
       description: openApiText('openapi_places_release_id_description'),
     }),
+    referenceName: z
+      .string()
+      .nullable()
+      .openapi({
+        description: openApiText('openapi_places_reference_name_description'),
+      }),
     addressSnapshotId: z.string().nullable(),
     address2dId: z.string().nullable(),
     address3dId: z.string().nullable(),
@@ -261,7 +274,6 @@ const PlaceSchema = z
     socials: PlaceSocialsSchema,
     emails: PlaceEmailsSchema,
     phones: PlacePhonesSchema,
-    addresses: PlaceAddressArraySchema,
     confidence: z.union([ConfidenceScoreSchema, z.null()]).openapi({
       description: openApiText('openapi_places_confidence_description'),
     }),

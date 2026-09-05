@@ -532,7 +532,6 @@ export const canonicalPlaceI18n = {
   name: text('name'),
   nameVariant: jsonText('nameVariant'),
   nameAlts: text('nameAlts'),
-  isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
   brandName: text('brandName'),
   brandNameVariant: jsonText('brandNameVariant'),
   brandNameAlts: text('brandNameAlts'),
@@ -544,14 +543,6 @@ export type PlaceI18nProvenance = {
   isMachineTranslated: Array<'name' | 'brand' | 'freeformAddress'>
   isHumanVerified: Array<'name' | 'brand' | 'freeformAddress'>
   isLocaleInferred: boolean
-  localeEvidence: Array<{
-    field?: 'name' | 'brand' | 'freeformAddress'
-    sourceLocale: string | null
-    resolvedLocale: string
-    script: 'han' | 'latin' | 'mixed' | 'other'
-    conflict: boolean
-    reason: string | null
-  }>
 }
 
 export const canonicalStreet = {

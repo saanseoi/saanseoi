@@ -11,8 +11,9 @@ unrelated drift.
 The normaliser requires a Point geometry and preserves the raw publisher payload in
 `overturePlaces`. It converts the multilingual `names`, `brand.names`, and address
 `freeform` values into PlaceI18n rows using script-aware locale resolution. Locale-less
-values are marked as inferred, and conflicting explicit labels retain auditable locale
-evidence. Source values and variants are not replaced with AI translations.
+values are marked as inferred, and conflicting explicit labels are recorded with their
+source values in release audit actions. Source values and variants are not replaced with
+AI translations.
 
 Overture `id` values are validated against the Overture GERS Registry rather than being
 classified from their UUID shape. Harbour caches the registry evidence for the Division
@@ -64,7 +65,7 @@ snapshot and its address, division, and street joins have been materialised.
 
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 會按腳本獨立解析並保留來源值。未標記漢字在香港資料中通常推斷為
-`zh-hant`；這代表繁體中文腳本，不代表粵語。衝突的語言標籤會保留證據供審核，混合腳本不會自行拆分。公開 Place 不再提供
+`zh-hant`；這代表繁體中文腳本，不代表粵語。衝突的語言標籤及來源值會記錄在發布審核動作中，混合腳本不會自行拆分。公開 Place 不再提供
 `addresses`，自由格式地址會放在 PlaceI18n 的
 `freeformAddress`；選定的 ALS 關係仍然獨立且具權威性。翻譯是可選的，只使用資料集 fixture，且不會翻譯品牌。
 
@@ -72,6 +73,6 @@ Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 会按脚本独立解析并保留源值。未标记汉字在香港资料中通常推断为
-`zh-hant`；这代表繁体中文脚本，不代表粤语。冲突的语言标签会保留证据供审核，混合脚本不会自行拆分。公开 Place 不再提供
+`zh-hant`；这代表繁体中文脚本，不代表粤语。冲突的语言标签及源值会记录在发布审核动作中，混合脚本不会自行拆分。公开 Place 不再提供
 `addresses`，自由格式地址会放在 PlaceI18n 的
 `freeformAddress`；选定的 ALS 关系仍然独立且具权威性。翻译是可选的，只使用资料集 fixture，且不会翻译品牌。
