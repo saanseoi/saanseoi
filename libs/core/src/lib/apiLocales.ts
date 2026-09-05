@@ -101,8 +101,73 @@ export const apiProfileDocumentationByFamily = {
       },
     },
   },
+  places: {
+    compact: {
+      en: {
+        useCase: 'building a small place list or category picker',
+        coverage:
+          'identifier, reference name, basic category, primary taxonomy, operating status and requested place names',
+      },
+      'zh-Hant': {
+        useCase: '建立小型地點清單或類別選擇器',
+        coverage: '識別碼、參考名稱、基本類別、主要分類、營運狀態及所選地點名稱',
+      },
+      'zh-Hans': {
+        useCase: '建立小型地点列表或类别选择器',
+        coverage: '标识符、参考名称、基本类别、主要分类、营运状态及所选地点名称',
+      },
+    },
+    default: {
+      en: {
+        useCase: 'showing ordinary place information',
+        coverage:
+          'compact fields plus localised freeform addresses, complete taxonomy, contact details, confidence and record timing',
+      },
+      'zh-Hant': {
+        useCase: '顯示一般地點資料',
+        coverage:
+          '基本欄位，加上本地化自由格式地址、完整分類、聯絡資料、可信度及記錄時間',
+      },
+      'zh-Hans': {
+        useCase: '显示一般地点资料',
+        coverage:
+          '基本字段，加上本地化自由格式地址、完整分类、联系资料、可信度及记录时间',
+      },
+    },
+    map: {
+      en: {
+        useCase: 'drawing or clustering place markers',
+        coverage: 'default fields plus point geometry and bounding box',
+      },
+      'zh-Hant': {
+        useCase: '繪製或叢集地點標記',
+        coverage: '預設欄位，加上點幾何及邊界框',
+      },
+      'zh-Hans': {
+        useCase: '绘制或聚合地点标记',
+        coverage: '默认字段，加上点几何和边界框',
+      },
+    },
+    full: {
+      en: {
+        useCase: 'auditing a place or tracing its source and localisation',
+        coverage:
+          'map fields plus all stored locales and variants, localisation provenance, snapshot and address references, source release and sources',
+      },
+      'zh-Hant': {
+        useCase: '審核地點或追溯其來源及本地化資料',
+        coverage:
+          '地圖欄位，加上所有已儲存的語言及變體、本地化來源資料、快照及地址參照、來源發布及來源',
+      },
+      'zh-Hans': {
+        useCase: '审核地点或追溯其来源及本地化资料',
+        coverage:
+          '地图字段，加上所有已存储的语言及变体、本地化来源资料、快照及地址引用、来源发布及来源',
+      },
+    },
+  },
 } as const satisfies Record<
-  'divisions',
+  'divisions' | 'places',
   Record<ApiProfileName, Record<ApiProfileDocumentationLocale, ApiProfileDocumentation>>
 >
 

@@ -16,7 +16,7 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(10)
+    expect(fixtures).toHaveLength(12)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
