@@ -68,6 +68,125 @@ the address-identity review workflow, and unsupported candidates remain for late
 processing. The supplementary source needs its own dataset, composition contract, and
 materialiser; it must not mint an official ALS address during Places ingestion.
 
+## Supplementary address materialisation
+
+This section specifies the Places-ingest extension which creates Overture Places
+supplementary Address rows. It is deliberately a two-phase part of Places ingestion:
+analyse the Place source release first, then materialise accepted supplementary Address
+rows before finalising the Place snapshot. That ordering lets a final Place row point to
+an Address row with ordinary source provenance and, where justified, division IDs.
+
+### Inputs and durable outputs
+
+- Read only the Place release's retained publisher address, parsed 2D/3D evidence, Place
+  geometry, and the Places release's selected ALS snapshot. Do not read an unrecorded
+  current snapshot.
+- Store accepted decisions in `fixtures/meta/curations/overture-place-address.json`.
+  Like the ALS identity curation, this is an unversioned identity-policy fixture, not an
+  ignored cache or a list copied once per release. An entry identifies the stable
+  Overture Place ID, supplementary Address identity key and ID, normalised publisher
+  address, selected ALS base candidate when one exists, structured supplementary 2D
+  values, score/evidence, and acceptance mode. It also records its first accepted source
+  release and any explicit retirement or replacement decision.
+- Write weaker candidates to a release-owned review artefact under `.local/`; include
+  every candidate, score breakdown, residual text, geometry distance, and the reason it
+  was not accepted. Its shape and stop/retry behaviour follow the ALS identity-drift
+  review workflow.
+- Emit release processing actions with separate counts for direct ALS links, accepted
+  supplementary candidates, review-required candidates, and candidates with no useful
+  partial match.
+
+### Matching and carry-forward order
+
+Before scoring a new candidate, first test the last resolved Place relationship. Reuse
+that Address ID when the stable Overture Place ID and normalised publisher-address
+fingerprint agree with the previous Place version and the Address ID materialises in the
+currently selected official or supplementary Address member. This applies to a prior
+direct ALS link as well as a supplementary link.
+
+Then look up an accepted, non-retired curation entry by the stable Overture Place ID.
+Reuse its supplementary Address ID when the supplementary identity key still agrees with
+the retained publisher address evidence and the Address ID materialises in the selected
+supplementary snapshot. This is the ordinary subsequent-release path: a Place whose GERS
+ID is unchanged does not acquire a different Address merely because the candidate list
+or a score ordering changed.
+
+If the prior entry cannot be reproduced—for example, its Address identity changes, its
+selected ALS base no longer exists, or the publisher address changes incompatibly—write
+an identity-drift review item. Historical Place versions retain their recorded Address
+snapshot and Address ID; a later current Place version must never rewrite that history.
+An exact new ALS match can replace a supplementary link only through a recorded,
+deterministic replacement policy or an explicit curation decision.
+
+### Four matching tiers
+
+1. **Direct canonical Address match.** Parse against the selected ALS snapshot. Exact
+   formatted-address evidence, or an unambiguous combination of canonical building,
+   estate, block or phase evidence with street/number evidence, links the Place directly
+   to the existing ALS Address. It creates no supplementary row.
+2. **Automatic supplementary candidate.** Only inspect this tier when tier 1 cannot
+   select an ALS Address. Score partial evidence against selected ALS candidates: exact
+   canonical components, recognised street and number, reviewed aliases, and optional
+   Place-to-candidate geometry distance. No individual component combination is a hard
+   precondition: an exact building name and exact street may score high enough without a
+   building number when the ALS row represents a building range or its shops. Geometry
+   may disambiguate named candidates; it must never create a candidate from a bare
+   number or be the only positive evidence. If one candidate clears the configured
+   deterministic automatic threshold and separation from the next candidate, append an
+   accepted fixture entry. Citygate Outlets is the intended shape: it can be a
+   supplementary building name with Citygate/20 Tat Tung Road as evidenced context,
+   while retaining Overture rather than ALS provenance.
+3. **Review candidate.** A meaningful partial match in the review score band, a tie, or
+   contradictory components must stop for review; `--yes` may not choose an identity.
+   The review artefact must show the previous accepted link, when present, so a reviewer
+   can keep, retire, or replace it explicitly.
+4. **No usable match.** A result below the review band, including no candidate at all,
+   is recorded as delayed and ignored for current Address matching. Do not manufacture a
+   nearest Address or a curation entry. Retain the Place source value and release action
+   so a later matcher policy or address release can reconsider it.
+
+The thresholds, score weights, alias rules, candidate-distance margin, and replacement
+policy belong in the curation fixture or its referenced policy version. They are not
+implicit matcher constants, so a released result remains explainable and replayable.
+
+### Curation and row materialisation
+
+An accepted fixture entry is the authority to create a supplementary Address record. It
+must contain enough structured, locale-specific 2D content to reproduce the row; never
+derive a public Address field from a future re-parse of mutable source text. Typed Place
+unit/floor fragments remain source evidence until an Address3D materialisation policy is
+introduced.
+
+Materialise the row under an Overture Places Address dataset/source, distinct from
+`hkgov-dpo` and the official `address/default` member. Its provenance must name the
+Overture Place ID, Place source release, original address value or hash, curation entry,
+policy version, score, and selected ALS base candidate. The supplementary Address ID is
+deterministic from that durable identity key; any incompatible change follows the same
+identity-drift review process as other Address sources.
+
+An accepted ALS base candidate may supply division IDs only as recorded derivation
+evidence on the supplementary row. A supplementary row without that base has no division
+IDs. Place geometry must not fill those fields. The final Places materialisation then
+selects the recorded Address row, sets `addressSnapshotId` and `address2dId`, and
+creates `placesDivision` rows from that Address row's recorded division IDs. A Place
+with neither an ALS nor an accepted supplementary Address remains division-unlinked but
+continues to be indexed in H3 cells and returned by cell and search queries.
+
+### Required ingestion order
+
+1. Load the cohort-selected ALS Address and Division snapshots and build the canonical
+   matcher indexes.
+2. Parse and run the four tiers for every retained publisher address; write the accepted
+   curation update or the review artefact before any Place rows are finalised.
+3. Validate and carry forward accepted curation entries, then materialise the accepted
+   Overture Places supplementary Address source snapshot and record it as a Places
+   release dependency.
+4. Resolve each Place against the union of the selected official and supplementary
+   Address members, then materialise Place, PlaceI18n, H3, and `placesDivision` rows.
+5. Refuse publication if a review-required candidate lacks a curation decision, if the
+   supplementary source snapshot is missing, or if a Place/Address link cannot be
+   reproduced from the recorded source release, fixture, and dependency snapshots.
+
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
 as one `overture_place_country_review_required` action per Place in the release Audit.
