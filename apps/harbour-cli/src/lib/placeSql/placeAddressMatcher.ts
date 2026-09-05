@@ -60,6 +60,7 @@ export type ParsedPlaceAddress = {
   buildingNumbers: string[]
   disposition: 'premise-candidate' | 'street-only' | 'unrecognised'
   normalisedAddress2dText: string
+  recognised2dComponents: ParsedAddress2dComponent[]
   street: {
     locale: SupportedLocale
     name: string
@@ -67,6 +68,12 @@ export type ParsedPlaceAddress = {
     streetIds: string[]
   } | null
   unclassified2dText: string | null
+}
+
+export type ParsedAddress2dComponent = {
+  kind: 'buildingName' | 'estateName' | 'blockExpression' | 'phaseExpression'
+  name: string
+  normalisedName: string
 }
 
 type SupportedLocale = 'en' | 'zh-hant'
@@ -87,9 +94,15 @@ type PreparedStreetDefinition = {
   streetIds: string[]
 }
 
+type PreparedAddressComponent = ParsedAddress2dComponent & {
+  definitions: PreparedAddressDefinition[]
+}
+
 export type PlaceAddressMatcher = {
   byBuildingNumberAndStreet: Map<string, PreparedAddressDefinition[]>
+  byCanonicalComponent: Map<string, PreparedAddressDefinition[]>
   byExactText: Map<string, Set<string>>
+  componentsByLongestName: PreparedAddressComponent[]
   streetsByLongestName: PreparedStreetDefinition[]
 }
 
@@ -116,21 +129,16 @@ export function createPlaceAddressMatcher(
   streetDefinitions: PlaceStreetDefinition[] = [],
 ): PlaceAddressMatcher {
   const byBuildingNumberAndStreet = new Map<string, PreparedAddressDefinition[]>()
+  const byCanonicalComponent = new Map<string, PreparedAddressDefinition[]>()
   const byExactText = new Map<string, Set<string>>()
+  const componentsByKey = new Map<string, PreparedAddressComponent>()
   const streetsByKey = new Map<string, PreparedStreetDefinition>()
 
   for (const definition of definitions) {
     const locale = normaliseDefinitionLocale(definition.locale)
     const streetName = text(definition.streetName)
-    if (!locale || !streetName) continue
-    addPreparedStreet(streetsByKey, {
-      locale,
-      name: streetName,
-      normalisedName: normaliseAddressText(streetName),
-      streetIds: [],
-    })
+    if (!locale) continue
     const buildingNumbers = definitionBuildingNumbers(definition)
-    if (buildingNumbers.length === 0) continue
 
     const prepared: PreparedAddressDefinition = {
       ...definition,
@@ -139,19 +147,41 @@ export function createPlaceAddressMatcher(
       normalisedBuildingName: normaliseOptional(definition.buildingName),
       normalisedEstateName: normaliseOptional(definition.estateName),
       normalisedFormattedAddress: normaliseOptional(definition.formattedAddress),
-      normalisedStreetName: normaliseAddressText(streetName),
+      normalisedStreetName: streetName ? normaliseAddressText(streetName) : '',
     }
-    for (const buildingNumber of buildingNumbers) {
-      const key = addressComponentKey(buildingNumber, prepared.normalisedStreetName)
-      const definitionsForComponent = byBuildingNumberAndStreet.get(key) ?? []
-      definitionsForComponent.push(prepared)
-      byBuildingNumberAndStreet.set(key, definitionsForComponent)
+    if (streetName) {
+      addPreparedStreet(streetsByKey, {
+        locale,
+        name: streetName,
+        normalisedName: prepared.normalisedStreetName,
+        streetIds: [],
+      })
+      for (const buildingNumber of buildingNumbers) {
+        const key = addressComponentKey(buildingNumber, prepared.normalisedStreetName)
+        const definitionsForComponent = byBuildingNumberAndStreet.get(key) ?? []
+        definitionsForComponent.push(prepared)
+        byBuildingNumberAndStreet.set(key, definitionsForComponent)
+      }
     }
 
     if (prepared.normalisedFormattedAddress) {
       const ids = byExactText.get(prepared.normalisedFormattedAddress) ?? new Set()
       ids.add(prepared.addressId)
       byExactText.set(prepared.normalisedFormattedAddress, ids)
+    }
+
+    for (const component of preparedDefinitionComponents(prepared)) {
+      const key = canonicalComponentKey(component.kind, component.normalisedName)
+      const definitionsForComponent = byCanonicalComponent.get(key) ?? []
+      definitionsForComponent.push(prepared)
+      byCanonicalComponent.set(key, definitionsForComponent)
+      const componentKey = `${component.kind}\0${prepared.locale}\0${component.normalisedName}`
+      const existing = componentsByKey.get(componentKey)
+      if (existing) {
+        existing.definitions.push(prepared)
+      } else {
+        componentsByKey.set(componentKey, { ...component, definitions: [prepared] })
+      }
     }
   }
 
@@ -169,7 +199,11 @@ export function createPlaceAddressMatcher(
 
   return {
     byBuildingNumberAndStreet,
+    byCanonicalComponent,
     byExactText,
+    componentsByLongestName: [...componentsByKey.values()].sort(
+      (left, right) => right.normalisedName.length - left.normalisedName.length,
+    ),
     streetsByLongestName: [...streetsByKey.values()].sort(
       (left, right) => right.normalisedName.length - left.normalisedName.length,
     ),
@@ -205,7 +239,10 @@ export function matchPlaceAddressTexts(
  */
 export function parsePlaceAddress(
   sourceText: string,
-  matcher?: Pick<PlaceAddressMatcher, 'streetsByLongestName'>,
+  matcher?: Pick<
+    PlaceAddressMatcher,
+    'componentsByLongestName' | 'streetsByLongestName'
+  >,
 ): ParsedPlaceAddress {
   const stripped = stripAddress3d(normaliseChineseNumbers(sourceText.normalize('NFKC')))
   let address2dText = stripped.address2dText
@@ -231,10 +268,15 @@ export function parsePlaceAddress(
   const buildingNumbers = buildingNumberExpression
     ? expandSourceBuildingNumberExpression(buildingNumberExpression)
     : []
+  const recognised2dComponents = findCanonicalComponentMatches(
+    normalisedAddress2dText,
+    matcher?.componentsByLongestName ?? [],
+  )
   const unclassified2dText = removeRecognised2dComponents(
     normalisedAddress2dText,
     streetMatch,
     buildingNumberMatch,
+    recognised2dComponents,
   )
   return {
     address2dText,
@@ -247,6 +289,7 @@ export function parsePlaceAddress(
         : 'street-only'
       : 'unrecognised',
     normalisedAddress2dText,
+    recognised2dComponents,
     street: streetMatch
       ? {
           locale: streetMatch.street.locale,
@@ -330,7 +373,7 @@ function stripAddress3d(value: string) {
     },
   )
   address2dText = address2dText.replace(
-    /\b(shop|unit|room|rm|flat|suite|stall|kiosk|office|counter)\s+(?:no\.?\s*)?([a-z0-9]+(?:\s*(?:-|&|\/|and)\s*[a-z0-9]+)*)\b/giu,
+    /\b(shop|unit|room|rm|flat|suite|stall|kiosk|office|counter)\s+(?:no\.?\s*)?([a-z0-9]+(?:\s*(?:-|&|\/|and)\s*[a-z0-9]+)*(?:\s*,\s*[a-z](?:[0-9-]*)?)*)(?=\s*(?:,|$|\d+|level\b|\d+(?:st|nd|rd|th)?\s+floor\b|地庫|地下|平台|閣樓))/giu,
     (sourceText, descriptor: string, unitRef: string) => {
       address3dParts.push({
         kind: 'unit',
@@ -486,10 +529,12 @@ function findBuildingNumberBesideStreet(
 
   const beforeMatch = /(\d+[A-Z]?)(?:號)?\s*$/u.exec(before)
   if (beforeMatch?.[1] && beforeMatch.index !== undefined) {
+    const beforeNumber = before.slice(0, beforeMatch.index)
+    const preposition = /(?:^|\s)ON\s*$/u.exec(beforeNumber)
     return {
       end: street.start,
       expression: beforeMatch[1],
-      start: beforeMatch.index,
+      start: preposition?.index ?? beforeMatch.index,
     }
   }
 
@@ -515,15 +560,106 @@ function removeRecognised2dComponents(
   normalisedAddress: string,
   street: StreetTextMatch | null,
   buildingNumber: BuildingNumberTextMatch | null,
+  components: ParsedAddress2dComponent[],
 ) {
-  if (!street) return normalisedAddress || null
-  const start = Math.min(street.start, buildingNumber?.start ?? street.start)
-  const end = Math.max(street.end, buildingNumber?.end ?? street.end)
-  const remainder =
-    `${normalisedAddress.slice(0, start)} ${normalisedAddress.slice(end)}`
-      .replaceAll(/\s+/g, ' ')
-      .trim()
+  const ranges = components.map(component =>
+    componentRange(normalisedAddress, component),
+  )
+  if (street) {
+    ranges.push({
+      end: Math.max(street.end, buildingNumber?.end ?? street.end),
+      start: Math.min(street.start, buildingNumber?.start ?? street.start),
+    })
+  }
+  const remainder = removeRanges(normalisedAddress, ranges)
   return remainder || null
+}
+
+function preparedDefinitionComponents(
+  definition: PreparedAddressDefinition,
+): ParsedAddress2dComponent[] {
+  return [
+    ['buildingName', definition.buildingName],
+    ['estateName', definition.estateName],
+    ['blockExpression', definition.blockExpression],
+    ['phaseExpression', definition.phaseExpression],
+  ].flatMap(([kind, name]) => {
+    const present = text(name)
+    if (!present) return []
+    return [
+      {
+        kind: kind as ParsedAddress2dComponent['kind'],
+        name: present,
+        normalisedName: normaliseAddressText(present),
+      },
+    ]
+  })
+}
+
+function findCanonicalComponentMatches(
+  normalisedAddress: string,
+  components: PreparedAddressComponent[],
+) {
+  const matches: Array<ParsedAddress2dComponent & { start: number; end: number }> = []
+  for (const component of components) {
+    const start = componentStart(normalisedAddress, component.normalisedName)
+    if (start < 0) continue
+    const end = start + component.normalisedName.length
+    if (matches.some(match => rangesOverlap(match, { start, end }))) continue
+    matches.push({
+      end,
+      kind: component.kind,
+      name: component.name,
+      normalisedName: component.normalisedName,
+      start,
+    })
+  }
+  return matches
+    .sort((left, right) => left.start - right.start)
+    .map(({ end: _end, start: _start, ...component }) => component)
+}
+
+function componentRange(
+  normalisedAddress: string,
+  component: ParsedAddress2dComponent,
+) {
+  const start = componentStart(normalisedAddress, component.normalisedName)
+  return { end: start + component.normalisedName.length, start }
+}
+
+function componentStart(value: string, component: string) {
+  let offset = value.indexOf(component)
+  while (offset >= 0) {
+    const before = value[offset - 1]
+    const after = value[offset + component.length]
+    if (
+      (!before || !/[A-Z0-9]/u.test(before)) &&
+      (!after || !/[A-Z0-9]/u.test(after))
+    ) {
+      return offset
+    }
+    offset = value.indexOf(component, offset + 1)
+  }
+  return -1
+}
+
+function rangesOverlap(
+  left: { start: number; end: number },
+  right: { start: number; end: number },
+) {
+  return left.start < right.end && right.start < left.end
+}
+
+function removeRanges(value: string, ranges: Array<{ start: number; end: number }>) {
+  return ranges
+    .filter(range => range.start >= 0)
+    .sort((left, right) => right.start - left.start)
+    .reduce(
+      (result, range) => `${result.slice(0, range.start)} ${result.slice(range.end)}`,
+      value,
+    )
+    .replaceAll(/\s+/g, ' ')
+    .trim()
 }
 
 function matchParsedPlaceAddress(
@@ -536,36 +672,43 @@ function matchParsedPlaceAddress(
     return addressId ? [{ addressId, score: 1_000 }] : []
   }
 
-  const candidates = new Set(
+  const streetNumberCandidates = new Set(
     candidateAddressComponentKeys(parsed).flatMap(
       key => matcher.byBuildingNumberAndStreet.get(key) ?? [],
     ),
   )
+  const componentCandidates = parsed.recognised2dComponents.map(component => ({
+    component,
+    definitions: new Set(
+      matcher.byCanonicalComponent.get(
+        canonicalComponentKey(component.kind, component.normalisedName),
+      ) ?? [],
+    ),
+  }))
+  const candidates = new Set([
+    ...streetNumberCandidates,
+    ...componentCandidates.flatMap(({ definitions }) => [...definitions]),
+  ])
   const matches: Array<{ addressId: string; score: number }> = []
   for (const definition of candidates) {
-    if (
-      !definition.buildingNumbers.some(number =>
+    const hasStreetNumber =
+      definition.buildingNumbers.some(number =>
         parsed.buildingNumbers.includes(number),
-      ) ||
-      !containsComponent(
-        parsed.normalisedAddress2dText,
-        definition.normalisedStreetName,
-      )
-    ) {
+      ) &&
+      !!definition.normalisedStreetName &&
+      containsComponent(parsed.normalisedAddress2dText, definition.normalisedStreetName)
+    const matchingComponents = componentCandidates.filter(({ definitions }) =>
+      definitions.has(definition),
+    )
+    if (!hasStreetNumber && matchingComponents.length === 0) {
       continue
     }
 
-    let score = 100 + definition.normalisedStreetName.length
-    for (const component of [
-      definition.normalisedBuildingName,
-      definition.normalisedEstateName,
-      normaliseOptional(definition.blockExpression),
-      normaliseOptional(definition.phaseExpression),
-    ]) {
-      if (component && containsComponent(parsed.normalisedAddress2dText, component)) {
-        score += 25 + component.length
-      }
-    }
+    let score = hasStreetNumber ? 100 + definition.normalisedStreetName.length : 0
+    score += matchingComponents.reduce(
+      (total, { component }) => total + 250 + component.normalisedName.length,
+      0,
+    )
     matches.push({ addressId: definition.addressId, score })
   }
   return matches
@@ -671,6 +814,13 @@ function addressComponentKey(buildingNumber: string, streetName: string) {
   return `${buildingNumber}\0${streetName.replaceAll(' ', '')}`
 }
 
+function canonicalComponentKey(
+  kind: ParsedAddress2dComponent['kind'],
+  normalisedName: string,
+) {
+  return `${kind}\0${normalisedName}`
+}
+
 function normaliseAddressText(value: string) {
   const expanded = normaliseChineseNumbers(value.normalize('NFKC'))
     .toLocaleUpperCase('en')
@@ -741,6 +891,6 @@ function normaliseDefinitionLocale(locale: string): SupportedLocale | null {
   return null
 }
 
-function text(value: string | null) {
+function text(value: string | null | undefined) {
   return value?.trim() || null
 }

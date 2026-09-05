@@ -360,7 +360,7 @@ export async function processLocalPlaceSqlUpload(
         readFileSync(
           resolve(
             import.meta.dir,
-            '../../../../../libs/db/scripts/rebuild-places-fts.sql',
+            '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
           ),
           'utf8',
         ),
