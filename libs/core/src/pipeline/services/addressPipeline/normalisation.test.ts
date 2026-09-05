@@ -225,7 +225,8 @@ test('splits phase references from phase names without duplicating the reference
     { name: 'PHASE II', ref: null, phaseName: 'PHASE', phaseRef: 'II' },
     { name: 'VALAIS II', ref: null, phaseName: 'VALAIS', phaseRef: 'II' },
     { name: 'PHASE IIIB', ref: 'IIIB', phaseName: 'PHASE', phaseRef: 'IIIB' },
-    { name: 'PHASE C', ref: null, phaseName: 'PHASE', phaseRef: 'C' },
+    { name: 'PHASE C', ref: null, phaseName: 'PHASE C', phaseRef: null },
+    { name: 'PHASE C', ref: 'C', phaseName: 'PHASE', phaseRef: 'C' },
   ]
 
   for (const phase of cases) {

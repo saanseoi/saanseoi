@@ -567,15 +567,21 @@ function splitPhaseNameReference(name: string, ref: string | null) {
 
   const shouldSplit = ref
     ? phaseReferenceTokensEqual(token, ref)
-    : canInferPhaseReference(tokenValue)
+    : canInferPhaseReference(token, tokenValue)
   if (!shouldSplit) return null
 
   return { name: stem, ref: ref ?? token }
 }
 
-function canInferPhaseReference(parsed: { number: number; suffix: string }) {
+function canInferPhaseReference(
+  token: string,
+  parsed: { number: number; suffix: string },
+) {
+  if (/^[0-9]/.test(token)) return true
   if (parsed.suffix) return false
-  return true
+  // Match the premise-number guard: a single-letter Roman value is ambiguous
+  // without an explicit PhaseNo, so it is not inferred from PhaseName alone.
+  return token.length > 1
 }
 
 function phaseReferenceTokensEqual(left: string, right: string) {

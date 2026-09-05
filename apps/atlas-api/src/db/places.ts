@@ -1,5 +1,5 @@
 import type { CurrentDatabase } from '@repo/db'
-import type { BBox } from '@repo/core/pipeline/geojson'
+import type { BBox } from '@repo/core/pipeline/geojson.ts'
 import { and, asc, eq, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'

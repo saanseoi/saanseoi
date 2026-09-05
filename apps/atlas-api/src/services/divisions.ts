@@ -10,7 +10,7 @@ import {
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import type { BBox } from '@repo/core/pipeline/geojson'
+import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
   listReplayedDivisionRecords,

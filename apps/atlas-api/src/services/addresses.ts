@@ -5,7 +5,7 @@ import {
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
 import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
-import type { BBox } from '@repo/core/pipeline/geojson'
+import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
   countAddressRecordsCurrent,
