@@ -108,6 +108,8 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
       releaseId: places.releaseId,
       basicCategory: places.basicCategory,
       taxonomyPrimary: places.taxonomyPrimary,
+      taxonomyHierarchy: places.taxonomyHierarchy,
+      taxonomyAlternates: places.taxonomyAlternates,
       operatingStatus: places.operatingStatus,
       lat: places.lat,
       lng: places.lng,

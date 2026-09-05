@@ -1743,7 +1743,6 @@ async function buildDivisionHistorySqlFile(
         divisionCode: record.base.divisionCode,
         level: record.base.level,
         type: record.base.type,
-        sourceKeys: jsonText(record.base.sourceKeys),
         wikidata: record.base.wikidata,
         hierarchy: jsonText(record.base.hierarchy),
         cartography: jsonText(record.base.cartography),
@@ -1800,7 +1799,6 @@ async function buildDivisionHistorySqlFile(
         'divisionCode',
         'level',
         'type',
-        'sourceKeys',
         'wikidata',
         'hierarchy',
         'cartography',
@@ -1931,11 +1929,11 @@ async function buildDivisionCurrentInitSqlFile(
     statements.push(
       `
 INSERT INTO divisions (
-  snapshotId, id, divisionCode, level, type, sourceKeys, wikidata, hierarchy,
+  snapshotId, id, divisionCode, level, type, wikidata, hierarchy,
   cartography, sources, geometry, bbox, createdAt, updatedAt
 )
 SELECT
-  ${sqlLiteral(snapshotId)}, id, divisionCode, level, type, sourceKeys, wikidata, hierarchy,
+  ${sqlLiteral(snapshotId)}, id, divisionCode, level, type, wikidata, hierarchy,
   cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisions
 WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
@@ -1986,7 +1984,6 @@ async function buildDivisionCurrentSqlFile(
           divisionCode: record.base.divisionCode,
           level: record.base.level,
           type: record.base.type,
-          sourceKeys: jsonText(record.base.sourceKeys),
           wikidata: record.base.wikidata,
           hierarchy: jsonText(record.base.hierarchy),
           cartography: jsonText(record.base.cartography),
@@ -2026,7 +2023,6 @@ async function buildDivisionCurrentSqlFile(
         'divisionCode',
         'level',
         'type',
-        'sourceKeys',
         'wikidata',
         'hierarchy',
         'cartography',
@@ -2042,7 +2038,6 @@ async function buildDivisionCurrentSqlFile(
 ON CONFLICT(snapshotId, id) DO UPDATE SET
   level = excluded.level,
   type = excluded.type,
-  sourceKeys = excluded.sourceKeys,
   wikidata = excluded.wikidata,
   hierarchy = excluded.hierarchy,
   cartography = excluded.cartography,

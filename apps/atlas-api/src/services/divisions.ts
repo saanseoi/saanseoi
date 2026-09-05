@@ -19,7 +19,6 @@ import {
   type DivisionBoundaryRecord,
   type DivisionLocaleSelection,
   type DivisionRecord,
-  type DivisionSourceKeys,
 } from '../db/divisions'
 import {
   buildApiVersionMetadata,
@@ -138,12 +137,11 @@ type DivisionResourcePayload = {
     geometry?: DivisionGeometry | null
     bbox?: [number, number, number, number] | null
     cartography?: JsonObject | null
-    wikidata?: string | null
+    wikidataId?: string | null
     createdAt?: string
     updatedAt?: string
     sources?: SourcesPayload | null
     identifiers?: unknown
-    sourceKeys?: DivisionSourceKeys | null
     variant?: string
     i18n?: DivisionRecord['i18n']
   }
@@ -172,7 +170,7 @@ type DivisionGeometryResourcePayload = {
     isLand: boolean | null
     isTerritorial: boolean | null
     sources?: SourcesPayload | null
-    sourceKeys?: unknown
+    identifiers?: unknown
     variant?: string
   }
 }
@@ -554,7 +552,7 @@ function createDivisionResource(args: {
   }
 
   if (isDefaultDivisionProfile(routeState.profile)) {
-    attributes.wikidata = division.wikidata
+    attributes.wikidataId = division.wikidataId
     attributes.createdAt = division.createdAt
     attributes.updatedAt = division.updatedAt
   }
@@ -569,7 +567,6 @@ function createDivisionResource(args: {
     attributes.snapshotId = division.snapshotId
     attributes.sources = (division.sources as SourcesPayload | null) ?? null
     attributes.identifiers = division.identifiers
-    attributes.sourceKeys = division.sourceKeys
   }
 
   const projectedI18n = projectDivisionI18n(i18n, routeState.profile)
@@ -1067,7 +1064,7 @@ export function createIncludedDivisionGeometryResource(args: {
       isLand: record.isLand,
       isTerritorial: record.isTerritorial,
       sources: (record.sources as SourcesPayload | null) ?? null,
-      sourceKeys: record.sourceKeys,
+      identifiers: record.identifiers,
       variant: record.variant,
     },
   }

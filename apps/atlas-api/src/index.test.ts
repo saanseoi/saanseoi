@@ -233,17 +233,7 @@ function streetRows(query: string): unknown[][] {
   }
   if (query.includes('from "streets"') && query.includes('"snapshotId" = ?')) {
     return [
-      [
-        null,
-        districtIds,
-        'landsd-street-notice-example',
-        '2026-07-03',
-        JSON.stringify({
-          hkgovLandsd: { sourceEventIds: ['landsd-street-notice-example'] },
-        }),
-        'active',
-        1,
-      ],
+      [null, districtIds, 'landsd-street-notice-example', '2026-07-03', 'active', 1],
     ]
   }
   if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
@@ -1502,6 +1492,10 @@ describe('atlas-api', () => {
       new Request('http://localhost/openapi/stats/v0.1'),
       env,
     )
+    const placesRes = await app.fetch(
+      new Request('http://localhost/openapi/places/v0.1'),
+      env,
+    )
     const divisionsCurrentRes = await app.fetch(
       new Request('http://localhost/openapi/divisions/v0'),
       env,
@@ -1521,6 +1515,11 @@ describe('atlas-api', () => {
       paths: Record<string, unknown>
       tags?: Array<{ name: string }>
       'x-tagGroups'?: Array<{ name: string; tags: string[] }>
+    }
+    const places = (await placesRes.json()) as {
+      paths: Record<string, unknown>
+      tags?: Array<{ name: string }>
+      components?: { schemas?: Record<string, unknown> }
     }
     const divisionsCurrent = (await divisionsCurrentRes.json()) as {
       paths: Record<string, unknown>
@@ -1571,8 +1570,10 @@ describe('atlas-api', () => {
           properties?: Record<string, { allOf?: Array<{ description?: string }> }>
         }
       | undefined
-    expect(divisionAttributes?.properties).toHaveProperty('sourceKeys')
+    expect(divisionAttributes?.properties).not.toHaveProperty('sourceKeys')
     expect(divisionAttributes?.properties).not.toHaveProperty('overture')
+    expect(divisionAttributes?.properties).toHaveProperty('wikidataId')
+    expect(divisionAttributes?.properties).not.toHaveProperty('wikidata')
     expect(divisionResource?.properties).not.toHaveProperty('meta')
     expect(divisionAttributes?.description).toBe(
       'Canonical data for this resource, excluding its relationships.',
@@ -1618,6 +1619,77 @@ describe('atlas-api', () => {
     expect(jsonApiLinkMap?.additionalProperties?.description).toBe(
       'An additional named link supplied by SaanSeoi. Its value depends on the link name.',
     )
+
+    expect(placesRes.status).toBe(200)
+    expect(places.paths['/places/v0.1/{region}/{id}']).toBeDefined()
+    expect(
+      places.paths['/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}'],
+    ).toBeDefined()
+    expect(places.paths['/places/v0.1/{region}/search']).toBeDefined()
+    expect(places.paths['/divisions/v0.1']).toBeUndefined()
+    expect(places.tags?.map(tag => tag.name)).toEqual(['Places'])
+    expect(places.components?.schemas).toHaveProperty('Place')
+    expect(places.components?.schemas).toHaveProperty('PlaceGeometry')
+    expect(places.components?.schemas).toHaveProperty('PlaceTaxonomy')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('geometry')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('taxonomy')
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyPrimary',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyHierarchy',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyAlternates',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain('"lng"')
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain('"lat"')
+    expect(places.components?.schemas).not.toHaveProperty('PlaceAddress')
+    expect(places.components?.schemas).not.toHaveProperty('PlaceSourceKeys')
+    expect(places.components?.schemas).not.toHaveProperty('OverturePlaceSourceKeys')
+    expect(places.components?.schemas).toHaveProperty('PlaceI18n')
+    expect(places.components?.schemas).toHaveProperty('PlaceSource')
+    expect(places.components?.schemas).toHaveProperty('PlaceDivision')
+    expect(places.components?.schemas).toHaveProperty('PlaceCellResult')
+    expect(places.components?.schemas).toHaveProperty('PlaceSearchResult')
+    expect(places.components?.schemas).toHaveProperty('ConfidenceScore')
+    expect(places.components?.schemas).toHaveProperty('HttpUrl')
+    expect(places.components?.schemas).toHaveProperty('EmailStr')
+    expect(places.components?.schemas).toHaveProperty('PhoneNumber')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/ConfidenceScore',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/HttpUrl',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/EmailStr',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/PhoneNumber',
+    )
+    expect(JSON.stringify(places.components?.schemas?.ConfidenceScore)).toContain(
+      'Confidence score between 0.0 and 1.0.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.HttpUrl)).toContain(
+      'A type that will accept any http or https URL.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.EmailStr)).toContain(
+      'Validate email addresses.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.PhoneNumber)).toContain(
+      'An international phone number.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      'Places are point representations of real-world facilities, businesses, services, or amenities.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      'The basic level category of a place.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      'The non-empty free-form address strings associated with the place.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('sources')
 
     expect(statisticsRes.status).toBe(200)
     expect(statistics.paths['/stats/v0.1/registry']).toBeDefined()

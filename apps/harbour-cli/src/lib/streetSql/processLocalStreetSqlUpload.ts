@@ -112,7 +112,7 @@ type PreparedStreet = {
     noticeType: string | null
     id: string
     gazetteDate: string | null
-    sourceKeys: Record<string, unknown>
+    sources: Record<string, unknown>
     yearBuilt: null
   }
   application: {
@@ -494,7 +494,7 @@ async function normalisePreparedStreet(
     noticeType,
     id: sourceRecordId,
     gazetteDate,
-    sourceKeys: {
+    sources: {
       hkgovLandsd: {
         sourceKind,
         sourceRecordId,
@@ -586,7 +586,7 @@ function resolvePersistentStreetIds(
 }
 
 /**
- * Canonical source keys are the durable identity bridge. Source tables retain
+ * Canonical source references are the durable identity bridge. Source tables retain
  * publisher evidence only, so a replay never needs to persist a canonical ID
  * beside it.
  */
@@ -595,11 +595,11 @@ function indexCanonicalStreetIdsBySourceRecord(
 ) {
   const result = new Map<string, string[]>()
   for (const street of streets) {
-    const landsd = street.sourceKeys.hkgovLandsd
+    const landsd = street.sources.hkgovLandsd
     if (!landsd || typeof landsd !== 'object' || Array.isArray(landsd)) continue
-    const sourceKeys = landsd as Record<string, unknown>
+    const sourceReferences = landsd as Record<string, unknown>
     for (const key of ['baselineRecordKeys', 'noticeRecordKeys'] as const) {
-      const recordKeys = sourceKeys[key]
+      const recordKeys = sourceReferences[key]
       if (!Array.isArray(recordKeys)) continue
       for (const recordKey of recordKeys) {
         if (typeof recordKey !== 'string') continue
@@ -629,7 +629,7 @@ async function addMaterialisedStreetHash(
       i18n: street.i18n.map(stableLifecycleI18n),
       id: street.id,
       gazetteDate: street.gazetteDate,
-      sourceKeys: street.sourceKeys,
+      sources: street.sources,
       status: street.status,
       version: street.version,
     }),
@@ -813,7 +813,7 @@ async function cloneStreetCurrentSnapshot(
           id: currentSchema.streets.id,
           gazetteDate: currentSchema.streets.gazetteDate,
           snapshotId: sql<string>`${toSnapshotId}`,
-          sourceKeys: currentSchema.streets.sourceKeys,
+          sources: currentSchema.streets.sources,
           status: currentSchema.streets.status,
           updatedAt: sql<string>`${now}`,
           version: currentSchema.streets.version,
@@ -926,7 +926,7 @@ async function listCurrentMaterialisedStreets(
       districtIds: currentSchema.streets.districtIds,
       id: currentSchema.streets.id,
       gazetteDate: currentSchema.streets.gazetteDate,
-      sourceKeys: currentSchema.streets.sourceKeys,
+      sources: currentSchema.streets.sources,
       status: currentSchema.streets.status,
       version: currentSchema.streets.version,
     })
@@ -966,9 +966,9 @@ async function listCurrentMaterialisedStreets(
     i18n: i18nByStreet.get(row.id) ?? [],
     id: row.id,
     gazetteDate: row.gazetteDate,
-    sourceKeys:
-      row.sourceKeys && typeof row.sourceKeys === 'object'
-        ? (row.sourceKeys as Record<string, unknown>)
+    sources:
+      row.sources && typeof row.sources === 'object'
+        ? (row.sources as Record<string, unknown>)
         : {},
     status: row.status === 'deleted' ? 'deleted' : 'active',
     version: row.version,
@@ -1112,7 +1112,7 @@ async function replaceCurrentStreetRows(
           id: record.id,
           gazetteDate: record.gazetteDate,
           snapshotId,
-          sourceKeys: record.sourceKeys,
+          sources: record.sources,
           status: record.status,
           version: record.version,
           yearBuilt: null,
@@ -1248,7 +1248,7 @@ async function insertHistoryRows(
           districtIds: record.districtIds,
           id: record.id,
           gazetteDate: record.gazetteDate,
-          sourceKeys: record.sourceKeys,
+          sources: record.sources,
           status: record.status,
           version: record.version,
           yearBuilt: null,

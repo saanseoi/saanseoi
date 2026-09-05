@@ -37,7 +37,7 @@ const apiFamilies = [
     id: 'places',
     label: () => m.openapi_label_places(),
     versions: ['v0', 'v0.1'],
-    visible: false,
+    visible: true,
   },
   {
     id: 'stats',

@@ -70,7 +70,7 @@ export type LandsdStreetMaterialisedStreet = {
   gazetteDate: string | null
   i18n: LandsdStreetLifecycleI18n[]
   id: string
-  sourceKeys: Record<string, unknown>
+  sources: Record<string, unknown>
   status: StreetStatus
   version: number
 }
@@ -241,7 +241,7 @@ function makeStreet(
     gazetteDate: event.gazetteDate,
     i18n: cloneI18n(event.i18n),
     id,
-    sourceKeys: {
+    sources: {
       hkgovLandsd: {
         baselineRecordKeys: event.sourceKind === 'baseline' ? [event.recordKey] : [],
         noticeRecordKeys: event.sourceKind === 'baseline' ? [] : [event.recordKey],
@@ -268,7 +268,7 @@ function applyNotice(
       : event.correction
         ? applyCorrection(current.i18n, event.correction)
         : mergeI18n(current.i18n, event.i18n),
-    sourceKeys: appendSourceKey(current.sourceKeys, event),
+    sources: appendSourceReference(current.sources, event),
     status: deletion ? 'deleted' : 'active',
     version: current.version + 1,
   }
@@ -364,19 +364,19 @@ function mergeI18n(
       : { ...old }
   })
 }
-function appendSourceKey(
-  sourceKeys: Record<string, unknown>,
+function appendSourceReference(
+  sources: Record<string, unknown>,
   event: LandsdStreetLifecycleInput,
 ) {
   const root =
-    sourceKeys.hkgovLandsd && typeof sourceKeys.hkgovLandsd === 'object'
-      ? (sourceKeys.hkgovLandsd as Record<string, unknown>)
+    sources.hkgovLandsd && typeof sources.hkgovLandsd === 'object'
+      ? (sources.hkgovLandsd as Record<string, unknown>)
       : {}
   const noticeRecordKeys = Array.isArray(root.noticeRecordKeys)
     ? root.noticeRecordKeys.filter((x): x is string => typeof x === 'string')
     : []
   return {
-    ...sourceKeys,
+    ...sources,
     hkgovLandsd: {
       ...root,
       noticeRecordKeys: [...new Set([...noticeRecordKeys, event.recordKey])].sort(),
@@ -411,7 +411,7 @@ function cloneStreet(
     ...street,
     districtIds: [...street.districtIds],
     i18n: cloneI18n(street.i18n),
-    sourceKeys: structuredClone(street.sourceKeys),
+    sources: structuredClone(street.sources),
   }
 }
 function cloneI18n(items: LandsdStreetLifecycleI18n[]) {

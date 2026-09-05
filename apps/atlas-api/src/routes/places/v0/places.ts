@@ -29,6 +29,36 @@ import {
 import type { AppEnv } from '../../../types'
 import { openApiText } from '../../../lib/openapi-i18n'
 
+type PlaceCoordinates = { lat: number; lng: number }
+type PlaceTaxonomy = {
+  taxonomyPrimary: string | null
+  taxonomyHierarchy: unknown
+  taxonomyAlternates: unknown
+}
+
+export function placeGeometry({ lat, lng }: PlaceCoordinates) {
+  return {
+    type: 'Point' as const,
+    coordinates: [lng, lat] as [number, number],
+  }
+}
+
+export function toPlaceApiRecord<T extends PlaceCoordinates & PlaceTaxonomy>(
+  record: T,
+) {
+  const { lat, lng, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates, ...rest } =
+    record
+  return {
+    ...rest,
+    taxonomy: {
+      primary: taxonomyPrimary,
+      hierarchy: taxonomyHierarchy,
+      alternates: taxonomyAlternates,
+    },
+    geometry: placeGeometry({ lat, lng }),
+  }
+}
+
 const placeRouteConfig = createRoute({
   method: 'get',
   path: '/places/v0.1/{region}/{id}',
@@ -214,7 +244,7 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
 
     return c.json(
       {
-        place,
+        place: toPlaceApiRecord(place),
         i18n,
         divisions,
       },
@@ -279,7 +309,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     return c.json(
       {
-        places,
+        places: places.map(toPlaceApiRecord),
       },
       200,
     )

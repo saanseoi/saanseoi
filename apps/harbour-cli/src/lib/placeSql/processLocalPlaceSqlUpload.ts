@@ -20,6 +20,8 @@ import type {
   PublishDatasetResult,
 } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
+import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { resolveApiReleaseSetStatsTarget } from '../api/apiReleaseSetStats.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
@@ -32,7 +34,9 @@ import {
 import {
   hashNormalisedPlace,
   hashPlaceMaterialisation,
+  assertPlaceAddressCardinality,
   extractPlaceAddressReference,
+  getPlaceAddressCountry,
   normaliseOverturePlace,
   normalisePlaceText,
   type NormalisedPlace,
@@ -194,10 +198,17 @@ export async function processLocalPlaceSqlUpload(
       releaseId,
     )
     const places = await readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion)
+    assertPlaceAddressCardinality(places)
+    const excludedPlaces = places.filter(isExcludedOverturePlace)
+    await replaceReleaseProcessingActions(
+      metaDb,
+      releaseId,
+      buildPlaceCountryReviewProcessingActions(places),
+    )
     const enriched = await enrichPlaces(
       dbContext.currentDb as unknown as HarbourReadableDb,
       snapshots,
-      places,
+      places.filter(place => !excludedPlaces.includes(place)),
     )
     const historyRows = await loadCurrentPlaceHistory(dbContext.historyTargets)
     const sql = await buildPlaceSql({
@@ -380,6 +391,45 @@ export async function processLocalPlaceSqlUpload(
   return { publishResult }
 }
 
+/**
+ * Records a country review action for Places with an excluded or missing
+ * publisher address country code. Missing-country Places remain included.
+ */
+export function buildPlaceCountryReviewProcessingActions(
+  places: NormalisedPlace[],
+): ReleaseProcessingAction[] {
+  return places.flatMap(place => {
+    const country = getPlaceAddressCountry(place.raw.addresses)?.toUpperCase() ?? ''
+    const excluded = country === 'CN' || country === 'MO'
+    const missing = !country
+    if (!excluded && !missing) return []
+
+    return [
+      {
+        action: 'overture_place_country_review_required',
+        affectedRecordCount: 1,
+        evidence: {
+          placeId: place.id,
+          names: place.i18n,
+          addresses: place.addresses,
+          country: country || null,
+          disposition: excluded ? 'excluded' : 'included',
+          reason: excluded ? 'excluded_country_code' : 'missing_country_code',
+        },
+        mode: 'automatic',
+        summary: excluded
+          ? 'Excluded an Overture Place with a CN or MO address country code; retained it in the audit for review.'
+          : 'Included an Overture Place with no address country code; retained it in the audit for review.',
+      },
+    ]
+  })
+}
+
+export function isExcludedOverturePlace(place: NormalisedPlace) {
+  const country = getPlaceAddressCountry(place.raw.addresses)
+  return country !== 'HK' || country !== null
+}
+
 async function resolvePlaceSnapshots(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   currentDb: HarbourReadableDb,
@@ -524,7 +574,7 @@ async function enrichPlaces(
   }
   return Promise.all(
     places.map(async place => {
-      const reference = extractPlaceAddressReference(place.addresses)
+      const reference = extractPlaceAddressReference(place.raw.addresses)
       const addressId =
         reference.ids.find(id => addressById.has(id)) ??
         reference.texts
@@ -657,7 +707,7 @@ export async function buildPlaceSql(input: {
         taxonomyPrimary: place.taxonomyPrimary,
         taxonomyHierarchy: place.taxonomyHierarchy,
         taxonomyAlternates: place.taxonomyAlternates,
-        brandWikidata: place.brandWikidata,
+        wikidataId: place.wikidataId,
         brandNames: recordValue(place.raw.brand, 'names'),
         websites: place.websites,
         socials: place.socials,
@@ -685,14 +735,13 @@ export async function buildPlaceSql(input: {
         taxonomyPrimary: place.taxonomyPrimary,
         taxonomyHierarchy: place.taxonomyHierarchy,
         taxonomyAlternates: place.taxonomyAlternates,
-        brandWikidata: place.brandWikidata,
+        wikidataId: place.wikidataId,
         websites: place.websites,
         socials: place.socials,
         emails: place.emails,
         phones: place.phones,
         addresses: place.addresses,
         confidence: place.confidence,
-        sourceKeys: place.sourceKeys,
         sources: place.sources,
         firstSeenMonth,
         lastSeenMonth: place.lastSeenMonth,
@@ -776,14 +825,13 @@ export async function buildPlaceSql(input: {
           taxonomyPrimary: place.taxonomyPrimary,
           taxonomyHierarchy: place.taxonomyHierarchy,
           taxonomyAlternates: place.taxonomyAlternates,
-          brandWikidata: place.brandWikidata,
+          wikidataId: place.wikidataId,
           websites: place.websites,
           socials: place.socials,
           emails: place.emails,
           phones: place.phones,
           addresses: place.addresses,
           confidence: place.confidence,
-          sourceKeys: place.sourceKeys,
           sources: place.sources,
           firstSeenMonth,
           lastSeenMonth: place.lastSeenMonth,

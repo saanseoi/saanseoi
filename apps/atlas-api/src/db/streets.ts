@@ -12,7 +12,6 @@ export type StreetCurrentRecord = {
     locale: string
     name: string
   }>
-  sourceKeys: unknown
   version: number
   status: StreetStatus
   deletedAt: string | null
@@ -39,7 +38,6 @@ export async function getStreetCurrentById(
       districtIds: streets.districtIds,
       id: streets.id,
       gazetteDate: streets.gazetteDate,
-      sourceKeys: streets.sourceKeys,
       status: streets.status,
       version: streets.version,
     })

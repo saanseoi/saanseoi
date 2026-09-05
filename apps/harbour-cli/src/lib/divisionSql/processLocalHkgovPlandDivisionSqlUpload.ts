@@ -109,7 +109,6 @@ type PreparedDivision = {
     id: string
     identifiers: unknown
     level: number
-    sourceKeys: Record<string, unknown>
     sources: Record<string, unknown>
     type: string
     wikidata: null
@@ -530,7 +529,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                       id: record.base.id,
                       identifiers: record.base.identifiers,
                       level: record.base.level,
-                      sourceKeys: record.base.sourceKeys,
                     },
                     sourceEvidence:
                       record.cells.length > 0
@@ -759,7 +757,6 @@ async function normalisePreparedDivision(
     id,
     identifiers,
     level: levelNumber(level),
-    sourceKeys: { hkgovPland: identifiers },
     sources: {
       hkgovPland: [{ sourceVersion: value.source_version, planningLevel: level }],
     },

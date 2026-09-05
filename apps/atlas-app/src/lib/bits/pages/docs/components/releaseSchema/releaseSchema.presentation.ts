@@ -214,7 +214,6 @@ const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
     'updatedAt',
     'sources',
     'identifiers',
-    'sourceKeys',
     'i18n',
   ],
 }

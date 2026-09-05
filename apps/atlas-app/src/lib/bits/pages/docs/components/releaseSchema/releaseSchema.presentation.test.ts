@@ -135,7 +135,7 @@ test('narrows division attributes to the selected response profile', () => {
               geometry: { type: 'object' },
               level: { type: 'number' },
               sources: { type: 'object' },
-              sourceKeys: { type: 'object' },
+              identifiers: { type: 'object' },
               type: { type: 'string' },
             },
             type: 'object',
@@ -158,5 +158,5 @@ test('narrows division attributes to the selected response profile', () => {
       getProfileSchema(model, 'divisions', 'full').schemas.DivisionAttributes
         ?.properties ?? {},
     ).sort(),
-  ).toEqual(['geometry', 'level', 'sourceKeys', 'sources', 'type'])
+  ).toEqual(['geometry', 'identifiers', 'level', 'sources', 'type'])
 })
