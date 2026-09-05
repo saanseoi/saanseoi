@@ -166,12 +166,18 @@ type DivisionGeometryResourcePayload = {
     rightDivisionId?: string
     geometry: JsonObject | null
     bbox: [number, number, number, number] | null
-    type: string
+    type: 'land' | 'maritime' | 'mixed'
     isLand: boolean | null
     isTerritorial: boolean | null
     sources?: SourcesPayload | null
     identifiers?: unknown
-    variant?: string
+    variant?:
+      | 'hkgov-censtatd'
+      | 'hkgov-censtatd-landclipped'
+      | 'hkgov-had'
+      | 'hkgov-pland-new-town'
+      | 'hkgov-pland-pu'
+      | 'overture'
   }
 }
 

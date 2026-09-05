@@ -110,29 +110,38 @@ type DivisionRow = {
 
 export type DivisionLocaleSelection = RequestedApiLocaleSelection
 
+export type DivisionGeometryType = 'land' | 'maritime' | 'mixed'
+export type DivisionGeometryVariant =
+  | 'hkgov-censtatd'
+  | 'hkgov-censtatd-landclipped'
+  | 'hkgov-had'
+  | 'hkgov-pland-new-town'
+  | 'hkgov-pland-pu'
+  | 'overture'
+
 export type DivisionAreaRecord = {
   id: string
-  variant: string
+  variant: DivisionGeometryVariant
   divisionId: string
   bbox: typeof divisionAreas.$inferSelect.bbox
   geometry: typeof divisionAreas.$inferSelect.geometry
   identifiers: typeof divisionAreas.$inferSelect.identifiers
   sources: typeof divisionAreas.$inferSelect.sources
-  type: string
+  type: DivisionGeometryType
   isLand: boolean | null
   isTerritorial: boolean | null
 }
 
 export type DivisionBoundaryRecord = {
   id: string
-  variant: string
+  variant: DivisionGeometryVariant
   leftDivisionId: string
   rightDivisionId: string
   bbox: typeof divisionBoundaries.$inferSelect.bbox
   geometry: typeof divisionBoundaries.$inferSelect.geometry
   identifiers: typeof divisionBoundaries.$inferSelect.identifiers
   sources: typeof divisionBoundaries.$inferSelect.sources
-  type: string
+  type: DivisionGeometryType
   isLand: boolean | null
   isTerritorial: boolean | null
 }
