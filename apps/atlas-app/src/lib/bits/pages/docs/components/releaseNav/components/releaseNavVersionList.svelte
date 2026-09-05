@@ -41,9 +41,9 @@ $effect(() => {
 
 $effect(() => {
   if (!versionListElement) return
+  const versionList = versionListElement
   const restore = (event: Event) => {
-    if (!versionScrollOverride || event.composedPath().includes(versionListElement))
-      return
+    if (!versionScrollOverride || event.composedPath().includes(versionList)) return
     versionScrollOverride = false
     void revealReleaseNavVersion(activeVersionElement, versionListElement)
   }
