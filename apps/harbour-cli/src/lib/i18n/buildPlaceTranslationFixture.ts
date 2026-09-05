@@ -6,6 +6,18 @@ import {
   type PlaceTranslationRecord,
 } from './placeTranslations.ts'
 
+export function createLocalParquetBuffer(contents: Uint8Array) {
+  return {
+    byteLength: contents.byteLength,
+    async slice(start: number, end?: number) {
+      // `Uint8Array.from` deliberately copies the requested range. This is
+      // important for Node Buffers, whose `.buffer` may include unrelated
+      // bytes before or after the view.
+      return Uint8Array.from(contents.subarray(start, end)).buffer
+    },
+  }
+}
+
 /**
  * Builds the reviewable Places fixture in source-row batches. The input is a
  * retained Overture Places parquet file; no database rows are created by this
@@ -21,12 +33,7 @@ export async function buildPlaceTranslationFixtureFromParquet(input: {
   translate?: Parameters<typeof resolvePlaceTranslationsBatch>[0]['translate']
 }) {
   const contents = await readFile(input.inputPath)
-  const file = {
-    byteLength: contents.byteLength,
-    async slice(start: number, end?: number) {
-      return contents.subarray(start, end).slice().buffer
-    },
-  }
+  const file = createLocalParquetBuffer(contents)
   const batchSize = input.batchSize ?? 50
   let rowsRead = 0
   let placesRead = 0
