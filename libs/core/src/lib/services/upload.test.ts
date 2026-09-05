@@ -25,6 +25,7 @@ import {
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { buildDeterministicReleaseId } from '../db/metaRegistry'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 
 import type { UploadInspection } from '../../types'
 
@@ -58,6 +59,24 @@ const fixtureInspectionWithAdminLevel: UploadInspection = {
     ...fixtureInspection.schema,
     { name: 'admin_level', type: 'int_32', nullable: true },
   ],
+}
+
+function placeInspection(sourceVersion: string): UploadInspection {
+  const schema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion,
+  })
+  if (!schema) throw new Error(`Missing test Places schema for ${sourceVersion}.`)
+
+  return {
+    rowCount: 1,
+    schema: schema.fields,
+    distinctThemeValues: ['places'],
+    distinctTypeValues: ['place'],
+    distinctCountryValues: [],
+    distinctRegionValues: [],
+  }
 }
 
 const reorderedFixtureInspection: UploadInspection = {
@@ -253,6 +272,21 @@ async function assertAdminLevelTransitionAllowed(
   })
 
   sqlite.close()
+}
+
+function seedPlaceDataset(db: Database) {
+  db.exec(`
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme,
+      sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'overture-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk',
+      'static', 'monthly', 'places', 'https://docs.overturemaps.org/',
+      'vh-dataset-overture-hk-place-v1', 0, 0
+    );
+    INSERT INTO datasetResourceTypes (datasetId, resourceType)
+    VALUES ('overture-hk-place', 'place');
+  `)
 }
 
 function insertFixtureIngestRun(
@@ -1061,6 +1095,85 @@ describe('upload', () => {
 
   test('allows the known overture divisionBoundary admin_level schema transition', async () => {
     await assertAdminLevelTransitionAllowed('divisionBoundary', 'division-boundary')
+  })
+
+  test('allows the known additive Overture Places schema transitions', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createResourceFixturePath(tempDir, 'place')
+    const sqlite = initDb(dbPath)
+    seedPlaceDataset(sqlite)
+    const db = createLocalHarbourDb(sqlite)
+    const initialInspection = placeInspection('2025-09-24.0')
+    const intermediateInspection = placeInspection('2025-10-22.0')
+    const taxonomyInspection = placeInspection('2025-12-17.0')
+
+    insertFixtureRelease(sqlite, {
+      datasetCode: 'ds-hk-overture-place',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-09-24.0',
+      theme: 'places',
+      type: 'place',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/place.parquet',
+      originalFileName: 'place.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+
+    const firstPlan = await planUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2025-10-22.0',
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+      datasetCode: 'ds-hk-overture-place',
+      inspection: intermediateInspection,
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(initialInspection),
+    })
+    expect(firstPlan).toMatchObject({
+      plan: {
+        datasetId: 'dr-hk-overture-place-2025-10-22.0',
+        supersedesDatasetId: 'dr-hk-overture-place-2025-09-24.0',
+      },
+    })
+
+    insertFixtureRelease(sqlite, {
+      datasetCode: 'ds-hk-overture-place',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-10-22.0',
+      theme: 'places',
+      type: 'place',
+      sourceVersion: '2025-10-22.0',
+      rawObjectKey: 'hk/overture/2025-10-22.0/place.parquet',
+      originalFileName: 'place.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-03T00:00:00.000Z',
+      createdAt: '2026-06-03T00:00:00.000Z',
+      updatedAt: '2026-06-03T00:00:00.000Z',
+    })
+
+    const secondPlan = await planUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2025-12-17.0',
+      source: 'overture',
+      sourceVersion: '2025-12-17.0',
+      datasetCode: 'ds-hk-overture-place',
+      inspection: taxonomyInspection,
+      resolveSchemaFingerprint: async () =>
+        createSchemaFingerprint(intermediateInspection),
+    })
+    expect(secondPlan).toMatchObject({
+      plan: {
+        datasetId: 'dr-hk-overture-place-2025-12-17.0',
+        supersedesDatasetId: 'dr-hk-overture-place-2025-10-22.0',
+      },
+    })
+
+    sqlite.close()
   })
 
   test('allows the known C&SD density reference-period schema transition', async () => {

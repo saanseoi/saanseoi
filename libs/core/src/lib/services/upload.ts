@@ -9,6 +9,7 @@ import {
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
 import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 import {
   buildDatasetCode,
   buildDatasetReleaseCode,
@@ -900,6 +901,17 @@ function isAllowedKnownSchemaTransition(
     return true
   }
 
+  if (
+    matchesKnownOverturePlaceSchemaTransition(
+      latestDataset,
+      nextPlan,
+      previousFingerprint,
+      nextInspection,
+    )
+  ) {
+    return true
+  }
+
   const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
 
   if (
@@ -926,6 +938,54 @@ function isAllowedKnownSchemaTransition(
   }
 
   return matchesAdminLevelTransition(previousSchema, nextInspection.schema)
+}
+
+function matchesKnownOverturePlaceSchemaTransition(
+  latestDataset: DatasetRecord,
+  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  previousFingerprint: string,
+  nextInspection: UploadInspection,
+) {
+  if (
+    latestDataset.datasetCode !== 'ds-hk-overture-place' ||
+    nextPlan.datasetCode !== latestDataset.datasetCode ||
+    latestDataset.source !== 'overture' ||
+    nextPlan.source !== 'overture' ||
+    latestDataset.type !== 'place' ||
+    nextPlan.type !== 'place' ||
+    compareSourceVersion(latestDataset.sourceVersion, nextPlan.sourceVersion) >= 0
+  ) {
+    return false
+  }
+
+  const previousSchema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion: latestDataset.sourceVersion,
+  })
+  const nextSchema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion: nextPlan.sourceVersion,
+  })
+
+  if (!previousSchema || !nextSchema || previousSchema.id === nextSchema.id) {
+    return false
+  }
+
+  if (
+    createSchemaFingerprintFromSchema(previousSchema.fields) !== previousFingerprint ||
+    createSchemaFingerprintFromSchema(nextSchema.fields) !==
+      createSchemaFingerprint(nextInspection)
+  ) {
+    return false
+  }
+
+  const nextFields = new Map(nextSchema.fields.map(field => [field.name, field]))
+  return previousSchema.fields.every(field => {
+    const nextField = nextFields.get(field.name)
+    return nextField?.type === field.type && nextField.nullable === field.nullable
+  })
 }
 
 function matchesCenstatdDensityReferencePeriodTransition(
