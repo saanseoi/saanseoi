@@ -3,10 +3,10 @@
 Overture Places are ingested from the monthly `place` reference-data parquet layer. The
 accepted source contract is versioned in `libs/core/src/sourceRecordSchemas.ts` and
 includes the publisher geometry, multilingual names, categories, contact fields, brand
-data, source references, and operating status. The retained release windows reflect the
-upstream additions: `basic_category` is added in 2025-10-22.0 and `taxonomy` in
-2025-12-17.0. The upload validator accepts these known additive transitions while
-continuing to reject unrelated drift.
+data, source references, and operating status. The release windows reflect the upstream
+additions: `basic_category` is added in 2025-10-22.0 and `taxonomy` in 2025-12-17.0. The
+upload validator accepts these known additive transitions while continuing to reject
+unrelated drift.
 
 The normaliser requires a Point geometry and preserves the raw publisher payload in
 `overturePlaces`. It converts the multilingual `names`, `brand.names`, and address
@@ -15,10 +15,10 @@ values are marked as inferred, and conflicting explicit labels retain auditable 
 evidence. Source values and variants are not replaced with AI translations.
 
 Overture `id` values are validated against the Overture GERS Registry rather than being
-classified from their UUID shape. Harbour caches the registry evidence for the retained
-Division and Place IDs in `.local/harbour-sql/gers-registry/cache.json`. The cache
-stores the registry history and release path for each match, and records unmatched IDs
-explicitly. Refresh it and print the coverage report with:
+classified from their UUID shape. Harbour caches the registry evidence for the Division
+and Place IDs in `.local/harbour-sql/gers-registry/cache.json`. The cache stores the
+registry history and release path for each match, and records unmatched IDs explicitly.
+Refresh it and print the coverage report with:
 
 ```sh
 ./bin/saanseoi cache:gers --require-gers

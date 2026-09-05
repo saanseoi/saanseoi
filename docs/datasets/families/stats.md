@@ -7,7 +7,7 @@ feature and reference period, with a nullable reviewed canonical `divisionId`,
 dimensions, and a complete JSON map of its normalised measures.
 
 The initial C&SD District Land Area, Population and Density releases write two distinct
-layers. The source shard preserves C&SD's numeric `DC` and complete assertion. The
+layers. The source shard preserves C&SD's numeric `DC` and complete source record. The
 history shard resolves `DC` only through the reviewed C&SD numeric and HAD district-code
 bridges, then records the canonical `divisionId`, canonical `districtCode`, reference
 year and measures. This prevents a publisher identifier from being mistaken for a

@@ -113,7 +113,7 @@ actions.
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
-source rows retain `rawProperties`, the original source array, Overture version, and
+source rows include `rawProperties`, the original source array, Overture version, and
 source-only fields. Canonical rows expose normalised left/right or division references,
 `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
 `mixed` is derived when both source flags are true, including the known upstream

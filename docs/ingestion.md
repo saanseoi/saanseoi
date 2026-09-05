@@ -35,7 +35,7 @@ Decide the durable identities first:
 
 - `datasetCode` identifies the publisher dataset;
 - `source` identifies the importer lineage;
-- `sourceVariant` distinguishes provider assertions in a composition;
+- `sourceVariant` distinguishes provider source records in a composition;
 - `sourceVersion` is the publisher or reference version;
 - `cohortKey` controls compatible snapshot and release-set assembly; and
 - the SaanSeoi release version follows the dataset's checked-in `versionPolicy`.

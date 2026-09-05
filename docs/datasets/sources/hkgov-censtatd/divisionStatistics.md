@@ -49,8 +49,8 @@ and `2024.0` source releases rather than archive no-ops.
 Its district geometry can seed the early C&SD companion, but it is not a competing
 canonical API-field relationship. When the Population and Household district source or
 Permanent Living Quarters is available for the same Geographic release set, the density
-source remains retained as redundant provenance while the canonical C&SD relationship is
-used for API-field selection.
+source remains available as redundant provenance while the canonical C&SD relationship
+is used for API-field selection.
 
 ## Remaining native statistics ingestion
 
@@ -69,8 +69,8 @@ manifest SHA-256, expands only GML members within explicit entry-count and uncom
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
 key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
-assertions, then writes one normalised `statsRecords` row for each publisher feature and
-reference period, with its dataset, source release, `<layer>:<feature>` identity,
+source records, then writes one normalised `statsRecords` row for each publisher feature
+and reference period, with its dataset, source release, `<layer>:<feature>` identity,
 optional reviewed `divisionId`, geography cohort, dimension-value map, and complete
 measure-value map. Each packed value retains its exact source property name and literal,
 decimal value or categorical code, precision (when known), and status. Measure and
@@ -277,7 +277,7 @@ Divisions domains, not by assigning an arbitrary district parent.
 
 The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
 `Density_2022` or `Density_2024`, with 18 District Council district features in
-EPSG:2326. The source shard retains C&SD's numeric `DC`, labels, publisher geometry and
+EPSG:2326. The source shard includes C&SD's numeric `DC`, labels, publisher geometry and
 complete property set without a canonical division value. The history processor resolves
 each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
@@ -299,9 +299,9 @@ during canonical ingestion, so `numericValue` is the actual number of people whi
 `sourceValue` remains the original literal. `valuePrecision` records the greatest
 significant decimal count from the original value, and the normalisation is recorded as
 one release Audit bulk action with its factor and source/target units. `PERIOD`, land
-area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic
-assertions. The archive quarter is never a dataset version: the fixture's
-`sourceVersion` creates `2022.0` and `2024.0`.
+area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic source
+records. The archive quarter is never a dataset version: the fixture's `sourceVersion`
+creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
@@ -312,7 +312,7 @@ while the target-aware SQL processor uses its local target-database cache to gen
 and publish the release for local, preview or production. That processor materialises
 release facts and audited processing actions locally, then replays the exact stored
 current and history statistic rows to preview or production before publication. It
-mirrors the identifier bridges, C&SD density assertions, and division-statistics history
+mirrors the identifier bridges, C&SD density records, and division-statistics history
 required for this dataset; its console progress identifies the cache and processing
 stage currently in progress. Publish through `saanseoi update`, or invoke the importer
 with the already-prepared archive:

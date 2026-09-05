@@ -26,8 +26,8 @@ imports full staging rows only for changed assertions; unchanged assertions are 
 compact source-record IDs in `stagingAddresses2dReleaseRows` so their release lifecycle
 can still advance. The source record hash excludes release and ingestion bookkeeping
 (including the source version and file, resolved identity metadata, and division
-snapshot) while retaining the publisher address assertion. History, current, and meta
-SQL are then imported into their respective D1 databases.
+snapshot) with the publisher address source record. History, current, and meta SQL are
+then imported into their respective D1 databases.
 
 ## Stored data
 

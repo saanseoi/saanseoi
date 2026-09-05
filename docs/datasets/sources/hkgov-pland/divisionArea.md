@@ -130,8 +130,8 @@ stable feature code. The adapter derives a normalised English-name identifier wi
 each cohort and creates a deterministic UUIDv5 canonical division from that cohort-
 scoped Planning Department identity. A 2006, 2011, 2016, or 2021 New Town therefore
 coexists with (and neither replaces nor is a geometry variant of) an Overture geographic
-town. Renames and splits are intentionally separate cohort assertions, so no cross-
-cohort or Overture bridge is inferred. This makes the geometry selectable as
+town. Renames and splits are intentionally separate cohort records, so no cross- cohort
+or Overture bridge is inferred. This makes the geometry selectable as
 `areas:hkgov-pland-new-town` for the corresponding planning division release.
 
 For the 2021 cohort, the curated Planning-domain `divisionCode` is a URL-safe,
@@ -148,7 +148,7 @@ rows are created.
 The downloaded New Town artefacts contain known invalid rings: Tseung Kwan O in 2006,
 2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
 `buffer(0)` policy repairs only those invalid topology cases for canonical geometry. The
-source layer retains the publisher feature and original geometry unchanged, records
+source layer includes the publisher feature and original geometry unchanged, records
 `wasGeometryRepaired`, and stores a row-keyed `repairedGeometry` transform separately.
 The CLI can also export a separately labelled `-repaired.geojson` diagnostic copy
 without altering the publisher file.

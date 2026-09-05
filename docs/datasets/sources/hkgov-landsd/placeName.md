@@ -14,8 +14,8 @@ catalogue dates, identify upstream source releases.
 
 The divisions API uses the source as the primary collection in the `hkgov-landsd`
 domain. Only `PLACE_CLASS=Settlement` is eligible for that projection. Each eligible
-source row is a point division identified by `GEO_NAME_ID`, with `PLACE_TYPE` retained
-as the source classification and `DISTRICT` retained as provenance.
+source row is a point division identified by `GEO_NAME_ID`, with `PLACE_TYPE` as the
+source classification and `DISTRICT` as provenance.
 
 Hydrographic and Topographic rows are deliberately excluded from divisions. They are
 named geographic features and belong in a future government place-name projection under

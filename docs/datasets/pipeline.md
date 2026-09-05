@@ -144,7 +144,7 @@ accept/reject/repair rules in the provider profile.
 
 Choose stable dataset, source and variant codes before processing data. `datasetCode`
 identifies the publisher product; `source` identifies the importer lineage; and
-`sourceVariant` identifies a provider assertion in an API composition. Do not merge
+`sourceVariant` identifies a provider source record in an API composition. Do not merge
 provider variants implicitly.
 
 Where an upstream identifier is not canonical, define a reviewed, versioned identifier
@@ -215,16 +215,16 @@ There are three distinct schema concerns:
 
 1. The publisher schema is documented in the provider profile and mapped by the
    source-intake adapter.
-2. The source-retention schema preserves the provider assertion and its provenance in
-   `libs/db/src/schema/source/`.
+2. The source-retention schema preserves the provider source record and its provenance
+   in `libs/db/src/schema/source/`.
 3. The canonical schema materialises the resource in `libs/db/src/schema/history/` and
    `libs/db/src/schema/current/`. Registry, release, snapshot and stats metadata lives
    in `libs/db/src/schema/meta/`.
 
 Reuse an existing canonical resource schema when the source is a variant of an existing
-resource. Add source-specific source tables for the original assertion, including the
-source record identifier, version hash, current/validity columns, source release and raw
-properties where needed. Add canonical current/history tables only when the logical
+resource. Add source-specific source tables for the original source record, including
+the source record identifier, version hash, current/validity columns, source release and
+raw properties where needed. Add canonical current/history tables only when the logical
 resource requires them. Export new tables from the corresponding schema `index.ts` and
 update the local processor, rollback support, cache profile and tests that depend on
 them.
