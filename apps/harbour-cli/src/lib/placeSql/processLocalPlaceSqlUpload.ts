@@ -35,12 +35,17 @@ import {
   hashNormalisedPlace,
   hashPlaceMaterialisation,
   assertPlaceAddressCardinality,
-  extractPlaceAddressReference,
+  buildPlaceLocalisationStatistics,
+  extractPlaceAddressTexts,
   getPlaceAddressCountry,
   normaliseOverturePlace,
   normalisePlaceText,
   type NormalisedPlace,
 } from '@repo/core/pipeline/services/place'
+import {
+  applyPlaceTranslationApplications,
+  resolvePlaceTranslationsBatch,
+} from '../i18n/placeTranslations.ts'
 import { createHash } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, metaSchema } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
@@ -119,7 +124,12 @@ export async function processLocalPlaceSqlUpload(
   previewPlan: PlaceUploadPlan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { deferApiReleaseSet?: boolean; skipSnapshotCleanup?: boolean } = {},
+  options: {
+    allowPlaceTranslationFixtureGeneration?: boolean
+    deferApiReleaseSet?: boolean
+    skipSnapshotCleanup?: boolean
+    translatePlaces?: boolean
+  } = {},
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
@@ -198,6 +208,26 @@ export async function processLocalPlaceSqlUpload(
       releaseId,
     )
     const places = await readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion)
+    if (options.translatePlaces) {
+      if (target.remote && options.allowPlaceTranslationFixtureGeneration) {
+        throw new Error(
+          'Place translation fixture generation is permitted only for an explicitly local import.',
+        )
+      }
+      const translations = await resolvePlaceTranslationsBatch({
+        allowGeneration: Boolean(options.allowPlaceTranslationFixtureGeneration),
+        datasetCode,
+        records: places.map(place => ({
+          recordId: place.id,
+          localisations: place.i18n,
+        })),
+        sourceRelease: releaseCode,
+      })
+      applyPlaceTranslationApplications(
+        places.map(place => ({ recordId: place.id, localisations: place.i18n })),
+        translations,
+      )
+    }
     assertPlaceAddressCardinality(places)
     const excludedPlaces = places.filter(isExcludedOverturePlace)
     await replaceReleaseProcessingActions(
@@ -426,8 +456,8 @@ export function buildPlaceCountryReviewProcessingActions(
 }
 
 export function isExcludedOverturePlace(place: NormalisedPlace) {
-  const country = getPlaceAddressCountry(place.raw.addresses)
-  return country !== 'HK' || country !== null
+  const country = getPlaceAddressCountry(place.raw.addresses)?.toUpperCase()
+  return country === 'CN' || country === 'MO'
 }
 
 async function resolvePlaceSnapshots(
@@ -574,14 +604,11 @@ async function enrichPlaces(
   }
   return Promise.all(
     places.map(async place => {
-      const reference = extractPlaceAddressReference(place.raw.addresses)
       const addressId =
-        reference.ids.find(id => addressById.has(id)) ??
-        reference.texts
+        extractPlaceAddressTexts(place.raw.addresses)
           .map(normalisePlaceText)
           .map(value => addressByText.get(value))
-          .find(Boolean) ??
-        null
+          .find(Boolean) ?? null
       const address = addressId ? addressById.get(addressId) : undefined
       const referencedDivisionIds = address
         ? [
@@ -772,6 +799,8 @@ export async function buildPlaceSql(input: {
           brandName: localised.brandName,
           brandNameVariant: localised.brandNameVariant,
           brandNameAlts: localised.brandNameAlts,
+          freeformAddress: localised.freeformAddress,
+          provenance: localised.provenance,
           createdAt: now,
           updatedAt: now,
         }),
@@ -860,6 +889,8 @@ export async function buildPlaceSql(input: {
             brandName: localised.brandName,
             brandNameVariant: localised.brandNameVariant,
             brandNameAlts: localised.brandNameAlts,
+            freeformAddress: localised.freeformAddress,
+            provenance: localised.provenance,
             versionHash: i18nVersionHash,
             sourceReleaseId: input.message.releaseId,
             snapshotId: input.snapshots.snapshotId,
@@ -1140,20 +1171,23 @@ async function buildPlaceMetadataSql(
   ].join('\n')
 }
 
-function buildPlaceReleaseStatsRows(places: EnrichedPlace[]): ReleaseScopedStatsRow[] {
+export function buildPlaceReleaseStatsRows(
+  places: EnrichedPlace[],
+): ReleaseScopedStatsRow[] {
   const timestamp = new Date().toISOString()
   const row = (
     dimension: string,
     value: number,
     groupBy: string | null = null,
     groupValue: string | null = null,
+    metric: 'count' | 'percentage' = 'count',
   ): ReleaseScopedStatsRow => ({
     createdAt: timestamp,
     dimension,
     groupBy,
     groupValue,
-    metric: 'count',
-    metricUnit: 'count',
+    metric,
+    metricUnit: metric,
     type: 'release',
     updatedAt: timestamp,
     value,
@@ -1165,10 +1199,14 @@ function buildPlaceReleaseStatsRows(places: EnrichedPlace[]): ReleaseScopedStats
       localeCounts.set(localised.locale, (localeCounts.get(localised.locale) ?? 0) + 1)
     }
   }
-  return [
+  const localisationStats = buildPlaceLocalisationStatistics(
+    places.map(({ place }) => place),
+  )
+  const statsRows: ReleaseScopedStatsRow[] = [
     row('records', places.length),
+    row('localised_records', places.length),
     row(
-      'localised_records',
+      'localised_rows',
       places.reduce((count, place) => count + place.place.i18n.length, 0),
     ),
     row(
@@ -1183,6 +1221,92 @@ function buildPlaceReleaseStatsRows(places: EnrichedPlace[]): ReleaseScopedStats
       row('localised_records', count, 'locale', locale),
     ),
   ]
+  for (const [fieldLocale, stats] of localisationStats.fields) {
+    const [field, locale] = fieldLocale.split('\u0000')
+    const grouping = { groupBy: 'field_locale', groupValue: `${field}:${locale}` }
+    statsRows.push(
+      row(
+        'localisation_value_count',
+        stats.valueCount,
+        grouping.groupBy,
+        grouping.groupValue,
+      ),
+      row(
+        'localisation_coverage',
+        percentage(stats.valueCount, places.length),
+        grouping.groupBy,
+        grouping.groupValue,
+        'percentage',
+      ),
+      row(
+        'localisation_provided_coverage',
+        percentage(stats.providedCount, places.length),
+        grouping.groupBy,
+        grouping.groupValue,
+        'percentage',
+      ),
+      row(
+        'localisation_inferred_coverage',
+        percentage(stats.inferredCount, places.length),
+        grouping.groupBy,
+        grouping.groupValue,
+        'percentage',
+      ),
+      row(
+        'localisation_ai_translated_coverage',
+        percentage(stats.aiTranslatedCount, places.length),
+        grouping.groupBy,
+        grouping.groupValue,
+        'percentage',
+      ),
+      row(
+        'localisation_human_translated_coverage',
+        percentage(stats.humanTranslatedCount, places.length),
+        grouping.groupBy,
+        grouping.groupValue,
+        'percentage',
+      ),
+      row(
+        'localisation_conflict_count',
+        stats.conflictCount,
+        grouping.groupBy,
+        grouping.groupValue,
+      ),
+      row(
+        'localisation_missing_value_count',
+        stats.missingCount,
+        grouping.groupBy,
+        grouping.groupValue,
+      ),
+    )
+  }
+  const referenceGrouping = { groupBy: 'field', groupValue: 'referenceName' }
+  statsRows.push(
+    row('reference_name_count', localisationStats.referenceNameCount),
+    row(
+      'reference_name_coverage',
+      percentage(localisationStats.referenceNameCount, places.length),
+      referenceGrouping.groupBy,
+      referenceGrouping.groupValue,
+      'percentage',
+    ),
+    row(
+      'bilingual_reference_name_count',
+      localisationStats.bilingualReferenceNameCount,
+    ),
+    row(
+      'bilingual_reference_name_coverage',
+      percentage(localisationStats.bilingualReferenceNameCount, places.length),
+      referenceGrouping.groupBy,
+      referenceGrouping.groupValue,
+      'percentage',
+    ),
+  )
+  return statsRows
+}
+
+function percentage(value: number, total: number) {
+  return total === 0 ? 0 : Number(((value / total) * 100).toFixed(2))
 }
 
 async function importSqlChunks(

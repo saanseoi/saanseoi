@@ -62,6 +62,10 @@ async function main() {
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
   const validateGeometry = Boolean(args.options['validate-geometry'])
+  const translatePlaces = Boolean(args.options['translate-places'])
+  const generatePlaceTranslationFixtures = Boolean(
+    args.options['generate-place-translation-fixtures'],
+  )
   const target = resolveUploadTarget(args)
 
   if (!args.command || args.command === '--help' || args.options.help) {
@@ -168,6 +172,8 @@ async function main() {
         printUsage,
         skipConfirm,
         skipSnapshotCleanup,
+        translatePlaces,
+        generatePlaceTranslationFixtures,
         validateGeometry,
       })
       return

@@ -545,6 +545,7 @@ export type PlaceI18nProvenance = {
   isHumanVerified: Array<'name' | 'brand' | 'freeformAddress'>
   isLocaleInferred: boolean
   localeEvidence: Array<{
+    field?: 'name' | 'brand' | 'freeformAddress'
     sourceLocale: string | null
     resolvedLocale: string
     script: 'han' | 'latin' | 'mixed' | 'other'
