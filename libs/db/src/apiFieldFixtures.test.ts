@@ -362,7 +362,7 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
-        domainCode: 'official',
+        domainCode: 'saanseoi',
         lineageSnapshotVersions: ['ss-hk-address-2025-08-20.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
@@ -373,7 +373,7 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
-        domainCode: 'official',
+        domainCode: 'saanseoi',
         lineageSnapshotVersions: ['ss-hk-address-2025-09-24.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
@@ -394,7 +394,7 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
-        domainCode: 'official',
+        domainCode: 'saanseoi',
         lineageSnapshotVersions: ['ss-hk-address-2025-01-23.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
@@ -437,7 +437,7 @@ describe('api field fixtures', () => {
       expect(
         resolveApiFieldFixture({
           apiVersion: 'api-addresses-v0.1',
-          domainCode: 'official',
+          domainCode: 'saanseoi',
           lineageSnapshotVersions: [snapshotVersion],
           schemaVersion: 'sv-address-v1',
           rulesetVersion: 'rs-address-merge-v1',
