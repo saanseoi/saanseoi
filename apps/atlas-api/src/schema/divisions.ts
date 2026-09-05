@@ -18,6 +18,17 @@ import {
   WikidataIdSchema,
 } from './common'
 
+const divisionGeometryResourceTypes = ['division-areas', 'division-boundaries'] as const
+const divisionGeometryTypes = ['land', 'maritime', 'mixed'] as const
+const divisionGeometryVariants = [
+  'hkgov-censtatd',
+  'hkgov-censtatd-landclipped',
+  'hkgov-had',
+  'hkgov-pland-new-town',
+  'hkgov-pland-pu',
+  'overture',
+] as const
+
 const DivisionResourceIdentifierSchema = z
   .object({
     type: z.literal('divisions'),
@@ -219,6 +230,7 @@ const DivisionAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_divisions_wikidata_id_field_description'),
+        examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
       }),
     createdAt: z
       .string()
@@ -270,7 +282,9 @@ const DivisionRelationshipsSchema = z
 
 export const DivisionGeometryResourceSchema = z
   .object({
-    type: z.union([z.literal('division-areas'), z.literal('division-boundaries')]),
+    type: z.enum(divisionGeometryResourceTypes).openapi({
+      examples: ['division-areas', 'division-boundaries'],
+    }),
     id: IdSchema.openapi({
       description: openApiText('openapi_divisions_geometry_resource_id_description'),
     }),
@@ -298,10 +312,11 @@ export const DivisionGeometryResourceSchema = z
           'openapi_divisions_geometry_resource_bbox_description',
         ),
       }),
-      type: z.string().openapi({
+      type: z.enum(divisionGeometryTypes).openapi({
         description: openApiText(
           'openapi_divisions_geometry_resource_type_description',
         ),
+        examples: ['mixed', 'land', 'maritime'],
       }),
       isLand: z
         .boolean()
@@ -318,10 +333,18 @@ export const DivisionGeometryResourceSchema = z
           ),
         }),
       variant: z
-        .string()
+        .enum(divisionGeometryVariants)
         .optional()
         .openapi({
           description: openApiText('openapi_divisions_geometry_variant_description'),
+          examples: [
+            'overture',
+            'hkgov-had',
+            'hkgov-censtatd',
+            'hkgov-censtatd-landclipped',
+            'hkgov-pland-pu',
+            'hkgov-pland-new-town',
+          ],
         }),
       sources: z
         .union([SourcesSchema, z.null()])
