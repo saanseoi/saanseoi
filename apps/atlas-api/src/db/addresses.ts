@@ -464,7 +464,9 @@ export function buildAddressFtsQuery(
     .normalize('NFKC')
     .trim()
     .split(/[\s,;，、]+/u)
-    .map(token => token.replaceAll(/[^\p{L}\p{N}]+/gu, ''))
+    // FTS5 recognises its operators only in uppercase. Lowercasing after
+    // stripping syntax leaves caller text as literal token input.
+    .map(token => token.replaceAll(/[^\p{L}\p{N}]+/gu, '').toLocaleLowerCase('en'))
     .filter(Boolean)
   if (tokens.length === 0) return null
 
