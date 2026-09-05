@@ -35,15 +35,34 @@ authoritative inputs to any parsed canonical field or relationship.
 Overture address identifiers are not treated as SaanSeoi ALS identifiers and are ignored
 for Place-to-address matching. Place ingestion parses the address `freeform` value
 against the English and Traditional Chinese definitions in the selected ALS snapshot.
-The conservative first pass requires a building number and known street, expands common
-English street abbreviations, and understands Arabic and common Chinese number forms.
-Shop, unit, room, floor, stall, and similar address3d fragments are separated before the
-address2d match. They are retained by the parser for future address3d matching but do
-not affect today's canonical relationship. A tied match remains unresolved. Locality,
-country, region, and postcode are not used for that match. The selected ALS snapshot is
-the compatible reference dataset recorded in the Places snapshot provenance. A later
-release does not silently replace that historical selection with today's latest address
-snapshot. The selected ALS address relationship remains separate and authoritative.
+The conservative first pass requires a recognised street and adjacent building-number
+expression. Common English suffix abbreviations are expanded into the full reference
+name for comparison, and Arabic and common Chinese number forms are understood. The
+publisher spelling remains unchanged.
+
+The parse result includes the recognised canonical street evidence, building-number
+expression and members, residual 2D text, and a premise-candidate, street-only, or
+unrecognised disposition. Shop, unit, room, floor, stall, and similar address3d
+fragments are removed from the 2D candidate and retained as typed unit/floor
+expressions, references, and types for future address3d matching. They do not affect
+today's canonical relationship or create address3d records. A tied match remains
+unresolved. Locality, country, region, and postcode are not used for that match.
+
+The parser accepts a separate English and Traditional Chinese canonical Streets
+vocabulary. The LandsD baseline provides that vocabulary once it has been assembled and
+published, but the current Places composition has no Streets member. Publication
+therefore uses street names from the selected ALS definitions and never reads the local
+LandsD staging artefact. The selected ALS snapshot is the compatible reference dataset
+recorded in the Places snapshot provenance. A later release does not silently replace
+that historical selection with today's latest address snapshot. The selected ALS address
+relationship remains separate and authoritative.
+
+`premise-candidate` is parser evidence, not an Address-family acceptance decision. An
+unmatched observation such as `19B Ap Lei Chau Praya Road` remains unlinked even when
+its street and building number parse cleanly. Harbour has no configured supplementary
+Address member or Place-derived Address materialiser; adding one requires explicit
+source provenance, canonical identity/review rules and a composition contract rather
+than minting an official address during Places ingestion.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
@@ -54,9 +73,9 @@ release can be materialised.
 
 Machine translation of Place names and free-form addresses is disabled. Publisher
 localisations are preserved as supplied or inferred from their script; Harbour does not
-fill a missing PlaceI18n value through Azure. Known non-premise address observations are
-kept for review in `fixtures/review/overture-place-addresses.json`, with the Place name
-and source record ID alongside the free-form value.
+fill a missing PlaceI18n value through Azure. Known non-premise address observations
+remain unlinked, while the Place name, source record ID, and free-form value remain in
+the source record.
 
 `referenceName` is a deterministic response projection over PlaceI18n rows. It is not
 stored as a synthetic locale and is not counted as locale coverage.

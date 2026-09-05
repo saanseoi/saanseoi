@@ -210,6 +210,7 @@ export function parsePlaceAddress(
   const stripped = stripAddress3d(normaliseChineseNumbers(sourceText.normalize('NFKC')))
   let address2dText = stripped.address2dText
   address2dText = address2dText
+    .replaceAll(/(?:^|\s)[.&]+(?=\s|,|$)/g, ' ')
     .replaceAll(/\s*,\s*,+/g, ',')
     .replaceAll(/^[\s,;/-]+|[\s,;/-]+$/g, '')
     .replaceAll(/\s+/g, ' ')
@@ -220,7 +221,11 @@ export function parsePlaceAddress(
     matcher?.streetsByLongestName ?? [],
   )
   const buildingNumberMatch = streetMatch
-    ? findBuildingNumberBesideStreet(normalisedAddress2dText, streetMatch)
+    ? findBuildingNumberBesideStreet(
+        normalisedAddress2dText,
+        streetMatch,
+        address2dText,
+      )
     : null
   const buildingNumberExpression = buildingNumberMatch?.expression ?? null
   const buildingNumbers = buildingNumberExpression
@@ -272,7 +277,7 @@ function stripAddress3d(value: string) {
   let address2dText = value
 
   address2dText = address2dText.replace(
-    /(\d+)\s*(樓|層)(?:\s*([A-Z]?\d+[A-Z]*(?:[-–][A-Z0-9]+)*)(?:號)?(室|舖|鋪))?/giu,
+    /(\d+)\s*(樓|層)(?:\s*([A-Z0-9]+(?:[-–][A-Z0-9]+)*)(?:號)?(室|舖|鋪)?)?/giu,
     (
       sourceText,
       floorRef: string,
@@ -289,7 +294,7 @@ function stripAddress3d(value: string) {
         sourceText: floorExpression,
       })
       if (unitRef) {
-        const unitExpression = `${unitRef}${unitSuffix ?? ''}`
+        const unitExpression = sourceText.slice(floorExpression.length).trim()
         address3dParts.push({
           kind: 'unit',
           sourceText: unitExpression,
@@ -338,7 +343,7 @@ function stripAddress3d(value: string) {
     },
   )
   address2dText = address2dText.replace(
-    /\b([BGLUP]?\d*|\d+)\s*\/\s*(?:F|FLOOR)\.?\b/giu,
+    /\b([BGLUP]?\d*|\d+)\s*\/\s*(?:F|FLOOR)\b\.?(?=\s|,|&|$)/giu,
     (sourceText, floorRef: string) => {
       address3dParts.push({
         floorExpression: sourceText.trim(),
@@ -365,6 +370,9 @@ function stripAddress3d(value: string) {
     },
   )
 
+  address3dParts.sort(
+    (left, right) => value.indexOf(left.sourceText) - value.indexOf(right.sourceText),
+  )
   return { address2dText, address3dParts }
 }
 
@@ -442,7 +450,7 @@ function findStreetMatch(
   streets: PreparedStreetDefinition[],
 ): StreetTextMatch | null {
   for (const street of streets) {
-    const start = normalisedAddress.indexOf(street.normalisedName)
+    const start = normalisedAddress.lastIndexOf(street.normalisedName)
     if (start < 0) continue
     return { end: start + street.normalisedName.length, start, street }
   }
@@ -458,13 +466,29 @@ type BuildingNumberTextMatch = {
 function findBuildingNumberBesideStreet(
   normalisedAddress: string,
   street: StreetTextMatch,
+  sourceAddress: string,
 ): BuildingNumberTextMatch | null {
   const before = normalisedAddress.slice(0, street.start)
-  const beforeMatch = /(\d+[A-Z]?(?:\s*-\s*\d+[A-Z]?)?)\s*$/u.exec(before)
+  for (const sourceRange of sourceAddress.matchAll(
+    /\b(\d+[A-Z]?)\s*[-–]\s*(\d+[A-Z]?)\b/giu,
+  )) {
+    if (!sourceRange[1] || !sourceRange[2]) continue
+    const normalisedRange = `${sourceRange[1]} ${sourceRange[2]}`.toLocaleUpperCase(
+      'en',
+    )
+    if (!before.trimEnd().endsWith(normalisedRange)) continue
+    return {
+      end: street.start,
+      expression: `${sourceRange[1]}-${sourceRange[2]}`.toLocaleUpperCase('en'),
+      start: before.lastIndexOf(normalisedRange),
+    }
+  }
+
+  const beforeMatch = /(\d+[A-Z]?)(?:號)?\s*$/u.exec(before)
   if (beforeMatch?.[1] && beforeMatch.index !== undefined) {
     return {
       end: street.start,
-      expression: beforeMatch[1].replaceAll(/\s+/g, ''),
+      expression: beforeMatch[1],
       start: beforeMatch.index,
     }
   }
