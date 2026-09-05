@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4d0039cbe700b672c66bceac8d7055509c43c0ff6f9fa57dff2823353569c5eb",
+  "versionHash": "sha256:1252c27a69759818e003fc37fdd0f99cedba88762d902f6ee37810fbddd8c61b",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "official",
   "schemaVersion": "sv-address-v1",
@@ -256,7 +256,7 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.en.blockNumber",
+      "apiField": "address.attributes.i18n.en.blockRef",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock.BlockNo",
       "resolverCode": "normalize_whitespace",
@@ -274,7 +274,7 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.en.streetNumber",
+      "apiField": "address.attributes.i18n.en.buildingNumberFrom",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoFrom",
       "resolverCode": "merge_first_non_empty",
@@ -283,12 +283,75 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.en.streetNumber",
+      "apiField": "address.attributes.i18n.en.buildingNumberTo",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoTo",
       "resolverCode": "merge_first_non_empty",
       "contributionType": "fallback",
       "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoFrom",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoTo",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.blockExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.blockTypeBeforeNumber",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseName",
+      "resolverCode": "normalize_whitespace",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseNo",
+      "resolverCode": "normalize_whitespace",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.en.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
       "confidence": 1
     },
     {
@@ -328,7 +391,7 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.zh-hant.blockNumber",
+      "apiField": "address.attributes.i18n.zh-hant.blockRef",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock.BlockNo",
       "resolverCode": "normalize_whitespace",
@@ -346,7 +409,7 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.zh-hant.streetNumber",
+      "apiField": "address.attributes.i18n.zh-hant.buildingNumberFrom",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoFrom",
       "resolverCode": "merge_first_non_empty",
@@ -355,12 +418,75 @@
       "confidence": 1
     },
     {
-      "apiField": "address.attributes.i18n.zh-hant.streetNumber",
+      "apiField": "address.attributes.i18n.zh-hant.buildingNumberTo",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoTo",
       "resolverCode": "merge_first_non_empty",
       "contributionType": "fallback",
       "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoFrom",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoTo",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.blockExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.blockTypeBeforeNumber",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiPhase.PhaseName",
+      "resolverCode": "normalize_whitespace",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiPhase.PhaseNo",
+      "resolverCode": "normalize_whitespace",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "address.attributes.i18n.zh-hant.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "sourceFieldPath": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiPhase",
+      "resolverCode": "format_hkgov_als_address",
+      "contributionType": "resolver-input",
+      "priority": 0,
       "confidence": 1
     },
     {
