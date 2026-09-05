@@ -39,7 +39,7 @@ for release in $releases
         exit 1
     end
 
-    init_run_upload "dr-hk-overture-place-$release" "$file" \
+    init_run_step init_run_upload "dr-hk-overture-place-$release" "$file" \
         --dataset-code ds-hk-overture-place \
         --source overture --source-version $release \
         --type place --theme places --region hk --cohort-key $release \
@@ -47,9 +47,12 @@ for release in $releases
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
+# Do not reconcile releases, publish documentation or complete the ownership
+# manifest after any cohort upload has failed.
+init_complete
+
 init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
     --api-family places --region hk
 
 init_publish_docs_if_needed
 init_run_step ./bin/saanseoi init:places:overture:complete --target $saanseoi_init_target
-init_complete

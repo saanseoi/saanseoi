@@ -15,8 +15,6 @@ if test "$saanseoi_init_cache_artefacts" -eq 1
     set cache_artefact_args --cacheArtefacts
 end
 
-set -l failed 0
-
 for command in \
     init:divisions:geographic \
     init:divisions:hkgov-pland-pu \
@@ -25,10 +23,5 @@ for command in \
     init:addresses:official \
     init:places:overture \
     init:stats:official
-    ./bin/saanseoi $command --target production $cache_artefact_args
-    or set failed 1
-end
-
-if test $failed -ne 0
-    exit 1
+    init_run_step ./bin/saanseoi $command --target production $cache_artefact_args
 end
