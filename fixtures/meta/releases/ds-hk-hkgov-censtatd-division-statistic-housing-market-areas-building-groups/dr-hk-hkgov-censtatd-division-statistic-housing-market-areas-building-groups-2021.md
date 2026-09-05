@@ -28,8 +28,9 @@ publisher's <black>{{ sourceVersion }}</black> Census cohort.
 
 ## Compatibility
 
-SaanSeoi retains C&SD's publisher assertions and presents reviewed values as canonical
-statistics. It does not expose the publisher property schema as the statistics API.
+SaanSeoi retains C&SD's publisher source records and presents reviewed values as
+canonical statistics. It does not expose the publisher property schema as the statistics
+API.
 
 ### Directly Retained Fields
 
@@ -39,7 +40,7 @@ record value:
 - <black>sourceField</black> - the C&SD property name
 - <black>sourceValue</black> - its unmodified literal
 
-The source assertion also retains the complete publisher property set, geometry, archive
+The source record also includes the complete publisher property set, geometry, archive
 identity, and feature identity. The canonical series identity qualifies that feature as
 <black>&lt;layer&gt;:&lt;feature&gt;</black>. These provenance values do not become
 canonical <black>fieldName</black>s or API selection fields.

@@ -79,7 +79,7 @@ Fields which are not exposed as part of
 
 The original source value remains available in the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
-under `rawProperties`, where the source record is retained.
+under `rawProperties`, where the source record remains available.
 
 #### Due to zero variance
 
