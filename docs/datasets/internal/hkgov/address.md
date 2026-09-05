@@ -360,10 +360,13 @@ the corresponding ALS branch, with the same fallback rules used for the formatte
 address:
 
 - `EngBlock.BlockDescriptor`/`ChiBlock.BlockDescriptor` and `EngBlock.BlockNo`/
-  `ChiBlock.BlockNo` provide `blockType` and the textual `blockRef`. The complete block
-  object is formatted as `blockExpression`, and its ordering supplies
+  `ChiBlock.BlockNo` provide `blockType` and the textual `blockRef`. `blockExpression`
+  uses canonical English aliases (`BLK`, `BLDG`, `TWR`, `HSE`, and `APT`) for their
+  recognised source variants; other descriptors remain explicit. Traditional Chinese
+  expressions place `blockRef` before the descriptor. This ordering supplies
   `blockTypeBeforeNumber`. `blockRef` is deliberately textual: values such as `A`, `C`,
-  `10`, or `II` are not coerced to numbers.
+  `10`, or `II` are not coerced to numbers. The original descriptor remains in the
+  retained ALS premise object.
 - `EngStreet.BuildingNoFrom`/`BuildingNoTo` and their Chinese counterparts provide the
   street building-number endpoints. For village premises the equivalent
   `EngVillage`/`ChiVillage` endpoints are used. These endpoints form

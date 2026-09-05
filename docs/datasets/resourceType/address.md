@@ -46,15 +46,17 @@ the release are marked before final cleanup.
 
 ALS supplies bilingual premise components rather than the public canonical field names.
 The importer projects each locale's block descriptor and block number to `blockType`,
-textual `blockRef`, `blockExpression`, and `blockTypeBeforeNumber`; phase name and
-number to `phaseName`, `phaseRef`, and `phaseExpression`; and street or village number
-endpoints to `buildingNumberFrom`, `buildingNumberTo`, and `buildingNumberExpression`.
-Phase references remain textual, so Roman and alphanumeric values are preserved; a
-duplicated Arabic or Roman suffix is removed from `phaseName` before the expression is
-built. `buildingNumberConnector` is `null` because ALS supplies no range connector, and
-`bbox` is derived from the retained geometry. `blockRef` is text, so alphanumeric and
-Roman values are preserved exactly. The original bilingual ALS object remains available
-in `rawProperties` as the evidence for these projections.
+textual `blockRef`, `blockExpression`, and `blockTypeBeforeNumber`. Recognised English
+descriptor variants use canonical short forms (`BLK`, `BLDG`, `TWR`, `HSE`, and `APT`),
+while Traditional Chinese puts the reference before its descriptor. Phase name and
+number become `phaseName`, `phaseRef`, and `phaseExpression`; street or village number
+endpoints become `buildingNumberFrom`, `buildingNumberTo`, and
+`buildingNumberExpression`. Phase references remain textual, so Roman and alphanumeric
+values are preserved; a duplicated Arabic or Roman suffix is removed from `phaseName`
+before the expression is built. `buildingNumberConnector` is `null` because ALS supplies
+no range connector, and `bbox` is derived from the retained geometry. `blockRef` is
+text, so alphanumeric and Roman values are preserved exactly. The original bilingual ALS
+object remains available in `rawProperties` as the evidence for these projections.
 
 ## API support
 
