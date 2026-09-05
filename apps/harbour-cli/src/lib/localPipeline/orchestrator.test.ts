@@ -90,6 +90,23 @@ describe('local import progress orchestration', () => {
     )
   })
 
+  test('maps with bounded concurrency while preserving input order', async () => {
+    const { mapWithConcurrency } = await import('./orchestrator.ts')
+    let activeWorkers = 0
+    let maximumActiveWorkers = 0
+
+    const results = await mapWithConcurrency([30, 10, 20, 0], 2, async value => {
+      activeWorkers += 1
+      maximumActiveWorkers = Math.max(maximumActiveWorkers, activeWorkers)
+      await Bun.sleep(value)
+      activeWorkers -= 1
+      return value / 10
+    })
+
+    expect(maximumActiveWorkers).toBe(2)
+    expect(results).toEqual([3, 1, 2, 0])
+  })
+
   test('serialises concurrent generation progress writes', async () => {
     const { runLocalGenerationPhase } = await import('./orchestrator.ts')
     const committedRows: number[] = []
