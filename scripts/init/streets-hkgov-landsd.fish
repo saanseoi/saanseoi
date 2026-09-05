@@ -4,14 +4,6 @@ source (command dirname (status filename))/common.fish
 init_configure "saanseoi init:streets:hkgov-landsd" $argv
 
 init_run_step bun run --silent dataops -- hkgov-landsd-streets:baseline --target $saanseoi_init_target
-init_run_step bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target $saanseoi_init_target
-# Deferred: this processing is intentionally excluded from the release path
-# until it is ready to run independently.
-init_run_step bun run --silent dataops -- hkgov-landsd-streets:assemble --target $saanseoi_init_target
-init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
 
-# Preserve the official Road Centreline archive for the dedicated release
-# processor. It must run after street assembly because source segments are
-# matched to the assembled LandsD street identities.
-init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-    --dataset ds-hk-hkgov-landsd-road-centreline --check-now --yes
+# Historical notice curation and snapshot assembly remain explicit follow-up
+# work. Road Centreline also waits for the assembled street identities.
