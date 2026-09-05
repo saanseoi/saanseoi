@@ -106,9 +106,14 @@ export async function completeOverturePlacesInitialisation(target: UploadTarget)
     requireExistingRemoteCache: target.remote,
   })
   try {
-    manifest.owned = await collectOwnedPlaces(
+    const owned = await collectOwnedPlaces(
       context.metaDb as unknown as HarbourReadableDb,
     )
+    await assertPlacesInitialisationComplete(
+      context.metaDb as unknown as HarbourReadableDb,
+      owned,
+    )
+    manifest.owned = owned
     manifest.completedAt = new Date().toISOString()
     manifest.status = 'complete'
     await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
@@ -207,7 +212,7 @@ type OwnedPlaces = {
   sourceReleaseIds: string[]
 }
 
-async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
+export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
   const releases = await db
     .select({
       code: metaSchema.metaReleases.code,
@@ -229,35 +234,30 @@ async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
   const releaseIds = releases.map(row => row.id)
   const snapshotRows = await db
     .select({
-      releaseId: metaSchema.metaSnapshotSources.sourceReleaseId,
-      snapshotId: metaSchema.metaSnapshotSources.snapshotId,
+      snapshotId: metaSchema.metaSnapshots.id,
     })
-    .from(metaSchema.metaSnapshotSources)
+    .from(metaSchema.metaSnapshots)
     .innerJoin(
-      metaSchema.metaSnapshots,
-      eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
-    )
-    .innerJoin(
-      metaSchema.metaReleases,
-      eq(metaSchema.metaSnapshotSources.sourceReleaseId, metaSchema.metaReleases.id),
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
     )
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaSnapshotLineages.primaryDatasetId, metaSchema.metaDatasets.id),
     )
     .where(
       and(
         eq(metaSchema.metaDatasets.code, DATASET_CODE),
-        eq(metaSchema.metaReleases.resourceType, 'place'),
         eq(metaSchema.metaSnapshots.resourceType, 'place'),
-        eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
+        eq(metaSchema.metaSnapshotLineages.variant, 'default'),
       ),
     )
     .all()
-  const ownedSnapshotRows = snapshotRows.filter(row =>
-    releaseIds.includes(row.releaseId),
-  )
-  const snapshotIds = [...new Set(ownedSnapshotRows.map(row => row.snapshotId))]
+  const snapshotIds = [...new Set(snapshotRows.map(row => row.snapshotId))]
   const apiReleaseSetRows = await db
     .select({
       apiReleaseSetId: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
@@ -296,6 +296,59 @@ async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
     releaseIds,
     snapshotIds,
     sourceReleaseIds: [...new Set(releases.map(row => row.sourceReleaseId))],
+  }
+}
+
+export async function assertPlacesInitialisationComplete(
+  db: HarbourReadableDb,
+  owned: OwnedPlaces,
+) {
+  if (owned.releaseIds.length === 0 || owned.snapshotIds.length === 0) {
+    throw new Error(
+      'Overture Places initialisation has no registered releases or snapshots.',
+    )
+  }
+
+  const [unfinishedRelease, unfinishedSnapshot] = await Promise.all([
+    db
+      .select({
+        code: metaSchema.metaReleases.code,
+        status: metaSchema.metaReleases.status,
+      })
+      .from(metaSchema.metaReleases)
+      .where(
+        and(
+          inArray(metaSchema.metaReleases.id, owned.releaseIds),
+          not(inArray(metaSchema.metaReleases.status, ['published', 'superseded'])),
+        ),
+      )
+      .limit(1)
+      .get(),
+    db
+      .select({
+        code: metaSchema.metaSnapshots.code,
+        status: metaSchema.metaSnapshots.status,
+      })
+      .from(metaSchema.metaSnapshots)
+      .where(
+        and(
+          inArray(metaSchema.metaSnapshots.id, owned.snapshotIds),
+          not(inArray(metaSchema.metaSnapshots.status, ['published', 'archived'])),
+        ),
+      )
+      .limit(1)
+      .get(),
+  ])
+
+  if (unfinishedRelease) {
+    throw new Error(
+      `Overture Places release ${unfinishedRelease.code} is ${unfinishedRelease.status}; refusing to complete its initialisation manifest.`,
+    )
+  }
+  if (unfinishedSnapshot) {
+    throw new Error(
+      `Overture Places snapshot ${unfinishedSnapshot.code} is ${unfinishedSnapshot.status}; refusing to complete its initialisation manifest.`,
+    )
   }
 }
 

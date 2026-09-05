@@ -110,10 +110,6 @@ export async function runUploadCommand(
     deferStatsReleaseSet?: boolean
     /** Keep a multi-resource source release open until its final resource. */
     deferSourcePublish?: boolean
-    /** Opt in to applying reviewed or fixture-backed Places translations. */
-    translatePlaces?: boolean
-    /** Permit Azure-backed Places fixture creation for a local import only. */
-    generatePlaceTranslationFixtures?: boolean
     processingActions?: ReleaseProcessingAction[]
     quality?: AddressDivisionQualityCounts
     quiet?: boolean
@@ -552,10 +548,7 @@ ${mutedBar}  `)
           preparedUploadFile,
           {
             deferApiReleaseSet: options.deferApiReleaseSet,
-            allowPlaceTranslationFixtureGeneration:
-              options.generatePlaceTranslationFixtures,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
-            translatePlaces: options.translatePlaces,
           },
         )
         await logApiReleaseSetPublication(

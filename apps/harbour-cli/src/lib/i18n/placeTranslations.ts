@@ -18,6 +18,7 @@ const DEFAULT_FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/datasets')
 const LOCALES = ['en', 'zh-hant', 'zh-hans'] as const
 const TRANSLATABLE_FIELDS = ['name', 'freeformAddress'] as const
 export const PLACE_TRANSLATION_BATCH_SIZE = 50
+export const PLACE_MACHINE_TRANSLATION_ENABLED = false
 
 type Locale = (typeof LOCALES)[number]
 export type PlaceTranslationField = (typeof TRANSLATABLE_FIELDS)[number]
@@ -80,6 +81,9 @@ export async function resolvePlaceTranslationsBatch(input: {
     options: { from: AzureTranslationLocale; to: AzureTranslationLocale },
   ) => Promise<Map<string, string>>
 }): Promise<Map<string, PlaceTranslationResult>> {
+  if (!PLACE_MACHINE_TRANSLATION_ENABLED) {
+    return new Map(input.records.map(record => [record.recordId, { applications: [] }]))
+  }
   const datasetCode = input.datasetCode ?? 'ds-hk-overture-place'
   const fixturePath = input.fixturePath ?? placeTranslationFixturePath(datasetCode)
   const fixture = await readFixture(fixturePath, datasetCode)
