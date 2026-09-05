@@ -1458,7 +1458,7 @@ function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
 /**
  * Returns a C&SD companion snapshot only when every canonical geometry record
  * in this source release has already been materialised for the same cohort.
- * Source assertions remain independently retained; this avoids mistaking a
+ * Source records remain independent; this avoids mistaking a
  * source-level archive match for an identical geometry snapshot.
  */
 async function findIdenticalCenstatdGeometrySnapshot(
@@ -1532,7 +1532,7 @@ async function findIdenticalCenstatdGeometrySnapshot(
 }
 
 /**
- * Hashes only materialised geometry semantics. Publisher source assertions and
+ * Hashes only materialised geometry semantics. Publisher source records and
  * derived bounding boxes are intentionally excluded: those can differ without
  * changing the geometry snapshot selected by the Divisions API.
  */
@@ -1590,7 +1590,7 @@ function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
   ) {
     // The reviewed 2021 C&SD-to-canonical bridge has the same district
     // identifiers as the annual and PLQ publications. It is deliberately an
-    // identity bridge, not an assertion that their geometries are the 2021
+    // identity bridge, not a source record that their geometries are the 2021
     // land-clipped geometry.
     return { authority: 'hkgov-censtatd', cohortKey: '2021' }
   }
@@ -1928,7 +1928,7 @@ function formatDiagnosticRecord(record: unknown) {
 
 /**
  * Produces the shared map-display representation for every Hong Kong Government
- * area publisher. Exact publisher geometry remains in the source assertion and
+ * area publisher. Exact publisher geometry remains in the source record and
  * in the exact snapshot; this pass only writes the named display snapshot.
  */
 export async function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[]) {
@@ -2380,7 +2380,7 @@ function hashGeometrySourceAssertion(
 
   // The bridge-derived canonical division relationship is needed to write the
   // canonical geometry, but it is neither C&SD evidence nor part of the
-  // source assertion's identity.
+  // source record's identity.
   const sourceAssertion: Record<string, unknown> = { ...row }
   delete sourceAssertion.derivation
   delete sourceAssertion.divisionId
@@ -2427,7 +2427,7 @@ async function writeCenstatdSourceDerivatives(
       )
       if (!inputVersionHash) {
         throw new Error(
-          `C&SD derivative ${row.source.sourceRecordId} (${censusYear}) requires its exact source assertion to be ingested first.`,
+          `C&SD derivative ${row.source.sourceRecordId} (${censusYear}) requires its exact source record to be ingested first.`,
         )
       }
       const derivation = row.source.derivation
@@ -2469,7 +2469,7 @@ async function writeCenstatdSourceDerivatives(
     const key = `${derivative.sourceRecordId}:${derivative.inputVersionHash}`
     // This upload covers one census cohort. Other cohorts may use the same
     // C&SD district record IDs, so only supersede a derivative of an exact
-    // assertion represented in this upload.
+    // source record represented in this upload.
     if (!nextHashes.has(key)) continue
     if (nextHashes.get(key) === derivative.versionHash) continue
     await db

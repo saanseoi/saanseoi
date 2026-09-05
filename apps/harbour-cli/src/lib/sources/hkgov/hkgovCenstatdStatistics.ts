@@ -130,7 +130,7 @@ export function hkgovCenstatdStatisticDivisionId(
 
 /**
  * Creates the canonical division and area upload contracts from the exact GML
- * members that also feed the statistics assertion. Building Groups deliberately
+ * members that also feed the statistics source record. Building Groups deliberately
  * remain source-only: C&SD supplies centroids rather than division geometry.
  */
 export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
@@ -531,7 +531,7 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
   }
   // C&SD's DC_GHS layer reuses its `fid` value across many members. Keep that
   // publisher value, but qualify collisions by their deterministic member
-  // ordinal so source assertions and canonical provenance remain unique.
+  // ordinal so source records and canonical provenance remain unique.
   return rows.map((row, index) =>
     (featureIdCounts.get(row.featureId) ?? 0) > 1
       ? { ...row, featureId: `${row.featureId}:${index + 1}` }
@@ -545,7 +545,7 @@ function strings(name: string, values: string[]) {
 
 /**
  * A compilation can contain observations for many reference years. Keep the
- * row-level publisher period in the raw source assertion; the source-version
+ * row-level publisher period in the raw source record; the source-version
  * remains the release identity carried by release metadata.
  */
 function referencePeriodFor(

@@ -377,7 +377,7 @@ async function withDisplayGeometry(
       },
       geometry: normaliseSinglePolygon(geometry),
       // A display transform is another representation of the same C&SD
-      // assertion, not a new source record. The snapshot variant selects it.
+      // existing source record, not a new one. The snapshot variant selects it.
       id: row.id,
       sources: row.sources,
     }

@@ -103,7 +103,7 @@ export type HkgovCenstatdStatisticSourceRow = {
 /**
  * Converts publisher-native C&SD properties into compact canonical records
  * without guessing semantic labels or discarding source literals. Geometry is
- * deliberately excluded: it remains a source assertion until it is reviewed
+ * deliberately excluded: it remains a source record until it is reviewed
  * into the Divisions family.
  */
 export function normaliseHkgovCenstatdStatistics(

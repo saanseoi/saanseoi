@@ -545,7 +545,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   })),
                   mode: 'automatic',
                   summary:
-                    'Repaired known Planning Department polygon self-intersections with buffer(0); the native source assertion records the row-keyed approved transform.',
+                    'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
                 },
               ]
             : [],

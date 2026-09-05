@@ -51,7 +51,7 @@ describe('TD pedestrian street native FileGDB intake', () => {
       type: 'Feature',
     })
 
-    // A publisher-null SHAPE is retained as a source assertion rather than
+    // A publisher-null SHAPE is stored as a source record rather than
     // being silently dropped by the FileGDB reader.
     expect(
       layers.Full_Time_Pedestrian_Street.features.find(

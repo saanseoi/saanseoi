@@ -385,7 +385,7 @@ function isHydGeometry(
 function optionalString(value: unknown) {
   if (typeof value !== 'string') return undefined
   // fgdb@1 decodes its byte strings as Latin-1. The publisher's Chinese source
-  // text is UTF-8, so repair it before it enters the source assertion table.
+  // text is UTF-8, so repair it before it enters the source record table.
   if (![...value].every(character => character.codePointAt(0)! <= 0xff)) return value
   return new TextDecoder().decode(
     Uint8Array.from(value, character => character.charCodeAt(0)),
