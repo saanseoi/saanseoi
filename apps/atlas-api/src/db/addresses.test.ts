@@ -16,15 +16,15 @@ describe('address search query preparation', () => {
         component: 'street',
         query: "King's Road OR *",
       }),
-    ).toBe('streetName : (Kings AND Road AND OR)')
+    ).toBe('streetName : (kings AND road AND or)')
   })
 
   test('makes prefix matching explicit', () => {
     expect(buildAddressFtsQuery({ mode: 'full-text', query: 'Harbour View' })).toBe(
-      'Harbour AND View',
+      'harbour AND view',
     )
     expect(buildAddressFtsQuery({ mode: 'prefix', query: 'Harbour View' })).toBe(
-      'Harbour* AND View*',
+      'harbour* AND view*',
     )
   })
 })
