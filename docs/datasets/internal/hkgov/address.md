@@ -376,8 +376,8 @@ address:
   references. When a phase name ends with the same standalone Arabic or Roman reference,
   that suffix is removed from `phaseName` so it is not repeated in `phaseExpression`;
   for example, `PHASE 2` becomes `phaseName: PHASE`, `phaseRef: 2`, and
-  `phaseExpression: PHASE 2`. Ambiguous single-letter labels such as `PHASE C` are not
-  inferred as Roman references.
+  `phaseExpression: PHASE 2`. Single-letter Roman references such as `C` are also
+  preserved in `phaseRef`, so `PHASE C` becomes `phaseName: PHASE`, `phaseRef: C`.
 - `buildingNumberConnector` remains `null` because ALS supplies no range connector. A
   hyphen in a formatted English range is presentation syntax, not evidence of an
   interior numeric range.
