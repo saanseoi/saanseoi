@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:1252c27a69759818e003fc37fdd0f99cedba88762d902f6ee37810fbddd8c61b",
   "apiVersion": "api-addresses-v0.1",
-  "domainCode": "official",
+  "domainCode": "saanseoi",
   "schemaVersion": "sv-address-v1",
   "rulesetVersion": "rs-address-merge-v1",
   "lineageAnchors": [
