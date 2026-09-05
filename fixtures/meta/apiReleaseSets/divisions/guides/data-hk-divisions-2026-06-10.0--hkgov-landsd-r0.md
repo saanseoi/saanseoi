@@ -23,6 +23,12 @@ to the one you need.
 
 {{apiKeyNote:en}}
 
+To inspect the source records behind this release, use the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
+Pass the required `sourceRelease` query parameter. The response returns the retained
+source object under `rawProperties`; these fields are source provenance, not additional
+canonical Division fields.
+
 ## Requesting data
 
 {{experimentalApiWarning:en}}
