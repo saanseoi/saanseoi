@@ -743,9 +743,13 @@ export const StatisticDetailResponseSchema = z
 
 export const StatisticSnapshotNotReadyErrorResponseSchema = z
   .object({
-    httpStatus: z.literal(503),
-    error: z.literal('snapshot_not_ready'),
-    message: z.literal('No active statistic snapshot is published.'),
+    httpStatus: z.literal(503).openapi({ examples: [503] }),
+    error: z.literal('snapshot_not_ready').openapi({
+      examples: ['snapshot_not_ready'],
+    }),
+    message: z.literal('No active statistic snapshot is published.').openapi({
+      examples: ['No active statistic snapshot is published.'],
+    }),
   })
   .openapi('StatisticSnapshotNotReadyErrorResponse')
 
@@ -853,10 +857,42 @@ const StatisticMeasureCandidateSchema = z.object({
 
 export const StatisticAmbiguousMeasureErrorResponseSchema = z
   .object({
-    httpStatus: z.literal(409),
-    error: z.literal('ambiguous_measure'),
-    message: z.string(),
-    candidates: z.array(StatisticMeasureCandidateSchema).min(2),
+    httpStatus: z.literal(409).openapi({ examples: [409] }),
+    error: z.literal('ambiguous_measure').openapi({
+      examples: ['ambiguous_measure'],
+    }),
+    message: z.string().openapi({
+      examples: ['Multiple statistic measures match the requested geography.'],
+    }),
+    candidates: z
+      .array(StatisticMeasureCandidateSchema)
+      .min(2)
+      .openapi({
+        examples: [
+          [
+            {
+              datasetCode:
+                'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+              geography: {
+                kind: 'majorHousingEstate',
+                codeAttribute: 'geographyCode',
+                domainCode: 'geographic',
+                level: 4,
+              },
+            },
+            {
+              datasetCode:
+                'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+              geography: {
+                kind: 'buildingGroup',
+                codeAttribute: 'geographyCode',
+                domainCode: 'hkgov-censtatd-hma',
+                level: 6,
+              },
+            },
+          ],
+        ],
+      }),
   })
   .openapi('StatisticAmbiguousMeasureErrorResponse')
 
@@ -870,12 +906,17 @@ const GeographyAggregateMetaSchema = z
       .object({
         datasetCode: z.string().openapi({
           description: openApiText('openapi_statistics_dataset_code_description'),
+          examples: [
+            'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+          ],
         }),
         fieldName: z.string().openapi({
           description: openApiText('openapi_statistics_field_name_description'),
+          examples: ['populationDensity', 'totalPopulation'],
         }),
         unitCode: z.string().openapi({
           description: openApiText('openapi_statistics_field_unit_code_description'),
+          examples: ['person-per-square-kilometre', 'person'],
         }),
       })
       .openapi({
