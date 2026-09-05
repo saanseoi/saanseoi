@@ -32,6 +32,26 @@ completed family at the end:
 ./bin/saanseoi init:places:overture --target local
 ```
 
+The initialiser retains the upstream Places schema at each release boundary. The
+2025-09-24.0 payload predates `basic_category` and `taxonomy`; `basic_category` is
+present from 2025-10-22.0, and `taxonomy` is present from 2025-12-17.0. These are
+source-schema transitions only; the canonical Places shape remains stable.
+
+Publisher address data is retained in the source assertion. Canonical `addresses`
+contains only the non-empty publisher `freeform` strings; the retained Overture source
+record exposes `address.freeform`, `address.locality`, `address.country`,
+`address.region`, and `address.postcode` as observational values. They must not be used
+as authoritative inputs for canonical address or division relationships. Places with
+`CN` or `MO` address country codes are excluded from the Hong Kong projection;
+missing-country Places remain included. Both are recorded as review actions in the
+release audit. Ingestion stops with a warning when a Place has more than one publisher
+address, pending a reconsideration of the Place-to-address implementation.
+
+Overture Division and Place IDs are checked against the Overture GERS Registry by the
+local cache command. The command reports the exact GERS-backed and unmatched cohorts
+used by the retained source files; UUID format alone is not accepted as evidence of GERS
+membership.
+
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
 rebuildable `placesFts` index. `placesDivision` and `placesCells` are current-only
 projections and are rebuilt for the active Place snapshot; they are not copied into

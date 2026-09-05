@@ -79,15 +79,25 @@ is straightforward:
 - `geometry`: decoded from Overture WKB when needed, otherwise passed through if already
   GeoJSON
 - `bbox`: copied from source when present
-- `sourceKeys`: source-specific lookup and compatibility keys, currently Overture
-  `subtype`, `class`, source-owned `version`, raw `hierarchies`, and derived
-  compatibility `admin_level` where available
-- `wikidata`: retained where present
+- `identifiers`: genuine provider identifiers where a reviewed bridge exists
+- `wikidataId`: retained where present
 - `hierarchy`: normalised from Overture `hierarchies`; country/self entries are dropped,
   entries are mapped to canonical `level`/`type` using the matching division row when
   needed, and labels are resolved from division i18n rows as `en`/`zh-hant`
 - `cartography`: retained when present
 - `sources`: provider-keyed source attribution, currently `{ overture: ... }`
+
+The canonical `attributes.hierarchy` is a normalised API relationship. The source record
+API returns the retained source object, including fields which are not part of the
+canonical Division resource:
+[list Division source records](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
+The source release is selected with the required `sourceRelease` query parameter, and
+the original object is returned under `rawProperties`.
+
+Overture source-only fields, including the raw `hierarchies[][]` value and its names,
+are available only in `rawProperties` when the source record is retained. The canonical
+API representations of the hierarchy and classification remain `attributes.hierarchy`
+and the derived `attributes.type`/`attributes.level`.
 
 `divisionsI18n` currently stores:
 

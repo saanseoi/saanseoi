@@ -102,12 +102,12 @@ the local Atlas asset endpoint, so a local release remains inspectable without s
 publisher evidence to a remote environment.
 
 Canonical street IDs are opaque UUIDv7-style values minted once and persisted in
-canonical street records. Their durable source bridge is the canonical record's
-`sourceKeys`, not a source-table ID or relationship. They are never derived from a name,
-district, source record, grid cell, or future geometry. `Previous G.N.` values are
-publisher provenance, not a canonical-street lookup key. A deletion updates the
-application’s explicit affected street and sets `deletedAt` only for a confidently
-parsed legal effective date.
+canonical street records. Their durable source bridge is the canonical record's the
+source record's `rawProperties`, not a source-table ID or relationship. They are never
+derived from a name, district, source record, grid cell, or future geometry.
+`Previous G.N.` values are publisher provenance, not a canonical-street lookup key. A
+deletion updates the application’s explicit affected street and sets `deletedAt` only
+for a confidently parsed legal effective date.
 
 Declarations may create a new street automatically. Other existing-street changes and
 deletions require a versioned application fixture in

@@ -38,7 +38,7 @@ canonical source-release lineage, so its download remains available independentl
 `divisionArea` materialisation that consumes it.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
-capitalisation, in both source columns and canonical geometry `sourceKeys`:
+capitalisation, in both source columns and canonical geometry `identifiers`:
 
 | Source field         | Compatibility field     |
 | -------------------- | ----------------------- |

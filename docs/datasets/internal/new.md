@@ -103,10 +103,10 @@ drop after a preflight check, or retain only in `rawProperties`.
 
 At minimum, geometry source rows normally include source ID, bbox, source geometry,
 source provenance/version, raw properties and provider relationship IDs. Canonical area
-rows include canonical ID, division ID, bbox, geometry, source keys, source provenance,
-normalised type and source flags. Canonical boundary rows additionally include ordered
-left/right division IDs. History/current rows use the same version-management columns as
-the family’s existing resources.
+rows include canonical ID, division ID, bbox, geometry, provider identifiers, source
+provenance, normalised type and source flags. Canonical boundary rows additionally
+include ordered left/right division IDs. History/current rows use the same
+version-management columns as the family’s existing resources.
 
 The complete source-neutral field and variant contract is
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md); provider field

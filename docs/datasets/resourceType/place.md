@@ -9,7 +9,9 @@ Place snapshot, not historical tables.
 Place snapshots are immutable once published. A later Overture release creates a new
 snapshot and only creates history versions for changed place content, localisation, or
 the recorded address reference. The source table retains the publisher payload and
-source version for audit and rollback.
+source version for audit and rollback. Canonical `addresses` contains only non-empty
+publisher free-form address strings; publisher address components remain in the source
+record's `rawProperties`.
 
 The current `placesDivision` projection is derived from the accepted ALS address row's
 `divisionSnapshotId` and division IDs. It must never be used to answer a historical

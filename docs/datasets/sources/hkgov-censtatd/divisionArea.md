@@ -74,7 +74,7 @@ statistical records from the same archive. The source assertion also projects th
 publisher-native `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it
 does not create locale-normalised source child rows. `dc_class` is bridged through a
 reviewed `hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
-`sourceKeys` expose the provider's `class` and numeric `code`.
+`identifiers` expose the provider's `class` and numeric `code`.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the

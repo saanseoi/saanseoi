@@ -80,16 +80,20 @@ complete decoded source row, including the native ordered `division_ids`/`divisi
 relationships and dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`,
 and `perspectives`). Source tables do not duplicate canonical relationships.
 
+Overture Division IDs are validated against the Overture GERS Registry rather than being
+classified from their UUID shape. The local `cache:gers` command caches the registry
+evidence for retained Division and Place IDs and reports unmatched IDs explicitly.
+
 Boundary canonical rows normalise `division_ids[0]` and `[1]` to left/right division
-IDs; area rows normalise `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
-`class`), enriched Overture source provenance, `type` (`land`, `maritime`, or `mixed`),
-bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
-distinct division IDs and null `perspectives`.
+IDs; area rows normalise `division_id`. Source-only `version`, `subtype`, and `class`
+remain in `rawProperties`; canonical rows expose enriched Overture source provenance,
+`type` (`land`, `maritime`, or `mixed`), bbox, geometry, and the source land/territorial
+flags. Boundary rows require exactly two distinct division IDs and null `perspectives`.
 
 | Source field                                        | Area treatment                                      | Boundary treatment                                    |
 | --------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
 | `id`, `bbox`, `geometry`                            | retain exactly                                      | retain exactly                                        |
-| `version`, `subtype`, `class`                       | retain; expose through `overture` source keys       | retain; expose through `overture` source keys         |
+| `version`, `subtype`, `class`                       | retain in `rawProperties`                           | retain in `rawProperties`                             |
 | `sources`                                           | retain and enrich as `{ overture: ... }`            | retain and enrich as `{ overture: ... }`              |
 | `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`          | normalise from `is_land`, `is_territorial`            |
 | `division_id`, `division_ids`                       | retain only in source evidence; derive canonical ID | retain only in source evidence; derive left/right IDs |
@@ -110,7 +114,7 @@ The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
 source rows retain `rawProperties`, the original source array, Overture version, and
-source-key fields. Canonical rows expose normalised left/right or division references,
+source-only fields. Canonical rows expose normalised left/right or division references,
 `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
 `mixed` is derived when both source flags are true, including the known upstream
 Overture records where the source class alone would otherwise suggest `land` or
