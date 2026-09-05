@@ -149,7 +149,31 @@ function makeInspection(schema: UploadInspection['schema']): UploadInspection {
 }
 
 describe('validateOvertureSchema', () => {
-  test('accepts the checked-in Overture Places reference fixture', async () => {
+  test('accepts the initial checked-in Overture Places fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2025-09-24.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2025-09-24.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-09-24.0')
+  })
+
+  test('accepts the intermediate checked-in Overture Places fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2025-10-22.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2025-10-22.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-10-22.0')
+  })
+
+  test('accepts the taxonomy Overture Places reference fixture', async () => {
     const fixturePath = resolve(
       import.meta.dir,
       '../../../../../data/overture/2026-08-19.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
@@ -158,7 +182,7 @@ describe('validateOvertureSchema', () => {
 
     const result = validateOvertureSchema(makePlacePlan('2026-08-19.0'), inspection)
 
-    expect(result.schema.id).toBe('overture-place-v2025-09-24.0')
+    expect(result.schema.id).toBe('overture-place-v2025-12-17.0')
   })
 
   test('accepts the pre-admin_level division schema before 2026-02-18.0', () => {
