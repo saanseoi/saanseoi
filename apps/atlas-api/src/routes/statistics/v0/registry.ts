@@ -21,28 +21,108 @@ import { openApiText } from '../../../lib/openapi-i18n'
 
 const RegistryQuerySchema = z
   .object({
-    catalogRevision: z.string().min(1).optional(),
-    cohort: z.string().min(1).optional(),
-    domain: z.literal('official').optional(),
-    effectiveAt: z.iso.datetime().optional(),
-    knownAt: z.iso.datetime().optional(),
-    releaseSet: z.string().min(1).optional(),
-    locales: z.string().optional(),
-    'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
-    'page[offset]': z.coerce.number().int().min(0).optional(),
-    'filter[dataset]': z.string().min(1).optional(),
-    'filter[measure]': z.string().min(1).optional(),
-    'filter[field]': z.string().min(1).optional(),
+    catalogRevision: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_catalog_revision_description'),
+      }),
+    cohort: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_cohort_description'),
+      }),
+    domain: z
+      .literal('official')
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_domain_description'),
+      }),
+    effectiveAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_effective_at_description'),
+      }),
+    knownAt: z.iso
+      .datetime()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_known_at_description'),
+      }),
+    releaseSet: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_release_set_description'),
+      }),
+    locales: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_locales_description'),
+      }),
+    'page[limit]': z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_page_limit_description'),
+      }),
+    'page[offset]': z.coerce
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_page_offset_description'),
+      }),
+    'filter[dataset]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_dataset_filter_description'),
+      }),
+    'filter[measure]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_measure_filter_description'),
+      }),
+    'filter[field]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_field_filter_description'),
+      }),
     'filter[dimension]': z
       .union([z.string(), z.array(z.string())])
       .transform(value => (Array.isArray(value) ? value : [value]))
       .pipe(z.array(z.string().regex(/^[a-z][a-z0-9-]*:[^:]+$/)))
-      .optional(),
+      .optional()
+      .openapi({
+        description: openApiText('openapi_statistics_dimension_filter_description'),
+      }),
   })
   .openapi('StatisticsRegistryQuery')
 
 const SearchQuerySchema = RegistryQuerySchema.extend({
-  q: z.string().min(1).max(200),
+  q: z
+    .string()
+    .min(1)
+    .max(200)
+    .openapi({
+      description: openApiText('openapi_statistics_search_query_description'),
+    }),
 }).openapi('StatisticsRegistrySearchQuery')
 
 const RegistryResponseSchema = z
@@ -50,10 +130,36 @@ const RegistryResponseSchema = z
   .loose()
   .openapi('StatisticsRegistryResponse')
 const RegistryFieldParamsSchema = z
-  .object({ datasetCode: z.string().min(1), fieldName: z.string().min(1) })
+  .object({
+    datasetCode: z
+      .string()
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_statistics_dataset_code_description'),
+      }),
+    fieldName: z
+      .string()
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_statistics_field_name_description'),
+      }),
+  })
   .openapi('StatisticsRegistryFieldParams')
 const RegistryMeasureParamsSchema = z
-  .object({ datasetCode: z.string().min(1), measureCode: z.string().min(1) })
+  .object({
+    datasetCode: z
+      .string()
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_statistics_dataset_code_description'),
+      }),
+    measureCode: z
+      .string()
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_statistics_measure_code_description'),
+      }),
+  })
   .openapi('StatisticsRegistryMeasureParams')
 
 const variants = [

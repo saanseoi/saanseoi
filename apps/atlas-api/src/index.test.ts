@@ -1105,6 +1105,7 @@ describe('atlas-api', () => {
   test('Places endpoints reject unbounded limits', async () => {
     const { env } = createEnv()
     for (const path of [
+      '/places/v0/hk?page[limit]=101',
       '/places/v0/hk/by-cell/9/89283470cdbffff?limit=101',
       '/places/v0/hk/search?q=sushi&limit=101',
     ]) {
@@ -1515,6 +1516,7 @@ describe('atlas-api', () => {
       paths: Record<string, unknown>
       tags?: Array<{ name: string }>
       'x-tagGroups'?: Array<{ name: string; tags: string[] }>
+      components?: { schemas?: Record<string, unknown> }
     }
     const places = (await placesRes.json()) as {
       paths: Record<string, unknown>
@@ -1540,6 +1542,109 @@ describe('atlas-api', () => {
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
+    const addressI18n = addresses.components?.schemas?.AddressI18n as
+      | { description?: string; 'x-recordKeyName'?: string }
+      | undefined
+    const addressI18nAttributes = addresses.components?.schemas
+      ?.AddressI18nAttributes as
+      | {
+          description?: string
+          properties?: Record<
+            string,
+            { description?: string; enum?: unknown[]; examples?: unknown[] }
+          >
+        }
+      | undefined
+    expect(addressI18n?.description).toBe(
+      'Localised address text and parsed components, keyed by requested locale.',
+    )
+    expect(addressI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
+    expect(addressI18nAttributes?.description).toBe(
+      'Address text and parsed components for one locale. Optional components are null when the source did not supply them.',
+    )
+    const addressI18nExamples = {
+      formattedAddress: [
+        "BLK A, PEARL COURT, 13 BELCHER'S STREET, CENTRAL & WESTERN DISTRICT, HK",
+        'TOWER 1, ISLAND CREST, 8 FIRST STREET, CENTRAL & WESTERN DISTRICT, HK',
+        'HOUSE 2, 35 BARKER ROAD, CENTRAL & WESTERN DISTRICT, HK',
+        "ON NING BUILDING, 427 KING'S ROAD, EASTERN DISTRICT, HK",
+      ],
+      buildingName: [
+        'FU TOR LOY SHOPPING CENTRE',
+        'ON NING BUILDING',
+        'GOLDEN MANSION',
+        'LUCKY BUILDING',
+        'WING WAH BUILDING',
+        null,
+      ],
+      buildingNumberExpression: ['1', '8', '1A', '19B', '1000A', null],
+      buildingNumberFrom: ['1', '6', '19', '51', null],
+      buildingNumberTo: ['3', '8', '18', '21', '75', null],
+      buildingNumberConnector: [null],
+      blockExpression: [
+        'BLK A',
+        'BLK B',
+        'TOWER 1',
+        'HOUSE 2',
+        'APT D1',
+        'FLAT A',
+        'MANSION A',
+        'GARAGE A',
+        'COMMERCIAL CENTRE',
+        'TOWERS 1&2',
+        null,
+      ],
+      blockType: [
+        'block',
+        'building',
+        'tower',
+        'house',
+        'villa',
+        'mansion',
+        'apartment',
+        'flat',
+        'unit',
+        'quarters',
+        'phase',
+        'stage',
+        'commercial',
+        'retail',
+        'parking',
+        'garage',
+        'other',
+      ],
+      blockRef: ['A', 'B', '1', 'D1', '1&2', null],
+      blockTypeBeforeNumber: [true, null],
+      phaseExpression: ['PHASE I', 'PHASE II', 'PHASE IIIB', 'PHASE 3', null],
+      phaseName: ['PHASE', '期', null],
+      phaseRef: ['I', 'II', 'IIIB', '3', null],
+      estateName: [
+        'FAIRVIEW PARK',
+        'HONG LOK YUEN',
+        'PALM SPRINGS',
+        'DISCOVERY BAY',
+        'MARINA COVE',
+        'WHAMPOA ESTATE',
+        null,
+      ],
+      streetName: [
+        'CASTLE PEAK ROAD',
+        "KING'S ROAD",
+        'NATHAN ROAD',
+        'CANTON ROAD',
+        "QUEEN'S ROAD WEST",
+        'LAI CHI KOK ROAD',
+        null,
+      ],
+    }
+    for (const [field, example] of Object.entries(addressI18nExamples)) {
+      expect(addressI18nAttributes?.properties?.[field]?.description).toBeTruthy()
+      expect(addressI18nAttributes?.properties?.[field]?.examples).toEqual(example)
+    }
+    expect(addressI18nAttributes?.properties?.blockType?.enum).toEqual([
+      ...addressI18nExamples.blockType,
+      null,
+    ])
     expect(divisions.components?.schemas).toHaveProperty('Division')
     expect(divisions.components?.schemas).not.toHaveProperty('Address')
     const divisionAttributes = divisions.components?.schemas?.DivisionAttributes as
@@ -1621,6 +1726,7 @@ describe('atlas-api', () => {
     )
 
     expect(placesRes.status).toBe(200)
+    expect(places.paths['/places/v0.1/{region}']).toBeDefined()
     expect(places.paths['/places/v0.1/{region}/{id}']).toBeDefined()
     expect(
       places.paths['/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}'],
@@ -1629,6 +1735,8 @@ describe('atlas-api', () => {
     expect(places.paths['/divisions/v0.1']).toBeUndefined()
     expect(places.tags?.map(tag => tag.name)).toEqual(['Places'])
     expect(places.components?.schemas).toHaveProperty('Place')
+    expect(places.components?.schemas).toHaveProperty('PlacesListResponse')
+    expect(places.components?.schemas).toHaveProperty('PlaceCollectionResource')
     expect(places.components?.schemas).toHaveProperty('PlaceGeometry')
     expect(places.components?.schemas).toHaveProperty('PlaceTaxonomy')
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain('geometry')
@@ -1684,7 +1792,7 @@ describe('atlas-api', () => {
       'An international phone number.',
     )
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
-      'Places are point representations of real-world facilities, businesses, services, or amenities.',
+      'The requested Place record.',
     )
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
       'The basic level category of a place.',
@@ -1694,10 +1802,119 @@ describe('atlas-api', () => {
     )
     expect(JSON.stringify(places.components?.schemas?.Place)).toContain('sources')
 
+    type OpenApiField = {
+      description?: string
+      allOf?: Array<{ description?: string }>
+    }
+    type OpenApiObjectSchema = {
+      description?: string
+      properties?: Record<string, OpenApiField>
+    }
+    const placeSchemas = places.components?.schemas as
+      | Record<string, OpenApiObjectSchema>
+      | undefined
+    const expectPlaceFieldsDescribed = (schemaName: string, fields: string[]) => {
+      const properties = placeSchemas?.[schemaName]?.properties
+      for (const field of fields) {
+        const property = properties?.[field]
+        expect(
+          property?.description ??
+            property?.allOf?.find(item => item.description)?.description,
+        ).toBeTruthy()
+      }
+    }
+    expect(placeSchemas?.PlaceSource?.description).toBe(
+      'Information about the source data used to assemble the place feature.',
+    )
+    expectPlaceFieldsDescribed('PlaceSource', [
+      'property',
+      'dataset',
+      'license',
+      'record_id',
+      'update_time',
+      'confidence',
+      'provider',
+      'resource',
+      'version',
+      'between',
+    ])
+    expectPlaceFieldsDescribed('PlaceI18n', [
+      'snapshotId',
+      'placeId',
+      'locale',
+      'name',
+      'nameVariant',
+      'nameAlts',
+      'brandName',
+      'brandNameVariant',
+      'brandNameAlts',
+      'freeformAddress',
+      'provenance',
+    ])
+    expectPlaceFieldsDescribed('PlaceCollectionAttributes', [
+      'referenceName',
+      'basicCategory',
+      'operatingStatus',
+      'wikidataId',
+      'websites',
+      'socials',
+      'emails',
+      'phones',
+      'confidence',
+      'firstSeenMonth',
+      'lastSeenMonth',
+      'createdAt',
+      'updatedAt',
+      'snapshotId',
+      'releaseId',
+      'addressSnapshotId',
+      'address2dId',
+      'address3dId',
+      'sources',
+    ])
+    for (const schemaName of [
+      'Place',
+      'PlaceI18n',
+      'PlaceSource',
+      'PlaceTaxonomy',
+      'PlaceCollectionTaxonomy',
+      'PlaceCollectionI18n',
+      'PlaceCollectionI18nValue',
+      'PlaceCollectionAttributes',
+      'PlaceCollectionResource',
+      'PlaceResponse',
+      'PlacesListResponse',
+    ]) {
+      expect(placeSchemas?.[schemaName]?.description).toBeTruthy()
+    }
+
     expect(statisticsRes.status).toBe(200)
     expect(statistics.paths['/stats/v0.1/registry']).toBeDefined()
     expect(statistics.paths['/stats/v0.1/registry/fields']).toBeDefined()
     expect(statistics.paths['/stats/v0.1/registry/search']).toBeDefined()
+    const statisticsRegistryPaths = Object.entries(statistics.paths).filter(([path]) =>
+      path.startsWith('/stats/v0.1/registry'),
+    )
+    expect(statisticsRegistryPaths.length).toBeGreaterThan(0)
+    for (const [, pathItem] of statisticsRegistryPaths) {
+      const parameters = (
+        pathItem as {
+          get?: {
+            parameters?: Array<{
+              in?: string
+              name?: string
+              description?: string
+            }>
+          }
+        }
+      ).get?.parameters
+      for (const parameter of parameters ?? []) {
+        if (parameter.in === 'query') {
+          expect(parameter.name).toBeTruthy()
+          expect(parameter.description).toBeTruthy()
+        }
+      }
+    }
     expect(statistics.paths['/divisions/v0.1']).toBeUndefined()
     expect(statistics.tags?.map(tag => tag.name)).toEqual([
       'Registry',
@@ -1705,6 +1922,69 @@ describe('atlas-api', () => {
       'Sources',
     ])
     expect(statistics['x-tagGroups']).toBeUndefined()
+    type StatisticField = OpenApiField & {
+      properties?: Record<string, OpenApiField>
+    }
+    type StatisticSchema = OpenApiObjectSchema & {
+      properties?: Record<string, StatisticField>
+    }
+    const statisticSchemas = statistics.components?.schemas as
+      | Record<string, StatisticSchema>
+      | undefined
+    const expectStatisticFieldsDescribed = (schemaName: string, fields: string[]) => {
+      const properties = statisticSchemas?.[schemaName]?.properties
+      for (const field of fields) {
+        const property = properties?.[field]
+        expect(
+          property?.description ??
+            property?.allOf?.find(item => item.description)?.description,
+        ).toBeTruthy()
+      }
+    }
+    expectStatisticFieldsDescribed('Statistic', [
+      'type',
+      'id',
+      'attributes',
+      'relationships',
+      'links',
+    ])
+    expectStatisticFieldsDescribed('StatisticField', ['type', 'id', 'attributes'])
+    const statisticAttributes = statisticSchemas?.Statistic?.properties?.attributes
+    expect(statisticAttributes?.description).toBeTruthy()
+    for (const field of [
+      'datasetCode',
+      'referencePeriod',
+      'geography',
+      'dimensions',
+      'values',
+      'comparability',
+      'sourceReleaseId',
+      'sourceFeatureRef',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      expect(
+        statisticAttributes?.properties?.[field]?.description ??
+          statisticAttributes?.properties?.[field]?.allOf?.find(
+            item => item.description,
+          )?.description,
+      ).toBeTruthy()
+    }
+    expect(statisticSchemas?.Statistic?.description).toBeTruthy()
+    expect(statisticSchemas?.StatisticField?.description).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsGeographiesResponse?.properties?.meta?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsGeographiesResponse?.properties?.values?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsSeriesResponse?.properties?.meta?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsSeriesResponse?.properties?.valuesByReferencePeriod
+        ?.description,
+    ).toBeTruthy()
 
     expect(divisionsCurrentRes.status).toBe(200)
     expect(divisionsCurrent.paths['/divisions/v0']).toBeDefined()
@@ -1878,7 +2158,9 @@ describe('atlas-api', () => {
     expect(registry.paths['/v0.1/api/families']).toBeUndefined()
 
     expect(placesRes.status).toBe(200)
+    expect(places.paths['/places/v0/{region}']).toBeDefined()
     expect(places.paths['/places/v0/{region}/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1/{region}']).toBeUndefined()
     expect(places.paths['/places/v0.1/{region}/{id}']).toBeUndefined()
 
     expect(streetsRes.status).toBe(200)
