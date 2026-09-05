@@ -80,19 +80,21 @@ remain intact. Machine translation of Place names and free-form addresses is dis
 missing PlaceI18n values remain missing.
 
 Place-to-address matching uses the selected ALS snapshot's English and Traditional
-Chinese address definitions. A match requires a recognised street and an adjacent
-building-number expression. English suffix abbreviations are expanded only into the
-full-name matching form used by the reference definition; this does not rewrite the
-publisher text or establish a separate canonical spelling policy. Common Chinese number
-forms are also normalised.
+Chinese address definitions as per-snapshot indexes. Exact canonical building, estate,
+block, and phase components are recognised alongside a street and its adjacent
+building-number expression. A match is accepted only when that evidence selects one
+canonical address. English suffix abbreviations are expanded only into the full-name
+matching form used by the reference definition; this does not rewrite the publisher text
+or establish a separate canonical spelling policy. Common Chinese number forms are also
+normalised.
 
-The parser reports the recognised street, building-number expression, residual 2D text,
-and whether the observation is a premise candidate, street-only, or unrecognised. Shop,
-unit, room, floor, and similar fragments are stripped from the 2D candidate and retained
-as typed prospective address3d parts using the canonical unit/floor expression,
-reference, and type vocabulary. They do not create address3d rows yet. Ambiguous ALS
-matches remain unresolved. Locality, estate, venue, and street-only source values remain
-unlinked and are retained in the source Place record.
+The parser reports recognised canonical components, the street, building-number
+expression, residual 2D text, and whether the observation is a premise candidate,
+street-only, or unrecognised. Shop, unit, room, floor, and similar fragments are
+stripped from the 2D candidate and retained as typed prospective address3d parts using
+the canonical unit/floor expression, reference, and type vocabulary. They do not create
+address3d rows yet. Ambiguous ALS matches remain unresolved. Locality, venue, and
+street-only source values remain unlinked and are retained in the source Place record.
 
 The parser can accept bilingual canonical Streets definitions as a separate reference
 vocabulary. Places ingestion currently derives its street vocabulary from the selected
@@ -100,10 +102,13 @@ ALS definitions because the Places composition does not declare a Streets member
 staged LandsD baseline is not a published lookup dependency and must not be read
 directly during publication.
 
-A parsed premise candidate which has no ALS match is not promoted into the Addresses
-family. The current Addresses composition contains only the official ALS
-`address/default` member. A supplementary source requires its own dataset and source
-provenance, reviewed identity rules, a composition variant/domain and an address
+A parsed premise candidate which has no ALS match is not promoted into the official ALS
+source. The planned Overture Places supplementary Address source will be fixture-curated
+and retain its Overture Place, source-release, candidate-evidence, and confidence
+provenance. Candidates over its deterministic acceptance threshold can be recorded in
+that curation; weaker partial matches must stop in the same review workflow used for
+address identity drift, while candidates without meaningful evidence remain for later
+processing. It requires its own dataset, composition variant/domain, and address
 materialisation path before Places can select it.
 
 To remove the bounded Overture Places initialisation from a target, use the
