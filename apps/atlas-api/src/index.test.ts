@@ -1348,6 +1348,44 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /addresses/v0.1/search validates matching-mode component requirements', async () => {
+    const { env } = createEnv()
+
+    const missingComponent = await app.fetch(
+      apiRequest('http://localhost/addresses/v0.1/search?q=Harbour&match=component'),
+      env,
+    )
+    const unexpectedComponent = await app.fetch(
+      apiRequest(
+        'http://localhost/addresses/v0.1/search?q=Harbour&match=prefix&component=street',
+      ),
+      env,
+    )
+
+    expect(missingComponent.status).toBe(422)
+    expect(unexpectedComponent.status).toBe(422)
+  })
+
+  test('GET /addresses/v0.1/search returns snapshot_not_ready before searching', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/addresses/v0.1/search?q=Harbour&match=full-text'),
+      env,
+    )
+
+    expect(res.status).toBe(503)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active address snapshot is published.',
+    })
+  })
+
   test('GET /divisions/v0.1 returns 503 when atlas hits a transient D1 read failure', async () => {
     const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createEnv(
@@ -1585,14 +1623,14 @@ describe('atlas-api', () => {
       blockExpression: [
         'BLK A',
         'BLK B',
-        'TOWER 1',
-        'HOUSE 2',
+        'TWR 1',
+        'HSE 2',
         'APT D1',
         'FLAT A',
         'MANSION A',
         'GARAGE A',
         'COMMERCIAL CENTRE',
-        'TOWERS 1&2',
+        'TWR 1&2',
         null,
       ],
       blockType: [

@@ -73,6 +73,11 @@ export const PlaceQuerySchema = z
 
 const PlaceBBoxSchema = z.union([BBoxSchema, z.null()]).openapi({
   description: openApiText('openapi_places_bbox_description'),
+  examples: [
+    [113.8512802, 22.1984482, 113.8512955, 22.19845],
+    [114.155, 22.285, 114.156, 22.286],
+    null,
+  ],
 }) as z.ZodType<unknown>
 
 const PlaceGeometrySchema = z
@@ -86,6 +91,10 @@ const PlaceGeometrySchema = z
   })
   .openapi('PlaceGeometry', {
     description: openApiText('openapi_geometry_description'),
+    examples: [
+      { type: 'Point', coordinates: [113.8512806, 22.19845] },
+      { type: 'Point', coordinates: [114.155, 22.285] },
+    ],
   })
 
 const PlaceSourceSchema = z
@@ -171,6 +180,19 @@ const PlaceSourceArraySchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_sources_description'),
+    examples: [
+      [
+        {
+          property: '',
+          dataset: 'meta',
+          license: 'CDLA-Permissive-2.0',
+          record_id: '110864367186379',
+          update_time: '2025-09-15T07:00:00.000Z',
+          confidence: 0.6096840190952489,
+        },
+      ],
+      null,
+    ],
   }) as z.ZodType<unknown>
 
 const PlaceTaxonomyHierarchySchema = z
@@ -178,6 +200,11 @@ const PlaceTaxonomyHierarchySchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_taxonomy_hierarchy_description'),
+    examples: [
+      ['food_and_drink', 'beverage_shop', 'bubble_tea_shop'],
+      ['lodging', 'hotel'],
+      null,
+    ],
   }) as z.ZodType<unknown>
 
 const PlaceTaxonomyAlternatesSchema = z
@@ -185,6 +212,7 @@ const PlaceTaxonomyAlternatesSchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_taxonomy_alternates_description'),
+    examples: [['beach', 'castle'], ['breakfast_and_brunch_restaurant'], null],
   }) as z.ZodType<unknown>
 
 const PlaceTaxonomySchema = z
@@ -194,6 +222,7 @@ const PlaceTaxonomySchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_taxonomy_primary_description'),
+        examples: ['bubble_tea_shop', 'chinese_restaurant', 'hotel', null],
       }),
     hierarchy: PlaceTaxonomyHierarchySchema,
     alternates: PlaceTaxonomyAlternatesSchema,
@@ -208,6 +237,11 @@ const PlaceWebsitesSchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_websites_description'),
+    examples: [
+      ['http://www.lcsd.gov.hk/CE/Museum/Monument/en/monuments_11.php'],
+      ['http://www.lantaublue.com/'],
+      null,
+    ],
   }) as z.ZodType<unknown>
 
 const PlaceSocialsSchema = z
@@ -216,6 +250,11 @@ const PlaceSocialsSchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_socials_description'),
+    examples: [
+      ['https://www.facebook.com/164703716878146'],
+      ['https://www.twitter.com/kafe_nak', 'https://www.instagram.com/nakkafe'],
+      null,
+    ],
   }) as z.ZodType<unknown>
 
 const PlaceEmailsSchema = z
@@ -224,6 +263,7 @@ const PlaceEmailsSchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_emails_description'),
+    examples: [['info@starbucks.com'], ['info@np360.com.hk'], null],
   }) as z.ZodType<unknown>
 
 const PlacePhonesSchema = z
@@ -232,6 +272,7 @@ const PlacePhonesSchema = z
   .nullable()
   .openapi({
     description: openApiText('openapi_places_phones_description'),
+    examples: [['+85268391024'], ['+85229802241'], null],
   }) as z.ZodType<unknown>
 
 const PlaceI18nSchema = z
@@ -241,54 +282,67 @@ const PlaceI18nSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_i18n_snapshot_id_description'),
+        examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5'],
       }),
     placeId: IdSchema.openapi({
       description: openApiText('openapi_places_i18n_place_id_description'),
+      examples: [
+        '3a36e925-a641-4a2d-812a-9b22285e1ea9',
+        '86ab29b3-5b05-4ec0-a2cb-286bf5e8effb',
+      ],
     }),
     locale: z.string().openapi({
       description: openApiText('openapi_places_i18n_locale_description'),
+      examples: ['en', 'zh-hant', 'ja', 'und'],
     }),
     name: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", '分流炮台', null],
       }),
     nameVariant: z
       .array(z.string())
       .nullable()
       .openapi({
         description: openApiText('openapi_places_name_variant_description'),
+        examples: [['Pizza Hut', 'language'], ['麥當勞'], null],
       }) as z.ZodType<unknown>,
     nameAlts: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_name_alts_description'),
+        examples: ['Pizza Hut', '麥當勞', null],
       }),
     brandName: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_brand_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", 'PARKnSHOP Supermarket HK', null],
       }),
     brandNameVariant: z
       .array(z.string())
       .nullable()
       .openapi({
         description: openApiText('openapi_places_brand_name_variant_description'),
+        examples: [['language'], ['大快活'], null],
       }) as z.ZodType<unknown>,
     brandNameAlts: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_brand_name_alts_description'),
+        examples: ['language', '大快活', null],
       }),
     freeformAddress: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_address_freeform_description'),
+        examples: ['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null],
       }),
     provenance: z
       .object({
@@ -299,18 +353,28 @@ const PlaceI18nSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_provenance_description'),
+        examples: [
+          {
+            isMachineTranslated: [],
+            isHumanVerified: [],
+            isLocaleInferred: true,
+          },
+          null,
+        ],
       }),
     createdAt: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_created_at_description'),
+        examples: ['2026-09-05T10:35:34.430Z'],
       }),
     updatedAt: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_updated_at_description'),
+        examples: ['2026-09-05T11:26:14.710Z'],
       }),
   })
   .openapi('PlaceI18n', {
@@ -333,24 +397,28 @@ const PlaceSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_reference_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", '分流炮台', null],
       }),
     addressSnapshotId: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_address_snapshot_id_description'),
+        examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
     address2dId: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_address_2d_id_description'),
+        examples: ['ss-077c2fdb-5843-5710-aaaa-b162e913b4ef', null],
       }),
     address3dId: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_address_3d_id_description'),
+        examples: [null],
       }),
     geometry: PlaceGeometrySchema,
     bbox: PlaceBBoxSchema,
@@ -405,6 +473,10 @@ const PlaceDivisionSchema = z
   .object({
     divisionId: IdSchema.openapi({
       description: openApiText('openapi_places_division_id_description'),
+      examples: [
+        'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
+        '5aa908d4-65c5-4aac-b6eb-bb7481c14a31',
+      ],
     }),
     level: z
       .number()
@@ -412,18 +484,21 @@ const PlaceDivisionSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_division_level_description'),
+        examples: [0, 1, 2, 4, 6, null],
       }),
     locale: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_division_locale_description'),
+        examples: ['en', 'zh-hant', 'zh-hans', null],
       }),
     name: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_division_name_description'),
+        examples: ['China', 'New Territories', 'Islands District', '離島區', null],
       }),
   })
   .openapi('PlaceDivision', {
@@ -555,12 +630,34 @@ const PlaceCollectionTaxonomySchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_taxonomy_primary_description'),
+        examples: ['restaurant', 'hotel', 'train_station', null],
       }),
-    hierarchy: PlaceTaxonomyHierarchySchema.optional(),
-    alternates: PlaceTaxonomyAlternatesSchema.optional(),
+    hierarchy: PlaceTaxonomyHierarchySchema.optional().openapi({
+      examples: [
+        ['food_and_drink', 'restaurant', 'chinese_restaurant'],
+        ['lodging', 'hotel'],
+        null,
+      ],
+    }),
+    alternates: PlaceTaxonomyAlternatesSchema.optional().openapi({
+      examples: [['breakfast_and_brunch_restaurant'], ['beach', 'castle'], null],
+    }),
   })
   .openapi('PlaceCollectionTaxonomy', {
     description: openApiText('openapi_places_taxonomy_description'),
+    examples: [
+      {
+        primary: 'chinese_restaurant',
+        hierarchy: [
+          'food_and_drink',
+          'restaurant',
+          'asian_restaurant',
+          'east_asian_restaurant',
+          'chinese_restaurant',
+        ],
+        alternates: ['breakfast_and_brunch_restaurant'],
+      },
+    ],
   })
 
 const PlaceCollectionI18nValueSchema = z
@@ -570,12 +667,14 @@ const PlaceCollectionI18nValueSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", '百佳超級市場', null],
       }),
     brandName: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_brand_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", 'PARKnSHOP Supermarket HK', null],
       }),
     freeformAddress: z
       .string()
@@ -583,6 +682,7 @@ const PlaceCollectionI18nValueSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_address_freeform_description'),
+        examples: ['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null],
       }),
     nameVariant: z
       .array(z.string())
@@ -590,6 +690,7 @@ const PlaceCollectionI18nValueSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_name_variant_description'),
+        examples: [['Pizza Hut', 'language'], ['麥當勞'], null],
       }),
     nameAlts: z
       .string()
@@ -597,6 +698,7 @@ const PlaceCollectionI18nValueSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_name_alts_description'),
+        examples: ['Pizza Hut', '麥當勞', null],
       }),
     brandNameVariant: z
       .array(z.string())
@@ -604,6 +706,7 @@ const PlaceCollectionI18nValueSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_name_variant_description'),
+        examples: [['language'], ['大快活'], null],
       }),
     brandNameAlts: z
       .string()
@@ -611,9 +714,14 @@ const PlaceCollectionI18nValueSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_name_alts_description'),
+        examples: ['language', '大快活', null],
       }),
     provenance: PlaceI18nSchema.shape.provenance.optional().openapi({
       description: openApiText('openapi_places_provenance_description'),
+      examples: [
+        { isMachineTranslated: [], isHumanVerified: [], isLocaleInferred: true },
+        null,
+      ],
     }),
   })
   .openapi('PlaceCollectionI18nValue', {
@@ -633,12 +741,14 @@ const PlaceCollectionAttributesSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_reference_name_description'),
+        examples: ["Ebeneezer's Kebabs & Pizzeria", 'Starbucks', null],
       }),
     basicCategory: z
       .string()
       .nullable()
       .openapi({
         description: openApiText('openapi_places_basic_category_description'),
+        examples: ['restaurant', 'coffee_shop', 'historic_site', null],
       }),
     taxonomy: PlaceCollectionTaxonomySchema.openapi({
       description: openApiText('openapi_places_taxonomy_description'),
@@ -648,67 +758,95 @@ const PlaceCollectionAttributesSchema = z
       .nullable()
       .openapi({
         description: openApiText('openapi_places_operating_status_description'),
+        examples: ['open', null],
       }),
     i18n: PlaceCollectionI18nSchema.optional().openapi({
       description: openApiText('openapi_places_i18n_field_description'),
+      examples: [
+        {
+          en: {
+            name: "Ebeneezer's Kebabs & Pizzeria",
+            brandName: "Ebeneezer's Kebabs & Pizzeria",
+            freeformAddress: null,
+          },
+        },
+      ],
     }),
     wikidataId: z
       .union([WikidataIdSchema, z.null()])
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_description'),
+        examples: ['Q106298409', 'Q113365214', null],
       }),
-    websites: PlaceWebsitesSchema.optional(),
-    socials: PlaceSocialsSchema.optional(),
-    emails: PlaceEmailsSchema.optional(),
-    phones: PlacePhonesSchema.optional(),
+    websites: PlaceWebsitesSchema.optional().openapi({
+      examples: [['http://www.lantaublue.com/'], null],
+    }),
+    socials: PlaceSocialsSchema.optional().openapi({
+      examples: [['https://www.facebook.com/164703716878146'], null],
+    }),
+    emails: PlaceEmailsSchema.optional().openapi({
+      examples: [['info@starbucks.com'], null],
+    }),
+    phones: PlacePhonesSchema.optional().openapi({
+      examples: [['+85268391024'], null],
+    }),
     confidence: z
       .union([ConfidenceScoreSchema, z.null()])
       .optional()
       .openapi({
         description: openApiText('openapi_places_confidence_description'),
+        examples: [0.325405122843701, 0.6096840190952489, 0.9563699245119883, null],
       }),
     firstSeenMonth: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_first_seen_month_description'),
+        examples: ['2025-09', '2025-10', '2025-12'],
       }),
     lastSeenMonth: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_last_seen_month_description'),
+        examples: ['2025-09', '2025-10', '2025-12', '2026-01'],
       }),
     createdAt: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_created_at_description'),
+        examples: ['2026-09-05T10:35:34.430Z'],
       }),
     updatedAt: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_updated_at_description'),
+        examples: ['2026-09-05T11:26:14.710Z'],
       }),
     geometry: PlaceGeometrySchema.optional().openapi({
       description: openApiText('openapi_places_geometry_field_description'),
+      examples: [{ type: 'Point', coordinates: [113.8512806, 22.19845] }],
     }),
     bbox: PlaceBBoxSchema.optional().openapi({
       description: openApiText('openapi_places_bbox_description'),
+      examples: [[113.8512802, 22.1984482, 113.8512955, 22.19845], null],
     }),
     snapshotId: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_snapshot_id_description'),
+        examples: ['997d6f2b-70a6-5806-af5d-0b973c2129da'],
       }),
     releaseId: z
       .string()
       .optional()
       .openapi({
         description: openApiText('openapi_places_release_id_description'),
+        examples: ['38c7de3b-8112-5f24-af44-fac788aeab36'],
       }),
     addressSnapshotId: z
       .string()
@@ -716,19 +854,35 @@ const PlaceCollectionAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_address_snapshot_id_description'),
+        examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
     address2dId: IdSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_places_address_2d_id_description'),
+        examples: ['ss-077c2fdb-5843-5710-aaaa-b162e913b4ef', null],
       }),
     address3dId: IdSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_places_address_3d_id_description'),
+        examples: [null],
       }),
     sources: PlaceSourceArraySchema.optional().openapi({
       description: openApiText('openapi_places_sources_description'),
+      examples: [
+        [
+          {
+            property: '',
+            dataset: 'meta',
+            license: 'CDLA-Permissive-2.0',
+            record_id: '110864367186379',
+            update_time: '2025-09-15T07:00:00.000Z',
+            confidence: 0.6096840190952489,
+          },
+        ],
+        null,
+      ],
     }),
   })
   .openapi('PlaceCollectionAttributes')

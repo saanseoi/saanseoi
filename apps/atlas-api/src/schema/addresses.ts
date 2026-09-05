@@ -84,14 +84,14 @@ const AddressI18nAttributesSchema = z
         examples: [
           'BLK A',
           'BLK B',
-          'TOWER 1',
-          'HOUSE 2',
+          'TWR 1',
+          'HSE 2',
           'APT D1',
           'FLAT A',
           'MANSION A',
           'GARAGE A',
           'COMMERCIAL CENTRE',
-          'TOWERS 1&2',
+          'TWR 1&2',
         ],
       }),
     blockType: z
