@@ -198,11 +198,10 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.type).toBe('mixed')
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
-    expect(normalised.canonical.sourceKeys).toEqual({
+    expect(normalised.canonical.identifiers).toEqual({
       hkgov: {
         objectId: 7,
         cdsiAdminAreaId: 42,
-        areaType: 'District',
         areaId: 'A',
         areaCode: 'CW',
       },
@@ -246,7 +245,7 @@ describe('division geometry normalisation', () => {
     if (!normalised) throw new Error('Expected a C&SD display area row.')
 
     expect(normalised.canonical.variant).toBe('hkgov-censtatd:simplified')
-    expect(normalised.canonical.sourceKeys).toEqual({
+    expect(normalised.canonical.identifiers).toEqual({
       hkgovCenstatd: {
         class: 'A',
         code: 11,
@@ -283,8 +282,8 @@ describe('division geometry normalisation', () => {
 
     expect(normalised.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
     expect(normalised.canonical.variant).toBe('hkgov-pland-new-town')
-    expect(normalised.canonical.sourceKeys).toEqual({
-      hkgovPlandNewTown: { id: 'tseung-kwan-o', name: 'tseung-kwan-o' },
+    expect(normalised.canonical.identifiers).toEqual({
+      hkgovPlandNewTown: { id: 'tseung-kwan-o' },
     })
   })
 

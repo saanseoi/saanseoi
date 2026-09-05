@@ -98,15 +98,6 @@ export function buildHkgovCenstatdDistrictStatisticHistoryRecord(
     midYearPopulation: source.midYearPopulation,
     midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
     referenceYear: source.referenceYear,
-    sourceKeys: {
-      hkgovCenstatd: {
-        districtCode: source.districtCode,
-        i18n: {
-          en: { name: source.nameEn },
-          'zh-hant': { name: source.nameZhHant },
-        },
-      },
-    },
     sources: source.sources,
   }
 }

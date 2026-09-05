@@ -383,14 +383,6 @@ describe('normaliseDivisionRow i18n', () => {
       base: {
         geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
         level: 5,
-        sourceKeys: {
-          hkgovLandsd: {
-            district: 'CW',
-            geoNameId: '101',
-            placeClass: 'Settlement',
-            placeType: 'Town',
-          },
-        },
         sources: {
           hkgovLandsd: {
             properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
@@ -480,7 +472,6 @@ describe('normaliseDivisionRow hierarchy', () => {
     expect(normalised.base).toMatchObject({
       id: '222b7818-970a-491d-98b6-b88d8c6f0161',
       level: 4,
-      sourceKeys: { overture: { class: '', subtype: 'region' } },
       type: 'macrohood',
     })
     expect(normalised.overtureHongKongDivisionClassificationCorrection).toEqual({
@@ -534,7 +525,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     ])
   })
 
-  test('retains a valid Overture FeatureVersion as a compatibility key', () => {
+  test('retains the original Overture source record reference', () => {
     const normalised = normaliseDivisionRow({
       id: 'division-with-feature-version',
       subtype: 'locality',
@@ -548,9 +539,6 @@ describe('normaliseDivisionRow hierarchy', () => {
       ],
     })
 
-    expect(normalised.base.sourceKeys).toMatchObject({
-      overture: { version: 42 },
-    })
     expect(normalised.base.sources).toEqual({
       overture: [
         {
@@ -640,36 +628,7 @@ describe('normaliseDivisionRow hierarchy', () => {
         type: 'district',
       },
     ])
-    expect(normalised.base.sourceKeys).toEqual({
-      overture: {
-        subtype: 'macrohood',
-        class: '',
-        hierarchies: [
-          [
-            {
-              division_id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
-              subtype: 'country',
-              name: '中国',
-            },
-            {
-              division_id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
-              subtype: 'dependency',
-              name: 'Hong Kong SAR',
-            },
-            {
-              division_id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
-              subtype: 'region',
-              name: '中西區 Central and Western District',
-            },
-            {
-              division_id: '0058e21e-a916-4762-8da1-ba6694204a35',
-              subtype: 'macrohood',
-              name: '西營盤 Sai Ying Pun',
-            },
-          ],
-        ],
-      },
-    })
+    expect(normalised.base.identifiers).toBeNull()
   })
 
   test('normalises locality hierarchy entries using division lookup', () => {

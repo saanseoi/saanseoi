@@ -1172,7 +1172,6 @@ export function normaliseDivisionRow(
   const overtureHongKongDivisionClassificationCorrection =
     resolveOvertureHongKongDivisionClassificationCorrection(id)
   const landsdPlaceName = row.source === 'hkgov-landsd'
-  const sourceFeatureVersion = asOptionalFeatureVersion(row.version)
   const type = landsdPlaceName
     ? 'settlement'
     : (overtureHongKongDivisionClassificationCorrection?.type ??
@@ -1215,26 +1214,6 @@ export function normaliseDivisionRow(
       id,
       identifiers: row.identifiers ?? null,
       level,
-      sourceKeys: landsdPlaceName
-        ? {
-            hkgovLandsd: {
-              district: asNonEmptyString(row.district),
-              geoNameId: asNonEmptyString(row.geo_name_id),
-              placeClass: asNonEmptyString(row.place_class),
-              placeType: asNonEmptyString(row.place_type),
-            },
-          }
-        : {
-            overture: {
-              subtype: otSubtype ?? '',
-              class: otClass ?? '',
-              hierarchies: row.hierarchies ?? null,
-              ...(sourceFeatureVersion !== null
-                ? { version: sourceFeatureVersion }
-                : {}),
-              ...buildOvertureCompatibilitySourceKeys(level),
-            },
-          },
       type,
       sources: landsdPlaceName
         ? {
@@ -1401,7 +1380,6 @@ function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>
       id,
       identifiers,
       level,
-      sourceKeys: { hkgovCenstatd: identifiers },
       sources: { hkgovCenstatd: { properties: sourceProperties, sources } },
       type,
       updatedAt: now,
@@ -1441,12 +1419,6 @@ function asOptionalInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) ? value : null
 }
 
-function asOptionalFeatureVersion(value: unknown) {
-  const version = asOptionalInteger(value)
-
-  return version !== null && version >= 0 && version <= 2_147_483_647 ? version : null
-}
-
 export function buildDivisionBaseHashInput(
   base:
     | Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
@@ -1461,7 +1433,6 @@ export function buildDivisionBaseHashInput(
     id: base.id,
     identifiers: base.identifiers ?? null,
     level: base.level ?? null,
-    sourceKeys: base.sourceKeys,
     sources: base.sources,
     type: base.type,
     wikidata: base.wikidata ?? null,
@@ -2242,22 +2213,6 @@ function resolveAdminLevelToken(row: Record<string, unknown>) {
 
 export function resolveAdminLevelValue(row: Record<string, unknown>) {
   return asOptionalInteger(row.admin_level) ?? asOptionalInteger(row.adminLevel)
-}
-
-function buildOvertureCompatibilitySourceKeys(level: number) {
-  if (level === 0) {
-    return {
-      admin_level: 1,
-    }
-  }
-
-  if (level === 2) {
-    return {
-      admin_level: 2,
-    }
-  }
-
-  return {}
 }
 
 function resolveOvertureHongKongDivisionClassificationCorrection(id: string) {

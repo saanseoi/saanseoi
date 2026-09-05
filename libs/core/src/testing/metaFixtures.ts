@@ -95,7 +95,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             type TEXT NOT NULL,
             geometry TEXT,
             bbox TEXT,
-            sourceKeys TEXT,
             wikidata TEXT,
             hierarchy TEXT,
             cartography TEXT,
@@ -114,11 +113,10 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `
           INSERT INTO divisions (
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
-            sourceKeys, wikidata, hierarchy, cartography, sources, createdAt, updatedAt
+            wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
-            json_object('overture', json_object('subtype', COALESCE(subtype, ''), 'class', COALESCE(class, ''))),
             wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
@@ -265,7 +263,7 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             taxonomyPrimary TEXT,
             taxonomyHierarchy TEXT,
             taxonomyAlternates TEXT,
-            brandWikidata TEXT,
+            wikidataId TEXT,
             websites TEXT,
             socials TEXT,
             emails TEXT,
@@ -288,12 +286,12 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           INSERT INTO places (
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
-            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+            wikidataId, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
-            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+            wikidataId, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
