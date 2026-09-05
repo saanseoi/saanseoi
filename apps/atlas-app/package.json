@@ -61,7 +61,7 @@
     "@types/node": "^26.4.1",
     "@vitest/browser-playwright": "^5.0.0",
     "drizzle-kit": "^0.31.10",
-    "playwright": "^1.62.1",
+    "playwright": "^1.63.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.2.2",
