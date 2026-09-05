@@ -39,13 +39,12 @@ import {
   extractPlaceAddressTexts,
   getPlaceAddressCountry,
   normaliseOverturePlace,
-  normalisePlaceText,
   type NormalisedPlace,
 } from '@repo/core/pipeline/services/place'
 import {
-  applyPlaceTranslationApplications,
-  resolvePlaceTranslationsBatch,
-} from '../i18n/placeTranslations.ts'
+  createPlaceAddressMatcher,
+  matchPlaceAddressTexts,
+} from './placeAddressMatcher.ts'
 import { createHash } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, metaSchema } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
@@ -64,6 +63,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
+import { mapWithConcurrency } from '../localPipeline/orchestrator.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
@@ -110,6 +110,7 @@ const LOCAL_RELEASE_ROOT = resolve(
   '../../../../../.local/harbour-sql/releases',
 )
 const PLACE_BATCH_SIZE = 512
+const PLACE_ENRICHMENT_CONCURRENCY = 4
 const MAX_SQL_BYTES = 90_000
 const PLACE_H3_LEVELS = [5, 7, 9] as const
 
@@ -125,10 +126,8 @@ export async function processLocalPlaceSqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
-    allowPlaceTranslationFixtureGeneration?: boolean
     deferApiReleaseSet?: boolean
     skipSnapshotCleanup?: boolean
-    translatePlaces?: boolean
   } = {},
 ) {
   const releaseId = required(uploadResult.releaseId, 'releaseId')
@@ -208,28 +207,7 @@ export async function processLocalPlaceSqlUpload(
       releaseId,
     )
     const places = await readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion)
-    if (options.translatePlaces) {
-      if (target.remote && options.allowPlaceTranslationFixtureGeneration) {
-        throw new Error(
-          'Place translation fixture generation is permitted only for an explicitly local import.',
-        )
-      }
-      const translations = await resolvePlaceTranslationsBatch({
-        allowGeneration: Boolean(options.allowPlaceTranslationFixtureGeneration),
-        datasetCode,
-        records: places.map(place => ({
-          recordId: place.id,
-          localisations: place.i18n,
-        })),
-        sourceRelease: releaseCode,
-      })
-      applyPlaceTranslationApplications(
-        places.map(place => ({ recordId: place.id, localisations: place.i18n })),
-        translations,
-      )
-    }
     assertPlaceAddressCardinality(places)
-    const excludedPlaces = places.filter(isExcludedOverturePlace)
     await replaceReleaseProcessingActions(metaDb, releaseId, [
       ...buildPlaceCountryReviewProcessingActions(places),
       ...buildPlaceLocaleConflictProcessingActions(places),
@@ -237,7 +215,7 @@ export async function processLocalPlaceSqlUpload(
     const enriched = await enrichPlaces(
       dbContext.currentDb as unknown as HarbourReadableDb,
       snapshots,
-      places.filter(place => !excludedPlaces.includes(place)),
+      places.filter(place => !isExcludedOverturePlace(place)),
     )
     const historyRows = await loadCurrentPlaceHistory(dbContext.historyTargets)
     const sql = await buildPlaceSql({
@@ -607,7 +585,19 @@ async function enrichPlaces(
     .where(eq(currentSchema.address2d.snapshotId, snapshots.addressSnapshotId))
     .all()
   const addressI18n = await currentDb
-    .select()
+    .select({
+      addressId: currentSchema.address2dI18n.addressId,
+      locale: currentSchema.address2dI18n.locale,
+      formattedAddress: currentSchema.address2dI18n.formattedAddress,
+      buildingName: currentSchema.address2dI18n.buildingName,
+      buildingNumberExpression: currentSchema.address2dI18n.buildingNumberExpression,
+      buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
+      buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
+      blockExpression: currentSchema.address2dI18n.blockExpression,
+      phaseExpression: currentSchema.address2dI18n.phaseExpression,
+      estateName: currentSchema.address2dI18n.estateName,
+      streetName: currentSchema.address2dI18n.streetName,
+    })
     .from(currentSchema.address2dI18n)
     .where(eq(currentSchema.address2dI18n.snapshotId, snapshots.addressSnapshotId))
     .all()
@@ -621,52 +611,42 @@ async function enrichPlaces(
     ).map(row => row.id),
   )
   const addressById = new Map(addresses.map(row => [row.id, row]))
-  const addressByText = new Map<string, string>()
-  for (const row of addressI18n) {
-    const formattedAddress =
-      typeof row.formattedAddress === 'string' ? row.formattedAddress : null
-    const addressId = typeof row.addressId === 'string' ? row.addressId : null
-    const key = formattedAddress ? normalisePlaceText(formattedAddress) : ''
-    if (key && addressId && !addressByText.has(key)) addressByText.set(key, addressId)
-  }
-  return Promise.all(
-    places.map(async place => {
-      const addressId =
-        extractPlaceAddressTexts(place.raw.addresses)
-          .map(normalisePlaceText)
-          .map(value => addressByText.get(value))
-          .find(Boolean) ?? null
-      const address = addressId ? addressById.get(addressId) : undefined
-      const referencedDivisionIds = address
-        ? [
-            address.countryId,
-            address.areaId,
-            address.districtId,
-            address.townId,
-            address.macrohoodId,
-            address.villageId,
-            address.neighbourhoodId,
-            address.hamletId,
-            address.microhoodId,
-          ].filter((id): id is string => typeof id === 'string' && divisionIds.has(id))
-        : []
-      const contentHash = await hashNormalisedPlace(place)
-      return {
-        place,
-        address2dId: addressId,
-        address3dId: null,
-        divisionIds: [...new Set(referencedDivisionIds)],
-        versionHash: await hashPlaceMaterialisation(place, {
-          addressSnapshotId: snapshots.addressSnapshotId,
-          divisionSnapshotId: snapshots.divisionSnapshotId,
-          addressId,
-          divisionIds: referencedDivisionIds,
-          contentHash,
-        }),
-        sourcePayloadHash: await createHash(place.raw),
-      }
-    }),
-  )
+  const addressMatcher = createPlaceAddressMatcher(addressI18n)
+  return mapWithConcurrency(places, PLACE_ENRICHMENT_CONCURRENCY, async place => {
+    const addressId = matchPlaceAddressTexts(
+      extractPlaceAddressTexts(place.raw.addresses),
+      addressMatcher,
+    )
+    const address = addressId ? addressById.get(addressId) : undefined
+    const referencedDivisionIds = address
+      ? [
+          address.countryId,
+          address.areaId,
+          address.districtId,
+          address.townId,
+          address.macrohoodId,
+          address.villageId,
+          address.neighbourhoodId,
+          address.hamletId,
+          address.microhoodId,
+        ].filter((id): id is string => typeof id === 'string' && divisionIds.has(id))
+      : []
+    const contentHash = await hashNormalisedPlace(place)
+    return {
+      place,
+      address2dId: addressId,
+      address3dId: null,
+      divisionIds: [...new Set(referencedDivisionIds)],
+      versionHash: await hashPlaceMaterialisation(place, {
+        addressSnapshotId: snapshots.addressSnapshotId,
+        divisionSnapshotId: snapshots.divisionSnapshotId,
+        addressId,
+        divisionIds: referencedDivisionIds,
+        contentHash,
+      }),
+      sourcePayloadHash: await createHash(place.raw),
+    }
+  })
 }
 
 async function loadCurrentPlaceHistory(
