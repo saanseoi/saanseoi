@@ -63,7 +63,10 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { mapWithConcurrency } from '../localPipeline/orchestrator.ts'
+import {
+  mapWithConcurrency,
+  runLocalProgressPhase,
+} from '../localPipeline/orchestrator.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
@@ -105,12 +108,41 @@ type PlaceHistoryState = {
   row: PlaceHistoryRow
 }
 
+type BuildPlaceSqlInput = {
+  activeHistoryBindingName: string
+  activeSourceBindingName: string
+  sourceBindingNames: string[]
+  datasetId: string
+  message: DatasetProcessingMessage
+  snapshots: {
+    addressSnapshotId: string
+    divisionSnapshotId: string
+    snapshotId: string
+  }
+  places: EnrichedPlace[]
+  historyRows: PlaceHistoryState[]
+}
+
+type BuildPlaceSqlOptions = {
+  includeInitialStatements?: boolean
+  includeRemovedPlaces?: boolean
+  onProgress?: (current: number) => void
+  timestamp?: string
+}
+
+type PlaceSqlProgressEvent = {
+  current: number
+  detail?: string
+  phase: 'generate' | 'import'
+}
+
 const LOCAL_RELEASE_ROOT = resolve(
   import.meta.dir,
   '../../../../../.local/harbour-sql/releases',
 )
 const PLACE_BATCH_SIZE = 512
 const PLACE_ENRICHMENT_CONCURRENCY = 4
+const PLACE_SQL_BATCH_SIZE = 512
 const MAX_SQL_BYTES = 90_000
 const PLACE_H3_LEVELS = [5, 7, 9] as const
 
@@ -140,174 +172,259 @@ export async function processLocalPlaceSqlUpload(
   await mkdir(releaseRoot, { recursive: true })
 
   const bucket = new LocalPipelineBucket(releaseRoot)
-  await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
-  const progress = new LocalUploadProgress()
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    previewPlan.regionCode,
-    shardYear,
-    {
-      cacheTableProfile: 'places',
-      includePreviousShardYears: true,
-      refreshRemoteTables: false,
-    },
-  )
-
-  const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-  const message: DatasetProcessingMessage = {
-    datasetId,
-    datasetCode,
-    rawObjectKey,
-    releaseCode,
-    releaseId,
-    regionCode: previewPlan.regionCode,
-    shardYear,
-    cohortKey: previewPlan.cohortKey,
-    source: previewPlan.source,
-    sourceVersion: previewPlan.sourceVersion,
-    theme: previewPlan.theme,
-    type: previewPlan.type,
-    processingMode: 'sql',
-    ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-  }
-  await syncStagedReleaseIntoLocalMetaCache(
-    metaDb as never,
-    {
-      datasetCode,
-      rawObjectKey,
-      releaseCode,
-      releaseId,
-    },
-    message,
-  )
-
-  const remoteClient = createHarbourControlClient(target) as HarbourClient
-  const client = target.remote
-    ? remoteClient
-    : createLocalControlClient(metaDb as never, { publishClient: remoteClient })
-  const importOptions: SqlImportExecutionOptions = {
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
-    apiToken: process.env.CLOUDFLARE_D1_TOKEN,
-    isLocal: !target.remote,
-    localWriteMaxRetries: 8,
-    metaDatabaseId: dbContext.state.bindings.DB_META?.databaseId ?? null,
-    remoteImportBatchBytes: 64 * 1024 * 1024,
-  }
+  const progress = new LocalUploadProgress({ compact: true })
+  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
+  let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
   let postPublishCacheError: Error | null = null
   let publishResult: PublishDatasetResult | void | null = null
 
   try {
-    await client.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
-    const snapshots = await resolvePlaceSnapshots(
-      metaDb,
-      dbContext.currentDb as unknown as HarbourReadableDb,
-      previewPlan,
+    await runPlaceProgressPhase(progress, 'Prepare', 'workspace', () =>
+      bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
+    )
+    dbContext = await runPlaceProgressPhase(
+      progress,
+      'Open local D1',
+      'Places data',
+      () =>
+        resolveLocalAddressDbContext(target, previewPlan.regionCode, shardYear, {
+          cacheTableProfile: 'places',
+          includePreviousShardYears: true,
+          refreshRemoteTables: false,
+        }),
+    )
+    const context = dbContext
+    if (!context) throw new Error('Places database context was not opened.')
+
+    const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+    const message: DatasetProcessingMessage = {
       datasetId,
+      datasetCode,
+      rawObjectKey,
+      releaseCode,
       releaseId,
+      regionCode: previewPlan.regionCode,
+      shardYear,
+      cohortKey: previewPlan.cohortKey,
+      source: previewPlan.source,
+      sourceVersion: previewPlan.sourceVersion,
+      theme: previewPlan.theme,
+      type: previewPlan.type,
+      processingMode: 'sql',
+      ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
+    }
+    await runPlaceProgressPhase(progress, 'Sync down', 'release metadata', () =>
+      syncStagedReleaseIntoLocalMetaCache(
+        metaDb as never,
+        { datasetCode, rawObjectKey, releaseCode, releaseId },
+        message,
+      ),
     )
-    const places = await readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion)
+
+    const remoteClient = createHarbourControlClient(target) as HarbourClient
+    const processingClient = target.remote
+      ? remoteClient
+      : createLocalControlClient(metaDb as never, { publishClient: remoteClient })
+    client = processingClient
+    const importOptions: SqlImportExecutionOptions = {
+      accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+      apiToken: process.env.CLOUDFLARE_D1_TOKEN,
+      isLocal: !target.remote,
+      localWriteMaxRetries: 8,
+      metaDatabaseId: context.state.bindings.DB_META?.databaseId ?? null,
+      remoteImportBatchBytes: 64 * 1024 * 1024,
+    }
+    await runPlaceProgressPhase(progress, 'Mark as', "'processing'", () =>
+      processingClient.stageRunning(
+        releaseId,
+        'processDataset',
+        undefined,
+        releaseCode,
+      ),
+    )
+    const snapshots = await runPlaceProgressPhase(
+      progress,
+      'Prepare',
+      'Place snapshots',
+      () =>
+        resolvePlaceSnapshots(
+          metaDb,
+          context.currentDb as unknown as HarbourReadableDb,
+          previewPlan,
+          datasetId,
+          releaseId,
+        ),
+    )
+    const places = await runPlaceProgressPhase(
+      progress,
+      'Read and normalise',
+      'source Places',
+      reportProgress =>
+        readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion, current =>
+          reportProgress(current),
+        ),
+      previewPlan.rowCount,
+    )
     assertPlaceAddressCardinality(places)
-    await replaceReleaseProcessingActions(metaDb, releaseId, [
-      ...buildPlaceCountryReviewProcessingActions(places),
-      ...buildPlaceLocaleConflictProcessingActions(places),
-    ])
-    const enriched = await enrichPlaces(
-      dbContext.currentDb as unknown as HarbourReadableDb,
-      snapshots,
-      places.filter(place => !isExcludedOverturePlace(place)),
+    await runPlaceProgressPhase(
+      progress,
+      'Review',
+      'source Places',
+      () =>
+        replaceReleaseProcessingActions(metaDb, releaseId, [
+          ...buildPlaceCountryReviewProcessingActions(places),
+          ...buildPlaceLocaleConflictProcessingActions(places),
+        ]),
+      places.length,
     )
-    const historyRows = await loadCurrentPlaceHistory(dbContext.historyTargets)
-    const sql = await buildPlaceSql({
+    const includedPlaces = places.filter(place => !isExcludedOverturePlace(place))
+    const enriched = await runPlaceProgressPhase(
+      progress,
+      'Match and enrich',
+      'Places',
+      reportProgress =>
+        enrichPlaces(
+          context.currentDb as unknown as HarbourReadableDb,
+          snapshots,
+          includedPlaces,
+          current => reportProgress(current),
+        ),
+      includedPlaces.length,
+    )
+    const historyRows = await runPlaceProgressPhase(
+      progress,
+      'Prepare',
+      'Place history',
+      () => loadCurrentPlaceHistory(context.historyTargets),
+    )
+    const sqlInput: BuildPlaceSqlInput = {
       activeHistoryBindingName: findTargetBindingName(
-        dbContext.historyTargets,
-        dbContext.historyDb,
+        context.historyTargets,
+        context.historyDb,
       ),
       activeSourceBindingName: findTargetBindingName(
-        dbContext.sourceTargets,
-        dbContext.sourceDb,
+        context.sourceTargets,
+        context.sourceDb,
       ),
-      sourceBindingNames: dbContext.sourceTargets.map(target => target.bindingName),
+      sourceBindingNames: context.sourceTargets.map(target => target.bindingName),
       datasetId,
       message,
       snapshots,
       places: enriched,
       historyRows,
-    })
+    }
+    const sqlTimestamp = new Date().toISOString()
 
-    await replaceDatasetStats(metaDb, releaseId, buildPlaceReleaseStatsRows(enriched))
-
-    await upsertPlaceMetadata(
-      metaDb,
-      snapshots,
-      datasetId,
-      releaseId,
-      previewPlan,
-      target,
+    await runPlaceProgressPhase(
+      progress,
+      'Calculate',
+      'release statistics',
+      () =>
+        replaceDatasetStats(metaDb, releaseId, buildPlaceReleaseStatsRows(enriched)),
+      enriched.length,
     )
-    const targets = await placeTargets(
-      dbContext,
-      metaDb,
-      target,
-      previewPlan.regionCode,
-      shardYear,
+
+    await runPlaceProgressPhase(progress, 'Write', 'release metadata', () =>
+      upsertPlaceMetadata(metaDb, snapshots, datasetId, releaseId, previewPlan, target),
+    )
+    const targets = await runPlaceProgressPhase(
+      progress,
+      'Prepare',
+      'SQL targets',
+      () => placeTargets(context, metaDb, target, previewPlan.regionCode, shardYear),
     )
     if (target.remote) {
-      await executeSqlText(
-        targets.meta,
-        await buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId),
-        importOptions,
+      await runPlaceProgressPhase(progress, 'Import SQL', 'snapshot metadata', () =>
+        buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId).then(sql =>
+          executeSqlText(targets.meta, sql, importOptions),
+        ),
       )
     }
-    await importSqlChunks(targets, sql, importOptions)
-    await executeSqlText(
-      targets.current,
-      readFileSync(
-        resolve(
-          import.meta.dir,
-          '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
+    await runPlaceProgressPhase(
+      progress,
+      'Generate and import SQL',
+      'Places',
+      reportProgress =>
+        importPlaceSqlBatches(targets, sqlInput, sqlTimestamp, importOptions, event =>
+          reportProgress(
+            event.current,
+            event.detail ?? (event.phase === 'generate' ? 'generation' : 'import'),
+          ),
         ),
-        'utf8',
+      enriched.length,
+    )
+    await runPlaceProgressPhase(progress, 'Rebuild', 'Places search index', () =>
+      executeSqlText(
+        targets.current,
+        readFileSync(
+          resolve(
+            import.meta.dir,
+            '../../../../../libs/db/scripts/rebuild-places-fts.sql',
+          ),
+          'utf8',
+        ),
+        importOptions,
       ),
-      importOptions,
     )
-    await client.stageCompleted(
-      releaseId,
-      'extractPlaces',
-      {
-        processedRows: enriched.length,
-        addressLinkedRows: enriched.filter(row => row.address2dId).length,
-        divisionLinkedRows: enriched.filter(row => row.divisionIds.length > 0).length,
-      },
-      releaseCode,
-    )
-    await client.stageCompleted(
-      releaseId,
-      'extractPlacesI18n',
-      {
-        localisedRows: enriched.reduce(
-          (count, row) => count + row.place.i18n.length,
-          0,
+    await runPlaceProgressPhase(
+      progress,
+      'Mark as',
+      "'completed'",
+      () =>
+        processingClient.stageCompleted(
+          releaseId,
+          'extractPlaces',
+          {
+            processedRows: enriched.length,
+            addressLinkedRows: enriched.filter(row => row.address2dId).length,
+            divisionLinkedRows: enriched.filter(row => row.divisionIds.length > 0)
+              .length,
+          },
+          releaseCode,
         ),
-      },
-      releaseCode,
+      enriched.length,
     )
-    publishResult = (await client.publishDataset(releaseId, releaseCode, {
-      carriedSnapshots: [
-        {
-          resourceType: 'address',
-          snapshotId: snapshots.addressSnapshotId,
-          variant: 'default',
-        },
-        {
-          resourceType: 'division',
-          snapshotId: snapshots.divisionSnapshotId,
-          variant: 'overture',
-        },
-      ],
-      deferApiReleaseSet: options.deferApiReleaseSet,
-      skipSnapshotCleanup: options.skipSnapshotCleanup,
-    })) as PublishDatasetResult | void
+    await runPlaceProgressPhase(
+      progress,
+      'Mark as',
+      "'completed'",
+      () =>
+        processingClient.stageCompleted(
+          releaseId,
+          'extractPlacesI18n',
+          {
+            localisedRows: enriched.reduce(
+              (count, row) => count + row.place.i18n.length,
+              0,
+            ),
+          },
+          releaseCode,
+        ),
+      enriched.reduce((count, row) => count + row.place.i18n.length, 0),
+    )
+    publishResult = (await runPlaceProgressPhase(
+      progress,
+      'Publish',
+      'source release',
+      () =>
+        processingClient.publishDataset(releaseId, releaseCode, {
+          carriedSnapshots: [
+            {
+              resourceType: 'address',
+              snapshotId: snapshots.addressSnapshotId,
+              variant: 'default',
+            },
+            {
+              resourceType: 'division',
+              snapshotId: snapshots.divisionSnapshotId,
+              variant: 'overture',
+            },
+          ],
+          deferApiReleaseSet: options.deferApiReleaseSet,
+          skipSnapshotCleanup: options.skipSnapshotCleanup,
+        }),
+    )) as PublishDatasetResult | void
     if (target.remote) {
       try {
         const cacheImportOptions: SqlImportExecutionOptions = {
@@ -316,24 +433,42 @@ export async function processLocalPlaceSqlUpload(
           apiToken: undefined,
           isLocal: true,
         }
-        await replayRemoteCacheWithRetry(
-          target.environment === 'production' ? 'production' : 'preview',
-          dbContext.state.dbCacheDir,
-          releaseCode,
-          async () => {
-            await importSqlChunks(targets, sql, cacheImportOptions)
-            await executeSqlText(
-              targets.current,
-              readFileSync(
-                resolve(
-                  import.meta.dir,
-                  '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
-                ),
-                'utf8',
-              ),
-              cacheImportOptions,
-            )
-          },
+        await runPlaceProgressPhase(
+          progress,
+          'Sync down',
+          'remote cache',
+          reportProgress =>
+            replayRemoteCacheWithRetry(
+              target.environment === 'production' ? 'production' : 'preview',
+              context.state.dbCacheDir,
+              releaseCode,
+              async () => {
+                await importPlaceSqlBatches(
+                  targets,
+                  sqlInput,
+                  sqlTimestamp,
+                  cacheImportOptions,
+                  event =>
+                    reportProgress(
+                      event.current,
+                      event.detail ?? `remote cache SQL ${event.phase}`,
+                    ),
+                )
+                reportProgress(enriched.length, 'remote cache search index')
+                await executeSqlText(
+                  targets.current,
+                  readFileSync(
+                    resolve(
+                      import.meta.dir,
+                      '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
+                    ),
+                    'utf8',
+                  ),
+                  cacheImportOptions,
+                )
+              },
+            ),
+          enriched.length,
         )
         shouldRefreshRemoteMetaCache = true
       } catch (error) {
@@ -344,8 +479,8 @@ export async function processLocalPlaceSqlUpload(
     if (!options.deferApiReleaseSet) {
       await calculateAndStoreApiReleaseSetStats({
         family: 'place',
-        currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
-        harbourClient: client,
+        currentDb: context.currentDb as unknown as HarbourReadableDb,
+        harbourClient: processingClient,
         importOptions: {
           accountId: importOptions.accountId,
           apiToken: importOptions.apiToken,
@@ -359,18 +494,27 @@ export async function processLocalPlaceSqlUpload(
         target: resolveApiReleaseSetStatsTarget(publishResult),
       })
     }
-    await client.stageCompleted(
-      releaseId,
-      'processDataset',
-      {
-        processedRows: enriched.length,
-        snapshotId: snapshots.snapshotId,
-      },
-      releaseCode,
+    await runPlaceProgressPhase(
+      progress,
+      'Complete',
+      'Places processing',
+      () =>
+        processingClient.stageCompleted(
+          releaseId,
+          'processDataset',
+          {
+            processedRows: enriched.length,
+            snapshotId: snapshots.snapshotId,
+          },
+          releaseCode,
+        ),
+      enriched.length,
     )
+    progress.finish('Places processing complete')
   } catch (error) {
+    progress.fail(error)
     await client
-      .stageFailed(
+      ?.stageFailed(
         releaseId,
         'processDataset',
         error instanceof Error ? error.message : String(error),
@@ -380,8 +524,8 @@ export async function processLocalPlaceSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
-    dbContext.cleanup()
-    if (shouldRefreshRemoteMetaCache && target.remote) {
+    dbContext?.cleanup()
+    if (shouldRefreshRemoteMetaCache && target.remote && dbContext) {
       try {
         await refreshRemoteMetaCache(
           target.environment === 'production' ? 'production' : 'preview',
@@ -562,14 +706,18 @@ async function readPlaces(
   bucket: LocalPipelineBucket,
   rawObjectKey: string,
   sourceVersion: string,
+  onProgress?: (current: number) => void,
 ) {
   const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
   const places: NormalisedPlace[] = []
+  let processedRows = 0
   for await (const batch of readParquetObjectsInBatches(file, PLACE_BATCH_SIZE)) {
     for (const row of batch) {
       const place = normaliseOverturePlace(row, sourceVersion)
       if (place) places.push(place)
+      processedRows += 1
     }
+    onProgress?.(processedRows)
   }
   return places
 }
@@ -578,6 +726,7 @@ async function enrichPlaces(
   currentDb: HarbourReadableDb,
   snapshots: { addressSnapshotId: string; divisionSnapshotId: string },
   places: NormalisedPlace[],
+  onProgress?: (current: number) => void,
 ) {
   const addresses = await currentDb
     .select()
@@ -612,6 +761,7 @@ async function enrichPlaces(
   )
   const addressById = new Map(addresses.map(row => [row.id, row]))
   const addressMatcher = createPlaceAddressMatcher(addressI18n)
+  let processedPlaces = 0
   return mapWithConcurrency(places, PLACE_ENRICHMENT_CONCURRENCY, async place => {
     const addressId = matchPlaceAddressTexts(
       extractPlaceAddressTexts(place.raw.addresses),
@@ -632,7 +782,7 @@ async function enrichPlaces(
         ].filter((id): id is string => typeof id === 'string' && divisionIds.has(id))
       : []
     const contentHash = await hashNormalisedPlace(place)
-    return {
+    const result = {
       place,
       address2dId: addressId,
       address3dId: null,
@@ -646,6 +796,9 @@ async function enrichPlaces(
       }),
       sourcePayloadHash: await createHash(place.raw),
     }
+    processedPlaces += 1
+    onProgress?.(processedPlaces)
+    return result
   })
 }
 
@@ -667,27 +820,21 @@ async function loadCurrentPlaceHistory(
   )
 }
 
-export async function buildPlaceSql(input: {
-  activeHistoryBindingName: string
-  activeSourceBindingName: string
-  sourceBindingNames: string[]
-  datasetId: string
-  message: DatasetProcessingMessage
-  snapshots: {
-    addressSnapshotId: string
-    divisionSnapshotId: string
-    snapshotId: string
-  }
-  places: EnrichedPlace[]
-  historyRows: PlaceHistoryState[]
-}) {
-  const now = new Date().toISOString()
-  const currentSql: string[] = [
-    `DELETE FROM placesCells WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-    `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(input.snapshots.snapshotId)};`,
-    `DELETE FROM placesI18n WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-    `DELETE FROM places WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-  ]
+export async function buildPlaceSql(
+  input: BuildPlaceSqlInput,
+  options: BuildPlaceSqlOptions = {},
+) {
+  const includeInitialStatements = options.includeInitialStatements ?? true
+  const includeRemovedPlaces = options.includeRemovedPlaces ?? true
+  const now = options.timestamp ?? new Date().toISOString()
+  const currentSql: string[] = includeInitialStatements
+    ? [
+        `DELETE FROM placesCells WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
+        `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(input.snapshots.snapshotId)};`,
+        `DELETE FROM placesI18n WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
+        `DELETE FROM places WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
+      ]
+    : []
   const historySqlByBinding = new Map<string, string[]>()
   const sourceSqlByBinding = new Map<string, string[]>()
   const changes: string[] = []
@@ -708,12 +855,15 @@ export async function buildPlaceSql(input: {
     return created
   }
 
-  for (const bindingName of input.sourceBindingNames) {
-    sourceStatements(bindingName).push(
-      `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1;`,
-    )
+  if (includeInitialStatements) {
+    for (const bindingName of input.sourceBindingNames) {
+      sourceStatements(bindingName).push(
+        `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1;`,
+      )
+    }
   }
 
+  let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
     const previous = previousById.get(place.id)
@@ -933,32 +1083,36 @@ export async function buildPlaceSql(input: {
         }),
       )
     }
+    processedPlaceRows += 1
+    options.onProgress?.(processedPlaceRows)
   }
 
-  const seen = new Set(input.places.map(row => row.place.id))
-  for (const previous of previousById.values()) {
-    const previousId =
-      typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
-    if (seen.has(previousId)) continue
-    historyStatements(previous.bindingName).push(
-      `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(previousId)} AND isCurrent = 1;`,
-    )
-    historyStatements(previous.bindingName).push(
-      `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(previousId)} AND isCurrent = 1;`,
-    )
-    changes.push(
-      insertSql('snapshotVersionChanges', {
-        snapshotId: input.snapshots.snapshotId,
-        recordType: 'place',
-        recordId: previous.row.id,
-        locale: '',
-        versionHash: null,
-        operation: 'delete',
-        sourceReleaseId: input.message.releaseId,
-        createdAt: now,
-        updatedAt: now,
-      }),
-    )
+  if (includeRemovedPlaces) {
+    const seen = new Set(input.places.map(row => row.place.id))
+    for (const previous of previousById.values()) {
+      const previousId =
+        typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
+      if (seen.has(previousId)) continue
+      historyStatements(previous.bindingName).push(
+        `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(previousId)} AND isCurrent = 1;`,
+      )
+      historyStatements(previous.bindingName).push(
+        `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(previousId)} AND isCurrent = 1;`,
+      )
+      changes.push(
+        insertSql('snapshotVersionChanges', {
+          snapshotId: input.snapshots.snapshotId,
+          recordType: 'place',
+          recordId: previous.row.id,
+          locale: '',
+          versionHash: null,
+          operation: 'delete',
+          sourceReleaseId: input.message.releaseId,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      )
+    }
   }
 
   return {
@@ -966,6 +1120,55 @@ export async function buildPlaceSql(input: {
     historySqlByBinding,
     sourceSqlByBinding,
     changes,
+  }
+}
+
+async function* buildPlaceSqlBatches(
+  input: BuildPlaceSqlInput,
+  timestamp: string,
+  onProgress?: (event: PlaceSqlProgressEvent) => void,
+) {
+  const historyById = new Map(
+    input.historyRows.map(state => [String(state.row.id), state]),
+  )
+  const seen = new Set<string>()
+  let yielded = false
+
+  for (let start = 0; start < input.places.length; start += PLACE_SQL_BATCH_SIZE) {
+    const places = input.places.slice(start, start + PLACE_SQL_BATCH_SIZE)
+    const historyRows: PlaceHistoryState[] = []
+    for (const place of places) {
+      const placeId = place.place.id
+      seen.add(placeId)
+      const previous = historyById.get(placeId)
+      if (previous) historyRows.push(previous)
+    }
+
+    yield await buildPlaceSql(
+      { ...input, historyRows, places },
+      {
+        includeInitialStatements: !yielded,
+        includeRemovedPlaces: false,
+        onProgress: current =>
+          onProgress?.({ current: start + current, phase: 'generate' }),
+        timestamp,
+      },
+    )
+    yielded = true
+  }
+
+  const removedHistoryRows = input.historyRows.filter(
+    state => !seen.has(String(state.row.id)),
+  )
+  if (!yielded || removedHistoryRows.length > 0) {
+    yield await buildPlaceSql(
+      { ...input, historyRows: removedHistoryRows, places: [] },
+      {
+        includeInitialStatements: !yielded,
+        includeRemovedPlaces: true,
+        timestamp,
+      },
+    )
   }
 }
 
@@ -1319,41 +1522,126 @@ async function importSqlChunks(
   targets: Awaited<ReturnType<typeof placeTargets>>,
   sql: Awaited<ReturnType<typeof buildPlaceSql>>,
   options: SqlImportExecutionOptions,
+  onProgress?: (completed: number, total: number) => void,
 ) {
+  const totalChunks = countSqlChunks(sql)
+  let completedChunks = 0
+  const executeChunk = async (target: SqlImportTargetContext, chunk: string) => {
+    await executeSqlText(target, chunk, options)
+    completedChunks += 1
+    onProgress?.(completedChunks, totalChunks)
+  }
+
   for (const [bindingName, statements] of sql.sourceSqlByBinding) {
     const target = targets.sourceByBinding.get(bindingName)
     if (!target) throw new Error(`Missing Places source target ${bindingName}.`)
-    for (const chunk of chunkStatements(statements))
-      await executeSqlText(target, chunk, options)
+    for (const chunk of chunkStatements(statements)) await executeChunk(target, chunk)
   }
   for (const [bindingName, statements] of sql.historySqlByBinding) {
     const target = targets.historyByBinding.get(bindingName)
     if (!target) throw new Error(`Missing Places history target ${bindingName}.`)
-    for (const chunk of chunkStatements(statements))
-      await executeSqlText(target, chunk, options)
+    for (const chunk of chunkStatements(statements)) await executeChunk(target, chunk)
   }
   for (const chunk of chunkStatements(sql.currentSql))
-    await executeSqlText(targets.current, chunk, options)
+    await executeChunk(targets.current, chunk)
   for (const chunk of chunkStatements(sql.changes))
-    await executeSqlText(targets.history, chunk, options)
+    await executeChunk(targets.history, chunk)
+}
+
+async function importPlaceSqlBatches(
+  targets: Awaited<ReturnType<typeof placeTargets>>,
+  input: BuildPlaceSqlInput,
+  timestamp: string,
+  options: SqlImportExecutionOptions,
+  onProgress?: (event: PlaceSqlProgressEvent) => void,
+) {
+  let completedBatches = 0
+  for await (const sql of buildPlaceSqlBatches(input, timestamp, onProgress)) {
+    const batchEnd = Math.min(
+      input.places.length,
+      (completedBatches + 1) * PLACE_SQL_BATCH_SIZE,
+    )
+    await importSqlChunks(targets, sql, options, (completed, total) =>
+      onProgress?.({
+        current: batchEnd,
+        detail: `import ${completed}/${total} SQL chunks`,
+        phase: 'import',
+      }),
+    )
+    completedBatches += 1
+    onProgress?.({
+      current: Math.min(input.places.length, completedBatches * PLACE_SQL_BATCH_SIZE),
+      phase: 'import',
+    })
+  }
+}
+
+async function runPlaceProgressPhase<T>(
+  progress: LocalUploadProgress,
+  action: string,
+  subject: string,
+  operation: (
+    reportProgress: (current: number, subject?: string) => void,
+  ) => Promise<T> | T,
+  totalUnits?: number,
+) {
+  return runLocalProgressPhase(
+    progress,
+    {
+      action,
+      completedCount: totalUnits,
+      subject,
+      totalUnits,
+    },
+    operation,
+  )
 }
 
 function normaliseError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error))
 }
 
-function chunkStatements(statements: string[]) {
-  const chunks: string[] = []
+function* chunkStatements(statements: string[]) {
   let current = ''
   for (const statement of statements) {
-    if (current && Buffer.byteLength(current + statement) > MAX_SQL_BYTES) {
-      chunks.push(current)
-      current = ''
+    const candidate = current + statement
+    if (current && Buffer.byteLength(candidate) > MAX_SQL_BYTES) {
+      yield current
+      current = statement
+      continue
     }
-    current += statement
+    current = candidate
   }
-  if (current) chunks.push(current)
-  return chunks
+  if (current) yield current
+}
+
+function countSqlChunks(sql: Awaited<ReturnType<typeof buildPlaceSql>>) {
+  const countMapChunks = (groups: Map<string, string[]>) =>
+    [...groups.values()].reduce(
+      (total, statements) => total + countStatementChunks(statements),
+      0,
+    )
+  return (
+    countMapChunks(sql.sourceSqlByBinding) +
+    countMapChunks(sql.historySqlByBinding) +
+    countStatementChunks(sql.currentSql) +
+    countStatementChunks(sql.changes)
+  )
+}
+
+function countStatementChunks(statements: string[]) {
+  let chunks = 0
+  let currentBytes = 0
+  for (const statement of statements) {
+    const statementBytes = Buffer.byteLength(statement)
+    if (currentBytes && currentBytes + statementBytes > MAX_SQL_BYTES) {
+      chunks += 1
+      currentBytes = statementBytes
+    } else {
+      currentBytes += statementBytes
+    }
+  }
+  return currentBytes ? chunks + 1 : chunks
 }
 
 function insertSql(table: string, values: Record<string, unknown>) {

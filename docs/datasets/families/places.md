@@ -58,6 +58,14 @@ projections and are rebuilt for the active Place snapshot; they are not copied i
 history. The division projection is derived from the selected address snapshot's
 `divisionSnapshotId` and division IDs.
 
+The Places collection endpoint is `GET /places/v0.1/{region}`. It uses the shared
+JSON:API list shape with release-set selection, `page[limit]` and `page[offset]`,
+permalinks, and `basicCategory`, `taxonomyPrimary`, `operatingStatus`, and Division
+filters. The `compact`, `default`, `map`, and `full` profiles progressively add ordinary
+place details, point geometry, and audit/provenance fields. H3 cell memberships remain
+current indexing projections rather than canonical Place attributes; use `by-cell` for
+that map lookup.
+
 Place history records the address snapshot and address ID selected for each version.
 Historical reads must follow that recorded address snapshot into historical addresses
 and then use the address entry's division IDs. They must not join a historical Place to
@@ -72,12 +80,31 @@ remain intact. Machine translation of Place names and free-form addresses is dis
 missing PlaceI18n values remain missing.
 
 Place-to-address matching uses the selected ALS snapshot's English and Traditional
-Chinese address definitions. A match requires a known street and building number. Common
-English street abbreviations and Chinese number forms are normalised, while shop, unit,
-room, floor, and stall fragments are separated as prospective address3d components
-before matching address2d. Ambiguous matches remain unresolved. Known non-premise source
-values are listed with their Place context in
-`fixtures/review/overture-place-addresses.json` for review.
+Chinese address definitions. A match requires a recognised street and an adjacent
+building-number expression. English suffix abbreviations are expanded only into the
+full-name matching form used by the reference definition; this does not rewrite the
+publisher text or establish a separate canonical spelling policy. Common Chinese number
+forms are also normalised.
+
+The parser reports the recognised street, building-number expression, residual 2D text,
+and whether the observation is a premise candidate, street-only, or unrecognised. Shop,
+unit, room, floor, and similar fragments are stripped from the 2D candidate and retained
+as typed prospective address3d parts using the canonical unit/floor expression,
+reference, and type vocabulary. They do not create address3d rows yet. Ambiguous ALS
+matches remain unresolved. Locality, estate, venue, and street-only source values remain
+unlinked and are retained in the source Place record.
+
+The parser can accept bilingual canonical Streets definitions as a separate reference
+vocabulary. Places ingestion currently derives its street vocabulary from the selected
+ALS definitions because the Places composition does not declare a Streets member. A
+staged LandsD baseline is not a published lookup dependency and must not be read
+directly during publication.
+
+A parsed premise candidate which has no ALS match is not promoted into the Addresses
+family. The current Addresses composition contains only the official ALS
+`address/default` member. A supplementary source requires its own dataset and source
+provenance, reviewed identity rules, a composition variant/domain and an address
+materialisation path before Places can select it.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It reports its release-owned rows first and keeps a
@@ -97,9 +124,23 @@ Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，�
 `addresses`。地點名稱、品牌及自由格式地址均不使用機器翻譯；`referenceName`
 是不計入語言覆蓋率的衍生投影。
 
+Places collection endpoint 為
+`GET /places/v0.1/{region}`，使用共用 JSON:API 清單格式、release-set 選擇、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
+和 Division 篩選。`compact`、`default`、`map` 和 `full`
+profile 依序加入一般地點資料、點幾何和審核／來源欄位。H3 儲存格成員仍是 current 索引投影，不是 canonical
+Place 屬性；地圖查詢請使用 `by-cell`。
+
 ## ZH-HANS
 
 Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开 Place 使用 PlaceI18n 的
 `freeformAddress`，不提供
 `addresses`。地点名称、品牌及自由格式地址均不使用机器翻译；`referenceName`
 是不计入语言覆盖率的派生投影。
+
+Places collection endpoint 为
+`GET /places/v0.1/{region}`，使用共用 JSON:API 列表格式、release-set 选择、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
+和 Division 筛选。`compact`、`default`、`map` 和 `full`
+profile 依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是 canonical
+Place 属性；地图查询请使用 `by-cell`。
