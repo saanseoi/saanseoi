@@ -37,7 +37,6 @@ function historyRow(id: string) {
     midYearPopulation: 1,
     midYearPopulationDensityPerSqKm: 1,
     referenceYear: '2022',
-    sourceKeys: { sourceRecordId: 'district-1' },
     sourceReleaseId: releaseId,
     sources: [{ dataset: 'C&SD' }],
     updatedAt: '2026-08-16T00:00:00.000Z',
@@ -175,7 +174,7 @@ describe('buildStatisticSqlBatches', () => {
       CREATE TABLE divisionStatistics (
         createdAt TEXT, districtCode TEXT, divisionId TEXT, id TEXT, isCurrent INTEGER,
         landAreaSqKm REAL, midYearPopulation INTEGER,
-        midYearPopulationDensityPerSqKm INTEGER, referenceYear TEXT, sourceKeys TEXT,
+        midYearPopulationDensityPerSqKm INTEGER, referenceYear TEXT,
         sourceReleaseId TEXT, sources TEXT, updatedAt TEXT, versionHash TEXT,
         PRIMARY KEY (id, versionHash)
       );

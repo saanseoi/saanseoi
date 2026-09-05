@@ -18,7 +18,7 @@ exports[`Divisions API responses through the Worker route default list through a
           "level": 0,
           "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-country-cn",
         "links": {
@@ -45,7 +45,7 @@ exports[`Divisions API responses through the Worker route default list through a
           "level": 0,
           "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-hk-sar",
         "links": {
@@ -81,7 +81,7 @@ exports[`Divisions API responses through the Worker route default list through a
           "level": 2,
           "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-east",
         "links": {
@@ -125,7 +125,7 @@ exports[`Divisions API responses through the Worker route default list through a
           "level": 3,
           "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -232,7 +232,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "level": 0,
           "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-country-cn",
         "links": {
@@ -275,7 +275,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "level": 0,
           "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-hk-sar",
         "links": {
@@ -327,7 +327,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "level": 2,
           "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-east",
         "links": {
@@ -387,7 +387,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "level": 3,
           "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -478,7 +478,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "level": 0,
           "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-country-cn",
         "links": {
@@ -505,7 +505,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "level": 0,
           "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-hk-sar",
         "links": {
@@ -549,7 +549,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "level": 2,
           "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-east",
         "links": {
@@ -609,7 +609,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "level": 3,
           "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -662,11 +662,9 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             "coordinates": [],
             "type": "Polygon",
           },
+          "identifiers": null,
           "isLand": true,
           "isTerritorial": false,
-          "sourceKeys": {
-            "provider": "overture",
-          },
           "sources": {
             "provider": [
               {
@@ -703,13 +701,11 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             ],
             "type": "LineString",
           },
+          "identifiers": null,
           "isLand": true,
           "isTerritorial": false,
           "leftDivisionId": "division-east",
           "rightDivisionId": "division-hk-sar",
-          "sourceKeys": {
-            "provider": "overture",
-          },
           "sources": {
             "overture": [
               {
@@ -803,30 +799,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         "identifiers": null,
         "level": 3,
         "snapshotId": "snapshot-overture-2025",
-        "sourceKeys": {
-          "overture": {
-            "class": "locality",
-            "hierarchies": [
-              {
-                "division_id": "division-country-cn",
-                "name": "中国",
-                "subtype": "country",
-              },
-              {
-                "division_id": "division-hk-sar",
-                "name": "Hong Kong SAR",
-                "subtype": "dependency",
-              },
-              {
-                "division_id": "division-east",
-                "name": "Eastern District",
-                "subtype": "region",
-              },
-            ],
-            "subtype": "locality",
-            "version": 1,
-          },
-        },
         "sources": {
           "overture": [
             {
@@ -838,7 +810,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "type": "locality",
         "updatedAt": "2025-09-24T00:00:00.000Z",
-        "wikidata": null,
+        "wikidataId": null,
       },
       "id": "division-a-kung-ngam",
       "links": {
@@ -917,14 +889,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "identifiers": null,
           "level": 0,
           "snapshotId": "snapshot-overture-2025",
-          "sourceKeys": {
-            "overture": {
-              "class": "country",
-              "hierarchies": [],
-              "subtype": "country",
-              "version": 1,
-            },
-          },
           "sources": {
             "overture": [
               {
@@ -936,7 +900,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-country-cn",
         "links": {
@@ -989,20 +953,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "identifiers": null,
           "level": 0,
           "snapshotId": "snapshot-overture-2025",
-          "sourceKeys": {
-            "overture": {
-              "class": "sar",
-              "hierarchies": [
-                {
-                  "division_id": "division-country-cn",
-                  "name": "中国",
-                  "subtype": "country",
-                },
-              ],
-              "subtype": "sar",
-              "version": 1,
-            },
-          },
           "sources": {
             "overture": [
               {
@@ -1014,7 +964,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-hk-sar",
         "links": {
@@ -1076,25 +1026,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "identifiers": null,
           "level": 2,
           "snapshotId": "snapshot-overture-2025",
-          "sourceKeys": {
-            "overture": {
-              "class": "district",
-              "hierarchies": [
-                {
-                  "division_id": "division-country-cn",
-                  "name": "中国",
-                  "subtype": "country",
-                },
-                {
-                  "division_id": "division-hk-sar",
-                  "name": "Hong Kong SAR",
-                  "subtype": "dependency",
-                },
-              ],
-              "subtype": "district",
-              "version": 1,
-            },
-          },
           "sources": {
             "overture": [
               {
@@ -1106,7 +1037,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-east",
         "links": {
@@ -1183,7 +1114,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
           "level": 0,
           "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-country-cn",
         "links": {
@@ -1210,7 +1141,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
           "level": 0,
           "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-hk-sar",
         "links": {
@@ -1246,7 +1177,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
           "level": 2,
           "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-east",
         "links": {
@@ -1290,7 +1221,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
           "level": 3,
           "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -1381,7 +1312,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
           "level": 3,
           "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
-          "wikidata": null,
+          "wikidataId": null,
         },
         "id": "division-a-kung-ngam",
         "links": {

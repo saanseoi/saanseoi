@@ -375,14 +375,6 @@ function seedCurrent(sqlite: Database) {
     'snapshot-pland-new-town-2021',
   ]) {
     for (const division of divisionRows) {
-      const sourceKeys = {
-        overture: {
-          subtype: division.type,
-          class: division.type,
-          version: 1,
-          hierarchies: division.hierarchy,
-        },
-      }
       const sources = {
         overture: [
           {
@@ -397,9 +389,9 @@ function seedCurrent(sqlite: Database) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (snapshotId, id, identifiers, level, type, geometry, bbox, sourceKeys, wikidata,
+          (snapshotId, id, identifiers, level, type, geometry, bbox, wikidata,
            hierarchy, cartography, sources, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           snapshotId,
           division.id,
@@ -413,7 +405,6 @@ function seedCurrent(sqlite: Database) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          json(sourceKeys),
           null,
           json(division.hierarchy),
           json({ kind: 'label-center' }),
@@ -474,7 +465,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO divisionAreas
-        (snapshotId, id, variant, bbox, geometry, sourceKeys, sources, type, isLand, isTerritorial,
+        (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
          divisionId, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -483,7 +474,7 @@ function seedCurrent(sqlite: Database) {
         row.variant,
         json([114.18, 22.25, 114.3, 22.35]),
         json({ type: 'Polygon', coordinates: [] }),
-        json({ provider: row.variant }),
+        null,
         json({
           provider: [{ property: '/id', dataset: row.variant, record_id: row.id }],
         }),
@@ -499,7 +490,7 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionBoundaries
-      (snapshotId, id, variant, bbox, geometry, sourceKeys, sources, type, isLand, isTerritorial,
+      (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
        leftDivisionId, rightDivisionId, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -514,7 +505,7 @@ function seedCurrent(sqlite: Database) {
           [114.2, 22.35],
         ],
       }),
-      json({ provider: 'overture' }),
+      null,
       json({
         overture: [
           { property: '/id', dataset: 'overture', record_id: 'boundary-east' },
@@ -539,9 +530,9 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (id, identifiers, level, type, geometry, bbox, sourceKeys, wikidata, hierarchy, cartography,
+          (id, identifiers, level, type, geometry, bbox, wikidata, hierarchy, cartography,
            sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           division.id,
           null,
@@ -554,14 +545,6 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          json({
-            overture: {
-              subtype: division.type,
-              class: division.type,
-              version: 1,
-              hierarchies: division.hierarchy,
-            },
-          }),
           null,
           json(division.hierarchy),
           json({ kind: 'label-center' }),

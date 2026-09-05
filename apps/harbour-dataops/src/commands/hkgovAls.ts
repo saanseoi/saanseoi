@@ -696,7 +696,6 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
           id: historySchema.divisions.id,
           identifiers: historySchema.divisions.identifiers,
           level: historySchema.divisions.level,
-          sourceKeys: historySchema.divisions.sourceKeys,
           sources: historySchema.divisions.sources,
           type: historySchema.divisions.type,
           versionHash: historySchema.divisions.versionHash,

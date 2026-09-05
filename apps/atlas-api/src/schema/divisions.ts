@@ -204,7 +204,7 @@ const DivisionAttributesSchema = z
       }),
     bbox: z.union([BBoxSchema, z.null()]).optional(),
     cartography: z.union([CartographicHintsSchema, z.null()]).optional(),
-    wikidata: z.union([WikidataIdSchema, z.null()]).optional(),
+    wikidataId: z.union([WikidataIdSchema, z.null()]).optional(),
     createdAt: z
       .string()
       .optional()
@@ -223,12 +223,6 @@ const DivisionAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_divisions_identifiers_field_description'),
-      }),
-    sourceKeys: z
-      .unknown()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_source_keys_description'),
       }),
     i18n: DivisionI18nSchema.optional().openapi({
       description: openApiText('openapi_divisions_i18n_field_description'),
@@ -269,11 +263,11 @@ export const DivisionGeometryResourceSchema = z
       isTerritorial: z.boolean().nullable(),
       variant: z.string().optional(),
       sources: z.union([SourcesSchema, z.null()]).optional(),
-      sourceKeys: z
+      identifiers: z
         .unknown()
         .optional()
         .openapi({
-          description: openApiText('openapi_source_keys_description'),
+          description: openApiText('openapi_divisions_identifiers_field_description'),
         }),
     }),
   })

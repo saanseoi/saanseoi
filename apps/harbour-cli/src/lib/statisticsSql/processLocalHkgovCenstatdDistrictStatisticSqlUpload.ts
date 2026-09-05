@@ -113,7 +113,6 @@ type HistoryStatisticRow = {
   midYearPopulation: number
   midYearPopulationDensityPerSqKm: number
   referenceYear: string
-  sourceKeys: unknown
   sourceReleaseId: string
   sources: unknown
   updatedAt: string
