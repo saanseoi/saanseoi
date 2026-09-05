@@ -96,6 +96,9 @@ Fields reorganised for storage, query, or API response shaping:
 
 - Each Place is indexed into H3 cells at resolutions <black>5</black>, <black>7</black>,
   and <black>9</black> for the Places <black>by-cell</black> API.
+- <black>placesDivision</black> is populated only when the Place is linked to an address
+  row which carries division IDs. A Place without that link has no division projection,
+  but remains available through its H3-cell memberships.
 - The full-text index is rebuilt for the active snapshot from localised names, brand
   names, taxonomy, address, division, and street text.
 
@@ -203,6 +206,9 @@ snapshot 會為目前的 Place projection 提供 division IDs。
 
 - 每個 Place 會在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
+- 只有 Place 已連接至帶有 division IDs 的地址列時，才會建立
+  <black>placesDivision</black>。未有該連接的 Place 不會有 division
+  projection，但仍可透過其 H3 cell memberships 取得。
 - 目前 snapshot 會重建全文索引，內容來自本地化名稱、品牌名稱、taxonomy、地址、division 及 street 文字
 - <black>placesDivision</black>
   是只供目前使用的 projection，由已接受的 ALS 地址列、其記錄的 division
@@ -319,6 +325,9 @@ snapshot 会为当前 Place projection 提供 division IDs。
 
 - 每个 Place 会在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
+- 只有 Place 已连接至带有 division IDs 的地址行时，才会建立
+  <black>placesDivision</black>。未有该连接的 Place 不会有 division
+  projection，但仍可通过其 H3 cell memberships 取得。
 - 当前 snapshot 会重建全文索引，内容来自本地化名称、品牌名称、taxonomy、地址、division 及 street 文本
 - <black>placesDivision</black>
   是只供当前使用的 projection，由已接受的 ALS 地址行、其记录的 division

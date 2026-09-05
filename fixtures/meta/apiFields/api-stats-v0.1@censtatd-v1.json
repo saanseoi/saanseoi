@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:013529e463c33ad36dee20346f5b85edc9845d47da1cbeae7a90d55ae15b52ef",
+  "versionHash": "sha256:85f08aa015839fccb9f99bc429f28255f295e432c8f9c735f8408328016c95bd",
   "apiVersion": "api-stats-v0.1",
   "domainCode": "official",
   "schemaVersion": "sv-statistics-v1",
@@ -41,7 +41,7 @@
       }
     },
     {
-      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2026-Q2",
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2026-q2",
       "sourceSchemas": {
         "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0"
       }
