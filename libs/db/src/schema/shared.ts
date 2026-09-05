@@ -189,7 +189,7 @@ export const canonicalDivisionI18n = {
 
 /**
  * A district-level observation exposed by the Division Statistics API. The
- * source layer keeps the publisher's complete raw assertion and labels.
+ * source layer includes the publisher's complete raw source record and labels.
  */
 export const canonicalDivisionStatistic = {
   id: text('id').notNull(),
@@ -536,6 +536,21 @@ export const canonicalPlaceI18n = {
   brandName: text('brandName'),
   brandNameVariant: jsonText('brandNameVariant'),
   brandNameAlts: text('brandNameAlts'),
+  freeformAddress: text('freeformAddress'),
+  provenance: jsonText<PlaceI18nProvenance>('provenance'),
+}
+
+export type PlaceI18nProvenance = {
+  isMachineTranslated: Array<'name' | 'brand' | 'freeformAddress'>
+  isHumanVerified: Array<'name' | 'brand' | 'freeformAddress'>
+  isLocaleInferred: boolean
+  localeEvidence: Array<{
+    sourceLocale: string | null
+    resolvedLocale: string
+    script: 'han' | 'latin' | 'mixed' | 'other'
+    conflict: boolean
+    reason: string | null
+  }>
 }
 
 export const canonicalStreet = {
