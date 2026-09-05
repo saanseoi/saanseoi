@@ -354,6 +354,31 @@ The prepared parquet includes stable `id` and `canonicalId`, `identityAlias`,
 geometry, provenance, `GeoAddress`, `hkgovCsuId`, both source-language premise payloads,
 formatted English and Traditional Chinese addresses, and easting/northing.
 
+The canonical component fields are projections of the bilingual ALS premise object; they
+are not additional publisher fields. The English and Traditional Chinese projections use
+the corresponding ALS branch, with the same fallback rules used for the formatted
+address:
+
+- `EngBlock.BlockDescriptor`/`ChiBlock.BlockDescriptor` and `EngBlock.BlockNo`/
+  `ChiBlock.BlockNo` provide `blockType` and the textual `blockRef`. The complete block
+  object is formatted as `blockExpression`, and its ordering supplies
+  `blockTypeBeforeNumber`. `blockRef` is deliberately textual: values such as `A`, `C`,
+  `10`, or `II` are not coerced to numbers.
+- `EngStreet.BuildingNoFrom`/`BuildingNoTo` and their Chinese counterparts provide the
+  street building-number endpoints. For village premises the equivalent
+  `EngVillage`/`ChiVillage` endpoints are used. These endpoints form
+  `buildingNumberExpression`.
+- `EngPhase.PhaseName`/`PhaseNo` and `ChiPhase.PhaseName`/`PhaseNo` provide `phaseName`
+  and `phaseRef`. The phase object is formatted as `phaseExpression`.
+- `buildingNumberConnector` remains `null` because ALS supplies no range connector. A
+  hyphen in a formatted English range is presentation syntax, not evidence of an
+  interior numeric range.
+- `bbox` is derived from the retained point geometry; it is not copied from ALS.
+
+The unchanged bilingual ALS premise JSON remains in `rawProperties`. These projections,
+including the expression fields, are therefore reproducible from that raw evidence and
+are listed as derived or resolver-input fields in API provenance.
+
 The local SQL pipeline uses the prepared `id` and `canonicalId`, trusts the resolved
 division fields, parses geometry/provenance JSON, and writes English and/or Traditional
 Chinese i18n rows. It processes prepared parquet in bounded chunks through the shared

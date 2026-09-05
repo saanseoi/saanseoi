@@ -42,6 +42,18 @@ Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
 are cloned for an incoming release, changed rows create new versions, and rows seen in
 the release are marked before final cleanup.
 
+## Canonical component projection
+
+ALS supplies bilingual premise components rather than the public canonical field names.
+The importer projects each locale's block descriptor and block number to `blockType`,
+textual `blockRef`, `blockExpression`, and `blockTypeBeforeNumber`; phase name and
+number to `phaseName`, `phaseRef`, and `phaseExpression`; and street or village number
+endpoints to `buildingNumberFrom`, `buildingNumberTo`, and `buildingNumberExpression`.
+`buildingNumberConnector` is `null` because ALS supplies no range connector, and `bbox`
+is derived from the retained geometry. `blockRef` is text, so alphanumeric and Roman
+values are preserved exactly. The original bilingual ALS object remains available in
+`rawProperties` as the evidence for these projections.
+
 ## API support
 
 The registry declares the address endpoints in
