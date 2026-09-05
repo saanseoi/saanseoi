@@ -5,6 +5,7 @@ import {
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
 import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
+import type { BBox } from '@repo/core/pipeline/geojson'
 
 import {
   countAddressRecordsCurrent,
@@ -50,7 +51,7 @@ type AddressResourcePayload = {
   attributes: {
     snapshotId?: string
     geometry?: JsonObject | null
-    bbox?: [number, number, number, number] | null
+    bbox?: BBox | null
     createdAt?: string
     updatedAt?: string
     identifiers?: unknown
@@ -304,7 +305,7 @@ function createAddressResource(args: {
 
   if (isMapAddressProfile(args.routeState.profile)) {
     attributes.geometry = (address.geometry as JsonObject | null) ?? null
-    attributes.bbox = (address.bbox as [number, number, number, number] | null) ?? null
+    attributes.bbox = (address.bbox as BBox | null) ?? null
   }
 
   if (args.routeState.profile === 'full') {

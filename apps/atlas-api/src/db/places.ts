@@ -1,4 +1,5 @@
 import type { CurrentDatabase } from '@repo/db'
+import type { BBox } from '@repo/core/pipeline/geojson'
 import { and, asc, eq, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
@@ -65,7 +66,7 @@ export type PlaceRecord = {
     address3dId: string | null
     lng: number
     lat: number
-    bbox: unknown
+    bbox: BBox | null
     operatingStatus: string | null
     basicCategory: string | null
     taxonomyPrimary: string | null
@@ -87,6 +88,30 @@ export type PlaceRecord = {
   divisionIds: string[]
 }
 
+export function normalisePlaceBbox(value: unknown): BBox | null {
+  const coordinates = Array.isArray(value)
+    ? value
+    : value && typeof value === 'object' && !Array.isArray(value)
+      ? [
+          (value as Record<string, unknown>).xmin,
+          (value as Record<string, unknown>).ymin,
+          (value as Record<string, unknown>).xmax,
+          (value as Record<string, unknown>).ymax,
+        ]
+      : null
+
+  if (
+    coordinates?.length !== 4 ||
+    coordinates.some(
+      coordinate => typeof coordinate !== 'number' || !Number.isFinite(coordinate),
+    )
+  ) {
+    return null
+  }
+
+  return [coordinates[0], coordinates[1], coordinates[2], coordinates[3]]
+}
+
 type PlaceListLookup = {
   snapshotId: string
   limit?: number
@@ -99,16 +124,14 @@ type PlaceListLookup = {
 }
 
 export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
-  return (
-    (await db
-      .select()
-      .from(places)
-      .where(
-        and(eq(places.snapshotId, lookup.snapshotId), eq(places.id, lookup.placeId)),
-      )
-      .limit(1)
-      .get()) ?? null
-  )
+  const row = await db
+    .select()
+    .from(places)
+    .where(and(eq(places.snapshotId, lookup.snapshotId), eq(places.id, lookup.placeId)))
+    .limit(1)
+    .get()
+
+  return row ? { ...row, bbox: normalisePlaceBbox(row.bbox) } : null
 }
 
 export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
@@ -376,7 +399,7 @@ type PlaceListRow = PlaceRecord['place'] & { i18n: string; divisionIds: string }
 function mapPlaceRow(row: PlaceListRow): PlaceRecord {
   const { divisionIds, i18n, ...place } = row
   return {
-    place,
+    place: { ...place, bbox: normalisePlaceBbox(place.bbox) },
     i18n: parsePlaceI18n(i18n),
     divisionIds: parseDivisionIds(divisionIds),
   }
