@@ -547,7 +547,7 @@ async function assertResetStillSafe(
       .get()
     if (unexpectedSource)
       throw new Error(
-        `Refusing reset: ${target.bindingName} contains source assertions not owned by this initialisation.`,
+        `Refusing reset: ${target.bindingName} contains source records not owned by this initialisation.`,
       )
   }
   const assets = await context.metaDb
