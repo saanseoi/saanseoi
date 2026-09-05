@@ -35,15 +35,16 @@ authoritative inputs to any parsed canonical field or relationship.
 Overture address identifiers are not treated as SaanSeoi ALS identifiers and are ignored
 for Place-to-address matching. Place ingestion parses the address `freeform` value
 against the English and Traditional Chinese definitions in the selected ALS snapshot.
-The conservative first pass requires a recognised street and adjacent building-number
-expression. Common English suffix abbreviations are expanded into the full reference
-name for comparison, and Arabic and common Chinese number forms are understood. The
-publisher spelling remains unchanged.
+The matcher indexes exact canonical building, estate, block, and phase components as
+well as streets and adjacent building-number expressions. It accepts a link only when
+the combined evidence selects one canonical address. Common English suffix abbreviations
+are expanded into the full reference name for comparison, and Arabic and common Chinese
+number forms are understood. The publisher spelling remains unchanged.
 
-The parse result includes the recognised canonical street evidence, building-number
-expression and members, residual 2D text, and a premise-candidate, street-only, or
-unrecognised disposition. Shop, unit, room, floor, stall, and similar address3d
-fragments are removed from the 2D candidate and retained as typed unit/floor
+The parse result includes recognised canonical components, street evidence,
+building-number expression and members, residual 2D text, and a premise-candidate,
+street-only, or unrecognised disposition. Shop, unit, room, floor, stall, and similar
+address3d fragments are removed from the 2D candidate and retained as typed unit/floor
 expressions, references, and types for future address3d matching. They do not affect
 today's canonical relationship or create address3d records. A tied match remains
 unresolved. Locality, country, region, and postcode are not used for that match.
@@ -57,12 +58,15 @@ recorded in the Places snapshot provenance. A later release does not silently re
 that historical selection with today's latest address snapshot. The selected ALS address
 relationship remains separate and authoritative.
 
-`premise-candidate` is parser evidence, not an Address-family acceptance decision. An
+`premise-candidate` is parser evidence, not an official ALS acceptance decision. An
 unmatched observation such as `19B Ap Lei Chau Praya Road` remains unlinked even when
-its street and building number parse cleanly. Harbour has no configured supplementary
-Address member or Place-derived Address materialiser; adding one requires explicit
-source provenance, canonical identity/review rules and a composition contract rather
-than minting an official address during Places ingestion.
+its street and building number parse cleanly. The planned Overture Places supplementary
+Address source will accept fixture-curated candidates only. Each entry must retain the
+Place, source release, partial-match evidence, and confidence; deterministic
+high-confidence candidates can be added to the curation, weaker candidates must enter
+the address-identity review workflow, and unsupported candidates remain for later
+processing. The supplementary source needs its own dataset, composition contract, and
+materialiser; it must not mint an official ALS address during Places ingestion.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
