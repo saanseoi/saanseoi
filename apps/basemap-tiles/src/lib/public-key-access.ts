@@ -1,7 +1,6 @@
 import {
   isCurrentPublicKeyLease,
   isPublicKeyOriginAllowed,
-  isPublicKeyLease,
   publicApiKeyDigest,
   PublicKeyLeaseUnavailableError,
   publicKeyLeaseStorageKey,
@@ -71,6 +70,6 @@ const refreshLease = async (apiKey: string, env: PublicKeyBindings) => {
   if (response.status === 401) return null
   if (!response.ok) throw new PublicKeyLeaseUnavailableError()
   const lease = await response.json<unknown>()
-  if (!isPublicKeyLease(lease)) throw new PublicKeyLeaseUnavailableError()
+  if (!isCurrentPublicKeyLease(lease)) throw new PublicKeyLeaseUnavailableError()
   return lease
 }
