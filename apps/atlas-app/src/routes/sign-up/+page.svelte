@@ -113,6 +113,7 @@ const openEmailForm = () => {
   </div>
   {#if showEmailForm}
     <form
+      aria-busy={busy}
       class="mt-7 space-y-4"
       onsubmit={event => { event.preventDefault(); signUp() }}
     >
@@ -120,6 +121,7 @@ const openEmailForm = () => {
         >{m.auth_name()}
         <input
           bind:value={name}
+          autocomplete="name"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
         ></label
@@ -127,6 +129,7 @@ const openEmailForm = () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"
@@ -135,6 +138,7 @@ const openEmailForm = () => {
         >{m.common_password()}
         <input
           bind:value={password}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required
@@ -145,7 +149,7 @@ const openEmailForm = () => {
         <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
       {#if message}
-        <p class="font-body text-body-sm text-secondary">{message}</p>
+        <p class="font-body text-body-sm text-secondary" role="status">{message}</p>
       {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_creating() : m.auth_create_account()}</Button
