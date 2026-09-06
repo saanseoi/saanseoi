@@ -245,8 +245,8 @@ export async function showCandidatesOnMap(
   })
   const title = escapeHtml(row.sourceTexts.join(' / '))
   const html = `<!doctype html><meta charset="utf-8"><title>Address candidates</title>
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.7.0/dist/maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
-<script src="https://unpkg.com/maplibre-gl@6.7.0/dist/maplibre-gl.js"></script><script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.7.0/dist/maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.7.0/dist/maplibre-gl.js"></script><script>
 const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
 const map=new maplibregl.Map({container:'map',style:'https://tiles.hype.hk/basemap/hongkong-latest.json',center:source,zoom:16}); map.addControl(new maplibregl.NavigationControl());
 map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',score:c.score,label:c.label}}))];
