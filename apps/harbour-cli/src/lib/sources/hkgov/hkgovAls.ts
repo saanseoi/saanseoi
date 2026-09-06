@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
+import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
 import {
   buildAls2dBackfillFeatures,
   labelAls2dBackfillRows,
@@ -148,6 +149,7 @@ export async function prepareHkgovAlsAddressParquet(
     ),
   )
   labelAls2dBackfillRows(rows)
+  applyAlsPremiseConsolidations(rows, options.sourceVersion)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,

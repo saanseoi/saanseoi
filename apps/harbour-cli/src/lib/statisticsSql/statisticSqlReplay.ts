@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import {
+  deliverSqlPhase,
+  type SqlDeliveryPhase,
+} from '../localPipeline/sqlDeliveryPhase.ts'
 
 import {
   resolveShardBindingName,
@@ -50,6 +54,7 @@ export type StatisticSqlReplayProgress = {
 }
 
 export type StatisticSqlReplayOptions = {
+  delivery?: SqlDeliveryPhase
   executeSql?: typeof executeSqlText
   importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
   onProgress?: (event: StatisticSqlReplayProgress) => Promise<void> | void
@@ -124,6 +129,15 @@ export async function replayStatisticSqlBatches(
   batches: StatisticSqlBatches,
   options: StatisticSqlReplayOptions = {},
 ) {
+  if (target.remote && options.delivery) {
+    await deliverSqlPhase(options.delivery, () =>
+      replayStatisticSqlBatches(target, context, shardYear, batches, {
+        ...options,
+        delivery: undefined,
+      }),
+    )
+    return
+  }
   const execute = options.executeSql ?? executeSqlText
   const remoteReplay = target.remote
     ? resolveRemoteReplay(target, context, shardYear, batches, options)
