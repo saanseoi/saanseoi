@@ -15,6 +15,26 @@
   ],
   "decisions": [
     {
+      "id": "chun-shek-car-park-publisher-omission",
+      "estate": "CHUN SHEK ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "64401ffcb6a8fb3fa909bc68401f5d46a7b683c649219389e3c4590697d0f942",
+      "action": "reviewed_premise_reconstruction",
+      "decision": "Restore the still-existing car park from April 2026 through the latest retained release using the February 2026 source assertion. Retain it as a separate premise from the shopping centre. No residential inventory correction.",
+      "authority": "User decision, 2026-09-07: it still exists and should not have been removed.",
+      "fixture": "hkgov-dpo-address-premise-reconstructions.json"
+    },
+    {
+      "id": "choi-yuen-food-court-location-and-gap-backfill",
+      "estate": "CHOI YUEN ESTATE",
+      "release": "20260708-1050-ALS-GeoJSON",
+      "expectedFingerprint": "83873a0a38d5aa11a0e06a870470916f1d7f5d61fe58d9a0e0763de89b6148f6",
+      "action": "reviewed_premise_reconstruction",
+      "decision": "Backfill the corrected July 22 food-court location and Food Court to Plaza to Estate ancestry across all earlier releases, including July 8 and July 10. Preserve original source assertions and independent unnamed records. No residential-unit backfill.",
+      "authority": "User decision, 2026-09-07: yes, backfill this corrected location and hierarchy into earlier releases including the July gap.",
+      "fixture": "hkgov-dpo-address-premise-reconstructions.json"
+    },
+    {
       "id": "choi-ying-place-december-consolidation",
       "estate": "CHOI YING ESTATE",
       "release": "20241212-1050-ALS-GeoJSON",
