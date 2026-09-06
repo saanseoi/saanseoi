@@ -109,6 +109,47 @@ function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFi
   }
 }
 
+/** ALS and Places are independently released. A combined Address set retains
+ * the ALS lineage anchor and records the selected Places schema separately.
+ * Only schema versions already covered by the Places mapping are supported.
+ */
+function deriveCuratedAddressFixture(): ApiFieldFixture {
+  const official = apiAddressesV01FixtureOfficialLineage as ApiFieldFixture
+  const placeSchemas = [
+    ...new Set(
+      apiPlacesV01FixtureOverture112To118.lineageAnchors.map(
+        anchor => anchor.sourceSchemas['ds-hk-overture-place'],
+      ),
+    ),
+  ]
+  const fixture = {
+    ...official,
+    lineageAnchors: official.lineageAnchors.flatMap(anchor =>
+      placeSchemas.map(version => ({
+        ...anchor,
+        sourceSchemas: { ...anchor.sourceSchemas, 'ds-hk-overture-place': version },
+      })),
+    ),
+    fields: [
+      ...official.fields,
+      ...[
+        'address.id',
+        'address.attributes.i18n',
+        'address.attributes.sources',
+        'address.relationships',
+      ].map(apiField => ({
+        apiField,
+        sourceDatasetCode: 'ds-hk-overture-place',
+        sourceFieldPath: 'addresses[]',
+        resolverCode: 'merge_first_non_empty' as const,
+        contributionType: 'resolver-input' as const,
+        priority: 10,
+      })),
+    ],
+  }
+  return { ...fixture, versionHash: computeVersionHash(fixture) }
+}
+
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
   derivePopulationHouseholdsFixture(
@@ -128,6 +169,7 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
   apiAddressesV01FixtureOfficialLineage as ApiFieldFixture,
+  deriveCuratedAddressFixture(),
   apiPlacesV01FixtureOverture112To118 as ApiFieldFixture,
   apiStatisticsV01FixtureCenstatd as unknown as ApiFieldFixture,
 ]
