@@ -46,7 +46,9 @@ function setup(definitions = [citygate]) {
     emptySupplementaryEntryLedger(),
   )
   const ids = new Set(definitions.map(row => row.addressId))
-  const geometry = new Map<string, { lng: number; lat: number }>()
+  const geometry = new Map(
+    definitions.map(row => [row.addressId, { lng: 113.941, lat: 22.29 }]),
+  )
   return {
     fixture,
     ids,
@@ -56,6 +58,109 @@ function setup(definitions = [citygate]) {
 }
 
 describe('supplementary Place Address policy', () => {
+  test('link_existing selects ALS and keep_existing requires the previous identity', () => {
+    const source = observation('Citygate, 20 Tat Tung Road')
+    for (const resolution of ['link_existing', 'keep_existing'] as const) {
+      const { fixture, analyse } = setup()
+      const decision = {
+        placeId: source.placeId,
+        fingerprint: addressFingerprint(source.texts),
+        sourceRelease: source.sourceRelease,
+        resolution,
+        previousAddressId: resolution === 'keep_existing' ? citygate.addressId : null,
+        addressId: citygate.addressId,
+        reason: 'Selected address',
+      }
+      fixture.decisions.push(decision)
+      const previous =
+        resolution === 'keep_existing'
+          ? {
+              addressId: citygate.addressId,
+              fingerprint: addressFingerprint(source.texts),
+            }
+          : null
+      expect(analyse(source, previous)).toMatchObject({
+        tier: 'direct',
+        addressId: citygate.addressId,
+      })
+      if (resolution === 'keep_existing') {
+        decision.addressId = 'another-address'
+        expect(analyse(source, previous).reason).toBe('keep_decision_changes_identity')
+      }
+    }
+  })
+  test('decision codes enforce whether supplementary values are required', () => {
+    const base = {
+      placeId: 'p',
+      fingerprint: 'f',
+      sourceRelease: '2026-09-01',
+      previousAddressId: null,
+      addressId: citygate.addressId,
+      reason: 'Reviewed',
+    }
+    const parse = (decision: unknown) =>
+      parseSupplementaryCuration({
+        ...structuredClone(policyFixture),
+        decisions: [decision],
+      })
+    expect(() => parse({ ...base, resolution: 'create_supplementary' })).toThrow(
+      'address values',
+    )
+    expect(() =>
+      parse({
+        ...base,
+        resolution: 'link_existing',
+        address: { baseAddressId: null, values: [] },
+      }),
+    ).toThrow('address values')
+    expect(() => parse({ ...base, resolution: 'leave_unlinked' })).toThrow('Invalid')
+    for (const resolution of ['replace', 'keep', 'retire'])
+      expect(() => parse({ ...base, resolution })).toThrow('Invalid')
+  })
+  test('automatic canonical and supplementary links require known nearby geometry', () => {
+    for (const source of [
+      'Citygate, Tat Tung Road',
+      'Citygate Outlets, Tat Tung Road',
+    ]) {
+      for (const point of [
+        null,
+        { lng: 114.041, lat: 22.29 },
+        { lng: NaN, lat: 22.29 },
+      ]) {
+        const { analyse, geometry } = setup()
+        geometry.clear()
+        if (point) geometry.set(citygate.addressId, point)
+        expect(analyse(observation(source), null)).toMatchObject({
+          tier: 'review',
+          reason: 'outside_proximity_allowance',
+        })
+      }
+    }
+  })
+  test('canonical component matching requires a twenty-point lead', () => {
+    const { analyse } = setup([citygate, { ...citygate, addressId: 'rival' }])
+    expect(analyse(observation('Citygate, Tat Tung Road'), null)).toMatchObject({
+      tier: 'review',
+      reason: 'multiple_close_matches',
+    })
+  })
+  test('a recognised block missing from a candidate prevents automatic acceptance', () => {
+    const { analyse } = setup([
+      citygate,
+      {
+        ...citygate,
+        addressId: 'block-vocabulary',
+        blockExpression: 'BLOCK 2',
+        streetName: 'Other Road',
+      },
+    ])
+    const result = analyse(observation('Citygate, Block 2, 20 Tat Tung Road'), null)
+    expect(
+      result.candidates.find(row => row.addressId === citygate.addressId)
+        ?.contradictions,
+    ).toContain('blockExpression')
+    expect(['direct', 'supplementary']).not.toContain(result.tier)
+  })
   test('rebuilds an edited number range from a checked-in decision and replays it', () => {
     const source = observation('Citygate, 20 Tat Tung Road')
     const { addressId: _id, ...seed } = citygate
@@ -76,7 +181,7 @@ describe('supplementary Place Address policy', () => {
           fingerprint: addressFingerprint(source.texts),
           sourceRelease: source.sourceRelease,
           previousAddressId: null,
-          resolution: 'replace',
+          resolution: 'create_supplementary',
           addressId: supplementaryIdentity(values).addressId,
           reason: 'Reviewed building range',
           address: { baseAddressId: citygate.addressId, values },
@@ -245,7 +350,8 @@ describe('supplementary Place Address policy', () => {
       buildingName: null,
       estateName: 'Citygate',
     }
-    const { analyse } = setup([citygateEstate])
+    const { analyse, geometry } = setup([citygateEstate])
+    geometry.clear()
     const result = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
 
     expect(result.tier).toBe('delayed')
@@ -256,24 +362,21 @@ describe('supplementary Place Address policy', () => {
       score: 75,
     })
   })
-  test('one matching component suppresses same-kind contradictions', () => {
+  test('one matching component cannot suppress same-kind contradictions', () => {
     const alternateBuilding: PlaceAddressDefinition = {
       ...citygate,
       addressId: 'als-citygate-outlets',
-      buildingName: 'Citygate Outlets',
+      buildingName: 'Other Tower',
       formattedAddress: 'Citygate Outlets, 20 Tat Tung Road',
     }
     const { analyse } = setup([citygate, alternateBuilding])
-    const result = analyse(
-      observation('Citygate Outlets, Citygate, Tat Tung Road'),
-      null,
-    )
+    const result = analyse(observation('Other Tower, Citygate, Tat Tung Road'), null)
     const candidate = result.candidates.find(
       item => item.addressId === alternateBuilding.addressId,
     )
 
-    expect(candidate?.breakdown).toMatchObject({ buildingName: 55, street: 30 })
-    expect(candidate?.contradictions).not.toContain('buildingName')
+    expect(candidate?.contradictions).toContain('buildingName')
+    expect(['direct', 'supplementary']).not.toContain(result.tier)
   })
   test('locality-shaped component matches do not turn street addresses into reviews', () => {
     const hongKong: PlaceAddressDefinition = {
@@ -387,7 +490,7 @@ describe('supplementary Place Address policy', () => {
       fingerprint: addressFingerprint(changed.texts),
       sourceRelease: changed.sourceRelease,
       previousAddressId: first.addressId,
-      resolution: 'retire',
+      resolution: 'leave_unlinked',
       addressId: null,
       reason: 'Premise identity cannot be reproduced.',
     })
