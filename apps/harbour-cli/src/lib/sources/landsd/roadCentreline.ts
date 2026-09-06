@@ -117,6 +117,17 @@ export async function readLandsdRoadCentrelineArchive(
     throw new Error(`Unexpected Road Centreline feature layer ${layerName}.`)
   }
   const features = collection.features as RoadCentrelineFeature[]
+  // fgdb@1's text reader maps each UTF-8 byte to a Latin-1 code point.
+  // Decode once at the archive boundary, including retained native properties.
+  for (const feature of features) {
+    for (const [field, value] of Object.entries(feature.properties)) {
+      if (typeof value === 'string') {
+        feature.properties[field] = new TextDecoder('utf-8', { fatal: true }).decode(
+          Buffer.from(value, 'latin1'),
+        )
+      }
+    }
+  }
   const fields = new Set<string>()
   for (const feature of features) {
     for (const field of Object.keys(feature.properties)) {
@@ -347,13 +358,14 @@ export function requireResolvedRoadCentrelines(
 ) {
   if (result.issues.length === 0) return result.records
   const report = result.issues
+    .slice(0, 5)
     .map(
       issue =>
         `${issue.kind}: OBJECTID ${issue.objectId} (${issue.englishName} / ${issue.traditionalChineseName})`,
     )
     .join('; ')
   throw new Error(
-    `Road Centreline release cannot publish until every feature is matched or curated: ${report}`,
+    `Road Centreline requires curation for ${result.issues.length} named segments. Examples: ${report}${result.issues.length > 5 ? '; …' : ''}`,
   )
 }
 
@@ -460,7 +472,11 @@ function requireNativeLineGeometry(value: unknown): value is GeoJsonGeometry {
 }
 
 function requiredText(value: unknown, field: string) {
-  const text = optionalText(value)
+  // Native FileGDB STREETCODE is an integer in the RoadCentreLine profile.
+  const text =
+    typeof value === 'number' && Number.isSafeInteger(value)
+      ? String(value)
+      : optionalText(value)
   if (!text) throw new Error(`Road Centreline feature requires ${field}.`)
   return text
 }
@@ -506,16 +522,43 @@ export function deriveRoadCentrelineDistrictIds(
   if (districts.length === 0) return []
   const reader = new GeoJSONReader(new GeometryFactory())
   const segment = reader.read(geometry)
+  const bbox = calculateGeoJsonBbox(geometry)
   return districts
     .filter(district => {
-      const intersection = OverlayOp.intersection(
-        segment,
-        reader.read(district.geometry),
+      const prepared = cachedDistrictGeometry(district.geometry)
+      if (
+        bbox[2] < prepared.bbox[0] ||
+        bbox[0] > prepared.bbox[2] ||
+        bbox[3] < prepared.bbox[1] ||
+        bbox[1] > prepared.bbox[3]
       )
+        return false
+      const intersection = OverlayOp.intersection(segment, prepared.shape)
       return intersection.getLength() > 0
     })
     .map(district => district.id)
     .sort()
+}
+
+function prepareDistrictGeometry(geometry: GeoJsonGeometry) {
+  return {
+    bbox: calculateGeoJsonBbox(geometry),
+    shape: new GeoJSONReader(new GeometryFactory()).read(geometry),
+  }
+}
+
+const districtGeometryCache = new WeakMap<
+  GeoJsonGeometry,
+  ReturnType<typeof prepareDistrictGeometry>
+>()
+
+function cachedDistrictGeometry(geometry: GeoJsonGeometry) {
+  let prepared = districtGeometryCache.get(geometry)
+  if (!prepared) {
+    prepared = prepareDistrictGeometry(geometry)
+    districtGeometryCache.set(geometry, prepared)
+  }
+  return prepared
 }
 
 function requireLineGeometry(geometry: GeoJsonGeometry, objectId: number) {
