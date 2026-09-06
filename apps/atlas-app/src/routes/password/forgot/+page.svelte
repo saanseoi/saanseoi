@@ -57,6 +57,7 @@ const requestReset = async () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"

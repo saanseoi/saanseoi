@@ -77,6 +77,7 @@ const resetPassword = async () => {
         >{m.account_new_password()}
         <input
           bind:value={password}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required
@@ -87,6 +88,7 @@ const resetPassword = async () => {
         >{m.auth_confirm_new_password()}
         <input
           bind:value={confirmation}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required

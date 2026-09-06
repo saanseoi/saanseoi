@@ -130,6 +130,7 @@ const passkeySignIn = async () => {
   </div>
   {#if showEmailForm}
     <form
+      aria-busy={busy}
       class="mt-7 space-y-4"
       onsubmit={event => { event.preventDefault(); signIn() }}
     >
@@ -137,6 +138,7 @@ const passkeySignIn = async () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"
@@ -145,6 +147,7 @@ const passkeySignIn = async () => {
         >{m.common_password()}
         <input
           bind:value={password}
+          autocomplete="current-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="password"
