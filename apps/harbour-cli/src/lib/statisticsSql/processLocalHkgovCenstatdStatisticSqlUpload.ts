@@ -1,4 +1,10 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import type { SqlDeliveryPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import {
+  completeSqlDeliveryRelease,
+  readPendingSqlDelivery,
+} from '../localPipeline/sqlDeliveryPending.ts'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
@@ -101,6 +107,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       plan.sourceVersion.slice(0, 4),
       {
         cacheTableProfile: 'statistics',
+        resumeSqlDeliveryReleaseId: releaseId,
         includeAllHistoryShardYears: true,
         onProgress(event) {
           updateDbCacheProgress(progress, event)
@@ -142,6 +149,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       })
   let processingStarted = false
   let cacheMutationStarted = false
+  const preparedSha256 = await deliveryFileSha256(prepared.filePath)
+  const delivery = (phase: string): SqlDeliveryPhase => ({
+    context,
+    releaseId,
+    phase,
+    inputs: { preparedSha256, sourceVersion: plan.sourceVersion },
+    onProgress: (completed, total) =>
+      progress.message(`SQL delivery: ${completed}/${total} batches`),
+  })
   try {
     const rows = await runStatisticProgressStep(
       progress,
@@ -288,6 +304,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           plan.sourceVersion.slice(0, 4),
           batches,
           {
+            delivery: delivery('statistics-source'),
             onProgress(event) {
               if (event.phase === 'local-replay') cacheMutationStarted = true
               progress.update(event.completedBatches, {
@@ -312,6 +329,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
       () =>
         replayCanonicalStatsSqlBatches(target, context, canonicalBatches, {
+          delivery: delivery('statistics-canonical'),
           onProgress(event) {
             progress.update(event.completedBatches, {
               label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
@@ -356,12 +374,14 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             context,
             releaseId,
             materialisedStats,
+            { delivery: delivery('statistics-meta-stats') },
           )
           await replayReleaseProcessingActionsMetaToRemote(
             target,
             context,
             releaseId,
             materialisedProcessingActions,
+            { delivery: delivery('statistics-meta-actions') },
           )
           return { materialisedProcessingActions, materialisedStats }
         },
@@ -389,6 +409,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       metaDb,
       releaseId,
       snapshots.map(snapshot => snapshot.id),
+      { delivery: delivery('statistics-meta-snapshots') },
     )
     const published = await runStatisticProgressStep(
       progress,
@@ -417,10 +438,16 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         return published
       },
     )
+    if (target.remote)
+      await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
     progress.fail()
-    if (target.remote && cacheMutationStarted) {
+    if (
+      target.remote &&
+      cacheMutationStarted &&
+      !(await readPendingSqlDelivery(context.state.dbCacheDir))
+    ) {
       await invalidateRemoteDbCache(
         target.environment === 'production' ? 'production' : 'preview',
         context.state.dbCacheDir,

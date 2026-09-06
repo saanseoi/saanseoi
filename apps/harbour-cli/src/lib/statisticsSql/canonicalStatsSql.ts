@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import {
+  deliverSqlPhase,
+  type SqlDeliveryPhase,
+} from '../localPipeline/sqlDeliveryPhase.ts'
 
 import {
   resolveShardBindingName,
@@ -127,10 +131,20 @@ export async function replayCanonicalStatsSqlBatches(
   context: Pick<LocalAddressDbContext, 'currentBinding' | 'historyTargets' | 'state'>,
   batches: CanonicalStatsSqlBatches,
   options: {
+    delivery?: SqlDeliveryPhase
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
     onProgress?: (event: CanonicalStatsSqlReplayProgress) => Promise<void> | void
   } = {},
 ) {
+  if (target.remote && options.delivery) {
+    await deliverSqlPhase(options.delivery, () =>
+      replayCanonicalStatsSqlBatches(target, context, batches, {
+        ...options,
+        delivery: undefined,
+      }),
+    )
+    return
+  }
   const remoteReplay = target.remote
     ? resolveRemoteReplay(target, context, batches, options)
     : null

@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import {
+  deliverSqlPhase,
+  type SqlDeliveryPhase,
+} from '../localPipeline/sqlDeliveryPhase.ts'
 import { eq } from 'drizzle-orm'
 
 import type { ReleaseStatsRow } from '@repo/db/metaSchema'
@@ -83,10 +87,20 @@ export async function replayReleaseStatsMetaToRemote(
   releaseId: string,
   rows: readonly ReleaseStatsRow[],
   options: {
+    delivery?: SqlDeliveryPhase
     executeSql?: typeof executeSqlText
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
   } = {},
 ) {
+  if (target.remote && options.delivery) {
+    await deliverSqlPhase(options.delivery, () =>
+      replayReleaseStatsMetaToRemote(target, context, releaseId, rows, {
+        ...options,
+        delivery: undefined,
+      }),
+    )
+    return
+  }
   if (!target.remote) return
 
   const accountId =
@@ -155,10 +169,23 @@ export async function replayReleaseProcessingActionsMetaToRemote(
   releaseId: string,
   materialised: MaterialisedReleaseProcessingActions,
   options: {
+    delivery?: SqlDeliveryPhase
     executeSql?: typeof executeSqlText
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
   } = {},
 ) {
+  if (target.remote && options.delivery) {
+    await deliverSqlPhase(options.delivery, () =>
+      replayReleaseProcessingActionsMetaToRemote(
+        target,
+        context,
+        releaseId,
+        materialised,
+        { ...options, delivery: undefined },
+      ),
+    )
+    return
+  }
   if (!target.remote) return
   const accountId =
     options.importOptions?.accountId ?? resolveCloudflareAccountId(target)
@@ -196,10 +223,24 @@ export async function replayStatisticSnapshotMetaToRemote(
   releaseId: string,
   snapshotIds: readonly string[],
   options: {
+    delivery?: SqlDeliveryPhase
     executeSql?: typeof executeSqlText
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
   } = {},
 ) {
+  if (target.remote && options.delivery) {
+    await deliverSqlPhase(options.delivery, () =>
+      replayStatisticSnapshotMetaToRemote(
+        target,
+        context,
+        metaDb,
+        releaseId,
+        snapshotIds,
+        { ...options, delivery: undefined },
+      ),
+    )
+    return
+  }
   if (!target.remote) return
 
   const uniqueSnapshotIds = [...new Set(snapshotIds)].sort()

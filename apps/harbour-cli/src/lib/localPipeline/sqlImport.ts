@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { createD1ImportClient } from '@repo/core/d1ImportApi'
+import { captureSqlDeliveryBytes } from './sqlDeliveryCapture.ts'
 
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
@@ -228,6 +229,7 @@ async function executeSqlBytes(
   sqlBytes: Uint8Array,
   options: SqlImportExecutionOptions,
 ) {
+  if (await captureSqlDeliveryBytes(target, sqlBytes, options.isLocal)) return 0
   if (options.isLocal) {
     return execSqlWithBoundD1(target, sqlBytes, options)
   }
@@ -300,6 +302,7 @@ async function importSqlWithD1RestApi(
   },
   options: SqlImportExecutionOptions,
 ) {
+  if (await captureSqlDeliveryBytes(target, artefact.bytes, false)) return
   if (options.captureSql) {
     await options.captureSql(target, artefact.bytes)
     return
