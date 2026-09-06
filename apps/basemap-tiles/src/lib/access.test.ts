@@ -36,6 +36,11 @@ test('rejects malformed and lookalike origins', () => {
   assert.equal(getAllowedOrigin(null, config), '')
 })
 
+test('allows file previews only when external origins explicitly allow all origins', () => {
+  assert.equal(getAllowedOrigin('null', config), '')
+  assert.equal(getAllowedOrigin('null', { ...config, EXTERNAL_ORIGINS: '*' }), 'null')
+})
+
 test('exposes Resource Timing only to an allowed origin', () => {
   const allowed = applyAccessHeaders(new Headers(), 'https://maps.saanseoi.hk')
   assert.equal(allowed.get('access-control-allow-origin'), 'https://maps.saanseoi.hk')
