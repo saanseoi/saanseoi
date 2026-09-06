@@ -60,6 +60,13 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+The historical review policy automatically accepts exact same-floor A/B/C-to-base unit
+mergers when both languages and unchanged premise components agree. Accepted events
+retain dated publisher inventories and distinct successor IDs; they do not backfill
+earlier snapshots. Policy and authority are stored in
+`hkgov-dpo-address-history-decisions.json`; generated decisions retain exact source
+hashes in the estate audit. Mixed or ambiguous changes remain pending.
+
 User satellite-map review identifies CSU `3363111709T20141201` as Lei Fook Low Block in
 the July and August 2026 deliveries. Its publisher identity and point represent the
 section, with unresolved coverage of Lei Fook's combined 404-unit inventory. The raw

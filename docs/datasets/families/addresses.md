@@ -73,6 +73,12 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Reviewed unit mergers preserve historical membership: predecessor units remain in
+earlier snapshots and the merged successor has its own unit ID. The ALS review can
+automatically accept the user-approved same-floor A/B/C-to-base pattern with bilingual
+agreement; this does not imply permission to backfill, split units or infer other
+transformations.
+
 Lei Fook and Lei Moon Low Blocks are separately identified sections of their respective
 buildings. Their distinct publisher premise IDs must not be merged because one appears
 in the delivery where the other disappears.

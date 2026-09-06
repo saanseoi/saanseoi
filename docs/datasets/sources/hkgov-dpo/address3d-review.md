@@ -30,9 +30,9 @@ contains 3,647 other names, including private developments such as 21 Borrett Ro
 never appear in the retained 3D files and are outside this unit-inventory review.
 Unnamed 3D premises remain in a separate per-release list rather than being discarded.
 
-`reviewQueue` contains 138 estate candidates with source ambiguity, current-profile
+`reviewQueue` contains 135 estate candidates with source ambiguity, current-profile
 mismatches, unresolved 2D hierarchy checks or non-coordinate historical changes. This is
-not a list of 138 incorrect estates. Coordinate-only updates remain in the ledger but do
+not a list of 135 incorrect estates. Coordinate-only updates remain in the ledger but do
 not alone create an ownership-review case. Current-profile name checks are
 corroboration, not historical fact. Top-level `status` and `buildingReviews` describe
 the latest assessment; chronological event decisions are separately pending.
@@ -108,6 +108,45 @@ snapshots are not rewritten by editing a fixture.
 The estate remains pending for its other baseline premises and chronological changes:
 other April 2026 component changes. Both unnamed Low Block premises are identified;
 their source appearance and disappearance remain recorded in the publisher timeline.
+
+## Reviewed historical changes
+
+Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories
+and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The
+user chose no backfill. The physical cause and exact physical change date are unknown.
+
+The user-approved `same-floor-abc-unit-merger` policy automatically accepts numeric
+units ending A/B/C becoming their single unsuffixed unit on the same floor. It requires
+unchanged bilingual premise components, one source occurrence on each side, matching
+English and Traditional Chinese inventories, and unchanged expressions for all retained
+units. Multiple exact mergers in one building are supported. Reverse splits, partial
+suffix sets, different floors, unrelated additions/deletions and ambiguous occurrences
+remain pending.
+
+The ledger rebuild reads the exact source inventories and verifies their audit hashes.
+`automaticMergerReview` records the policy revision, source releases, hashes, buildings,
+floors and predecessor/successor tokens. An entire event is reviewed automatically only
+when all its substantive changes are covered; mixed events retain their pending issues.
+Accepted changes preserve publisher history and distinct successor IDs, with no
+backfill. This covers the April 2025 Hang Chi 601A/B/C → 601 and Hang Yip 1021A/B/C →
+1021 decisions as well as subsequent matching cases.
+
+Across the 30 retained releases, the policy accepts 98 mergers in 78 estate/release
+events. It fully reviews 76 events; two mixed events retain other pending changes.
+
+[`hkgov-dpo-address-history-decisions.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-history-decisions.json)
+records accepted publisher chronology separately from inventory corrections. Rebuilding
+the ledger verifies each event fingerprint before marking that event reviewed; other
+events in the estate remain pending.
+
+Ching Ho House (Cheung Ching Estate) receives no backfill. Retain the November 2024
+first 2D appearance and January 2025 first 851-unit inventory. Its reported 2024
+completion supports the user's decision; no exact completion month is asserted.
+
+Hang Chi House (Cheung Hang Estate) merges 1/F units 121A, 121B and 121C into 121 in the
+January 2025 delivery, reducing 718 units to 716. Preserve the three predecessor units
+in earlier snapshots and the distinct successor ID afterwards. This is a reviewed
+merger, not an omission correction; the physical conversion date is not established.
 
 ## Model Housing Estate
 
