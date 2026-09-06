@@ -42,6 +42,12 @@ Private/other 2D-only names are retained in a separate inventory. Review decisio
 release-bounded; current Housing Authority name corroboration cannot approve historical
 ownership by itself.
 
+Reviewed inventory corrections can backfill publisher omissions into explicitly selected
+historical releases. Their guarded fixtures retain the decision and later corroborating
+source; collection source references carry correction provenance while original
+publisher assertions remain intact. Historical curated inventory can therefore differ
+from the raw delivery without claiming the publisher supplied those units at that time.
+
 CSU identifies a publisher premise in conjunction with its supplied components; it is
 not a universal address deduplication key. Separate buildings retain separate unit IDs
 even when their floor/unit designs are identical. Reviewed High and Low Blocks can be

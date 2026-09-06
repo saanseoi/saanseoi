@@ -60,6 +60,15 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Inventory corrections are stored in
+[`hkgov-dpo-address-3d-corrections.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json).
+Each rule specifies source versions, CSU, expected building components, original and
+corrected bilingual inventory hashes, additions, evidence and review authority.
+Preparation corrects a copy and records the decision in source provenance; raw publisher
+assertions remain intact. Changed evidence fails with a review error. Lei Tim's reviewed
+omission adds flats 207, 217 and 219 on 2/F to nine July–October 2024 inventories,
+yielding 720 units in each, matching the November 2024 evidence.
+
 Lei Fook and Lei Moon in Ap Lei Chau Estate retain distinct building owners and 404
 units each. Each owner has reviewed High and Low `section` children with unresolved unit
 membership. The rule checks CSU and bilingual premise components across the 30 retained
