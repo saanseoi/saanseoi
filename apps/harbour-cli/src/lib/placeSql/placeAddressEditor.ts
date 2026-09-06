@@ -5,6 +5,11 @@ import type {
 } from './placeAddressMatcher.ts'
 import type { SupplementaryValues } from './supplementaryPlaceAddress.ts'
 
+export type PlaceAddressEditResult = {
+  values: SupplementaryValues
+  overrideGeometry: boolean
+}
+
 export const addressEditorFields = [
   ['buildingNumberFrom', 'BuildingNumberStart'],
   ['buildingNumberTo', 'BuildingNumberEnd'],
@@ -82,6 +87,18 @@ function translateComponent(key: string, value: string | null) {
   return value
 }
 
+export function buildAddressEditorOptions(value: Partial<SupplementaryValues>) {
+  return [
+    { value: 'save', label: 'Save' },
+    ...addressEditorFields.map(([key, label]) => ({
+      value: key,
+      label: `${label} : ${safeAddressText(value[key] ?? '')}`,
+    })),
+    { value: 'save_override', label: 'Save & Override Lat/Lng' },
+    { value: 'back', label: 'Back' },
+  ]
+}
+
 export function localiseEditedAddress(
   value: SupplementaryValues,
   englishSeed: PlaceAddressDefinition,
@@ -122,7 +139,8 @@ export function localiseEditedAddress(
 
 export async function editPlaceAddress(
   seed: PlaceAddressDefinition,
-): Promise<SupplementaryValues | null> {
+  options: { canOverrideGeometry?: boolean } = {},
+): Promise<PlaceAddressEditResult | null> {
   const { addressId: _addressId, ...initial } = seed
   const value = {
     ...initial,
@@ -132,17 +150,14 @@ export async function editPlaceAddress(
   while (true) {
     const choice = await select({
       message: 'Address components (English)',
-      options: [
-        { value: 'save', label: 'Save' },
-        ...addressEditorFields.map(([key, label]) => ({
-          value: key,
-          label: `${label} : ${safeAddressText(value[key] ?? '')}`,
-        })),
-        { value: 'back', label: 'Back' },
-      ],
+      options: buildAddressEditorOptions(value),
     })
     if (isCancel(choice) || choice === 'back') return null
-    if (choice === 'save') {
+    if (choice === 'save_override' && options.canOverrideGeometry === false) {
+      log.error('Lat/Lng override requires a selected ALS Address with geometry.')
+      continue
+    }
+    if (choice === 'save' || choice === 'save_override') {
       if (
         value.buildingNumberTo &&
         (!value.buildingNumberFrom ||
@@ -165,7 +180,7 @@ export async function editPlaceAddress(
         log.error('Enter at least one address component.')
         continue
       }
-      return value
+      return { values: value, overrideGeometry: choice === 'save_override' }
     }
     const field = addressEditorFields.find(([key]) => key === choice)
     if (!field) continue

@@ -64,6 +64,8 @@ export type SupplementaryDecision = {
   reason: string
   address?: { baseAddressId: string | null; values: SupplementaryValues[] }
   address2dFingerprint?: string
+  /** Copied from the selected ALS Address geometry by explicit review. */
+  placeGeometryOverride?: { lng: number; lat: number }
 }
 export type SupplementaryCuration = {
   authority: 'overture-place-address'
@@ -114,6 +116,8 @@ export type AddressResolution = {
   candidates: Candidate[]
   reason: string
   parsed: ParsedPlaceAddress[]
+  /** Explicit human-selected replacement for the source Place point. */
+  placeGeometryOverride?: { lng: number; lat: number }
 }
 export type StagedAddressResolution = Omit<AddressResolution, 'candidates'> & {
   candidates: CandidateEvidence[]
@@ -323,6 +327,20 @@ export function parseSupplementaryCuration(
       throw new Error('Invalid or duplicate supplementary identity decision.')
     }
     decisions.add(key)
+    if (decision.placeGeometryOverride) {
+      const { lng, lat } = decision.placeGeometryOverride
+      if (
+        !Number.isFinite(lng) ||
+        !Number.isFinite(lat) ||
+        lng < -180 ||
+        lng > 180 ||
+        lat < -90 ||
+        lat > 90 ||
+        decision.addressId === null
+      ) {
+        throw new Error('Invalid Place geometry override in supplementary decision.')
+      }
+    }
     if ((decision.resolution === 'create_supplementary') !== Boolean(decision.address))
       throw new Error(
         'Only create_supplementary decisions must contain address values.',
@@ -397,17 +415,19 @@ export function createSupplementaryAddressAnalyser(
       reason: string,
       candidates: Candidate[] = [],
       accepted?: SupplementaryEntry,
+      placeGeometryOverride?: { lng: number; lat: number },
     ): AddressResolution => ({
       placeId: observation.placeId,
       sourceTexts: observation.texts,
       fingerprint,
-      lng: observation.lng,
-      lat: observation.lat,
+      lng: placeGeometryOverride?.lng ?? observation.lng,
+      lat: placeGeometryOverride?.lat ?? observation.lat,
       tier,
       addressId,
       reason,
       candidates,
       parsed,
+      ...(placeGeometryOverride ? { placeGeometryOverride } : {}),
       previous: previous ?? entry ?? null,
       ...(accepted ? { entry: accepted } : {}),
     })
@@ -473,6 +493,7 @@ export function createSupplementaryAddressAnalyser(
           'explicit_edited_address',
           [],
           accepted,
+          decision.placeGeometryOverride,
         )
       }
       if (
@@ -482,13 +503,27 @@ export function createSupplementaryAddressAnalyser(
         return result('review', null, 'keep_decision_changes_identity')
       }
       if (decision.addressId && officialIds.has(decision.addressId))
-        return result('direct', decision.addressId, 'explicit_decision')
+        return result(
+          'direct',
+          decision.addressId,
+          'explicit_decision',
+          [],
+          undefined,
+          decision.placeGeometryOverride,
+        )
       if (
         decision.resolution === 'keep_existing' &&
         entry?.addressId === decision.addressId &&
         reproducible(entry)
       ) {
-        return result('supplementary', entry.addressId, 'explicit_decision', [], entry)
+        return result(
+          'supplementary',
+          entry.addressId,
+          'explicit_decision',
+          [],
+          entry,
+          decision.placeGeometryOverride,
+        )
       }
       return result('review', null, 'decision_target_not_reproducible')
     }
@@ -513,15 +548,33 @@ export function createSupplementaryAddressAnalyser(
           item.sourceRelease <= observation.sourceRelease,
       )
       .sort((a, b) => b.sourceRelease.localeCompare(a.sourceRelease))[0]
+    const replayGeometryOverride =
+      lastDecision?.placeGeometryOverride && lastDecision.fingerprint === fingerprint
+        ? lastDecision.placeGeometryOverride
+        : undefined
     if (
       lastDecision?.resolution === 'leave_unlinked' &&
       latestDecision === lastDecision &&
       (!entry || entry.firstAcceptedSourceRelease <= lastDecision.sourceRelease)
     ) {
-      return result('delayed', null, 'explicit_retirement')
+      return result(
+        'delayed',
+        null,
+        'explicit_retirement',
+        [],
+        undefined,
+        replayGeometryOverride,
+      )
     }
     if (lastDecision?.addressId && officialIds.has(lastDecision.addressId)) {
-      return result('direct', lastDecision.addressId, 'recorded_decision')
+      return result(
+        'direct',
+        lastDecision.addressId,
+        'recorded_decision',
+        [],
+        undefined,
+        replayGeometryOverride,
+      )
     }
     if (previous?.fingerprint === fingerprint && officialIds.has(previous.addressId)) {
       return result('direct', previous.addressId, 'previous_relationship')
@@ -531,7 +584,14 @@ export function createSupplementaryAddressAnalyser(
       reproducible(entry) &&
       (!previous || previous.addressId === entry.addressId)
     ) {
-      return result('supplementary', entry.addressId, 'accepted_curation', [], entry)
+      return result(
+        'supplementary',
+        entry.addressId,
+        'accepted_curation',
+        [],
+        entry,
+        replayGeometryOverride,
+      )
     }
 
     const candidatesById = new Map<string, Candidate>()

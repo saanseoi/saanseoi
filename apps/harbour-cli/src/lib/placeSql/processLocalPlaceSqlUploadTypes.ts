@@ -28,6 +28,9 @@ export type UploadResult = {
 
 export type EnrichedPlace = {
   place: NormalisedPlace
+  /** Curated Place geometry used by the public Place projection, if overridden. */
+  effectiveLng?: number
+  effectiveLat?: number
   addressSnapshotId?: string | null
   address2dId: string | null
   address3dId: string | null

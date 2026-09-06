@@ -1,5 +1,5 @@
-import { isCancel, note, select } from '@clack/prompts'
-import { mkdir, open, readFile, rename, unlink } from 'node:fs/promises'
+import { isCancel, log, note, select, text } from '@clack/prompts'
+import { open, readFile, rename, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
@@ -29,43 +29,70 @@ const components = [
   ['streetName', 'Street', 34],
 ] as const
 
-const mapPreviewAssets = new Set([
-  'index.html',
-  'maplibre-gl.css',
-  'maplibre-gl.mjs',
-  'maplibre-gl-shared.mjs',
-  'maplibre-gl-worker.mjs',
-])
-const mapPreviewDirectories = new Map<string, string>()
-let mapPreviewServer: { port: number } | undefined
+let mapPreviewAccessToken: string | undefined
+let mapPreviewRuntime:
+  | Promise<{
+      css: string
+      library: string
+      worker: string
+    }>
+  | undefined
 
-function getMapPreviewServer() {
-  if (mapPreviewServer) return mapPreviewServer
-  const server = Bun.serve({
-    hostname: '127.0.0.1',
-    port: 0,
-    fetch(request) {
-      const [previewId, ...path] = new URL(request.url).pathname.slice(1).split('/')
-      const file = path.join('/') || 'index.html'
-      const directory = previewId ? mapPreviewDirectories.get(previewId) : undefined
-      if (!directory || !mapPreviewAssets.has(file))
-        return new Response('Not found', { status: 404 })
-      const extension = file.slice(file.lastIndexOf('.'))
-      const contentType: Record<string, string> = {
-        '.css': 'text/css',
-        '.html': 'text/html',
-        '.mjs': 'text/javascript',
-      }
-      return new Response(Bun.file(join(directory, file)), {
-        headers: { 'content-type': contentType[extension] ?? 'text/plain' },
-      })
-    },
+async function getMapPreviewAccessToken() {
+  const configured = process.env.SAANSEOI_MAP_PREVIEW_API_KEY?.trim()
+  if (configured) return configured
+  if (mapPreviewAccessToken) return mapPreviewAccessToken
+  const value = await text({
+    message: 'SaanSeoi public API key for the map preview',
+    placeholder: 'pk.…',
+    validate: input =>
+      input?.trim().startsWith('pk.') ? undefined : 'Enter a public key beginning pk.',
   })
-  server.unref()
-  if (!server.port) throw new Error('Could not start address map server.')
-  const previewServer = { port: server.port }
-  mapPreviewServer = previewServer
-  return previewServer
+  if (isCancel(value)) return undefined
+  mapPreviewAccessToken = value.trim()
+  return mapPreviewAccessToken
+}
+
+function getMapPreviewRuntime() {
+  mapPreviewRuntime ??= (async () => {
+    const maplibreDirectory = new URL(
+      '../../../../../node_modules/maplibre-gl/dist/',
+      import.meta.url,
+    )
+    const entryPath = join(tmpdir(), `saanseoi-maplibre-${crypto.randomUUID()}.mjs`)
+    await Bun.write(
+      entryPath,
+      `import * as maplibregl from ${JSON.stringify(new URL('maplibre-gl.mjs', maplibreDirectory).pathname)}; globalThis.maplibregl = maplibregl`,
+    )
+    const [library, worker] = await Promise.all([
+      Bun.build({
+        entrypoints: [entryPath],
+        define: { 'import.meta.url': '""' },
+        format: 'iife',
+        minify: true,
+        target: 'browser',
+      }),
+      Bun.build({
+        entrypoints: [new URL('maplibre-gl-worker.mjs', maplibreDirectory).pathname],
+        define: { 'import.meta.url': '""' },
+        format: 'iife',
+        minify: true,
+        target: 'browser',
+      }),
+    ])
+    if (!library.success || !worker.success)
+      throw new Error('Could not bundle MapLibre for the address map preview.')
+    const libraryOutput = library.outputs[0]
+    const workerOutput = worker.outputs[0]
+    if (!libraryOutput || !workerOutput)
+      throw new Error('MapLibre bundle did not produce browser output.')
+    return {
+      css: await readFile(new URL('maplibre-gl.css', maplibreDirectory), 'utf8'),
+      library: await libraryOutput.text(),
+      worker: await workerOutput.text(),
+    }
+  })()
+  return mapPreviewRuntime
 }
 
 export function formatPlaceAddressComponents(
@@ -169,6 +196,7 @@ export async function reviewPlaceAddressCurations(input: {
         if (choice === 'skip') break
         const addressId = choice.startsWith('id:') ? choice.slice(3) : null
         let edited: SupplementaryDecision['address']
+        let placeGeometryOverride: SupplementaryDecision['placeGeometryOverride']
         if (choice !== 'leave_unlinked') {
           const definitions = addressId ? (byId.get(addressId) ?? []) : []
           const seed =
@@ -176,16 +204,36 @@ export async function reviewPlaceAddressCurations(input: {
             parsedAddressSeed(
               row.parsed.find(value => value.street?.locale === 'en') ?? row.parsed[0],
             )
-          const value = await editPlaceAddress(seed)
+          const value = await editPlaceAddress(seed, {
+            canOverrideGeometry: Boolean(addressId && input.geometry.has(addressId)),
+          })
           if (!value) continue
+          if (value.overrideGeometry) {
+            const point = addressId ? input.geometry.get(addressId) : undefined
+            if (
+              !point ||
+              !Number.isFinite(point.lng) ||
+              !Number.isFinite(point.lat) ||
+              point.lng < -180 ||
+              point.lng > 180 ||
+              point.lat < -90 ||
+              point.lat > 90
+            ) {
+              log.error(
+                'Lat/Lng override requires a selected ALS Address with geometry.',
+              )
+              continue
+            }
+            placeGeometryOverride = point
+          }
           if (
             !addressId ||
-            addressEditorFields.some(([key]) => value[key] !== seed[key])
+            addressEditorFields.some(([key]) => value.values[key] !== seed[key])
           ) {
             edited = {
               baseAddressId: addressId,
               values: localiseEditedAddress(
-                value,
+                value.values,
                 seed,
                 definitions.find(value => value.locale === 'zh-hant'),
               ),
@@ -210,6 +258,7 @@ export async function reviewPlaceAddressCurations(input: {
             : addressId
               ? 'Selected ALS identity in interactive review.'
               : 'Left unlinked in interactive review.',
+          ...(placeGeometryOverride ? { placeGeometryOverride } : {}),
         }
         if (edited) {
           decision.address = edited
@@ -265,11 +314,15 @@ export async function showCandidatesOnMap(
     definition: PlaceAddressDefinition
   }>,
   geometry: Map<string, { lng: number; lat: number }>,
+  outputPath?: string,
 ) {
   if (row.lng === undefined || row.lat === undefined) {
     note('This review record has no place coordinates.', 'Map unavailable')
     return
   }
+  const accessToken = await getMapPreviewAccessToken()
+  if (!accessToken) return
+  const runtime = await getMapPreviewRuntime()
   const markers = candidates.flatMap(({ candidate, definition }) => {
     const point = geometry.get(candidate.addressId)
     return point
@@ -277,51 +330,36 @@ export async function showCandidatesOnMap(
           {
             ...point,
             score: candidate.score,
-            label: definition.formattedAddress ?? candidate.addressId,
+            label: escapeHtml(definition.formattedAddress ?? candidate.addressId),
           },
         ]
       : []
   })
   const title = escapeHtml(row.sourceTexts.join(' / '))
   const html = `<!doctype html><meta charset="utf-8"><title>Address candidates</title>
-<link rel="stylesheet" href="maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
-<script type="module">import * as maplibregl from './maplibre-gl.mjs';
+<style>${runtime.css}</style><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
+<script>${runtime.library.replaceAll('</script>', '<\\/script>')}
+maplibregl.setWorkerUrl(URL.createObjectURL(new Blob([${JSON.stringify(runtime.worker)}],{type:'text/javascript'})));
 const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
-const map=new maplibregl.Map({container:'map',style:'https://tiles.hype.hk/basemap/hongkong-latest.json',center:source,zoom:16}); map.addControl(new maplibregl.NavigationControl());
+(async()=>{const accessToken=${JSON.stringify(accessToken)};const basemapUrl='https://tiles.saanseoi.hk/hongkong-latest.json?access_token='+encodeURIComponent(accessToken);const response=await fetch('https://api.saanseoi.hk/v0/styles/light/1.0.0.json');if(!response.ok)throw new Error('Could not load the SaanSeoi basemap style.');const style=await response.json();style.sources={...style.sources,basemap:{type:'vector',url:basemapUrl}};
+const map=new maplibregl.Map({container:'map',style,center:source,zoom:16,attributionControl:{compact:true}}); map.addControl(new maplibregl.NavigationControl());
 map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',score:c.score,label:c.label}}))];
 map.addSource('address-review',{type:'geojson',data:{type:'FeatureCollection',features}}); map.addLayer({id:'candidates',type:'circle',source:'address-review',filter:['==',['get','kind'],'candidate'],paint:{'circle-radius':8,'circle-color':['interpolate',['linear'],['get','score'],0,'hsl(12 20% 48%)',100,'hsl(12 100% 48%)'],'circle-stroke-color':'#fff','circle-stroke-width':2}}); map.addLayer({id:'place-source',type:'circle',source:'address-review',filter:['==',['get','kind'],'source'],paint:{'circle-radius':10,'circle-color':'#2563eb','circle-stroke-color':'#fff','circle-stroke-width':3}});
 map.on('click',['candidates','place-source'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(e.features[0].properties.kind==='source'?'<b>Place source</b><br>'+e.features[0].properties.label:'<b>Score '+e.features[0].properties.score+'</b><br>'+e.features[0].properties.label).addTo(map));
-const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidates) bounds.extend([c.lng,c.lat]); if(candidates.length) map.fitBounds(bounds,{padding:60,maxZoom:17});});
+const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidates) bounds.extend([c.lng,c.lat]); if(candidates.length){const container=map.getContainer(),padding={top:container.clientHeight*.25,right:container.clientWidth*.25,bottom:container.clientHeight*.25,left:container.clientWidth*.25};map.fitBounds(bounds,{padding,maxZoom:17});}});})().catch(error=>{document.body.textContent='Map preview failed: '+error.message;throw error});
 </script>`
-  const previewId = crypto.randomUUID()
-  const directory = join(tmpdir(), `saanseoi-address-candidates-${previewId}`)
-  await mkdir(directory)
-  const maplibreDirectory = new URL(
-    '../../../../../node_modules/maplibre-gl/dist/',
-    import.meta.url,
-  )
-  for (const asset of [
-    'maplibre-gl.css',
-    'maplibre-gl.mjs',
-    'maplibre-gl-shared.mjs',
-    'maplibre-gl-worker.mjs',
-  ])
-    await Bun.write(
-      join(directory, asset),
-      await readFile(new URL(asset, maplibreDirectory)),
-    )
-  await Bun.write(join(directory, 'index.html'), html)
-  mapPreviewDirectories.set(previewId, directory)
-  const server = getMapPreviewServer()
+  const path =
+    outputPath ??
+    join(tmpdir(), `saanseoi-address-candidates-${crypto.randomUUID()}.html`)
+  await Bun.write(path, html)
   const command =
     process.platform === 'darwin'
       ? 'open'
       : process.platform === 'win32'
         ? 'start'
         : 'xdg-open'
-  const url = `http://127.0.0.1:${server.port}/${previewId}/`
-  Bun.spawn([command, url], { stdout: 'ignore', stderr: 'ignore' })
-  note(`Opened candidate map: ${url}`, 'Show on Map')
+  Bun.spawn([command, path], { stdout: 'ignore', stderr: 'ignore' })
+  note(`Opened candidate map: ${path}`, 'Show on Map')
 }
 
 const reasonLabels: Record<string, string> = {
