@@ -37,6 +37,14 @@ assertions in `hkgovAlsAddresses2d`, including paired `addressEn` and `addressZh
 publisher values. Locale-keyed rows are materialised only for canonical address
 snapshots and API use.
 
+`address2d.parentAddressId` records an explicitly established containing Address ID or
+null. It is included in canonical version hashes, history replay and snapshot copying,
+and exposed as `attributes.parentAddressId` in every Address API profile. It is not a
+same-snapshot foreign key: the parent can come from another Address member of the
+selected release set. Parent existence, self-references and cycles must be checked when
+assigning links. The separate `address3d.address2dId` reference identifies the premise
+for a 3D address.
+
 Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
 `isCurrent = 1`; prior versions are closed with `validToRelease`. Canonical snapshots
 are cloned for an incoming release, changed rows create new versions, and rows seen in

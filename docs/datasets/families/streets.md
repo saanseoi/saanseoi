@@ -37,3 +37,17 @@ approximate location lookup and map labelling.
 Current snapshots contain active streets. When lifecycle revisions are published,
 deleted states remain in immutable history and notice events appear in the changelog.
 API history and changelog reads must remain bounded by published snapshots.
+
+## Gazette OCR evidence
+
+Historical HKGRO scans and the Traditional Chinese e-Gazette text-layer fallback use
+Qianfan-OCR with pinned model revision, raw page output and source provenance. Rendered
+pages use 300 DPI. OCR results remain derived evidence: English e-Gazette PDFs supply
+notice identity, dates, kinds and predecessor references; Chinese OCR supplies names and
+descriptions. Truncated output, invalid layouts and bilingual mismatches stop
+processing. Chinese labelled OCR blocks preserve each description/name pair as a
+separate row; incomplete or ambiguous pairs fail extraction. Street identity and
+lifecycle decisions require curation.
+
+See [HKGRO OCR setup](../sources/hku-hkgro/streetName.md#local-ocr) and
+[e-Gazette processing](../sources/hkgov-gld/egazetteStreetName.md).

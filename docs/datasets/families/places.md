@@ -127,6 +127,14 @@ directly during publication.
 Bare numeric or single-letter components and country-only labels cannot supply free-text
 premise evidence; their canonical source values are retained.
 
+The English-language interactive review skips Chinese and mixed-language source
+addresses, retaining them as unresolved review items without recording decisions.
+
+Automatic Address links require known coordinates within 50 metres, a minimum 20-point
+lead and agreement on every supplied building, block and phase component. Missing
+candidate components cannot silently pass. Estate evidence is optional but cannot
+contradict the candidate; explicit curation remains a separate decision.
+
 A parsed premise candidate which has no ALS match is not promoted into the official ALS
 source. Interactive Place Address curation uses a Clack step-through review with
 labelled, colour-coded components and immediately saved, reasoned decisions. Skipped
@@ -144,9 +152,16 @@ instead of repeating the parse for every candidate. The required matcher tiers, 
 artefacts, provenance, materialisation order, and publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
-Interactive review can edit an ALS candidate into a supplementary address, including
-building number start and end. Edited values and their ALS derivation reference are
-saved in the version-controlled decision and regenerate the local entry.
+Interactive review opens candidates and **New Address** in the same English component
+editor, including building number start and end, with **Save** and **Back**. Unchanged
+candidates link ALS; edited candidates create a supplementary address with an ALS
+derivation reference. New addresses start from parsed components without inherited
+divisions. Chinese numbers and controlled expressions follow English edits; unchanged
+Chinese names are preserved and generated fields remain unverified in source provenance.
+Decisions use `link_existing`, `create_supplementary`, `keep_existing`, or
+`leave_unlinked` to distinguish the selected action and regenerate local entries. **Skip
+as Unresolved** defers review, while **Skip as Unlinked** remains effective until the
+source's 2D address changes.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It owns both `place/default` and

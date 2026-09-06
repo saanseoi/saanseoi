@@ -20,6 +20,18 @@ filter includes both. Counts and pagination apply to the filtered collection, an
 or unselected dataset returns an empty collection. Detail requests can resolve an
 Address ID from either selected member.
 
+`attributes.parentAddressId` is the nullable canonical ID of a containing Address,
+available in every API profile. It records explicit containment and is versioned with
+the address. A parent can belong to another selected Address dataset; resolve it within
+the same API release set. A dataset filter can omit the parent from a list response.
+Null means no parent has been established, not that the address has no possible parent.
+
+ALS and supplementary materialisation initialise this field to null. An ALS derivation
+base, shared estate name, coordinate or building-number range does not establish a
+parent. Parent assignment requires evidence and validation of the selected parent and
+its ancestor chain; this storage foundation does not assign links or generate missing
+numbered addresses.
+
 See the [Address resource contract](../resourceType/address.md),
 [ALS processing](../internal/hkgov/address.md) and
 [supplementary curation policy](../sources/overture/places.md).
