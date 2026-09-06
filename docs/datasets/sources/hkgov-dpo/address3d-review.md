@@ -9,7 +9,8 @@ inventories and estates absent from the latest delivery. Source-file membership 
 claim about current housing tenure. The latest delivery, `2026-08-19.0`, contains 239
 estates with nonempty unit inventories. The
 [hierarchy fixture](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
-contains 201 estate relationships and 1,281 building rules, guarded to that release.
+contains 201 complete latest-release estate relationships and 1,281 building rules, plus
+a partial relationship for Ap Lei Chau's Lei Fook and Lei Moon across all 30 releases.
 Each estate has an earliest observed baseline followed by chronological deltas. Existing
 latest-release curation bounds remain explicit and do not approve an earlier baseline.
 The remaining 38 latest estates require hierarchy review independently of the historical
@@ -54,6 +55,27 @@ Official evidence:
 - [Model Estate accessibility sheet](https://www.housingauthority.gov.hk/en/common/pdf/global-elements/estate-locator/ModelHousingEstate-barrier-free-en.pdf):
   March 2020 accessibility photographs, not an entrance/floor plan and not evidence of
   unit-to-section membership.
+
+## Ap Lei Chau Estate
+
+The reviewed Lei Fook and Lei Moon rule covers July 2024 through August 2026. They are
+distinct buildings with different CSUs, each owning 404 units despite identical
+floor/unit designs. Each has High and Low `section` children exposing its parent
+inventory with unresolved membership. These children are curation-derived addresses;
+their inherited building point does not locate a particular section. Publisher combined
+names and source assertions are retained.
+
+All 30 retained Southern district files have identical bilingual premise components for
+these two CSUs. Their 3D inventory counts and hashes remain unchanged; coordinate
+updates do not establish a unit partition. `bun scripts/verify-ap-lei-chau-address3d.ts`
+checks all release guards and prepares the earliest and latest real inventories,
+requiring two collections, 808 distinct unit IDs and two unresolved children per owner.
+
+The ledger's `reviewedHierarchyDecisions` retains this limited approval when rebuilt.
+The estate remains pending for its other baseline premises and chronological changes:
+Lei Tim's November 2024 inventory increase from 717 to 720, the February 2025 empty
+unnamed assertion, April 2026 component changes, and July 2026 empty-assertion
+replacement.
 
 ## Model Housing Estate
 

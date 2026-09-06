@@ -5,7 +5,7 @@ import { normaliseAls3dInventory } from './hkgovAls3d'
 import { resolveAddress3dCoverage } from '@repo/db/address3d'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 
-export function normaliseTestFeature(feature: HkgovAlsFeature) {
+function normaliseTestFeature(feature: HkgovAlsFeature) {
   return normaliseHkgovAlsFeature(
     feature,
     'test.geojson',
@@ -116,7 +116,12 @@ test('identical designs retain distinct building inventories and unresolved High
       expect(section.curatedGranularity).toBe('section')
       expect(section.hkgovCsuId).toBeNull()
       expect(section.engPremisesAddressJson).toBeNull()
-      expect(resolveAddress3dCoverage(section, [collection])).toMatchObject({
+      expect(
+        resolveAddress3dCoverage(
+          { id: section.id, parentAddressId: section.parentAddressId ?? null },
+          [collection],
+        ),
+      ).toMatchObject({
         kind: 'ancestor',
         membership: 'unresolved',
         ownerAddress2dId: source.id,

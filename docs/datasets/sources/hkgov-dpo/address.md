@@ -60,6 +60,15 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Lei Fook and Lei Moon in Ap Lei Chau Estate retain distinct building owners and 404
+units each. Each owner has reviewed High and Low `section` children with unresolved unit
+membership. The rule checks CSU and bilingual premise components across the 30 retained
+releases, from July 2024 through August 2026. The derived sections retain curation
+provenance and their parent's location; no separate section position or unit partition
+is asserted. Identical floor/unit arrays never merge these two buildings. Other Ap Lei
+Chau historical changes remain pending in the
+[review report](./address3d-review.md#ap-lei-chau-estate).
+
 [`hkgov-dpo-address-hierarchies.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
 records source-backed hierarchy observations separately from component corrections. A
 complex such as `MODEL HOUSING ESTATE / 模範邨` contains named buildings, while official
