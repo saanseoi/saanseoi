@@ -5,6 +5,7 @@ import {
   formatRoadEvidence,
   loadRoadReview,
   roadReviewKey,
+  sortRoadReviewGroups,
   type RoadReview,
 } from './roadCentrelineReview.ts'
 import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
@@ -41,6 +42,15 @@ const result = () => ({
 })
 
 describe('Road segment review', () => {
+  test('reviews strong matches before weak and absent matches', () => {
+    const weak = { ...group, englishName: 'FIRST ROAD', traditionalChineseName: '' }
+    const absent = { ...group, englishName: 'UNKNOWN', traditionalChineseName: '' }
+    expect(sortRoadReviewGroups([absent, weak, group], streets)).toEqual([
+      group,
+      weak,
+      absent,
+    ])
+  })
   test('suggests Chinese-name matches and supports canonical ID search', () => {
     expect(findRoadCandidates(group, streets)).toEqual(streets)
     expect(findRoadCandidates(group, streets, 'street-a')).toEqual(streets)
