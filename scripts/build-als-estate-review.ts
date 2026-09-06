@@ -1,7 +1,15 @@
 import { readFile, writeFile } from 'node:fs/promises'
+import { buildEstateChronology, type SourceReport } from './lib/als-estate-timeline'
 
 const audit = JSON.parse(
   await readFile('.local/hkgov-dpo/address3d-audit.json', 'utf8'),
+)
+audit.reports.sort((a: SourceReport, b: SourceReport) =>
+  a.release.localeCompare(b.release),
+)
+const chronology = buildEstateChronology(audit.reports)
+const hierarchy = JSON.parse(
+  await readFile('fixtures/meta/curations/hkgov-dpo-address-hierarchies.json', 'utf8'),
 )
 const evidence = JSON.parse(
   await readFile('.local/hkgov-dpo/ha-estate-evidence.json', 'utf8'),
@@ -21,13 +29,9 @@ const profiles = evidence.records.flatMap(
       retrievedAt: record.retrievedAt,
     })),
 )
-const names = [
-  ...new Set<string>(
-    audit.reports.flatMap((r: any) => r.estates2d.map((e: any) => e.name)),
-  ),
-].sort()
 const latest = audit.reports.at(-1)
-const estates = names.map(name => {
+const estates = chronology.estates.map(history => {
+  const { name } = history
   const releases = audit.reports.filter((r: any) =>
     r.estates2d.some((e: any) => e.name === name),
   )
@@ -68,9 +72,18 @@ const estates = names.map(name => {
     }
   })
   return {
-    name,
-    firstSourceRelease: releases[0].release,
-    lastSourceRelease: releases.at(-1).release,
+    ...history,
+    reviewedHierarchyDecisions: hierarchy.relationships
+      .filter((r: any) => r.complex.enName === name && !r.generatedBy)
+      .map((r: any) => ({
+        id: r.id,
+        from: r.sourceVersionFrom,
+        to: r.sourceVersionTo,
+        buildings: r.buildings.map((b: any) => b.expected.enBuildingName),
+        reason: r.reason,
+      })),
+    firstSourceRelease: releases[0]?.release ?? null,
+    lastSourceRelease: releases.at(-1)?.release ?? null,
     releaseCount: releases.length,
     latest2dRecords: latest.estates2d.find((e: any) => e.name === name)?.records ?? 0,
     hasPublished3dInventory: groups.length > 0,
@@ -101,13 +114,70 @@ const estates = names.map(name => {
   }
 })
 const output = {
-  version: 1,
+  version: 2,
+  chronologicalDirection: 'earliest_to_latest',
+  earliestSourceRelease: audit.reports[0].release,
   latestSourceRelease: latest.release,
   sourceReleaseCount: audit.reports.length,
-  note: 'Machine-generated audit inventory. Current Housing Authority names corroborate candidate premises; they do not approve historical ownership, derive parent ranges, or partition units. Only reviewed relationships in hkgov-dpo-address-hierarchies.json authorise consolidation.',
+  inclusionCriteria:
+    'Named estates appearing in any retained ALS public-rental-housing 3D file, including empty inventories and estates absent from the latest release. This is source-file membership, not a claim about current tenure. 2D-only names are inventoried separately.',
+  note: 'Review earliest baseline then chronological deltas. Timeline fingerprints ignore source feature order, retain occurrence multiplicity, and compare 3D publisher inventory hashes, streets, coordinates and 2D aggregate counts. They do not infer renames or provide a full 2D component diff. Current HA corroboration and latest-only curation never approve historical ownership. Pending decisions require human review; only guarded hierarchy rules affect ingestion.',
   estates,
-  unnamed3dPremises: latest.groups.filter((g: any) => !g.estate),
+  reviewQueue: estates
+    .filter(
+      estate =>
+        estate.reviewReasons.length ||
+        hierarchy.additional2dReview?.includes(estate.name) ||
+        estate.timeline?.some(
+          event => event.requiresChangeReview || event.reviewReasons.length,
+        ),
+    )
+    .map(estate => ({
+      name: estate.name,
+      first3dSourceRelease: estate.first3dSourceRelease,
+      firstReviewRelease:
+        estate.timeline?.find(
+          event => event.requiresChangeReview || event.reviewReasons.length,
+        )?.release ?? estate.first3dSourceRelease,
+      status: 'pending',
+      reasons: [
+        ...new Set([
+          ...estate.reviewReasons,
+          ...(hierarchy.additional2dReview?.includes(estate.name)
+            ? ['2d_hierarchy_requires_review']
+            : []),
+          ...(estate.timeline?.some(event => event.requiresChangeReview)
+            ? ['historical_changes_require_review']
+            : []),
+          ...(estate.timeline?.some(event => event.reviewReasons.length)
+            ? ['historical_source_ambiguity']
+            : []),
+        ]),
+      ],
+      existingCurationBounds: hierarchy.relationships
+        .filter((r: any) => r.complex.enName === estate.name)
+        .map((r: any) => ({
+          id: r.id,
+          from: r.sourceVersionFrom,
+          to: r.sourceVersionTo,
+        })),
+    }))
+    .sort(
+      (a, b) =>
+        a.first3dSourceRelease.localeCompare(b.first3dSourceRelease) ||
+        a.name.localeCompare(b.name),
+    ),
+  unnamed3dPremises: audit.reports
+    .map((r: SourceReport) => ({
+      release: r.release,
+      groups: r.groups.filter(g => !g.estate),
+    }))
+    .filter((r: { groups: SourceReport['groups'] }) => r.groups.length),
 }
+await writeFile(
+  'fixtures/meta/curations/hkgov-dpo-address-2d-estate-inventory.json',
+  `${JSON.stringify({ version: 1, inclusionCriteria: 'ALS 2D estate names never present in any retained ALS 3D file; outside the public-rental-housing unit review cohort.', estates: chronology.excluded2dOnly }, null, 2)}\n`,
+)
 await writeFile(
   'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
   `${JSON.stringify(output, null, 2)}\n`,

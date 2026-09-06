@@ -6,6 +6,11 @@ const fixture = JSON.parse(await readFile(fixturePath, 'utf8'))
 const audit = JSON.parse(
   await readFile('fixtures/meta/curations/hkgov-dpo-address-estate-audit.json', 'utf8'),
 )
+if (audit.version !== 1) {
+  throw new Error(
+    'Latest-only automatic hierarchy generation is disabled for chronological review. Record reviewed release-bounded decisions explicitly; existing relationships are unchanged.',
+  )
+}
 const rows = JSON.parse(
   execFileSync(
     'duckdb',
