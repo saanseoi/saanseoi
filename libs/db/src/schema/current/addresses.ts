@@ -88,6 +88,7 @@ export const address2d = sqliteTable(
       sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
     ),
     index('address2d_streetId_idx').on(table.streetId),
+    index('address2d_parentAddressId_idx').on(table.snapshotId, table.parentAddressId),
     index('address2d_division_idx').on(
       table.divisionSnapshotId,
       table.hamletId,

@@ -374,6 +374,7 @@ export const canonicalStatsValueI18n = {
 
 export const canonicalAddress2d = {
   id: text('id').notNull(),
+  parentAddressId: text('parentAddressId'),
   streetId: text('streetId'),
   hamletId: text('hamletId'),
   microhoodId: text('microhoodId'),
