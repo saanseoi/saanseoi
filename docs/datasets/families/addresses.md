@@ -42,6 +42,12 @@ Private/other 2D-only names are retained in a separate inventory. Review decisio
 release-bounded; current Housing Authority name corroboration cannot approve historical
 ownership by itself.
 
+CSU identifies a publisher premise in conjunction with its supplied components; it is
+not a universal address deduplication key. Separate buildings retain separate unit IDs
+even when their floor/unit designs are identical. Reviewed High and Low Blocks can be
+`section` children of one building, sharing unresolved coverage of its combined
+inventory.
+
 One `address3d` collection belongs to one Address2D owner per snapshot. Its shared
 `units` JSON contains stable unit IDs and compact unit/floor codes; `address3dI18n`
 stores locale-specific expressions keyed by those IDs. Full expressions are retained;
