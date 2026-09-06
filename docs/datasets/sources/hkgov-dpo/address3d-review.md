@@ -109,6 +109,22 @@ The estate remains pending for its other baseline premises and chronological cha
 other April 2026 component changes. Both unnamed Low Block premises are identified;
 their source appearance and disappearance remain recorded in the publisher timeline.
 
+## Cheung Wah Estate: Cheung Lai House
+
+The user reviewed the Block 6 entry as an uncommon alternative description of Cheung Lai
+House / 祥禮樓, CSU `3252139344T20050430`. The
+[`hkgov-dpo-address-aliases.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-aliases.json)
+fixture retains the unnumbered named building as the canonical address and suppresses
+the block-numbered duplicate. Both raw 3D assertions remain linked to its single
+560-unit inventory; the retained address also carries the suppressed 2D source evidence.
+Block 6 is not a section or a separate public address.
+
+The rule checks the paired bilingual source components and equal coordinates across the
+30 retained releases. Conflicting inventories stop preparation before suppression.
+`bun scripts/verify-cheung-lai-address3d.ts` checks all release guards and the earliest
+and latest complete collection preparation. Other Cheung Wah block aliases remain
+unreviewed by this decision. Existing published snapshots are not rewritten.
+
 ## Reviewed historical changes
 
 Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories

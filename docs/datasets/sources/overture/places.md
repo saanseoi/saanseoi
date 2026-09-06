@@ -86,6 +86,16 @@ Address output has its own `address/overture-places` snapshot and resource relea
 default Address API domain, `saanseoi`, combines this member with ALS addresses.
 Consumers can select either dataset with `filter[dataset]` on list and search requests.
 
+## SQL delivery
+
+Places ingestion prepares SQL from the local D1 mirror and staged enriched records. Each
+generated batch contains up to 512 Place records. Remote delivery combines its
+statements into uploads of up to 16 MiB per target group without changing statement
+order. The 90,000-byte statement ceiling is independent of the upload limit. Source and
+historical shard groups complete before current projection and version-change writes;
+publication follows successful imports. Local cache replay retains the same statement
+sequence and uses smaller execution batches.
+
 ## Supplementary address materialisation
 
 The Places-ingest extension creates Overture Places supplementary Address rows. It is

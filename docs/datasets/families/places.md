@@ -4,6 +4,12 @@ The Places API family publishes Overture `place` records for the selected region
 Overture release is processed as a complete replacement snapshot and includes the raw
 publisher source record in the source database.
 
+SQL generation uses the local D1 mirror as its planning context. Remote imports combine
+statements into payloads of up to 16 MiB within each generated row batch, while each
+statement retains a 90,000-byte ceiling. Source, history, current and version-change
+writes retain their dependency order; local replay uses the same SQL with smaller
+execution batches. Oversized individual statements stop delivery.
+
 Places has three required reference members:
 
 - the default canonical address snapshot;

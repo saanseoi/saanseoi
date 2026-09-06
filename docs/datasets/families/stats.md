@@ -70,6 +70,13 @@ compilation creates a new immutable revision only for the affected period. The f
 compilation is an unadorned initial release set; later source contributions use `-r1`,
 `-r2`, and so on.
 
+API field fixtures cover the exact reference-period snapshot anchors and canonical
+source-schema signatures used by bootstrap, including annual Population and Household
+periods from 2016 through 2025 and the Permanent Living Quarters district period
+`2023-Q3`. A publisher delivery label such as `2026-Q2` does not substitute for those
+periods. Each primary member of a composed cohort can supply its lineage anchor;
+unreviewed source-schema combinations remain blocked.
+
 Each packed measure value stores exact decimal text (not floats), its original source
 literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
 localised value dictionaries remain normalised because they are small shared metadata.
