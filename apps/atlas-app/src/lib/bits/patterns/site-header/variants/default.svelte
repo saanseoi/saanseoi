@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from '$app/state'
+import { getSignInHref, getSignUpHref } from '#lib/authRedirect.js'
 
 import HeaderActions from '../components/headerActions.svelte'
 import PrimaryNavigation from '../components/primaryNavigation.svelte'
@@ -17,8 +18,8 @@ let isLandingPage = $derived(page.url.pathname === '/')
 let authRedirectPath = $derived(
   `${page.url.pathname}${page.url.search}${page.url.hash}`,
 )
-let signInHref = $derived(`/sign-in?next=${encodeURIComponent(authRedirectPath)}`)
-let signUpHref = $derived(`/sign-up?continue=${encodeURIComponent(authRedirectPath)}`)
+let signInHref = $derived(getSignInHref(authRedirectPath))
+let signUpHref = $derived(getSignUpHref(authRedirectPath))
 
 $effect(() => {
   if (typeof window === 'undefined') return

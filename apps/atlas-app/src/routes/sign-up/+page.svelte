@@ -9,7 +9,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
-import { getAuthRedirectPath } from '#lib/authRedirect.js'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
 
 let { data } = $props()
 let name = $state('')
@@ -25,17 +25,24 @@ let callbackUrl = $derived(
 )
 
 const signUp = async () => {
+  if (busy) return
   busy = true
   error = null
-  const result = await authClient.signUp.email({
-    name,
-    email,
-    password,
-    callbackURL: callbackUrl,
-  })
-  busy = false
-  if (result.error) error = result.error.message ?? m.auth_sign_up_error()
-  else message = m.auth_verify_email_message()
+  message = null
+  try {
+    const result = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: callbackUrl,
+    })
+    if (result.error) error = result.error.message ?? m.auth_sign_up_error()
+    else message = m.auth_verify_email_message()
+  } catch {
+    error = m.auth_sign_up_error()
+  } finally {
+    busy = false
+  }
 }
 
 const socialSignUp = async (provider: SocialProvider) => {
@@ -135,7 +142,7 @@ const openEmailForm = () => {
         ></label
       >
       {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
       {#if message}
         <p class="font-body text-body-sm text-secondary">{message}</p>
@@ -145,11 +152,13 @@ const openEmailForm = () => {
       >
     </form>
   {:else if error}
-    <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+      {error}
+    </p>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
     {m.auth_already_have_account()}
-    <a class="text-secondary hover:underline" href="/sign-in"
+    <a class="text-secondary hover:underline" href={getSignInHref(callbackUrl)}
       >{m.auth_sign_in_title()}</a
     >
   </p>

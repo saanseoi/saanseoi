@@ -8,7 +8,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
-import { getAuthRedirectPath } from '#lib/authRedirect.js'
+import { getAuthRedirectPath, getSignUpHref } from '#lib/authRedirect.js'
 import { page } from '$app/state'
 
 let { data } = $props()
@@ -22,12 +22,22 @@ let showEmailForm = $state(false)
 const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 
 const signIn = async () => {
+  if (busy) return
   busy = true
   error = null
-  const result = await authClient.signIn.email({ email, password, callbackURL: next })
-  busy = false
-  if (result.error) error = result.error.message ?? m.auth_sign_in_error()
-  else window.location.assign(next)
+  try {
+    const result = await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: next,
+    })
+    if (result.error) error = result.error.message ?? m.auth_sign_in_error()
+    else window.location.assign(next)
+  } catch {
+    error = m.auth_sign_in_error()
+  } finally {
+    busy = false
+  }
 }
 
 const socialSignIn = async (provider: SocialProvider) => {
@@ -146,18 +156,20 @@ const passkeySignIn = async () => {
         >{m.auth_forgot_password()}</a
       >
       {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_signing_in() : m.auth_sign_in_title()}</Button
       >
     </form>
   {:else if error}
-    <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+      {error}
+    </p>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
     {m.auth_new_to_saanseoi()}
-    <a class="text-secondary hover:underline" href="/sign-up"
+    <a class="text-secondary hover:underline" href={getSignUpHref(next)}
       >{m.auth_create_account()}</a
     >
   </p>

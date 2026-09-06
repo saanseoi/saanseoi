@@ -1,12 +1,11 @@
 <script lang="ts">
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
-import { getDistrictGeometryNames } from '#lib/registry/meta.remote.js'
+import { getDistrictGeometryNames } from '#lib/registry/district.remote.js'
 import type {
   GeometryStatisticsPresentation,
   ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
-import * as ChoroplethMap from '#lib/bits/components/choroplethMap/index.js'
 import InfoTooltip from './releaseStatsInfoTooltip.svelte'
 import Section from './releaseStatsSection.svelte'
 import Header from './releaseStatsSectionHeader.svelte'

@@ -8,15 +8,24 @@ import { Seo } from '#lib/bits/patterns/seo/index.js'
 let email = $state('')
 let submitted = $state(false)
 let busy = $state(false)
+let error = $state<string | null>(null)
 
 const requestReset = async () => {
+  if (busy) return
   busy = true
-  await authClient.requestPasswordReset({
-    email,
-    redirectTo: `${window.location.origin}/password/reset`,
-  })
-  busy = false
-  submitted = true
+  error = null
+  try {
+    const result = await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${window.location.origin}/password/reset`,
+    })
+    if (result.error) error = result.error.message ?? m.auth_reset_error()
+    else submitted = true
+  } catch {
+    error = m.auth_reset_error()
+  } finally {
+    busy = false
+  }
 }
 </script>
 
@@ -40,6 +49,7 @@ const requestReset = async () => {
       {m.auth_reset_description()}
     </p>
     <form
+      aria-busy={busy}
       class="mt-8 space-y-4"
       onsubmit={event => { event.preventDefault(); requestReset() }}
     >
@@ -52,6 +62,9 @@ const requestReset = async () => {
           type="email"
         ></label
       >
+      {#if error}
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
+      {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_sending() : m.auth_send_reset_link()}</Button
       >

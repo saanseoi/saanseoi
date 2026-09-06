@@ -12,19 +12,29 @@ let password = $state('')
 let confirmation = $state('')
 let error = $state<string | null>(null)
 let complete = $state(false)
+let busy = $state(false)
 
 const resetPassword = async () => {
+  if (busy) return
   if (password !== confirmation) {
     error = m.auth_passwords_do_not_match()
     return
   }
 
-  const result = await authClient.resetPassword({
-    newPassword: password,
-    token: token ?? undefined,
-  })
-  if (result.error) error = result.error.message ?? m.auth_reset_error()
-  else complete = true
+  busy = true
+  error = null
+  try {
+    const result = await authClient.resetPassword({
+      newPassword: password,
+      token: token ?? undefined,
+    })
+    if (result.error) error = result.error.message ?? m.auth_reset_error()
+    else complete = true
+  } catch {
+    error = m.auth_reset_error()
+  } finally {
+    busy = false
+  }
 }
 </script>
 
@@ -59,6 +69,7 @@ const resetPassword = async () => {
     </p>
   {:else}
     <form
+      aria-busy={busy}
       class="mt-8 space-y-4"
       onsubmit={event => { event.preventDefault(); resetPassword() }}
     >
@@ -83,9 +94,11 @@ const resetPassword = async () => {
         ></label
       >
       {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
-      <Button type="submit" variant="primary">{m.auth_reset_password()}</Button>
+      <Button disabled={busy} type="submit" variant="primary">
+        {busy ? m.auth_resetting() : m.auth_reset_password()}
+      </Button>
     </form>
   {/if}
 </Main>
