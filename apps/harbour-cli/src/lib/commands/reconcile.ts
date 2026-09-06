@@ -7,7 +7,7 @@ import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
@@ -67,7 +67,7 @@ export async function runReconcileDraftReleaseSetsCommand(
             metaDatabaseId: dbContext.state.bindings.DB_META?.databaseId ?? null,
           },
           metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-          progress: new LocalUploadProgress(),
+          progress: new OperationProgress(),
           releaseCode: statsTarget.releaseCode,
           releaseId: statsTarget.releaseId,
           target: {

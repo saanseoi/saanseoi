@@ -31,7 +31,7 @@ import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   buildStatisticSqlBatches,
   replayStatisticSqlBatches,
@@ -140,7 +140,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   if (!dataset) throw new Error(`Missing dataset fixture: ${plan.datasetCode}.`)
   const releaseId = required(uploadResult.releaseId, 'releaseId')
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
   progress.beginPhase('Prepare statistic processing cache', { max: null })
   let context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>

@@ -87,7 +87,7 @@ import {
   executeSqlText,
   type SqlImportExecutionOptions,
 } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreas,
@@ -185,7 +185,7 @@ export async function processLocalDivisionGeometrySqlUpload(
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
   const shardYear = previewPlan.sourceVersion.slice(0, 4)
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const setupStartedAt = Date.now()
   progress.beginPhase(formatGeometryProgressLabel('Prepare', 'workspace'), {
     current: 0,
@@ -977,7 +977,7 @@ async function replayGeometryIntoRemote(
       context.state.dbCacheDir,
       releaseId,
       async () => {
-        // A LocalUploadProgress instance owns one in-place terminal row. Keep
+        // A OperationProgress instance owns one in-place terminal row. Keep
         // remote table phases sequential so concurrent imports cannot leave
         // several live renderers writing duplicate rows to stdout.
         for (const tableImport of tableImports) {
@@ -2510,7 +2510,7 @@ async function writeCenstatdSourceDerivatives(
 }
 
 function updateDbCacheProgress(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   event: LocalDbCacheProgressEvent,
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {
@@ -2554,7 +2554,7 @@ function formatGeometryCompletedLabel(
 }
 
 async function runGeometryProgressPhase<T>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   action: string,
   subject: string,
   operation: () => Promise<T>,

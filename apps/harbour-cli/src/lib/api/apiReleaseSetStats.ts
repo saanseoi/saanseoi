@@ -22,7 +22,7 @@ import { and, currentSchema, eq, metaSchema, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { AnyColumn } from 'drizzle-orm'
 
-import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -60,7 +60,7 @@ type CalculateApiReleaseSetStatsOptions = {
   harbourClient: HarbourClient
   importOptions: ApiReleaseSetStatsImportOptions
   metaDb: HarbourReadableDb & HarbourWritableDb
-  progress: LocalUploadProgress
+  progress: OperationProgress
   releaseCode?: string
   releaseId: string
   target: ApiReleaseSetStatsTarget

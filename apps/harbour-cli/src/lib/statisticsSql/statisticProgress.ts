@@ -6,14 +6,14 @@ import {
   formatDurationMs,
 } from '../localPipeline/progressFormatting.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
-import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { OperationProgress } from '../cli/operationProgress.ts'
 
 /**
  * Gives the direct statistic SQL pipeline the same discrete, timed terminal
  * stages as the streamed address and division pipelines.
  */
 export async function runStatisticProgressStep<T>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   input: {
     action: string
     count?: number
@@ -34,7 +34,7 @@ export async function runStatisticProgressStep<T>(
 }
 
 export function completeStatisticCache(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   input: { durationMs: number; remote: boolean },
 ) {
   if (!progress.hasActivePhase()) return

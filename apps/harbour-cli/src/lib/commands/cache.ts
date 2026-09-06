@@ -6,7 +6,7 @@ import {
   updateDbCacheProgress,
   type CacheTableProfile,
 } from '../dbCache/localDbCache.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -42,7 +42,7 @@ export async function runCacheRebuildCommand(
     )
   }
 
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const startedAt = Date.now()
 
   try {
@@ -87,7 +87,7 @@ export async function runCacheSeedResetCommand(
     throw new Error('`cache:seed-reset` accepts only `--target preview|production`.')
   }
 
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const startedAt = Date.now()
 
   try {

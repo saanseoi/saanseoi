@@ -44,7 +44,7 @@ import {
 
 import type { UploadTarget } from '../cli/options.ts'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
-import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -983,7 +983,7 @@ export async function withRemoteCachedMetaDb<T>(
 }
 
 export function updateDbCacheProgress(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   event: LocalDbCacheProgressEvent,
   options: {
     completeOnReuse?: boolean

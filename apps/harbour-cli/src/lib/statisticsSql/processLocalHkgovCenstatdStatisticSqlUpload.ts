@@ -27,7 +27,7 @@ import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   buildStatisticSqlBatches,
   replayStatisticSqlBatches,
@@ -90,7 +90,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
 ) {
   const releaseId = required(upload.releaseId, 'releaseId')
   const releaseCode = required(upload.releaseCode, 'releaseCode')
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
   progress.beginPhase('Prepare statistic processing cache', { max: null })
   let context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>

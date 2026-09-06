@@ -37,7 +37,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import {
   appendPhaseDetails,
@@ -96,7 +96,7 @@ export async function runRollbackReleaseCommand(
   }
 
   const shardHints = resolveRollbackShardHints(args, releaseSpecifier)
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const targetName = resolveTargetName(target)
   const dbCacheStartedAt = Date.now()
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
@@ -556,7 +556,7 @@ async function replayRollbackSqlIntoRemoteCache(
   target: UploadTarget,
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   artefacts: ReadonlyArray<RollbackArtefact>,
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   releaseCode: string,
 ) {
   const targetName = resolveRemoteTargetName(target)
@@ -1277,7 +1277,7 @@ function formatRollbackTarget(target: UploadTarget) {
 }
 
 function updateDbCacheProgress(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   event: LocalDbCacheProgressEvent,
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {

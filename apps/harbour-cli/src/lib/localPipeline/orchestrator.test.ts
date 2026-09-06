@@ -33,7 +33,7 @@ describe('local import progress orchestration', () => {
       },
     }
 
-    const { LocalUploadProgress } = await import('../upload/localUploadProgress.ts')
+    const { OperationProgress } = await import('../cli/operationProgress.ts')
     const { createLocalImportProgressClient } = await import('./orchestrator.ts')
     const controlEvents: string[] = []
     const harbourClient = {
@@ -46,7 +46,7 @@ describe('local import progress orchestration', () => {
         controlEvents.push(`running:${phase}`)
       },
     }
-    const progress = new LocalUploadProgress({ renderAnimated: true, ui })
+    const progress = new OperationProgress({ renderAnimated: true, ui })
     const client = createLocalImportProgressClient(harbourClient, progress, {
       cleanup: {
         completedLabel: 'Cleanup staging',

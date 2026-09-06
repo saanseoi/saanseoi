@@ -71,7 +71,7 @@ import {
   formatRetryLabel,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   loadAddressCurrentLookupCache,
   writeAddressCurrentLookupCache,
@@ -150,7 +150,7 @@ export async function processLocalAddressSqlUpload(
 
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const resolvedTargetName = resolveTargetName(target)
   const cacheTableProfile = target.remote ? undefined : 'address'
   const remoteCacheScopeKey = undefined
@@ -730,7 +730,7 @@ function buildHistoricalAddressMatchKeyLookup(
 }
 
 function updateDbCacheProgress(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   event: LocalDbCacheProgressEvent,
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {
