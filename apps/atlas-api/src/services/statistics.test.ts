@@ -1,10 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
-import {
-  getStatisticDetail,
-  getStatisticsGeographies,
-  listStatistics,
-} from './statistics'
+import { getStatisticDetail, listStatistics } from './statistics'
+import { getStatisticsGeographies } from './statisticsAggregates'
 
 const statistic = {
   id: 'statistic-population-2021',

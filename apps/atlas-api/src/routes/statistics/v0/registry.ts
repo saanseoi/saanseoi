@@ -15,7 +15,7 @@ import {
   listStatisticsRegistryFields,
   listStatisticsRegistryMeasures,
   searchStatisticsRegistry,
-} from '../../../services/statistics'
+} from '../../../services/statisticsRegistry'
 import type { AppEnv } from '../../../types'
 import { openApiText } from '../../../lib/openapi-i18n'
 

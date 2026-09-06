@@ -4,8 +4,6 @@
  */
 export {
   getStatisticDetail,
-  getStatisticsGeographies,
-  getStatisticsSeries,
   listStatistics,
   type RequestedStatisticApiVersion,
   type RequestedStatisticVersion,
@@ -17,3 +15,7 @@ export {
   type StatisticListResult,
   type StatisticSeriesQuery,
 } from '../../services/statistics'
+export {
+  getStatisticsGeographies,
+  getStatisticsSeries,
+} from '../../services/statisticsAggregates'
