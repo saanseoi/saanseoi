@@ -58,6 +58,12 @@ type LocalD1PreparedStatement = {
 }
 
 export type AddressSqlImportStageOptions = {
+  /** Collect exact remote payloads into a sealed local delivery plan. */
+  captureSql?: (target: ImportTargetContext, bytes: Uint8Array) => Promise<void>
+  captureQueries?: (
+    target: ImportTargetContext,
+    statements: Array<{ sql: string; params: unknown[] }>,
+  ) => Promise<void>
   accountId?: string
   apiToken?: string
   currentBinding?: LocalD1ExecBinding
@@ -320,6 +326,18 @@ export async function importAddressSqlArtefactsAndPublish(
   options: AddressSqlImportStageOptions,
   publishOptions: { deferApiReleaseSet?: boolean } = {},
 ): Promise<PublishDatasetResult | void> {
+  await importAddressSqlArtefacts(harbourClient, metaDb, bucket, message, options)
+  await options.beforePublish?.()
+  return publishImportedAddressSqlRelease(harbourClient, message, publishOptions)
+}
+
+export async function importAddressSqlArtefacts(
+  harbourClient: SqlStageHarbourClient,
+  metaDb: MetaDatabase,
+  bucket: PipelineArtefactBucket,
+  message: DatasetProcessingMessage,
+  options: AddressSqlImportStageOptions,
+): Promise<void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const sourceKeys = filterSqlArtefactKeys(message, 'source')
@@ -421,8 +439,6 @@ export async function importAddressSqlArtefactsAndPublish(
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
     cleanupSqlStaging(metaDb, message, options),
   )
-  await options.beforePublish?.()
-  return publishImportedAddressSqlRelease(harbourClient, message, publishOptions)
 }
 
 export async function importAddressSqlDataArtefacts(
@@ -530,7 +546,7 @@ export async function importAddressSqlDataArtefacts(
   )
 }
 
-async function completeAddressSqlGenerationPhases(
+export async function completeAddressSqlGenerationPhases(
   harbourClient: SqlStageHarbourClient,
   message: DatasetProcessingMessage,
 ) {
@@ -799,7 +815,7 @@ async function rebuildAddressSearchIndex(
   return { bytes: bytes.byteLength, statementCount: 3 }
 }
 
-async function publishImportedAddressSqlRelease(
+export async function publishImportedAddressSqlRelease(
   harbourClient: SqlStageHarbourClient,
   message: DatasetProcessingMessage,
   publishOptions: { deferApiReleaseSet?: boolean } = {},
@@ -1082,6 +1098,10 @@ async function importSqlWithD1RestApi(
   },
   options: AddressSqlImportStageOptions,
 ) {
+  if (options.captureSql) {
+    await options.captureSql(target, artefact.bytes)
+    return
+  }
   const accountId = options.accountId?.trim()
   const apiToken = options.apiToken?.trim()
   const databaseId = target.databaseId?.trim()

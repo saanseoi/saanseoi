@@ -1,6 +1,8 @@
 import { mkdir } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
@@ -96,18 +98,21 @@ export async function processLocalPlaceSqlUpload(
     await runPlaceProgressPhase(progress, 'Prepare', 'workspace', () =>
       bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
     )
+    const mirrorStartedAt = Date.now()
     dbContext = await runPlaceProgressPhase(
       progress,
       'Open local D1',
       'Places data',
       () =>
         resolveLocalAddressDbContext(target, previewPlan.regionCode, shardYear, {
+          resumeSqlDeliveryReleaseId: releaseId,
           cacheTableProfile: 'places',
           includePreviousShardYears: true,
           refreshRemoteTables: false,
         }),
     )
     const context = dbContext
+    const mirrorPreparationMs = Date.now() - mirrorStartedAt
     if (!context) throw new Error('Places database context was not opened.')
 
     const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -259,6 +264,21 @@ export async function processLocalPlaceSqlUpload(
       historyRows,
     }
     const sqlTimestamp = new Date().toISOString()
+    const sqlDelivery = target.remote
+      ? {
+          timings: { mirrorPreparationMs },
+          directory: resolve(releaseRoot, 'sql-delivery-places'),
+          context,
+          releaseId,
+          inputs: {
+            message,
+            snapshots,
+            enrichedSha256: await deliveryFileSha256(stagedEnrichedPlaces.path),
+          },
+          accountId: importOptions.accountId,
+          apiToken: importOptions.apiToken,
+        }
+      : undefined
 
     await runPlaceProgressPhase(
       progress,
@@ -307,6 +327,7 @@ export async function processLocalPlaceSqlUpload(
               event.current,
               event.detail ?? (event.phase === 'generate' ? 'generation' : 'import'),
             ),
+          sqlDelivery,
         ),
       stagedEnrichedPlaces.processedRows,
     )
@@ -430,6 +451,7 @@ export async function processLocalPlaceSqlUpload(
                       event.current,
                       event.detail ?? `remote cache SQL ${event.phase}`,
                     ),
+                  sqlDelivery,
                 )
                 reportProgress(
                   stagedEnrichedPlaces.processedRows,
@@ -511,6 +533,8 @@ export async function processLocalPlaceSqlUpload(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
         )
+        if (!postPublishCacheError)
+          await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }

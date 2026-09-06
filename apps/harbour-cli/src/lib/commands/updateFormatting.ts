@@ -14,12 +14,23 @@ const CLACK_STATUS_PREFIX_WIDTH = 3
 const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
 
 function updateLineWidth() {
-  const columns = process.stdout.isTTY ? process.stdout.columns : undefined
+  const columns =
+    process.stdout.columns ?? Number(process.env.SAANSEOI_TERMINAL_COLUMNS)
   if (!columns || columns <= CLACK_STATUS_PREFIX_WIDTH) return UPDATE_LINE_WIDTH
 
   // Clack adds its own three-column status prefix (for example, `◇  `).
   // Keep the message itself within the remaining terminal width.
-  return Math.min(160, columns - CLACK_STATUS_PREFIX_WIDTH)
+  return columns - CLACK_STATUS_PREFIX_WIDTH
+}
+
+function supportsColour() {
+  if (process.env.NO_COLOR !== undefined || process.env.FORCE_COLOR === '0')
+    return false
+  return Boolean(
+    process.stdout.isTTY ||
+      process.env.SAANSEOI_TERMINAL_INTERACTIVE === '1' ||
+      process.env.FORCE_COLOR,
+  )
 }
 
 export function formatPublishedSourceRelease(release: PublishedSourceRelease) {
@@ -40,12 +51,12 @@ export function familyLabel(value: string) {
 }
 
 export function colorFamilyOption(label: string, value: string) {
-  if (!process.stdout.isTTY || process.env.NO_COLOR) return label
+  if (!supportsColour()) return label
   return colorFamilyLabel(label, value)
 }
 
 function colorFamilyLabel(label: string, value: string) {
-  if (!process.stdout.isTTY || process.env.NO_COLOR) return label
+  if (!supportsColour()) return label
   const color = familyColor(value)
   return `${color}${label}\u001b[39m`
 }
@@ -65,7 +76,7 @@ function familyColor(value: string) {
 }
 
 export function colorize(value: string, color: number) {
-  if (!process.stdout.isTTY || process.env.NO_COLOR) return value
+  if (!supportsColour()) return value
   return `\u001b[${color}m${value}\u001b[39m`
 }
 
@@ -107,6 +118,28 @@ export function wrapUpdateMessage(
   width = UPDATE_LINE_WIDTH - 3,
 ) {
   return wrapText(detail ? `${message}: ${detail}` : message, width)
+}
+
+export function formatUpdateErrorSummary(
+  errors: readonly string[],
+  datasets: readonly DatasetFixture[],
+) {
+  const width = updateLineWidth()
+  const lines = [`Update errors (${errors.length})`]
+  for (const error of errors) {
+    const dataset = datasets.find(item => error.startsWith(`${item.code}: `))
+    const message = dataset ? error.slice(dataset.code.length + 2) : error
+    lines.push('')
+    if (dataset) {
+      lines.push(
+        width >= 94
+          ? formatUpdateGridRow(dataset, 'ERROR')
+          : formatDatasetPromptLabel(dataset),
+      )
+    }
+    lines.push(...wrapText(message, Math.max(1, width - 4)).map(line => `    ${line}`))
+  }
+  return lines.join('\n')
 }
 
 function wrapText(value: string, width: number) {
@@ -166,7 +199,7 @@ export function formatUpdateGridRow(
   const width = updateLineWidth()
   const publisherWidth = 9
   const resourceWidth = 16
-  const statusWidth = 30
+  const statusWidth = 24
   const versionsWidth = 29
   const datasetWidth = Math.max(
     8,
@@ -187,8 +220,20 @@ export function formatUpdateGridRow(
       35,
     ),
     colorize(gridCell(parts.subtype || '—', datasetWidth), 33),
-    gridCell(status, statusWidth),
-    gridCell(versions, versionsWidth),
+    colorize(
+      gridCell(status, statusWidth),
+      /ERROR|MISSING/.test(status)
+        ? 31
+        : /SKIPPED|no updates/.test(status)
+          ? 90
+          : /REVIEW|MANUAL/.test(status)
+            ? 33
+            : 32,
+    ),
+    colorize(
+      gridCell(versions, versionsWidth).trimEnd(),
+      version || targetVersion ? 32 : 90,
+    ),
   ]
     .join('  ')
     .trimEnd()
@@ -415,7 +460,5 @@ function formatBytes(bytes: number) {
 }
 
 export function dim(value: string) {
-  return process.stdout.isTTY && !process.env.NO_COLOR
-    ? `\x1b[2m${value}\x1b[22m`
-    : value
+  return supportsColour() ? `\x1b[2m${value}\x1b[22m` : value
 }

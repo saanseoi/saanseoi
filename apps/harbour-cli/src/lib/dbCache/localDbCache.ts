@@ -53,6 +53,7 @@ export async function resolveLocalAddressDbContext(
   regionCode: string,
   shardYear: string,
   options: {
+    resumeSqlDeliveryReleaseId?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
     includeAllHistoryShardYears?: boolean

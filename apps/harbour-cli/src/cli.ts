@@ -5,6 +5,7 @@ import { recordInitialisationSummaryEvent } from './lib/commands/initialisationS
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
+import { runSqlDeliveryCommand } from './lib/commands/sqlDelivery.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runCacheGersCommand } from './lib/commands/gers.ts'
 import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
@@ -71,6 +72,10 @@ async function main() {
   }
 
   switch (args.command) {
+    case 'sql:status':
+    case 'sql:resume':
+      await runSqlDeliveryCommand(args, target, invocationCwd)
+      return
     case 'cache:gers':
       await runCacheGersCommand(args, printUsage)
       return

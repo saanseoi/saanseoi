@@ -13,6 +13,7 @@ import {
 } from '@repo/core/pipeline/services/addressPipeline/types'
 import type { UploadTarget } from '../cli/options.ts'
 import type { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
+import { readPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
 import {
   invalidateRemoteDbCache,
   replayRemoteCacheWithRetry,
@@ -72,6 +73,11 @@ export async function refreshRemoteMetaCacheAfterReplay(
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
 
+    if (await readPendingSqlDelivery(cacheDir)) {
+      throw new Error(
+        `Remote delivery succeeded, but metadata refresh failed. The previous mirror and SQL delivery checkpoints were retained for sql:resume. ${reason}`,
+      )
+    }
     await invalidateRemoteDbCache(targetName, cacheDir, reason)
     throw new Error(
       `Remote upload succeeded, but refreshing the ${targetName} local meta cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,

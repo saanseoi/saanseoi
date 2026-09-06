@@ -88,13 +88,18 @@ Consumers can select either dataset with `filter[dataset]` on list and search re
 
 ## SQL delivery
 
+Places data batches are sealed in a [delivery manifest](../../sql-delivery.md) before
+remote data writes. Recovery verifies checksums and database receipts, then resumes
+remote delivery or local mirror replay without rebuilding SQL. The manifest records the
+enriched input checksum and selected reference snapshots.
+
 Places ingestion prepares SQL from the local D1 mirror and staged enriched records. Each
 generated batch contains up to 512 Place records. Remote delivery combines its
-statements into uploads of up to 16 MiB per target group without changing statement
+statements into uploads of up to 64 MiB per target group without changing statement
 order. The 90,000-byte statement ceiling is independent of the upload limit. Source and
 historical shard groups complete before current projection and version-change writes;
 publication follows successful imports. Local cache replay retains the same statement
-sequence and uses smaller execution batches.
+sequence and commits each payload with its receipt in one transaction.
 
 ## Supplementary address materialisation
 

@@ -7,6 +7,17 @@ import {
 } from './sourceSchemas'
 
 describe('sourceSchemas', () => {
+  test.each(['2025-Q1', '2026-Q1', '2026-Q2'])(
+    'resolves the HyD source schema for %s with either release spelling',
+    async sourceVersion => {
+      for (const version of [sourceVersion, `${sourceVersion}.0`]) {
+        await expect(
+          resolveSourceSchemaVersion({ source: 'hkgov-hyd', sourceVersion: version }),
+        ).resolves.toBe('1.0')
+      }
+    },
+  )
+
   test('resolves the mapped Overture source schema version', async () => {
     await expect(
       resolveSourceSchemaVersion({

@@ -198,8 +198,8 @@ function resolveNativeRemoteReplay(
   return { accountId, apiToken, target: remoteTarget }
 }
 
-export async function versionNativeSourceRows(
-  rows: NativeSourceRow[],
+export async function versionNativeSourceRows<T extends NativeSourceRow>(
+  rows: T[],
   releaseId: string,
   releaseCode: string,
 ) {
@@ -221,7 +221,7 @@ export async function versionNativeSourceRows(
   )
 }
 
-async function buildNativeSourceSql(
+export async function buildNativeSourceSql(
   tables: NativeSourceTable[],
   releaseId: string,
   releaseCode: string,
@@ -245,12 +245,61 @@ async function buildNativeSourceSql(
       columns.forEach(column => {
         assertIdentifier(column, 'column')
       })
-      statements.push(
-        `INSERT INTO "${table.name}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns.map(column => sqlValue((row as Record<string, unknown>)[column])).join(', ')});`,
-      )
+      statements.push(...nativeRowStatements(table.name, row))
     }
   }
   return chunkSql(statements)
+}
+
+function nativeRowStatements(table: string, row: Record<string, unknown>) {
+  const columns = Object.keys(row)
+  // A replay restores the same assertion without replacing its first-seen date.
+  const updates = columns
+    .filter(
+      column =>
+        !['sourceRecordId', 'versionHash', 'createdAt', 'validFromRelease'].includes(
+          column,
+        ),
+    )
+    .map(column => `"${column}" = excluded."${column}"`)
+    .join(', ')
+  const insert = (values: Record<string, unknown>) =>
+    `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns.map(column => sqlValue(values[column])).join(', ')}) ON CONFLICT ("sourceRecordId", "versionHash") DO UPDATE SET ${updates};`
+  const direct = insert(row)
+  if (Buffer.byteLength(direct) <= SQL_STATEMENT_BYTE_LIMIT) return [direct]
+
+  const placeholder = { ...row, isCurrent: false } as Record<string, unknown>
+  const largeValues: Array<[string, string]> = []
+  for (const column of columns) {
+    const value = row[column]
+    if (['sourceRecordId', 'versionHash'].includes(column) || value === null) continue
+    if (typeof value !== 'string' && typeof value !== 'object') continue
+    const text = typeof value === 'string' ? value : JSON.stringify(value)
+    if (Buffer.byteLength(sqlValue(text)) < 4096) continue
+    largeValues.push([column, text])
+    placeholder[column] = ''
+  }
+  const where = `"sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)}`
+  const statements = [insert(placeholder)]
+  for (const [column, value] of largeValues) {
+    // Iterate code points so a chunk never splits a UTF-8 character. Even
+    // four-byte characters and escaped quotes fit comfortably under the cap.
+    let part = ''
+    const append = () =>
+      statements.push(
+        `UPDATE "${table}" SET "${column}" = "${column}" || ${sqlValue(part)} WHERE ${where};`,
+      )
+    for (const character of value) {
+      part += character
+      if (part.length >= 16000) {
+        append()
+        part = ''
+      }
+    }
+    if (part) append()
+  }
+  statements.push(`UPDATE "${table}" SET "isCurrent" = 1 WHERE ${where};`)
+  return statements
 }
 
 async function executeSqlChunks(

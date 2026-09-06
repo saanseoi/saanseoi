@@ -360,7 +360,7 @@ test('shows a matching source and local version once', () => {
     '2021',
     '2021.0',
   )
-  expect(line).toEndWith('SAME                            v2021.0')
+  expect(line).toEndWith('SAME                      v2021.0')
   expect(line).not.toContain('=')
   expect(line).not.toContain('vlatest')
 })
@@ -519,8 +519,8 @@ test('renders every configured release in aligned dataset rows', () => {
 
   const [first = '', second = ''] = line.split('\n')
   expect(first).toContain('CenstatD   DivisionArea      District')
-  expect(first).toEndWith('no updates                      v2021.0')
-  expect(second).toEndWith('no updates                      v2016.0')
+  expect(first).toEndWith('no updates                v2021.0')
+  expect(second).toEndWith('no updates                v2016.0')
   expect(second).toStartWith('CenstatD')
   expect(line).not.toContain('=')
   expect(first.length).toBeLessThanOrEqual(120)
@@ -571,7 +571,7 @@ test('shows the matching target version for a CSDI archive release', () => {
     new Map([['2021', '2021.0']]),
   )
 
-  expect(line).toEndWith('no updates                      v2021.0')
+  expect(line).toEndWith('no updates                v2021.0')
 })
 
 test('shows an ingested archive release as current in the completion summary', () => {
@@ -642,8 +642,8 @@ test('shows both published C&SD district-statistic source releases as current', 
     ]),
   )
 
-  expect(line).toContain('no updates                      v2022.0')
-  expect(line).toContain('no updates                      v2024.0')
+  expect(line).toContain('no updates                v2022.0')
+  expect(line).toContain('no updates                v2024.0')
 })
 
 test('uses the dataset target version for an unversioned CSDI archive', () => {
@@ -669,7 +669,7 @@ test('uses the dataset target version for an unversioned CSDI archive', () => {
     new Map([[dataset.code, '2026-07-22.0']]),
   )
 
-  expect(line).toEndWith('no updates                      v2026-07-22.0')
+  expect(line).toEndWith('no updates                v2026-07-22.0')
 })
 
 test('keeps each incremental release paired with its preceding target version', () => {
