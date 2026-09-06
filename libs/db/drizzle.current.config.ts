@@ -6,7 +6,7 @@ export default defineConfig(
   createDrizzleConfig({
     localPathEnv: 'LOCAL_D1_SQLITE_PATH_CURRENT',
     remoteDatabaseIdEnv: 'CLOUDFLARE_DATABASE_ID_CURRENT',
-    schema: './src/schema/current/index.ts',
+    schema: './src/schema/current/migrationSchema.ts',
     out: './migrations/current',
   }),
 )

@@ -23,6 +23,7 @@ export const address2d = sqliteTable(
     index('address2d_current_lookup_idx').on(table.id, table.isCurrent),
     index('address2d_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address2d_snapshotId_idx').on(table.snapshotId),
+    index('address2d_parentAddressId_idx').on(table.parentAddressId),
   ],
 )
 
