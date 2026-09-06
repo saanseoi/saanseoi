@@ -252,7 +252,7 @@ function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
     eq(divisionsI18n.snapshotId, divisions.snapshotId),
     eq(divisionsI18n.divisionId, divisions.id),
     localeSelection.mode === 'requested' && localeSelection.locales.length > 0
-      ? inArray(divisionsI18n.locale, localeSelection.locales)
+      ? sql`${divisionsI18n.locale} in (select value from json_each(${JSON.stringify(localeSelection.locales)}))`
       : undefined,
   )
 }
