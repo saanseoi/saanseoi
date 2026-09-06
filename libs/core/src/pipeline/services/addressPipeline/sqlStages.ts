@@ -39,7 +39,8 @@ import type {
 import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
 import {
   buildAddressHistoryApplySqlImportFile,
-  buildAddressResolvedSqlImportFiles,
+  buildAddressHistorySqlImportFile,
+  buildAddressCurrentSqlImportFile,
   buildAddressSqlImportRunId,
   buildAddressSourceSqlImportFiles,
   type AddressSqlImportFile,
@@ -165,9 +166,7 @@ export async function writeAddressHistorySqlChunkStage(
     artefact,
   )
 
-  const [historyFile] = buildAddressResolvedSqlImportFiles(message, artefact).filter(
-    file => file.target === 'history',
-  )
+  const historyFile = buildAddressHistorySqlImportFile(message, artefact)
   const artefactKeys = historyFile
     ? await writeSqlFiles(bucket, message, [historyFile])
     : []
@@ -205,7 +204,7 @@ export async function writeAddressCurrentSqlChunkStage(
   const selectedDivisionSnapshotId =
     pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
   const isFinalChunk = artefact.rowEnd >= artefact.totalRows
-  const [currentFile] = buildAddressResolvedSqlImportFiles(
+  const currentFile = buildAddressCurrentSqlImportFile(
     message,
     artefact,
     isFinalChunk && selectedDivisionSnapshotId && currentSnapshotId
@@ -214,7 +213,7 @@ export async function writeAddressCurrentSqlChunkStage(
           currentSnapshotId,
         }
       : undefined,
-  ).filter(file => file.target === 'current')
+  )
   if (artefact.rowStart === 0 && pipelineMessage.addressHistoricalParentVersions) {
     const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const versionInsertContext = await prepareAddressVersionInsertContext(

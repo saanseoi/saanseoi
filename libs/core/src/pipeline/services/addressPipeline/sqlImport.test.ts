@@ -1,14 +1,18 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import type { DatasetProcessingMessage } from '../../../types'
 
 import {
   buildAddressHistoryApplySqlImportFile,
+  buildAddressHistorySqlImportFile,
   buildAddressResolvedSqlImportFiles,
   buildAddressSourceSqlImportFiles,
   buildAddressSqlCleanupFile,
 } from './sqlImport'
 import { resolveAddressDivisionCohortKey } from './sqlStages'
+import { splitSqlStatements } from './sqlImportStages'
+import { normaliseAddressRowForPipeline } from './normalisation'
 import type { ResolvedAddressChunkArtefact } from './types'
 import type { NormalisedAddressChunkArtefact } from './types'
 
@@ -212,6 +216,85 @@ describe('HKGov ALS identity alias SQL', () => {
 })
 
 describe('address SQL string literals', () => {
+  test('splits bilingual rows by UTF-8 bytes and retains every escaped value', () => {
+    const name = "香港 O'Brien; 大廈".repeat(5)
+    const normalised = normaliseAddressRowForPipeline({
+      id: 'address',
+      divisionSnapshotId: 'division',
+      enFormattedAddress: name,
+    })
+    const rows = Array.from({ length: 128 }, (_, index) => ({
+      addressId: `address-${index}`,
+      sourceId: `source-${index}`,
+      versionHash: 'version',
+      changed: true,
+      changedExistingId: null,
+      coverageComponents: [],
+      i18n: [],
+      base: {
+        ...normalised.base,
+        id: `address-${index}`,
+        snapshotId: 'snapshot',
+        sources: { name },
+        createdAt: '2026-09-07',
+        updatedAt: '2026-09-07',
+      },
+    }))
+    const file = buildAddressHistorySqlImportFile(
+      message,
+      {
+        ...resolvedArtefact,
+        rows,
+        rowEnd: rows.length,
+        totalRows: rows.length,
+      },
+      { maxStatementBytes: 2000 },
+    )
+    const inserts = splitSqlStatements(file.sql).filter(statement =>
+      statement.startsWith('INSERT'),
+    )
+    expect(inserts.length).toBeGreaterThan(1)
+    expect(inserts.every(statement => Buffer.byteLength(statement) <= 2000)).toBe(true)
+    const db = new Database(':memory:')
+    try {
+      db.exec(file.sql)
+      expect(
+        db.query('SELECT COUNT(*) AS count FROM zzAddressImportResolvedRows').get(),
+      ).toEqual({ count: 128 })
+      expect(
+        db
+          .query(
+            'SELECT sources FROM zzAddressImportResolvedRows WHERE rowNumber = 127',
+          )
+          .get(),
+      ).toEqual({ sources: JSON.stringify({ name }) })
+    } finally {
+      db.close()
+    }
+  })
+
+  test('rejects a single oversized row before producing an import file', () => {
+    expect(() =>
+      buildAddressSourceSqlImportFiles(message, {
+        kind: 'address.normalised.v1',
+        processingRunStartedAt: '2026-09-07',
+        releaseId: message.releaseId,
+        rowStart: 0,
+        rowEnd: 1,
+        totalRows: 1,
+        rows: [
+          {
+            base: {},
+            i18n: [],
+            raw: { text: '香港'.repeat(20_000) },
+            sourceId: 'source',
+            sourcePayloadHash: 'hash',
+          },
+        ],
+      } as unknown as NormalisedAddressChunkArtefact),
+    ).toThrow('statement byte limit')
+  })
+
   test('represents NUL separators as SQLite expressions', () => {
     const artefact = {
       kind: 'address.normalised.v1',

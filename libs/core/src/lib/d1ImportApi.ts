@@ -265,28 +265,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           )
         }
 
-        if (
-          !isImportNoLongerActive(poll) &&
-          (poll.status === 'error' || (poll.success === false && poll.error))
-        ) {
-          if (
-            isStorageResetImportPollWithoutBookmark(poll) &&
-            storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
-          ) {
-            storageResetAttempts += 1
-            await sleep(pollIntervalMs)
-            continue
-          }
-
-          throw new Error(`D1 import did not succeed: ${formatPollState(poll)}`)
-        }
-
         while (!isImportComplete(poll) && !isImportNoLongerActive(poll)) {
-          if (isBusyImportPollWithoutBookmark(poll)) {
-            await sleep(pollIntervalMs)
-            continue
-          }
-
           if (
             isStorageResetImportPollWithoutBookmark(poll) &&
             storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
@@ -294,6 +273,13 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
             storageResetAttempts += 1
             await sleep(pollIntervalMs)
             continue restartImport
+          }
+
+          if (
+            !isBusyImportPollWithoutBookmark(poll) &&
+            (poll.status === 'error' || (poll.success === false && poll.error))
+          ) {
+            throw new Error(`D1 import did not succeed: ${formatPollState(poll)}`)
           }
 
           const nextBookmark = poll.atBookmark?.trim() || currentBookmark

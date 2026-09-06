@@ -558,6 +558,8 @@
   "auth_sign_in_title": "Sign in",
   "auth_sign_in_description": "Manage your API access and account settings.",
   "auth_sign_in_error": "Unable to sign in.",
+  "auth_sign_out_error": "Unable to sign out. Please try again.",
+  "auth_verification_error": "This verification link is invalid or has expired. Sign in with your email and password to request a new verification email.",
   "auth_passkey_error": "Unable to sign in with a passkey.",
   "auth_continue_with_passkey": "Continue with a passkey",
   "auth_signing_in": "Signing in…",

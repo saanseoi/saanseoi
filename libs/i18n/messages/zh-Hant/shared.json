@@ -555,6 +555,8 @@
   "auth_sign_in_title": "登入",
   "auth_sign_in_description": "管理你的 API 存取權和帳戶設定。",
   "auth_sign_in_error": "無法登入。",
+  "auth_sign_out_error": "無法登出，請重試。",
+  "auth_verification_error": "此驗證連結無效或已過期。請使用電郵和密碼登入，以索取新的驗證電郵。",
   "auth_passkey_error": "無法使用通行密鑰登入。",
   "auth_continue_with_passkey": "使用通行密鑰繼續",
   "auth_signing_in": "正在登入…",

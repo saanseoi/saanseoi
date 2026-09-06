@@ -343,6 +343,17 @@ export function buildAddressResolvedSqlImportFiles(
   artefact: ResolvedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
+  return [
+    buildAddressHistorySqlImportFile(message, artefact, options),
+    buildAddressCurrentSqlImportFile(message, artefact, options),
+  ]
+}
+
+export function buildAddressHistorySqlImportFile(
+  message: DatasetProcessingMessage,
+  artefact: ResolvedAddressChunkArtefact,
+  options: AddressSqlImportBuildOptions = {},
+): AddressSqlImportFile {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const historyStatements = [
     buildAddressResolvedStagingSchemaSql(),
@@ -426,6 +437,19 @@ export function buildAddressResolvedSqlImportFiles(
       options.maxStatementBytes,
     ),
   ]
+  return buildSqlImportFile(
+    'history',
+    `${runId}-history-${artefact.rowStart}.sql`,
+    historyStatements,
+  )
+}
+
+export function buildAddressCurrentSqlImportFile(
+  message: DatasetProcessingMessage,
+  artefact: ResolvedAddressChunkArtefact,
+  options: AddressSqlImportBuildOptions = {},
+): AddressSqlImportFile {
+  const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const currentStatements = [
     buildAddressResolvedStagingSchemaSql(),
     `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
@@ -512,24 +536,19 @@ export function buildAddressResolvedSqlImportFiles(
     ),
   ]
 
-  return [
-    buildSqlImportFile('history', `${runId}-history-${artefact.rowStart}.sql`, [
-      ...historyStatements,
-    ]),
-    buildSqlImportFile('current', `${runId}-current-${artefact.rowStart}.sql`, [
-      ...currentStatements,
-      buildAddressCurrentApplySql(runId),
-      ...(options.currentDivisionSnapshotId && options.currentSnapshotId
-        ? [
-            buildAlignAddressCurrentDivisionSnapshotSql(
-              options.currentSnapshotId,
-              options.currentDivisionSnapshotId,
-            ),
-          ]
-        : []),
-      buildAddressResolvedStagingDropSql(),
-    ]),
-  ]
+  return buildSqlImportFile('current', `${runId}-current-${artefact.rowStart}.sql`, [
+    ...currentStatements,
+    buildAddressCurrentApplySql(runId),
+    ...(options.currentDivisionSnapshotId && options.currentSnapshotId
+      ? [
+          buildAlignAddressCurrentDivisionSnapshotSql(
+            options.currentSnapshotId,
+            options.currentDivisionSnapshotId,
+          ),
+        ]
+      : []),
+    buildAddressResolvedStagingDropSql(),
+  ])
 }
 
 export function buildAddressHistoryApplySqlImportFile(
@@ -1180,22 +1199,25 @@ function buildInsertStatements(
       : mode === 'ignore'
         ? `INSERT OR IGNORE INTO ${tableName}`
         : `INSERT OR REPLACE INTO ${tableName}`
-  let currentPrefix = `${verb} (${columns.join(', ')}) VALUES `
+  const currentPrefix = `${verb} (${columns.join(', ')}) VALUES `
+  const prefixBytes = SQL_TEXT_ENCODER.encode(currentPrefix).byteLength + 1
+  let currentBytes = prefixBytes
 
   for (const row of rows) {
     const valueSql = `(${columns.map(column => sqlLiteral(row[column])).join(', ')})`
-    const candidate = `${currentPrefix}${[...currentValues, valueSql].join(', ')};`
+    const valueBytes = SQL_TEXT_ENCODER.encode(valueSql).byteLength
 
-    if (
-      currentValues.length > 0 &&
-      SQL_TEXT_ENCODER.encode(candidate).byteLength > maxStatementBytes
-    ) {
-      statements.push(`${currentPrefix}${currentValues.join(', ')};`)
-      currentValues = [valueSql]
-      currentPrefix = `${verb} (${columns.join(', ')}) VALUES `
-      continue
+    if (prefixBytes + valueBytes > maxStatementBytes) {
+      throw new Error(`A ${tableName} SQL row exceeds the statement byte limit.`)
     }
 
+    if (currentValues.length > 0 && currentBytes + 2 + valueBytes > maxStatementBytes) {
+      statements.push(`${currentPrefix}${currentValues.join(', ')};`)
+      currentValues = []
+      currentBytes = prefixBytes
+    }
+
+    currentBytes += (currentValues.length > 0 ? 2 : 0) + valueBytes
     currentValues.push(valueSql)
   }
 
