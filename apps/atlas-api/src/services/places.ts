@@ -157,7 +157,10 @@ function projectPlaceI18n(
       name: value.name,
       brandName: value.brandName,
       ...(isDefaultPlaceProfile(profile)
-        ? { freeformAddress: value.freeformAddress }
+        ? {
+            freeformAddress: value.freeformAddress,
+            accessHint: value.accessHint ?? null,
+          }
         : {}),
       ...(profile === 'full'
         ? {
@@ -236,6 +239,8 @@ function createPlaceResource(args: {
       addressSnapshotId: place.addressSnapshotId,
       address2dId: place.address2dId,
       address3dId: place.address3dId,
+      address3dUnitId: place.address3dUnitId ?? null,
+      address3dMembership: place.address3dMembership ?? null,
       sources: place.sources,
     })
   }

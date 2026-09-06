@@ -49,6 +49,7 @@ export type PlaceLocaleValue = {
   brandNameVariant: string[] | null
   brandNameAlts: string | null
   freeformAddress: string | null
+  accessHint?: string | null
   provenance: {
     isMachineTranslated: string[]
     isHumanVerified: string[]
@@ -64,6 +65,8 @@ export type PlaceRecord = {
     addressSnapshotId: string | null
     address2dId: string | null
     address3dId: string | null
+    address3dUnitId?: string | null
+    address3dMembership?: 'established' | 'unresolved' | null
     lng: number
     lat: number
     bbox: BBox | null
@@ -278,6 +281,7 @@ function buildPlaceI18nJsonSelection(localeSelection: RequestedApiLocaleSelectio
         'brandNameVariant', ${placesI18n.brandNameVariant},
         'brandNameAlts', ${placesI18n.brandNameAlts},
         'freeformAddress', ${placesI18n.freeformAddress},
+        'accessHint', ${placesI18n.accessHint},
         'provenance', ${placesI18n.provenance}
       )
     )
@@ -344,6 +348,7 @@ function parsePlaceI18n(value: string): Record<string, PlaceLocaleValue> {
             brandNameVariant: asNullableStringArray(record.brandNameVariant),
             brandNameAlts: asNullableString(record.brandNameAlts),
             freeformAddress: asNullableString(record.freeformAddress),
+            accessHint: asNullableString(record.accessHint),
             provenance: asPlaceProvenance(record.provenance),
           },
         ],
@@ -424,6 +429,8 @@ export async function listPlaceRecordsCurrent(
       addressSnapshotId: places.addressSnapshotId,
       address2dId: places.address2dId,
       address3dId: places.address3dId,
+      address3dUnitId: places.address3dUnitId,
+      address3dMembership: places.address3dMembership,
       lng: places.lng,
       lat: places.lat,
       bbox: places.bbox,

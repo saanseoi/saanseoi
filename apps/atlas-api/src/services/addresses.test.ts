@@ -16,7 +16,13 @@ import {
   publishSnapshot,
   upsertSnapshotSource,
 } from '@repo/core/db/metaRegistry'
-import { getAddressDetail, listAddresses, searchAddresses } from './addresses'
+import {
+  getAddressDetail,
+  getAddressUnits,
+  listAddresses,
+  searchAddresses,
+} from './addresses'
+import { AddressUnitsResponseSchema } from '../schema/addresses'
 import { AddressSearchQuerySchema, AddressesListQuerySchema } from '../schema/addresses'
 
 test('publishes and serves a curated Address union with dataset filtering, global pagination and distinct bilingual search', async () => {
@@ -315,6 +321,62 @@ test('publishes and serves a curated Address union with dataset filtering, globa
         'filter[dataset]': '',
       }).success,
     ).toBe(false)
+    const unit = {
+      id: 'unit',
+      unitRef: '01',
+      unitType: 'F' as const,
+      floorRef: '1',
+      floorType: 'F' as const,
+      unitPortion: null,
+    }
+    const alsSnapshotId = snapshots.get('als')
+    if (!alsSnapshotId) throw new Error('Missing ALS fixture snapshot')
+    current
+      .query(
+        'INSERT INTO address3d(snapshotId,id,address2dId,units,unitCount,contentHash,unresolvedSectionIds) VALUES (?,?,?,?,?,?,?)',
+      )
+      .run(alsSnapshotId, 'collection', 'a', JSON.stringify([unit]), 1, 'hash', '[]')
+    for (const [locale, unitExpression, floorExpression] of [
+      ['en', 'FLAT 01', '1/F'],
+      ['zh-hant', '01室', '1樓'],
+    ] as const)
+      current
+        .query(
+          'INSERT INTO address3dI18n(snapshotId,address3dId,locale,units) VALUES (?,?,?,?)',
+        )
+        .run(
+          alsSnapshotId,
+          'collection',
+          locale,
+          JSON.stringify({ unit: { unitExpression, floorExpression } }),
+        )
+    const ordinary = await getAddressDetail({ ...args, id: 'a', query: {} })
+    expect(ordinary.status === 200 && ordinary.body.data.attributes).not.toHaveProperty(
+      'units',
+    )
+    const inventory = await getAddressUnits({
+      ...args,
+      id: 'a',
+      query: { locales: 'en' },
+    })
+    expect(inventory.status).toBe(200)
+    expect(AddressUnitsResponseSchema.safeParse(inventory.body).success).toBe(true)
+    if (
+      inventory.status !== 200 ||
+      !inventory.body.data ||
+      inventory.body.data.type !== 'address3d'
+    )
+      throw new Error('Missing inventory')
+    expect(inventory.body.data.attributes.units).toEqual([unit])
+    expect(Object.keys(inventory.body.data.attributes.i18n)).toEqual(['en'])
+    expect(inventory.body.meta.address3dCoverage).toEqual({
+      kind: 'direct',
+      ownerAddress2dId: 'a',
+      address3dId: 'collection',
+      membership: 'established',
+    })
+    const absent = await getAddressUnits({ ...args, id: 'b', query: {} })
+    expect(absent.status === 200 && absent.body.data).toBeNull()
   } finally {
     meta.close()
     current.close()

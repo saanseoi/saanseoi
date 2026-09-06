@@ -13,12 +13,14 @@ import {
 } from '../../../schema'
 import {
   getAddressDetail,
+  getAddressUnits,
   listAddresses,
   searchAddresses,
   type RequestedAddressApiVersion,
   type RequestedAddressVersion,
   type ResolvedAddressApiVersion,
 } from '../../../services/addresses'
+import { AddressUnitsResponseSchema } from '../../../schema/addresses'
 import type { AppEnv } from '../../../types'
 import { sanitiseResponseUrl } from '../../../lib/api'
 import { openApiText } from '../../../lib/openapi-i18n'
@@ -133,6 +135,53 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
 )
 
 export const addressRoutes = [
+  ...ROUTE_VARIANTS.map(routeVariant => {
+    const route = createRoute({
+      method: 'get',
+      path: `${routeVariant.detailPath}/units`,
+      operationId: `${routeVariant.detailOperationId}Units`,
+      tags: ['Addresses'],
+      request: { params: AddressDetailParamsSchema, query: AddressDetailQuerySchema },
+      responses: {
+        200: {
+          content: { 'application/json': { schema: AddressUnitsResponseSchema } },
+          description:
+            'The explicitly owned or applicable ancestor unit collection. Ancestor membership remains unresolved.',
+        },
+        404: {
+          content: { 'application/json': { schema: ErrorResponseSchema } },
+          description: 'Address not found.',
+        },
+        503: {
+          content: {
+            'application/json': { schema: AddressSnapshotNotReadyErrorResponseSchema },
+          },
+          description: 'Address snapshot not ready.',
+        },
+        422: ValidationErrorOpenAPIResponse,
+      },
+    })
+    return defineOpenAPIRoute<typeof route, AppEnv>({
+      route,
+      handler: async c => {
+        const result = await getAddressUnits({
+          currentDb: c.var.currentDb,
+          historyDbsByBinding: c.var.historyDbsByBinding,
+          metaDb: c.var.metaDb,
+          requestUrl: sanitiseResponseUrl(c.req.url).toString(),
+          requestedVersionPath: routeVariant.requestedVersionPath,
+          requestedApiVersion: routeVariant.requestedApiVersion,
+          resolvedApiVersion: routeVariant.resolvedApiVersion,
+          id: c.req.valid('param').id,
+          query: c.req.valid('query'),
+          onResolved: attribution => c.set('accessAttribution', attribution),
+        })
+        if (result.status === 503) return c.json(result.body, 503)
+        if (result.status === 404) return c.json(result.body, 404)
+        return c.json(result.body, 200)
+      },
+    })
+  }),
   ...listRouteConfigs.map((routeConfig, index) =>
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,

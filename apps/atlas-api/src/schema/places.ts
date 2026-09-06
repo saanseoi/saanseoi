@@ -313,6 +313,7 @@ const PlaceI18nSchema = z
         description: openApiText('openapi_places_brand_name_alts_description'),
         examples: ['language', '大快活', null],
       }),
+    accessHint: z.string().nullable().optional(),
     freeformAddress: z
       .string()
       .nullable()
@@ -389,6 +390,8 @@ const PlaceSchema = z
         description: openApiText('openapi_places_address_2d_id_description'),
         examples: ['ss-077c2fdb-5843-5710-aaaa-b162e913b4ef', null],
       }),
+    address3dUnitId: z.string().nullable().optional(),
+    address3dMembership: z.enum(['established', 'unresolved']).nullable().optional(),
     address3dId: z
       .string()
       .nullable()
@@ -638,6 +641,7 @@ const PlaceCollectionTaxonomySchema = z
 
 const PlaceCollectionI18nValueSchema = z
   .object({
+    accessHint: PlaceI18nSchema.shape.accessHint,
     name: z
       .string()
       .nullable()
@@ -838,6 +842,8 @@ const PlaceCollectionAttributesSchema = z
         description: openApiText('openapi_places_address_2d_id_description'),
         examples: ['ss-077c2fdb-5843-5710-aaaa-b162e913b4ef', null],
       }),
+    address3dUnitId: z.string().nullable().optional(),
+    address3dMembership: z.enum(['established', 'unresolved']).nullable().optional(),
     address3dId: IdSchema.nullable()
       .optional()
       .openapi({
