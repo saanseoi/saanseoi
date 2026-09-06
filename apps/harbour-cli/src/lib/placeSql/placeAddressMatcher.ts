@@ -322,7 +322,7 @@ function addPreparedStreet(
   existing.streetIds = [...new Set([...existing.streetIds, ...street.streetIds])].sort()
 }
 
-function stripAddress3d(value: string) {
+export function stripAddress3d(value: string) {
   const address3dParts: ParsedAddress3dPart[] = []
   let address2dText = value
 

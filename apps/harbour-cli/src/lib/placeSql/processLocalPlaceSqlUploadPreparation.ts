@@ -1,4 +1,5 @@
 import { rename, open } from 'node:fs/promises'
+import { matchPlaceAddress3d } from './placeAddress3d'
 import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -321,6 +322,7 @@ export async function stageEnrichedPlaces(
       districtId: currentSchema.address2d.districtId,
       hamletId: currentSchema.address2d.hamletId,
       id: currentSchema.address2d.id,
+      parentAddressId: currentSchema.address2d.parentAddressId,
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,
       neighbourhoodId: currentSchema.address2d.neighbourhoodId,
@@ -393,6 +395,15 @@ export async function stageEnrichedPlaces(
                 (id): id is string => typeof id === 'string' && divisionIds.has(id),
               )
             : []
+          const unitReference =
+            address && resolution.tier !== 'supplementary'
+              ? await matchPlaceAddress3d(
+                  currentDb,
+                  addressSnapshotId,
+                  address,
+                  place.addresses ?? [],
+                )
+              : null
           const contentHash = await hashNormalisedPlace(place)
           const materialisationContentHash = geometryOverridden
             ? await createHash({ contentHash, effectiveLng, effectiveLat })
@@ -402,7 +413,9 @@ export async function stageEnrichedPlaces(
             ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
             addressSnapshotId: addressId ? addressSnapshotId : null,
             address2dId: addressId,
-            address3dId: null,
+            address3dId: unitReference?.address3dId ?? null,
+            address3dUnitId: unitReference?.address3dUnitId ?? null,
+            address3dMembership: unitReference?.address3dMembership ?? null,
             divisionIds: [...new Set(referencedDivisionIds)],
             versionHash: await hashPlaceMaterialisation(place, {
               addressSnapshotId,
@@ -410,6 +423,7 @@ export async function stageEnrichedPlaces(
               addressId,
               divisionIds: referencedDivisionIds,
               contentHash: materialisationContentHash,
+              ...unitReference,
             }),
             sourcePayloadHash: await createHash(place.raw),
           }

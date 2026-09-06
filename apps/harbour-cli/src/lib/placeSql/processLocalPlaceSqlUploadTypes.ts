@@ -34,6 +34,8 @@ export type EnrichedPlace = {
   addressSnapshotId?: string | null
   address2dId: string | null
   address3dId: string | null
+  address3dUnitId?: string | null
+  address3dMembership?: 'established' | 'unresolved' | null
   divisionIds: string[]
   versionHash: string
   sourcePayloadHash: string
