@@ -862,6 +862,61 @@ describe('atlas-api', () => {
     })
   })
 
+  test('forwarded family aliases consume one rate-limit slot and usage event', async () => {
+    for (const family of ['places', 'streets']) {
+      const charges: string[] = []
+      const events: unknown[] = []
+      const { env } = createEnv({
+        AUTH_MODE: 'required',
+        API_RATE_LIMIT: {
+          limit: async ({ key }: { key: string }) => {
+            charges.push(key)
+            return { success: charges.length === 1 }
+          },
+        } as RateLimit,
+        API_USAGE: {
+          writeDataPoint: event => events.push(event),
+        } as AnalyticsEngineDataset,
+      })
+      const response = await app.fetch(
+        apiRequest(`http://localhost/${family}/v0/missing`),
+        env,
+      )
+      expect(response.status).not.toBe(429)
+      expect(charges).toEqual(['api-key-1'])
+      expect(events).toHaveLength(1)
+    }
+  })
+
+  test('protected responses cannot be reused by downstream caches', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'required' })
+    for (const request of [
+      new Request('http://localhost/divisions/v0.1'),
+      apiRequest('http://localhost/divisions/v0.1'),
+      new Request('http://localhost/divisions/v0.1', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+    ]) {
+      const response = await app.fetch(request, env)
+      expect(response.headers.get('cache-control')).toBe('no-store')
+    }
+  })
+
+  test('URL-shaped Origin values do not qualify for the first-party exemption', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'required' })
+    for (const origin of [
+      'https://saanseoi.hk/path',
+      'https://user@saanseoi.hk',
+      'https://saanseoi.hk?other',
+    ]) {
+      const response = await app.fetch(
+        new Request('http://localhost/divisions/v0.1', { headers: { origin } }),
+        env,
+      )
+      expect(response.status).toBe(401)
+    }
+  })
+
   test('GET /divisions/v0.1 returns 503 when public-key validation is unavailable', async () => {
     const { env } = createAuthenticatedEnv({
       PUBLIC_KEY_LEASES: {

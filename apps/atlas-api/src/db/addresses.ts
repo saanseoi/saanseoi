@@ -1,6 +1,7 @@
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
 import { addressBlockTypes, and, asc, eq, inArray, ne, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
+import type { Address3dCoverage } from '@repo/db/address3d'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 
 const {
@@ -30,6 +31,7 @@ export type AddressLocaleValue = {
 }
 
 export type AddressRecord = {
+  address3dCoverage?: Address3dCoverage
   address: {
     snapshotId: string
     divisionSnapshotId: string | null

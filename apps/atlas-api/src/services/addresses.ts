@@ -20,6 +20,8 @@ import {
   type AddressRecord,
 } from '../db/addresses'
 import { listReplayedAddressRecords } from '../db/addressesHistory'
+import { attachAddress3dCoverage, getAddress3dCollection } from '../db/address3d'
+import type { Address3dCoverage } from '@repo/db/address3d'
 import { listDivisionRecordsCurrentByIds } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
 import {
@@ -41,6 +43,50 @@ import {
 } from './accessAnalytics'
 
 export type RequestedAddressVersion = 'addresses/v0' | 'addresses/v0.1'
+
+export async function getAddressUnits(args: Parameters<typeof getAddressDetail>[0]) {
+  const result = await getAddressDetail({
+    ...args,
+    query: { ...args.query, profile: 'full' },
+  })
+  if (result.status !== 200) return result
+  const attributes = result.body.data.attributes
+  const coverage = attributes.address3dCoverage
+  if (coverage.kind === 'none')
+    return {
+      status: 200 as const,
+      body: { data: null, meta: { address3dCoverage: coverage } },
+    }
+  if (!attributes.snapshotId) throw new Error('Missing selected Address3D snapshot')
+  const record = await getAddress3dCollection({
+    ...args,
+    snapshotId: attributes.snapshotId,
+    collectionId: coverage.address3dId,
+  })
+  if (!record) throw new Error('Address3D coverage points to an absent collection')
+  const selectedLocales = new Set(Object.keys(attributes.i18n ?? {}))
+  return {
+    status: 200 as const,
+    body: {
+      data: {
+        type: 'address3d' as const,
+        id: record.collection.id,
+        attributes: {
+          snapshotId: attributes.snapshotId,
+          address2dId: record.collection.address2dId,
+          unitCount: record.collection.unitCount,
+          units: record.collection.units,
+          i18n: Object.fromEntries(
+            record.i18n
+              .filter(row => selectedLocales.has(row.locale))
+              .map(row => [row.locale, row.units]),
+          ),
+        },
+      },
+      meta: { address3dCoverage: coverage },
+    },
+  }
+}
 export type RequestedAddressApiVersion = '0.1'
 export type ResolvedAddressApiVersion = 'api-addresses-v0.1'
 export type AddressProfile = ApiProfileName
@@ -54,6 +100,7 @@ type AddressResourcePayload = {
     datasetCode: string
     parentAddressId: string | null
     granularity: AddressRecord['address']['granularity']
+    address3dCoverage: Address3dCoverage
     snapshotId?: string
     geometry?: JsonObject | null
     bbox?: BBox | null
@@ -361,6 +408,7 @@ function createAddressResource(args: {
     datasetCode: args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)!,
     parentAddressId: address.parentAddressId,
     granularity: address.granularity,
+    address3dCoverage: args.record.address3dCoverage ?? { kind: 'none' },
   }
 
   if (args.routeState.profile !== 'compact') {
@@ -593,6 +641,7 @@ export async function listAddresses(args: {
   )
   const total = selectedRecords.length
   const records = selectedRecords.slice(offset, offset + limit)
+  await attachAddress3dCoverage({ ...args, records })
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
@@ -720,6 +769,7 @@ export async function searchAddresses(args: {
       localeSelection: routeState.localeSelection,
     }),
   )
+  await attachAddress3dCoverage({ ...args, records })
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
     loadIncludedAddressHierarchy({
@@ -816,6 +866,8 @@ export async function getAddressDetail(args: {
       },
     }
   }
+
+  await attachAddress3dCoverage({ ...args, records: [record] })
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>

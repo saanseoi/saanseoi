@@ -1,6 +1,52 @@
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 import { addressBlockTypes, addressGranularities } from '@repo/db'
+import { address3dFloorTypes, address3dUnitTypes } from '@repo/db/address3d'
+
+export const Address3dCoverageSchema = z.union([
+  z.object({ kind: z.literal('none') }),
+  z.object({
+    kind: z.enum(['direct', 'ancestor']),
+    ownerAddress2dId: z.string(),
+    address3dId: z.string(),
+    membership: z.enum(['established', 'unresolved']),
+  }),
+])
+export const AddressUnitsResponseSchema = z.object({
+  data: z
+    .object({
+      type: z.literal('address3d'),
+      id: z.string(),
+      attributes: z.object({
+        snapshotId: z.string(),
+        address2dId: z.string(),
+        unitCount: z.number().int(),
+        units: z.array(
+          z.object({
+            id: z.string(),
+            unitRef: z.string(),
+            unitType: z.enum(address3dUnitTypes),
+            floorRef: z.string(),
+            floorType: z.enum(address3dFloorTypes),
+            unitPortion: z.string().nullable(),
+          }),
+        ),
+        i18n: z.record(
+          z.string(),
+          z.record(
+            z.string(),
+            z.object({
+              unitExpression: z.string(),
+              floorExpression: z.string(),
+              formattedAddressPart: z.string().optional(),
+            }),
+          ),
+        ),
+      }),
+    })
+    .nullable(),
+  meta: z.object({ address3dCoverage: Address3dCoverageSchema }),
+})
 
 import { openApiText } from '../lib/openapi-i18n'
 import {
@@ -195,6 +241,7 @@ const AddressI18nSchema = z
 
 const AddressAttributesSchema = z
   .object({
+    address3dCoverage: Address3dCoverageSchema,
     granularity: z.enum(addressGranularities).openapi({
       description: openApiText('openapi_addresses_granularity_description'),
     }),
