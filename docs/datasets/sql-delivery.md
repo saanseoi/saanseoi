@@ -88,8 +88,8 @@ payload identity, order, collection boundaries and reuse without SQL regeneratio
 also counts transport batches for one synthetic Places-sized SQL group. Use `--quick`
 for a one-run smoke check. An alternating history/current target case shows the boundary
 that prevents adjacent-batch coalescing for Address3D collections; consecutive source
-records can still coalesce. Per-collection owner/section validation queries are outside
-this local benchmark and require separate live measurement.
+records can still coalesce. Batched owner/section validation lookups are outside this
+local benchmark and require separate live measurement.
 
 The benchmark refuses network access and retains its plans and JSON report in a unique
 directory below `.cache/sql-delivery-benchmarks/` printed at completion. It does not use

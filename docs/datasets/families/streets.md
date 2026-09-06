@@ -44,6 +44,12 @@ the selected published snapshot IDs. District matching uses HaD district areas w
 canonical IDs cover the street district references. Unresolved named segments require
 curation before publication.
 
+Road Centreline intake offers `--review` for colour-coded, grouped terminal curation.
+Reviewers can search and link existing streets, retain groups as source-only evidence,
+or leave them unresolved. Decisions save after each choice with archive and canonical
+snapshot provenance; review itself does not publish a release or create street
+identities.
+
 Current snapshots contain active streets. When lifecycle revisions are published,
 deleted states remain in immutable history and notice events appear in the changelog.
 API history and changelog reads must remain bounded by published snapshots.

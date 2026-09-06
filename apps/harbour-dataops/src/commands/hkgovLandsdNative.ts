@@ -23,6 +23,11 @@ import {
 } from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
+import {
+  applyRoadReview,
+  loadRoadReview,
+  promptRoadReview,
+} from '../lib/roadCentrelineReview.ts'
 
 const PLACE_NAME_DATASET = 'ds-hk-hkgov-landsd-division'
 const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
@@ -105,6 +110,16 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
     streets: resolvedCanonical.streets ?? [],
   })
   const summary = summariseRoadCentrelineMatching(archive.sourceFeatureCount, result)
+  const reviewContext = {
+    sourceArchiveSha256: input.sha256,
+    sourceVersion: input.sourceVersion,
+    canonicalSnapshotIds: resolvedCanonical.snapshotIds ?? null,
+  }
+  const decisionsPath = resolve(
+    'fixtures/meta/curations/road-centreline',
+    `${input.sha256}.json`,
+  )
+  const decisions = await loadRoadReview(decisionsPath, reviewContext)
   const reviewPath = resolve('.cache/road-centreline-review', `${input.sha256}.json`)
   await mkdir(dirname(reviewPath), { recursive: true })
   await writeFile(
@@ -125,8 +140,32 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
       2,
     )}\n`,
   )
-  if (args.options['dry-run'] === true) {
-    console.log(JSON.stringify({ ...summary, reviewPath }, null, 2))
+  if (args.options.review === true) {
+    if (args.options.yes)
+      throw new Error(
+        '--yes cannot choose road-segment identities; run --review in an interactive terminal.',
+      )
+    await promptRoadReview(
+      groupRoadCentrelineIssues(result.issues, resolvedCanonical.streets ?? []),
+      resolvedCanonical.streets ?? [],
+      decisions,
+      decisionsPath,
+    )
+  }
+  applyRoadReview(result, resolvedCanonical.streets ?? [], decisions)
+  if (args.options['dry-run'] === true || args.options.review === true) {
+    console.log(
+      JSON.stringify(
+        {
+          ...summary,
+          remainingUnresolvedSegments: result.issues.length,
+          reviewPath,
+          decisionsPath,
+        },
+        null,
+        2,
+      ),
+    )
     return
   }
   // A source-only row is valid only when the publisher did not supply an
@@ -134,7 +173,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   // partial street publication.
   if (result.issues.length > 0) {
     throw new Error(
-      `Road Centreline requires curation for ${result.issues.length} named segments. Grouped review: ${reviewPath}`,
+      `Road Centreline requires curation for ${result.issues.length} named segments. Rerun with --review for interactive review. Grouped review: ${reviewPath}`,
     )
   }
   requireResolvedRoadCentrelines(result)
