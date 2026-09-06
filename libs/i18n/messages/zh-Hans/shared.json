@@ -555,6 +555,8 @@
   "auth_sign_in_title": "登录",
   "auth_sign_in_description": "管理你的 API 访问权限和账户设置。",
   "auth_sign_in_error": "无法登录。",
+  "auth_sign_out_error": "无法退出登录，请重试。",
+  "auth_verification_error": "此验证链接无效或已过期。请使用邮箱和密码登录，以获取新的验证邮件。",
   "auth_passkey_error": "无法使用通行密钥登录。",
   "auth_continue_with_passkey": "使用通行密钥继续",
   "auth_signing_in": "正在登录…",

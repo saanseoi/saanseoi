@@ -13,6 +13,55 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('covers materialised C&SD reference-period cohorts with exact signatures', () => {
+    const population = 'population-households-district'
+    const cohorts: Array<[string, string[], string[]?]> = [
+      ...['2016', '2017', '2018', '2019', '2020', '2025'].map(
+        year => [year, [population]] as [string, string[]],
+      ),
+      [
+        '2021',
+        [
+          'housing-market-areas-building-groups',
+          'major-housing-estates',
+          'new-towns',
+          population,
+        ],
+      ],
+      ['2022', [population], ['land-area-population-density-district', population]],
+      ['2023', ['permanent-living-quarters', population]],
+      ['2023-q3', ['permanent-living-quarters-district']],
+      ['2024', [population], ['land-area-population-density-district', population]],
+    ]
+    for (const [period, sources, anchors = sources] of cohorts) {
+      const sourceSchemas = Object.fromEntries(
+        sources.map(source => [
+          `ds-hk-hkgov-censtatd-division-statistic-${source}`,
+          '1.0',
+        ]),
+      )
+      for (const anchor of anchors) {
+        const lookup = {
+          apiVersion: 'api-stats-v0.1',
+          domainCode: 'official',
+          schemaVersion: 'sv-statistics-v1',
+          rulesetVersion: 'rs-division-statistic-merge-v1',
+          lineageSnapshotVersions: [
+            `ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-${anchor}-${period}`,
+          ],
+          sourceSchemas,
+        }
+        expect(resolveApiFieldFixture(lookup)).not.toBeNull()
+        expect(
+          resolveApiFieldFixture({
+            ...lookup,
+            sourceSchemas: { ...sourceSchemas, 'unreviewed-source': '1.0' },
+          }),
+        ).toBeNull()
+      }
+    }
+  })
+
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 

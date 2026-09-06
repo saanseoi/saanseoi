@@ -3,6 +3,84 @@ import { describe, expect, test } from 'bun:test'
 import { createD1ImportClient, type D1ImportFetch } from './d1ImportApi'
 
 describe('createD1ImportClient', () => {
+  test('stops when a poll reports a terminal SQL error', async () => {
+    let polls = 0
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: async (_input, init) => {
+        const body = JSON.parse(init?.body as string)
+        if (body.action === 'init')
+          return Response.json({
+            success: true,
+            result: {
+              at_bookmark: 'bookmark-1',
+              status: 'active',
+              success: false,
+            },
+          })
+        polls += 1
+        return Response.json({
+          success: true,
+          result: {
+            status: 'error',
+            success: false,
+            error: 'SQLITE_CONSTRAINT: unique constraint failed',
+          },
+        })
+      },
+    })
+    await expect(
+      client.importSql({ etag: 'abc123', sql: 'SELECT 1;', pollIntervalMs: 0 }),
+    ).rejects.toThrow('SQLITE_CONSTRAINT')
+    expect(polls).toBe(1)
+  }, 1000)
+
+  test('continues polling the retained bookmark after a busy response without a bookmark', async () => {
+    const requests: unknown[] = []
+    let polls = 0
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: async (_input, init) => {
+        const body = JSON.parse(init?.body as string)
+        requests.push(body)
+        if (body.action === 'init') {
+          return Response.json({
+            success: true,
+            result: {
+              at_bookmark: 'bookmark-1',
+              status: 'active',
+              success: false,
+            },
+          })
+        }
+        polls += 1
+        return Response.json({
+          success: true,
+          result:
+            polls === 1
+              ? { success: false, error: 'Currently processing a long-running import.' }
+              : { success: true, status: 'complete' },
+        })
+      },
+    })
+
+    const result = await client.importSql({
+      etag: 'abc123',
+      sql: 'SELECT 1;',
+      pollIntervalMs: 0,
+    })
+    expect(result.poll.success).toBe(true)
+    expect(requests).toEqual([
+      { action: 'init', etag: 'abc123' },
+      { action: 'poll', current_bookmark: 'bookmark-1' },
+      { action: 'poll', current_bookmark: 'bookmark-1' },
+    ])
+  }, 1000)
+
   test('runs init, upload, ingest, and poll with the expected payloads', async () => {
     const requests: Array<{
       body?: unknown
