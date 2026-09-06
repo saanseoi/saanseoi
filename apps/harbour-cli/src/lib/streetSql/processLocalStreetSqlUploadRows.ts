@@ -604,6 +604,16 @@ export async function insertHistoryStreetChangelog(
       })
       .run()
   }
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId: entries[0]?.sourceReleaseId ?? null,
+    recordType: 'streetChangelog',
+    operation: 'upsert',
+    changes: [...new Set(entries.map(entry => entry.versionHash))].map(versionHash => ({
+      recordId: versionHash,
+      versionHash,
+    })),
+  })
 }
 
 export async function insertSourceRows(
