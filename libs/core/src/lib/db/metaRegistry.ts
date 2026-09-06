@@ -5631,18 +5631,27 @@ export async function listCurrentSnapshotCleanupCandidates(
     snapshotConditions.push(eq(metaSnapshots.resourceType, options.resourceType))
   }
 
-  if (options.snapshotIds && options.snapshotIds.length > 0) {
-    snapshotConditions.push(inArray(metaSnapshots.id, options.snapshotIds))
-  }
-
-  const snapshots = await db
-    .select({
-      snapshotId: metaSnapshots.id,
-      resourceType: metaSnapshots.resourceType,
-    })
-    .from(metaSnapshots)
-    .where(and(...snapshotConditions))
-    .all()
+  const snapshots = options.snapshotIds
+    ? await queryInBatches(
+        options.snapshotIds,
+        async ids =>
+          await db
+            .select({
+              snapshotId: metaSnapshots.id,
+              resourceType: metaSnapshots.resourceType,
+            })
+            .from(metaSnapshots)
+            .where(and(...snapshotConditions, inArray(metaSnapshots.id, ids)))
+            .all(),
+      )
+    : await db
+        .select({
+          snapshotId: metaSnapshots.id,
+          resourceType: metaSnapshots.resourceType,
+        })
+        .from(metaSnapshots)
+        .where(and(...snapshotConditions))
+        .all()
 
   if (snapshots.length === 0) {
     return []
