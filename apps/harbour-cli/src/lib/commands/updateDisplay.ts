@@ -156,7 +156,8 @@ export class UpdateRow {
   }
 
   skipped(reason: string) {
-    this.stop(formatSkippedDatasetLine(this.dataset, reason), 'success')
+    this.clear()
+    this.progress.writeResult(formatSkippedDatasetLine(this.dataset, reason))
   }
 
   private stop(message: string, status: 'error' | 'success') {
