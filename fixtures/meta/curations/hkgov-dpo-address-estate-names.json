@@ -2,6 +2,18 @@
   "version": 1,
   "decisions": [
     {
+      "id": "chuk-yuen-north-ha-estate-name",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceEnName": "CHUK YUEN NORTH ESTATE",
+      "sourceZhName": "竹園北邨",
+      "preferredEnName": "Chuk Yuen (North) Estate",
+      "preferredZhName": "竹園北邨",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/12.json",
+      "authority": "User decision, 2026-09-07: yes, please revert to HA naming convention.",
+      "decision": "Use HA's exact estate-specific name in canonical components and display addresses. Preserve the ALS spelling, raw components, identity keys and inventories. Chuk Yuen South Estate remains distinct."
+    },
+    {
       "id": "choi-wan-one-ha-estate-name",
       "sourceVersionFrom": "2024-07-25.0",
       "sourceVersionTo": "2026-08-19.0",
