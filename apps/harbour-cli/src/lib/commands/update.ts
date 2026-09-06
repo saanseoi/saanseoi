@@ -81,15 +81,18 @@ export async function runUpdateCommand(
     includeDependencies,
   )
 
-  log.message('', { spacing: 0 })
-  log.message(
-    `${colorize('DATASET UPDATES', 34)} ${dim('·')} ${colorize(
-      updateSelectionLabel({ requested, selectedFamily }),
-      33,
-    )} ${dim('·')} ${colorize(describeTarget(target).label, 34)}`,
-    { spacing: 0 },
-  )
-  log.message('', { spacing: 0 })
+  const nestedInitialisation = Boolean(process.env.SAANSEOI_INIT_COMMAND)
+  if (!nestedInitialisation) {
+    log.message('', { spacing: 0 })
+    log.message(
+      `${colorize('DATASET UPDATES', 34)} ${dim('·')} ${colorize(
+        updateSelectionLabel({ requested, selectedFamily }),
+        33,
+      )} ${dim('·')} ${colorize(describeTarget(target).label, 34)}`,
+      { spacing: 0 },
+    )
+    log.message('', { spacing: 0 })
+  }
 
   const state = await readUpdateState()
   const forceDownload = args.options['force-download'] === true
@@ -100,7 +103,6 @@ export async function runUpdateCommand(
   const forceUpload = args.options['force-upload'] === true
   const errors: string[] = []
   const added = new Map<string, PublishedSourceRelease>()
-  let reportedTargetLookupFailure = false
   const planned: PlannedDatasetUpdates[] = []
 
   for (const dataset of selectedDatasets) {
@@ -111,19 +113,12 @@ export async function runUpdateCommand(
         versions: await fetchTargetVersions(target, dataset),
       }
     } catch {
-      if (!reportedTargetLookupFailure) {
-        log.warn(
-          'Target release report unavailable; skipping affected datasets until it can be retrieved.',
-        )
-        reportedTargetLookupFailure = true
-      }
       targetVersionLookup = { status: 'unknown' }
     }
 
     if (targetVersionLookup.status === 'unknown') {
       const row = new UpdateRow(dataset)
-      row.start('checking target release')
-      row.finish('SKIPPED', undefined, null)
+      row.skipped('target release report unavailable')
       continue
     }
 
@@ -135,8 +130,7 @@ export async function runUpdateCommand(
     })
     if (duePhases.length === 0) {
       const row = new UpdateRow(dataset)
-      row.start('checking current')
-      row.finish('SKIPPED', undefined, null)
+      row.skipped('check not due')
       continue
     }
 
@@ -201,16 +195,22 @@ export async function runUpdateCommand(
     const phasePlans = planned
       .map(plan => ({
         ...plan,
-        updates: plan.updates.filter(update =>
-          updateBelongsToPhase(update, plan, phase),
-        ),
+        updates:
+          nestedInitialisation &&
+          plan.updates.every(
+            update => update.status === 'current' || update.status === 'skipped',
+          )
+            ? phase === 'archives'
+              ? plan.updates
+              : []
+            : plan.updates.filter(update => updateBelongsToPhase(update, plan, phase)),
       }))
       .filter(plan => plan.updates.length > 0)
 
     if (phasePlans.length === 0) {
       continue
     }
-    logPhaseHeading(phase)
+    if (!nestedInitialisation) logPhaseHeading(phase)
     for (const plan of phasePlans) {
       await processPlannedUpdates(plan, {
         added,
@@ -262,7 +262,7 @@ export async function runUpdateCommand(
     })),
     errors,
   })
-  outro('Update check complete')
+  if (!nestedInitialisation) outro('Update check complete')
   if (errors.length > 0) process.exitCode = 1
 }
 

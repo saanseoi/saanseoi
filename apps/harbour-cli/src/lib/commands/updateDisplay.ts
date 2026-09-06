@@ -11,6 +11,7 @@ import {
   formatDownloadProgressLine,
   formatIngestProgressLine,
   formatUpdateProgressLine,
+  formatSkippedDatasetLine,
 } from './updateFormatting.ts'
 import type { DatasetUpdate } from './updateTypes.ts'
 
@@ -129,6 +130,19 @@ export class UpdateRow {
     updates: DatasetUpdate[],
     targetVersions: ReadonlyMap<string, string | null>,
   ) {
+    if (
+      updates.length > 0 &&
+      updates.every(
+        update => update.status === 'current' || update.status === 'skipped',
+      )
+    ) {
+      this.skipped(
+        updates.some(update => update.status === 'skipped')
+          ? 'no action due'
+          : 'no updates',
+      )
+      return
+    }
     const message = formatDatasetCheckLine(this.dataset, updates, targetVersions)
     if (updates.some(update => update.status === 'error')) {
       this.stop(message, 'error')
@@ -139,6 +153,10 @@ export class UpdateRow {
 
   error(message: string) {
     this.stop(message, 'error')
+  }
+
+  skipped(reason: string) {
+    this.stop(formatSkippedDatasetLine(this.dataset, reason), 'success')
   }
 
   private stop(message: string, status: 'error' | 'success') {

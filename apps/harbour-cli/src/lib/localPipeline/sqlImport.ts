@@ -59,7 +59,7 @@ type RemoteImportArtefact = {
 const IMPORT_POLL_INTERVAL_MS = 1000
 const IMPORT_PROGRESS_INTERVAL_MS = 1000
 const LOCAL_D1_BATCH_STATEMENT_COUNT = 25
-const REMOTE_IMPORT_BATCH_BYTES = 16 * 1024 * 1024
+export const REMOTE_IMPORT_BATCH_BYTES = 16 * 1024 * 1024
 
 export async function runReportedSqlImportPhase<T extends Record<string, unknown>>(
   harbourClient: HarbourClient,
