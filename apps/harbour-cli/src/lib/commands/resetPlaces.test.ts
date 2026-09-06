@@ -81,6 +81,14 @@ function createPlacesOwnershipDb() {
         'place',
         'dr-hk-overture-place-2026-08-19.0',
         'staged'
+      ),
+      (
+        'places-address-release',
+        'places-dataset',
+        'places-source-release',
+        'address',
+        'dr-hk-overture-place-address-2026-08-19.0',
+        'staged'
       );
     INSERT INTO sourceReleases (id, status, updatedAt) VALUES
       ('places-source-release', 'processing', '2026-09-06T00:00:00.000Z');
@@ -88,6 +96,12 @@ function createPlacesOwnershipDb() {
       id, primaryDatasetId, resourceType, variant
     ) VALUES
       ('places-lineage', 'places-dataset', 'place', 'default'),
+      (
+        'places-address-lineage',
+        'places-dataset',
+        'address',
+        'overture-places'
+      ),
       ('other-lineage', 'other-dataset', 'place', 'default');
     INSERT INTO snapshots (
       id, snapshotLineageId, resourceType, code, status
@@ -97,6 +111,13 @@ function createPlacesOwnershipDb() {
         'places-lineage',
         'place',
         'data-hk-place-2026-08-19.0',
+        'draft'
+      ),
+      (
+        'address-draft',
+        'places-address-lineage',
+        'address',
+        'data-hk-address-2026-08-19.0--overture-places',
         'draft'
       ),
       ('other-draft', 'other-lineage', 'place', 'other-place', 'draft');
@@ -136,6 +157,8 @@ describe('Overture Places initialisation ownership', () => {
     const owned = await collectOwnedPlaces(db)
 
     expect(owned).toEqual({
+      addressReleaseIds: ['places-address-release'],
+      addressSnapshotIds: ['address-draft'],
       apiReleaseSetIds: [],
       assets: [
         {
@@ -144,9 +167,14 @@ describe('Overture Places initialisation ownership', () => {
           releaseId: 'places-release',
         },
       ],
-      releaseCodes: ['dr-hk-overture-place-2026-08-19.0'],
-      releaseIds: ['places-release'],
-      snapshotIds: ['unlinked-draft'],
+      placeReleaseIds: ['places-release'],
+      placeSnapshotIds: ['unlinked-draft'],
+      releaseCodes: [
+        'dr-hk-overture-place-2026-08-19.0',
+        'dr-hk-overture-place-address-2026-08-19.0',
+      ],
+      releaseIds: ['places-release', 'places-address-release'],
+      snapshotIds: ['unlinked-draft', 'address-draft'],
       sourceReleaseIds: ['places-source-release'],
     })
 
@@ -196,12 +224,12 @@ describe('Overture Places initialisation ownership', () => {
     const owned = await collectOwnedPlaces(db)
 
     await expect(assertPlacesInitialisationComplete(db, owned)).rejects.toThrow(
-      'Overture Places release dr-hk-overture-place-2026-08-19.0 is staged',
+      /Overture Places release .* is staged/,
     )
 
     sqlite.exec("UPDATE releases SET status = 'published';")
     await expect(assertPlacesInitialisationComplete(db, owned)).rejects.toThrow(
-      'Overture Places snapshot data-hk-place-2026-08-19.0 is draft',
+      /Overture Places snapshot .* is draft/,
     )
 
     sqlite.exec("UPDATE snapshots SET status = 'published';")

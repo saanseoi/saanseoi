@@ -1,7 +1,7 @@
 import { createHash } from '@repo/core/pipeline/utils'
 import type { currentSchema } from '@repo/db'
 import type {
-  AddressResolution,
+  StagedAddressResolution,
   SupplementaryEntry,
 } from './supplementaryPlaceAddress.ts'
 
@@ -36,7 +36,7 @@ type AddressDivisionReference = Pick<
 
 /** Produces complete snapshot rows from durable curation, never a fresh text parse. */
 export async function buildSupplementaryAddressRows(input: {
-  resolutions: AddressResolution[]
+  resolutions: StagedAddressResolution[]
   officialAddresses: Map<string, AddressDivisionReference>
   snapshotId: string
   divisionSnapshotId: string

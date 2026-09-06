@@ -21,7 +21,7 @@ import {
   normaliseOverturePlace,
   type NormalisedPlace,
 } from '@repo/core/pipeline/services/place'
-import type { AddressResolution } from './supplementaryPlaceAddress.ts'
+import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
 import { createHash } from '@repo/core/pipeline/utils'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
@@ -305,7 +305,7 @@ export async function stageEnrichedPlaces(
   currentDb: HarbourReadableDb,
   snapshots: { addressSnapshotId: string; divisionSnapshotId: string },
   places: AsyncIterable<NormalisedPlace>,
-  resolutions: AsyncIterable<AddressResolution>,
+  resolutions: AsyncIterable<StagedAddressResolution>,
   releaseRoot: string,
   onProgress?: (current: number) => void,
   supplementary?: {
@@ -435,7 +435,7 @@ async function* groupAsyncIterable<T>(values: AsyncIterable<T>, batchSize: numbe
 
 async function* zipPlacesAndResolutions(
   places: AsyncIterable<NormalisedPlace>,
-  resolutions: AsyncIterable<AddressResolution>,
+  resolutions: AsyncIterable<StagedAddressResolution>,
 ) {
   const iterator = resolutions[Symbol.asyncIterator]()
   for await (const place of places) {

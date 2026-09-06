@@ -248,9 +248,7 @@ describe('supplementary Place Address policy', () => {
     expect(result.reason).toBe('no_useful_partial_match')
     expect(
       result.candidates.find(candidate => candidate.addressId === hongKong.addressId),
-    ).toMatchObject({
-      breakdown: { buildingName: 55 },
-    })
+    ).toBeUndefined()
   })
   test('compacts non-review resolutions but retains review evidence', () => {
     const { analyse } = setup([citygate, { ...citygate, addressId: 'other' }])
@@ -261,7 +259,9 @@ describe('supplementary Place Address policy', () => {
       tier: 'delayed',
     })
     const review = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
-    expect(compactAddressResolution(review).candidates.length).toBeGreaterThan(0)
+    const compactReview = compactAddressResolution(review)
+    expect(compactReview.candidates.length).toBeGreaterThan(0)
+    expect(compactReview.candidates[0]).not.toHaveProperty('parsed')
   })
   test('geometry adds 25 points only to a nearby named candidate', () => {
     const { analyse, geometry } = setup([citygate, { ...citygate, addressId: 'other' }])

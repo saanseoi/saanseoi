@@ -14,7 +14,7 @@ import { resolveApiReleaseSetStatsTarget } from '../api/apiReleaseSetStats.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import type { NormalisedPlace } from '@repo/core/pipeline/services/place'
-import type { AddressResolution } from './supplementaryPlaceAddress.ts'
+import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   replayRemoteCacheWithRetry,
@@ -226,7 +226,7 @@ export async function processLocalPlaceSqlUpload(
           context.currentDb as unknown as HarbourReadableDb,
           snapshots,
           readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
-          readStagedJsonLines<AddressResolution>(supplementary.resolutionPath),
+          readStagedJsonLines<StagedAddressResolution>(supplementary.resolutionPath),
           releaseRoot,
           current => reportProgress(current),
           supplementary,

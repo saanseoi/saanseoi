@@ -859,6 +859,29 @@ describe('Overture Place first-cohort uncovered address shapes', () => {
 })
 
 describe('Overture Place address matching', () => {
+  test('bare references and country labels do not become premise components', () => {
+    const matcher = createPlaceAddressMatcher([
+      definition('generic', {
+        buildingName: 'HONG KONG',
+        phaseExpression: '1',
+        blockExpression: 'A',
+      }),
+      definition('named', {
+        buildingName: 'HONG KONG CULTURAL CENTRE',
+        phaseExpression: 'PHASE 1',
+      }),
+    ])
+    const parsed = parsePlaceAddress('A, 1, HONG KONG, 3 ON KWAN STREET', matcher)
+    expect(parsed.recognised2dComponents).toEqual([])
+    expect(parsed.buildingNumbers).toEqual(['3'])
+    expect(
+      parsePlaceAddress(
+        'HONG KONG CULTURAL CENTRE, PHASE 1, 3 ON KWAN STREET',
+        matcher,
+      ).recognised2dComponents.map(row => row.name),
+    ).toEqual(['HONG KONG CULTURAL CENTRE', 'PHASE 1'])
+    expect(matcher.definitions[0]?.phaseExpression).toBe('1')
+  })
   test('recognises ALS building and estate names as canonical 2D evidence', () => {
     const matcher = createPlaceAddressMatcher([
       definition('smithfield-court', {

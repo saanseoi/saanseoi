@@ -102,6 +102,9 @@ export type AddressResolution = {
   reason: string
   parsed: ParsedPlaceAddress[]
 }
+export type StagedAddressResolution = Omit<AddressResolution, 'candidates'> & {
+  candidates: CandidateEvidence[]
+}
 
 /**
  * Keeps the durable resolution stream bounded. Full parses and candidate sets
@@ -110,8 +113,12 @@ export type AddressResolution = {
  */
 export function compactAddressResolution(
   resolution: AddressResolution,
-): AddressResolution {
-  if (resolution.tier === 'review') return resolution
+): StagedAddressResolution {
+  if (resolution.tier === 'review')
+    return {
+      ...resolution,
+      candidates: resolution.candidates.map(candidateEvidence),
+    }
   return { ...resolution, candidates: [], parsed: [] }
 }
 
@@ -534,7 +541,12 @@ export function createSupplementaryAddressAnalyser(
     const premiseCandidates = candidates.filter(hasPremiseIdentityEvidence)
     const best = premiseCandidates[0]
     if (exactIds.size > 1)
-      return result('review', null, 'ambiguous_exact_addresses', candidates)
+      return result(
+        'review',
+        null,
+        'ambiguous_exact_addresses',
+        candidates.filter(candidate => exactIds.has(candidate.addressId)),
+      )
     if (
       exactIds.size === 1 &&
       !candidates.some(candidate => candidate.contradictions.length)
@@ -576,12 +588,12 @@ export function createSupplementaryAddressAnalyser(
         'review',
         null,
         best.contradictions.length ? 'contradictory_components' : 'score_or_separation',
-        candidates,
+        premiseCandidates,
       )
     }
     // Multiple publisher localisations require a reviewer to establish their shared identity.
     if (parsed.length !== 1)
-      return result('review', null, 'multiple_address_localisations', candidates)
+      return result('review', null, 'multiple_address_localisations', premiseCandidates)
     const value = best.parsed
     const supplementaryBuilding = supplementaryBuildingName(value)
     const values: SupplementaryValues[] = [
@@ -625,7 +637,7 @@ export function createSupplementaryAddressAnalyser(
     )
     if (shared) {
       if (shared.baseAddressId !== accepted.baseAddressId)
-        return result('review', null, 'shared_address_base_drift', candidates)
+        return result('review', null, 'shared_address_base_drift', premiseCandidates)
       accepted.values = shared.values
     }
     fixture.entries.push(accepted)
